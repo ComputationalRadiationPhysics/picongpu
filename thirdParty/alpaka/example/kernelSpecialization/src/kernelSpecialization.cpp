@@ -27,7 +27,7 @@ struct Kernel
     //!
     //! It will be called when no overload is a better match.
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc) const
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc) const -> void
     {
         // For simplicity assume 1d thread indexing
         auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
@@ -41,7 +41,7 @@ struct Kernel
     //! Overloading for other accelerators is similar, with another template name instead of AccGpuCudaRt.
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
     template<typename TDim, typename TIdx>
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc) const
+    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc) const -> void
     {
         // This overload is used when the kernel is run on the CUDA accelerator.
         // So inside we can use both alpaka and native CUDA directly.
@@ -79,15 +79,15 @@ auto example(TAccTag const&) -> int
     // Define the work division
     std::size_t const threadsPerGrid = 16u;
     std::size_t const elementsPerThread = 1u;
-    auto const workDiv = alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        threadsPerGrid,
-        elementsPerThread,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+    Kernel kernel;
+
+    auto const& bundeledKernel = alpaka::KernelBundle(kernel);
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv
+        = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, threadsPerGrid, elementsPerThread);
 
     // Run the kernel
-    alpaka::exec<Acc>(queue, workDiv, Kernel{});
+    alpaka::exec<Acc>(queue, workDiv, kernel);
     alpaka::wait(queue);
 
     return EXIT_SUCCESS;

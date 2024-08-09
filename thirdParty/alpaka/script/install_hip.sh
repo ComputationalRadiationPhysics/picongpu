@@ -5,9 +5,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
-
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 : "${ALPAKA_CI_HIP_ROOT_DIR?'ALPAKA_CI_HIP_ROOT_DIR must be specified'}"
 : "${ALPAKA_CI_HIP_VERSION?'ALPAKA_CI_HIP_VERSION must be specified'}"
@@ -44,6 +43,15 @@ export HSA_PATH=$ROCM_PATH
 
 export PATH=${ROCM_PATH}/bin:$PATH
 export PATH=${ROCM_PATH}/llvm/bin:$PATH
+
+# Workaround if clang uses the stdlibc++. The stdlibc++-9 does not support C++20, therefore we install the stdlibc++-11. Clang automatically uses the latest stdlibc++ version.
+if [[ "$(cat /etc/os-release)" =~ "20.04" ]] && [ "${alpaka_CXX_STANDARD}" == "20" ];
+then
+    travis_retry sudo apt install -y --no-install-recommends software-properties-common
+    sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
+    travis_retry sudo apt update
+    travis_retry sudo apt install -y --no-install-recommends g++-11
+fi
 
 sudo update-alternatives --install /usr/bin/clang clang ${ROCM_PATH}/llvm/bin/clang 50
 sudo update-alternatives --install /usr/bin/clang++ clang++ ${ROCM_PATH}/llvm/bin/clang++ 50

@@ -4,9 +4,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
-
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 : "${CXX?'CXX must be specified'}"
 
@@ -41,6 +40,15 @@ then
     set +eu
     source /opt/intel/oneapi/setvars.sh
     set -eu
+
+    # Workaround if icpx uses the stdlibc++. The stdlibc++-9 does not support C++20, therefore we install the stdlibc++-11. Clang automatically uses the latest stdlibc++ version.
+    if [[ "$(cat /etc/os-release)" =~ "20.04" ]] && [ "${alpaka_CXX_STANDARD}" == "20" ];
+    then
+        travis_retry sudo apt install -y --no-install-recommends software-properties-common
+        sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
+        travis_retry sudo apt update
+        travis_retry sudo apt install -y --no-install-recommends g++-11
+    fi
 fi
 
 which "${CXX}"

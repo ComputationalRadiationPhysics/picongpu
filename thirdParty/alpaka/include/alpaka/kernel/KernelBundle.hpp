@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <alpaka/core/Common.hpp>
 #include <alpaka/core/RemoveRestrict.hpp>
 
 #include <tuple>
@@ -19,29 +20,21 @@ namespace alpaka
     class KernelBundle
     {
     public:
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wdocumentation" // clang does not support the syntax for variadic template
-                                                       // arguments "args,...". Ignore the error.
-#endif
-        //! \param kernelFn The kernel function-object
-        //! \param args,... The kernel invocation arguments.
-#if BOOST_COMP_CLANG
-#    pragma clang diagnostic pop
-#endif
-        KernelBundle(TKernelFn const& kernelFn, TArgs&&... args)
-            : m_kernelFn(kernelFn)
-            , m_args(std::forward<TArgs>(args)...)
-        {
-        }
-
         //! The function object type
         using KernelFn = TKernelFn;
         //! Tuple type to encapsulate kernel function argument types and argument values
         using ArgTuple = std::tuple<remove_restrict_t<std::decay_t<TArgs>>...>;
 
+        // Constructor
+        KernelBundle(KernelFn kernelFn, TArgs&&... args)
+            : m_kernelFn(std::move(kernelFn))
+            , m_args(std::forward<TArgs>(args)...)
+        {
+        }
+
+    private:
         KernelFn m_kernelFn;
-        ArgTuple m_args;
+        ArgTuple m_args; // Store the argument types without const and reference
     };
 
     //! \brief User defined deduction guide with trailing return type. For CTAD during the construction.
@@ -60,6 +53,6 @@ namespace alpaka
     //! \return Kernel function bundle. An instance of KernelBundle which consists the kernel function object and its
     //! arguments.
     template<typename TKernelFn, typename... TArgs>
-    KernelBundle(TKernelFn const& kernelFn, TArgs&&... args) -> KernelBundle<TKernelFn, TArgs...>;
+    ALPAKA_FN_HOST KernelBundle(TKernelFn, TArgs&&...) -> KernelBundle<TKernelFn, TArgs...>;
 
 } // namespace alpaka

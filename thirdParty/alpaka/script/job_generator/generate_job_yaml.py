@@ -269,6 +269,7 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
 
     variables["ALPAKA_CI_CMAKE_VER"] = job[CMAKE][VERSION]
     variables["ALPAKA_BOOST_VERSION"] = job[BOOST][VERSION]
+    variables["alpaka_CXX_STANDARD"] = job[CXX_STANDARD][VERSION]
 
     # all back-ends are disabled by default
     # back-ends are conditionally enabled depending on the job parameters

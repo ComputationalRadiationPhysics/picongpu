@@ -278,16 +278,7 @@ auto example(TAccTag const&) -> int
     alpaka::Vec<alpaka::DimInt<1u>, Idx> const extent1D(matrixHeight * matrixWidth);
     auto outputDeviceMemory = alpaka::allocBuf<DataType, Idx>(devAcc, extent1D);
 
-    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
-    //  Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<DevAcc>(
-        devAcc,
-        extent,
-        Vec::ones(),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
-
-    //  Prepare convolution filter
+    //   Prepare convolution filter
     //
     std::vector<DataType> const filter = {0.11, 0.12, 0.13, 0.14, 0.15, 0.21, 0.22, 0.23, 0.24, 0.25, 0.31, 0.32, 0.33,
                                           0.34, 0.35, 0.41, 0.42, 0.43, 0.44, 0.45, 0.51, 0.52, 0.53, 0.54, 0.55};
@@ -313,6 +304,20 @@ auto example(TAccTag const&) -> int
     //  Construct kernel object, choose on of the kernels provided. ConvolutionKernel2DGlobalMemory and
     //  ConvolutionKernel2DSharedMemory
     ConvolutionKernel2DSharedMemory convolutionKernel2D;
+
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        convolutionKernel2D,
+        alpaka::getPtrNative(bufInputAcc),
+        alpaka::getPtrNative(outputDeviceMemory),
+        matrixWidth,
+        matrixHeight,
+        alpaka::getPtrNative(bufFilterAcc),
+        filterWidth,
+        intputWidthAllocated,
+        filterWidthAllocated);
+
+    //   Let alpaka calculate good block and grid sizes given our full problem extent.
+    auto const workDiv = alpaka::getValidWorkDivForKernel<DevAcc>(devAcc, bundeledKernel, extent, Vec::ones());
 
     // Run the kernel
     alpaka::exec<DevAcc>(

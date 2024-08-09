@@ -207,7 +207,14 @@ namespace alpaka
         template<typename T>
         static inline Error_t funcGetAttributes(FuncAttributes_t* attr, T* func)
         {
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wconditionally-supported"
+#    endif
             return ::hipFuncGetAttributes(attr, reinterpret_cast<void const*>(func));
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic pop
+#    endif
         }
 
         static inline Error_t getDeviceCount(int* count)

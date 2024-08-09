@@ -4,9 +4,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
-
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 if [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then

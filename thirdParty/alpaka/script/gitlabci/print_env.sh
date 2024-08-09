@@ -5,6 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
+# set exit on error manually instead using setup_utilities because
+# otherwise the begin of the job log looks not helpful
+set -e
+
 # display output with yellow color
 echo -e "\033[0;33mSteps to setup containter locally"
 

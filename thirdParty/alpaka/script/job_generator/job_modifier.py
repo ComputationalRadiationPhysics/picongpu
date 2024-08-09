@@ -48,7 +48,7 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
 
     # This is a helper dictionary to find the latest minor version of a CUDA SDK major, used by a
     # specific host compiler.
-    # e.g. We have CUDA SDK versions from 11.0 to 11.8 and 12.0 and 12.1. GCC as host compiler
+    # e.g. We have CUDA SDK versions from 11.2 to 11.8 and 12.0 and 12.1. GCC as host compiler
     # supports all SDK versions, Clang as host compiler only the 11 versions and Clang as CUDA
     # compiler only up to 11.5. So the result is (see CUDA_SDK_per_compiler later):
     # {"GCC" : ["11.8", "12.1"], "Clang" : ["11.8"], "Clang-CUDA" : ["11.5"]}

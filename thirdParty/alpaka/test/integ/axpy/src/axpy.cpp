@@ -94,19 +94,6 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 
     alpaka::Vec<Dim, Idx> const extent(numElements);
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        static_cast<Idx>(3u),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
-
-    std::cout << "AxpyKernel("
-              << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
-              << std::endl;
-
     // Allocate host memory buffers in pinned memory.
     auto memBufHostX = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
     auto memBufHostOrigY = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
@@ -158,6 +145,23 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     alpaka::print(memBufHostX, std::cout);
     std::cout << std::endl;
 #endif
+
+
+    auto const& bundeledKernel
+        = alpaka::KernelBundle(kernel, numElements, alpha, std::data(memBufAccX), std::data(memBufAccY));
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
+        devAcc,
+        bundeledKernel,
+        extent,
+        static_cast<Idx>(3u),
+        false,
+        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+
+    std::cout << "AxpyKernel("
+              << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
 
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(

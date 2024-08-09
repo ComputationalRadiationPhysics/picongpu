@@ -470,6 +470,10 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
         elseif(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
             message(STATUS "nvcc is used as CUDA compiler")
 
+            if(alpaka_CXX_STANDARD GREATER_EQUAL 20 AND CMAKE_VERSION VERSION_LESS "3.25.0")
+                message(FATAL_ERROR "CMake 3.24 and older does not support C++20 for nvcc")
+            endif()
+
             # nvcc sets no linux/__linux macros on OpenPOWER linux
             # nvidia bug id: 2448610
             if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -538,9 +542,31 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             endif()
         endif()
 
+        # Use the Shared CUDA Runtime library by default
+        if(NOT DEFINED CMAKE_CUDA_RUNTIME_LIBRARY)
+            set(CMAKE_CUDA_RUNTIME_LIBRARY "Shared")
+        endif()
+
+        # Link the CUDA Runtime library
+        if(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Shared")
+            target_link_libraries(alpaka INTERFACE CUDA::cudart)
+        elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Static")
+            target_link_libraries(alpaka INTERFACE CUDA::cudart_static)
+        elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "None")
+            message(WARNING "Building alpaka applications with CMAKE_CUDA_RUNTIME_LIBRARY=None is not supported.")
+        else()
+            message(FATAL_ERROR "Invalid setting for CMAKE_CUDA_RUNTIME_LIBRARY.")
+        endif()
+
         if(NOT alpaka_DISABLE_VENDOR_RNG)
             # Use cuRAND random number generators
-            target_link_libraries(alpaka INTERFACE CUDA::cudart CUDA::curand)
+            if(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Shared")
+                target_link_libraries(alpaka INTERFACE CUDA::curand)
+            elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Static")
+                target_link_libraries(alpaka INTERFACE CUDA::curand_static)
+            elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "None")
+                message(FATAL_ERROR "cuRAND requires the CUDA runtime library.")
+            endif()
         endif()
     else()
         message(FATAL_ERROR "Optional alpaka dependency CUDA could not be found!")

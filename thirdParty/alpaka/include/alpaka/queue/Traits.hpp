@@ -17,7 +17,7 @@ namespace alpaka
 
     //! True if TQueue is a queue, i.e. if it implements the ConceptQueue concept.
     template<typename TQueue>
-    inline constexpr bool isQueue = concepts::ImplementsConcept<ConceptQueue, TQueue>::value;
+    inline constexpr bool isQueue = concepts::ImplementsConcept<ConceptQueue, std::decay_t<TQueue>>::value;
 
     //! The queue traits.
     namespace trait

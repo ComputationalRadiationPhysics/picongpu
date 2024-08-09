@@ -288,6 +288,33 @@ namespace alpaka
         }
     } // namespace detail
 
+    //! Check if the kernel type is trivially copyable
+    //!
+    //! \attention In case this trait is specialized for a user type the user should be sure that the result of calling
+    //! the copy constructor is equal to use memcpy to duplicate the object. An existing destructor should be free
+    //! of side effects.
+    //!
+    //! The default implementation is true for trivially copyable types (or for extended lambda expressions for CUDA).
+    //!
+    //! @tparam T type to check
+    //! @{
+    template<typename T, typename = void>
+    struct IsKernelTriviallyCopyable
+#if BOOST_COMP_NVCC
+        : std::bool_constant<
+              std::is_trivially_copyable_v<T> || __nv_is_extended_device_lambda_closure_type(T)
+              || __nv_is_extended_host_device_lambda_closure_type(T)>
+#else
+        : std::is_trivially_copyable<T>
+#endif
+    {
+    };
+
+    template<typename T>
+    inline constexpr bool isKernelTriviallyCopyable = IsKernelTriviallyCopyable<T>::value;
+
+    //! @}
+
 //! Creates a kernel execution task.
 //!
 //! \tparam TAcc The accelerator type.
@@ -306,11 +333,10 @@ namespace alpaka
 
 #if BOOST_COMP_NVCC
         static_assert(
-            std::is_trivially_copyable_v<TKernelFnObj> || __nv_is_extended_device_lambda_closure_type(TKernelFnObj)
-                || __nv_is_extended_host_device_lambda_closure_type(TKernelFnObj),
+            isKernelTriviallyCopyable<TKernelFnObj>,
             "Kernels must be trivially copyable or an extended CUDA lambda expression!");
 #else
-        static_assert(std::is_trivially_copyable_v<TKernelFnObj>, "Kernels must be trivially copyable!");
+        static_assert(isKernelTriviallyCopyable<TKernelFnObj>, "Kernels must be trivially copyable!");
 #endif
         (detail::assertKernelArgIsTriviallyCopyable<std::decay_t<TArgs>>(), ...);
         static_assert(
