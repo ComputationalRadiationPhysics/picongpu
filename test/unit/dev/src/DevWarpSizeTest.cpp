@@ -29,3 +29,10 @@ TEMPLATE_LIST_TEST_CASE("getPreferredWarpSize", "[dev]", alpaka::test::TestAccs)
     auto const preferredWarpSize = alpaka::getPreferredWarpSize(dev);
     REQUIRE(preferredWarpSize > 0);
 }
+
+TEMPLATE_LIST_TEST_CASE("isDevice", "[dev]", alpaka::test::TestAccs)
+{
+    auto const platform = alpaka::Platform<TestType>{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
+    REQUIRE(alpaka::isDevice<decltype(dev)>);
+}

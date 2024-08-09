@@ -5,7 +5,15 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+# Launch an extra docker container on GitHub Actions with a default ubuntu image. 
+# The Ubuntu image provided by GitHub contains already a lot of installed software 
+# and does not provide a clean environment. Therefore unexpected behavior at 
+# configuring the alpaka build is possible.
+
+https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
+
+set +xv
+source ./script/setup_utilities/set.sh
 source ./script/docker_retry.sh
 
 ALPAKA_CI_BOOST_BRANCH="boost-${ALPAKA_BOOST_VERSION}"

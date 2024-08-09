@@ -32,6 +32,7 @@
 
 // Implementation details.
 #include "alpaka/acc/Tag.hpp"
+#include "alpaka/core/ClipCast.hpp"
 #include "alpaka/core/Concepts.hpp"
 #include "alpaka/dev/DevCpu.hpp"
 
@@ -39,6 +40,8 @@
 #include <typeinfo>
 
 #ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
+
+#    include <tbb/tbb.h>
 
 namespace alpaka
 {
@@ -127,7 +130,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
                 return {// m_multiProcessorCount
-                        static_cast<TIdx>(1),
+                        alpaka::core::clipCast<TIdx>(tbb::this_task_arena::max_concurrency()),
                         // m_gridBlockExtentMax
                         Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_gridBlockCountMax

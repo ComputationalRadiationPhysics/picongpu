@@ -49,7 +49,8 @@ struct Box
     using BufAccRand = alpaka::Buf<Acc, RandomEngine, Dim, Idx>;
 
     Vec const extentRand; ///< size of the buffer of PRNG states
-    WorkDiv workdivRand; ///< work division for PRNG buffer initialization
+    // WorkDiv workdivRand; ///< work division for PRNG buffer initialization // REMOVE THAT!!
+    // WorkDiv workdivResult; ///< work division of the result calculation // REMOVE THAT!!
     BufHostRand bufHostRand; ///< host side PRNG states buffer (can be used to check the state of the states)
     BufAccRand bufAccRand; ///< device side PRNG states buffer
 
@@ -58,28 +59,16 @@ struct Box
     using BufAcc = alpaka::Buf<Acc, float, Dim, Idx>;
 
     Vec const extentResult; ///< size of the results buffer
-    WorkDiv workdivResult; ///< work division of the result calculation
+
     BufHost bufHostResult; ///< host side results buffer
     BufAcc bufAccResult; ///< device side results buffer
 
     Box()
         : queue{alpaka::getDevByIdx(accPlatform, 0)}
         , extentRand{static_cast<Idx>(NUM_POINTS)} // One PRNG state per "point".
-        , workdivRand{alpaka::getValidWorkDiv<Acc>(
-              alpaka::getDevByIdx(accPlatform, 0),
-              extentRand,
-              Vec(Idx{1}),
-              false,
-              alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)}
         , bufHostRand{alpaka::allocBuf<RandomEngine, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentRand)}
         , bufAccRand{alpaka::allocBuf<RandomEngine, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentRand)}
         , extentResult{static_cast<Idx>((NUM_POINTS * NUM_ROLLS))} // Store all "rolls" for each "point"
-        , workdivResult{alpaka::getValidWorkDiv<Acc>(
-              alpaka::getDevByIdx(accPlatform, 0),
-              extentResult,
-              Vec(static_cast<Idx>(NUM_ROLLS)), // One thread per "point"; each performs NUM_ROLLS "rolls"
-              false,
-              alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)}
         , bufHostResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentResult)}
         , bufAccResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentResult)}
     {
@@ -257,9 +246,26 @@ void runStrategy(Box<TAccTag>& box)
     // of the PRNG buffer and has to be passed in explicitly. Other strategies ignore the last parameter, and deduce
     // the initial parameters solely from the thread index
 
+
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        initRandomKernel,
+        box.extentRand,
+        ptrBufAccRand,
+        static_cast<unsigned>(box.extentResult[0] / box.extentRand[0]));
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDivRand = alpaka::getValidWorkDivForKernel<typename Box<TAccTag>::Acc>(
+        alpaka::getDevByIdx(box.accPlatform, 0),
+        bundeledKernel,
+        box.extentRand,
+        typename Box<TAccTag>::Vec(typename Box<TAccTag>::Idx{1}),
+        false,
+        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+
+
     alpaka::exec<typename Box<TAccTag>::Acc>(
         box.queue,
-        box.workdivRand,
+        workDivRand,
         initRandomKernel,
         box.extentRand,
         ptrBufAccRand,
@@ -284,9 +290,24 @@ void runStrategy(Box<TAccTag>& box)
     // Run the "computation" kernel filling the results buffer with random numbers in parallel
     alpaka::memcpy(box.queue, box.bufAccResult, box.bufHostResult);
     FillKernel fillKernel;
+
+    auto const& bundeledKernelFill
+        = alpaka::KernelBundle(fillKernel, box.extentResult, ptrBufAccRand, ptrBufAccResult);
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workdivResult = alpaka::getValidWorkDivForKernel<typename Box<TAccTag>::Acc>(
+        alpaka::getDevByIdx(box.accPlatform, 0),
+        bundeledKernelFill,
+        box.extentResult,
+        typename Box<TAccTag>::Vec(static_cast<typename Box<TAccTag>::Idx>(
+            NUM_ROLLS)), // One thread per "point"; each performs NUM_ROLLS "rolls"
+        false,
+        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+
+
     alpaka::exec<typename Box<TAccTag>::Acc>(
         box.queue,
-        box.workdivResult,
+        workdivResult,
         fillKernel,
         box.extentResult,
         ptrBufAccRand,

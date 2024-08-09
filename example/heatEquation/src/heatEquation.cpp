@@ -103,13 +103,6 @@ auto example(TAccTag const&) -> int
     // Get valid workdiv for the given problem
     uint32_t elemPerThread = 1;
     alpaka::Vec<Dim, Idx> const extent{numNodesX};
-    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
-    auto workdiv = WorkDiv{alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        elemPerThread,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)};
 
     // Select queue
     using QueueProperty = alpaka::Blocking;
@@ -139,7 +132,11 @@ auto example(TAccTag const&) -> int
         pCurrHost[i] = exactSolution(i * dx, 0.0);
     }
 
-    HeatEquationKernel kernel;
+    HeatEquationKernel heatEqKernel;
+
+    auto const& bundeledKernel = alpaka::KernelBundle(heatEqKernel, pCurrAcc, pNextAcc, numNodesX, dx, dt);
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, extent, elemPerThread);
 
     // Copy host -> device
     alpaka::memcpy(queue, uCurrBufAcc, uCurrBufHost);
@@ -150,7 +147,7 @@ auto example(TAccTag const&) -> int
     for(uint32_t step = 0; step < numTimeSteps; step++)
     {
         // Compute next values
-        alpaka::exec<Acc>(queue, workdiv, kernel, pCurrAcc, pNextAcc, numNodesX, dx, dt);
+        alpaka::exec<Acc>(queue, workDiv, heatEqKernel, pCurrAcc, pNextAcc, numNodesX, dx, dt);
 
         // We assume the boundary conditions are constant and so these values
         // do not need to be updated.

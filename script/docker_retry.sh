@@ -6,6 +6,8 @@
 
 ANSI_RED="\033[31m"
 ANSI_RESET="\033[0m"
+set +xv
+source ./script/setup_utilities.sh
 
 # rerun docker command if error 125 (
 #   - triggered by image download problems

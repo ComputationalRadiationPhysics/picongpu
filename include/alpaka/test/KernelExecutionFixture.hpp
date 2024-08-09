@@ -39,39 +39,49 @@ namespace alpaka::test
         }
 
         template<typename TExtent>
-        KernelExecutionFixture(TExtent const& extent)
-            : m_queue{m_device}
-            , m_workDiv{getValidWorkDiv<Acc>(
-                  m_device,
-                  extent,
-                  Vec<Dim, Idx>::ones(),
-                  false,
-                  GridBlockExtentSubDivRestrictions::Unrestricted)}
+        KernelExecutionFixture(TExtent const& extent) : m_queue{m_device}
+                                                      , m_extent{extent}
         {
         }
 
-        KernelExecutionFixture(Queue queue, WorkDiv workDiv) : m_queue{std::move(queue)}, m_workDiv{std::move(workDiv)}
+        KernelExecutionFixture(Queue queue, WorkDiv workDiv)
+            : m_platform{} // if the platform is not stateless, this is wrong; we ignore it because it is not be used
+            , m_device{alpaka::getDev(queue)}
+            , m_queue{std::move(queue)}
+            , m_workDiv{std::move(workDiv)}
         {
         }
 
         template<typename TExtent>
         KernelExecutionFixture(Queue queue, TExtent const& extent)
-            : m_queue{std::move(queue)}
-            , m_workDiv{getValidWorkDiv<Acc>(
-                  m_device,
-                  extent,
-                  Vec<Dim, Idx>::ones(),
-                  false,
-                  GridBlockExtentSubDivRestrictions::Unrestricted)}
+            : m_platform{} // if the platform is not stateless, this is wrong; we ignore it because it is not be used
+            , m_device{alpaka::getDev(queue)}
+            , m_queue{std::move(queue)}
+            , m_extent{extent}
         {
         }
 
         template<typename TKernelFnObj, typename... TArgs>
-        auto operator()(TKernelFnObj const& kernelFnObj, TArgs&&... args) -> bool
+        auto operator()(TKernelFnObj kernelFnObj, TArgs&&... args) -> bool
         {
             // Allocate the result value
             auto bufAccResult = allocBuf<bool, Idx>(m_device, static_cast<Idx>(1u));
             memset(m_queue, bufAccResult, static_cast<std::uint8_t>(true));
+
+
+            auto bundeledKernel = alpaka::KernelBundle<TKernelFnObj, decltype(getPtrNative(bufAccResult)), TArgs...>(
+                kernelFnObj,
+                getPtrNative(bufAccResult),
+                std::forward<TArgs>(args)...);
+
+
+            // set workdiv if it is not before
+            if(m_workDiv == WorkDiv{Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0)})
+                m_workDiv = alpaka::getValidWorkDivForKernel<Acc, Dev<Acc>>(
+                    m_device,
+                    bundeledKernel,
+                    m_extent,
+                    Vec<Dim, Idx>::ones());
 
             exec<Acc>(m_queue, m_workDiv, kernelFnObj, getPtrNative(bufAccResult), std::forward<TArgs>(args)...);
 
@@ -91,7 +101,8 @@ namespace alpaka::test
         Platform m_platform{};
         Device m_device{getDevByIdx(m_platform, 0)};
         Queue m_queue;
-        WorkDiv m_workDiv;
+        WorkDiv m_workDiv{Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0)};
+        Vec<Dim, Idx> m_extent;
     };
 
 } // namespace alpaka::test

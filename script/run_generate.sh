@@ -5,7 +5,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
+
+# TODO(SimeonEhrig): should use CMAKE_C_COMPILER and CMAKE_CXX_COMPILER instead update-alternatives because it
+# is more relastic use case and less error prone approach
+#: "${CMAKE_C_COMPILER?'CMAKE_C_COMPILER must be specified'}"
+#: "${CMAKE_CXX_COMPILER?'CMAKE_CXX_COMPILER must be specified'}"
+: "${alpaka_CXX_STANDARD?'alpaka_CXX_STANDARD must be specified'}"
 
 #-------------------------------------------------------------------------------
 

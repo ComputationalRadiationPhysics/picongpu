@@ -135,9 +135,15 @@
 //! \endcode
 #if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
     || BOOST_LANG_HIP)
-#    define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                              \
-        template<typename TAcc>                                                                                       \
-        inline __device__
+#    if defined(__CUDACC_RDC__) || defined(__CLANG_RDC__)
+#        define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                          \
+            template<typename TAcc>                                                                                   \
+            __device__ inline
+#    else
+#        define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                          \
+            template<typename TAcc>                                                                                   \
+            __device__ static
+#    endif
 #else
 #    define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                              \
         template<typename TAcc>                                                                                       \
@@ -184,9 +190,15 @@
 //! \endcode
 #if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
     || BOOST_LANG_HIP)
-#    define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                            \
-        template<typename TAcc>                                                                                       \
-        inline __constant__
+#    if defined(__CUDACC_RDC__) || defined(__CLANG_RDC__)
+#        define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                        \
+            template<typename TAcc>                                                                                   \
+            __constant__ inline
+#    else
+#        define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                        \
+            template<typename TAcc>                                                                                   \
+            __constant__ static
+#    endif
 #else
 #    define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                            \
         template<typename TAcc>                                                                                       \

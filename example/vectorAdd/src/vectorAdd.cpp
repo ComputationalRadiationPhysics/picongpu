@@ -89,13 +89,6 @@ auto example(TAccTag const&) -> int
     Idx const elementsPerThread(8u);
     alpaka::Vec<Dim, Idx> const extent(numElements);
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        elementsPerThread,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
 
     // Define the buffer element type
     using Data = std::uint32_t;
@@ -136,6 +129,15 @@ auto example(TAccTag const&) -> int
 
     // Instantiate the kernel function object
     VectorAddKernel kernel;
+
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        kernel,
+        alpaka::getPtrNative(bufAccA),
+        alpaka::getPtrNative(bufAccB),
+        alpaka::getPtrNative(bufAccC),
+        numElements);
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, extent, elementsPerThread);
 
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(

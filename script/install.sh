@@ -5,49 +5,17 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
-
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 : ${ALPAKA_CI_ANALYSIS?"ALPAKA_CI_ANALYSIS must be specified"}
 : ${ALPAKA_CI_INSTALL_CUDA?"ALPAKA_CI_INSTALL_CUDA must be specified"}
 : ${ALPAKA_CI_INSTALL_HIP?"ALPAKA_CI_INSTALL_HIP must be specified"}
 : ${ALPAKA_CI_INSTALL_TBB?"ALPAKA_CI_INSTALL_TBB must be specified"}
 
-# the agc-manager only exists in the agc-container
-# set alias to false, so each time if we ask the agc-manager if a software is installed, it will
-# return false and the installation of software will be triggered
-if [ "$ALPAKA_CI_OS_NAME" != "Linux" ] || [ ! -f "/usr/bin/agc-manager" ]
-then
-    echo "agc-manager is not installed"
-
-    echo '#!/bin/bash' > agc-manager
-    echo 'exit 1' >> agc-manager
-
-    if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
-    then
-        sudo chmod +x agc-manager
-        sudo mv agc-manager /usr/bin/agc-manager
-    elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
-    then
-        chmod +x agc-manager
-        mv agc-manager /usr/bin
-    elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
-    then
-        sudo chmod +x agc-manager
-        sudo mv agc-manager /usr/local/bin
-    else
-        echo "unknown operation system: ${ALPAKA_CI_OS_NAME}"
-        exit 1
-    fi
-else
-    echo "found agc-manager"
-fi
-
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     travis_retry apt-get -y --quiet update
-    travis_retry apt-get -y install sudo
 
     # tzdata is installed by software-properties-common but it requires some special handling
     if [[ "$(cat /etc/os-release)" == *"20.04"* ]]

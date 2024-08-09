@@ -40,7 +40,7 @@ concurrency:
 # alpaka_ACC_ANY_BT_OMP5_ENABLE                 : {ON, OFF}
 #   [ON] OMP_NUM_THREADS                        : {1, 2, 3, 4}
 # alpaka_ACC_GPU_CUDA_ENABLE                    : {ON, OFF}
-#   [ON] ALPAKA_CI_CUDA_VERSION                 : {11.0, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6}
+#   [ON] ALPAKA_CI_CUDA_VERSION                 : {11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 12.0, 12.1, 12.2 12.3}
 #   [ON] CMAKE_CUDA_COMPILER                    : {nvcc, [CXX==clang++]:clang++}
 # alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE             : {ON, OFF}
 # alpaka_ACC_GPU_HIP_ENABLE                     : {ON, OFF}
@@ -62,6 +62,7 @@ env:
   ALPAKA_CI_ONEAPI_VERSION: 2024.0
   ALPAKA_CI_TBB_VERSION: 2021.10.0
   ALPAKA_CI_RUN_TESTS: ON
+  alpaka_CXX_STANDARD: 17
   alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE: ON
   alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: ON
   alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: ON
