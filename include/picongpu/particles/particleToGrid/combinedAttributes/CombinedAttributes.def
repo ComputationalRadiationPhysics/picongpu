@@ -21,4 +21,4 @@
 
 #include "picongpu/particles/particleToGrid/combinedAttributes/AverageAttribute.def"
 #include "picongpu/particles/particleToGrid/combinedAttributes/RelativisticDensity.def"
-#include "picongpu/particles/particleToGrid/combinedAttributes/ScreeningInvSqaured.def"
+#include "picongpu/particles/particleToGrid/combinedAttributes/ScreeningInvSquared.def"
