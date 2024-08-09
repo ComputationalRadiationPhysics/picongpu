@@ -301,67 +301,7 @@ namespace alpaka
             }
         }
 
-
         return WorkDivMembers<TDim, TIdx>(gridBlockExtent, blockThreadExtent, clippedThreadElemExtent);
-    }
-
-    //! \tparam TAcc The accelerator for which this work division has to be valid.
-    //! \tparam TDev The type of the device.
-    //! \tparam TGridElemExtent The type of the grid element extent.
-    //! \tparam TThreadElemExtent The type of the thread element extent.
-    //! \param dev The device the work division should be valid for.
-    //! \param gridElemExtent The full extent of elements in the grid.
-    //! \param threadElemExtents the number of elements computed per thread.
-    //! \param blockThreadMustDivideGridThreadExtent If this is true, the grid thread extent will be multiples of the
-    //! corresponding block thread extent.
-    //!     NOTE: If this is true and gridThreadExtent is prime (or otherwise bad chosen) in a dimension, the
-    //!     block-thread extent will be one in this dimension.
-    //! \param gridBlockExtentSubDivRestrictions The grid block extent subdivision restrictions.
-    //! \return The work division.
-    template<
-        typename TAcc,
-        typename TDev,
-        typename TGridElemExtent = Vec<Dim<TAcc>, Idx<TAcc>>,
-        typename TThreadElemExtent = Vec<Dim<TAcc>, Idx<TAcc>>>
-    ALPAKA_FN_HOST auto getValidWorkDiv(
-        [[maybe_unused]] TDev const& dev,
-        [[maybe_unused]] TGridElemExtent const& gridElemExtent = Vec<Dim<TAcc>, Idx<TAcc>>::ones(),
-        [[maybe_unused]] TThreadElemExtent const& threadElemExtents = Vec<Dim<TAcc>, Idx<TAcc>>::ones(),
-        [[maybe_unused]] bool blockThreadMustDivideGridThreadExtent = true,
-        [[maybe_unused]] GridBlockExtentSubDivRestrictions gridBlockExtentSubDivRestrictions
-        = GridBlockExtentSubDivRestrictions::Unrestricted)
-        -> WorkDivMembers<Dim<TGridElemExtent>, Idx<TGridElemExtent>>
-    {
-        static_assert(
-            Dim<TGridElemExtent>::value == Dim<TAcc>::value,
-            "The dimension of TAcc and the dimension of TGridElemExtent have to be identical!");
-        static_assert(
-            Dim<TThreadElemExtent>::value == Dim<TAcc>::value,
-            "The dimension of TAcc and the dimension of TThreadElemExtent have to be identical!");
-        static_assert(
-            std::is_same_v<Idx<TGridElemExtent>, Idx<TAcc>>,
-            "The idx type of TAcc and the idx type of TGridElemExtent have to be identical!");
-        static_assert(
-            std::is_same_v<Idx<TThreadElemExtent>, Idx<TAcc>>,
-            "The idx type of TAcc and the idx type of TThreadElemExtent have to be identical!");
-
-        if constexpr(Dim<TGridElemExtent>::value == 0)
-        {
-            auto const zero = Vec<DimInt<0>, Idx<TAcc>>{};
-            ALPAKA_ASSERT(gridElemExtent == zero);
-            ALPAKA_ASSERT(threadElemExtents == zero);
-            return WorkDivMembers<DimInt<0>, Idx<TAcc>>{zero, zero, zero};
-        }
-        else
-            return subDivideGridElems(
-                getExtents(gridElemExtent),
-                getExtents(threadElemExtents),
-                getAccDevProps<TAcc>(dev),
-                static_cast<Idx<TAcc>>(0u),
-                blockThreadMustDivideGridThreadExtent,
-                gridBlockExtentSubDivRestrictions);
-        using V [[maybe_unused]] = Vec<Dim<TGridElemExtent>, Idx<TGridElemExtent>>;
-        ALPAKA_UNREACHABLE(WorkDivMembers<Dim<TGridElemExtent>, Idx<TGridElemExtent>>{V{}, V{}, V{}});
     }
 
     //! \tparam TDev The type of the device.
@@ -490,31 +430,25 @@ namespace alpaka
 
     //! \tparam TDim The dimensionality of the accelerator device properties.
     //! \tparam TIdx The idx type of the accelerator device properties.
-    //! \tparam TKernelBundle The type of the bundle of kernel and the arguments. Kernel is used to get number of
-    //! threads per block, this number could be less than or equal to the number of threads per block according to
-    //! device properties.
     //! \tparam TWorkDiv The type of the work division.
     //! \param accDevProps The maxima for the work division.
-    //! \param kernelBundle An instance of a class consisting Kernel function and its arguments.
+    //! \param kernelFunctionAttributes Kernel attributes, including the maximum number of threads per block that can
+    //! be used by this kernel on the given device. This number can be equal to or smaller than the the number of
+    //! threads per block supported by the device.
     //! \param workDiv The work division to test for validity.
     //! \return Returns true if the work division is valid for the given accelerator device properties and for the
     //! given kernel. Otherwise returns false.
-    template<typename TAcc, typename TDim, typename TIdx, typename TKernelBundle, typename TWorkDiv>
+    template<typename TAcc, typename TDim, typename TIdx, typename TWorkDiv>
     ALPAKA_FN_HOST auto isValidWorkDivKernel(
         AccDevProps<TDim, TIdx> const& accDevProps,
-        TKernelBundle const& kernelBundle,
+        KernelFunctionAttributes const& kernelFunctionAttributes,
         TWorkDiv const& workDiv) -> bool
-
     {
-        auto const platformAcc = alpaka::Platform<TAcc>{};
-        auto const dev = alpaka::getDevByIdx(platformAcc, 0);
-
         // Get the extents of grid, blocks and threads of the work division to check.
         auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
         auto const blockThreadExtent = getWorkDiv<Block, Threads>(workDiv);
         auto const threadElemExtent = getWorkDiv<Thread, Elems>(workDiv);
         // Use kernel properties to find the max threads per block for the kernel
-        auto const kernelFunctionAttributes = alpaka::getFunctionAttributes<TAcc>(dev, kernelBundle);
         auto const threadsPerBlockForKernel = kernelFunctionAttributes.maxThreadsPerBlock;
         // Select the minimum to find the upper bound for the threads per block
         auto const allowedThreadsPerBlock = std::min(
@@ -571,7 +505,10 @@ namespace alpaka
         TKernelBundle const& kernelBundle,
         TWorkDiv const& workDiv) -> bool
     {
-        return isValidWorkDivKernel<TAcc>(getAccDevProps<TAcc>(dev), kernelBundle, workDiv);
+        return isValidWorkDivKernel<TAcc>(
+            getAccDevProps<TAcc>(dev),
+            getFunctionAttributes<TAcc>(dev, kernelBundle),
+            workDiv);
     }
 
     //! \tparam TAcc The accelerator to test the validity on.

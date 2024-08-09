@@ -5,7 +5,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 ./script/print_env.sh
 source ./script/before_install.sh

@@ -61,7 +61,7 @@ namespace alpaka
 
     //! True if TDev is a device, i.e. if it implements the ConceptDev concept.
     template<typename TDev>
-    inline constexpr bool isDevice = concepts::ImplementsConcept<ConceptDev, TDev>::value;
+    inline constexpr bool isDevice = concepts::ImplementsConcept<ConceptDev, std::decay_t<TDev>>::value;
 
     //! \return The device this object is bound to.
     template<typename T>

@@ -76,13 +76,7 @@ auto example(TAccTag const&) -> int
     using Vec = alpaka::Vec<Dim, Idx>;
     auto const elementsPerThread = Vec::all(static_cast<Idx>(1));
     auto const threadsPerGrid = Vec{4, 2, 4};
-    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
-    WorkDiv const workDiv = alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        threadsPerGrid,
-        elementsPerThread,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+
 
     const size_t nExclamationMarks = 10;
 
@@ -101,30 +95,34 @@ auto example(TAccTag const&) -> int
     // To define a fully generic kernel lambda, the type of acc must be
     // auto. The Nvidia nvcc does not support generic lambdas, so the
     // type is set to Acc.
-    alpaka::exec<Acc>(
-        queue,
-        workDiv,
-        [] ALPAKA_FN_ACC(Acc const& acc, size_t const nExclamationMarksAsArg) -> void
+
+    auto kernelLambda = [] ALPAKA_FN_ACC(Acc const& acc, size_t const nExclamationMarksAsArg) -> void
+    {
+        auto globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        auto globalThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+        auto linearizedGlobalThreadIdx = alpaka::mapIdx<1u>(globalThreadIdx, globalThreadExtent);
+
+        printf(
+            "[z:%u, y:%u, x:%u][linear:%u] Hello world from a lambda",
+            static_cast<unsigned>(globalThreadIdx[0]),
+            static_cast<unsigned>(globalThreadIdx[1]),
+            static_cast<unsigned>(globalThreadIdx[2]),
+            static_cast<unsigned>(linearizedGlobalThreadIdx[0]));
+
+        for(size_t i = 0; i < nExclamationMarksAsArg; ++i)
         {
-            auto globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-            auto globalThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-            auto linearizedGlobalThreadIdx = alpaka::mapIdx<1u>(globalThreadIdx, globalThreadExtent);
+            printf("!");
+        }
 
-            printf(
-                "[z:%u, y:%u, x:%u][linear:%u] Hello world from a lambda",
-                static_cast<unsigned>(globalThreadIdx[0]),
-                static_cast<unsigned>(globalThreadIdx[1]),
-                static_cast<unsigned>(globalThreadIdx[2]),
-                static_cast<unsigned>(linearizedGlobalThreadIdx[0]));
+        printf("\n");
+    };
 
-            for(size_t i = 0; i < nExclamationMarksAsArg; ++i)
-            {
-                printf("!");
-            }
+    auto const& bundeledKernel = alpaka::KernelBundle(kernelLambda, nExclamationMarks);
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv
+        = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, threadsPerGrid, elementsPerThread);
 
-            printf("\n");
-        },
-        nExclamationMarks);
+    alpaka::exec<Acc>(queue, workDiv, kernelLambda, nExclamationMarks);
     alpaka::wait(queue);
 
     return EXIT_SUCCESS;

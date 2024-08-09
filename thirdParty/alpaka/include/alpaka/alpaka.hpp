@@ -112,6 +112,7 @@
 #include "alpaka/idx/gb/IdxGbRef.hpp"
 #include "alpaka/idx/gb/IdxGbUniformCudaHipBuiltIn.hpp"
 // kernel
+#include "alpaka/kernel/KernelBundle.hpp"
 #include "alpaka/kernel/TaskKernelCpuOmp2Blocks.hpp"
 #include "alpaka/kernel/TaskKernelCpuOmp2Threads.hpp"
 #include "alpaka/kernel/TaskKernelCpuSerial.hpp"

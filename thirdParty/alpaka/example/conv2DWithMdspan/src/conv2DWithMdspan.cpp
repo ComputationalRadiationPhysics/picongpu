@@ -129,14 +129,6 @@ auto example(TAccTag const&) -> int
     //
     auto outputDeviceMemory = alpaka::allocBuf<DataType, Idx>(devAcc, extent);
 
-    //  Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<DevAcc>(
-        devAcc,
-        extent,
-        Vec::ones(),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
-
     //  Prepare convolution filter at host
     //
     std::vector<DataType> const filter = {0.11, 0.12, 0.13, 0.14, 0.15, 0.21, 0.22, 0.23, 0.24, 0.25, 0.31, 0.32, 0.33,
@@ -154,6 +146,17 @@ auto example(TAccTag const&) -> int
 
     //  Construct kernel object
     ConvolutionKernelMdspan2D convolutionKernel2D;
+
+    // Make a bundle
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        convolutionKernel2D,
+        alpaka::experimental::getMdSpan(bufInputAcc),
+        alpaka::experimental::getMdSpan(outputDeviceMemory),
+        alpaka::experimental::getMdSpan(bufFilterAcc));
+
+    //   Let alpaka calculate good block and grid sizes given our full problem extent.
+    auto const workDiv = alpaka::getValidWorkDivForKernel<DevAcc>(devAcc, bundeledKernel, extent, Vec::ones());
+
 
     // Run the kernel, pass 3 arrays as 2D mdspans
     alpaka::exec<DevAcc>(

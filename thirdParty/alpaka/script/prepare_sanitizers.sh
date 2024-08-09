@@ -5,7 +5,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 #-------------------------------------------------------------------------------
 # Exports the CMAKE_CXX_FLAGS and CMAKE_EXE_LINKER_FLAGS to enable the sanitizers listed in ALPAKA_CI_SANITIZERS.

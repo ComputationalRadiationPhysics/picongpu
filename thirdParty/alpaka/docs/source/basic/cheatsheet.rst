@@ -176,6 +176,12 @@ Enqueue a memory copy from device to host
 
 Kernel Execution
 ----------------
+Prepare Kernel Bundle
+  .. code-block:: c++
+
+     HeatEquationKernel heatEqKernel;
+     // Arguments of KernelBundle: The kernel instance and the kernel arguments
+     auto const& bundeledKernel = alpaka::KernelBundle(heatEqKernel, pCurrAcc, pNextAcc, numNodesX, dx, dt);
 
 Automatically select a valid kernel launch configuration
   .. code-block:: c++
@@ -183,8 +189,9 @@ Automatically select a valid kernel launch configuration
      Vec<Dim, Idx> const globalThreadExtent = vectorValue;
      Vec<Dim, Idx> const elementsPerThread = vectorValue;
 
-     auto autoWorkDiv = getValidWorkDiv<Acc>(
+     auto autoWorkDiv = getValidWorkDivForKernel<Acc>(
        device,
+       bundeledKernel,
        globalThreadExtent, elementsPerThread,
        false,
        GridBlockExtentSubDivRestrictions::Unrestricted);

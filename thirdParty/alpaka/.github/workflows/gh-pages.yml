@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - develop
+env:
+  ALPAKA_CI_OS_NAME: "Linux"
 
 jobs:
   gh-pages:

@@ -190,18 +190,6 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     // Result matrix is MxN. We create one worker per result matrix cell.
     Vec2 const extentC(static_cast<Idx>(m), static_cast<Idx>(n));
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extentC,
-        alpaka::Vec<Dim, Idx>::ones(),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::EqualExtent));
-
-    std::cout << "MatMulKernel("
-              << "m:" << m << ", n:" << n << ", k:" << k << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
-              << std::endl;
 
     // Allocate the A and B matrices as std::vectors because this allows them to be filled with uint32_t(1).
     // alpaka::set only supports setting all bytes leading to a value of 16843009 in all elements.
@@ -254,6 +242,36 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     std::cout << "pitchesA " << alpaka::getPitchesInBytes(bufAAcc) << " lda: " << lda << "\n";
     std::cout << "pitchesB " << alpaka::getPitchesInBytes(bufBAcc) << " ldb: " << ldb << "\n";
     std::cout << "pitchesC " << alpaka::getPitchesInBytes(bufCAcc) << " ldc: " << ldc << "\n";
+
+
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        kernel,
+        m,
+        n,
+        k,
+        static_cast<Val>(1),
+        std::data(bufAAcc),
+        lda,
+        std::data(bufBAcc),
+        ldb,
+        static_cast<Val>(1),
+        std::data(bufCAcc),
+        ldc);
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
+        devAcc,
+        bundeledKernel,
+        extentC,
+        alpaka::Vec<Dim, Idx>::ones(),
+        false,
+        alpaka::GridBlockExtentSubDivRestrictions::EqualExtent);
+
+
+    std::cout << "MatMulKernel("
+              << "m:" << m << ", n:" << n << ", k:" << k << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
+
 
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(

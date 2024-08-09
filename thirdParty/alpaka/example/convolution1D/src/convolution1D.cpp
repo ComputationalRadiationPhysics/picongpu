@@ -127,17 +127,10 @@ auto example(TAccTag const&) -> int
     // Make sure memcpy finished.
     alpaka::wait(queue);
     using Vec = alpaka::Vec<Dim, Idx>;
-    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 
     auto const elementsPerThread = Vec::all(static_cast<Idx>(1));
     // Grid size
     auto const threadsPerGrid = inputSize;
-    WorkDiv const workDiv = alpaka::getValidWorkDiv<DevAcc>(
-        devAcc,
-        threadsPerGrid,
-        elementsPerThread,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
 
     // Instantiate the kernel (gpu code) function-object
     ConvolutionKernel convolutionKernel;
@@ -147,6 +140,17 @@ auto example(TAccTag const&) -> int
     DataType* nativeInputDeviceMemory = std::data(inputDeviceMemory);
     DataType* nativeOutputDeviceMemory = std::data(outputDeviceMemory);
 
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        convolutionKernel,
+        nativeInputDeviceMemory,
+        nativeFilterDeviceMemory,
+        nativeOutputDeviceMemory,
+        inputSize,
+        filterSize);
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv
+        = alpaka::getValidWorkDivForKernel<DevAcc>(devAcc, bundeledKernel, threadsPerGrid, elementsPerThread);
     // Run the kernel
     alpaka::exec<DevAcc>(
         queue,

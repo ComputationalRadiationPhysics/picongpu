@@ -96,18 +96,12 @@ auto example(TAccTag const&) -> int
 
     using BufHost = alpaka::Buf<Host, uint32_t, Dim, Idx>;
     using BufAcc = alpaka::Buf<Acc, uint32_t, Dim, Idx>;
-    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+
     // Problem parameter.
     constexpr size_t numPoints = 1'000'000u;
     constexpr size_t extent = 1u;
     constexpr size_t numThreads = 100u; // Kernel will decide numCalcPerThread.
     constexpr size_t numAlpakaElementsPerThread = 1;
-    WorkDiv workdiv{alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        Vec(numThreads),
-        Vec(numAlpakaElementsPerThread),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)};
 
     // Setup buffer.
     BufHost bufHost{alpaka::allocBuf<uint32_t, Idx>(devHost, extent)};
@@ -119,7 +113,15 @@ auto example(TAccTag const&) -> int
     alpaka::memcpy(queue, bufAcc, bufHost);
 
     Kernel kernel;
-    alpaka::exec<Acc>(queue, workdiv, kernel, numPoints, ptrBufAcc, Function{});
+    auto const& bundeledKernel = alpaka::KernelBundle(kernel, numPoints, ptrBufAcc, Function{});
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
+        devAcc,
+        bundeledKernel,
+        Vec(numThreads),
+        Vec(numAlpakaElementsPerThread));
+
+    alpaka::exec<Acc>(queue, workDiv, kernel, numPoints, ptrBufAcc, Function{});
     alpaka::memcpy(queue, bufHost, bufAcc);
     alpaka::wait(queue);
 

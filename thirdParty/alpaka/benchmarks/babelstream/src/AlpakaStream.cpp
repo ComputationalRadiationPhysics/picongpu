@@ -50,7 +50,7 @@ template<typename T>
 void AlpakaStream<T>::init_arrays(T initA, T initB, T initC)
 {
     auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
+
     alpaka::exec<
         Acc>(queue, workdiv, InitKernel{}, std::data(d_a), std::data(d_b), std::data(d_c), initA, initB, initC);
     alpaka::wait(queue);
@@ -78,7 +78,7 @@ template<typename T>
 void AlpakaStream<T>::copy()
 {
     auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
+
     alpaka::exec<Acc>(queue, workdiv, CopyKernel{}, std::data(d_a), std::data(d_c));
     alpaka::wait(queue);
 }
@@ -98,7 +98,7 @@ template<typename T>
 void AlpakaStream<T>::mul()
 {
     auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
+
     alpaka::exec<Acc>(queue, workdiv, MulKernel{}, std::data(d_b), std::data(d_c));
     alpaka::wait(queue);
 }
@@ -117,7 +117,7 @@ template<typename T>
 void AlpakaStream<T>::add()
 {
     auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
+
     alpaka::exec<Acc>(queue, workdiv, AddKernel{}, std::data(d_a), std::data(d_b), std::data(d_c));
     alpaka::wait(queue);
 }
@@ -137,7 +137,7 @@ template<typename T>
 void AlpakaStream<T>::triad()
 {
     auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
+
     alpaka::exec<Acc>(queue, workdiv, TriadKernel{}, std::data(d_a), std::data(d_b), std::data(d_c));
     alpaka::wait(queue);
 }
@@ -157,7 +157,7 @@ template<typename T>
 void AlpakaStream<T>::nstream()
 {
     auto const workdiv = WorkDiv{arraySize / blockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, arraySize);
+
     alpaka::exec<Acc>(queue, workdiv, NstreamKernel{}, std::data(d_a), std::data(d_b), std::data(d_c));
     alpaka::wait(queue);
 }
@@ -197,7 +197,6 @@ template<typename T>
 auto AlpakaStream<T>::dot() -> T
 {
     auto const workdiv = WorkDiv{dotBlockSize, blockSize, 1};
-    // auto const workdiv = alpaka::getValidWorkDiv(devAcc, dotBlockSize * blockSize);
     alpaka::exec<Acc>(queue, workdiv, DotKernel{}, std::data(d_a), std::data(d_b), std::data(d_sum), arraySize);
     alpaka::wait(queue);
 

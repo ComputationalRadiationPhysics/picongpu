@@ -12,35 +12,6 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-namespace
-{
-    template<typename TAcc>
-    auto getWorkDiv()
-    {
-        using Dim = alpaka::Dim<TAcc>;
-        using Idx = alpaka::Idx<TAcc>;
-
-        auto const platform = alpaka::Platform<TAcc>{};
-        auto const dev = alpaka::getDevByIdx(platform, 0);
-        auto const gridThreadExtent = alpaka::Vec<Dim, Idx>::all(10);
-        auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-        auto const workDiv = alpaka::getValidWorkDiv<TAcc>(
-            dev,
-            gridThreadExtent,
-            threadElementExtent,
-            false,
-            alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
-        return workDiv;
-    }
-} // namespace
-
-TEMPLATE_LIST_TEST_CASE("getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
-{
-    using Acc = TestType;
-    // Note: getValidWorkDiv() is called inside getWorkDiv
-    std::ignore = getWorkDiv<Acc>();
-}
-
 TEMPLATE_LIST_TEST_CASE("subDivideGridElems.2D.examples", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -205,34 +176,6 @@ TEMPLATE_LIST_TEST_CASE("subDivideGridElems.2D.examples", "[workDiv]", alpaka::t
                 alpaka::GridBlockExtentSubDivRestrictions::CloseToEqualExtent)
             == WorkDiv{Vec{63, 38}, Vec{16, 16}, Vec{1, 1}});
     }
-}
-
-TEMPLATE_LIST_TEST_CASE("getValidWorkDiv.1D.withIdx", "[workDiv]", alpaka::test::TestAccs)
-{
-    using Acc = TestType;
-    using Idx = alpaka::Idx<Acc>;
-    using Dim = alpaka::Dim<Acc>;
-    using Vec = alpaka::Vec<Dim, Idx>;
-    if constexpr(Dim::value == 1)
-    {
-        auto const platform = alpaka::Platform<Acc>{};
-        auto const dev = alpaka::getDevByIdx(platform, 0);
-        // test that we can call getValidWorkDiv with the Idx type directly instead of a Vec
-        auto const ref = alpaka::getValidWorkDiv<Acc>(dev, Vec{256}, Vec{13});
-        CHECK(alpaka::getValidWorkDiv<Acc>(dev, Idx{256}, Idx{13}) == ref);
-    }
-}
-
-TEMPLATE_LIST_TEST_CASE("isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
-{
-    using Acc = TestType;
-
-    auto const platform = alpaka::Platform<Acc>{};
-    auto const dev = alpaka::getDevByIdx(platform, 0);
-    auto const workDiv = getWorkDiv<Acc>();
-    // Test both overloads
-    REQUIRE(alpaka::isValidWorkDiv(alpaka::getAccDevProps<Acc>(dev), workDiv));
-    REQUIRE(alpaka::isValidWorkDiv<Acc>(dev, workDiv));
 }
 
 //! Test the constructors of WorkDivMembers using 3D extent, 3D extent with zero elements and 2D extents

@@ -294,20 +294,6 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
 
     alpaka::Vec<Dim, Idx> const extent(static_cast<Idx>(numRows), static_cast<Idx>(numCols));
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        alpaka::Vec<Dim, Idx>::ones(),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
-
-    std::cout << "MandelbrotKernel("
-              << " numRows:" << numRows << ", numCols:" << numCols << ", maxIterations:" << maxIterations
-              << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
-              << std::endl;
-
     // allocate host memory, potentially pinned for faster copy to/from the accelerator.
     auto bufColorHost = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
 
@@ -320,6 +306,35 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
     // Create the kernel execution task.
     auto const [rowPitch, _] = alpaka::getPitchesInBytes(bufColorAcc);
     CHECK(rowPitch % sizeof(Val) == 0);
+
+    auto const& bundeledKernel = alpaka::KernelBundle(
+        kernel,
+        std::data(bufColorAcc),
+        numRows,
+        numCols,
+        rowPitch,
+        fMinR,
+        fMaxR,
+        fMinI,
+        fMaxI,
+        maxIterations);
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
+        devAcc,
+        bundeledKernel,
+        extent,
+        alpaka::Vec<Dim, Idx>::ones(),
+        false,
+        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+
+
+    std::cout << "MandelbrotKernel("
+              << " numRows:" << numRows << ", numCols:" << numCols << ", maxIterations:" << maxIterations
+              << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
+
+
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,

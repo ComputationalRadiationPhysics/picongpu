@@ -4,8 +4,8 @@
 # Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan, Simeon Ehrig
 # SPDX-License-Identifier: MPL-2.0
 #
-
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
 
 # because of the strict abort conditions, a variable needs to be defined, if we read from
 # this statement avoids additional checks later in the scripts
