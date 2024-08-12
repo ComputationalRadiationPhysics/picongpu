@@ -17,16 +17,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include <pmacc/identifier/alias.hpp>
+
 #include <cstdint>
 
-namespace picongpu::atomicPhysics::particleType
+namespace picongpu::particles::atomicPhysics::particleType
 {
     /** indicates species represents an ion and will participate in atomicPhysics step and
      * ionization potential depression calculation
      *
      * @tparam T_Config configuration required by ion species partaking in the atomicPhysics step
      *
-     * @example T_Config for Argon in `speciesDefinition.param`
+     * @example T_Config for Argon in tp be defined for every atomic physics ion species in `speciesDefinition.param`
      *   @code{.cpp}
      *      struct ArgonAtomicPhysicsCfg
      *      {
@@ -44,11 +48,13 @@ namespace picongpu::atomicPhysics::particleType
      *          using AtomicDataType = atomicPhysics::AtomicData_Ar;
      *
      *          //! number of atomic states in input file
-     *          static constexpr uint32_t numberAtomicStates = 470u;
+     *          static constexpr uint16_t numberAtomicStates = 470u;
      *
      *          //! species of ionization electrons
      *          using IonizationElectronSpecies = BulkElectrons;
      *      };
+     *
+     *      Ion<ArgonAtomicPhysicsCfg>;
      *   @endcode
      *
      * @attention In addition an atomicPhysics ion species also requires the following particle attributes:
@@ -58,16 +64,12 @@ namespace picongpu::atomicPhysics::particleType
      * - binIndex
      * - accepted
      */
-    template<typename T_Config = detail::AtomicIonCfg>
-    struct Ion
-    {
-        using Config = T_Config;
-    };
+    alias(Ion);
 
     /** indicates species represents an ion in the ionization potential depression calculation (IPD), but does not
      * partake in the atomicPhysics step. (in contrast to Ion)
      */
-    struct onlyIPDIon
+    struct OnlyIPDIon
     {
     };
 
@@ -86,7 +88,7 @@ namespace picongpu::atomicPhysics::particleType
      * IPD calculation. Marking an electron species as onlyIPD unphysically removes part of the electron spectrum for
      * little gain, as the atomicPhysics step scales primarily with the number of ion macro particles.
      */
-    struct onlyIPDElectron
+    struct OnlyIPDElectron
     {
     };
-} // namespace picongpu::atomicPhysics::particleType
+} // namespace picongpu::particles::atomicPhysics::particleType

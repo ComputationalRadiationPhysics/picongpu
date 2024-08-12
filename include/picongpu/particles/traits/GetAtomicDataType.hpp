@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
+
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
@@ -44,9 +46,11 @@ namespace picongpu::traits
         /* throw static assert if species lacks flag */
         PMACC_CASSERT_MSG(
             Species_missing_atomicDataType_flag,
-            HasFlag<FrameType, atomicDataType<>>::type::value == true);
+            HasFlag<FrameType, atomicPhysics_<particles::atomicPhysics::particleType::Ion<>>>::type::value == true);
 
-        using AliasAtomicDataType = typename GetFlagType<FrameType, atomicDataType<>>::type;
-        using type = typename pmacc::traits::Resolve<AliasAtomicDataType>::type;
+        using AliasAtomicPhysicsFlagType = typename GetFlagType<FrameType, atomicPhysics_<>>::type;
+        using SpeciesAtomicPhysicsConfigType = typename pmacc::traits::Resolve<AliasAtomicPhysicsFlagType>::type;
+
+        using type = typename SpeciesAtomicPhysicsConfigType::AtomicDataType;
     };
 } // namespace picongpu::traits

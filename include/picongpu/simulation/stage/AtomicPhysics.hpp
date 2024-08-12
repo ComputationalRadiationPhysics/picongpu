@@ -26,6 +26,7 @@
 #include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysicsSuperCellFields.hpp"
 #include "picongpu/particles/atomicPhysics/IPDModel.param" /// @todo move to atomicPhysics.param, Brian Marre, 2024
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/atomicPhysics/SetTemperature.hpp"
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpAllIonsToConsole.hpp"
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpRateCacheToConsole.hpp"
@@ -567,10 +568,10 @@ namespace picongpu::simulation::stage
      */
     struct AtomicPhysics
     {
-        using SpeciesRepresentingAtomicPhysicsIons =
-            typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type;
-        auto static constexpr numberAtomicPhysicsSpecies = pmacc::mp_size<
-            pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type>::value;
+        using SpeciesRepresentingAtomicPhysicsIons = typename pmacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            atomicPhysics_<picongpu::particles::atomicPhysics::particleType::Ion<>>>::type;
+        auto static constexpr numberAtomicPhysicsSpecies = pmacc::mp_size<SpeciesRepresentingAtomicPhysicsIons>::value;
         static bool constexpr atomicPhysicsActive = (numberAtomicPhysicsSpecies >= 1);
 
     private:
@@ -583,11 +584,8 @@ namespace picongpu::simulation::stage
          */
         void loadAtomicInputData(DataConnector& dataConnector)
         {
-            using SpeciesWithAtomicPhysicsInputData =
-                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, atomicDataType<>>::type;
-
             pmacc::meta::ForEach<
-                SpeciesWithAtomicPhysicsInputData,
+                SpeciesRepresentingAtomicPhysicsIons,
                 particles::atomicPhysics::stage::LoadAtomicInputData<boost::mpl::_1>>
                 ForEachIonSpeciesLoadAtomicInputData;
             ForEachIonSpeciesLoadAtomicInputData(dataConnector);
@@ -627,23 +625,21 @@ namespace picongpu::simulation::stage
         {
             if constexpr(atomicPhysicsActive)
             {
-                /** list of all species of macro particles that partake in atomicPhysics as ions
-                 *
-                 * @attention atomicPhysics  assumes that all species with isAtomicPhysicsIon flag also have the
-                 * required atomic data flags, see picongpu/param/speciesAttributes.param for details
-                 */
-                using AtomicPhysicsIonSpecies =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type;
+                //! list of all species of macro particles that partake in atomicPhysics as ions
+                using AtomicPhysicsIonSpecies = SpeciesRepresentingAtomicPhysicsIons;
                 //! list of all only IPD partaking ion species
-                using OnlyIPDIonSpecies =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isOnlyIPDIon<>>::type;
+                using OnlyIPDIonSpecies = typename pmacc::particles::traits::FilterByFlag<
+                    VectorAllSpecies,
+                    atomicPhysics_<picongpu::particles::atomicPhysics::particleType::OnlyIPDIon>>::type;
 
                 //! list of all species of macro particles that partake in atomicPhysics as electrons
-                using AtomicPhysicsElectronSpecies =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsElectron<>>::type;
+                using AtomicPhysicsElectronSpecies = typename pmacc::particles::traits::FilterByFlag<
+                    VectorAllSpecies,
+                    atomicPhysics_<picongpu::particles::atomicPhysics::particleType::Electron>>::type;
                 //! list of all only IPD partaking electron species
-                using OnlyIPDElectronSpecies =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isOnlyIPDElectron<>>::type;
+                using OnlyIPDElectronSpecies = typename pmacc::particles::traits::FilterByFlag<
+                    VectorAllSpecies,
+                    atomicPhysics_<picongpu::particles::atomicPhysics::particleType::OnlyIPDElectron>>::type;
 
                 detail::AtomicPhysics<
                     AtomicPhysicsIonSpecies,

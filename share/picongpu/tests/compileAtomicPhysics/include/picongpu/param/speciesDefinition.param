@@ -35,7 +35,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/Particles.hpp"
-#include "picongpu/particles/atomicPhysics/Number.hpp"
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 
 #include <pmacc/identifier/value_identifier.hpp>
@@ -70,10 +69,15 @@ namespace picongpu
      */
     value_identifier(float_X, DensityRatioBulkElectrons, 16);
 
-    using ParticleFlagsElectrons = MakeSeq_t < particlePusher<UsedParticlePusher>, shape<UsedParticleShape>,
-          interpolation<UsedField2Particle>, current<UsedParticleCurrentSolver>, massRatio<MassRatioElectrons>,
-          chargeRatio<ChargeRatioElectrons>, densityRatio<DensityRatioBulkElectrons>,
-          atomicPhysics<atomicPhysics::particleType::Electron>;
+    using ParticleFlagsElectrons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>,
+        densityRatio<DensityRatioBulkElectrons>,
+        atomicPhysics<atomicPhysics::particleType::Electron>>;
 
     /* thermal bulk electrons */
     using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
@@ -153,7 +157,7 @@ namespace picongpu
           interpolation<UsedField2Particle>, current<UsedParticleCurrentSolver>, massRatio<MassRatioArgon>,
           chargeRatio<ChargeRatioArgon>, densityRatio<DensityRatioArgon>,
           atomicNumbers<ionization::atomicNumbers::Argon_t>,
-          atomicPhysics<atomicPhysics::particleType::Ion<ArgonAtomicPhysicsCfg>>;
+          atomicPhysics<particles::atomicPhysics::particleType::Ion<ArgonAtomicPhysicsCfg>>;
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,

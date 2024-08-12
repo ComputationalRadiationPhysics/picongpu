@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalElectronHistogramOverSubscribedField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalFoundUnboundIonField.hpp"
@@ -35,8 +36,8 @@ namespace picongpu::particles::atomicPhysics
 {
     struct AtomicPhysicsSuperCellFields
     {
-        using AtomicPhysicsSpecies =
-            typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, isAtomicPhysicsIon<>>::type;
+        using ListAtomicPhysicsSpecies = typename pmacc::particles::traits::
+            FilterByFlag<VectorAllSpecies, atomicPhysics_<particleType::Ion<>>>::type;
 
         //! create all superCell fields required by the atomicPhysics core loops, are stored in dataConnector
         HINLINE static void create(DataConnector& dataConnector, picongpu::MappingDesc const mappingDesc)
@@ -53,7 +54,7 @@ namespace picongpu::particles::atomicPhysics
 
             // local rate cache, create in pre-stage call for each species
             pmacc::meta::ForEach<
-                AtomicPhysicsSpecies,
+                ListAtomicPhysicsSpecies,
                 particles::atomicPhysics::stage::CreateLocalRateCacheField<boost::mpl::_1>>
                 ForEachIonSpeciesCreateLocalRateCacheField;
             ForEachIonSpeciesCreateLocalRateCacheField(dataConnector, mappingDesc);

@@ -19,7 +19,7 @@
 
 #pragma once
 
-//#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>
@@ -40,13 +40,16 @@ namespace picongpu::traits
     {
         using FrameType = typename T_IonSpecies::FrameType;
 
-        using present = typename HasFlag<FrameType, numberAtomicStates<>>::type;
+        using isAtomicPhysicsIon =
+            typename HasFlag<FrameType, atomicPhysics_<particles::atomicPhysics::particleType::Ion<>>>::type;
         /* throw static assert if species lacks flag */
-        PMACC_CASSERT_MSG(This_species_has_no_NumberAtomicStates_Flag, present::value == true);
+        PMACC_CASSERT_MSG(
+            This_species_is_not_marked_as_an_atomicPhysics_ion_species,
+            isAtomicPhysicsIon::value == true);
 
-        using FlagTypeAlias = typename GetFlagType<FrameType, numberAtomicStates<>>::type;
-        using FlagType = typename pmacc::traits::Resolve<FlagTypeAlias>::type;
+        using FlagAtomicPhysicsAlias = typename GetFlagType<FrameType, atomicPhysics_<>>::type;
+        using SpeciesAtomicPhysicsConfigType = typename pmacc::traits::Resolve<FlagAtomicPhysicsAlias>::type;
 
-        static constexpr uint16_t value = FlagType::value;
+        static constexpr uint16_t value = SpeciesAtomicPhysicsConfigType::numberAtomicStates;
     };
 } // namespace picongpu::traits

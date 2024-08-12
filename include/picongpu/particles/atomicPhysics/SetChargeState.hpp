@@ -23,6 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/assert.hpp>
@@ -44,7 +45,8 @@ namespace picongpu::particles::atomicPhysics
 
             ion[boundElectrons_] = numberBoundElectrons;
 
-            if constexpr(pmacc::traits::HasFlag<typename T_Ion::FrameType, isAtomicPhysicsIon<>>::type::value)
+            if constexpr(pmacc::traits::HasFlag<typename T_Ion::FrameType, atomicPhysics_<particleType::Ion<>>>::type::
+                             value)
             {
                 /* both boundElectrons and atomicStateCollectionIndex particle attribute must be set consistently,
                  *  but we lack access to the atomicStateData to correctly update atomicStateCollectionIndex

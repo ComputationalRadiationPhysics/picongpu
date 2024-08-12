@@ -147,12 +147,15 @@ namespace picongpu
      */
     alias(effectiveNuclearCharge);
 
-    //! configuration of species for atomicPhysics algorithm, see picongpu/particles/atomicPhysics/ParticleType.hpp for
-    //! details
-    alias(atomicPhysics)
+    /** configuration of species for atomicPhysics algorithm, see picongpu/particles/atomicPhysics/ParticleType.hpp for
+     * details
+     *
+     * @details underscore to prevent name collision with atomic physics param namespace, piconpgu::atomicPhysics
+     */
+    alias(atomicPhysics_);
 
-        //! particle attribute, collectionIndex of atomic state of ions
-        value_identifier(uint32_t, atomicStateCollectionIndex, 0u);
+    //! particle attribute, collectionIndex of atomic state of ions
+    value_identifier(uint32_t, atomicStateCollectionIndex, 0u);
 
     //! particle attribute, process class of selected atomicPhysics transition
     value_identifier(uint8_t, processClass, 0u);

@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
+
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
@@ -45,19 +47,21 @@ namespace picongpu::traits
         /* throw static assert if ion species lacks flag */
         PMACC_CASSERT_MSG(
             Species_missing_ionizationElectronSpecies_flag,
-            HasFlag<IonFrameType, ionizationElectronSpecies<>>::type::value);
+            HasFlag<IonFrameType, atomicPhysics_<particles::atomicPhysics::particleType::Ion<>>>::type::value);
 
-        using AliasIonizationElectronType = typename GetFlagType<IonFrameType, ionizationElectronSpecies<>>::type;
+        using AliasAtomicPhysics_FlagType = typename GetFlagType<IonFrameType, atomicPhysics_<>>::type;
 
-        // actual result
-        using type = typename pmacc::traits::Resolve<AliasIonizationElectronType>::type;
+        // twice resolved alias
+        using SpeciesAtomicPhysicsConfigType = typename pmacc::traits::Resolve<AliasAtomicPhysics_FlagType>::type;
+
+        using type = typename SpeciesAtomicPhysicsConfigType::IonizationElectronSpecies;
 
         // sanity check
         //      check that ionization electron species is actually flagged as electron,
         //       i.e. be binned into electron histogram
-        using ElectronFrameType = typename type::FrameType;
+        using ElectronFrameType = typename SpeciesAtomicPhysicsConfigType::IonizationElectronSpecies::FrameType;
         PMACC_CASSERT_MSG(
-            Species_ionization_electron_species_lacks_isElectron_flag,
-            HasFlag<ElectronFrameType, isAtomicPhysicsElectron<>>::type::value);
+            ionization_electron_species_not_marked_as_atomic_physics_electron,
+            HasFlag<ElectronFrameType, atomicPhysics_<particles::atomicPhysics::particleType::Electron>>::type::value);
     };
 } // namespace picongpu::traits

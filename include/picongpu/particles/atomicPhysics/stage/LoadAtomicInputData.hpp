@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
 
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/atomicPhysics/debug/PrintAtomicDataToConsole.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
@@ -56,57 +57,31 @@ namespace picongpu::particles::atomicPhysics::stage
             // get atomicData dataBase type
             using AtomicDataType = typename picongpu::traits::GetAtomicDataType<IonSpecies>::type;
 
-            //      get charge states input file name
+            // get species atomicPhysics config
             PMACC_CASSERT_MSG(
-                Species_missing_charge_states_file_name_flag,
-                HasFlag<FrameType, chargeStatesFileName<>>::type::value == true);
-            using AliasChargeStatesFileName = typename GetFlagType<FrameType, chargeStatesFileName<>>::type;
-            using ChargeStatesFileName = typename pmacc::traits::Resolve<AliasChargeStatesFileName>::type;
+                Species_not_marked_as_atomic_physics_ion_species,
+                HasFlag<FrameType, atomicPhysics_<atomicPhysics::particleType::Ion<>>>::type::value == true);
+            using AliasAtomicPhysicsFlag = typename GetFlagType<FrameType, atomicPhysics_<>>::type;
+            using SpeciesAtomicPhysicsConfigType = typename pmacc::traits::Resolve<AliasAtomicPhysicsFlag>::type;
 
-            //      get atomic states input file name
-            PMACC_CASSERT_MSG(
-                Species_missing_atomic_states_file_name_flag,
-                HasFlag<FrameType, atomicStatesFileName<>>::type::value == true);
-            using AliasAtomicStatesFileName = typename GetFlagType<FrameType, atomicStatesFileName<>>::type;
-            using AtomicStatesFileName = typename pmacc::traits::Resolve<AliasAtomicStatesFileName>::type;
+            constexpr char const* chargeStatesFileName = SpeciesAtomicPhysicsConfigType::chargeStatesFileName;
+            constexpr char const* atomicStatesFileName = SpeciesAtomicPhysicsConfigType::atomicStateFileName;
+            constexpr char const* pressureIonizationStatesFileName
+                = SpeciesAtomicPhysicsConfigType::pressureIonizationFileName;
 
-            //      get pressureIonization input file name
-            PMACC_CASSERT_MSG(
-                Species_missing_pressure_ionization_file_name_flag,
-                HasFlag<FrameType, pressureIonizationStatesFileName<>>::type::value == true);
-            using AliasPressureIonizationFileName =
-                typename GetFlagType<FrameType, pressureIonizationStatesFileName<>>::type;
-            using PressureIonizationFileName = typename pmacc::traits::Resolve<AliasPressureIonizationFileName>::type;
-
-            //      get bound-bound transitions input file name
-            PMACC_CASSERT_MSG(
-                Species_missing_bound_bound_transitions_file_name_flag,
-                HasFlag<FrameType, boundBoundTransitionsFileName<>>::type::value == true);
-            using AliasBoundBoundFileName = typename GetFlagType<FrameType, boundBoundTransitionsFileName<>>::type;
-            using BoundBoundFileName = typename pmacc::traits::Resolve<AliasBoundBoundFileName>::type;
-
-            //      get bound-free transitions input file name
-            PMACC_CASSERT_MSG(
-                Species_missing_bound_free_transitions_file_name_flag,
-                HasFlag<FrameType, boundFreeTransitionsFileName<>>::type::value == true);
-            using AliasBoundFreeFileName = typename GetFlagType<FrameType, boundFreeTransitionsFileName<>>::type;
-            using BoundFreeFileName = typename pmacc::traits::Resolve<AliasBoundFreeFileName>::type;
-
-            //      get autonomous transitions input file name
-            PMACC_CASSERT_MSG(
-                Species_missing_autonomous_transitions_file_name_flag,
-                HasFlag<FrameType, autonomousTransitionsFileName<>>::type::value == true);
-            using AliasAutonomousFileName = typename GetFlagType<FrameType, autonomousTransitionsFileName<>>::type;
-            using AutonomousFileName = typename pmacc::traits::Resolve<AliasAutonomousFileName>::type;
+            constexpr char const* boundBoundFileName = SpeciesAtomicPhysicsConfigType::boundBoundTransitionsFileName;
+            constexpr char const* boundFreeFileName = SpeciesAtomicPhysicsConfigType::boundFreeTransitionsFileName;
+            constexpr char const* autonomousFileName = SpeciesAtomicPhysicsConfigType::autonomousTransitionsFileName;
 
             auto atomicData = std::make_unique<AtomicDataType>(
-                ChargeStatesFileName::str(),
-                AtomicStatesFileName::str(),
-                PressureIonizationFileName::str(),
-                BoundBoundFileName::str(),
-                BoundFreeFileName::str(),
-                AutonomousFileName::str(),
-                FrameType::getName()); // name of species
+                std::string(chargeStatesFileName),
+                std::string(atomicStatesFileName),
+                std::string(pressureIonizationStatesFileName),
+                std::string(boundBoundFileName),
+                std::string(boundFreeFileName),
+                std::string(autonomousFileName),
+                // name of species
+                FrameType::getName());
 
             if constexpr(picongpu::atomicPhysics::debug::atomicData::PRINT_TO_CONSOLE)
                 // debug print of atomic data summary to stdout
