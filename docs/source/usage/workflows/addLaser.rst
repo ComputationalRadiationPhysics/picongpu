@@ -3,7 +3,7 @@
 Adding Laser
 ------------
 
-.. sectionauthor:: Sergei Bastrakov
+.. sectionauthor:: Sergei Bastrakov, Fabia Dietrich
 
 There are several alternative ways of adding an incoming laser (or any source of electromagnetic field) to a PIConGPU simulation:
 
@@ -46,14 +46,20 @@ The differences between matching incident field- and laser profiles are:
 #. positioning of incident field is controlled for the generation plane and not via an internal member ``::initPlaneY``
 #. incident field profiles do not have an extra time delay equal to :math:`\mathrm{initPlaneY} * \Delta y / c` as lasers do (when needed, other parameters could be adjusted to accomodate for the delay)
 #. default initial phase is chosen so that the laser starts smoothly at the generation plane (for laser it is always for plane :math:`y = 0`)
-#. incident field uses generalized coordinate system and treats transversal axes and parameters generically (explained in comments of the profile parameters in question)
+#. incident field uses a generalized coordinate system and treats transversal axes and parameters generically (explained in comments of the profile parameters in question)
 
 Note that the profile itself only controls properties of the laser, but not where it will be applied to.
 It is a combination of profile and particular plane that together will produce an inward-going laser adhering to the profile.
 For pre-set profiles a proper orientation of the wave will be provided by internal implementation.
+
 With the ``Free`` profile, it is on a user to provide functors to calculate incident fields and ensure the orientation for the boundaries it is applied to (however, it does not have to work for all boundaries, only the ones in question).
 Please refer to :ref:`the detailed description <model-TFSF>` for setting up ``Free`` profile, also for the case when only one of the external fields is known in explicit form.
-For a laser profile with non zero field amplitudes on the transversal borders of the profile e.g. defined by the profile ``Free`` without a transversal envelop the trait ``MakePeriodicTransversalHuygensSurfaceContiguous`` must be specialized and returning true to handle field periodic boundaries correctly.
+For a laser profile with non zero field amplitudes on the transversal borders of the profile e.g. defined by the profile ``Free`` without a transversal envelope the trait ``MakePeriodicTransversalHuygensSurfaceContiguous`` must be specialized and returning true to handle field periodic boundaries correctly.
+
+Another special case is the ``InsightPulse`` profile, which reads an experimental Laser pulse into the simulation, which was obtained from an Insight measurement.
+It is less flexible in choosing propagation and polarisation direction, since those are only allowed along the cell edges, not diagonally.
+Furthermore, one has to increase the reserved GPU memory size in memory.param, because the corresponding field chunk will be stored on every used device at timestep 0 of the simulation. Otherwise, the simulation could run into memory issues.
+For a description how to obtain the ready-to-read-in field data from an Insight measurement and how to properly set up this profile, please refer to the corresponding example parameter set.
 
 Incident field is compatible to all field solvers, however using field solvers other than Yee requires a larger offset of the generating surface from absorber depending on the stencil width along the boundary axis.
 As a rule of thumb, this extra requirement is (order of FDTD solver / 2 - 1) cells.

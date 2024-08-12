@@ -185,7 +185,6 @@ namespace picongpu
 
 #if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
             //! Specialization for InsightPulse profile which has unknown amplitude
-            // kann man die Templates so leer lassen und es fkt trd?
             template<typename T_Params>
             struct GetAmplitude<profiles::InsightPulse<T_Params>>
             {

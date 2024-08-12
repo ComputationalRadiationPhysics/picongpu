@@ -41,6 +41,18 @@
 
 #    include <openPMD/openPMD.hpp>
 
+/* REFACTORING IDEAS FOR THIS INCIDENT FIELD PROFILE
+ * -------------------------------------------------
+ * - make time delay parameter optional
+ * - load openPMD file (= call the corresponding singelton) or initialize the
+ *   Laser oncebefore timestep 0 (before particle memory allocation)
+ * - load just the necessary parts of the measured data in case the tranversal
+ *   simulation window extent is smaller than the transversal field chunk size
+ * - allow diagonal laser propagation instead of just parallel to the axes
+ * - every used device will store the whole field data chunk, which consumes
+ *   quite some memory. Instead, one could push only those two time slices to
+ *   the device which are necessary for the current time step.
+ */
 
 namespace picongpu
 {
@@ -85,16 +97,16 @@ namespace picongpu
                                 or (DIR_Y * DIR_Y > 0.9999) and (DIR_Y * DIR_Y < 1.0001)
                                 or (DIR_Z * DIR_Z > 0.9999) and (DIR_Z * DIR_Z < 1.0001));
 
-                        //! Unit polarization direction vector
+                        //! Unit polarisation direction vector
                         static constexpr float_X POL_DIR_X = static_cast<float_X>(Params::POLARISATION_DIRECTION_X);
                         static constexpr float_X POL_DIR_Y = static_cast<float_X>(Params::POLARISATION_DIRECTION_Y);
                         static constexpr float_X POL_DIR_Z = static_cast<float_X>(Params::POLARISATION_DIRECTION_Z);
 
-                        // Check that polarization direction is normalized
+                        // Check that polarisation direction is normalized
                         static constexpr float_X polDirNorm2
                             = POL_DIR_X * POL_DIR_X + POL_DIR_Y * POL_DIR_Y + POL_DIR_Z * POL_DIR_Z;
                         PMACC_CASSERT_MSG(
-                            _error_laser_polarization_direction_vector_must_be_unit____check_your_incidentField_param_file,
+                            _error_laser_polarisation_direction_vector_must_be_unit____check_your_incidentField_param_file,
                             (polDirNorm2 > 0.9999) && (polDirNorm2 < 1.0001));
 
                         // Check that just one axis is used as polarisation direction
@@ -104,12 +116,12 @@ namespace picongpu
                                 or (POL_DIR_Y * POL_DIR_Y > 0.9999) and (POL_DIR_Y * POL_DIR_Y < 1.0001)
                                 or (POL_DIR_Z * POL_DIR_Z > 0.9999) and (POL_DIR_Z * POL_DIR_Z < 1.0001));
 
-                        // Check that polarization direction is orthogonal to propagation direction
-                        static constexpr float_X dotPropagationPolarization
+                        // Check that polarisation direction is orthogonal to propagation direction
+                        static constexpr float_X dotPropagationPolarisation
                             = DIR_X * POL_DIR_X + DIR_Y * POL_DIR_Y + DIR_Z * POL_DIR_Z;
                         PMACC_CASSERT_MSG(
-                            _error_laser_polarization_direction_vector_must_be_orthogonal_to_propagation_direction____check_your_incidentField_param_file,
-                            (dotPropagationPolarization > -0.0001) && (dotPropagationPolarization < 0.0001));
+                            _error_laser_polarisation_direction_vector_must_be_orthogonal_to_propagation_direction____check_your_incidentField_param_file,
+                            (dotPropagationPolarisation > -0.0001) && (dotPropagationPolarisation < 0.0001));
 
                         /** Time delay
                          *
@@ -122,13 +134,13 @@ namespace picongpu
                             _error_laser_time_delay_must_be_positive____check_your_incidentField_param_file,
                             (TIME_DELAY >= 0.0));
 
-                        // check OpenPMD propagation direction
+                        // check openPMD propagation direction
                         PMACC_CASSERT_MSG(
                             _error_propagationAxisOpenPMD_is_not_valid____check_your_parameters,
                             (Params::propagationAxisOpenPMD == "x" or Params::propagationAxisOpenPMD == "y"
                              or Params::propagationAxisOpenPMD == "z"));
 
-                        // check OpenPMD polarisation direction
+                        // check openPMD polarisation direction
                         PMACC_CASSERT_MSG(
                             _error_polarisationAxisOpenPMD_is_not_valid____check_your_parameters,
                             (Params::polarisationAxisOpenPMD == "x" or Params::polarisationAxisOpenPMD == "y"
@@ -142,17 +154,14 @@ namespace picongpu
                     template<typename T_Params>
                     struct InsightPulseFunctorIncidentE;
 
-                    /** Singleton to load field data from OpenPMD to device
+                    /** Singleton to load field data from openPMD to device
                      *
-                     * The complete dataset will be loaded (equally) to all GPUs, aswell as
+                     * The complete dataset will be loaded (equally) to all GPUs, as well as
                      * the necessary attributes (extent, cell size, offset to simulation window).
                      *
                      * Right now, the data will be loaded at timestep 0, which means that the user
                      * has to **increase the reserved GPU memory** in memory.param, since otherwise
                      * the simulation will run into memory issues.
-                     * Future improvements of this implementation should consider loading the data
-                     * before the start of the simulation (before the particle memory gets allocated),
-                     * since this would solve this bug.
                      *
                      * @tparam T_Params user parameters, providing filename etc.
                      */
@@ -197,40 +206,32 @@ namespace picongpu
                             // check data order
                             if(mesh.dataOrder() != ::openPMD::Mesh::DataOrder::C)
                                 throw std::runtime_error(
-                                    "Unsupported dataOrder in FromOpenPMD density dataset, only C is supported");
-                            // get axis labels
+                                    "Unsupported dataOrder in openPMD E-field dataset, only C is supported");
+
+                            /* Now we align the recorded field data according to the user input
+                             * = rotation into the internal coordinate system
+                             */
                             auto const axisLabels = std::vector<std::string>{mesh.axisLabels()};
+                            DataSpace<3u> const internalAxisIndex = Functor::getInternalAxisIndex();
 
-                            // aligning recorded field data according to user input propagation / polarization
-                            // direction
-                            float3_X const xyzAxisIndex{0.0_X, 1.0_X, 2.0_X};
+                            // start with the second transversal direction
+                            DataSpace<3u> aligningAxisIndex = DataSpace<3u>::create(internalAxisIndex[2]);
 
-                            // starting with aligning the second transversal direction, perp. to polarisation and
-                            // propagation
-                            DataSpace<3u> aligningAxisIndex
-                                = DataSpace<3u>::create(static_cast<int>(pmacc::math::abs(pmacc::math::dot(
-                                    xyzAxisIndex,
-                                    pmacc::math::cross(Functor::getDirection(), Functor::getPolarisationVector())))));
-
-                            // aligning propagation direction
-                            int const propAxisIdx = static_cast<int>(
-                                pmacc::math::abs(pmacc::math::dot(xyzAxisIndex, Functor::getDirection())));
+                            // go on with the propagation direction
                             auto it_prop
                                 = std::find(axisLabels.begin(), axisLabels.end(), Params::propagationAxisOpenPMD);
                             if(it_prop != std::end(axisLabels))
-                                aligningAxisIndex[std::distance(begin(axisLabels), it_prop)] = propAxisIdx;
+                                aligningAxisIndex[std::distance(begin(axisLabels), it_prop)] = internalAxisIndex[0];
                             else
                                 throw std::runtime_error(
                                     "Error: could not find propagation axis "
                                     + std::string(Params::propagationAxisOpenPMD) + " in OpenPMD dataset");
 
-                            // aligning polarisation direction
+                            // align the polarisation direction
                             auto it_pola
                                 = std::find(axisLabels.begin(), axisLabels.end(), Params::polarisationAxisOpenPMD);
                             if(it_pola != std::end(axisLabels))
-                                aligningAxisIndex[std::distance(begin(axisLabels), it_pola)]
-                                    = static_cast<int>(pmacc::math::abs(
-                                        pmacc::math::dot(xyzAxisIndex, Functor::getPolarisationVector())));
+                                aligningAxisIndex[std::distance(begin(axisLabels), it_pola)] = internalAxisIndex[1];
                             else
                                 throw std::runtime_error(
                                     "Could not find polarisation axis " + std::string(Params::polarisationAxisOpenPMD)
@@ -308,8 +309,7 @@ namespace picongpu
 
                             /* If the transversal simulation window is smaller than the transversal DataBox extent,
                              * data at the chunk borders will be discarded. The maximum discarded value (relative to
-                             * the maximum amplitude) will be logged. A possible improvement of this code could include
-                             * storing just the necessary parts of the recorded field data.
+                             * the maximum amplitude) will be logged.
                              */
                             dataType maxE(0.0);
                             dataType maxEDiscarded(0.0);
@@ -317,7 +317,7 @@ namespace picongpu
                             bool discard = false;
                             for(uint32_t d = 0u; d < 3u; d++)
                             {
-                                if(d != propAxisIdx and dataBoxOffset(d) < 0)
+                                if(d != internalAxisIndex[0] and dataBoxOffset(d) < 0)
                                 {
                                     for(uint32_t i = 0; i < extentOpenPMD[0]; i++)
                                     {
@@ -379,27 +379,28 @@ namespace picongpu
                                 }
                             } // d
 
-                            // This message is shown for every used device, but 1x would be sufficient (aswell as the
-                            // loop before)
                             if(discard == true)
-                                log<picLog::PHYSICS>("Warning: Transversal simulation window extent is smaller than "
-                                                     "measured data, discarding data at the border.\nMax. discarded "
-                                                     "amplitude relative to max. measured amplitude: %1% ")
-                                    % (maxEDiscarded / maxE);
+                            {
+                                // show the discard warning message just for the 0th rank
+                                pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
+                                pmacc::CommunicatorMPI<simDim>& comm = gc.getCommunicator();
+                                uint32_t rank = comm.getRank();
 
-                            /* Push field data to device
-                             * Every used device will now store the whole field data chunk. Since this consumes a lot
-                             * of memory, a possible improvement of this code could be to push only those two time
-                             * slices to the device, which are necessary for the current time step.
-                             */
+                                if(rank == 0)
+                                    log<picLog::PHYSICS>(
+                                        "Warning: Transversal simulation window extent is smaller than "
+                                        "measured data, discarding data at the border.\nMax. discarded "
+                                        "amplitude relative to max. measured amplitude: %1% ")
+                                        % (maxEDiscarded / maxE);
+                            }
+
+                            //! Push field data to device
                             bufferFieldData->hostToDevice();
                             eventSystem::getTransactionEvent().waitForFinished();
-                        }
+                        } // OpenPMDdata
                     };
 
                     /** InsightPulse incident E functor
-                     *
-                     * @warning produces proper results just in 3D!
                      *
                      * @tparam T_Params parameters
                      */
@@ -440,7 +441,7 @@ namespace picongpu
                             return getPolarisationVector() * getValueE(totalCellIdx);
                         }
 
-                        //! Get a unit vector with linear E polarization
+                        //! Get a unit vector with linear E polarisation
                         HDINLINE static constexpr float3_X getPolarisationVector()
                         {
                             return float3_X(Unitless::POL_DIR_X, Unitless::POL_DIR_Y, Unitless::POL_DIR_Z);
@@ -450,6 +451,25 @@ namespace picongpu
                         HDINLINE static constexpr float3_X getDirection()
                         {
                             return float3_X(Unitless::DIR_X, Unitless::DIR_Y, Unitless::DIR_Z);
+                        }
+
+                        /** Get the internal axis indices w.r.t. (x, y, z)
+                         * [0] propagation axis index (longitudinal)
+                         * [1] polarisation axis index
+                         * [2] remaining transversal axis index
+                         */
+                        HDINLINE static DataSpace<3u> getInternalAxisIndex()
+                        {
+                            float3_X const xyzAxisIndex{0.0_X, 1.0_X, 2.0_X};
+                            DataSpace<3u> const internalAxisIndex{
+                                static_cast<int>(pmacc::math::abs(pmacc::math::dot(xyzAxisIndex, getDirection()))),
+                                static_cast<int>(
+                                    pmacc::math::abs(pmacc::math::dot(xyzAxisIndex, getPolarisationVector()))),
+                                static_cast<int>(pmacc::math::abs(pmacc::math::dot(
+                                    xyzAxisIndex,
+                                    pmacc::math::cross(getDirection(), getPolarisationVector()))))};
+
+                            return internalAxisIndex;
                         }
 
                     private:
@@ -465,62 +485,100 @@ namespace picongpu
                         {
                             auto const posPIC = totalCellIdx * cellSize; // position in simulation volume
 
+                            DataSpace<3u> internalAxisIndex = getInternalAxisIndex();
 
-                            // find the axis indices
-                            float3_X const xyzAxisIdxPlusOne(
-                                1.0_X,
-                                2.0_X,
-                                3.0_X); // axis indices + 1 (needed for the sign)
-                            int const propAxisIdx = static_cast<int>(pmacc::math::abs(
-                                                        pmacc::math::dot(xyzAxisIdxPlusOne, getDirection())))
-                                - 1;
-                            int const polAxisIdxPlusOne
-                                = static_cast<int>(pmacc::math::dot(xyzAxisIdxPlusOne, getPolarisationVector()));
-                            int const transvAxisIdxPlusOne = static_cast<int>(pmacc::math::dot(
-                                xyzAxisIdxPlusOne,
-                                pmacc::math::cross(getDirection(), getPolarisationVector())));
+                            // check whether we are outside the field chunk extent
+                            for(uint32_t d = 0u; d < simDim; d++)
+                            {
+                                // return zero if transversal simulation window exceeds chunk extent
+                                if(d != internalAxisIndex[0])
+                                {
+                                    if(posPIC[d] < offsetOpenPMDdataBox(d)
+                                       or posPIC[d] > offsetOpenPMDdataBox(d)
+                                               + (extentOpenPMDdataBox(d) - 1.0_X) * cellSizeOpenPMDdataBox(d))
+                                        return 0.0_X;
+                                }
+                                // return zero if simulation timestep exceeds chunk extent
+                                else // d == internalAxisIndex[0]
+                                {
+                                    if((timeOriginPIC - Unitless::TIME_DELAY) < 0.0_X
+                                       or (timeOriginPIC - Unitless::TIME_DELAY) > (extentOpenPMDdataBox(d) - 1.0_X)
+                                               * cellSizeOpenPMDdataBox(d) / SPEED_OF_LIGHT)
+                                        return 0.0_X;
+                                }
+                            }
 
-                            // check whether the system is right handed, i.e. direction x polarisation > 0
+                            // check whether the (openPMD) system is right handed, i.e. direction x polarisation > 0
                             bool rh = true; // > 0
                             if(Unitless::propagationAxisOpenPMD == "x" and Unitless::polarisationAxisOpenPMD == "z"
                                or Unitless::propagationAxisOpenPMD == "y" and Unitless::polarisationAxisOpenPMD == "x"
                                or Unitless::propagationAxisOpenPMD == "z" and Unitless::polarisationAxisOpenPMD == "y")
                                 rh = false; // < 0
 
-                            // find the index in field data which is closest to totalCellIdx and timeOriginPIC
+                            // transversal axis directions (internal)
+                            float_X const polAxisDirection = getPolarisationVector().sumOfComponents();
+                            float_X const transvAxisDirection
+                                = pmacc::math::cross(getDirection(), getPolarisationVector()).sumOfComponents();
+
+                            // find the position in the field data chunk corresponding to totalCellIdx and
+                            // timeOriginPIC
                             float3_X idxClosestRaw; // raw = not yet rounded to integers
 
                             for(uint32_t d = 0u; d < simDim; d++)
                             {
-                                // return zero if transversal simulation window or simulation timestep exceeds chunk
-                                // extent
-                                if(d != propAxisIdx
-                                       and (posPIC[d] < offsetOpenPMDdataBox(d) or posPIC[d] > offsetOpenPMDdataBox(d) + (extentOpenPMDdataBox(d) - 1.0_X) * cellSizeOpenPMDdataBox(d))
-                                   or (timeOriginPIC - Unitless::TIME_DELAY) < 0.0_X
-                                   or (timeOriginPIC - Unitless::TIME_DELAY) > (extentOpenPMDdataBox(d) - 1.0_X)
-                                           * cellSizeOpenPMDdataBox(d) / SPEED_OF_LIGHT)
-                                    return 0.0_X;
-                                else
+                                /* Now we check whether we have to invert the transversal (internal) axis directions
+                                 * in order to keep the handiness of the (openPMD) system
+                                 */
+                                if(d != internalAxisIndex[0])
                                 {
-                                    if(d == pmacc::math::abs(polAxisIdxPlusOne) - 1 and polAxisIdxPlusOne < 0
-                                       or d == pmacc::math::abs(transvAxisIdxPlusOne) - 1
-                                           and (transvAxisIdxPlusOne < 0 and rh == true or transvAxisIdxPlusOne > 0 and rh == false))
-                                        // invert direction
+                                    if(d == internalAxisIndex[1] and polAxisDirection < 0
+                                       or d == internalAxisIndex[2]
+                                           and (transvAxisDirection < 0 and rh or transvAxisDirection > 0 and !rh))
+                                    {
+                                        // we have to invert
                                         idxClosestRaw[d] = extentOpenPMDdataBox(d) - 1.0_X
                                             - (posPIC[d] - offsetOpenPMDdataBox(d)) / cellSizeOpenPMDdataBox(d);
-                                    else // keep original direction
+                                    }
+                                    else
+                                    {
+                                        // we can keep the original direction
                                         idxClosestRaw[d]
                                             = (posPIC[d] - offsetOpenPMDdataBox(d)) / cellSizeOpenPMDdataBox(d);
+                                    }
+                                } // d != internalAxisIndex[0]
+
+                                else // d == internalAxisIndex[0]
+                                {
+                                    // the longitudinal (time) axis is always inverted
+                                    idxClosestRaw[d] = extentOpenPMDdataBox(d) - 1.0_X
+                                        - (timeOriginPIC - Unitless::TIME_DELAY) / cellSizeOpenPMDdataBox(d)
+                                            * SPEED_OF_LIGHT;
                                 }
-                            }
+                            } // for(uint32_t d = 0u; d < simDim; d++)
 
-                            // correct longitudinal index
-                            idxClosestRaw[propAxisIdx] = extentOpenPMDdataBox(propAxisIdx) - 1.0_X
-                                - (timeOriginPIC - Unitless::TIME_DELAY) / cellSizeOpenPMDdataBox(propAxisIdx)
-                                    * SPEED_OF_LIGHT;
+                            // linear interpolation
+                            return linInterpol(fieldDataBox, idxClosestRaw);
 
+
+                        } // getValueE
+
+                        /** Linear interpolation routine
+                         *
+                         * @param dataBox 3D (Device) data box containing the data to be interpolated.
+                         *        The spacing between the values is assumed to be one and the origin is located in the
+                         *        (lower left) corner, i.e. the scales describing the data box == the cell indices
+                         * @param pos position at which to evaluate; has to be inside the data box.
+                         *
+                         * returns the interpolated value of dataBox at pos.
+                         */
+                        HDINLINE float_X linInterpol(
+                            typename pmacc::Buffer<float_X, 3u>::DataBoxType const& dataBox,
+                            float3_X const& pos) const
+                        {
+                            // find the index in the data box which is nearest to pos
                             DataSpace<3u> const idxClosest
-                                = static_cast<pmacc::math::Vector<int, 3u>>(idxClosestRaw + float3_X::create(0.5_X));
+                                = static_cast<pmacc::math::Vector<int, 3u>>(pos + float3_X::create(0.5_X));
+
                             // the other 7 nearest neighbour indices still have to be found
                             DataSpace<3u> idxShift; // shift to the other nearest neighbour indices
                             DataSpace<3u> idxNext; // nearest neighbour index
@@ -529,26 +587,26 @@ namespace picongpu
                             {
                                 if(idxClosest[d] == 0) // to avoid border problems
                                     idxShift[d] = 1;
-                                else if(idxClosestRaw[d] - static_cast<float_X>(idxClosest[d]) <= 0.0_X)
+                                else if(pos[d] - static_cast<float_X>(idxClosest[d]) <= 0.0_X)
                                     idxShift[d] = -1;
                                 else
                                     idxShift[d] = 1;
 
-                                weight[d] = pmacc::math::abs(static_cast<float_X>(idxClosest[d]) - idxClosestRaw[d]);
+                                weight[d] = pmacc::math::abs(static_cast<float_X>(idxClosest[d]) - pos[d]);
                             }
 
                             // linear interpolation routine
-                            float_X interpE = 0.0_X;
+                            float_X dataInterp = 0.0_X;
 
-                            interpE
-                                += fieldDataBox(idxClosest) * (float3_X::create(1.0_X) - weight).productOfComponents();
+                            dataInterp
+                                += dataBox(idxClosest) * (float3_X::create(1.0_X) - weight).productOfComponents();
                             for(uint32_t d = 0u; d < 3u; d++)
                             {
                                 idxNext = idxClosest;
                                 float3_X ones = float3_X::create(1.0_X);
                                 idxNext[d] = idxClosest[d] + idxShift[d];
                                 ones[d] = 0.0_X;
-                                interpE -= fieldDataBox(idxNext) * (ones - weight).productOfComponents();
+                                dataInterp -= dataBox(idxNext) * (ones - weight).productOfComponents();
                                 if(d == 2)
                                 {
                                     idxNext[0] = idxClosest[0] + idxShift[0];
@@ -559,12 +617,12 @@ namespace picongpu
                                     idxNext[d + 1] = idxClosest[d + 1] + idxShift[d + 1];
                                     ones[d + 1] = 0.0_X;
                                 }
-                                interpE += fieldDataBox(idxNext) * (ones - weight).productOfComponents();
+                                dataInterp += dataBox(idxNext) * (ones - weight).productOfComponents();
                             }
-                            interpE += fieldDataBox(idxClosest + idxShift) * weight.productOfComponents();
+                            dataInterp += dataBox(idxClosest + idxShift) * weight.productOfComponents();
 
-                            return interpE;
-                        } // getValueE
+                            return dataInterp;
+                        } // linInterpol
 
                     protected:
                         float_X const timeOriginPIC; // current time at incident plane
