@@ -46,7 +46,7 @@ namespace picongpu::particles::atomicPhysics
 
             if constexpr(pmacc::traits::HasFlag<typename T_Ion::FrameType, isAtomicPhysicsIon<>>::type::value)
             {
-                /* both boundElectrons and atomicStateCollectionIndex particle attribute must be consistent set,
+                /* both boundElectrons and atomicStateCollectionIndex particle attribute must be set consistently,
                  *  but we lack access to the atomicStateData to correctly update atomicStateCollectionIndex
                  *
                  * Instead we invalidate it by purpose and check at the start of the atomicPhysics step for consistency

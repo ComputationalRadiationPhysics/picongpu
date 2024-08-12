@@ -36,6 +36,7 @@
 
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/atomicPhysics/Number.hpp"
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 
 #include <pmacc/identifier/value_identifier.hpp>
 #include <pmacc/meta/String.hpp>
@@ -69,15 +70,10 @@ namespace picongpu
      */
     value_identifier(float_X, DensityRatioBulkElectrons, 16);
 
-    using ParticleFlagsElectrons = MakeSeq_t<
-        particlePusher<UsedParticlePusher>,
-        shape<UsedParticleShape>,
-        interpolation<UsedField2Particle>,
-        current<UsedParticleCurrentSolver>,
-        massRatio<MassRatioElectrons>,
-        chargeRatio<ChargeRatioElectrons>,
-        densityRatio<DensityRatioBulkElectrons>,
-        isAtomicPhysicsElectron<>>;
+    using ParticleFlagsElectrons = MakeSeq_t < particlePusher<UsedParticlePusher>, shape<UsedParticleShape>,
+          interpolation<UsedField2Particle>, current<UsedParticleCurrentSolver>, massRatio<MassRatioElectrons>,
+          chargeRatio<ChargeRatioElectrons>, densityRatio<DensityRatioBulkElectrons>,
+          atomicPhysics<atomicPhysics::particleType::Electron>;
 
     /* thermal bulk electrons */
     using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
@@ -95,37 +91,69 @@ namespace picongpu
 #    define PARAM_IONIZATIONCURRENT None
 #endif
 
-    using ParticleFlagsArgon = MakeSeq_t<
-        particlePusher<UsedParticlePusher>,
-        shape<UsedParticleShape>,
-        interpolation<UsedField2Particle>,
-        current<UsedParticleCurrentSolver>,
-        massRatio<MassRatioArgon>,
-        chargeRatio<ChargeRatioArgon>,
-        densityRatio<DensityRatioArgon>,
+    struct ArgonAtomicPhysicsCfg
+    {
+        /** paths to atomic physics input data files
+         * - must follow PIConGPU specific formatting
+         * - files are not shipped with PIConGPU, see documentation for creation and sources
+         * - all paths must be either relative to the simOutput folder, or absolute
+         */
+        //{
+        static constexpr char const* chargeStatesFileName = "./ChargeStates_Ar.txt";
+        static constexpr char const* atomicStatesFileName = "./AtomicStates_Ar.txt";
 
-        // core flag for loading atomic input data, no atomicPhysics outside ionizers if not set
-        atomicDataType<atomicPhysics::AtomicData_Ar>, // data type used for atomic data storage
+        static constexpr char const* boundBoundTransitionsFileName = "./BoundBoundTransitions_Ar.txt";
+        static constexpr char const* boundFreeTransitionsFileName = "./BoundFreeTransitions_Ar.txt";
+        static constexpr char const* autonomousTransitionsFileName = "./AutonomousTransitions_Ar.txt";
 
-        /// currently all are required, @todo change?, Brian Marre
-        chargeStatesFileName<PMACC_CSTRING("./ChargeStates_Ar.txt")>,
-        atomicStatesFileName<PMACC_CSTRING("./AtomicStates_Ar.txt")>,
-        /// @todo replace with runtime hostDeviceBuffer of DataBoxes, Brian Marre, 2022
+        /** path to file containing pressure ionization states
+         *
+         * @note optional, set to empty string if not provided
+         *
+         * if no file with pressure ionization input data provided, atomicPhysics will use one of the following options
+         *  to find a pressure ionization path for each atomic state, descending in priority:
+         *      1.) direct pressure ionization state, if present in atomic state input data.
+         *          i.e. for the state with the shell occupation number vector n_0 = (n_1, n_2, ..., n_k, 0, ...),
+         *           with k the index of the last occupied shell, and n_k the occupation number of the k-th shell
+         *           the corresponding pressure ionization state is n_PI  = (n_1, n_2, ..., n_k - 1, 0, ...).
+         *      2.) closest in energy final state of upward bound-free transition(ionizing transition) from the state,
+         *       if at least one upward bound free transition exists.
+         *          i.e. the final state reachable by a defined upward bound-free transition from the current state
+         *           with energy closest to the initial state.
+         *      3.) disable pressure ionization for this state.
+         *
+         * @details: setting an atomic states the pressure ionization state equal to the state disables pressure
+         *   ionization for this states
+         */
+        static constexpr char const* pressureIonizationStatesFileName = "";
+        //}
 
-        // number of atomic states in input file
-        numberAtomicStates<particles::atomicPhysics::Number<470u>>,
+        /** specifies atomic data type to use for this species
+         *
+         * The atomic data type specifies data types used in storage and active atomic physics process paths
+         *
+         * @attention only process paths must be both present in the input data and activated in the atomicData object
+         *  to be considered in the simulation
+         *
+         * @details see atomicPhysics.param for definition
+         */
+        using AtomicDataType = atomicPhysics::AtomicData_Ar;
 
-        // no user provided file pressure ionization file
-        pressureIonizationStatesFileName<PMACC_CSTRING("")>,
+        /** number of atomic states in the atomic state input data
+         *
+         * @attention must be equal to the number of states in the atomic state input file
+         */
+        static constexpr uint32_t numberAtomicStates = 470u;
 
-        boundBoundTransitionsFileName<PMACC_CSTRING("./BoundBoundTransitions_Ar.txt")>,
-        boundFreeTransitionsFileName<PMACC_CSTRING("./BoundFreeTransitions_Ar.txt")>,
-        autonomousTransitionsFileName<PMACC_CSTRING("./AutonomousTransitions_Ar.txt")>,
+        //! electron species to spawn upon atomicPhysics ionization
+        using IonizationElectronSpecies = BulkElectrons;
+    };
 
-        atomicNumbers<ionization::atomicNumbers::Argon_t>,
-        ionizationElectronSpecies<BulkElectrons>, // which species to spawn as electrons upon ionization
-        isAtomicPhysicsIon<>>;
-    //! @attention only channels activated in both data and solver are actually possible
+    using ParticleFlagsArgon = MakeSeq_t < particlePusher<UsedParticlePusher>, shape<UsedParticleShape>,
+          interpolation<UsedField2Particle>, current<UsedParticleCurrentSolver>, massRatio<MassRatioArgon>,
+          chargeRatio<ChargeRatioArgon>, densityRatio<DensityRatioArgon>,
+          atomicNumbers<ionization::atomicNumbers::Argon_t>,
+          atomicPhysics<atomicPhysics::particleType::Ion<ArgonAtomicPhysicsCfg>>;
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,
