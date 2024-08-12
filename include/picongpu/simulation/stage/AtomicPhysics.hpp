@@ -342,10 +342,7 @@ namespace picongpu::simulation::stage
                 // debug only
                 if constexpr(picongpu::atomicPhysics::debug::rejectionProbabilityCache::PRINT_TO_CONSOLE)
                 {
-                    std::cout << "\t\t a histogram oversubscribed?: "
-                              << isOverSubscribed
-                                      ? "true"
-                                      : "false")
+                    std::cout << "\t\t a histogram oversubscribed?: " << (isOverSubscribed ? "true" : "false")
                               << std::endl;
 
                     printOverSubscriptionFieldToConsole(mappingDesc);
@@ -488,7 +485,7 @@ namespace picongpu::simulation::stage
                     calculateIPDInput(mappingDesc, currentStep);
                     resetTimeStep(mappingDesc);
                     resetRateCache();
-                    checkPresence();
+                    checkPresence(mappingDesc);
                     fillRateCache(mappingDesc);
                     calculateSubStepLength(mappingDesc);
 
