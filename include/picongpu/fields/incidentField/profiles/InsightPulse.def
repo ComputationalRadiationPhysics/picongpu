@@ -32,7 +32,16 @@ namespace picongpu
                 {
                     struct InsightPulseParam
                     {
-                        /** Path to the openPMD input file
+                        /** Path to the openPMD input file containing the E-field chunk
+                         *
+                         * This file can be obtained from the Insight measurement data with a python script located
+                         * in lib/python/picongpu/extra/input/. This script provides methods to correct the measured
+                         * data, propagate it to the desired position and transform it into the time domain before
+                         * saving the resulting E-field chunk to openPMD.
+                         *
+                         * This field chunk wil be stored at timestep 0 of the simulation on every used device, which
+                         * is why one has to increase the reserved GPU memory size in memory.param. Otherwise, the
+                         * simulation could run into memory issues.
                          *
                          * It is recommended to use a full path to make it independent of how PIConGPU is launched.
                          * Relative paths require consistency to the current directory when PIConGPU is started
@@ -54,7 +63,7 @@ namespace picongpu
 
                         /** Datatype of the field record
                          *
-                         * OpenPMD needs this information at compile time.
+                         * openPMD needs this information at compile time.
                          */
                         using dataType = float_64;
 
@@ -76,19 +85,19 @@ namespace picongpu
                         static constexpr float_64 DIRECTION_Y = 1.0;
                         static constexpr float_64 DIRECTION_Z = 0.0;
 
-                        /** Unit E polarization direction in PIConGPU
-                        *
-                        * Must be orthogonal to the propagation direction.
-                        * Must be either X or Y or Z, but can be different from polarisationAxisOpenPMD.
-                        *
-                        * Norm of this vector must be 1.0.
-                        * (Normalization is required on a user side as internally it is awkward to do with the
-                        * static-constexpr style of using parameters.)
-                        *
-                        * Note: we use spelling 'Polarisation' for consistency with other lasers.
-                        *
-                        * unit: none
-                        */
+                        /** Unit E polarisation direction in PIConGPU
+                         *
+                         * Must be orthogonal to the propagation direction.
+                         * Must be either X or Y or Z, but can be different from polarisationAxisOpenPMD.
+                         *
+                         * Norm of this vector must be 1.0.
+                         * (Normalization is required on a user side as internally it is awkward to do with the
+                         * static-constexpr style of using parameters.)
+                         *
+                         * Note: we use spelling 'Polarisation' for consistency with other lasers.
+                         *
+                         * unit: none
+                         */
                         static constexpr float_64 POLARISATION_DIRECTION_X = 1.0;
                         static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                         static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
