@@ -172,35 +172,4 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                 });
         }
     };
-
-    template<>
-    struct CalculateIPDInputKernel<0u>
-    {
-        template<
-            typename T_Worker,
-            typename T_AreaMapping,
-            typename T_LocalTimeRemainingDataBox,
-            typename T_SumWeightAllFieldDataBox,
-            typename T_SumTemperatureFunctionalFieldDataBox,
-            typename T_SumWeightElectronFieldBox,
-            typename T_SumChargeNumberIonsFieldDataBox,
-            typename T_SumChargeNumberSquaredIonsFieldDataBox,
-            typename T_LocalTemperatureFieldDataBox,
-            typename T_LocalZStarFieldDataBox,
-            typename T_LocaDebyeLengthFieldDataBox>
-        HDINLINE void operator()(
-            T_Worker const& worker,
-            T_AreaMapping const areaMapping,
-            T_LocalTimeRemainingDataBox const localTimeRemainingBox,
-            T_SumWeightAllFieldDataBox const localSumWeightAllBox,
-            T_SumTemperatureFunctionalFieldDataBox const localSumTemperatureFunctionalBox,
-            T_SumWeightElectronFieldBox const localSumWeightElectronBox,
-            T_SumChargeNumberIonsFieldDataBox const localSumChargeNumberBox,
-            T_SumChargeNumberSquaredIonsFieldDataBox const localSumChargeNumberSquaredBox,
-            T_LocalTemperatureFieldDataBox localTemperatureEnergyBox,
-            T_LocalZStarFieldDataBox localZStarBox,
-            T_LocaDebyeLengthFieldDataBox localDebyeLengthBox) const
-        {
-        }
-    };
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::kernel
