@@ -54,7 +54,7 @@
 .TBG_numHostedGPUPerNode=6
 
 # required GPUs per node for the current job
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
+.TBG_gpusPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi)
 
 # number of cores to block per GPU - we got 2x22 HW CPU cores per node
 #   and we will be accounted those anyway

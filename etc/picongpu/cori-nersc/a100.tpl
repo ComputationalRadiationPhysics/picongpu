@@ -59,7 +59,7 @@
 .TBG_numHostedGPUPerNode=8
 
 # required GPUs per node for the current job
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
+.TBG_gpusPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi)
 
 # number of cores to block per A100 - per node, we got 2 Epyc CPUs with each
 # 64 physical cores and use them w/o HT
