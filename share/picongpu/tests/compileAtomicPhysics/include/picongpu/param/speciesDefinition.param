@@ -77,7 +77,7 @@ namespace picongpu
         massRatio<MassRatioElectrons>,
         chargeRatio<ChargeRatioElectrons>,
         densityRatio<DensityRatioBulkElectrons>,
-        atomicPhysics<atomicPhysics::particleType::Electron>>;
+        atomicPhysics_<atomicPhysics::particleType::Electron>>;
 
     /* thermal bulk electrons */
     using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
@@ -136,8 +136,8 @@ namespace picongpu
          *
          * The atomic data type specifies data types used in storage and active atomic physics process paths
          *
-         * @attention only process paths must be both present in the input data and activated in the atomicData object
-         *  to be considered in the simulation
+         * @attention process paths must be both present in the input data and activated in the atomicData object
+         *  to be realised in the simulation
          *
          * @details see atomicPhysics.param for definition
          */
@@ -147,7 +147,7 @@ namespace picongpu
          *
          * @attention must be equal to the number of states in the atomic state input file
          */
-        static constexpr uint32_t numberAtomicStates = 470u;
+        static constexpr uint16_t numberAtomicStates = 470u;
 
         //! electron species to spawn upon atomicPhysics ionization
         using IonizationElectronSpecies = BulkElectrons;
@@ -157,7 +157,7 @@ namespace picongpu
           interpolation<UsedField2Particle>, current<UsedParticleCurrentSolver>, massRatio<MassRatioArgon>,
           chargeRatio<ChargeRatioArgon>, densityRatio<DensityRatioArgon>,
           atomicNumbers<ionization::atomicNumbers::Argon_t>,
-          atomicPhysics<particles::atomicPhysics::particleType::Ion<ArgonAtomicPhysicsCfg>>;
+          atomicPhysics_<particles::atomicPhysics::particleType::Ion<ArgonAtomicPhysicsCfg>>;
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,
