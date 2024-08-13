@@ -28,12 +28,12 @@ To install the Python dependencies you may either run the command below
 
 .. code:: shell
 
-  pip install -r $PIC_SRC/lib/python/piconpgu/picmi/requirements.txt
+  pip install -r $PICSRC/lib/python/picongpu/picmi/requirements.txt
 
 or install all the requirements listed in
 
-- ``$PIC_SRC/lib/python/piconpgu/picmi/requirements.txt``
-- and ``$PIC_SRC/lib/python/piconpgu/pypicongpu/requirements.txt``
+- ``$PICSRC/lib/python/picongpu/picmi/requirements.txt``
+- and ``$PICSRC/lib/python/picongpu/pypicongpu/requirements.txt``
 
 After you have installed the dependencies you must include the PIConGPU PICMI implementation in your ``PYHTONPATH`` environment variable, for example by
 
