@@ -568,9 +568,8 @@ namespace picongpu::simulation::stage
      */
     struct AtomicPhysics
     {
-        using SpeciesRepresentingAtomicPhysicsIons = typename pmacc::particles::traits::FilterByFlag<
-            VectorAllSpecies,
-            atomicPhysics_<picongpu::particles::atomicPhysics::particleType::Ion<>>>::type;
+        using SpeciesRepresentingAtomicPhysicsIons = particles::atomicPhysics::traits::
+            FilterByParticleType_t<VectorAllSpecies, picongpu::particles::atomicPhysics::Tags::Ion>;
         auto static constexpr numberAtomicPhysicsSpecies = pmacc::mp_size<SpeciesRepresentingAtomicPhysicsIons>::value;
         static bool constexpr atomicPhysicsActive = (numberAtomicPhysicsSpecies >= 1);
 
@@ -628,18 +627,17 @@ namespace picongpu::simulation::stage
                 //! list of all species of macro particles that partake in atomicPhysics as ions
                 using AtomicPhysicsIonSpecies = SpeciesRepresentingAtomicPhysicsIons;
                 //! list of all only IPD partaking ion species
-                using OnlyIPDIonSpecies = typename pmacc::particles::traits::FilterByFlag<
-                    VectorAllSpecies,
-                    atomicPhysics_<picongpu::particles::atomicPhysics::particleType::OnlyIPDIon>>::type;
+                using OnlyIPDIonSpecies = particles::atomicPhysics::traits::
+                    FilterByParticleType_t<VectorAllSpecies, picongpu::particles::atomicPhysics::Tags::OnlyIPDIon>;
 
                 //! list of all species of macro particles that partake in atomicPhysics as electrons
-                using AtomicPhysicsElectronSpecies = typename pmacc::particles::traits::FilterByFlag<
-                    VectorAllSpecies,
-                    atomicPhysics_<picongpu::particles::atomicPhysics::particleType::Electron>>::type;
+                using AtomicPhysicsElectronSpecies = particles::atomicPhysics::traits::
+                    FilterByParticleType_t<VectorAllSpecies, picongpu::particles::atomicPhysics::Tags::Electron>;
+
                 //! list of all only IPD partaking electron species
-                using OnlyIPDElectronSpecies = typename pmacc::particles::traits::FilterByFlag<
+                using OnlyIPDElectronSpecies = particles::atomicPhysics::traits::FilterByParticleType_t<
                     VectorAllSpecies,
-                    atomicPhysics_<picongpu::particles::atomicPhysics::particleType::OnlyIPDElectron>>::type;
+                    picongpu::particles::atomicPhysics::Tags::OnlyIPDElectron>;
 
                 detail::AtomicPhysics<
                     AtomicPhysicsIonSpecies,

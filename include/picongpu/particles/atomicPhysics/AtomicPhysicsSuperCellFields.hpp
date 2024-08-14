@@ -36,8 +36,8 @@ namespace picongpu::particles::atomicPhysics
 {
     struct AtomicPhysicsSuperCellFields
     {
-        using ListAtomicPhysicsSpecies = typename pmacc::particles::traits::
-            FilterByFlag<VectorAllSpecies, atomicPhysics_<particleType::Ion<>>>::type;
+        using ListAtomicPhysicsSpecies = particles::atomicPhysics::traits::
+            FilterByParticleType_t<VectorAllSpecies, picongpu::particles::atomicPhysics::Tags::Ion>;
 
         //! create all superCell fields required by the atomicPhysics core loops, are stored in dataConnector
         HINLINE static void create(DataConnector& dataConnector, picongpu::MappingDesc const mappingDesc)

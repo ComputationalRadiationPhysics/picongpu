@@ -45,14 +45,13 @@ namespace picongpu::particles::atomicPhysics
 
             ion[boundElectrons_] = numberBoundElectrons;
 
-            if constexpr(pmacc::traits::HasFlag<typename T_Ion::FrameType, atomicPhysics_<particleType::Ion<>>>::type::
-                             value)
+            if constexpr(traits::has<T_Ion>(Tags::Ion{}))
             {
                 /* both boundElectrons and atomicStateCollectionIndex particle attribute must be set consistently,
                  *  but we lack access to the atomicStateData to correctly update atomicStateCollectionIndex
                  *
-                 * Instead we invalidate it by purpose and check at the start of the atomicPhysics step for consistency
-                 * and set all inconsistent macro-ions to their respective atomic ground state.
+                 * Instead we invalidate it by purpose and check at the start of the atomicPhysics step for
+                 * consistency and set all inconsistent macro-ions to their respective atomic ground state.
                  */
 
                 // invalidate atomicStateCollectionIndex particle attribute for easier detection

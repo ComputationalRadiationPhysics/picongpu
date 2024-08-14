@@ -51,6 +51,11 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
         //! call of kernel for every superCell
         HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
         {
+            static_assert(
+                pmacc::traits::HasIdentifiers<typename ElectronSpecies::FrameType, MakeSeq_t<weighting, momentum>>::
+                    type::value,
+                "atomic physics: species is missing one of the following attributes: weighting, momentum");
+
             // full local domain, no guards
             pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
             pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();

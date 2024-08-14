@@ -29,6 +29,7 @@
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 #include <memory>
@@ -60,18 +61,34 @@ namespace picongpu::particles::atomicPhysics::stage
             // get species atomicPhysics config
             PMACC_CASSERT_MSG(
                 Species_not_marked_as_atomic_physics_ion_species,
-                HasFlag<FrameType, atomicPhysics_<atomicPhysics::particleType::Ion<>>>::type::value == true);
-            using AliasAtomicPhysicsFlag = typename GetFlagType<FrameType, atomicPhysics_<>>::type;
-            using SpeciesAtomicPhysicsConfigType = typename pmacc::traits::Resolve<AliasAtomicPhysicsFlag>::type;
+                traits::IsParticleType<traits::GetParticleType_t<FrameType>, Tags::Ion>::value);
+
+            using SpeciesAtomicPhysicsConfigType = particles::atomicPhysics::traits::GetParticleType_t<FrameType>;
 
             constexpr char const* chargeStatesFileName = SpeciesAtomicPhysicsConfigType::chargeStatesFileName;
-            constexpr char const* atomicStatesFileName = SpeciesAtomicPhysicsConfigType::atomicStateFileName;
+            constexpr char const* atomicStatesFileName = SpeciesAtomicPhysicsConfigType::atomicStatesFileName;
             constexpr char const* pressureIonizationStatesFileName
-                = SpeciesAtomicPhysicsConfigType::pressureIonizationFileName;
+                = SpeciesAtomicPhysicsConfigType::pressureIonizationStatesFileName;
 
             constexpr char const* boundBoundFileName = SpeciesAtomicPhysicsConfigType::boundBoundTransitionsFileName;
             constexpr char const* boundFreeFileName = SpeciesAtomicPhysicsConfigType::boundFreeTransitionsFileName;
             constexpr char const* autonomousFileName = SpeciesAtomicPhysicsConfigType::autonomousTransitionsFileName;
+
+            static_assert(
+                pmacc::traits::HasIdentifiers<
+                    typename IonSpecies::FrameType,
+                    MakeSeq_t<
+                        atomicStateCollectionIndex,
+                        processClass,
+                        transitionIndex,
+                        binIndex,
+                        accepted,
+                        boundElectrons,
+                        weighting,
+                        momentum>>::type::value,
+                "atomic physics: species is missing one of the following attributes: atomicStateCollectionIndex, "
+                "processClass, "
+                "transitionIndex, binIndex, accepted, boundElectrons, weighting, momentum");
 
             auto atomicData = std::make_unique<AtomicDataType>(
                 std::string(chargeStatesFileName),

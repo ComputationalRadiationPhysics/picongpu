@@ -19,11 +19,16 @@
 
 #pragma once
 
-#include <pmacc/identifier/alias.hpp>
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/atomicPhysics/ParticleTags.hpp"
+
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 
 #include <cstdint>
 
-namespace picongpu::particles::atomicPhysics::particleType
+namespace picongpu::particles::atomicPhysics
 {
     /** indicates species represents an ion and will participate in atomicPhysics step and
      * ionization potential depression calculation
@@ -63,21 +68,36 @@ namespace picongpu::particles::atomicPhysics::particleType
      * - transitionIndex
      * - binIndex
      * - accepted
+     * - momentum
+     * - weighting
      */
-    alias(Ion);
+    template<typename T_Config>
+    struct Ion : public T_Config
+    {
+        using Tag = Tags::Ion;
+    };
 
     /** indicates species represents an ion in the ionization potential depression calculation (IPD), but does not
      * partake in the atomicPhysics step. (in contrast to Ion)
+     * @attention In addition an atomicPhysics ion species also requires the following particle attributes:
+     * - momentum
+     * - weighting
      */
     struct OnlyIPDIon
     {
+        using Tag = Tags::OnlyIPDIon;
     };
 
     /** indicates species represents electrons and will participate in the atomicPhysics step and the ionization
      * potential depression(IPD) calculation
+     *
+     * @attention In addition an atomicPhysics ion species also requires the following particle attributes:
+     * - momentum
+     * - weighting
      */
     struct Electron
     {
+        using Tag = Tags::Electron;
     };
 
     /** indicates species represents electrons in the ionization potential depression calculation(IPD), but does not
@@ -87,8 +107,67 @@ namespace picongpu::particles::atomicPhysics::particleType
      * An electron physically always contributes to both the electron spectrum in the atomicPhyiscs step **and** the
      * IPD calculation. Marking an electron species as onlyIPD unphysically removes part of the electron spectrum for
      * little gain, as the atomicPhysics step scales primarily with the number of ion macro particles.
+     *
+     * @attention In addition an atomicPhysics ion species also requires the following particle attributes:
+     * - momentum
+     * - weighting
      */
     struct OnlyIPDElectron
     {
+        using Tag = Tags::OnlyIPDElectron;
     };
-} // namespace picongpu::particles::atomicPhysics::particleType
+
+    namespace traits
+    {
+        template<typename T_ParticleType, typename T_ParticleTypeTag, typename = void>
+        struct IsParticleType : std::false_type
+        {
+        };
+
+        template<typename T_ParticleType, typename T_ParticleTypeTag>
+        struct IsParticleType<
+            T_ParticleType,
+            T_ParticleTypeTag,
+            std::enable_if_t<std::is_same_v<typename T_ParticleType::Tag, T_ParticleTypeTag>>> : std::true_type
+        {
+        };
+
+        template<typename T_ParticleType, typename T_ParticleTypeTag>
+        using IsParticleType_t = typename IsParticleType<T_ParticleType, T_ParticleTypeTag>::type;
+
+        template<typename T_FrameType>
+        struct GetParticleType
+        {
+            using type = typename pmacc::traits::Resolve<
+                typename GetFlagType<T_FrameType, atomicPhysicsParticle<>>::type>::type;
+        };
+
+        template<typename T_FrameType>
+        using GetParticleType_t = typename GetParticleType<T_FrameType>::type;
+
+        template<typename T_Particle, typename T_ParticleTypeTag>
+        constexpr bool has([[maybe_unused]] T_ParticleTypeTag const& tag)
+        {
+            using FrameType = typename std::decay_t<T_Particle>::FrameType;
+            constexpr bool hasParticleType = pmacc::traits::HasFlag<FrameType, atomicPhysicsParticle<>>::type::value;
+
+            return hasParticleType && IsParticleType<GetParticleType_t<FrameType>, Tags::Ion>::value;
+        }
+
+        template<typename T_MPLSeq, typename T_Tag>
+        struct FilterByParticleType
+        {
+            using SpeciesWithAtomicPhysics =
+                typename pmacc::particles::traits::FilterByFlag<T_MPLSeq, atomicPhysicsParticle<>>::type;
+
+            template<typename T_Species>
+            using IsTagedType = IsParticleType_t<GetParticleType_t<typename T_Species::FrameType>, T_Tag>;
+
+            using type = pmacc::mp_copy_if<SpeciesWithAtomicPhysics, IsTagedType>;
+        };
+
+        template<typename T_MPLSeq, typename T_Tag>
+        using FilterByParticleType_t = typename FilterByParticleType<T_MPLSeq, T_Tag>::type;
+
+    } // namespace traits
+} // namespace picongpu::particles::atomicPhysics

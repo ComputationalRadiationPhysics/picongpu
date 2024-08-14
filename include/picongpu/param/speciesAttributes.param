@@ -152,7 +152,7 @@ namespace picongpu
      *
      * @details underscore to prevent name collision with atomic physics param namespace, piconpgu::atomicPhysics
      */
-    alias(atomicPhysics_);
+    alias(atomicPhysicsParticle);
 
     //! particle attribute, collectionIndex of atomic state of ions
     value_identifier(uint32_t, atomicStateCollectionIndex, 0u);
@@ -168,6 +168,13 @@ namespace picongpu
 
     //! particle attribute, whether the selected transition was accepted
     value_identifier(bool, accepted, false);
+
+    /** collection of attributes required for atomic physics attributes
+     *
+     * @attention boundElectrons is contained in the list, please do not add it twice.
+     */
+    using atomicPhysicsIonParticleAttributes
+        = MakeSeq_t<boundElectrons, atomicStateCollectionIndex, processClass, transitionIndex, binIndex, accepted>;
 
     /** Total cell index of a particle.
      *

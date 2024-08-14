@@ -46,10 +46,11 @@ namespace picongpu::traits
         /* throw static assert if species lacks flag */
         PMACC_CASSERT_MSG(
             Species_missing_atomicDataType_flag,
-            HasFlag<FrameType, atomicPhysics_<particles::atomicPhysics::particleType::Ion<>>>::type::value == true);
+            particles::atomicPhysics::traits::IsParticleType<
+                particles::atomicPhysics::traits::GetParticleType_t<FrameType>,
+                particles::atomicPhysics::Tags::Ion>::value);
 
-        using AliasAtomicPhysicsFlagType = typename GetFlagType<FrameType, atomicPhysics_<>>::type;
-        using SpeciesAtomicPhysicsConfigType = typename pmacc::traits::Resolve<AliasAtomicPhysicsFlagType>::type;
+        using SpeciesAtomicPhysicsConfigType = particles::atomicPhysics::traits::GetParticleType_t<FrameType>;
 
         using type = typename SpeciesAtomicPhysicsConfigType::AtomicDataType;
     };

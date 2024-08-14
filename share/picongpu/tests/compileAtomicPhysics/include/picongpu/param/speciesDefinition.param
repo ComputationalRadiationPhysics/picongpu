@@ -77,7 +77,7 @@ namespace picongpu
         massRatio<MassRatioElectrons>,
         chargeRatio<ChargeRatioElectrons>,
         densityRatio<DensityRatioBulkElectrons>,
-        atomicPhysics_<atomicPhysics::particleType::Electron>>;
+        atomicPhysicsParticle<particles::atomicPhysics::Electron>>;
 
     /* thermal bulk electrons */
     using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
@@ -153,24 +153,21 @@ namespace picongpu
         using IonizationElectronSpecies = BulkElectrons;
     };
 
-    using ParticleFlagsArgon = MakeSeq_t < particlePusher<UsedParticlePusher>, shape<UsedParticleShape>,
-          interpolation<UsedField2Particle>, current<UsedParticleCurrentSolver>, massRatio<MassRatioArgon>,
-          chargeRatio<ChargeRatioArgon>, densityRatio<DensityRatioArgon>,
-          atomicNumbers<ionization::atomicNumbers::Argon_t>,
-          atomicPhysics_<particles::atomicPhysics::particleType::Ion<ArgonAtomicPhysicsCfg>>;
+    using ParticleFlagsArgon = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioArgon>,
+        chargeRatio<ChargeRatioArgon>,
+        densityRatio<DensityRatioArgon>,
+        atomicNumbers<ionization::atomicNumbers::Argon_t>,
+        atomicPhysicsParticle<particles::atomicPhysics::Ion<ArgonAtomicPhysicsCfg>>>;
 
     using ArgonAttributes = MakeSeq_t<
         DefaultParticleAttributes,
-
-        // atomic physics attributes
-        //      storage of atomic state
-        atomicStateCollectionIndex,
-        boundElectrons,
-        //      solver support
-        processClass,
-        transitionIndex,
-        binIndex,
-        accepted>;
+        // see definition in speciesAttributes.param
+        atomicPhysicsIonParticleAttributes>;
 
     /* define species ions */
     using ArgonIons = Particles<PMACC_CSTRING("Ar"), ParticleFlagsArgon, ArgonAttributes>;

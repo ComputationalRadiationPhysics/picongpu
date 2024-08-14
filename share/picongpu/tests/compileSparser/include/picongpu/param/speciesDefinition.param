@@ -76,7 +76,7 @@ namespace picongpu
         massRatio<MassRatioElectrons>,
         chargeRatio<ChargeRatioElectrons>,
         densityRatio<DensityRatioBulkElectrons>,
-        atomicPhysics_<particles::atomicPhysics::particleType::Electron>>;
+        atomicPhysicsParticle<particles::atomicPhysics::Electron>>;
 
     /* thermal bulk electrons */
     using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
@@ -157,20 +157,12 @@ namespace picongpu
         chargeRatio<ChargeRatioCopper>,
         densityRatio<DensityRatioCopper>,
         atomicNumbers<ionization::atomicNumbers::Copper_t>,
-        atomicPhysics_<particles::atomicPhysics::particleType::Ion<CopperAtomicPhysicsCfg>>>;
+        atomicPhysicsParticle<particles::atomicPhysics::Ion<CopperAtomicPhysicsCfg>>>;
 
     using CopperAttributes = MakeSeq_t<
         DefaultParticleAttributes,
-
-        // atomic physics attributes
-        //      storage of atomic state
-        atomicStateCollectionIndex,
-        boundElectrons,
-        //      solver support
-        processClass,
-        transitionIndex,
-        binIndex,
-        accepted>;
+        // see definition in speciesAttributes.param
+        atomicPhysicsIonParticleAttributes>;
 
     /* define species ions */
     using CopperIons = Particles<PMACC_CSTRING("Cu"), ParticleFlagsCopper, CopperAttributes>;
