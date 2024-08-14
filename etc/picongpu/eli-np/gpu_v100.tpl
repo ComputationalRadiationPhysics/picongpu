@@ -59,7 +59,7 @@
 .TBG_numHostedGPUPerNode=16
 
 # required GPUs per node for the current job
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
+.TBG_gpusPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi)
 
 # host memory per gpu
 .TBG_memPerGPU="$((1300000 / $TBG_numHostedGPUPerNode))"
