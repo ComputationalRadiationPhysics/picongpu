@@ -202,7 +202,7 @@ namespace pmacc
              * @return new Vector<...>
              */
             HDINLINE
-            static Vector create(ParamType value)
+            static constexpr Vector create(ParamType value)
             {
                 Vector result;
                 for(uint32_t i = 0u; i < dim; i++)

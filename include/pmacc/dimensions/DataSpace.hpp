@@ -57,17 +57,14 @@ namespace pmacc
         static constexpr uint32_t Dim = T_dim;
         using BaseType = math::Vector<int, T_dim>;
 
-        /**
-         * default constructor.
+        /** default constructor.
+         *
          * Sets size of all dimensions to 0.
          */
-        HDINLINE DataSpace()
+        HDINLINE constexpr DataSpace() : math::Vector<int, T_dim>(math::Vector<int, T_dim>::create(0))
         {
-            for(uint32_t i = 0; i < T_dim; ++i)
-            {
-                (*this)[i] = 0;
-            }
         }
+
         HDINLINE
         constexpr DataSpace(const DataSpace&) = default;
 
