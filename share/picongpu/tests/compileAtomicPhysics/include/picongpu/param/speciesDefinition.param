@@ -1,0 +1,184 @@
+/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Heiko Burau, Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Define particle species.
+ *
+ * This file collects all previous declarations of base (reference) quantities
+ * and configured solvers for species and defines particle species. This
+ * includes "attributes" (lvalues to store with each species) and "flags"
+ * (rvalues & aliases for solvers to perform with the species for each timestep
+ * and ratios to base quantities). With those information, a `Particles` class
+ * is defined for each species and then collected in the list
+ * `VectorAllSpecies`.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/Particles.hpp"
+#include "picongpu/particles/atomicPhysics/ParticleType.hpp"
+
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/meta/String.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+
+#include <cstdint>
+
+// argon + thermal electrons
+namespace picongpu
+{
+    /*########################### define default attributes ######################*/
+
+    /** describe default attributes of a particle*/
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting, particleId>;
+
+    /*############################ end default attributes ########################*/
+
+    /*########################### define species #################################*/
+
+    /*--------------------------- electrons --------------------------------------*/
+    /* thermal bulk electrons: */
+
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier(float_X, ChargeRatioElectrons, 1.0);
+
+    /* ratio relative to BASE_DENSITY
+     * thermal "bulk": 1x ionized n_Cu
+     */
+    value_identifier(float_X, DensityRatioBulkElectrons, 16);
+
+    using ParticleFlagsElectrons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>,
+        densityRatio<DensityRatioBulkElectrons>,
+        atomicPhysicsParticle<particles::atomicPhysics::Electron>>;
+
+    /* thermal bulk electrons */
+    using BulkElectrons = Particles<PMACC_CSTRING("eth"), ParticleFlagsElectrons, DefaultParticleAttributes>;
+
+    /*--------------------------- ions Argon ------------------------------------*/
+
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioArgon, 40 * 1836.152672);
+    value_identifier(float_X, ChargeRatioArgon, -18.0);
+
+    /* ratio relative to BASE_DENSITY */
+    value_identifier(float_X, DensityRatioArgon, 1.0);
+
+#ifndef PARAM_IONIZATIONCURRENT
+#    define PARAM_IONIZATIONCURRENT None
+#endif
+
+    struct ArgonAtomicPhysicsCfg
+    {
+        /** paths to atomic physics input data files
+         * - must follow PIConGPU specific formatting
+         * - files are not shipped with PIConGPU, see documentation for creation and sources
+         * - all paths must be either relative to the simOutput folder, or absolute
+         */
+        //{
+        static constexpr char const* chargeStatesFileName = "./ChargeStates_Ar.txt";
+        static constexpr char const* atomicStatesFileName = "./AtomicStates_Ar.txt";
+
+        static constexpr char const* boundBoundTransitionsFileName = "./BoundBoundTransitions_Ar.txt";
+        static constexpr char const* boundFreeTransitionsFileName = "./BoundFreeTransitions_Ar.txt";
+        static constexpr char const* autonomousTransitionsFileName = "./AutonomousTransitions_Ar.txt";
+
+        /** path to file containing pressure ionization states
+         *
+         * @note optional, set to empty string if not provided
+         *
+         * if no file with pressure ionization input data provided, atomicPhysics will use one of the following options
+         *  to find a pressure ionization path for each atomic state, descending in priority:
+         *      1.) direct pressure ionization state, if present in atomic state input data.
+         *          i.e. for the state with the shell occupation number vector n_0 = (n_1, n_2, ..., n_k, 0, ...),
+         *           with k the index of the last occupied shell, and n_k the occupation number of the k-th shell
+         *           the corresponding pressure ionization state is n_PI  = (n_1, n_2, ..., n_k - 1, 0, ...).
+         *      2.) closest in energy final state of upward bound-free transition(ionizing transition) from the state,
+         *       if at least one upward bound free transition exists.
+         *          i.e. the final state reachable by a defined upward bound-free transition from the current state
+         *           with energy closest to the initial state.
+         *      3.) disable pressure ionization for this state.
+         *
+         * @details: setting an atomic states the pressure ionization state equal to the state disables pressure
+         *   ionization for this states
+         */
+        static constexpr char const* pressureIonizationStatesFileName = "";
+        //}
+
+        /** specifies atomic data type to use for this species
+         *
+         * The atomic data type specifies data types used in storage and active atomic physics process paths
+         *
+         * @attention process paths must be both present in the input data and activated in the atomicData object
+         *  to be realised in the simulation
+         *
+         * @details see atomicPhysics.param for definition
+         */
+        using AtomicDataType = atomicPhysics::AtomicData_Ar;
+
+        /** number of atomic states in the atomic state input data
+         *
+         * @attention must be equal to the number of states in the atomic state input file
+         */
+        static constexpr uint16_t numberAtomicStates = 470u;
+
+        //! electron species to spawn upon atomicPhysics ionization
+        using IonizationElectronSpecies = BulkElectrons;
+    };
+
+    using ParticleFlagsArgon = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioArgon>,
+        chargeRatio<ChargeRatioArgon>,
+        densityRatio<DensityRatioArgon>,
+        atomicNumbers<ionization::atomicNumbers::Argon_t>,
+        atomicPhysicsParticle<particles::atomicPhysics::Ion<ArgonAtomicPhysicsCfg>>>;
+
+    using ArgonAttributes = MakeSeq_t<
+        DefaultParticleAttributes,
+        // see definition in speciesAttributes.param
+        atomicPhysicsIonParticleAttributes>;
+
+    /* define species ions */
+    using ArgonIons = Particles<PMACC_CSTRING("Ar"), ParticleFlagsArgon, ArgonAttributes>;
+
+    /*########################### end species ####################################*/
+
+    /** All known particle species of the simulation
+     *
+     * List all defined particle species from above in this list
+     * to make them available to the PIC algorithm.
+     */
+    using VectorAllSpecies = MakeSeq_t<BulkElectrons, ArgonIons>;
+
+} // namespace picongpu

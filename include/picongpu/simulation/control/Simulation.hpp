@@ -37,12 +37,14 @@
 #include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
+#include "picongpu/particles/atomicPhysics/stage/FixAtomicState.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
+#include "picongpu/simulation/stage/AtomicPhysics.hpp"
 #include "picongpu/simulation/stage/Collision.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
@@ -86,6 +88,7 @@
 #include <array>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -110,9 +113,7 @@ namespace picongpu
         /**
          * Constructor
          */
-        Simulation()
-
-            = default;
+        Simulation() = default;
 
         void pluginRegisterHelp(po::options_description& desc) override
         {
@@ -336,6 +337,8 @@ namespace picongpu
             currentBackground = std::make_shared<simulation::stage::CurrentBackground>(*cellDescription);
             dc.share(currentBackground);
 
+            atomicPhysics = std::make_shared<simulation::stage::AtomicPhysics>(*cellDescription);
+
             synchrotronRadiation = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
 
             initFields(dc);
@@ -503,6 +506,8 @@ namespace picongpu
                     particles::RemoveOuterParticlesAllSpecies removeOuterParticlesAllSpecies;
                     removeOuterParticlesAllSpecies(step);
 
+                    (*atomicPhysics).fixAtomicStateInit(*cellDescription);
+
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);
                 }
@@ -542,6 +547,7 @@ namespace picongpu
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);
             ParticleIonization{*cellDescription}(currentStep);
+            (*atomicPhysics)(*cellDescription, currentStep);
             (*synchrotronRadiation)(currentStep);
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
@@ -588,6 +594,7 @@ namespace picongpu
             resetFields(currentStep);
             meta::ForEach<VectorAllSpecies, particles::CallReset<boost::mpl::_1>> resetParticles;
             resetParticles(currentStep);
+            /// @todo need to add atomicPhysics super cell fields?, Brian Marre, 2022
         }
 
         void slide(uint32_t currentStep)
@@ -624,6 +631,8 @@ namespace picongpu
 
         // extension: Synchrotron Radiation
         std::shared_ptr<simulation::stage::SynchrotronRadiation> synchrotronRadiation;
+
+        std::shared_ptr<simulation::stage::AtomicPhysics> atomicPhysics;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
@@ -781,10 +790,25 @@ namespace picongpu
                 }
             };
 
-            /* @todo for now the list of fields is hardcoded here, a more generic
+            /** @todo for now the list of fields is hardcoded here, a more generic
              * solution would require changes to design of DataConnector.
-             * FieldJ and FieldTmp are effectively cleared each time iteration and
-             * so do not need a reset.
+             *
+             * following fields are effectively cleared each iteration and so do not need a reset.
+             *
+             * [standard PIC:]
+             * - FieldJ
+             * - FieldTmp
+             * [atomicPhysics:]
+             * - LocalTimeRemainingField
+             * - LocalTimeStepLengthField
+             * - LocalHistogramField
+             * - LocalRateCacheField
+             * - LocalElectronHistogramOverSubscribedField
+             * - LocalRejectionProbabilityCacheField
+             * - LocalFoundUnboundIonField
+             * [IPD:]
+             * - LocalIPDSupportField(s)
+             * - LocalIPDInputField(s)
              */
             std::array<std::string, 4> const fieldNames{
                 {FieldE::getName(),

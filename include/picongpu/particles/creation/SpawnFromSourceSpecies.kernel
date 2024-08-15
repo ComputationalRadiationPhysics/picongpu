@@ -69,7 +69,7 @@ namespace picongpu::particles::creation
      *      3.2.2) initialize P-particles and update S-Particles depending on S-particle attributes, kernelState and
      *            additonalData using T_ModuleConfig::ParticlePairUpdateFunctor
      *            @note kernelState and/or S-particle may be modified by PredictorFunctor call in addition to
-     * P-particle
+     *              P-particle
      *
      * @tparam T_TypeNumber type to use for storage of number of particles to spawn
      * @tparam T_ModuleConfig wrapper holding all modules to be used in framework kernel, see ModuleConfig above for

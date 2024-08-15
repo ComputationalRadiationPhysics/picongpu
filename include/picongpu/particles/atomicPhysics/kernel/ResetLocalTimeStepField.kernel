@@ -1,0 +1,92 @@
+/* Copyright 2023 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+
+namespace picongpu::particles::atomicPhysics::kernel
+{
+    /** reset local time step length to local time remaining
+     *
+     * @tparam T_numberAtomicPhysicsIonSpecies specialization template parameter used to prevent compilation of all
+     *  atomicPhysics kernels if no atomic physics species is present.
+     */
+    template<uint32_t T_numberAtomicPhysicsIonSpecies>
+    struct ResetLocalTimeStepFieldKernel
+    {
+        /** call operator
+         *
+         * called by ResetLocalTimeStep atomic physics sub-stage
+         *
+         * @param worker object containing the device and block information, passed by PMACC_KERNEL call
+         * @param areMapping mapping of blockIndex to block superCell index
+         * @param localTimeRemainingBox deviceDataBox containing local atomicPhysics step
+         *  time remaining for every superCell
+         * @param localTimeStepBox deviceDataBox containing local atomicPhysics time step
+         *  length for every superCell
+         */
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalTimeStepBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_LocalTimeStepBox localTimeStepBox) const
+        {
+            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
+            //  -> must subtract guard to get correct superCellFieldIdx
+            pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
+                = areaMapping.getSuperCellIndex(worker.blockDomIdxND()) - areaMapping.getGuardingSuperCells();
+
+            auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
+            // end kernel if superCell already finished
+            if(timeRemaining <= 0._X)
+                return;
+
+            auto& timeStep = localTimeStepBox(superCellFieldIdx);
+
+            auto onlyMaster = lockstep::makeMaster(worker);
+
+            onlyMaster([&timeStep, &timeRemaining]() { timeStep = timeRemaining; });
+        }
+    };
+
+    template<>
+    struct ResetLocalTimeStepFieldKernel<0u>
+    {
+        template<
+            typename T_Worker,
+            typename T_AreaMapping,
+            typename T_LocalTimeRemainingBox,
+            typename T_LocalTimeStepBox>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_AreaMapping const areaMapping,
+            T_LocalTimeRemainingBox const localTimeRemainingBox,
+            T_LocalTimeStepBox localTimeStepBox) const
+        {
+        }
+    };
+} // namespace picongpu::particles::atomicPhysics::kernel

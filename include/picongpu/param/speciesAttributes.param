@@ -44,6 +44,7 @@
 #include <pmacc/particles/IdProvider.def>
 #include <pmacc/particles/Identifier.hpp>
 
+#include <cstdint>
 
 namespace picongpu
 {
@@ -114,18 +115,66 @@ namespace picongpu
      *
      * value type is float_X to avoid casts during the runtime
      * - float_X instead of integer types are reasonable because effective charge
-     *   numbers are possible
+     *   numbers are possible, NOTE: but not useful, Brian, 2022
      * - required for ion species if ionization is enabled
      * - setting it requires atomicNumbers to also be set
+     * @attention number bound electrons should always match atomicState
+     *  charge state!
      *
      * @todo connect default to proton number
+     * @todo change to uint8_t or uint32_t
      */
     value_identifier(float_X, boundElectrons, 0._X);
 
-    //! alias for atomic state of ion, see also atomicPhysics.param
-    alias(atomicConfigNumber);
+    //! alias for particle ionizers, see also ionizer.param
+    alias(ionizers);
 
-    alias(atomicPhysicsSolver);
+    /** alias for ionization energy container, see also ionizationEnergies.param
+     *  - only reasonable for atoms / ions / nuclei
+     */
+    alias(ionizationEnergies);
+
+    /** alias for particle flag: atomic numbers, see also ionizer.param
+     * - only reasonable for atoms / ions / nuclei
+     * - is required when boundElectrons is set
+     */
+    alias(atomicNumbers);
+
+    /** alias for particle flag: effective nuclear charge,
+     *
+     * - see also ionizer.param
+     * - only reasonable for atoms / ions / nuclei
+     */
+    alias(effectiveNuclearCharge);
+
+    /** configuration of species for atomicPhysics algorithm, see picongpu/particles/atomicPhysics/ParticleType.hpp for
+     * details
+     *
+     * @details underscore to prevent name collision with atomic physics param namespace, piconpgu::atomicPhysics
+     */
+    alias(atomicPhysicsParticle);
+
+    //! particle attribute, collectionIndex of atomic state of ions
+    value_identifier(uint32_t, atomicStateCollectionIndex, 0u);
+
+    //! particle attribute, process class of selected atomicPhysics transition
+    value_identifier(uint8_t, processClass, 0u);
+
+    //! particle attribute, index of chosen atomicPhysics transition
+    value_identifier(uint32_t, transitionIndex, 0u);
+
+    //! particle attribute, index of bin chosen for atomicPhysics transition, if applicable for
+    value_identifier(uint32_t, binIndex, 0u);
+
+    //! particle attribute, whether the selected transition was accepted
+    value_identifier(bool, accepted, false);
+
+    /** collection of attributes required for atomic physics attributes
+     *
+     * @attention boundElectrons is contained in the list, please do not add it twice.
+     */
+    using atomicPhysicsIonParticleAttributes
+        = MakeSeq_t<boundElectrons, atomicStateCollectionIndex, processClass, transitionIndex, binIndex, accepted>;
 
     /** Total cell index of a particle.
      *
@@ -142,33 +191,14 @@ namespace picongpu
     //! alias for particle pusher, see alsospecies.param
     alias(particlePusher);
 
-    //! alias for particle ionizers, see also ionizer.param
-    alias(ionizers);
-
     //! alias for particle that emmits synchrotron radiation, see also synchrotron.param
     alias(synchrotron);
-
-    //! alias for ionization energy container, see also ionizationEnergies.param
-    alias(ionizationEnergies);
 
     //! alias for particle to field interpolation, see also species.param
     alias(interpolation);
 
     //! alias for particle current solver, see also species.param
     alias(current);
-
-    /** alias for particle flag: atomic numbers, see also ionizer.param
-     * - only reasonable for atoms / ions / nuclei
-     * - is required when boundElectrons is set
-     */
-    alias(atomicNumbers);
-
-    /** alias for particle flag: effective nuclear charge,
-     *
-     * - see also ionizer.param
-     * - only reasonable for atoms / ions / nuclei
-     */
-    alias(effectiveNuclearCharge);
 
     /** alias for particle mass ratio
      *
