@@ -1,0 +1,12 @@
+@startuml
+enum processClass
+{
+    noChange                           = 0u
+    spontaneousDeexcitation  = 1u
+    electronicExcitation            = 2u
+    electronicDeexcitation       = 3u
+    electronicIonization           = 4u
+    autonomousIonization       = 5u
+    fieldIonization                    = 6u
+}
+@enduml

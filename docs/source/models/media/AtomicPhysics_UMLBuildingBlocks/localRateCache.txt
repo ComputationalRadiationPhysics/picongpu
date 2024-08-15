@@ -1,0 +1,13 @@
+@startuml
+entity localRateCache<per SuperCell, per IonSpecies>
+{
+    static constexpr number AtomicStates
+    ----
+    [R_boundbound_up : float32] [numberAtomicStates]
+    [R_boundbound_down : float32] [numberAtomicStates]
+    [R_boundfree_up : float32] [numberAtomicStates]
+    [R_autonomous : float32] [numberAtomicStates]
+
+    [present : bool] [numberAtomicStates]
+}
+@enduml

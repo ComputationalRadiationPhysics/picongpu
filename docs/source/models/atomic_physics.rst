@@ -218,8 +218,9 @@ FLYonPIC step
 
 overview of the FLYonPIC step
 
-.. figure::  media/AtomicPhyiscsStep_v3_1.png
+.. image:: media/AtomicPhyiscsStep_v3_1.svg
    :name: model-FLYonPIC_Step
+   :width: 100%
 
 .. [FlyCHK]
    H.-K.Chung, M.H. Chen, R.W. Lee

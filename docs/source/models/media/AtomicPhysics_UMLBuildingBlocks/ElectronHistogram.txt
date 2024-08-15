@@ -1,0 +1,10 @@
+@startuml
+entity electronHistogram<per superCell>
+{
+    static constexpr numberBins
+    ----
+    [w0  : float32] [numberBins]
+    [dW : float32] [numberBins]
+    [dE  : float32] [numberBins]
+}
+@enduml

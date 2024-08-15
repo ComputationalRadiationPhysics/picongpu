@@ -1,0 +1,11 @@
+@startuml
+class macroIon
+{
+    atomicStateCollectionIndex : uin32_t
+    processClass                         : uint8_t
+    transitionIndex                     : uint32_t
+    binIndex                                : uint32_t
+    accepted?                              : bool
+    boundElectrons                    : float32
+}
+@enduml
