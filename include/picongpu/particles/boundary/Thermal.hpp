@@ -70,7 +70,7 @@ namespace picongpu
                 //! Name, required to be wrapped later
                 static constexpr char const* name = "reflectThermalIfOutside";
 
-                HDINLINE ReflectThermalIfOutside()
+                HINLINE ReflectThermalIfOutside()
                     : energy((m_parameters.temperature * UNITCONV_keV_to_Joule) / UNIT_ENERGY)
                 {
                 }
