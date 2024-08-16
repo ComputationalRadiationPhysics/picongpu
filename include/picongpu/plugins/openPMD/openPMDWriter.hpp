@@ -137,7 +137,7 @@ namespace picongpu
             return res;
         }
 
-        ::openPMD::Series& ThreadParams::openSeries(::openPMD::Access at)
+        inline ::openPMD::Series& ThreadParams::openSeries(::openPMD::Access at)
         {
             if(!openPMDSeries)
             {
@@ -181,7 +181,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
         }
 
-        void ThreadParams::closeSeries()
+        inline void ThreadParams::closeSeries()
         {
             if(openPMDSeries)
             {
@@ -585,7 +585,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
         };
 
-        void ThreadParams::initFromConfig(
+        inline void ThreadParams::initFromConfig(
             Help& help,
             size_t id,
             uint32_t const currentStep,
@@ -1907,7 +1907,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             DataSpace<simDim> mpi_size;
         };
 
-        std::shared_ptr<plugins::multi::IInstance> Help::create(
+        inline std::shared_ptr<plugins::multi::IInstance> Help::create(
             std::shared_ptr<plugins::multi::IHelp>& help,
             size_t const id,
             MappingDesc* cellDescription)

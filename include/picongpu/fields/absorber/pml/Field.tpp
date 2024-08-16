@@ -93,14 +93,14 @@ namespace picongpu
                     return NodeValues{initialValue};
                 }
 
-                float_X& NodeValues::operator[](uint32_t const idx)
+                HDINLINE float_X& NodeValues::operator[](uint32_t const idx)
                 {
                     // Here it is safe to call the const version
                     auto constThis = const_cast<NodeValues const*>(this);
                     return const_cast<float_X&>((*constThis)[idx]);
                 }
 
-                float_X const& NodeValues::operator[](uint32_t const idx) const
+                HDINLINE float_X const& NodeValues::operator[](uint32_t const idx) const
                 {
                     return *(&xy + idx);
                 }
