@@ -61,12 +61,29 @@ namespace picongpu
                          * @param worker lockstep worker
                          * @param particle particle which is given to the user functor
                          * @return void is used to enable the operator if the user functor except two arguments
+                         * @[
                          */
                         template<typename T_Particle, typename... T_Args, typename T_Worker>
-                        HDINLINE void operator()(T_Worker const&, T_Particle& particle, T_Args&&... args)
+                        HDINLINE auto operator()(T_Worker const&, T_Particle& particle, T_Args&&... args)
+                            -> decltype(alpaka::core::declval<Functor>()(
+                                alpaka::core::declval<RngType&>(),
+                                particle,
+                                std::forward<T_Args>(args)...))
                         {
-                            Functor::operator()(m_rng, particle, args...);
+                            Functor::operator()(m_rng, particle, std::forward<T_Args>(args)...);
                         }
+
+                        template<typename T_Particle, typename... T_Args, typename T_Worker>
+                        HDINLINE auto operator()(T_Worker const& worker, T_Particle& particle, T_Args&&... args)
+                            -> decltype(alpaka::core::declval<Functor>()(
+                                worker,
+                                alpaka::core::declval<RngType&>(),
+                                particle,
+                                std::forward<T_Args>(args)...))
+                        {
+                            Functor::operator()(worker, m_rng, particle, std::forward<T_Args>(args)...);
+                        }
+                        /** @} */
 
                     private:
                         RngType m_rng;

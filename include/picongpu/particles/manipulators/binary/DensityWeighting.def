@@ -54,16 +54,14 @@ namespace picongpu
                          *
                          * @tparam T_DesParticle type of the particle species with weighting to manipulate
                          * @tparam T_SrcParticle type of the particle species one cloned from
-                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
                          *
                          * @param particleDest destination particle
                          * @param particleSrc source particle (the density ratio of this particle is used)
-                         * @param ... unused particles
                          *
                          * @see picongpu::particles::ManipulateDerive, picongpu::kernelCloneParticles
                          */
-                        template<typename T_DesParticle, typename T_SrcParticle, typename... T_Args>
-                        HDINLINE void operator()(T_DesParticle& particleDes, T_SrcParticle const&, T_Args&&...)
+                        template<typename T_DesParticle, typename T_SrcParticle>
+                        HDINLINE void operator()(T_DesParticle& particleDes, T_SrcParticle const&)
                         {
                             const float_X densityRatioDes
                                 = picongpu::traits::GetDensityRatio<T_DesParticle>::type::getValue();

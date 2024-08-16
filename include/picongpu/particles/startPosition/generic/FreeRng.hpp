@@ -54,17 +54,15 @@ namespace picongpu
                          * The random number generator is initialized with the first call.
                          *
                          * @tparam T_Particle type of the particle to manipulate
-                         * @tparam T_Args type of the arguments passed to the user functor
                          * @tparam T_Worker lockstep worker type
                          *
                          * @param worker lockstep worker
                          * @param particle particle which is given to the user functor
-                         * @return void is used to enable the operator if the user functor except two arguments
                          */
-                        template<typename T_Particle, typename... T_Args, typename T_Worker>
-                        HDINLINE void operator()(T_Worker const&, T_Particle& particle, T_Args&&... args)
+                        template<typename T_Particle, typename T_Worker>
+                        HDINLINE void operator()(T_Worker const&, T_Particle& particle)
                         {
-                            Functor::operator()(m_rng, particle, args...);
+                            Functor::operator()(m_rng, particle);
                         }
 
                         template<typename T_Particle>

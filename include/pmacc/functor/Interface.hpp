@@ -85,7 +85,8 @@ namespace pmacc
                         T_numArguments == sizeof...(args));
 
                     // get the return type of the user functor
-                    using UserFunctorReturnType = decltype(alpaka::core::declval<UserFunctor>()(worker, args...));
+                    using UserFunctorReturnType
+                        = decltype(alpaka::core::declval<UserFunctor>()(worker, std::forward<T_Args>(args)...));
 
                     // compare user functor return type with the interface requirements
                     PMACC_CASSERT_MSG(
@@ -162,13 +163,14 @@ namespace pmacc
              *         functor interface
              */
             template<typename T_OffsetType, typename T_Worker, typename... T_Args>
-            HDINLINE auto operator()(T_Worker const& worker, T_OffsetType const& domainOffset, T_Args... args) const
+            HDINLINE auto operator()(T_Worker const& worker, T_OffsetType const& domainOffset, T_Args&&... args) const
                 -> acc::Interface<
-                    decltype(alpaka::core::declval<UserFunctor>()(worker, domainOffset, args...)),
+                    decltype(alpaka::core::declval<
+                             UserFunctor>()(worker, domainOffset, std::forward<T_Args>(args)...)),
                     T_numArguments,
                     T_ReturnType>
             {
-                return (*static_cast<UserFunctor const*>(this))(worker, domainOffset, args...);
+                return (*static_cast<UserFunctor const*>(this))(worker, domainOffset, std::forward<T_Args>(args)...);
             }
 
             /** get name of the user functor

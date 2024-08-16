@@ -35,13 +35,11 @@ namespace picongpu::particles::startPosition::acc
         /** set in-cell position and weighting
          *
          * @tparam T_Particle pmacc::Particle, particle type
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
          * @param particle particle to be manipulated
-         * @param ... unused particles
          */
-        template<typename T_Particle, typename... T_Args>
-        HDINLINE void operator()(T_Particle& particle, T_Args&&...)
+        template<typename T_Particle>
+        HDINLINE void operator()(T_Particle& particle)
         {
             constexpr auto initialPosition = T_ParamClass::inCellOffset;
             particle[position_] = initialPosition.template shrink<simDim>();

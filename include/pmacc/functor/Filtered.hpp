@@ -65,7 +65,8 @@ namespace pmacc
                 HDINLINE auto operator()(T_Worker const& worker, T_Args&&... args) -> void
                 {
                     // call the filter on each argument and combine the results
-                    bool const combinedResult = T_FilterOperator{}((*static_cast<Filter*>(this))(worker, args)...);
+                    bool const combinedResult
+                        = T_FilterOperator{}((*static_cast<Filter*>(this))(worker, std::forward<T_Args>(args))...);
 
                     if(combinedResult)
                         (*static_cast<Functor*>(this))(worker, args...);

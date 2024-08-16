@@ -49,16 +49,14 @@ namespace picongpu
                          *
                          * @tparam T_DestParticle type of the particle species with weighting to manipulate
                          * @tparam T_SrcParticle type of the particle species with proton number Z
-                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
                          *
                          * @param particleDest destination particle
                          * @param source particle (the number of protons of this particle is used)
-                         * @param unused particles
                          *
                          * @see picongpu::particles::ManipulateDerive, picongpu::particles::Manipulate
                          */
-                        template<typename T_DesParticle, typename T_SrcParticle, typename... T_Args>
-                        HDINLINE void operator()(T_DesParticle& particleDest, T_SrcParticle const&, T_Args&&...)
+                        template<typename T_DesParticle, typename T_SrcParticle>
+                        HDINLINE void operator()(T_DesParticle& particleDest, T_SrcParticle const&)
                         {
                             float_X const protonNumber
                                 = picongpu::traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
