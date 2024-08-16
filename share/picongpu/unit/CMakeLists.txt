@@ -106,7 +106,7 @@ enable_testing()
 # We need to build and link this to check CLI aspects.
 add_library(argparser
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/ArgsParser.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.x.cpp"
 )
 
 target_link_libraries(argparser PRIVATE ${HOST_LIBS})

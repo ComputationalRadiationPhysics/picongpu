@@ -535,10 +535,7 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 ################################################################################
 
 # files with accelerator code (kernel and API calls)
-list(APPEND ACCSRCFILES
-    "${PIConGPUapp_SOURCE_DIR}/main.cpp"
-    "${PIConGPUapp_SOURCE_DIR}/versionFormat.cpp"
-)
+file(GLOB_RECURSE ACCSRCFILES "*.x.cpp")
 
 # host-only sources
 file(GLOB_RECURSE SRCFILES "*.cpp")
