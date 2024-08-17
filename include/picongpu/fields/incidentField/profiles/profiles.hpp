@@ -24,7 +24,7 @@
 #include "picongpu/fields/incidentField/profiles/Free.hpp"
 #include "picongpu/fields/incidentField/profiles/GaussianPulse.hpp"
 #if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
-#    include "picongpu/fields/incidentField/profiles/InsightPulse.hpp"
+#    include "picongpu/fields/incidentField/profiles/FromOpenPMDPulse.hpp"
 #endif
 #include "picongpu/fields/incidentField/profiles/None.hpp"
 #include "picongpu/fields/incidentField/profiles/PlaneWave.hpp"

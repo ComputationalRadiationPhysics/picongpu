@@ -136,9 +136,9 @@ namespace picongpu
                 };
 
 #if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
-                //! InsightPulse profile has an unknown phase velocity, use c as a default value
+                //! FromOpenPMDPulse profile has an unknown phase velocity, use c as a default value
                 template<typename T_Params>
-                struct GetPhaseVelocity<profiles::InsightPulse<T_Params>>
+                struct GetPhaseVelocity<profiles::FromOpenPMDPulse<T_Params>>
                 {
                     HINLINE float_X operator()() const
                     {
@@ -184,9 +184,9 @@ namespace picongpu
             };
 
 #if(ENABLE_OPENPMD == 1) && (SIMDIM == DIM3)
-            //! Specialization for InsightPulse profile which has unknown amplitude
+            //! Specialization for FromOpenPMDPulse profile which has unknown amplitude
             template<typename T_Params>
-            struct GetAmplitude<profiles::InsightPulse<T_Params>>
+            struct GetAmplitude<profiles::FromOpenPMDPulse<T_Params>>
             {
                 static constexpr float_X value = 0.0_X;
             };

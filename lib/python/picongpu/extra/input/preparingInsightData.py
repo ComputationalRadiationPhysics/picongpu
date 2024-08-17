@@ -4,53 +4,85 @@ This file is part of PIConGPU.
 Copyright 2024 Fabia Dietrich
 """
 
-import openpmd_api as io
+import openpmd_api as openpmd
 import numpy as np
 import h5py
 from scipy.interpolate import RegularGridInterpolator
 from scipy.optimize import curve_fit
 
+"""
+ATTENTION!
+----------
+When saving the pulse data to openPMD, the pulse's time evolution at a specific
+z position will be transformed to a spatial evolution along the propagation
+direction via z=c*t. This approximation is only valid when the pulse length is
+much smaller than a Rayleign length, because otherwise the true spatial
+evolution is affected by defocusing.
+BUT since the FromOpenPMDPulse profile transforms this axis back to a spatial
+one by division by c, this will not lead to errors also if the pulse length is
+of the order of a Rayleign length.
+So for now, this transformation should be considered as "meaningless"; it is
+only done to fulfil the openPMD requirements for field storage.
+In principle, this should be refactored by using several iterations in the
+openPMD file instead of just one, but this will complicate reading the file in
+the PIConGPU initialization procedure (coding- and time wise).
+"""
+
 # please correct if other units than mm and fs are used!
 c = 2.99792e-4  # speed of light in mm/fs
 
 
-def gauss2D(xy, A, x0, y0, w):
+def gauss2D(xy, amp, x0, y0, w):
     """
     2D gaussian distribution
 
     Arguments:
-    xy: coordinates
-    A: amplitude
+    xy: coordinates (numpy meshgrid)
+    amp: amplitude
     x0, y0: center coordinates
     w: waist size
     """
     x, y = xy
-    g = A * np.exp(-((x - x0) ** 2 / (w**2) + (y - y0) ** 2 / (w**2)))
+    g = amp * np.exp(-((x - x0) ** 2 / (w**2) + (y - y0) ** 2 / (w**2)))
     return g.ravel()
 
 
-def supergauss2D(xy, A, x0, y0, w, n=4):
+def supergauss2D(xy, amp, x0, y0, w, n=4):
     """
-    2D supergaussian distribuition
+    2D supergaussian distribution
 
     Arguments:
-    xy: coordinates
-    A: amplitude
+    xy: coordinates (numpy meshgrid)
+    amp: amplitude
     x0, y0: center coordinates
     w: waist size
     n: superpower (default is 4)
     """
     assert n > 2, "n > 2 required"
     x, y = xy
-    g = A * np.exp(-(((x - x0) ** 2 / (w**2) + (y - y0) ** 2 / (w**2)) ** (n - 2)))
+    g = amp * np.exp(-(((x - x0) ** 2 / (w**2) + (y - y0) ** 2 / (w**2)) ** (n - 2)))
     return g.ravel()
 
 
-class preproutines:
+def gauss(t, amp, t0, tau):
     """
-    class to manipulate and prepare Insight data for PIConGPU usage:
+    1D gaussian distribution to fit the temporal envelope of the pulse in the time domain
+    Definition of the pulse duration according to the GaussianPulse profile
+
+    Arguments:
+    t: time
+    amp: amplitude
+    t0: central time
+    tau: pulse duration
+    """
+    return amp * np.exp(-((t - t0) ** 2) / (2 * tau) ** 2)
+
+
+class PrepRoutines:
+    """
+    class to manipulate and prepare Insight data for usage as FromOpenPMDPulse profile in PIConGPU:
         - phase corrections
-        - artefact corrections in the near field
+        - artifact corrections in the near field
         - propagation
         - transformation into the time domain
 
@@ -79,10 +111,11 @@ class preproutines:
 
     def __init__(self, path, name, foc):
         """
-        Load Insight data (= far field), propagate to near field
+        Load Insight data (in focus = far field), propagate to near field
         and extract (gaussian) fit parameters.
-        The far field has to be measured in dependence of "x", "y" and "w".
-        If the scales are named differently, they have to be changed manually in this function.
+        The far field has to be measured in dependence of the transverse coordinates "x", "y" (in mm) and
+        frequency "w" (in rad/fs). If the scales are named differently or measured in another unit, they
+        have to be adjusted manually here.
 
         Arguments:
         path: path to Insight data file
@@ -113,7 +146,7 @@ class preproutines:
         # use intensity instead of amplitude to minimize possible halo influence
         popt, pcov = curve_fit(
             gauss2D,
-            (np.meshgrid(self.y, self.x)),
+            (np.meshgrid(self.x, self.y)),
             (np.abs(self.Ew[:, :, self.wc_idx]) ** 2).ravel(),
             p0=(1, 0, 0, 0.05),
         )
@@ -123,14 +156,14 @@ class preproutines:
         self.zR = self.waist**2 / (2 * c) * self.w[self.wc_idx]
 
         # propagate to near field (right before the lens, i.e. d=0)
-        preproutines.FFtoNF(self)
+        self.ff_to_nf()
         self.dx_NF = np.diff(self.x_NF)[0]
         self.dy_NF = np.diff(self.y_NF)[0]
 
         # fit near field data with supergaussian
         popt_NF, pcov_NF = curve_fit(
             supergauss2D,
-            (np.meshgrid(self.y_NF, self.x_NF)),
+            (np.meshgrid(self.x_NF, self.y_NF)),
             np.abs(self.Ew_NF[:, :, self.wc_idx]).ravel(),
             p0=(1, 0, 0, 10),
         )
@@ -148,7 +181,7 @@ class preproutines:
         print("Near field center coordinates: xc = %.2f mm, yc = %.2f mm" % (self.xc_NF, self.yc_NF))
         print("Near field waist size: w = %.2f mm" % (self.waist_NF))
 
-    def FFtoNF(self, d=0, method="linear"):
+    def ff_to_nf(self, d=0, method="linear"):
         """
         Propagate far field (in frequency domain) to near field at distance d in front of lens
 
@@ -156,7 +189,7 @@ class preproutines:
         d: distance of near field to lens, default is 0
         method: interpolation method of RegularGridInterpolator, default is 'linear'
         """
-        Y, X, W = np.meshgrid(self.y, self.x, self.w)
+        X, Y, W = np.meshgrid(self.x, self.y, self.w)
         fac = (
             1j
             / (2 * np.pi * c)
@@ -179,7 +212,7 @@ class preproutines:
 
         self.Ew_NF = NF_resc / np.abs(NF_resc).max()  # rescale amplitude to 1
 
-    def NFtoFF(self, d=0, method="linear"):
+    def nf_to_ff(self, d=0, method="linear"):
         """
         Propagate near field (in frequency domain) to far field from distance d in front of lens
 
@@ -189,7 +222,7 @@ class preproutines:
         """
         a = np.fft.fftshift(np.fft.fftfreq(self.x_NF.size, self.dx_NF))
         b = np.fft.fftshift(np.fft.fftfreq(self.y_NF.size, self.dy_NF))
-        B, A, W = np.meshgrid(b, a, self.w)
+        A, B, W = np.meshgrid(a, b, self.w)
         fac = (
             W
             / (1j * c * 2 * np.pi * self.foc)
@@ -202,21 +235,22 @@ class preproutines:
         self.y = np.linspace(b[0] * scale[-1], b[-1] * scale[-1], b.size)
         Y, X = np.meshgrid(self.y, self.x, indexing="ij")
         for i in range(self.w.size):
-            interp_FF = RegularGridInterpolator((a * scale[i], b * scale[i]), FF[:, :, i], method=method)
+            interp_FF = RegularGridInterpolator((b * scale[i], a * scale[i]), FF[:, :, i], method=method)
             self.Ew[:, :, i] = interp_FF((Y, X))
 
         self.Ew = self.Ew / np.abs(self.Ew).max()  # rescale amplitude to 1
 
-    def correctPhase(self, GVD=0, TOD=0):
+    def correct_phase(self, GVD=0, TOD=0):
         """
         Since there is no information about the global phase of every wavelength measured with Insight,
         there has to be a phase correction.
-        For that, we assume perfect compression of the beam center in the near field, thus we substract
-        a global phase for every wavelength.
+        For that, we assume perfect compression of the beam center in the near field, thus we subtract a
+        frequency's phase value at the beam center from every phase value in the frequency's transverse
+        distribution in the near field.
         Furthermore, there is the possibility to add dispersion parameters (GVD, TOD) to the data.
 
         Arguments:
-        GVD : Group velocity disperion in fs**2/rad,  optional. The default is 0.
+        GVD : Group velocity disperison in fs**2/rad,  optional. The default is 0.
         TOD : Third order dispersion in fs**3/rad**2, optional. The default is 0.
         """
         # phase in near field beam center
@@ -225,18 +259,17 @@ class preproutines:
         )
         dispersion = -GVD / 2 * (self.w - self.w[self.wc_idx]) ** 2 - TOD / 6 * (self.w - self.w[self.wc_idx]) ** 3
 
-        self.Ew_NF = np.abs(self.Ew_NF) * np.exp(
-            1j * (np.angle(self.Ew_NF) - phase_centr + dispersion)
-        )  # correcting near field
-        self.Ew = np.abs(self.Ew) * np.exp(1j * (np.angle(self.Ew) - phase_centr + dispersion))  # correcting far field
-
+        # correcting near field
+        self.Ew_NF = np.abs(self.Ew_NF) * np.exp(1j * (np.angle(self.Ew_NF) - phase_centr + dispersion))
+        # correcting far field
+        self.Ew = np.abs(self.Ew) * np.exp(1j * (np.angle(self.Ew) - phase_centr + dispersion))
         self.isPhaseCorrected = True
         print(
             "Phase has been corrected. \nApplied dispersion parameters: GVD = %.f fs**2/rad, TOD = %.f fs**3/rad**2"
             % (GVD, TOD)
         )
 
-    def correctUglySpotInNF(self, x_ugly, y_ugly, uglybins=3, method="linear"):
+    def correct_ugly_spot_in_NF(self, x_ugly, y_ugly, uglybins=3, method="linear"):
         """
         In case there is an ugly spot in the near field (such as an unnatural peak), it can be smoothened out with this function.
         It automatically also corrects the far field by propagating the corrected near field back into the focus.
@@ -256,11 +289,31 @@ class preproutines:
         yidx_low = y_ugly_idx - uglybins
         yidx_upp = y_ugly_idx + uglybins
 
-        x_surr = np.concatenate((self.x_NF[xidx_low - 3 : xidx_low], self.x_NF[x_ugly_idx + uglybins : xidx_upp + 3]))
+        # safety check: are we still in the volume?
+        assert xidx_low >= 0, "Sorry, too close to the left border!"
+        assert yidx_low >= 0, "Sorry, too close to the lower border!"
+        assert xidx_upp < len(self.x_NF), "Sorry, too close to the right border!"
+        assert yidx_upp < len(self.y_NF), "Sorry, too close to the upper border!"
+
+        # thickness of border surrounding the hole (number of bins)
+        # for linear interpolation, 1 would be sufficient; but 3 is chosen so that cubic interpolation is still possible
+        border_thickn = 3
+        # safety check: are we still in the volume?
+        assert xidx_low - border_thickn >= 0, "Sorry, too close to the left border!"
+        assert xidx_upp + border_thickn < len(self.x_NF), "Sorry, too close to the right border!"
+
+        # since it is pretty messy to work with meshgrids when there is a hole in the middle, we do the
+        # interpolation only along the x direction (but any other direction would have been just as valid)
+        x_surr = np.concatenate(
+            (
+                self.x_NF[xidx_low - border_thickn : xidx_low],
+                self.x_NF[x_ugly_idx + uglybins : xidx_upp + border_thickn],
+            )
+        )
         Ew_surr = np.concatenate(
             (
-                self.Ew_NF[yidx_low:yidx_upp, xidx_low - 3 : xidx_low, :],
-                self.Ew_NF[yidx_low:yidx_upp, xidx_upp : xidx_upp + 3, :],
+                self.Ew_NF[yidx_low:yidx_upp, xidx_low - border_thickn : xidx_low, :],
+                self.Ew_NF[yidx_low:yidx_upp, xidx_upp : xidx_upp + border_thickn, :],
             ),
             axis=1,
         )
@@ -271,17 +324,24 @@ class preproutines:
         self.Ew_NF[yidx_low:yidx_upp, xidx_low:xidx_upp, :] = interp((Y_hole, X_hole, W_hole))
 
         # correct the far field
-        preproutines.NFtoFF(self)
+        self.nf_to_ff()
 
         print("corrected ugly spot in near field at x = %.2f mm, y = %.2f mm" % (x_ugly, y_ugly))
 
-    def shiftNFtoCenter(self):
+    def shift_NF_to_center(self):
         """
         If the near field is not centered around (0, 0), it can be done with this function.
         It automatically also corrects the far field by propagating the centered near field back into the focus.
         """
-        nx = int(self.xc_NF / self.dx_NF + 0.5)  # number of pixels to shift in x-direction
-        ny = int(self.yc_NF / self.dy_NF + 0.5)  # number of pixels to shift in y-direction
+        # number of pixels to shift in x-direction
+        nx = int(self.xc_NF / self.dx_NF + 0.5)
+        # number of pixels to shift in y-direction
+        ny = int(self.yc_NF / self.dy_NF + 0.5)
+
+        # check shift for validity: should be less than half the size of the data extent
+        assert (
+            nx < len(self.x_NF) / 2 and ny < len(self.y_NF) / 2
+        ), "Something's off, can't shift more than half the size of the data extent!"
 
         if nx == 0 and ny == 0:
             print("already centered, no corrections necessary")
@@ -301,7 +361,7 @@ class preproutines:
         # new fit of near field data with supergaussian
         popt_NF, pcov_NF = curve_fit(
             supergauss2D,
-            (np.meshgrid(self.y_NF, self.x_NF)),
+            (np.meshgrid(self.x_NF, self.y_NF)),
             np.abs(self.Ew_NF[:, :, self.wc_idx]).ravel(),
             p0=(1, 0, 0, 10),
         )
@@ -311,7 +371,7 @@ class preproutines:
         print("new near field center coordinates: xc = %.2f mm, yc = %.2f mm" % (self.xc_NF, self.yc_NF))
 
         # correct the far field
-        preproutines.NFtoFF(self)
+        self.nf_to_ff()
 
     def propagate(self, z):
         """
@@ -335,12 +395,22 @@ class preproutines:
         w_exp = self.waist * np.sqrt(1 + (z / self.zR) ** 2)
         assert w_exp < 0.2 * min(
             self.dx * self.Ew.shape[0], self.dy * self.Ew.shape[1]
-        ), "Oops, you wanted to propagate too far!"
+        ), "Oops, you wanted to propagate too far! The pulse will not fit in the transverse window."
 
-        a = np.fft.fftfreq(self.x.size, d=self.dx)
-        b = np.fft.fftfreq(self.y.size, d=self.dy)
-        B, A, W = np.meshgrid(b, a, self.w)
-        cond = (2 * np.pi * c / W) ** 2 * (A**2 + B**2)
+        cond = np.empty_like(self.Ew, dtype=float)
+        for i in range(self.w.size):
+            a = 2 * np.pi * c / self.w[i] * np.fft.fftfreq(self.x.size, d=np.diff(self.x)[0])
+            b = 2 * np.pi * c / self.w[i] * np.fft.fftfreq(self.y.size, d=np.diff(self.y)[0])
+            cond[:, :, i] = np.array([(a**2 + bi**2) for bi in b])
+        W = np.ones_like(self.Ew) * self.w
+
+        # a = np.fft.fftfreq(self.x.size, d=self.dx)
+        # b = np.fft.fftfreq(self.y.size, d=self.dy)
+        # A, B, W = np.meshgrid(a, b, self.w)
+        # depending on the following mask, the wavenumber k_z (= spatial frequency in propagation direction)
+        # is either complex or real, resulting in plane or evanescent waves, respectively. For a detailed
+        # derivation, please refer to Godmans "Introduction to Fourier Optics".
+        # cond = (2 * np.pi * c / W) ** 2 * (A**2 + B**2)
         idx_in = np.where(cond < 1)
         idx_out = np.where(cond > 1)
         F_Ew = np.fft.fft2(self.Ew, axes=(0, 1))
@@ -351,7 +421,7 @@ class preproutines:
         print("far field propagated to z = %.2f mm" % (z))
         return np.fft.ifft2(F_Ew, axes=(0, 1)) * lin_phase
 
-    def toTimeDomain(self, Ew, lamb_supp=10):
+    def to_time_domain(self, Ew, lamb_supp=10):
         """
         Transform far field from frequency to time domain
 
@@ -375,25 +445,44 @@ class preproutines:
             (self.y, self.x, self.w), Ew, bounds_error=False, fill_value=0, method="linear"
         )
         Ew_fft = fft_interp((Y_fft, X_fft, W_fft))
-        # set the negative frequency part to 0 (instead of the complex conjugate) and neglegt the imaginary part afterwards
+        # set the negative frequency part to 0 (instead of the complex conjugate) and neglect the imaginary part afterwards
         w_fft = np.concatenate((w_fft, -np.flip(w_fft[1:])))
         Ew_fft = np.concatenate((Ew_fft, np.zeros_like(Ew_fft[:, :, :-1])), axis=-1)
 
         # transform to time domain
         self.Et = np.fft.fftshift(np.fft.ifft(Ew_fft), axes=-1)
-        self.Et = self.Et / np.abs(self.Et).max()  # rescale amplitude to one
+        # rescale the amplitude to one
+        self.Et = self.Et / np.abs(self.Et).max()
         self.t = np.fft.fftshift(np.fft.fftfreq(w_fft.size, self.dw / (2 * np.pi)))  # fs
         self.dt = np.diff(self.t)[0]
 
-        print("field data size: %.1f GB" % (np.prod(self.Et.shape) * 8 * 10**-9))  # assume datatype double
+        # estimate the pulse length
+        popt, pcov = curve_fit(
+            gauss,
+            self.t,
+            np.abs(self.Et[np.abs(self.y - self.yc).argmin(), np.abs(self.x - self.xc).argmin(), :]),
+            p0=(1, 0, 15),
+        )
+        print("Pulse duration: %.f fs / FHWM intensity: %.f fs" % (popt[2], 2 * np.sqrt(2 * np.log(2)) * popt[2]))
 
-    def saveToOpenPMD(self, outputpath, outputname, energy, pol="x", crop_x=0, crop_y=0, crop_t=0):
+        print("field data size: %.1f GB" % (np.prod(self.Et.shape) * 8 * 10**-9))  # assumes datatype double
+
+    def save_to_openPMD(self, outputpath, outputname, energy, pol="x", crop_x=0, crop_y=0, crop_t=0):
         """
-        Save the field data in time domain to an OpenPMD checkpoint. This output will be used for the InsightPulse profile.
-        The propagation axis ("z") will be transformed via z = c*t to a spatial one.
+        Save the field data in time domain to an openPMD file. This output will be used for the
+        FromOpenPMDPulse profile.
+        The pulse's time evolution at a specific z position will be transformed to a spatial evolution along
+        the propagation direction via z=c*t. ATTENTION: This approximation is only valid when the pulse length
+        is much smaller than a Rayleign length, because otherwise the true spatial evolution is affected by
+        defocusing. BUT since the FromOpenPMDPulse profile transforms this axis back to a spatial one by division
+        by c, this will not lead to errors also if the pulse length is of the order of a Rayleign length.
+        So this transformation should be considered as "meaningless"; it is only done to fulfil the openPMD
+        requirements for field storage.
+        In principle, this can be refactored by using several iterations in the openPMD file instead of just
+        the 0th, but this will complicate reading the file in the PIConGPU initialization procedure.
 
         Arguments:
-        outputpath: path to the OpenPMD checkpoint
+        outputpath: path to the openPMD file
         outputname: name of the output file, e.g. "insightData%T.h5"
         pol: polarisation direction, either "x" or "y". Default is "x"
         energy: beam energy in Joule. Is used to determine the correct amplitude in the time domain.
@@ -409,7 +498,7 @@ class preproutines:
         # we only need the real part of the field
         E_save = np.array(np.real(self.Et[idx_y : Ny - idx_y, idx_x : Nx - idx_x, idx_t : Nt - idx_t]))
 
-        series = io.Series(outputpath + outputname, io.Access.create)
+        series = openpmd.Series(outputpath + outputname, openpmd.Access.create)
         ite = series.iterations[0]  # use the 0th iteration
         ite.time = 0.0
         ite.dt = self.dt
@@ -417,7 +506,7 @@ class preproutines:
 
         # record E-field in 2+1 spatial dimensions with 3 components
         E = ite.meshes["E"]
-        E.geometry = io.Geometry.cartesian
+        E.geometry = openpmd.Geometry.cartesian
         E.grid_spacing = [self.dy, self.dx, c * self.dt]  # mm
         E.grid_global_offset = [0, 0, 0]  # mm
         E.grid_unit_SI = 1e-3  # mm to m
@@ -429,17 +518,17 @@ class preproutines:
         else:
             E_trans = E["x"]
         E_z = E["z"]
-        data_E = io.Dataset(E_save.dtype, E_save.shape)
+        data_E = openpmd.Dataset(E_save.dtype, E_save.shape)
         E_pol.reset_dataset(data_E)
         E_trans.reset_dataset(data_E)
         E_z.reset_dataset(data_E)
 
         # unit system agnostic dimension
         E.unit_dimension = {
-            io.Unit_Dimension.M: 1,
-            io.Unit_Dimension.L: 1,
-            io.Unit_Dimension.I: -1,
-            io.Unit_Dimension.T: -3,
+            openpmd.Unit_Dimension.M: 1,
+            openpmd.Unit_Dimension.L: 1,
+            openpmd.Unit_Dimension.I: -1,
+            openpmd.Unit_Dimension.T: -3,
         }
 
         # conversion of field data to SI
@@ -452,7 +541,8 @@ class preproutines:
         idx_thres = np.where(np.abs(E_save) > threshold)
         dV = self.dx * self.dy * self.dt * c * 10**-9  # m**3
         W = dV * 8.854e-12 * np.sum(E_save[idx_thres] ** 2)
-        amp_fac = np.sqrt(energy / W)  # scaling to actual beam energy
+        # scaling to actual beam energy
+        amp_fac = np.sqrt(energy / W)
         print("Maximum amplitude: %.2e V/m" % (amp_fac))
 
         E_pol.unit_SI = amp_fac
@@ -469,4 +559,4 @@ class preproutines:
 
         print(
             "data successfully saved, field data size: %.f MB" % (np.prod(E_save.shape) * 8 * 10**-6)
-        )  # assume datatype double
+        )  # assumes datatype double

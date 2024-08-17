@@ -25,7 +25,7 @@
 
 #    include "picongpu/fields/incidentField/Functors.hpp"
 #    include "picongpu/fields/incidentField/Traits.hpp"
-#    include "picongpu/fields/incidentField/profiles/InsightPulse.def"
+#    include "picongpu/fields/incidentField/profiles/FromOpenPMDPulse.def"
 
 #    include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 
@@ -45,13 +45,16 @@
  * -------------------------------------------------
  * - make time delay parameter optional
  * - load openPMD file (= call the corresponding singelton) or initialize the
- *   Laser oncebefore timestep 0 (before particle memory allocation)
- * - load just the necessary parts of the measured data in case the tranversal
+ *   Laser once before timestep 0 (before particle memory allocation)
+ * - load just the necessary parts of the measured data if the tranversal
  *   simulation window extent is smaller than the transversal field chunk size
  * - allow diagonal laser propagation instead of just parallel to the axes
  * - every used device will store the whole field data chunk, which consumes
  *   quite some memory. Instead, one could push only those two time slices to
  *   the device which are necessary for the current time step.
+ * - get rid of the 'wrong' transformation from time to space (z = c*t) of the
+ *   longitudinal axis by using several iterations inside the openPMD file
+ *   instead of just one
  */
 
 namespace picongpu
@@ -64,7 +67,7 @@ namespace picongpu
             {
                 namespace detail
                 {
-                    /** Unitless InsightPulse parameters
+                    /** Unitless FromOpenPMDPulse parameters
                      *
                      * These parameters do not inherit from BaseParam, since some of them
                      * are unneccesary for this Laser implementation. For the remaining
@@ -74,7 +77,7 @@ namespace picongpu
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct InsightPulseUnitless : public T_Params
+                    struct FromOpenPMDPulseUnitless : public T_Params
                     {
                         //! User SI parameters
                         using Params = T_Params;
@@ -152,7 +155,7 @@ namespace picongpu
                     };
 
                     template<typename T_Params>
-                    struct InsightPulseFunctorIncidentE;
+                    struct FromOpenPMDPulseFunctorIncidentE;
 
                     /** Singleton to load field data from openPMD to device
                      *
@@ -166,14 +169,14 @@ namespace picongpu
                      * @tparam T_Params user parameters, providing filename etc.
                      */
                     template<typename T_Params>
-                    struct OpenPMDdata : public InsightPulseUnitless<T_Params>
+                    struct OpenPMDdata : public FromOpenPMDPulseUnitless<T_Params>
                     {
                         //! Unitless parameters type
-                        using Params = InsightPulseUnitless<T_Params>;
+                        using Params = FromOpenPMDPulseUnitless<T_Params>;
                         using dataType = typename Params::dataType;
 
-                        //! Insight Pulse E functor
-                        using Functor = InsightPulseFunctorIncidentE<T_Params>;
+                        //! FromOpenPMD pulse E functor
+                        using Functor = FromOpenPMDPulseFunctorIncidentE<T_Params>;
 
                         //! HostDeviceBuffer to store E field data
                         std::shared_ptr<pmacc::HostDeviceBuffer<float_X, 3u>> bufferFieldData;
@@ -400,15 +403,15 @@ namespace picongpu
                         } // OpenPMDdata
                     };
 
-                    /** InsightPulse incident E functor
+                    /** FromOpenPMDPulse incident E functor
                      *
                      * @tparam T_Params parameters
                      */
                     template<typename T_Params>
-                    struct InsightPulseFunctorIncidentE : public InsightPulseUnitless<T_Params>
+                    struct FromOpenPMDPulseFunctorIncidentE : public FromOpenPMDPulseUnitless<T_Params>
                     {
                         //! Unitless parameters type
-                        using Unitless = InsightPulseUnitless<T_Params>;
+                        using Unitless = FromOpenPMDPulseUnitless<T_Params>;
 
                         /** Create a functor on the host side for the given time step
                          *
@@ -416,7 +419,7 @@ namespace picongpu
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
-                        HINLINE InsightPulseFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
+                        HINLINE FromOpenPMDPulseFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
                             : timeOriginPIC(currentStep * DELTA_T)
                         {
                             // load data at timestep 0
@@ -631,41 +634,41 @@ namespace picongpu
                         typename pmacc::Buffer<float_X, 1u>::DataBoxType cellSizeOpenPMDdataBox;
                         typename pmacc::Buffer<float_X, 1u>::DataBoxType offsetOpenPMDdataBox;
 
-                    }; // InsightPulseFunctorIncidentE
+                    }; // FromOpenPMDPulseFunctorIncidentE
                 } // namespace detail
 
                 template<typename T_Params>
-                struct InsightPulse
+                struct FromOpenPMDPulse
                 {
                     //! Get text name of the incident field profile
                     HINLINE static std::string getName()
                     {
-                        return "InsightPulse";
+                        return "FromOpenPMDPulse";
                     }
                 };
             } // namespace profiles
 
             namespace detail
             {
-                /** Get type of incident field E functor for the Insight laser profile type
+                /** Get type of incident field E functor for the experimental laser profile type
                  *
                  * @tparam T_Params parameters
                  */
                 template<typename T_Params>
-                struct GetFunctorIncidentE<profiles::InsightPulse<T_Params>>
+                struct GetFunctorIncidentE<profiles::FromOpenPMDPulse<T_Params>>
                 {
-                    using type = profiles::detail::InsightPulseFunctorIncidentE<T_Params>;
+                    using type = profiles::detail::FromOpenPMDPulseFunctorIncidentE<T_Params>;
                 };
 
-                /** Get type of incident field B functor for the Insight laser profile type
+                /** Get type of incident field B functor for the experimental laser profile type
                  *
                  * @tparam T_Params parameters
                  */
                 template<typename T_Params>
-                struct GetFunctorIncidentB<profiles::InsightPulse<T_Params>>
+                struct GetFunctorIncidentB<profiles::FromOpenPMDPulse<T_Params>>
                 {
                     using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::InsightPulse<T_Params>>::type>;
+                        typename GetFunctorIncidentE<profiles::FromOpenPMDPulse<T_Params>>::type>;
                 };
 
             } // namespace detail

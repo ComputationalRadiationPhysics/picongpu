@@ -32,16 +32,16 @@ namespace picongpu
             {
                 namespace defaults
                 {
-                    struct InsightPulseParam
+                    struct FromOpenPMDPulseParam
                     {
-                        /** Path to the openPMD input file containing the E-field chunk
+                        /** Path to the openPMD input file containing the E-field chunk in space-time domain
                          *
-                         * This file can be obtained from the Insight measurement data with a python script located
-                         * in lib/python/picongpu/extra/input/. This script provides methods to correct the measured
+                         * This file can be obtained from an Insight measurement with a python script located in
+                         * lib/python/picongpu/extra/input/. This script provides methods to correct the measured
                          * data, propagate it to the desired position and transform it into the time domain before
                          * saving the resulting E-field chunk to openPMD.
                          *
-                         * This field chunk wil be stored at timestep 0 of the simulation on every used device, which
+                         * This field chunk will be stored at timestep 0 of the simulation on every used device, which
                          * is why one has to increase the reserved GPU memory size in memory.param. Otherwise, the
                          * simulation could run into memory issues.
                          *
@@ -51,7 +51,21 @@ namespace picongpu
                          */
                         static constexpr char const* filename = "/path/to/file%T.h5";
 
-                        //! Iteration inside the file (only file, not related to the current simulation time iteration)
+                        /** Iteration inside the file (where the whole field is stored in, not related to the current
+                         * simulation time iteration)
+                         *
+                         * ATTENTION!
+                         * In this iteration, the pulse's time evolution at a specific z position was transformed
+                         * to a spatial evolution along the propagation direction via z=c*t. This approximation is
+                         * only valid when the pulse length is much smaller than a Rayleign length, because otherwise
+                         * the true spatial evolution is affected by defocusing.
+                         * BUT since the FromOpenPMDPulse profile transforms this axis back to a spatial one by
+                         * division by c, this will not lead to errors also if the pulse length is of the order of a
+                         * Rayleign length.
+                         * In principle, this should be refactored by using several iterations inside the openPMD
+                         * file instead of just one, but this will complicate reading the file in the PIConGPU
+                         * initialization procedure (coding- and time wise).
+                         */
                         static constexpr uint32_t iteration = 0;
 
                         /** Name of the E field dataset inside the input file
@@ -115,14 +129,14 @@ namespace picongpu
                     };
                 } // namespace defaults
 
-                /** Experimental laser profile measured with Insight
+                /** Experimental laser profile from openPMD
                  *
-                 * @tparam T_Params class parameter to configure the Insight laser profile,
-                 *                  see members of defaults::InsightPulseParam
+                 * @tparam T_Params class parameter to configure the experimental laser profile,
+                 *                  see members of defaults::FromOpenPMDPulseParam
                  *                  for required members
                  */
-                template<typename T_Params = defaults::InsightPulseParam>
-                struct InsightPulse;
+                template<typename T_Params = defaults::FromOpenPMDPulseParam>
+                struct FromOpenPMDPulse;
             } // namespace profiles
         } // namespace incidentField
     } // namespace fields
