@@ -21,10 +21,9 @@
 
 #    pragma once
 
-#    include "picongpu/simulation_defines.hpp"
+#    include "picongpu/defines.hpp"
 
 #    include "picongpu/fields/incidentField/Functors.hpp"
-#    include "picongpu/fields/incidentField/Traits.hpp"
 #    include "picongpu/fields/incidentField/profiles/FromOpenPMDPulse.def"
 
 #    include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
@@ -67,19 +66,7 @@ namespace picongpu
             {
                 namespace detail
                 {
-                    /** Unitless FromOpenPMDPulse parameters
-                     *
-                     * These parameters do not inherit from BaseParam, since some of them
-                     * are unneccesary for this Laser implementation. For the remaining
-                     * (necessary) base parameters, the calculations/functions/asserts are
-                     * partly copied from there.
-                     *
-                     * @tparam T_Params user (SI) parameters
-                     */
-                    template<typename T_Params>
-                    struct FromOpenPMDPulseUnitless : public T_Params
-                    {
-                        //! User SI parameters
+                    //! User SI parameters
                         using Params = T_Params;
 
                         //! Unit propagation direction vector in 3d

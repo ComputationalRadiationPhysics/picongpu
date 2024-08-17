@@ -56,8 +56,9 @@ With the ``Free`` profile, it is on a user to provide functors to calculate inci
 Please refer to :ref:`the detailed description <model-TFSF>` for setting up ``Free`` profile, also for the case when only one of the external fields is known in explicit form.
 For a laser profile with non zero field amplitudes on the transversal borders of the profile e.g. defined by the profile ``Free`` without a transversal envelope the trait ``MakePeriodicTransversalHuygensSurfaceContiguous`` must be specialized and returning true to handle field periodic boundaries correctly.
 
-Another special case is the ``FromOpenPMDPulse`` profile, which reads a laser pulse profile, defined in space-time domain, from an openPMD file into the simulation. Specifically this allows to read a pulse profile obtained from an (Insight) measurement, after certain preparaion steps. 
-For now, it is less flexible in choosing the propagation and polarisation direction, since those are only allowed along the cell edges, but not diagonally. Furthermore, one has to increase the reserved GPU memory size in memory.param, because the corresponding field chunk will be stored on every used device at timestep 0 of the simulation. Otherwise, the simulation could run into memory issues. 
+Another special case is the ``FromOpenPMDPulse`` profile, which reads a laser pulse profile, defined in space-time domain, from an openPMD file into the simulation. Specifically this allows to read a pulse profile obtained from an (Insight) measurement, after certain preparaion steps.
+For now, it is less flexible in choosing the propagation and polarisation direction, since those are only allowed along the cell edges, but not diagonally.
+Furthermore, one has to increase the reserved GPU memory size in memory.param, because the corresponding field chunk will be stored on every used device at timestep 0 of the simulation. Otherwise, the simulation could run into memory issues.
 For a description how to obtain the ready-to-read-in field data from an Insight measurement and how to properly set up this profile, please refer to the corresponding example parameter set.
 
 Incident field is compatible to all field solvers, however using field solvers other than Yee requires a larger offset of the generating surface from absorber depending on the stencil width along the boundary axis.
