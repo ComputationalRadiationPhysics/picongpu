@@ -15,13 +15,11 @@ import numpy as np
 This Python script is example PICMI user script reproducing the LaserWakefield example setup, based on 8.cfg.
 """
 
-
 # generation modifiers
 ENABLE_IONS = True
 ENABLE_IONIZATION = True
 ADD_CUSTOM_INPUT = True
 OUTPUT_DIRECTORY_PATH = "LWFA"
-
 
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter)
@@ -47,17 +45,6 @@ gaussianProfile = picmi.distribution.GaussianDistribution(
     vacuum_cells_front=50,
 )
 
-# for particle type see https://github.com/openPMD/openPMD-standard/blob/upcoming-2.0.0/EXT_SpeciesType.md
-electrons = picmi.Species(particle_type="electron", name="electron", initial_distribution=gaussianProfile)
-
-hydrogen_ionization = picmi.Species(
-    particle_type="H", name="hydrogen", charge_state=0, initial_distribution=gaussianProfile
-)
-
-hydrogen_fully_ionized = picmi.Species(
-    particle_type="H", name="hydrogen", picongpu_fixed_charge=True, initial_distribution=gaussianProfile
-)
-
 solver = picmi.ElectromagneticSolver(
     grid=grid,
     method="Yee",
@@ -76,27 +63,47 @@ laser = picmi.GaussianLaser(
     picongpu_phase=0.0,
 )
 
-randomLayout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=2)
+random_layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=2)
 
 # Initialize particles  based on speciesInitialization.param
 # simulation schema : https://github.com/BrianMarre/picongpu/blob/2ddcdab4c1aca70e1fc0ba02dbda8bd5e29d98eb/share/picongpu/pypicongpu/schema/simulation.Simulation.json
 
+# for particle type see https://github.com/openPMD/openPMD-standard/blob/upcoming-2.0.0/EXT_SpeciesType.md
+species_list = []
 if not ENABLE_IONIZATION:
-    hydrogen = hydrogen_fully_ionized
     interaction = None
+
+    electron_placed = picmi.Species(particle_type="electron", name="electron", initial_distribution=gaussianProfile)
+    species_list.append((electron_placed, random_layout))
+
+    if ENABLE_IONS:
+        hydrogen_fully_ionized = picmi.Species(
+            particle_type="H", name="hydrogen", picongpu_fixed_charge=True, initial_distribution=gaussianProfile
+        )
+        species_list.append((hydrogen_fully_ionized, random_layout))
 else:
-    hydrogen = hydrogen_ionization
+    if not ENABLE_IONS:
+        raise ValueError("Ions species required for ionization")
+
+    hydrogen_with_ionization = picmi.Species(
+        particle_type="H", name="hydrogen", charge_state=0, initial_distribution=gaussianProfile
+    )
+    species_list.append((hydrogen_with_ionization, random_layout))
+
+    electron_not_placed = picmi.Species(particle_type="electron", name="electron", initial_distribution=None)
+    species_list.append((electron_not_placed, None))
+
     adk_ionization_model = picmi.ADK(
         ADK_variant=picmi.ADKVariant.CircularPolarization,
-        ion_species=hydrogen_ionization,
-        ionization_electron_species=electrons,
+        ion_species=hydrogen_with_ionization,
+        ionization_electron_species=electron_not_placed,
         ionization_current=None,
     )
 
     bsi_effectiveZ_ionization_model = picmi.BSI(
         BSI_extensions=[picmi.BSIExtension.EffectiveZ],
-        ion_species=hydrogen_ionization,
-        ionization_electron_species=electrons,
+        ion_species=hydrogen_with_ionization,
+        ionization_electron_species=electron_not_placed,
         ionization_current=None,
     )
 
@@ -111,11 +118,8 @@ sim = picmi.Simulation(
     picongpu_moving_window_move_point=0.9,
     picongpu_interaction=interaction,
 )
-
-sim.add_species(electrons, layout=randomLayout)
-
-if ENABLE_IONS:
-    sim.add_species(hydrogen, layout=randomLayout)
+for species, layout in species_list:
+    sim.add_species(species, layout=layout)
 
 sim.add_laser(laser, None)
 

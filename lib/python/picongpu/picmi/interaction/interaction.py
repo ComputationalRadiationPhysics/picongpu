@@ -123,9 +123,16 @@ class Interaction(pydantic.BaseModel):
         for species, ionization_model_conversion in ionization_model_conversion_by_type_and_species.items():
             if ionization_model_conversion is not None:
                 for picmi_ionization_model, pypicongpu_ionization_model in ionization_model_conversion.items():
-                    pypicongpu_ionization_electron_species = pypicongpu_by_picmi_species[
-                        picmi_ionization_model.ionization_electron_species
-                    ]
+                    try:
+                        pypicongpu_ionization_electron_species = pypicongpu_by_picmi_species[
+                            picmi_ionization_model.ionization_electron_species
+                        ]
+                    except KeyError:
+                        raise ValueError(
+                            f"Ionization electron species of {picmi_ionization_model} not known to simulation."
+                            + f"Please add species {picmi_ionization_model.ionization_electron_species.name} to"
+                            + "the simulation"
+                        )
                     pypicongpu_ionization_model.ionization_electron_species = pypicongpu_ionization_electron_species
 
     def __has_ground_state_ionization(self, species) -> bool:
