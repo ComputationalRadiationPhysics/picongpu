@@ -21,7 +21,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/traits/GetMetadata.hpp"
+
+#include <pmacc/meta/String.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>
+
 namespace picongpu
 {
     using MetadataRegisteredAtCT = pmacc::MakeSeq_t<
