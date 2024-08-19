@@ -25,19 +25,21 @@ export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 cd $CI_PROJECT_DIR
 
 # use miniconda as python environment
-apt update && apt install -y wget
+apt update && apt install -y curl
 cd /tmp/
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod u+x Miniconda3-latest-Linux-x86_64.sh
-./Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda3
-export PATH=/miniconda3/bin:$PATH
-conda --version
-source /miniconda3/etc/profile.d/conda.sh
+curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+export MAMBA_ROOT_PREFIX=/tmp/mamba-forge/
+mkdir -p "${MAMBA_ROOT_PREFIX}"
+eval "$(./bin/micromamba shell hook -s posix)"
+export PATH=$(pwd -P)/bin:$PATH
+micromamba --version
+micromamba config append channels conda-forge
+micromamba config set channel_priority strict
 
 cd $CI_PROJECT_DIR
 # generates modified requirements.txt
-conda create -n pypicongpu python=${PYTHON_VERSION}
-conda activate pypicongpu
+micromamba create -n pypicongpu python=${PYTHON_VERSION}
+micromamba activate pypicongpu
 python3 --version
 MODIFIED_REQUIREMENT_TXT_PICMI=$CI_PROJECT_DIR/lib/python/picongpu/picmi/modified_requirements.txt
 MODIFIED_REQUIREMENT_TXT_PYPICONGPU=$CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/modified_requirements.txt
