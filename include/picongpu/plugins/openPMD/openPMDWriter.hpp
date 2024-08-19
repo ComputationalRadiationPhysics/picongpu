@@ -21,80 +21,83 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/FieldTmp.hpp"
-#include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/particleToGrid/CombinedDerive.def"
-#include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
-#include "picongpu/plugins/common/openPMDDefinitions.def"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
-#include "picongpu/plugins/misc/ComponentNames.hpp"
-#include "picongpu/plugins/misc/SpeciesFilter.hpp"
-#include "picongpu/plugins/misc/misc.hpp"
-#include "picongpu/plugins/multi/IHelp.hpp"
-#include "picongpu/plugins/multi/Option.hpp"
-#include "picongpu/plugins/openPMD/Json.hpp"
-#include "picongpu/plugins/openPMD/NDScalars.hpp"
-#include "picongpu/plugins/openPMD/Parameters.hpp"
-#include "picongpu/plugins/openPMD/WriteSpecies.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
-#include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
-#include "picongpu/plugins/openPMD/toml.hpp"
-#include "picongpu/plugins/output/IIOBackend.hpp"
-#include "picongpu/simulation/control/MovingWindow.hpp"
-#include "picongpu/traits/IsFieldDomainBound.hpp"
-#include "picongpu/traits/IsFieldOutputOptional.hpp"
+#    include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/Environment.hpp>
-#include <pmacc/assert.hpp>
-#include <pmacc/communication/manager_common.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/filesystem.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/meta/AllCombinations.hpp>
-#include <pmacc/particles/IdProvider.def>
-#include <pmacc/particles/frame_types.hpp>
-#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#include <pmacc/particles/operations/CountParticles.hpp>
-#include <pmacc/pluginSystem/PluginConnector.hpp>
-#include <pmacc/pluginSystem/toSlice.hpp>
-#include <pmacc/simulationControl/TimeInterval.hpp>
-#include <pmacc/static_assert.hpp>
+#    include "picongpu/fields/FieldB.hpp"
+#    include "picongpu/fields/FieldE.hpp"
+#    include "picongpu/fields/FieldJ.hpp"
+#    include "picongpu/fields/FieldTmp.hpp"
+#    include "picongpu/particles/filter/filter.hpp"
+#    include "picongpu/particles/particleToGrid/CombinedDerive.def"
+#    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
+#    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDDefinitions.def"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#    include "picongpu/plugins/misc/ComponentNames.hpp"
+#    include "picongpu/plugins/misc/SpeciesFilter.hpp"
+#    include "picongpu/plugins/misc/misc.hpp"
+#    include "picongpu/plugins/multi/IHelp.hpp"
+#    include "picongpu/plugins/multi/Option.hpp"
+#    include "picongpu/plugins/openPMD/Json.hpp"
+#    include "picongpu/plugins/openPMD/NDScalars.hpp"
+#    include "picongpu/plugins/openPMD/Parameters.hpp"
+#    include "picongpu/plugins/openPMD/WriteSpecies.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
+#    include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
+#    include "picongpu/plugins/openPMD/toml.hpp"
+#    include "picongpu/plugins/output/IIOBackend.hpp"
+#    include "picongpu/simulation/control/MovingWindow.hpp"
+#    include "picongpu/traits/IsFieldDomainBound.hpp"
+#    include "picongpu/traits/IsFieldOutputOptional.hpp"
 
-#include <boost/mpl/placeholders.hpp>
+#    include <pmacc/Environment.hpp>
+#    include <pmacc/assert.hpp>
+#    include <pmacc/communication/manager_common.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/dimensions/GridLayout.hpp>
+#    include <pmacc/filesystem.hpp>
+#    include <pmacc/mappings/simulation/GridController.hpp>
+#    include <pmacc/mappings/simulation/SubGrid.hpp>
+#    include <pmacc/math/Vector.hpp>
+#    include <pmacc/meta/AllCombinations.hpp>
+#    include <pmacc/particles/IdProvider.def>
+#    include <pmacc/particles/frame_types.hpp>
+#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+#    include <pmacc/particles/operations/CountParticles.hpp>
+#    include <pmacc/pluginSystem/PluginConnector.hpp>
+#    include <pmacc/pluginSystem/toSlice.hpp>
+#    include <pmacc/simulationControl/TimeInterval.hpp>
+#    include <pmacc/static_assert.hpp>
 
-#include <tuple>
+#    include <boost/mpl/placeholders.hpp>
 
-#include <openPMD/auxiliary/StringManip.hpp>
-#include <openPMD/openPMD.hpp>
+#    include <tuple>
 
-#if !defined(_WIN32)
-#    include <unistd.h>
-#endif
+#    include <openPMD/auxiliary/StringManip.hpp>
+#    include <openPMD/openPMD.hpp>
 
-#include <algorithm>
-#include <cstdint>
-#include <cstdlib> // getenv
-#include <exception>
-#include <iostream>
-#include <limits>
-#include <list>
-#include <sstream>
-#include <string>
-#include <vector>
+#    if !defined(_WIN32)
+#        include <unistd.h>
+#    endif
 
-#include <pthread.h>
+#    include <algorithm>
+#    include <cstdint>
+#    include <cstdlib> // getenv
+#    include <exception>
+#    include <iostream>
+#    include <limits>
+#    include <list>
+#    include <sstream>
+#    include <string>
+#    include <vector>
+
+#    include <pthread.h>
 
 
 namespace picongpu
@@ -707,7 +710,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 HDINLINE void operator()(ThreadParams* params, uint32_t const currentStep)
                 {
-#ifndef __CUDA_ARCH__
+#    ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
                     // Skip optional fields
@@ -743,7 +746,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         std::move(inCellPosition),
                         timeOffset,
                         isDomainBound);
-#endif
+#    endif
                 }
             };
 
@@ -1374,7 +1377,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         = std::max(0, mThreadParams.window.globalDimensions.offset[i] - localDomain.offset[i]);
                 }
 
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
+#    if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
                 /* copy species only one time per timestep to the host */
                 if(mThreadParams.strategy == WriteSpeciesStrategy::ADIOS && lastSpeciesSyncStep != currentStep)
                 {
@@ -1394,7 +1397,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
                 }
-#endif
+#    endif
 
                 TimeIntervall timer;
                 timer.toggleStart();
@@ -1947,3 +1950,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         }
     } // namespace toml
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::plugins::multi::Master<picongpu::openPMD::openPMDWriter>);
+#endif

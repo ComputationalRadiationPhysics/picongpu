@@ -25,6 +25,7 @@
 #include "picongpu/algorithms/KinEnergy.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/common/txtFileHandling.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
 #include "picongpu/plugins/multi/multi.hpp"
@@ -435,3 +436,5 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::multi::Master<picongpu::EnergyParticles<boost::mpl::_1>>);

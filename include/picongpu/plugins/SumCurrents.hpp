@@ -24,6 +24,7 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
@@ -174,5 +175,6 @@ namespace picongpu
             return sumcurrents->getHostBuffer().getDataBox()[0];
         }
     };
-
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::SumCurrents);

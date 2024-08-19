@@ -19,26 +19,28 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#if(ENABLE_OPENPMD == 1)
+#    include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
-#include "picongpu/plugins/PhaseSpace/Pair.hpp"
-#include "picongpu/plugins/PhaseSpace/PhaseSpaceFunctors.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#    include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+#    include "picongpu/plugins/PhaseSpace/Pair.hpp"
+#    include "picongpu/plugins/PhaseSpace/PhaseSpaceFunctors.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 
-#include <pmacc/communication/manager_common.hpp>
-#include <pmacc/lockstep/lockstep.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/pluginSystem/INotify.hpp>
-#include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
+#    include <pmacc/communication/manager_common.hpp>
+#    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/math/Vector.hpp>
+#    include <pmacc/pluginSystem/INotify.hpp>
+#    include <pmacc/traits/HasFlag.hpp>
+#    include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <memory>
-#include <string>
-#include <utility>
+#    include <memory>
+#    include <string>
+#    include <utility>
 
-#include <mpi.h>
+#    include <mpi.h>
 
 
 namespace picongpu
@@ -306,4 +308,9 @@ namespace picongpu
     } // namespace particles
 } // namespace picongpu
 
-#include "PhaseSpace.tpp"
+#    include "PhaseSpace.tpp"
+
+PIC_REGISTER_SPECIES_PLUGIN(
+    picongpu::plugins::multi::Master<
+        picongpu::PhaseSpace<picongpu::particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>);
+#endif

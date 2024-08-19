@@ -20,27 +20,30 @@
 
 #pragma once
 
-#include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
-#include "picongpu/plugins/ILightweightPlugin.hpp"
+#if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
 
-#include <pmacc/alpakaHelper/acc.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/meta/Mp11.hpp>
-#include <pmacc/static_assert.hpp>
+#    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
+#    include "picongpu/plugins/ILightweightPlugin.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/mpl/vector.hpp>
+#    include <pmacc/alpakaHelper/acc.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/meta/Mp11.hpp>
+#    include <pmacc/static_assert.hpp>
 
-#define ISAAC_IDX_TYPE pmacc::IdxType
-#include <boost/fusion/container/list.hpp>
-#include <boost/fusion/container/list/list_fwd.hpp>
-#include <boost/fusion/include/as_list.hpp>
-#include <boost/fusion/include/list.hpp>
-#include <boost/fusion/include/list_fwd.hpp>
+#    include <boost/fusion/include/mpl.hpp>
+#    include <boost/mpl/vector.hpp>
 
-#include <limits>
+#    define ISAAC_IDX_TYPE pmacc::IdxType
+#    include <boost/fusion/container/list.hpp>
+#    include <boost/fusion/container/list/list_fwd.hpp>
+#    include <boost/fusion/include/as_list.hpp>
+#    include <boost/fusion/include/list.hpp>
+#    include <boost/fusion/include/list_fwd.hpp>
 
-#include <isaac.hpp>
+#    include <limits>
+
+#    include <isaac.hpp>
 
 
 namespace picongpu
@@ -375,17 +378,17 @@ namespace picongpu
                 VectorFieldSourceList,
                 ParticleList,
                 textureDim,
-#if(ISAAC_STEREO == 0)
+#    if(ISAAC_STEREO == 0)
                 isaac::DefaultController,
                 isaac::DefaultCompositor
-#else
-                isaac::StereoController,
-#    if(ISAAC_STEREO == 1)
-                isaac::StereoCompositorSideBySide<isaac::StereoController>
 #    else
+                isaac::StereoController,
+#        if(ISAAC_STEREO == 1)
+                isaac::StereoCompositorSideBySide<isaac::StereoController>
+#        else
                 isaac::StereoCompositorAnaglyph<isaac::StereoController, 0x000000FF, 0x00FFFF00>
+#        endif
 #    endif
-#endif
                 >;
 
             std::unique_ptr<VisualizationType> visualization;
@@ -847,3 +850,6 @@ namespace picongpu
 
     } // namespace isaacP
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(isaacP::IsaacPlugin);
+#endif

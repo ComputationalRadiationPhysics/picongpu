@@ -24,6 +24,9 @@
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
+#include "picongpu/plugins/output/images/PngCreator.hpp"
+#include "picongpu/plugins/output/images/Visualisation.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -231,3 +234,5 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>);

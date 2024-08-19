@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/multi/IHelp.hpp"
 #include "picongpu/plugins/output/IIOBackend.hpp"
 
@@ -217,3 +218,5 @@ namespace picongpu
     };
 
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::Checkpoint);
