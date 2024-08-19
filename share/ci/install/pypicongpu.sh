@@ -25,16 +25,17 @@ export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 cd $CI_PROJECT_DIR
 
 # use miniconda as python environment
-apt update && apt install -y wget
+apt update && apt install -y curl
 cd /tmp/
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 export MAMBA_ROOT_PREFIX=/tmp/mamba-forge/
+mkdir -p "${MAMBA_ROOT_PREFIX}"
 eval "$(./bin/micromamba shell hook -s posix)"
-export PATH=$(pwd -p)/bin:$PATH
+export PATH=$(pwd -P)/bin:$PATH
 alias conda="micromamba"
 conda --version
-conda config --remove channels defaults
-conda config --add channels nodefaults
+conda config append channels conda-forge
+conda config set channel_priority strict
 
 cd $CI_PROJECT_DIR
 # generates modified requirements.txt
