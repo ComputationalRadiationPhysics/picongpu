@@ -74,13 +74,13 @@ Which transitions and states are included in this update is user configurable, w
 Getting Started With FLYonPIC
 -----------------------------
 
-To use FLYonPIC in a simulation setup, you need to provide a set of atomic input data files, see :ref:`atomicPhysicsInputData` and mark at least one species as an atomic physics ion species and one species as an atomic physics electron species.
+To use FLYonPIC in a simulation setup, you need to provide a set of atomic input data files, see :ref:`Input Data For FLYonPIC <atomicPhysicsInputData>`, and mark at least one species as an atomic physics ion species and one species as an atomic physics electron species.
 
-See the the compile time tests of atomic physics, `debug compile test <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileSparser>`_ and `compile sparser example <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileAtomicPhysics>`_ for an example using atomic physics.
+See the `compile time test of atomic physics <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileAtomicPhysics>`_ and the `compile sparser test <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileSparser>`_ for examples using atomic physics.
 
 .. warning::
 
-  These setups are **tests** of FLYonPIC and are therefore activate a lot of debug options negatively impacting runtime.
+  These setups are **tests** of FLYonPIC components and therefore activate a lot of debug options negatively impacting runtime.
 
   **Do not base production simulations directly on them!**
 
