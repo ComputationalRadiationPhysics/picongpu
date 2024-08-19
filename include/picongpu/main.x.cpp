@@ -20,9 +20,11 @@
 
 #include <pmacc/boost_workaround.hpp>
 
-#include <picongpu/simulation_defines.hpp>
-
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/initialization/InitialiserController.hpp"
+#include "picongpu/plugins/PluginController.hpp"
+#include "picongpu/simulation/control/Simulation.hpp"
+#include "picongpu/simulation/control/SimulationStarter.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
@@ -33,43 +35,40 @@
 #include <string>
 
 
-namespace
+/** Run a PIConGPU simulation
+ *
+ * @param argc count of arguments in argv (same as for main() )
+ * @param argv arguments of program start (same as for main() )
+ */
+int runSimulation(int argc, char** argv)
 {
-    /** Run a PIConGPU simulation
-     *
-     * @param argc count of arguments in argv (same as for main() )
-     * @param argv arguments of program start (same as for main() )
-     */
-    int runSimulation(int argc, char** argv)
+    using namespace picongpu;
+
+    auto sim = ::picongpu::
+        SimulationStarter<::picongpu::InitialiserController, ::picongpu::PluginController, ::picongpu::Simulation>{};
+    auto const parserStatus = sim.parseConfigs(argc, argv);
+    int errorCode = EXIT_FAILURE;
+
+    switch(parserStatus)
     {
-        using namespace picongpu;
+    case ArgsParser::Status::error:
+        errorCode = EXIT_FAILURE;
+        break;
+    case ArgsParser::Status::success:
+        sim.load();
+        sim.start();
+        sim.unload();
+        [[fallthrough]];
+    case ArgsParser::Status::successExit:
+        errorCode = 0;
+        break;
+    };
 
-        simulation_starter::SimStarter sim;
-        auto const parserStatus = sim.parseConfigs(argc, argv);
-        int errorCode = EXIT_FAILURE;
+    // finalize the pmacc context */
+    pmacc::Environment<>::get().finalize();
 
-        switch(parserStatus)
-        {
-        case ArgsParser::Status::error:
-            errorCode = EXIT_FAILURE;
-            break;
-        case ArgsParser::Status::success:
-            sim.load();
-            sim.start();
-            sim.unload();
-            [[fallthrough]];
-        case ArgsParser::Status::successExit:
-            errorCode = 0;
-            break;
-        };
-
-        // finalize the pmacc context */
-        pmacc::Environment<>::get().finalize();
-
-        return errorCode;
-    }
-
-} // anonymous namespace
+    return errorCode;
+}
 
 /** Start of PIConGPU
  *

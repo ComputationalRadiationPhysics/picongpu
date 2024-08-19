@@ -44,17 +44,10 @@ namespace picongpu
 #include <picongpu/_defaultParam.loader>
 #include <picongpu/extensionParam.loader>
 
-// load starter after all user extension
-#include <picongpu/param/starter.param>
-
-#include <picongpu/param/components.param>
 #include <picongpu/simulation_classTypes.hpp>
 
 // ##### load unitless
 #include <picongpu/_defaultUnitless.loader>
 #include <picongpu/extensionUnitless.loader>
-
-// load starter after user extensions and all params are loaded
-#include <picongpu/unitless/starter.unitless>
 
 // clang-format on

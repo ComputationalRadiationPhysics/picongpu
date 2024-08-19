@@ -513,7 +513,7 @@ endif()
 ################################################################################
 
 find_path(PIC_EXTENSION_PATH
-    NAMES include/picongpu/param/components.param
+    NAMES include/picongpu/param/precision.param
     PATHS "${PIConGPUapp_SOURCE_DIR}"
     DOC "search PATH to extension folder"
     NO_DEFAULT_PATH
