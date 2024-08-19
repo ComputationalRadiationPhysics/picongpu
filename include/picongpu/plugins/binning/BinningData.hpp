@@ -32,6 +32,15 @@ namespace picongpu
 {
     namespace plugins::binning
     {
+        /** @brief Bin particles in enabled region */
+        enum ParticleRegion : uint32_t
+        {
+            /** Bounded - Particles inside the simulation volume */
+            Bounded = 1 << 0, // 01 in binary, corresponds to the first bit
+            /** Leaving - Particles that have left the simulation volume in this timestep */
+            Leaving = 1 << 1 // 10 in binary, corresponds to the second bit
+        };
+
         template<typename T_AxisTuple, typename T_SpeciesTuple, typename T_DepositionData>
         struct BinningData
         {
@@ -55,6 +64,7 @@ namespace picongpu
             bool normalizeByBinVolume = true;
             std::string notifyPeriod = "1";
             uint32_t dumpPeriod = 0u;
+            uint32_t particleRegion{ParticleRegion::Bounded};
 
             std::string openPMDInfix = "_%06T.";
             std::string openPMDExtension = openPMD::getDefaultExtension();
@@ -128,6 +138,23 @@ namespace picongpu
             {
                 this->jsonCfg = std::move(cfg);
                 return *this;
+            }
+            // enable a region in the bitmask
+            BinningData& enableRegion(ParticleRegion const region)
+            {
+                particleRegion = particleRegion | region;
+                return *this;
+            }
+            // disable a region in the bitmask
+            BinningData& disableRegion(ParticleRegion const region)
+            {
+                particleRegion = particleRegion & ~region;
+                return *this;
+            }
+            // Check if a region is enabled in the bitmask
+            bool isRegionEnabled(ParticleRegion const region) const
+            {
+                return (particleRegion & region) != 0;
             }
         };
     }; // namespace plugins::binning

@@ -19,10 +19,15 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/binning/BinningData.hpp"
 #include "picongpu/plugins/binning/BinningFunctors.hpp"
 #include "picongpu/plugins/binning/WriteHist.hpp"
 #include "picongpu/plugins/binning/utility.hpp"
+#include "picongpu/plugins/misc/ExecuteIf.hpp"
 
+#include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 
 #include <cstdint>
@@ -176,9 +181,12 @@ namespace picongpu
                 // @todo auto range init. Init ranges and AxisKernels
 
                 //  Do binning for species. Writes to histBuffer
-                std::apply(
-                    [&](auto const&... tupleArgs) { ((doBinningForSpecies(tupleArgs, currentStep)), ...); },
-                    binningData.speciesTuple);
+                if(binningData.isRegionEnabled(ParticleRegion::Bounded))
+                {
+                    std::apply(
+                        [&](auto const&... tupleArgs) { ((doBinningForSpecies(tupleArgs, currentStep)), ...); },
+                        binningData.speciesTuple);
+                }
 
                 /**
                  * Deal with time averaging and notify
@@ -277,6 +285,35 @@ namespace picongpu
                     accumulateCounter = 0;
                 }
             }
+
+
+            /**
+             * onParticleLeave is called every time step whenever particles leave, it is independent of the notify
+             * period. onParticleLeave isnt called for timestep 0, whereas notify is. Even though it is called every
+             * timestep, notify must still be correctly set up for normalization, averaging and output. If binning only
+             * leaving particles, use notify starting from 1 if you use time averaging, otherwise you have an extra
+             * accumulate count at 0, when notify is called but onParticleLeave isnt.
+             */
+            void onParticleLeave(const std::string& speciesName, int32_t direction) override
+            {
+                if(binningData.notifyPeriod.empty())
+                    return;
+
+                if(binningData.isRegionEnabled(ParticleRegion::Leaving))
+                {
+                    std::apply(
+                        [&](auto const&... tupleArgs)
+                        {
+                            (misc::ExecuteIf{}(
+                                 std::bind(BinLeavingParticles<decltype(tupleArgs)>{}, direction),
+                                 misc::SpeciesNameIsEqual<decltype(tupleArgs)>{},
+                                 speciesName),
+                             ...);
+                        },
+                        binningData.speciesTuple);
+                }
+            }
+
 
             void pluginRegisterHelp(po::options_description& desc) override
             {
@@ -430,6 +467,60 @@ namespace picongpu
                         currentStep,
                         mapper);
             }
+
+            template<typename T_Species>
+            struct BinLeavingParticles
+            {
+                using Species = pmacc::particles::meta::
+                    FindByNameOrType_t<VectorAllSpecies, T_Species, pmacc::errorHandlerPolicies::ReturnType<void>>;
+
+                auto operator()(int32_t direction) const -> void
+                {
+                    if constexpr(!std::is_same_v<void, Species>)
+                    {
+                        auto& dc = Environment<>::get().DataConnector();
+                        auto particles = dc.get<Species>(Species::FrameType::getName());
+                        auto particlesBox = particles->getDeviceParticlesBox();
+                        auto binningBox = histBuffer->getDeviceBuffer().getDataBox();
+
+                        auto mapperFactory = particles::boundary::getMapperFactory(*particles, direction);
+                        auto const mapper = mapperFactory(*cellDescription);
+
+                        auto const globalOffset = Environment<simDim>::get().SubGrid().getGlobalDomain().offset;
+                        auto const localOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset;
+
+                        auto const axisKernels
+                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
+
+                        pmacc::DataSpace<simDim> beginExternalCellsTotal, endExternalCellsTotal;
+                        particles::boundary::getExternalCellsTotal(
+                            *particles,
+                            direction,
+                            &beginExternalCellsTotal,
+                            &endExternalCellsTotal);
+
+                        auto const shiftTotaltoLocal = globalOffset + localOffset;
+                        auto const beginExternalCellsLocal = beginExternalCellsTotal - shiftTotaltoLocal;
+                        auto const endExternalCellsLocal = endExternalCellsTotal - shiftTotaltoLocal;
+
+                        auto const functorLeaving = BinningFunctorLeaving{};
+
+                        PMACC_LOCKSTEP_KERNEL(functorLeaving)
+                            .config(mapper.getGridDim(), particlesBox)(
+                                binningBox,
+                                particlesBox,
+                                localOffset,
+                                globalOffset,
+                                axisKernels,
+                                binningData.depositionData.functor,
+                                binningData.axisExtentsND,
+                                Environment<>::get().SimulationDescription().getCurrentStep(),
+                                beginExternalCellsLocal,
+                                endExternalCellsLocal,
+                                mapper);
+                    }
+                }
+            };
 
             void pluginLoad() override
             {
