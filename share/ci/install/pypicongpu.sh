@@ -32,6 +32,8 @@ chmod u+x Miniconda3-latest-Linux-x86_64.sh
 ./Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda3
 export PATH=/miniconda3/bin:$PATH
 conda --version
+conda config --remove channels defaults
+conda config --add channels nodefaults
 source /miniconda3/etc/profile.d/conda.sh
 
 cd $CI_PROJECT_DIR
