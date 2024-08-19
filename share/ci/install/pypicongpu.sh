@@ -27,14 +27,14 @@ cd $CI_PROJECT_DIR
 # use miniconda as python environment
 apt update && apt install -y wget
 cd /tmp/
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod u+x Miniconda3-latest-Linux-x86_64.sh
-./Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda3
-export PATH=/miniconda3/bin:$PATH
+curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+export MAMBA_ROOT_PREFIX=/tmp/mamba-forge/
+eval "$(./bin/micromamba shell hook -s posix)"
+export PATH=$(pwd -p)/bin:$PATH
+alias conda="micromamba"
 conda --version
 conda config --remove channels defaults
 conda config --add channels nodefaults
-source /miniconda3/etc/profile.d/conda.sh
 
 cd $CI_PROJECT_DIR
 # generates modified requirements.txt
