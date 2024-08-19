@@ -26,6 +26,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/device/Reduce.hpp>
@@ -262,3 +263,5 @@ namespace picongpu
     };
 
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::EnergyFields);

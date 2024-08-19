@@ -24,6 +24,7 @@
 #include "common/txtFileHandling.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/operation.hpp>
@@ -195,3 +196,5 @@ namespace picongpu
     };
 
 } /* namespace picongpu */
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::CountParticles<boost::mpl::_1>);

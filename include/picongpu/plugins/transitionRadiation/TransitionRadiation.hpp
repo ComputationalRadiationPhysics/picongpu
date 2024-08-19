@@ -25,6 +25,7 @@
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 #include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
@@ -530,3 +531,5 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>);

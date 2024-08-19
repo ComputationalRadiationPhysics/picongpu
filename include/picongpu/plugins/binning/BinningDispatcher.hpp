@@ -19,17 +19,20 @@
 
 #pragma once
 
-#include "picongpu/param/binningSetup.param"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/binning/BinningCreator.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
+#    include "picongpu/param/binningSetup.param"
+#    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/binning/BinningCreator.hpp"
 
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <vector>
+#    include <boost/program_options.hpp>
+#    include <boost/program_options/options_description.hpp>
+
+#    include <cstdint>
+#    include <memory>
+#    include <string>
+#    include <vector>
 
 namespace picongpu
 {
@@ -115,3 +118,6 @@ namespace picongpu
         };
     } // namespace plugins::binning
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::plugins::binning::BinningDispatcher);
+#endif
