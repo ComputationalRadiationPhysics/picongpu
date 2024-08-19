@@ -1,6 +1,6 @@
-# Create a separate conda environment which fulfills the package requirements
+# Create a separate Micromamba environment which fulfills the package requirements
 # for building the documentation
-# E.g. run `conda env create --file picongpu-docs-env.yml`
+# E.g. run `micromamba env create --file picongpu-docs-env.yml`
 #
 
 name: picongpu-docs-env
