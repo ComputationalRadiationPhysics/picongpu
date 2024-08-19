@@ -19,14 +19,6 @@ grid.param
    :path: include/picongpu/param/grid.param
    :no-link:
 
-components.param
-^^^^^^^^^^^^^^^^
-
-.. doxygenfile:: components.param
-   :project: PIConGPU
-   :path: include/picongpu/param/components.param
-   :no-link:
-
 iterationStart.param
 ^^^^^^^^^^^^^^^^^^^^
 

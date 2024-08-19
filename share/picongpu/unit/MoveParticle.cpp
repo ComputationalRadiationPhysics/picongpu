@@ -21,6 +21,10 @@
 
 #include <picongpu/simulation_defines.hpp>
 
+#include "picongpu/fields/Fields.tpp"
+#include "picongpu/particles/filter/filter.hpp"
+
+#include <algorithm>
 #include <functional>
 #include <numeric>
 
