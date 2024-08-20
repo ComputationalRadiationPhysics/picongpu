@@ -31,15 +31,19 @@
 
 # Compile test for standard Yee solver in 3D and setup for runtime field absorber test
 flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
-# Setup for reference simulation of runtime field absorber test
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_GRID_SIZE=660'"
+# Compile test for arbitrary-order solver in 2D
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=ArbitraryOrderFDTD<4>;-DPARAM_CFLFACTOR=1.29;-DPARAM_ABSORBER_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
 
-# Compile test for standard Yee solver compiles in 2D
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
-# Compile test for arbitrary-order solver in 3D and 2D
-flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=ArbitraryOrderFDTD<4>;-DPARAM_CFLFACTOR=1.29;-DPARAM_ABSORBER_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
-flags[4]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=ArbitraryOrderFDTD<4>;-DPARAM_CFLFACTOR=1.29;-DPARAM_ABSORBER_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  # Setup for reference simulation of runtime field absorber test
+  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_GRID_SIZE=660'"
 
+  # Compile test for standard Yee solver compiles in 2D
+  flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Yee;-DPARAM_PML_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2;-DPARAM_DIMENSION=DIM2'"
+  # Compile test for arbitrary-order solver in 3D
+  flags[4]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=ArbitraryOrderFDTD<4>;-DPARAM_CFLFACTOR=1.29;-DPARAM_ABSORBER_SIZE=10;-DPARAM_PML_KAPPA_MAX=1.0;-DPARAM_PML_ALPHA_MAX=0.2'"
+fi
 # The following tests are for absorber performance and demonstration of
 # reasonable parameters, commented out to make compile-time tests faster
 

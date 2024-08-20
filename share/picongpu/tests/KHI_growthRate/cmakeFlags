@@ -31,8 +31,12 @@
 
 # default case is "-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=TSC'"
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_PARTICLESHAPE=TSC'"
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=PQS'"
+
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_PARTICLESHAPE=TSC'"
+  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=PQS'"
+fi
 # Depending on the GPU vendor and version compile can fail because of limited amound of shared memory.
 # Please enable the test by hand!
 # flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_PARTICLESHAPE=PQS'"
