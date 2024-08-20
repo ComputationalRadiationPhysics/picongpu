@@ -41,7 +41,7 @@
 #include <pmacc/identifier/identifier.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>
-#include <pmacc/particles/IdProvider.def>
+#include <pmacc/particles/IdProvider.hpp>
 #include <pmacc/particles/Identifier.hpp>
 
 #include <cstdint>
@@ -57,7 +57,7 @@ namespace picongpu
     alias(position);
 
     //! unique identifier for a particle
-    value_identifier(uint64_t, particleId, IdProvider<simDim>::getNewId());
+    value_identifier_func(uint64_t, particleId, [] ALPAKA_FN_ACC() { return IdProvider<simDim>::getNewId(); });
 
     //! specialization for the relative in-cell position
     value_identifier(floatD_X, position_pic, floatD_X::create(0.));
@@ -255,7 +255,8 @@ namespace picongpu
      * To set physical boundary conditions for a species, instead use <species>_boundary command-line option.
      *
      * The default behavior if this alias is not given to a species is to do nothing.
-     * The existing boundary implementations already take care of the particles leaving the global simulation volume.
+     * The existing boundary implementations already take care of the particles leaving the global simulation
+     * volume.
      */
     alias(boundaryCondition);
 

@@ -31,7 +31,6 @@
 /** define a unique identifier with name, type and a default value
  * @param in_type type of the value
  * @param name name of identifier
- * @param in_value user defined value of in_type (can be a constructor of a class)
  *
  * The created identifier has the following options:
  *      getValue()        - return the user defined value
@@ -47,15 +46,32 @@
  *      `length()` or `length_`
  * @{
  */
-#define value_identifier(in_type, name, in_default)                                                                   \
+
+/** @param ... must be a device function/lambda
+ *
+ * @attention: getValue() is only callable from a pure device function e.g.
+ *
+ * @code{.cpp}
+ * [] ALPAKA_FN_ACC() { return IdProvider<simDim>::getNewId();}
+ * @endcode
+ */
+#define value_identifier_func(in_type, name, ...)                                                                     \
     identifier(                                                                                                       \
-        name, using type = in_type; HDINLINE static type getValue()                                                   \
-        { return in_default; } static std::string getName() { return std::string(#name); })
+        name, using type = in_type; DINLINE static type getValue()                                                    \
+        {                                                                                                             \
+            auto const func = __VA_ARGS__;                                                                            \
+            return func();                                                                                            \
+        } static std::string getName() { return std::string(#name); })
 
 /** getValue() is defined constexpr
+ *  @param ... user defined value of in_type (can be a constructor of a class) e.g.
+ *
+ * @code{.cpp}
+ * float3_X::create(0._X)
+ * @endcode
  * @}
  */
-#define value_identifier_constexpr(in_type, name, in_default)                                                         \
+#define value_identifier(in_type, name, ...)                                                                          \
     identifier(                                                                                                       \
         name, using type = in_type; HDINLINE static constexpr type getValue()                                         \
-        { return in_default; } static std::string getName() { return std::string(#name); })
+        { return __VA_ARGS__; } static std::string getName() { return std::string(#name); })
