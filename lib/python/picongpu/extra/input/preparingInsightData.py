@@ -378,6 +378,39 @@ class PrepRoutines:
         # correct the far field
         self.nf_to_ff()
 
+    def aperture_in_mf(self, d, R, xc=0, yc=0):
+        """
+        Put an aperture in the mid field.
+        This function propagates far field to mid field, applies an aperture there and propagates back.
+
+        Arguments:
+        d: distance of aperture to focal plane (same unit as the transverse scales)
+        R: radius of aperture (same unit as the transverse scales)
+        xc, yc: center coordinates of aperture in mid field (w.r.t. the transverse scales)
+        """
+
+        # propagation FF to MF
+        X, Y, W = np.meshgrid(self.x, self.y, self.w)
+        fac = 1j / (2 * np.pi * c) * W / self.foc * np.exp(-1j * W / c / 2 / d * (X**2 + Y**2))
+        MF = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(self.Ew * fac, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
+        # transversal scales in mid field, but still as spatial frequencies
+        a = np.fft.fftshift(np.fft.fftfreq(self.x.size, self.dx))  # = x / (lamb * d)
+        b = np.fft.fftshift(np.fft.fftfreq(self.y.size, self.dy))  # = y / (lamb * d)
+
+        # aperture = cropping MF content
+        MF_cropped = np.zeros_like(MF, dtype=complex)
+        for i in range(a.size):
+            for j in range(b.size):
+                for k in range(self.w.size):
+                    if np.abs(a[i] * self.lamb[k] * d - xc) < R:
+                        if np.abs(b[j] * self.lamb[k] * d - yc) < np.sqrt(R**2 - (a[i] * self.lamb[k] * d - xc) ** 2):
+                            MF_cropped[j, i, k] = MF[j, i, k]
+
+        # propagation MF to FF
+        self.Ew = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(MF_cropped, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
+        # rescale amplitude to 1
+        self.Ew = self.Ew / np.abs(self.Ew).max()
+
     def propagate(self, z):
         """
         Propagate the far field (in frequency domain) using the angular spectrum method.
