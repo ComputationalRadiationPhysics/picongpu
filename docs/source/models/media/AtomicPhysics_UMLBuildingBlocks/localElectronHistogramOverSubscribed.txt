@@ -1,0 +1,6 @@
+@startuml
+entity localElectronHistogramOverSubscribed<per superCell>
+{
+    overSubcribed? : bool
+}
+@enduml

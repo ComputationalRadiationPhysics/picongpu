@@ -1,0 +1,50 @@
+@startuml
+start
+:setTimeRemaining;
+:fixAtomicState;
+repeat
+    :resetAcceptedStatus;
+    :resetHistograms;
+    :binElectrons;
+    :calcuateIPDInput;
+    :resetLocalTimeStep;
+    :resetLocalRateCache;
+    :checkPresenceAtomicStates;
+    :fillLocalRateCache;
+    :calculateStepLength;
+
+    while (true) is (true)
+        :chooseTransitionType;
+        :chooseTransition;
+        :resetDeltaWeight;
+        :recordSuggestedChanges;
+        :checkForOverSubscription;
+
+        if (histogram oversubscribed) then (no)
+            break
+        else (yes)
+            repeat
+                :rollForOverSubscription;
+                :resetDeltaWeight;
+                :recordSuggestedChanges;
+                :checkForOverSubscription;
+            repeat while (histogram is oversubscribed) is (yes)
+            ->false;
+        endif
+    endwhile
+    :recordChanges;
+    :decelerateElectrons;
+    :spawnIonizationElectrons;
+    repeat
+        :resetFoundUnbound;
+        :calculateIPDinput;
+        :applyPressureIonization;
+    repeat while (foundUnbound) is (true)
+    ->false;
+    :updateTimeRemaining;
+repeat while (timeRemaining > 0) is (true)
+->false;
+stop
+
+
+@enduml

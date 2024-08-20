@@ -1,0 +1,6 @@
+@startuml
+entity localTimeStep<per superCell>
+{
+    timeStep : float32 [Dt_PIC]
+}
+@enduml

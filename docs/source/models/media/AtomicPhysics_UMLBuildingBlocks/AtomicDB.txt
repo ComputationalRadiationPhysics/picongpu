@@ -1,0 +1,51 @@
+@startuml
+package AtomicDB
+{
+    class AtomicData<for each IonSpecies>
+    class AtomicStateData
+    {
+        + configNumber(collectionIndex) const
+        + energy(collectionIndex) const
+        + multiplicity(collectionIndex) const
+    }
+    class ChargeStateData
+    {
+        + ionizationEnergy(chargeState) const
+        + screenedCharge(chargeState) const
+    }
+    class ChargeStateOrgaData
+    {
+        + numberAtomicStates(collectionIndex)
+        + startIndexBlockAtomicStates(collectionIndex)
+    }
+    class PressureIonizationStateData
+    {
+        + pressureIonizationState(collectionIndex) : collectionIndex
+    }
+
+    stereotype AtomicStateNumberOfTransitionsData
+    stereotype AtomicStateStartIndexBlockData
+    stereotype TransitionData
+
+    enum per_TransitionOrdering
+    {
+        byUpperState
+        byLowerState
+    }
+    enum per_TransitionType
+    {
+        boundBound
+        boundFree
+        autonomous
+    }
+    AtomicData o-- ChargeStateData
+    AtomicData o-- ChargeStateOrgaData
+    AtomicData o-- AtomicStateData
+    AtomicData o-- PressureIonizationStateData
+    AtomicData o-- per_TransitionType
+    per_TransitionType o-- AtomicStateNumberOfTransitionsData
+    per_TransitionType o-- AtomicStateStartIndexBlockData
+    per_TransitionType o-- per_TransitionOrdering
+    per_TransitionOrdering o-- TransitionData
+}
+@enduml
