@@ -137,9 +137,10 @@ class PrepRoutines:
         self.w = np.array(f["scales/w"])  # rad/fs
         f.close()
 
-        self.dx = np.diff(self.x)[0]
-        self.dy = np.diff(self.y)[0]
-        self.dw = np.diff(self.w)[0]
+        self.lamb = 2 * np.pi * c / self.w  # wavelength in mm
+        self.dx = np.diff(self.x)[0]  # transverse spacing
+        self.dy = np.diff(self.y)[0]  # transverse spacing
+        self.dw = np.diff(self.w)[0]  # frequency spacing
         self.wc_idx = int(len(self.w) / 2)  # central freq. index
 
         # fit far field data with gaussian
@@ -200,11 +201,13 @@ class PrepRoutines:
         NF = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(self.Ew * fac, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
         a = np.fft.fftshift(np.fft.fftfreq(self.x.size, self.dx))
         b = np.fft.fftshift(np.fft.fftfreq(self.y.size, self.dy))
-        # rescaling from spatial frequency to space for every lambda (x = a*lambda*f)
+        # rescaling from spatial frequency to space for every lambda (x = a * lamb * f)
         NF_resc = np.empty_like(NF, dtype=complex)
-        scale = 2 * np.pi * self.foc * c / self.w
+        scale = self.lamb * self.foc
         self.x_NF = np.linspace(a[0] * scale[-1], a[-1] * scale[-1], a.size)
         self.y_NF = np.linspace(b[0] * scale[-1], b[-1] * scale[-1], b.size)
+        self.dx_NF = np.diff(self.x_NF)[0]
+        self.dy_NF = np.diff(self.y_NF)[0]
         Y_NF, X_NF = np.meshgrid(self.y_NF, self.x_NF, indexing="ij")
         for i in range(self.w.size):
             interp_NF = RegularGridInterpolator((b * scale[i], a * scale[i]), NF[:, :, i], method=method)
@@ -230,9 +233,11 @@ class PrepRoutines:
         )
         FF = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.Ew_NF, axes=(0, 1)), axes=(0, 1)), axes=(0, 1)) * fac
         # rescaling from spatial frequency to space for every lambda
-        scale = 2 * np.pi * self.foc * c / self.w
+        scale = self.lamb * self.foc
         self.x = np.linspace(a[0] * scale[-1], a[-1] * scale[-1], a.size)
         self.y = np.linspace(b[0] * scale[-1], b[-1] * scale[-1], b.size)
+        self.dx = np.diff(self.x)[0]
+        self.dy = np.diff(self.y)[0]
         Y, X = np.meshgrid(self.y, self.x, indexing="ij")
         for i in range(self.w.size):
             interp_FF = RegularGridInterpolator((b * scale[i], a * scale[i]), FF[:, :, i], method=method)
@@ -269,7 +274,7 @@ class PrepRoutines:
             % (GVD, TOD)
         )
 
-    def correct_ugly_spot_in_NF(self, x_ugly, y_ugly, uglybins=3, method="linear"):
+    def correct_ugly_spot_in_nf(self, x_ugly, y_ugly, uglybins=3, method="linear"):
         """
         In case there is an ugly spot in the near field (such as an unnatural peak), it can be smoothened out with this function.
         It automatically also corrects the far field by propagating the corrected near field back into the focus.
@@ -328,7 +333,7 @@ class PrepRoutines:
 
         print("corrected ugly spot in near field at x = %.2f mm, y = %.2f mm" % (x_ugly, y_ugly))
 
-    def shift_NF_to_center(self):
+    def shift_nf_to_center(self):
         """
         If the near field is not centered around (0, 0), it can be done with this function.
         It automatically also corrects the far field by propagating the centered near field back into the focus.
@@ -397,20 +402,14 @@ class PrepRoutines:
             self.dx * self.Ew.shape[0], self.dy * self.Ew.shape[1]
         ), "Oops, you wanted to propagate too far! The pulse will not fit in the transverse window."
 
-        cond = np.empty_like(self.Ew, dtype=float)
-        for i in range(self.w.size):
-            a = 2 * np.pi * c / self.w[i] * np.fft.fftfreq(self.x.size, d=np.diff(self.x)[0])
-            b = 2 * np.pi * c / self.w[i] * np.fft.fftfreq(self.y.size, d=np.diff(self.y)[0])
-            cond[:, :, i] = np.array([(a**2 + bi**2) for bi in b])
-        W = np.ones_like(self.Ew) * self.w
+        a = 2 * np.pi * c * np.fft.fftfreq(self.x.size, d=np.diff(self.x)[0])
+        b = 2 * np.pi * c * np.fft.fftfreq(self.y.size, d=np.diff(self.y)[0])
+        A, B, W = np.meshgrid(a, b, self.w)
 
-        # a = np.fft.fftfreq(self.x.size, d=self.dx)
-        # b = np.fft.fftfreq(self.y.size, d=self.dy)
-        # A, B, W = np.meshgrid(a, b, self.w)
         # depending on the following mask, the wavenumber k_z (= spatial frequency in propagation direction)
         # is either complex or real, resulting in plane or evanescent waves, respectively. For a detailed
         # derivation, please refer to Godmans "Introduction to Fourier Optics".
-        # cond = (2 * np.pi * c / W) ** 2 * (A**2 + B**2)
+        cond = (A**2 + B**2) / W**2
         idx_in = np.where(cond < 1)
         idx_out = np.where(cond > 1)
         F_Ew = np.fft.fft2(self.Ew, axes=(0, 1))
@@ -433,11 +432,11 @@ class PrepRoutines:
         assert self.isPhaseCorrected, "Oops, you forgot to correct the phase!"
 
         # calculate the number of zeros to be padded at the right side of the spectrum
-        # longitudinal axis length N_tot = 2*pi/(dw*dt)
-        # necessary time spacing dt = lambda/(c*lamb_supp)
+        # longitudinal axis length N_tot = 2 * pi / (dw * dt)
+        # necessary time spacing dt = lamb / (c * lamb_supp)
         zeros = int(self.w[self.wc_idx] * lamb_supp / self.dw / 2 - self.w[-1] / self.dw)
 
-        # the data has to be sorted according to fft requirements:  w = dw* (0, 1, ... n/2, -n/2, ... -1)
+        # the data has to be sorted according to fft requirements:  w = dw * (0, 1, ... n/2, -n/2, ... -1)
         # so we have to extent (and interpolate) first the positive side of the spectrum
         w_fft = np.arange(0, self.w[-1] + zeros * self.dw, self.dw)
         Y_fft, X_fft, W_fft = np.meshgrid(self.y, self.x, w_fft, indexing="ij")
@@ -537,10 +536,8 @@ class PrepRoutines:
         # B_pol = 0
         # B_z = -+ i/w * d/d_trans E_pol; but neglectable since B_z << B_trans
         # 1st sign for pol = "x", 2nd for "y"
-        threshold = 0.0  # just consider (relative) field values above threshold
-        idx_thres = np.where(np.abs(E_save) > threshold)
         dV = self.dx * self.dy * self.dt * c * 10**-9  # m**3
-        W = dV * 8.854e-12 * np.sum(E_save[idx_thres] ** 2)
+        W = dV * 8.854e-12 * np.sum(E_save**2)
         # scaling to actual beam energy
         amp_fac = np.sqrt(energy / W)
         print("Maximum amplitude: %.2e V/m" % (amp_fac))
