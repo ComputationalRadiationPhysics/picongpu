@@ -45,10 +45,9 @@ namespace picongpu
                          *
                          * @param particleDest destination particle
                          * @param particleSrc source particle
-                         * @param ... unused particles
                          */
-                        template<typename T_DestParticle, typename T_SrcParticle, typename... T_Args>
-                        HDINLINE void operator()(T_DestParticle& particleDest, T_SrcParticle& particleSrc, T_Args&&...)
+                        template<typename T_DestParticle, typename T_SrcParticle>
+                        HDINLINE void operator()(T_DestParticle& particleDest, T_SrcParticle& particleSrc)
                         {
                             pmacc::particles::operations::assign(particleDest, particleSrc);
                         }

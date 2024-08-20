@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include "picongpu/particles/manipulators/generic/Free.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
 
 namespace picongpu
 {
@@ -32,8 +35,8 @@ namespace picongpu
                 {
                     struct None
                     {
-                        template<typename... T_Args>
-                        HDINLINE void operator()(T_Args&&...)
+                        template<typename T_Worker, typename T_Particle>
+                        HDINLINE void operator()(T_Worker const&, T_Particle&)
                         {
                         }
 

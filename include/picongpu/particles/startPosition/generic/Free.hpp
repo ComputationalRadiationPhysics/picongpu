@@ -59,10 +59,10 @@ namespace picongpu
                          * @param worker lockstep worker
                          * @param args arguments passed to the user functor
                          */
-                        template<typename... T_Args, typename T_Worker>
-                        HDINLINE void operator()(T_Worker const&, T_Args&&... args)
+                        template<typename T_Worker, typename T_Particle>
+                        HDINLINE void operator()(T_Worker const&, T_Particle& particle)
                         {
-                            Functor::operator()(args...);
+                            Functor::operator()(particle);
                         }
 
                         template<typename T_Particle>

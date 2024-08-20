@@ -96,17 +96,12 @@ namespace picongpu
                          * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
                          *                             normal random number generator type
                          * @tparam T_Particle particle type
-                         * @tparam T_Args arbitrary number of argument types, unused
                          *
                          * @param standardNormalRng standard normal random number generator
                          * @param particle particle to be manipulated
-                         * @param ... unused parameters
                          */
-                        template<typename T_StandardNormalRng, typename T_Particle, typename... T_Args>
-                        HDINLINE void operator()(
-                            T_StandardNormalRng& standardNormalRng,
-                            T_Particle& particle,
-                            T_Args&&...)
+                        template<typename T_StandardNormalRng, typename T_Particle>
+                        HDINLINE void operator()(T_StandardNormalRng& standardNormalRng, T_Particle& particle)
                         {
                             auto const temperatureKeV = T_ParamClass::temperature;
                             Base::operator()(standardNormalRng, particle, temperatureKeV);
@@ -137,19 +132,16 @@ namespace picongpu
                          * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
                          *                             normal random number generator type
                          * @tparam T_Particle particle type
-                         * @tparam T_Args arbitrary number of argument types, unused
                          *
                          * @param totalCellOffset total offset including all slides [in cells]
                          * @param standardNormalRng standard normal random number generator
                          * @param particle particle to be manipulated
-                         * @param ... unused parameters
                          */
-                        template<typename T_StandardNormalRng, typename T_Particle, typename... T_Args>
+                        template<typename T_StandardNormalRng, typename T_Particle>
                         HDINLINE void operator()(
                             DataSpace<simDim> const& totalCellOffset,
                             T_StandardNormalRng& standardNormalRng,
-                            T_Particle& particle,
-                            T_Args&&...)
+                            T_Particle& particle)
                         {
                             auto const unitLength = UNIT_LENGTH;
                             auto const cellSize_SI = precisionCast<float_64>(cellSize) * unitLength;

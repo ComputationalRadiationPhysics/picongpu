@@ -57,12 +57,24 @@ namespace picongpu
                          * @tparam T_Worker lockstep worker type
                          *
                          * @param args arguments passed to the user functor
+                         *
+                         * @{
                          */
                         template<typename T_Worker, typename... T_Args>
-                        HDINLINE void operator()(T_Worker const&, T_Args&&... args)
+                        HDINLINE auto operator()(T_Worker const& worker, T_Args&&... args)
+                            -> decltype(std::declval<Functor>()(worker, std::forward<T_Args>(args)...))
                         {
-                            Functor::operator()(args...);
+                            Functor::operator()(worker, std::forward<T_Args>(args)...);
                         }
+
+                        template<typename T_Worker, typename... T_Args>
+                        HDINLINE auto operator()(T_Worker const&, T_Args&&... args)
+                            -> decltype(std::declval<Functor>()(std::forward<T_Args>(args)...))
+                        {
+                            Functor::operator()(std::forward<T_Args>(args)...);
+                        }
+
+                        /** @} */
                     };
                 } // namespace acc
 
