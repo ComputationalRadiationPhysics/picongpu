@@ -580,9 +580,12 @@ namespace picongpu
                 endInternalCellsLocal,
                 std::placeholders::_1);
 
+            auto idProvider = dc.get<IdProvider>("globalId");
+
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
                 m_help->filter.get(m_id),
                 currentStep,
+                idProvider->getDeviceGenerator(),
                 unaryKernel);
 
             /* copy to host */
@@ -645,9 +648,12 @@ namespace picongpu
                 endExternalCellsLocal,
                 std::placeholders::_1);
 
+            auto idProvider = dc.get<IdProvider>("globalId");
+
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
                 m_help->filter.get(m_id),
                 Environment<>::get().SimulationDescription().getCurrentStep(),
+                idProvider->getDeviceGenerator(),
                 unaryKernel);
         }
 

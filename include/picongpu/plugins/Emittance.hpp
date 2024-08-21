@@ -488,9 +488,12 @@ namespace picongpu
                 mapper,
                 std::placeholders::_1);
 
+            auto idProvider = dc.get<IdProvider>("globalId");
+
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
                 m_help->filter.get(m_id),
                 currentStep,
+                idProvider->getDeviceGenerator(),
                 binaryKernel);
 
             // get gSum, ... from GPU

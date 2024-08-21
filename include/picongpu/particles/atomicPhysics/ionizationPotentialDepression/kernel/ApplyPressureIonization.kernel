@@ -225,17 +225,20 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             typename T_Index,
             typename... T_AdditionalData>
         HDINLINE static void update(
-            T_Worker const&,
+            T_Worker const& worker,
             T_SourceParticle& sourceParticle,
             T_ProductParticle& productParticle,
+            IdGenerator& idGen,
             T_Number const,
             T_KernelStateType&,
             T_Index const,
             T_AdditionalData...)
         {
-            particles::atomicPhysics::initElectrons::CoMoving::initElectron<T_SourceParticle, T_ProductParticle>(
+            particles::atomicPhysics::initElectrons::CoMoving::initElectron(
+                worker,
                 sourceParticle,
-                productParticle);
+                productParticle,
+                idGen);
         }
     };
 

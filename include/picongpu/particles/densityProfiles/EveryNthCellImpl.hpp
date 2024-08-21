@@ -43,7 +43,7 @@ namespace picongpu
             };
 
             HINLINE
-            EveryNthCellImpl(uint32_t currentStep)
+            EveryNthCellImpl(uint32_t)
             {
             }
 

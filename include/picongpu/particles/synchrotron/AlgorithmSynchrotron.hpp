@@ -394,6 +394,7 @@ namespace picongpu
                 template<typename T_parentElectron, typename T_childPhoton, typename T_Worker>
                 DINLINE void operator()(
                     const T_Worker& worker,
+                    IdGenerator& idGen,
                     T_parentElectron& parentElectron,
                     T_childPhoton& childPhoton)
                 {
@@ -409,7 +410,7 @@ namespace picongpu
                      */
                     auto targetPhotonClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(childPhoton);
 
-                    partOp::assign(targetPhotonClone, partOp::deselect<particleId>(parentElectron));
+                    targetPhotonClone.copyAndInit(worker, idGen, partOp::deselect<particleId>(parentElectron));
 
                     childPhoton[momentum_] = m_PhotonMomentum;
 

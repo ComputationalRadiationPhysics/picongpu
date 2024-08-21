@@ -19,8 +19,11 @@
 
 #pragma once
 
-#include <string>
+#include "picongpu/particles/filter/IUnary.def"
 
+#include <pmacc/particles/IdProvider.hpp>
+
+#include <string>
 
 namespace picongpu
 {
@@ -41,11 +44,14 @@ namespace picongpu
                  * @param unaryFunctor any unary functor
                  */
                 template<typename T_Kernel, typename... T_Args>
-                void operator()(std::string const& filterName, uint32_t const currentStep, T_Kernel const unaryFunctor)
-                    const
+                void operator()(
+                    std::string const& filterName,
+                    uint32_t const currentStep,
+                    pmacc::IdGenerator idGen,
+                    T_Kernel const unaryFunctor) const
                 {
                     if(filterName == T_Filter::getName())
-                        unaryFunctor(particles::filter::IUnary<T_Filter>{currentStep});
+                        unaryFunctor(particles::filter::IUnary<T_Filter>{currentStep, idGen});
                 }
             };
         } // namespace misc

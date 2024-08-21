@@ -123,7 +123,8 @@ namespace picongpu
                          *
                          * @param currentStep current time iteration
                          */
-                        FreeTemperature(uint32_t const currentStep) : UserFunctor(currentStep)
+                        FreeTemperature(uint32_t const currentStep, IdGenerator idGen)
+                            : UserFunctor(currentStep, idGen)
                         {
                         }
 

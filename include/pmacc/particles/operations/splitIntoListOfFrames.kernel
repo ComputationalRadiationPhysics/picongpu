@@ -229,7 +229,7 @@ namespace pmacc
                                     auto parDest = destFramePtr[masterVirtualThreadIdx][idx];
                                     auto parDestDeselect = deselect<mp_list<localCellIdx, multiMask>>(parDest);
 
-                                    assign(parDestDeselect, srcFrame[srcParticleIdx]);
+                                    parDestDeselect = srcFrame[srcParticleIdx];
                                     parDest[localCellIdx_] = lCellIdx;
                                     parDest[multiMask_] = 1;
                                     /* counter[1] -> number of loaded particles

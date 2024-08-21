@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/identifier/value_identifier.hpp"
 #include "pmacc/traits/Resolve.hpp"
 #include "pmacc/types.hpp"
 
@@ -39,12 +40,12 @@ namespace pmacc
          *
          * @tparam T_Partcile particle type
          */
-        template<typename T_Particle>
-        HDINLINE void operator()(T_Particle& particle)
+        template<typename T_Worker, typename T_Particle>
+        HDINLINE void operator()(T_Worker const& worker, IdGenerator idGen, T_Particle& particle)
         {
             using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
             /* set attribute to it's user defined default value */
-            particle[Attribute()] = ResolvedAttr::getValue();
+            particle[Attribute()] = ResolvedAttr::getValue(worker, idGen);
         }
     };
 

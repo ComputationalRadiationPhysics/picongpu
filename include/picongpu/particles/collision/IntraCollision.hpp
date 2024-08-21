@@ -284,7 +284,7 @@ namespace picongpu::particles::collision
          * @param deviceHeap A pointer to device heap for allocating particle lists.
          * @param currentStep The current simulation step.
          */
-        void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep)
+        void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep, IdGenerator idGen)
         {
             using Species = T_Species;
             using FrameType = typename Species::FrameType;
@@ -316,7 +316,7 @@ namespace picongpu::particles::collision
                     deviceHeap->getAllocatorHandle(),
                     RNGFactory::createHandle(),
                     CollisionFunctor(currentStep),
-                    particles::filter::IUnary<Filter>{currentStep},
+                    particles::filter::IUnary<Filter>{currentStep, idGen},
                     sumCoulombLog.getDeviceBuffer().getDataBox(),
                     sumSParam.getDeviceBuffer().getDataBox(),
                     timesCollided.getDeviceBuffer().getDataBox());
@@ -370,7 +370,7 @@ namespace picongpu::particles::collision
                     deviceHeap->getAllocatorHandle(),
                     RNGFactory::createHandle(),
                     CollisionFunctor(currentStep),
-                    particles::filter::IUnary<Filter>{currentStep},
+                    particles::filter::IUnary<Filter>{currentStep, idGen},
                     nullptr,
                     nullptr,
                     nullptr);

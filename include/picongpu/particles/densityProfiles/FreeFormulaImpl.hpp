@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/functor/User.hpp"
+#include "picongpu/particles/densityProfiles/IProfile.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 
@@ -40,7 +40,7 @@ namespace picongpu
                 using type = FreeFormulaImpl<UserFunctor>;
             };
 
-            HINLINE FreeFormulaImpl(uint32_t currentStep) : UserFunctor(currentStep)
+            HINLINE FreeFormulaImpl(uint32_t currentStep, IdGenerator idGen) : UserFunctor(currentStep, idGen)
             {
             }
 

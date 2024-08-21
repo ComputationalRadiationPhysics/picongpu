@@ -66,7 +66,7 @@
 #    include <pmacc/mappings/simulation/SubGrid.hpp>
 #    include <pmacc/math/Vector.hpp>
 #    include <pmacc/meta/AllCombinations.hpp>
-#    include <pmacc/particles/IdProvider.def>
+#    include <pmacc/particles/IdProvider.hpp>
 #    include <pmacc/particles/frame_types.hpp>
 #    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #    include <pmacc/particles/operations/CountParticles.hpp>
@@ -1319,7 +1319,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 loadRngStates(&mThreadParams, restartStep);
 
-                IdProvider<simDim>::State idProvState;
+                DataConnector& dc = Environment<>::get().DataConnector();
+                auto idProvider = dc.get<IdProvider>("globalId");
+
+                IdProvider::State idProvState;
                 ReadNDScalars<uint64_t, uint64_t>()(
                     mThreadParams,
                     restartStep,
@@ -1337,7 +1340,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     "nextId",
                     &idProvState.nextId);
                 log<picLog::INPUT_OUTPUT>("Setting next free id on current rank: %1%") % idProvState.nextId;
-                IdProvider<simDim>::setState(idProvState);
+                idProvider->setState(idProvState);
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
@@ -1859,7 +1862,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing RNG states.");
                 }
 
-                auto idProviderState = IdProvider<simDim>::getState();
+                DataConnector& dc = Environment<>::get().DataConnector();
+                auto idProvider = dc.get<IdProvider>("globalId");
+                auto idProviderState = idProvider->getState();
                 log<picLog::INPUT_OUTPUT>("openPMD: Writing IdProvider state (StartId: %1%, NextId: %2%, "
                                           "maxNumProc: %3%)")
                     % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
