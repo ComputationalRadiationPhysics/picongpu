@@ -78,6 +78,18 @@ def gauss(t, amp, t0, tau):
     return amp * np.exp(-((t - t0) ** 2) / (2 * tau) ** 2)
 
 
+def lin(x, a, b):
+    """
+    linear function f(x) = a * x + b
+
+    Arguments:
+    x: function arguments
+    a: slope
+    b: offset
+    """
+    return a * x + b
+
+
 class PrepRoutines:
     """
     class to manipulate and prepare Insight data for usage as FromOpenPMDPulse profile in PIConGPU:
@@ -151,10 +163,28 @@ class PrepRoutines:
             (np.abs(self.Ew[:, :, self.wc_idx]) ** 2).ravel(),
             p0=(1, 0, 0, 0.05),
         )
-        self.xc = popt[1]
-        self.yc = popt[2]
-        self.waist = popt[3] * np.sqrt(2)
-        self.zR = self.waist**2 / (2 * c) * self.w[self.wc_idx]
+        self.xc = popt[1]  # x center coordinate
+        self.yc = popt[2]  # y center coordinate
+        self.waist = popt[3] * np.sqrt(2)  # waist size
+        self.zR = self.waist**2 / (2 * c) * self.w[self.wc_idx]  # rayleigh length
+
+        # (transverse) indices of main beam spot area (xmin, xmax, ymin, ymax)
+        # this will result in a square area covering the beam spot
+        waist_part = 0.7  # size of the square w.r.t waist size; should be < 1
+        self.mainSpotIdx = np.array(
+            [
+                np.abs(self.x - self.xc + waist_part * self.waist).argmin(),
+                np.abs(self.x - self.xc - waist_part * self.waist).argmin(),
+                np.abs(self.y - self.yc + waist_part * self.waist).argmin(),
+                np.abs(self.y - self.yc - waist_part * self.waist).argmin(),
+            ]
+        )
+
+        # spectral intensity FWHM indices
+        spec_int = np.sum(np.sum(np.abs(self.Ew) ** 2, axis=0), axis=0)
+        spec_int = spec_int / spec_int.max()
+        idx_in_FWHM = np.where(spec_int > 0.5)[0]
+        self.spectFWHMIdx = np.array([idx_in_FWHM[0], idx_in_FWHM[-1]])
 
         # propagate to near field (right before the lens, i.e. d=0)
         self.ff_to_nf()
@@ -168,14 +198,25 @@ class PrepRoutines:
             np.abs(self.Ew_NF[:, :, self.wc_idx]).ravel(),
             p0=(1, 0, 0, 10),
         )
-        self.xc_NF = popt_NF[1]
-        self.yc_NF = popt_NF[2]
-        self.waist_NF = popt_NF[3]
+        self.xc_NF = popt_NF[1]  # x center coordinate
+        self.yc_NF = popt_NF[2]  # y center coordinate
+        self.waist_NF = popt_NF[3]  # waist size
+
+        # (transverse) indices of main beam spot area (xmin, xmax, ymin, ymax)
+        # this will result in a square area covering the beam spot
+        self.mainSpotIdx_NF = np.array(
+            [
+                np.abs(self.x_NF - self.xc_NF + waist_part * self.waist_NF).argmin(),
+                np.abs(self.x_NF - self.xc_NF - waist_part * self.waist_NF).argmin(),
+                np.abs(self.y_NF - self.yc_NF + waist_part * self.waist_NF).argmin(),
+                np.abs(self.y_NF - self.yc_NF - waist_part * self.waist_NF).argmin(),
+            ]
+        )
 
         self.isPhaseCorrected = False  # phase has not been corrected yet
 
         # print fit parameters etc.
-        print("Central wavelength: %.f nm" % (c * 2 * np.pi / self.w[self.wc_idx] * 10**6))
+        print("Central wavelength: %.f nm" % (self.lamb[self.wc_idx] * 10**6))
         print("Rayleigh length: zR = %.2f mm" % (self.zR))
         print("Far field center coordinates: xc = %.2f um, yc = %.2f um" % (self.xc * 1000, self.yc * 1000))
         print("Far field waist size: w = %.2f um" % (self.waist * 1000))
@@ -410,6 +451,204 @@ class PrepRoutines:
         self.Ew = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(MF_cropped, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
         # rescale amplitude to 1
         self.Ew = self.Ew / np.abs(self.Ew).max()
+
+    def measure_ad_in_nf(self):
+        """
+        measure angular dispersion in the near field
+        """
+        # unwrapped phase in near field main beam spot area
+        angle_AD = np.unwrap(
+            np.unwrap(
+                np.angle(
+                    self.Ew_NF[
+                        self.mainSpotIdx_NF[2] : self.mainSpotIdx_NF[3],
+                        self.mainSpotIdx_NF[0] : self.mainSpotIdx_NF[1],
+                        :,
+                    ]
+                ),
+                axis=0,
+            ),
+            axis=1,
+        )
+
+        # calculating phase slope
+        mx = []
+        my = []
+        for j in range(self.w.size):
+            mx_j = []
+            my_j = []
+            for i in range(min(angle_AD.shape[0], angle_AD.shape[1])):
+                # linear fit of every row and column of main beam spot area
+                popt_x, pcov_x = curve_fit(
+                    lin, self.x_NF[self.mainSpotIdx_NF[0] : self.mainSpotIdx_NF[1]], angle_AD[i, :, j], p0=(1, 0)
+                )
+                mx_j.append(popt_x[0])
+                popt_y, pcov_y = curve_fit(
+                    lin, self.y_NF[self.mainSpotIdx_NF[2] : self.mainSpotIdx_NF[3]], angle_AD[:, i, j], p0=(1, 0)
+                )
+                my_j.append(popt_y[0])
+            # average phase slope for every lambda
+            mx.append(np.average(mx_j))
+            my.append(np.average(my_j))
+
+        # calculating wavefront tilt angle
+        alpha_x = np.arcsin(self.lamb * mx / (2 * np.pi))
+        alpha_y = np.arcsin(self.lamb * my / (2 * np.pi))
+
+        # AD = change of wavefront tilt angle with lambda
+        # fitting just values inside the spectral intensity FHWM
+        popt_x, pcov_x = curve_fit(
+            lin,
+            self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6,
+            alpha_x[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]],
+        )
+        perr_x = np.diag(pcov_x)
+        AD_x = popt_x[0]
+        e_AD_x = perr_x[0]
+
+        popt_y, pcov_y = curve_fit(
+            lin,
+            self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6,
+            alpha_y[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]],
+        )
+        perr_y = np.diag(pcov_y)
+        AD_y = popt_y[0]
+        e_AD_y = perr_y[0]
+
+        print("measured AD in NF in x direction: %.2e +- %.2e rad/nm" % (AD_x, e_AD_x))
+        print("measured AD in NF in y direction: %.2e +- %.2e rad/nm" % (AD_y, e_AD_y))
+
+    def measure_ad_in_ff(self):
+        """
+        measure angular dispersion in the far field
+        """
+        # unwrapped phase in far field main beam spot area
+        angle_AD = np.unwrap(
+            np.unwrap(
+                np.angle(
+                    self.Ew[self.mainSpotIdx[2] : self.mainSpotIdx[3], self.mainSpotIdx[0] : self.mainSpotIdx[1], :]
+                ),
+                axis=0,
+            ),
+            axis=1,
+        )
+
+        # calculating phase slope
+        mx = []
+        my = []
+        for j in range(self.w.size):
+            mx_j = []
+            my_j = []
+            for i in range(min(angle_AD.shape[0], angle_AD.shape[1])):
+                # linear fit of every row and column of main beam spot area
+                popt_x, pcov_x = curve_fit(
+                    lin, self.x[self.mainSpotIdx[0] : self.mainSpotIdx[1]], angle_AD[i, :, j], p0=(-200, 0)
+                )
+                mx_j.append(popt_x[0])
+                popt_y, pcov_y = curve_fit(
+                    lin, self.y[self.mainSpotIdx[2] : self.mainSpotIdx[3]], angle_AD[:, i, j], p0=(-200, 0)
+                )
+                my_j.append(popt_y[0])
+            # average phase slope for every lambda
+            mx.append(np.average(mx_j))
+            my.append(np.average(my_j))
+
+        # calculating wavefront tilt angle
+        alpha_x = np.arcsin(self.lamb * mx / (2 * np.pi))
+        alpha_y = np.arcsin(self.lamb * my / (2 * np.pi))
+
+        # AD = change of wavefront tilt angle with lambda
+        # fitting just values inside the spectral intensity FHWM
+        popt_x, pcov_x = curve_fit(
+            lin,
+            self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6,
+            alpha_x[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]],
+        )
+        perr_x = np.diag(pcov_x)
+        AD_x = popt_x[0]
+        e_AD_x = perr_x[0]
+
+        popt_y, pcov_y = curve_fit(
+            lin,
+            self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6,
+            alpha_y[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]],
+        )
+        perr_y = np.diag(pcov_y)
+        AD_y = popt_y[0]
+        e_AD_y = perr_y[0]
+
+        print("measured AD in FF in x direction: %.2e +- %.2e rad/nm" % (AD_x, e_AD_x))
+        print("measured AD in FF in y direction: %.2e +- %.2e rad/nm" % (AD_y, e_AD_y))
+
+    def measure_sd_in_nf(self):
+        """
+        measure spatial dispersion in the near field
+        """
+        # lists to store center coordinates
+        xc_SD = []
+        yc_SD = []
+
+        X_NF, Y_NF = np.meshgrid(self.x_NF, self.y_NF)
+
+        # supergaussian fit to near field amplitude to extract center coordinates
+        # only inside the spectral intensity FWHM
+        for i in range(self.spectFWHMIdx[1] - self.spectFWHMIdx[0]):
+            popt, pcov = curve_fit(
+                supergauss2D,
+                (X_NF, Y_NF),
+                (np.abs(self.Ew_NF[:, :, self.spectFWHMIdx[0] + i])).ravel(),
+                p0=(1, self.xc_NF, self.yc_NF, self.waist_NF),
+            )
+            xc_SD.append(popt[1])
+            yc_SD.append(popt[2])
+
+        # linear fit to central x coordinate
+        popt, pcov = curve_fit(lin, self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6, xc_SD)
+        perr = np.diag(pcov)
+        SDx = popt[0]
+        eSDx = perr[0]
+        print("measured SD in NF in x direction: %.2e +- %.2e mm / nm" % (SDx, eSDx))
+
+        popt, pcov = curve_fit(lin, self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6, yc_SD)
+        perr = np.diag(pcov)
+        SDy = popt[0]
+        eSDy = perr[0]
+        print("measured SD in NF in y direction: %.2e +- %.2e mm / nm" % (SDy, eSDy))
+
+    def measure_sd_in_ff(self):
+        """
+        measure spatial dispersion in the far field
+        """
+        # lists to store center coordinates
+        xc_SD = []
+        yc_SD = []
+
+        X, Y = np.meshgrid(self.x, self.y)
+
+        # supergaussian fit to near field amplitude to extract center coordinates
+        # only inside the spectral intensity FWHM
+        for i in range(self.spectFWHMIdx[1] - self.spectFWHMIdx[0]):
+            popt, pcov = curve_fit(
+                gauss2D,
+                (X, Y),
+                (np.abs(self.Ew[:, :, self.spectFWHMIdx[0] + i]) ** 2).ravel(),
+                p0=(1, self.xc, self.yc, self.waist),
+            )
+            xc_SD.append(popt[1])
+            yc_SD.append(popt[2])
+
+        # linear fit to central x coordinate
+        popt, pcov = curve_fit(lin, self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6, xc_SD)
+        perr = np.diag(pcov)
+        SDx = popt[0]
+        eSDx = perr[0]
+        print("measured SD in FF in x direction:  %.2e +- %.2e mm / nm" % (SDx, eSDx))
+
+        popt, pcov = curve_fit(lin, self.lamb[self.spectFWHMIdx[0] : self.spectFWHMIdx[1]] * 10**6, yc_SD)
+        perr = np.diag(pcov)
+        SDy = popt[0]
+        eSDy = perr[0]
+        print("measured SD in FF in y direction:  %.2e +- %.2e mm / nm" % (SDy, eSDy))
 
     def propagate(self, z):
         """
