@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/identifier/identifier.hpp"
+#include "pmacc/particles/IdProvider.hpp"
 #include "pmacc/types.hpp"
 
 #include <string>
@@ -33,7 +34,8 @@
  * @param name name of identifier
  *
  * The created identifier has the following options:
- *      getValue()        - return the user defined value
+ *      getValue()        - return the user defined value of value_identifier
+ *      getValue(worker,IdGenerator) - return the user defined value of value_identifier_func
  *      getName()         - return the name of the identifier
  *      ::type            - get type of the value
  *
@@ -47,20 +49,19 @@
  * @{
  */
 
-/** @param ... must be a device function/lambda
- *
- * @attention: getValue() is only callable from a pure device function e.g.
+/** @param ... must be a device function/lambda with arguments worker and  IdGenerator
  *
  * @code{.cpp}
- * [] ALPAKA_FN_ACC() { return IdProvider<simDim>::getNewId();}
+ * [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen) { return idGen.fetchInc(worker) };
  * @endcode
  */
 #define value_identifier_func(in_type, name, ...)                                                                     \
     identifier(                                                                                                       \
-        name, using type = in_type; DINLINE static type getValue()                                                    \
+        name, using type = in_type; template<typename T_Worker>                                                       \
+        DINLINE static type getValue(T_Worker const& worker, IdGenerator& idGen)                                      \
         {                                                                                                             \
             auto const func = __VA_ARGS__;                                                                            \
-            return func();                                                                                            \
+            return func(worker, idGen);                                                                               \
         } static std::string getName() { return std::string(#name); })
 
 /** getValue() is defined constexpr
@@ -73,5 +74,7 @@
  */
 #define value_identifier(in_type, name, ...)                                                                          \
     identifier(                                                                                                       \
-        name, using type = in_type; HDINLINE static constexpr type getValue()                                         \
+        name, using type = in_type; template<typename T_Worker> HDINLINE static constexpr type getValue(              \
+            [[maybe_unused]] T_Worker const& acc,                                                                     \
+            [[maybe_unused]] IdGenerator& idGen) { return __VA_ARGS__; } HDINLINE static constexpr type getValue()    \
         { return __VA_ARGS__; } static std::string getName() { return std::string(#name); })

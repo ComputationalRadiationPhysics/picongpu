@@ -57,7 +57,10 @@ namespace picongpu
     alias(position);
 
     //! unique identifier for a particle
-    value_identifier_func(uint64_t, particleId, [] ALPAKA_FN_ACC() { return IdProvider<simDim>::getNewId(); });
+    value_identifier_func(
+        uint64_t,
+        particleId,
+        [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen) { return idGen.fetchInc(worker); });
 
     //! specialization for the relative in-cell position
     value_identifier(floatD_X, position_pic, floatD_X::create(0.));
