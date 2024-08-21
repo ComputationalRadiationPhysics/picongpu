@@ -11,11 +11,11 @@ If you are new to python, get your hands on the tutorials of the following impor
 - https://docs.python.org/3/tutorial/index.html
 
 An easy way to get a Python environment for analysis of PIConGPU data up and running is to download and install
-Miniconda 
+Micromamba
 
-https://docs.conda.io/en/latest/miniconda.html
+https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
 
-and set up a conda environment with the help of this conda environment file
+and set up a Micromamba environment with the help of this Micromamba environment file
 
 https://gist.github.com/steindev/d19263d41b0964bcecdfb1f47e18a86e
 

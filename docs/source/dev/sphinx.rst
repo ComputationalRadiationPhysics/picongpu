@@ -32,7 +32,7 @@ The following requirements need to be installed (once) to build our documentatio
     cd docs/
 
     # doxygen is not shipped via pip, install it externally,
-    # from the homepage, your package manager, conda, etc.
+    # from the homepage, your package manager, Micromamba, etc.
     # example:
     sudo apt-get install doxygen
 
@@ -40,19 +40,19 @@ The following requirements need to be installed (once) to build our documentatio
     pip install -r requirements.txt # --user
 
 In order to not break any of your existing Python configurations, you can also create a new environment that you only use for building the documentation.
-Since it is possible to install doxygen with conda, the following demonstrates this.
+Since it is possible to install doxygen with Micromamba, the following demonstrates this.
 
 .. code-block:: bash
 
     cd docs/
 
-    # create a bare conda environment containing just all the requirements
+    # create a bare Micromamba environment containing just all the requirements
     # for building the picongpu documentation
     # note: also installs doxygen inside this environment
-    conda env create --file picongpu-docs-env.yml
+    micromamba env create --file picongpu-docs-env.yml
 
     # start up the environment as suggested during its creation e.g.
-    conda activate picongpu-docs-env
+    micromamba activate picongpu-docs-env
     # or
     source activate picongpu-docs-env
 
