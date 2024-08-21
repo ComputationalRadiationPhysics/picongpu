@@ -3,14 +3,6 @@
 Misc
 ----
 
-starter.param
-^^^^^^^^^^^^^
-
-.. doxygenfile:: starter.param
-   :project: PIConGPU
-   :path: include/picongpu/param/starter.param
-   :no-link:
-
 random.param
 ^^^^^^^^^^^^
 
