@@ -123,8 +123,9 @@ namespace pmacc
             using Functor = Interface<T_Functor, T_numFunctorArguments, void>;
 
             template<typename DeferFunctor = Functor>
-            HINLINE Filtered(uint32_t const currentStep) : Filter(currentStep)
-                                                         , Functor(currentStep)
+            HINLINE Filtered(uint32_t const currentStep, IdGenerator idGen)
+                : Filter(currentStep, idGen)
+                , Functor(currentStep, idGen)
             {
             }
 
