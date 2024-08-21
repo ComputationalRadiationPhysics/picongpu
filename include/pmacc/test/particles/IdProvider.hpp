@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Alexander Grund
+/* Copyright 2016-2024 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -40,13 +40,14 @@ namespace pmacc
     {
         namespace particles
         {
-            template<uint32_t T_numIdsPerBlock, typename T_IdProvider>
+            template<uint32_t T_numIdsPerBlock>
             struct GenerateIds
             {
-                template<class T_Box, typename T_Worker>
+                template<class T_Box, typename T_IdGenerator, typename T_Worker>
                 HDINLINE void operator()(
                     const T_Worker& worker,
                     T_Box outputbox,
+                    T_IdGenerator idGenerator,
                     uint32_t numThreads,
                     uint32_t numIdsPerThread) const
                 {
@@ -62,7 +63,7 @@ namespace pmacc
                             {
                                 for(uint32_t i = 0u; i < numIdsPerThread; i++)
                                 {
-                                    uint32_t x = T_IdProvider::getNewId();
+                                    uint32_t x = idGenerator.fetchInc(worker);
                                     outputbox(i * numThreads + localId) = x;
                                 }
                             }
@@ -113,31 +114,36 @@ namespace pmacc
                     constexpr uint32_t numIdsPerThread = 2;
                     constexpr uint32_t numIds = numThreads * numIdsPerThread;
 
-                    using IdProvider = IdProvider<T_dim>;
-                    IdProvider::init();
+                    uint64_t maxRanks = Environment<T_dim>::get().GridController().getGpuNodes().productOfComponents();
+                    uint64_t rank = Environment<T_dim>::get().GridController().getScalarPosition();
+                    auto idProvider = IdProvider("id provider", rank, maxRanks);
+
                     // Check initial state
-                    typename IdProvider::State state = IdProvider::getState();
+                    auto state = idProvider.getState();
                     REQUIRE(state.startId == state.nextId);
                     REQUIRE(state.maxNumProc == 1u);
-                    REQUIRE(!IdProvider::isOverflown());
+                    REQUIRE(!idProvider.isOverflown());
                     std::set<uint64_t> ids;
-                    REQUIRE(IdProvider::getNewIdHost() == state.nextId);
+                    REQUIRE(idProvider.getNewIdHost() == state.nextId);
                     // Generate some IDs using the function
                     for(int i = 0; i < numIds; i++)
                     {
-                        const uint64_t newId = IdProvider::getNewIdHost();
+                        const uint64_t newId = idProvider.getNewIdHost();
                         REQUIRE(checkDuplicate(ids, newId, false));
                         ids.insert(newId);
                     }
                     // Reset the state
-                    IdProvider::setState(state);
-                    REQUIRE(IdProvider::getNewIdHost() == state.nextId);
+                    idProvider.setState(state);
+                    REQUIRE(idProvider.getNewIdHost() == state.nextId);
                     // Generate the same IDs on the device
                     HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
 
-                    PMACC_LOCKSTEP_KERNEL(GenerateIds<numIdsPerBlock, IdProvider>{})
-                        .template config<numIdsPerBlock>(
-                            numBlocks)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
+                    PMACC_LOCKSTEP_KERNEL(GenerateIds<numIdsPerBlock>{})
+                        .template config<numIdsPerBlock>(numBlocks)(
+                            idBuf.getDeviceBuffer().getDataBox(),
+                            idProvider.getDeviceGenerator(),
+                            numThreads,
+                            numIdsPerThread);
                     idBuf.deviceToHost();
                     REQUIRE(numIds == ids.size());
                     auto hostBox = idBuf.getHostBuffer().getDataBox();

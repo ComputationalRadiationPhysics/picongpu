@@ -71,7 +71,6 @@
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
-#include <pmacc/particles/IdProvider.hpp>
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
@@ -436,7 +435,6 @@ namespace picongpu
                 freeGpuMem = freeDeviceMemory();
                 log<picLog::MEMORY>("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
             }
-            IdProvider<simDim>::init();
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             /* add CUDA streams to the QueueController for concurrent execution */
