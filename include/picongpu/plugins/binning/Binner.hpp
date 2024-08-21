@@ -294,7 +294,7 @@ namespace picongpu
              * leaving particles, use notify starting from 1 if you use time averaging, otherwise you have an extra
              * accumulate count at 0, when notify is called but onParticleLeave isnt.
              */
-            void onParticleLeave(const std::string& speciesName, int32_t direction) override
+            void onParticleLeave(const std::string& speciesName, int32_t const direction) override
             {
                 if(binningData.notifyPeriod.empty())
                     return;
@@ -305,7 +305,7 @@ namespace picongpu
                         [&](auto const&... tupleArgs)
                         {
                             (misc::ExecuteIf{}(
-                                 std::bind(BinLeavingParticles<decltype(tupleArgs)>{}, direction),
+                                 std::bind(BinLeavingParticles<decltype(tupleArgs)>{}, this, direction),
                                  misc::SpeciesNameIsEqual<decltype(tupleArgs)>{},
                                  speciesName),
                              ...);
@@ -474,23 +474,24 @@ namespace picongpu
                 using Species = pmacc::particles::meta::
                     FindByNameOrType_t<VectorAllSpecies, T_Species, pmacc::errorHandlerPolicies::ReturnType<void>>;
 
-                auto operator()(int32_t direction) const -> void
+                template<typename T_BinData>
+                auto operator()(Binner<T_BinData>* binner, int32_t direction) const -> void
                 {
                     if constexpr(!std::is_same_v<void, Species>)
                     {
                         auto& dc = Environment<>::get().DataConnector();
                         auto particles = dc.get<Species>(Species::FrameType::getName());
                         auto particlesBox = particles->getDeviceParticlesBox();
-                        auto binningBox = histBuffer->getDeviceBuffer().getDataBox();
+                        auto binningBox = binner->histBuffer->getDeviceBuffer().getDataBox();
 
                         auto mapperFactory = particles::boundary::getMapperFactory(*particles, direction);
-                        auto const mapper = mapperFactory(*cellDescription);
+                        auto const mapper = mapperFactory(*(binner->cellDescription));
 
                         auto const globalOffset = Environment<simDim>::get().SubGrid().getGlobalDomain().offset;
                         auto const localOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset;
 
                         auto const axisKernels
-                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
+                            = tupleMap(binner->binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
 
                         pmacc::DataSpace<simDim> beginExternalCellsTotal, endExternalCellsTotal;
                         particles::boundary::getExternalCellsTotal(
@@ -512,8 +513,8 @@ namespace picongpu
                                 localOffset,
                                 globalOffset,
                                 axisKernels,
-                                binningData.depositionData.functor,
-                                binningData.axisExtentsND,
+                                binner->binningData.depositionData.functor,
+                                binner->binningData.axisExtentsND,
                                 Environment<>::get().SimulationDescription().getCurrentStep(),
                                 beginExternalCellsLocal,
                                 endExternalCellsLocal,

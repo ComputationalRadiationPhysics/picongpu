@@ -32,13 +32,17 @@ namespace picongpu
 {
     namespace plugins::binning
     {
-        /** @brief Bin particles in enabled region */
+        /** @brief Bin particles in enabled region
+         *
+         * All regions must be represented by a unique bit
+         */
         enum ParticleRegion : uint32_t
         {
-            /** Bounded - Particles inside the simulation volume */
-            Bounded = 1 << 0, // 01 in binary, corresponds to the first bit
-            /** Leaving - Particles that have left the simulation volume in this timestep */
-            Leaving = 1 << 1 // 10 in binary, corresponds to the second bit
+            /** Bounded - Particles inside the global simulation volume, 01 in binary, corresponds to the first bit */
+            Bounded = 1 << 0,
+            /** Leaving - Particles that have left the global simulation volume in this timestep, 10 in binary,
+             * corresponds to the second bit */
+            Leaving = 1 << 1
         };
 
         template<typename T_AxisTuple, typename T_SpeciesTuple, typename T_DepositionData>

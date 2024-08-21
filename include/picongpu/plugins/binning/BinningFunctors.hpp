@@ -195,7 +195,11 @@ namespace picongpu
                 auto const superCellCellOffsetNoGuard
                     = (superCellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
 
-                auto const domainInfo = DomainInfo{currentStep, globalOffset, localOffset, superCellIdx};
+                auto const domainInfo = DomainInfo{
+                    currentStep,
+                    globalOffset,
+                    localOffset,
+                    superCellIdx - mapper.getGuardingSuperCells()};
                 auto const functorParticle = FunctorParticle{};
 
                 auto forEachParticle
