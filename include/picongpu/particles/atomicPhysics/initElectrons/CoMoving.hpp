@@ -29,10 +29,15 @@ namespace picongpu::particles::atomicPhysics::initElectrons
 {
     struct CoMoving
     {
-        template<typename T_IonParticle, typename T_ElectronParticle>
-        HDINLINE static void initElectron(T_IonParticle& ion, T_ElectronParticle& electron)
+        template<typename T_Worker, typename T_IonParticle, typename T_ElectronParticle>
+        HDINLINE static void initElectron(
+            T_Worker const& worker,
+            // cannot be const even though we do not write to the ion
+            T_IonParticle& ion,
+            T_ElectronParticle& electron,
+            IdGenerator& idGen)
         {
-            CloneAdditionalAttributes::init<T_IonParticle, T_ElectronParticle>(ion, electron);
+            CloneAdditionalAttributes::init(worker, ion, electron, idGen);
 
             float_X const massElectronPerMassIon
                 = picongpu::traits::frame::getMass<typename T_ElectronParticle::FrameType>()

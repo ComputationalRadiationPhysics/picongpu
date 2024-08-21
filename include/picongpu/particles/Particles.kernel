@@ -83,6 +83,7 @@ namespace picongpu
             T_SrcParBox srcBox,
             T_ManipulateFunctor manipulateFunctor,
             T_SrcFilterFunctor srcFilterFunctor,
+            IdGenerator idGen,
             T_Mapping const mapper) const
         {
             using namespace pmacc::particles::operations;
@@ -132,7 +133,7 @@ namespace picongpu
 
                         if(accSrcFilter(worker, parSrc))
                         {
-                            assign(parDest, deselect<particleId>(parSrc));
+                            parDest.copyAndInit(worker, idGen, deselect<particleId>(parSrc));
 
                             accManipulator(worker, parDest, parSrc);
                         }

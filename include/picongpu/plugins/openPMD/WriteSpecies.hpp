@@ -344,8 +344,12 @@ namespace picongpu
                 ::openPMD::Iteration iteration = series.writeIterations()[currentStep];
                 const std::string basename = series.particlesPath() + speciesGroup;
 
+                auto idProvider = dc.get<IdProvider>("globalId");
+
                 // enforce that the filter interface is fulfilled
-                particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter{currentStep};
+                particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter(
+                    currentStep,
+                    idProvider->getDeviceGenerator());
                 using usedFilters = pmacc::mp_list<typename GetPositionFilter<simDim>::type>;
                 using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
                 MyParticleFilter filter;

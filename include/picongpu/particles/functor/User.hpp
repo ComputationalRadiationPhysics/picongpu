@@ -49,7 +49,7 @@ namespace picongpu
                 template<typename DeferFunctor = Functor>
                 HINLINE User(
                     uint32_t currentStep,
-                    IdGenerator&,
+                    IdGenerator,
                     std::enable_if_t<
                         !std::is_default_constructible_v<
                             DeferFunctor> && std::is_constructible_v<DeferFunctor, uint32_t>>* = 0)

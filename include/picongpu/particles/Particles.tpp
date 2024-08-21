@@ -391,6 +391,9 @@ namespace picongpu
         DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain().offset;
         totalGpuCellOffset.y() += numSlides * localCells.y();
 
+        DataConnector& dc = Environment<>::get().DataConnector();
+        auto idProvider = dc.get<IdProvider>("globalId");
+
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
         PMACC_LOCKSTEP_KERNEL(KernelFillGridWithParticles<Particles>{})
             .config(mapper.getGridDim(), SuperCellSize{})(
@@ -398,6 +401,7 @@ namespace picongpu
                 positionFunctor,
                 totalGpuCellOffset,
                 this->particlesBuffer->getDeviceParticleBox(),
+                idProvider->getDeviceGenerator(),
                 mapper);
 
         this->fillAllGaps();
@@ -419,12 +423,15 @@ namespace picongpu
 
         auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
+        DataConnector& dc = Environment<>::get().DataConnector();
+        auto idProvider = dc.get<IdProvider>("globalId");
         PMACC_LOCKSTEP_KERNEL(KernelDeriveParticles{})
             .config(mapper.getGridDim(), *this)(
                 this->getDeviceParticlesBox(),
                 src.getDeviceParticlesBox(),
                 manipulatorFunctor,
                 srcFilterFunctor,
+                idProvider->getDeviceGenerator(),
                 mapper);
         this->fillAllGaps();
     }

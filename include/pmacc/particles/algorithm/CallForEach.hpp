@@ -62,8 +62,9 @@ namespace pmacc
                     using UnaryFunctor = pmacc::functor::Interface<typename T_FunctorOperator::type, 1u, void>;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
+                    auto idProvider = dc.get<IdProvider>("globalId");
                     auto species = dc.get<Species>(FrameType::getName());
-                    forEach<T_area>(*species, UnaryFunctor(currentStep));
+                    forEach<T_area>(*species, UnaryFunctor(currentStep, idProvider->getDeviceGenerator()));
                 }
 
                 /** Operate on the area defined by mapper
@@ -84,8 +85,9 @@ namespace pmacc
                     using UnaryFunctor = pmacc::functor::Interface<typename T_FunctorOperator::type, 1u, void>;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
+                    auto idProvider = dc.get<IdProvider>("globalId");
                     auto species = dc.get<Species>(FrameType::getName());
-                    forEach(*species, UnaryFunctor(currentStep), areaMapperFactory);
+                    forEach(*species, UnaryFunctor(currentStep, idProvider->getDeviceGenerator()), areaMapperFactory);
                 }
             };
 

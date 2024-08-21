@@ -74,7 +74,6 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
             // ipd input fields
-            //{
             auto& localDebyeLengthField
                 = *dc.get<s_IPD::localHelperFields::LocalDebyeLengthField<picongpu::MappingDesc>>(
                     "LocalDebyeLengthField");
@@ -83,12 +82,13 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
                     "LocalTemperatureEnergyField");
             auto& localZStarField
                 = *dc.get<s_IPD::localHelperFields::LocalZStarField<picongpu::MappingDesc>>("LocalZStarField");
-            //}
+            auto idProvider = dc.get<IdProvider>("globalId");
 
             // macro for call of kernel on every superCell, see pull request #4321
             PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::ApplyPressureIonizationKernel<T_IPDModel>())
                 .config(mapper.getGridDim(), ions)(
                     mapper,
+                    idProvider->getDeviceGenerator(),
                     ions.getDeviceParticlesBox(),
                     electrons.getDeviceParticlesBox(),
                     localTimeRemainingField.getDeviceDataBox(),

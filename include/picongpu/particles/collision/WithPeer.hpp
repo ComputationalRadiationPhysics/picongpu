@@ -50,13 +50,16 @@ namespace picongpu
                 {
                     void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep)
                     {
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto idProvider = dc.get<IdProvider>("globalId");
+
                         DoInterCollision<
                             T_CollisionFunctor,
                             T_FilterPair,
                             T_BaseSpecies,
                             T_PeerSpecies,
                             colliderId,
-                            pairId>{}(deviceHeap, currentStep);
+                            pairId>{}(deviceHeap, currentStep, idProvider->getDeviceGenerator());
                     }
                 };
 
@@ -70,9 +73,13 @@ namespace picongpu
                 {
                     void operator()(const std::shared_ptr<DeviceHeap>& deviceHeap, uint32_t currentStep)
                     {
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto idProvider = dc.get<IdProvider>("globalId");
+
                         DoIntraCollision<T_CollisionFunctor, T_FilterPair, T_Species, colliderId, pairId>{}(
                             deviceHeap,
-                            currentStep);
+                            currentStep,
+                            idProvider->getDeviceGenerator());
                     }
                 };
             } // namespace detail

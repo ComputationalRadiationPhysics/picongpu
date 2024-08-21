@@ -49,10 +49,12 @@ namespace picongpu::particles::atomicPhysics::initElectrons
          *  created by one process
          * @param DataBox deviceDataBox giving access to global data for the initialization
          */
-        template<typename T_IonParticle, typename T_ElectronParticle, typename... T_DataBox>
+        template<typename T_Worker, typename T_IonParticle, typename T_ElectronParticle, typename... T_DataBox>
         HDINLINE void operator()(
+            T_Worker const& worker,
             T_IonParticle& ion,
             T_ElectronParticle& electron,
+            IdGenerator& idGen,
             uint8_t const cascadeIndex,
             T_DataBox const... dataBoxes) const;
     };
@@ -69,11 +71,15 @@ namespace picongpu::particles::atomicPhysics::initElectrons
     struct InitIonizationElectron<s_enums::ProcessClass::electronicIonization>
     {
         //! call operator
-        template<typename T_IonParticle, typename T_ElectronParticle>
-        HDINLINE void operator()(T_IonParticle& ion, T_ElectronParticle& electron) const
+        template<typename T_Worker, typename T_IonParticle, typename T_ElectronParticle>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_IonParticle& ion,
+            T_ElectronParticle& electron,
+            IdGenerator& idGen) const
         {
             /// @todo sample three body inelastic collision for ionization, Brian Marre, 2023
-            CoMoving::initElectron<T_IonParticle, T_ElectronParticle>(ion, electron);
+            CoMoving::initElectron(worker, ion, electron, idGen);
         }
     };
 
@@ -96,6 +102,7 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             float_X const ionizationPotentialDepression,
             T_IonParticle& ion,
             T_ElectronParticle& electron,
+            IdGenerator& idGen,
             T_AtomicStateDataBox const atomicStateDataBox,
             T_AutonomousTransitionDataBox const autonomousTransitionDataBox,
             T_SuperCellLocalOffset const superCellLocalOffset,
@@ -117,11 +124,7 @@ namespace picongpu::particles::atomicPhysics::initElectrons
                 ionizationPotentialDepression,
                 chargeStateDataBox);
 
-            Inelastic2BodyCollisionFromCoMoving::initElectron<T_IonParticle, T_ElectronParticle>(
-                ion,
-                electron,
-                deltaEnergy,
-                rngGenerator);
+            Inelastic2BodyCollisionFromCoMoving::initElectron(worker, ion, electron, idGen, deltaEnergy, rngGenerator);
         }
     };
 } // namespace picongpu::particles::atomicPhysics::initElectrons

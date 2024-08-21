@@ -71,6 +71,7 @@ namespace picongpu
                     T_ParticleCreator particleCreator,
                     T_ParBoxSource sourceBox,
                     T_ParBoxTarget targetBox,
+                    IdGenerator idGen,
                     T_Mapping const& mapper) const
                 {
                     const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
@@ -265,7 +266,7 @@ namespace picongpu
                                         auto targetParticle = targetFrames[targetFrameIdx][targetParId];
 
                                         // create a target particle in the new target particle frame:
-                                        particleCreator(worker, sourceParticle, targetParticle);
+                                        particleCreator(worker, idGen, sourceParticle, targetParticle);
 
                                         numNewParticles -= 1;
                                     }

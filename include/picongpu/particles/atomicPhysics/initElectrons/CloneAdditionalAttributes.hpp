@@ -35,18 +35,20 @@ namespace picongpu::particles::atomicPhysics::initElectrons
          *  - multiMask, faster to set hard than copy, set in Kernel directly
          *  - momentum, is mass dependent and therefore always changes
          */
-        template<typename T_IonParticle, typename T_ElectronParticle>
+        template<typename T_Worker, typename T_IonParticle, typename T_ElectronParticle>
         HDINLINE static void init(
+            T_Worker const& worker,
             // cannot be const even though we do not write to the ion
             T_IonParticle& ion,
-            T_ElectronParticle& electron)
+            T_ElectronParticle& electron,
+            IdGenerator& idGen)
         {
             namespace partOp = pmacc::particles::operations;
 
             auto targetElectronClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(electron);
 
             // otherwise this deselect will create incomplete type compile error
-            partOp::assign(targetElectronClone, partOp::deselect<particleId>(ion));
+            targetElectronClone.copyAndInit(worker, idGen, partOp::deselect<particleId>(ion));
         }
     };
 } // namespace picongpu::particles::atomicPhysics::initElectrons

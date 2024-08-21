@@ -49,6 +49,7 @@ namespace picongpu::particles::creation::moduleInterfaces
             T_Worker const& worker,
             T_SourceParticle& sourceParticle,
             T_ProductParticle& productParticle,
+            IdGenerator& idGen,
             T_Number const cascadeIndex,
             T_KernelStateType& kernelState,
             T_Index const additionalDataIndex,

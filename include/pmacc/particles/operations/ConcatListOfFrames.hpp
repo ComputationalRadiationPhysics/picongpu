@@ -144,7 +144,7 @@ namespace pmacc
                                     auto parSrc = (srcFramePtr[particleIdx]);
                                     auto parDest = destFrame[globalOffset + localIdxs[particleIdx]];
                                     auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
-                                    assign(parDestNoDomainIdx, parSrc);
+                                    parDestNoDomainIdx = parSrc;
                                     /* calculate cell index for user-defined domain */
                                     DataSpace<Mapping::Dim> localCellIdx = pmacc::math::mapToND(
                                         SuperCellSize::toRT(),

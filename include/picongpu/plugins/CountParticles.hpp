@@ -161,8 +161,9 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
             auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
+            auto idProvider = dc.get<IdProvider>("globalId");
             // enforce that the filter interface is fulfilled
-            particles::filter::IUnary<particles::filter::All> parFilter{currentStep};
+            particles::filter::IUnary<particles::filter::All> parFilter{currentStep, idProvider->getDeviceGenerator()};
 
             /*count local particles*/
             size = pmacc::CountParticles::countOnDevice<AREA>(

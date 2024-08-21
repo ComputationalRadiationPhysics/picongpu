@@ -93,7 +93,9 @@ namespace picongpu
                      *
                      * @param currentStep current simulation time step
                      */
-                    HINLINE FreeRng(uint32_t currentStep) : Functor(currentStep), RngGenerator(currentStep)
+                    HINLINE FreeRng(uint32_t currentStep, IdGenerator idGen)
+                        : Functor(currentStep, idGen)
+                        , RngGenerator(currentStep)
                     {
                     }
 

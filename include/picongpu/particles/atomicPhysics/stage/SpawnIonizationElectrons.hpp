@@ -71,6 +71,7 @@ namespace picongpu::particles::atomicPhysics::stage
 
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
             auto& electrons = *dc.get<IonizationElectronSpecies>(IonizationElectronSpecies::FrameType::getName());
+            auto idProvider = dc.get<IdProvider>("globalId");
 
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
@@ -85,6 +86,7 @@ namespace picongpu::particles::atomicPhysics::stage
                 PMACC_LOCKSTEP_KERNEL(SpawnElectrons_BoundFree())
                     .config(mapper.getGridDim(), ions)(
                         mapper,
+                        idProvider->getDeviceGenerator(),
                         localTimeRemainingField.getDeviceDataBox(),
                         ions.getDeviceParticlesBox(),
                         electrons.getDeviceParticlesBox(),
@@ -105,6 +107,7 @@ namespace picongpu::particles::atomicPhysics::stage
                 IPDModel::template callKernelWithIPDInput<SpawnElectrons_Autonomous, IonSpecies::FrameType::frameSize>(
                     dc,
                     mapper,
+                    idProvider->getDeviceGenerator(),
                     localTimeRemainingField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox(),
                     electrons.getDeviceParticlesBox(),
