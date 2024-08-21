@@ -29,6 +29,7 @@
 #include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/particles/IdProvider.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
 #include "pmacc/pluginSystem/toSlice.hpp"
@@ -196,6 +197,13 @@ namespace pmacc
                         signal::detail::setCreateCheckpoint(1);
                     }
                 });
+
+        uint64_t maxRanks = Environment<DIM>::get().GridController().getGpuNodes().productOfComponents();
+        uint64_t rank = Environment<DIM>::get().GridController().getScalarPosition();
+
+        DataConnector& dc = Environment<>::get().DataConnector();
+        auto idProvider = std::make_shared<IdProvider>("globalId", rank, maxRanks);
+        dc.share(idProvider);
 
         init();
 
