@@ -49,10 +49,22 @@ namespace picongpu
                 template<typename DeferFunctor = Functor>
                 HINLINE User(
                     uint32_t currentStep,
+                    IdGenerator&,
                     std::enable_if_t<
                         !std::is_default_constructible_v<
                             DeferFunctor> && std::is_constructible_v<DeferFunctor, uint32_t>>* = 0)
                     : Functor(currentStep)
+                {
+                }
+
+                template<typename DeferFunctor = Functor>
+                HINLINE User(
+                    uint32_t currentStep,
+                    IdGenerator idGen,
+                    std::enable_if_t<
+                        !std::is_default_constructible_v<
+                            DeferFunctor> && std::is_constructible_v<DeferFunctor, uint32_t, IdGenerator>>* = 0)
+                    : Functor(currentStep, idGen)
                 {
                 }
 
@@ -66,7 +78,10 @@ namespace picongpu
                  * @param is used to enable/disable the constructor (do not pass any value to this parameter)
                  */
                 template<typename DeferFunctor = Functor>
-                HINLINE User(uint32_t, std::enable_if_t<std::is_default_constructible_v<DeferFunctor>>* = nullptr)
+                HINLINE User(
+                    uint32_t,
+                    IdGenerator,
+                    std::enable_if_t<std::is_default_constructible_v<DeferFunctor>>* = nullptr)
                     : Functor()
                 {
                 }

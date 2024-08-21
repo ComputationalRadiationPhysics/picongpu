@@ -25,6 +25,8 @@
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
+#include <pmacc/identifier/value_identifier.hpp>
+
 #include <boost/core/ignore_unused.hpp>
 
 #include <string>
@@ -123,10 +125,22 @@ namespace pmacc
             template<typename DeferFunctor = UserFunctor>
             HINLINE Interface(
                 uint32_t const currentStep,
+                [[maybe_unused]] IdGenerator idGen,
                 std::enable_if_t<
                     !std::is_default_constructible_v<
                         DeferFunctor> && std::is_constructible_v<DeferFunctor, uint32_t>>* = nullptr)
                 : UserFunctor(currentStep)
+            {
+            }
+
+            template<typename DeferFunctor = UserFunctor>
+            HINLINE Interface(
+                uint32_t const currentStep,
+                IdGenerator idGen,
+                std::enable_if_t<
+                    !std::is_default_constructible_v<
+                        DeferFunctor> && std::is_constructible_v<DeferFunctor, uint32_t, IdGenerator>>* = nullptr)
+                : UserFunctor(currentStep, idGen)
             {
             }
 
@@ -141,11 +155,11 @@ namespace pmacc
              */
             template<typename DeferFunctor = UserFunctor>
             HINLINE Interface(
-                uint32_t const currentStep,
+                [[maybe_unused]] uint32_t const currentStep,
+                [[maybe_unused]] IdGenerator idGen,
                 std::enable_if_t<std::is_default_constructible_v<DeferFunctor>>* = nullptr)
                 : UserFunctor()
             {
-                boost::ignore_unused(currentStep);
             }
 
             /** create a functor which can be used on the accelerator
