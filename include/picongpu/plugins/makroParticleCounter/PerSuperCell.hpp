@@ -19,26 +19,29 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#    include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/particles/algorithm/ForEach.hpp>
+#    include "picongpu/plugins/ILightweightPlugin.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDAttributes.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <memory>
-#include <string>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/mappings/kernel/AreaMapping.hpp>
+#    include <pmacc/memory/buffers/GridBuffer.hpp>
+#    include <pmacc/memory/shared/Allocate.hpp>
+#    include <pmacc/particles/algorithm/ForEach.hpp>
 
-#include <openPMD/openPMD.hpp>
+#    include <fstream>
+#    include <iomanip>
+#    include <iostream>
+#    include <memory>
+#    include <string>
+
+#    include <openPMD/openPMD.hpp>
 
 
 namespace picongpu
@@ -297,3 +300,7 @@ namespace picongpu
     };
 
 } // namespace picongpu
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::PerSuperCell<boost::mpl::_1>);
+
+#endif

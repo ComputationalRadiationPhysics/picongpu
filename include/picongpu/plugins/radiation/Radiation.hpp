@@ -20,39 +20,37 @@
 
 #pragma once
 
-#if !ENABLE_OPENPMD
-#    error The activated radiation plugin (radiation.param) requires openPMD-api.
-#endif
+#if(ENABLE_OPENPMD == 1)
 
-#include "picongpu/simulation_defines.hpp"
+#    include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/radiation/Radiation.kernel"
-#include "picongpu/plugins/radiation/executeParticleFilter.hpp"
+#    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/stringHelpers.hpp"
+#    include "picongpu/plugins/radiation/Radiation.kernel"
+#    include "picongpu/plugins/radiation/executeParticleFilter.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/filesystem.hpp>
-#include <pmacc/lockstep/lockstep.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/filesystem.hpp>
+#    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/math/operation.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#    include <pmacc/traits/HasIdentifier.hpp>
 
-#include <algorithm> // std::any
-#include <complex>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
+#    include <algorithm> // std::any
+#    include <complex>
+#    include <cstdlib>
+#    include <fstream>
+#    include <iostream>
+#    include <memory>
+#    include <optional>
+#    include <string>
+#    include <vector>
 
-#include <openPMD/openPMD.hpp>
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -1264,3 +1262,7 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::radiation::Radiation<boost::mpl::_1>);
+
+#endif

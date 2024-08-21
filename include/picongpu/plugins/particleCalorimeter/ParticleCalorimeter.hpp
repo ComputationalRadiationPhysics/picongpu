@@ -20,37 +20,40 @@
 
 #pragma once
 
-#include "ParticleCalorimeter.kernel"
-#include "ParticleCalorimeterFunctors.hpp"
-#include "picongpu/particles/boundary/Utility.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
-#include "picongpu/plugins/misc/misc.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/algorithms/math.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/lockstep/lockstep.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/particles/policies/ExchangeParticles.hpp>
-#include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
+#    include "ParticleCalorimeter.kernel"
+#    include "ParticleCalorimeterFunctors.hpp"
+#    include "picongpu/particles/boundary/Utility.hpp"
+#    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDAttributes.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#    include "picongpu/plugins/misc/misc.hpp"
+#    include "picongpu/plugins/multi/multi.hpp"
 
-#include <boost/filesystem.hpp>
+#    include <pmacc/algorithms/math.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/mappings/kernel/AreaMapping.hpp>
+#    include <pmacc/math/Vector.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#    include <pmacc/particles/policies/ExchangeParticles.hpp>
+#    include <pmacc/traits/HasFlag.hpp>
+#    include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
+#    include <boost/filesystem.hpp>
 
-#include <openPMD/openPMD.hpp>
+#    include <cstdlib>
+#    include <fstream>
+#    include <iostream>
+#    include <memory>
+#    include <string>
+#    include <vector>
+
+#    include <openPMD/openPMD.hpp>
 
 
 namespace picongpu
@@ -711,3 +714,6 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
+
+PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::multi::Master<picongpu::ParticleCalorimeter<boost::mpl::_1>>);
+#endif

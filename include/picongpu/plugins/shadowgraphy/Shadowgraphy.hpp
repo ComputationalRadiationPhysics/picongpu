@@ -19,28 +19,31 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 
-#include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/FieldE.hpp"
-#include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
-#include "picongpu/plugins/shadowgraphy/ShadowgraphyHelper.hpp"
+#    include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/mpi/GatherSlice.hpp>
+#    include "picongpu/fields/FieldB.hpp"
+#    include "picongpu/fields/FieldE.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDAttributes.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#    include "picongpu/plugins/multi/multi.hpp"
+#    include "picongpu/plugins/shadowgraphy/ShadowgraphyHelper.hpp"
 
-#include <iostream>
-#include <sstream>
-#include <string>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/math/Vector.hpp>
+#    include <pmacc/mpi/GatherSlice.hpp>
 
-#include <mpi.h>
-#include <openPMD/openPMD.hpp>
-#include <stdio.h>
+#    include <iostream>
+#    include <sstream>
+#    include <string>
+
+#    include <mpi.h>
+#    include <openPMD/openPMD.hpp>
+#    include <stdio.h>
 
 
 namespace picongpu
@@ -631,3 +634,7 @@ namespace picongpu
         } // namespace shadowgraphy
     } // namespace plugins
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::plugins::multi::Master<picongpu::plugins::shadowgraphy::Shadowgraphy>);
+
+#endif

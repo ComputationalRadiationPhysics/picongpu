@@ -23,6 +23,7 @@
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/PluginRegistry.hpp"
 
 #include <pmacc/algorithms/GlobalReduce.hpp>
 #include <pmacc/traits/HasFlag.hpp>
@@ -97,5 +98,7 @@ namespace picongpu
         } // namespace traits
     } // namespace particles
 } // namespace picongpu
+
+PIC_REGISTER_PLUGIN(picongpu::ChargeConservation);
 
 #include "ChargeConservation.tpp"
