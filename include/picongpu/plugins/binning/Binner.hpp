@@ -475,7 +475,8 @@ namespace picongpu
                     FindByNameOrType_t<VectorAllSpecies, T_Species, pmacc::errorHandlerPolicies::ReturnType<void>>;
 
                 template<typename T_BinData>
-                auto operator()(Binner<T_BinData>* binner, int32_t direction) const -> void
+                auto operator()([[maybe_unused]] Binner<T_BinData>* binner, [[maybe_unused]] int32_t direction) const
+                    -> void
                 {
                     if constexpr(!std::is_same_v<void, Species>)
                     {
