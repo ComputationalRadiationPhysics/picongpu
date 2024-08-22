@@ -25,7 +25,6 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/exec/KernelLauncher.hpp"
-#include "pmacc/exec/KernelMetaData.hpp"
 #include "pmacc/traits/GetNComponents.hpp"
 #include "pmacc/types.hpp"
 
@@ -52,8 +51,8 @@ namespace pmacc::exec::detail
     {
         //! kernel functor
         T_Kernel const m_kernel;
-        //! Debug meta data for the kernel functor.
-        KernelMetaData const m_metaData;
+        std::string const m_file;
+        size_t const m_line;
         //! grid extents for the kernel
         math::Vector<IdxType, T_dim> const m_gridExtent;
         //! block extents for the kernel
@@ -66,11 +65,13 @@ namespace pmacc::exec::detail
         template<typename T_VectorGrid, typename T_VectorBlock>
         HINLINE KernelLauncher(
             T_Kernel const& kernel,
-            detail::KernelMetaData const& kernelMetaData,
+            std::string const& file,
+            size_t const line,
             T_VectorGrid const& gridExtent,
             T_VectorBlock const& blockExtent)
             : m_kernel(kernel)
-            , m_metaData(kernelMetaData)
+            , m_file(file)
+            , m_line(line)
             , m_gridExtent(gridExtent)
             , m_blockExtent(blockExtent)
         {
@@ -87,8 +88,8 @@ namespace pmacc::exec::detail
         HINLINE void operator()(T_Args&&... args) const
         {
             std::string const kernelName = typeid(m_kernel).name();
-            std::string const kernelInfo = kernelName + std::string(" [") + m_metaData.getFile() + std::string(":")
-                + std::to_string(m_metaData.getLine()) + std::string(" ]");
+            std::string const kernelInfo = kernelName + std::string(" [") + m_file + std::string(":")
+                + std::to_string(m_line) + std::string(" ]");
 
             PMACC_CHECK_KERNEL_MSG(alpaka::wait(manager::Device<ComputeDevice>::get().current());
                                    , std::string("Crash before kernel call ") + kernelInfo);
