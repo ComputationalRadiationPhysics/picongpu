@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera
+/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,16 @@
 
 #pragma once
 
+#include <pmacc/dimensions/Definition.hpp>
+#include <pmacc/types.hpp>
 
-#include "picongpu/fields/FieldJ.tpp"
-#include "picongpu/fields/FieldTmp.tpp"
+namespace picongpu
+{
+    using namespace pmacc;
+}
+
+// clang-format off
+#include "picongpu/param/precision.param"
+#include "picongpu/param/dimension.param"
+#include "picongpu/param/memory.param"
+// clang-format on

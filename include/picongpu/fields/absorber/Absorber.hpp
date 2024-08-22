@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
 
@@ -123,13 +123,13 @@ namespace picongpu
                 static Absorber& get();
 
                 //! Absorber kind used in the simulation
-                inline Kind getKind() const;
+                Kind getKind() const;
 
                 /** Get absorber thickness in number of cells for the global domain
                  *
                  * This function takes into account which boundaries are periodic and absorbing.
                  */
-                inline Thickness getGlobalThickness() const;
+                Thickness getGlobalThickness() const;
 
                 /** Get absorber thickness in number of cells for the current local domain
                  *
@@ -141,10 +141,10 @@ namespace picongpu
                  * Thus, the result of this function should not be reused on another time step,
                  * but rather the function called again.
                  */
-                inline Thickness getLocalThickness() const;
+                Thickness getLocalThickness() const;
 
                 //! Get string properties
-                static inline pmacc::traits::StringProperty getStringProperties();
+                static pmacc::traits::StringProperty getStringProperties();
 
             protected:
                 /** Number of absorber cells along each boundary
@@ -183,97 +183,7 @@ namespace picongpu
                 class PmlImpl;
             }
 
-            /** Base class for implementation of absorbers
-             *
-             * It is currently in an intermediate state due to transition to run-time absorber selection and
-             * unification of field solvers.
-             * So the base class interface does not offer any common interface but type casts.
-             *
-             * The reason it is separated from the Absorber class is to better manage lifetime.
-             *
-             * For clients the class behaves in a singleton-like fashion, with getImpl() for instance access.
-             */
-            class AbsorberImpl : public Absorber
-            {
-            public:
-                /** Create absorber implementation instance
-                 *
-                 * @param cellDescription mapping for kernels
-                 */
-                AbsorberImpl(Kind kind, MappingDesc cellDescription);
-
-                //! Destructor
-                ~AbsorberImpl() override = default;
-
-                /** Get absorber implementation instance
-                 *
-                 * Must always be called with same cellDescription, this is checked inside.
-                 * This is a bit awkward and ultimately caused by absorbers being stuck in intermediate state
-                 * between compile- and runtime polymorphism.
-                 *
-                 * @param cellDescription mapping for kernels
-                 */
-                static AbsorberImpl& getImpl(MappingDesc cellDescription);
-
-                /** Interpret this as ExponentialImpl instance
-                 *
-                 * @return reference to this object if conversion is valid,
-                 *         throws otherwise
-                 */
-                inline exponential::ExponentialImpl& asExponentialImpl();
-
-                /** Interpret this as PmlImpl instance
-                 *
-                 * @return reference to this object if conversion is valid,
-                 *         throws otherwise
-                 */
-                inline pml::PmlImpl& asPmlImpl();
-
-            protected:
-                //! Mapping description for kernels
-                MappingDesc cellDescription;
-            };
-
-            /** Singletone factory class to construct absorber instances according to the preset kind
-             *
-             * This class is intended to be used only during initialization of the simulation and by Absorber itself.
-             */
-            class AbsorberFactory
-            {
-            public:
-                //! Get instance of the factory
-                static AbsorberFactory& get()
-                {
-                    static AbsorberFactory instance;
-                    return instance;
-                }
-
-                //! Make an absorber instance
-                inline std::unique_ptr<Absorber> make() const;
-
-                /** Make an absorber implementation instance
-                 *
-                 * @param cellDescription mapping for kernels
-                 */
-                inline std::unique_ptr<AbsorberImpl> makeImpl(MappingDesc cellDescription) const;
-
-                /** Set absorber kind to be made
-                 *
-                 * @param newKind new absorber kind
-                 */
-                void setKind(Absorber::Kind newKind)
-                {
-                    kind = newKind;
-                    isInitialized = true;
-                }
-
-            private:
-                Absorber::Kind kind;
-                bool isInitialized = false;
-            };
 
         } // namespace absorber
     } // namespace fields
 } // namespace picongpu
-
-#include "picongpu/fields/absorber/Absorber.tpp"
