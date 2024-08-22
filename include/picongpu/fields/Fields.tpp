@@ -21,5 +21,4 @@
 #pragma once
 
 
-#include "picongpu/fields/FieldJ.tpp"
 #include "picongpu/fields/FieldTmp.tpp"

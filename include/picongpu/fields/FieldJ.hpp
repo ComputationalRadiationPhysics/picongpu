@@ -21,10 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/fields/Fields.def"
-#include "picongpu/particles/Particles.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
@@ -124,7 +121,7 @@ namespace picongpu
         SimulationDataId getUniqueId() override;
 
         //! Get units of field components
-        HDINLINE static UnitValueType getUnit();
+        static UnitValueType getUnit();
 
         /** Get unit representation as powers of the 7 base measures
          *
@@ -143,17 +140,6 @@ namespace picongpu
          * @param value value to assign all elements to
          */
         void assign(ValueType value);
-
-        /** Compute current density created by a species in an area
-         *
-         * @tparam T_area area to compute currents in
-         * @tparam T_Species particle species type
-         *
-         * @param species particle species
-         * @param currentStep index of time iteration
-         */
-        template<uint32_t T_area, class T_Species>
-        void computeCurrent(T_Species& species, uint32_t currentStep);
 
         /** Bash field in a direction.
          *
