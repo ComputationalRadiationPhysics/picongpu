@@ -18,12 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "picongpu/fields/EMFieldBase.hpp"
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/EMFieldBase.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -56,8 +56,11 @@ namespace picongpu
         template<typename A, typename B>
         using UpperMarginOp = typename pmacc::math::CT::max<A, typename GetUpperMarginPusher<B>::type>::type;
 
-        template<typename T_DerivedField>
-        EMFieldBase<T_DerivedField>::EMFieldBase(MappingDesc const& cellDescription, pmacc::SimulationDataId const& id)
+        EMFieldBase::EMFieldBase(
+            MappingDesc const& cellDescription,
+            pmacc::SimulationDataId const& id,
+            math::Vector<int, simDim> const& lowerMargin,
+            math::Vector<int, simDim> const& upperMargin)
             : SimulationFieldHelper<MappingDesc>(cellDescription)
             , id(id)
         {
@@ -75,14 +78,6 @@ namespace picongpu
                 typename pmacc::math::CT::make_Int<simDim, 0>::type,
                 UpperMarginInterpolationOp>;
 
-            /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-            using LowerMarginSolver = typename traits::GetLowerMargin<fields::Solver, DerivedField>::type;
-            using LowerMarginInterpolationAndSolver =
-                typename pmacc::math::CT::max<LowerMarginInterpolation, LowerMarginSolver>::type;
-            using UpperMarginSolver = typename traits::GetUpperMargin<fields::Solver, DerivedField>::type;
-            using UpperMarginInterpolationAndSolver =
-                typename pmacc::math::CT::max<UpperMarginInterpolation, UpperMarginSolver>::type;
-
             /* Calculate upper and lower margin for pusher
                (currently all pusher use the interpolation of the species)
                and find maximum margin
@@ -90,13 +85,13 @@ namespace picongpu
             using VectorSpeciesWithPusherAndInterpolation = typename pmacc::particles::traits::
                 FilterByFlag<VectorSpeciesWithInterpolation, particlePusher<>>::type;
 
-            using LowerMargin = pmacc::
-                mp_fold<VectorSpeciesWithPusherAndInterpolation, LowerMarginInterpolationAndSolver, LowerMarginOp>;
-            using UpperMargin = pmacc::
-                mp_fold<VectorSpeciesWithPusherAndInterpolation, UpperMarginInterpolationAndSolver, UpperMarginOp>;
+            using LowerMargin
+                = pmacc::mp_fold<VectorSpeciesWithPusherAndInterpolation, LowerMarginInterpolation, LowerMarginOp>;
+            using UpperMargin
+                = pmacc::mp_fold<VectorSpeciesWithPusherAndInterpolation, UpperMarginInterpolation, UpperMarginOp>;
 
-            const DataSpace<simDim> originGuard(LowerMargin().toRT());
-            const DataSpace<simDim> endGuard(UpperMargin().toRT());
+            auto const originGuard = pmacc::math::max(LowerMargin().toRT(), lowerMargin);
+            auto const endGuard = pmacc::math::max(UpperMargin().toRT(), upperMargin);
 
             auto const commTag = pmacc::traits::getUniqueId<uint32_t>();
 
@@ -115,58 +110,49 @@ namespace picongpu
             }
         }
 
-        template<typename T_DerivedField>
-        typename EMFieldBase<T_DerivedField>::Buffer& EMFieldBase<T_DerivedField>::getGridBuffer()
+        typename EMFieldBase::Buffer& EMFieldBase::getGridBuffer()
         {
             return *buffer;
         }
 
-        template<typename T_DerivedField>
-        GridLayout<simDim> EMFieldBase<T_DerivedField>::getGridLayout()
+        GridLayout<simDim> EMFieldBase::getGridLayout()
         {
             return cellDescription.getGridLayout();
         }
 
-        template<typename T_DerivedField>
-        typename EMFieldBase<T_DerivedField>::DataBoxType EMFieldBase<T_DerivedField>::getHostDataBox()
+        typename EMFieldBase::DataBoxType EMFieldBase::getHostDataBox()
         {
             return buffer->getHostBuffer().getDataBox();
         }
 
-        template<typename T_DerivedField>
-        typename EMFieldBase<T_DerivedField>::DataBoxType EMFieldBase<T_DerivedField>::getDeviceDataBox()
+        typename EMFieldBase::DataBoxType EMFieldBase::getDeviceDataBox()
         {
             return buffer->getDeviceBuffer().getDataBox();
         }
 
-        template<typename T_DerivedField>
-        EventTask EMFieldBase<T_DerivedField>::asyncCommunication(EventTask serialEvent)
+        EventTask EMFieldBase::asyncCommunication(EventTask serialEvent)
         {
             EventTask eB = buffer->asyncCommunication(serialEvent);
             return eB;
         }
 
-        template<typename T_DerivedField>
-        void EMFieldBase<T_DerivedField>::reset(uint32_t)
+        void EMFieldBase::reset(uint32_t)
         {
             buffer->getHostBuffer().reset(true);
             buffer->getDeviceBuffer().reset(false);
         }
 
-        template<typename T_DerivedField>
-        void EMFieldBase<T_DerivedField>::syncToDevice()
+        void EMFieldBase::syncToDevice()
         {
             buffer->hostToDevice();
         }
 
-        template<typename T_DerivedField>
-        void EMFieldBase<T_DerivedField>::synchronize()
+        void EMFieldBase::synchronize()
         {
             buffer->deviceToHost();
         }
 
-        template<typename T_DerivedField>
-        pmacc::SimulationDataId EMFieldBase<T_DerivedField>::getUniqueId()
+        pmacc::SimulationDataId EMFieldBase::getUniqueId()
         {
             return id;
         }

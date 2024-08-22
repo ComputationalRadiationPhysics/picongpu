@@ -28,7 +28,7 @@
 #include "picongpu/fields/MaxwellSolver/AddCurrentDensity.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.kernel"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
-#include "picongpu/fields/absorber/Absorber.hpp"
+#include "picongpu/fields/absorber/absorber.hpp"
 #include "picongpu/fields/absorber/pml/Pml.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"

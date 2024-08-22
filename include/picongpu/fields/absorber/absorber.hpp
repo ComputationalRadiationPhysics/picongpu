@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -17,9 +17,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-
-#include "picongpu/fields/FieldJ.tpp"
-#include "picongpu/fields/FieldTmp.tpp"
+#include "picongpu/fields/absorber/exponential/Exponential.hpp"
+#include "picongpu/fields/absorber/none/None.hpp"
+#include "picongpu/fields/absorber/pml/Pml.hpp"
