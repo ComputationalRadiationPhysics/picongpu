@@ -21,18 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/fields/FieldJ.hpp"
-
-#include <pmacc/Environment.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/meta/ForEach.hpp>
-#include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/type/Area.hpp>
-
 #include <cstdint>
-
 
 namespace picongpu
 {
@@ -40,23 +29,6 @@ namespace picongpu
     {
         namespace stage
         {
-            namespace detail
-            {
-                template<typename T_SpeciesType, typename T_Area>
-                struct CurrentDeposition
-                {
-                    using SpeciesType = T_SpeciesType;
-                    using FrameType = typename SpeciesType::FrameType;
-
-                    HINLINE void operator()(const uint32_t currentStep, FieldJ& fieldJ, pmacc::DataConnector& dc) const
-                    {
-                        auto species = dc.get<SpeciesType>(FrameType::getName());
-                        fieldJ.computeCurrent<T_Area::value, SpeciesType>(*species, currentStep);
-                    }
-                };
-
-            } // namespace detail
-
             //! Functor for the stage of the PIC loop performing current deposition
             struct CurrentDeposition
             {
@@ -65,19 +37,7 @@ namespace picongpu
                  *
                  * @param step index of time iteration
                  */
-                void operator()(uint32_t const step) const
-                {
-                    using namespace pmacc;
-                    DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName());
-                    using SpeciesWithCurrentSolver =
-                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
-                    meta::ForEach<
-                        SpeciesWithCurrentSolver,
-                        detail::CurrentDeposition<boost::mpl::_1, pmacc::mp_int<type::CORE + type::BORDER>>>
-                        depositCurrent;
-                    depositCurrent(step, fieldJ, dc);
-                }
+                void operator()(uint32_t const step) const;
             };
 
         } // namespace stage
