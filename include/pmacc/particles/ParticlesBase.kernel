@@ -148,7 +148,7 @@ namespace pmacc
                              */
                             auto parDest = deselect<multiMask>(parDestFull);
                             auto parSrc = (lastFrame[idx]);
-                            assign(parDest, parSrc);
+                            parDest = parSrc;
                             parSrc[multiMask_] = 0; // delete old particle
                         }
                     },
@@ -285,7 +285,7 @@ namespace pmacc
                                  */
                                 auto parDest = deselect<multiMask>(parDestFull);
                                 auto parSrc = lastFrame[parIdx];
-                                assign(parDest, parSrc);
+                                parDest = parSrc;
                                 parSrc[multiMask_] = 0;
                             }
                         },
@@ -559,7 +559,7 @@ namespace pmacc
                                 dstParticle[multiMask_] = 1;
                                 srcParticle[multiMask_] = 0;
                                 auto dstFilteredParticle = particles::operations::deselect<multiMask>(dstParticle);
-                                particles::operations::assign(dstFilteredParticle, srcParticle);
+                                dstFilteredParticle = srcParticle;
                             }
                         },
                         directionCtx,
@@ -811,7 +811,7 @@ namespace pmacc
                             {
                                 auto parDest = exchangeChunk[exchangeGapIdx][0];
                                 auto parSrc = frame[idx];
-                                assign(parDest, parSrc);
+                                parDest = parSrc;
                                 parSrc[multiMask_] = 0;
                             }
                         },
@@ -908,7 +908,7 @@ namespace pmacc
                         auto parSrc = exchangeChunk[linearIdx][0];
                         /*we know that source has no multiMask*/
                         auto parDest = deselect<multiMask>(parDestFull);
-                        assign(parDest, parSrc);
+                        parDest = parSrc;
                     }
                 });
 

@@ -226,7 +226,11 @@ namespace picongpu
                  * @param childElectron electron instance that is created
                  */
                 template<typename T_parentIon, typename T_childElectron, typename T_Worker>
-                DINLINE void operator()(T_Worker const& worker, T_parentIon& parentIon, T_childElectron& childElectron)
+                DINLINE void operator()(
+                    T_Worker const& worker,
+                    IdGenerator& idGen,
+                    T_parentIon& parentIon,
+                    T_childElectron& childElectron)
                 {
                     /* for not mixing operations::assign up with the nvidia functor assign */
                     namespace partOp = pmacc::particles::operations;
@@ -243,7 +247,7 @@ namespace picongpu
                      */
                     auto targetElectronClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(childElectron);
 
-                    partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
+                    targetElectronClone.copyAndInit(worker, idGen, partOp::deselect<particleId>(parentIon));
 
                     const float_X massIon = attribute::getMass(weighting, parentIon);
                     const float_X massElectron = attribute::getMass(weighting, childElectron);

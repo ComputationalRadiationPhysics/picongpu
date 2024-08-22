@@ -30,6 +30,7 @@
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 
 namespace pmacc

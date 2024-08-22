@@ -87,6 +87,7 @@ namespace picongpu::particles::atomicPhysics::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
+            IdGenerator idGen,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_IonBox ionBox,
             T_IonizationElectronBox ionizationElectronBox,
@@ -276,6 +277,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                          &ionizationPotentialDepression,
                          &ionFrame,
                          &electronFrameArray,
+                         &idGen,
                          &frameSize,
                          &spawnCounter,
                          &offsetLowFrame,
@@ -313,8 +315,10 @@ namespace picongpu::particles::atomicPhysics::kernel
                                 // does not need chargeStateBox since we init electron as co-moving currently
 
                                 initElectrons::InitIonizationElectron<enums::ProcessClass::electronicIonization>{}(
+                                    worker,
                                     ion,
-                                    electron);
+                                    electron,
+                                    idGen);
 
                                 /// @todo implement field ionization, Brian Marre, 2023
                             }
@@ -327,6 +331,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                                     ionizationPotentialDepression,
                                     ion,
                                     electron,
+                                    idGen,
                                     atomicStateBox,
                                     transitionBox,
                                     superCellLocalOffset,

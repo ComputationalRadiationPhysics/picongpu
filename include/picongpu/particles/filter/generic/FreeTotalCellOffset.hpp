@@ -101,8 +101,8 @@ namespace picongpu
                      *
                      * @param currentStep current simulation time step
                      */
-                    HINLINE FreeTotalCellOffset(uint32_t currentStep)
-                        : Functor(currentStep)
+                    HINLINE FreeTotalCellOffset(uint32_t currentStep, IdGenerator idGen)
+                        : Functor(currentStep, idGen)
                         , CellOffsetFunctor(currentStep)
                     {
                     }

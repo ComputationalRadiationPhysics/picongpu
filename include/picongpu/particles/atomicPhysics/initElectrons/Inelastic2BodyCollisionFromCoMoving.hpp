@@ -158,16 +158,18 @@ namespace picongpu::particles::atomicPhysics::initElectrons
          * - Def.: Lab-system ... frame of reference of PIC-simulation
          * - *Star* ... after inelastic collision, otherwise before
          */
-        template<typename T_IonParticle, typename T_ElectronParticle, typename T_RngGeneratorFloat>
+        template<typename T_Worker, typename T_IonParticle, typename T_ElectronParticle, typename T_RngGeneratorFloat>
         HDINLINE static void initElectron(
+            T_Worker const& worker,
             T_IonParticle& ion,
             T_ElectronParticle& electron,
+            IdGenerator& idGen,
             // eV
             float_X const deltaEnergy,
             /// const?, @todo Brian Marre, 2023
             T_RngGeneratorFloat& rngGenerator)
         {
-            CloneAdditionalAttributes::init<T_IonParticle, T_ElectronParticle>(ion, electron);
+            CloneAdditionalAttributes::init(worker, ion, electron, idGen);
 
             // UNIT_MASS, not weighted
             float_X const massElectron = picongpu::traits::frame::getMass<typename T_ElectronParticle::FrameType>();

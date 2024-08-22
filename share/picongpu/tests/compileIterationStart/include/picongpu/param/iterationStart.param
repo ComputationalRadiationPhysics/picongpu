@@ -32,6 +32,12 @@ namespace picongpu
     //! Functor to move a source particle to the destination species if it has a high gamma value
     struct MoveIfHighGammaFunctor
     {
+        IdGenerator m_idGen;
+
+        MoveIfHighGammaFunctor(uint32_t, IdGenerator idGenerator) : m_idGen(idGenerator)
+        {
+        }
+
         /** Process a pair of particles.
          *
          * Move a source particle to a destination particle if the source particle has high gamma value.
@@ -42,8 +48,8 @@ namespace picongpu
          * @param particleDest destination particle
          * @param particleSrc source particle
          */
-        template<typename T_DestParticle, typename T_SrcParticle>
-        HDINLINE void operator()(T_DestParticle& particleDest, T_SrcParticle& particleSrc)
+        template<typename T_Worker, typename T_DestParticle, typename T_SrcParticle>
+        HDINLINE void operator()(T_Worker const& worker, T_DestParticle& particleDest, T_SrcParticle& particleSrc)
         {
             auto const gamma = picongpu::gamma<float_X>(
                 particleSrc[picongpu::momentum_],
@@ -51,7 +57,7 @@ namespace picongpu
             constexpr float_X thresholdGamma = 3.0_X;
             if(gamma >= thresholdGamma)
             {
-                pmacc::particles::operations::assign(particleDest, particleSrc);
+                particleDest.copyAndInit(worker, m_idGen, particleSrc);
                 particleSrc[picongpu::multiMask_] = 0;
             }
             else

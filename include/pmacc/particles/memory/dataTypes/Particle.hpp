@@ -165,10 +165,63 @@ namespace pmacc
         HDINLINE
         Particle& operator=(const Particle& other) = default;
 
-    private:
-        /* we disallow to assign this class*/
-        template<typename T_OtherParticle>
-        HDINLINE Particle& operator=(const T_OtherParticle& other);
+        /** Assign common attributes of one particle to another
+         *
+         * The common subset of the attribute lists from both particles is
+         * used to set the attributes in this particle with the corresponding ones from source particle.
+         * The remaining attributes that only exist in this particle
+         * is simply set to their default values.
+         */
+        template<typename T_Worker, typename T_OtherFrameType, typename T_OtherValueTypeSeq>
+        HDINLINE void copyAndInit(
+            T_Worker const& worker,
+            IdGenerator& idGen,
+            pmacc::Particle<T_OtherFrameType, T_OtherValueTypeSeq> const& srcParticle)
+        {
+            using Src = pmacc::Particle<T_OtherFrameType, T_OtherValueTypeSeq>;
+
+            using DestTypeSeq = typename Particle::ValueTypeSeq;
+            using SrcTypeSeq = typename Src::ValueTypeSeq;
+
+            /* create sequences with disjunctive attributes from `DestTypeSeq` */
+            using UniqueInDestTypeSeq = mp_set_difference<DestTypeSeq, SrcTypeSeq>;
+
+            /* create attribute list with a subset of common attributes in two sequences
+             * mp_contains has lower complexity than traits::HasIdentifier
+             * and was used for this reason
+             */
+            using CommonTypeSeq = mp_set_difference<DestTypeSeq, UniqueInDestTypeSeq>;
+
+            using pmacc::meta::ForEach;
+            /* assign attributes */
+            ForEach<CommonTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
+            copy(*this, srcParticle);
+
+            /* set all attributes which are not in src to their default value*/
+            ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<boost::mpl::_1>> setAttributeToDefault;
+            setAttributeToDefault(worker, idGen, *this);
+        }
+
+        /** Assign common attributes of one particle to another
+         *
+         *  The source article must have at least the attributes this particle has.
+         */
+        template<typename T_OtherFrameType, typename T_OtherValueTypeSeq>
+        HDINLINE Particle& operator=(pmacc::Particle<T_OtherFrameType, T_OtherValueTypeSeq> const& other)
+        {
+            /* create sequences with disjunctive attributes */
+            using UniqueInDestTypeSeq = mp_set_difference<ValueTypeSeq, T_OtherValueTypeSeq>;
+
+            static_assert(
+                pmacc::mp_size<UniqueInDestTypeSeq>::value == 0u,
+                "Source particle is not providing all attributes required to update the destination particle.");
+
+            using pmacc::meta::ForEach;
+            /* assign attributes */
+            ForEach<ValueTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
+            copy(*this, other);
+            return *this;
+        }
     };
 
     namespace traits
@@ -209,59 +262,6 @@ namespace pmacc
         {
             namespace detail
             {
-                /** Assign common attributes of two particle species
-                 *
-                 * Assigns all attributes in ValueTypeSeq1 that also exist in T_ValueTypeSeq2
-                 * from T_FrameType1 to T_FrameType2.
-                 */
-                template<
-                    typename T_FrameType1,
-                    typename T_ValueTypeSeq1,
-                    typename T_FrameType2,
-                    typename T_ValueTypeSeq2>
-                struct Assign<
-                    pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
-                    pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>>
-                {
-                    using Dest = pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>;
-                    using Src = pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>;
-
-                    using DestTypeSeq = typename Dest::ValueTypeSeq;
-                    using SrcTypeSeq = typename Src::ValueTypeSeq;
-
-                    /* create sequences with disjunct attributes from `DestTypeSeq` */
-                    using UniqueInDestTypeSeq = mp_set_difference<DestTypeSeq, SrcTypeSeq>;
-
-                    /* create attribute list with a subset of common attributes in two sequences
-                     * mp_contains has lower complexity than traits::HasIdentifier
-                     * and was used for this reason
-                     */
-                    using CommonTypeSeq = mp_set_difference<DestTypeSeq, UniqueInDestTypeSeq>;
-
-                    /** Assign particle attributes
-                     *
-                     * The common subset of the attribute lists from both particles is
-                     * used to set the attributes in dest with the corresponding ones from src.
-                     * The remaining attributes that only exist in dest (UniqueInDestTypeSeq)
-                     * are simply set to their default values.
-                     *
-                     * @param dest destination particle that shall be initialized/assigned with values from src
-                     * @param src source particle were attributes are loaded from
-                     */
-                    HDINLINE
-                    void operator()(Dest& dest, const Src& src)
-                    {
-                        using pmacc::meta::ForEach;
-                        /* assign attributes from src to dest*/
-                        ForEach<CommonTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
-                        copy(dest, src);
-
-                        /* set all attributes which are not in src to their default value*/
-                        ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<boost::mpl::_1>> setAttributeToDefault;
-                        setAttributeToDefault(dest);
-                    };
-                };
-
                 template<typename T_MPLSeqWithObjectsToRemove, typename T_FrameType, typename T_ValueTypeSeq>
                 struct Deselect<T_MPLSeqWithObjectsToRemove, pmacc::Particle<T_FrameType, T_ValueTypeSeq>>
                 {

@@ -425,6 +425,7 @@ namespace picongpu
 
             DataConnector& dc = Environment<>::get().DataConnector();
             auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
+            auto idProvider = dc.get<IdProvider>("globalId");
 
             /* convert energy values from keV to PIConGPU units */
             float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
@@ -448,6 +449,7 @@ namespace picongpu
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<boost::mpl::_1>>{}(
                 m_help->filter.get(m_id),
                 currentStep,
+                idProvider->getDeviceGenerator(),
                 bindKernel);
 
             gBins->deviceToHost();

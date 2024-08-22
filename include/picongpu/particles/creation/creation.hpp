@@ -53,11 +53,15 @@ namespace picongpu
             {
                 auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
 
+                DataConnector& dc = Environment<>::get().DataConnector();
+                auto idProvider = dc.get<IdProvider>("globalId");
+
                 PMACC_LOCKSTEP_KERNEL(CreateParticlesKernel{})
                     .config(mapper.getGridDim(), sourceSpecies)(
                         particleCreator,
                         sourceSpecies.getDeviceParticlesBox(),
                         targetSpecies.getDeviceParticlesBox(),
+                        idProvider->getDeviceGenerator(),
                         mapper);
 
                 /* Make sure to leave no gaps in newly created frames */

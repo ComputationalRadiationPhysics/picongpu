@@ -97,6 +97,7 @@ namespace picongpu
             T_PositionFunctor positionFunctor,
             DataSpace<simDim> const totalGpuCellOffset,
             T_ParBox pb,
+            IdGenerator idGen,
             T_Mapping mapper) const
         {
             constexpr int frameSize = T_ParBox::frameSize;
@@ -268,7 +269,8 @@ namespace picongpu
 
                                     meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<boost::mpl::_1>>
                                         setToDefault;
-                                    setToDefault(particle);
+
+                                    setToDefault(worker, idGen, particle);
                                 }
                                 particle[multiMask_] = 1;
                                 particle[localCellIdx_] = idx;

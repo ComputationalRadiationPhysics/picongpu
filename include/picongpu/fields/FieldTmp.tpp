@@ -179,7 +179,11 @@ namespace picongpu
         FrameSolver solver;
         using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
         const uint32_t currentStep = Environment<>::get().SimulationDescription().getCurrentStep();
-        auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep};
+
+        DataConnector& dc = Environment<>::get().DataConnector();
+        auto idProvider = dc.get<IdProvider>("globalId");
+
+        auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep, idProvider->getDeviceGenerator()};
 
         do
         {

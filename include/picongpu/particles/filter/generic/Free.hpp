@@ -83,7 +83,7 @@ namespace picongpu
                      *
                      * @param currentStep current simulation time step
                      */
-                    HINLINE Free(uint32_t currentStep) : Functor(currentStep)
+                    HINLINE Free(uint32_t currentStep, IdGenerator idGen) : Functor(currentStep, idGen)
                     {
                     }
 

@@ -37,6 +37,12 @@ namespace picongpu
                     //! assign attributes of one particle to another
                     struct Assign
                     {
+                        IdGenerator m_idGen;
+
+                        Assign(uint32_t, IdGenerator idGenerator) : m_idGen(idGenerator)
+                        {
+                        }
+
                         /** execute assign operator
                          *
                          * @tparam T_DestParticle pmacc::Particle, type of the destination particle
@@ -46,10 +52,13 @@ namespace picongpu
                          * @param particleDest destination particle
                          * @param particleSrc source particle
                          */
-                        template<typename T_DestParticle, typename T_SrcParticle>
-                        HDINLINE void operator()(T_DestParticle& particleDest, T_SrcParticle& particleSrc)
+                        template<typename T_Worker, typename T_DestParticle, typename T_SrcParticle>
+                        HDINLINE void operator()(
+                            T_Worker const& worker,
+                            T_DestParticle& particleDest,
+                            T_SrcParticle& particleSrc)
                         {
-                            pmacc::particles::operations::assign(particleDest, particleSrc);
+                            particleDest.copyAndInit(worker, m_idGen, particleSrc);
                         }
                     };
                 } // namespace acc
