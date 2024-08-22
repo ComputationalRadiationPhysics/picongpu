@@ -24,7 +24,6 @@
 
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
 #include "pmacc/exec/KernelLauncher.hpp"
-#include "pmacc/exec/KernelMetaData.hpp"
 #include "pmacc/exec/KernelWithDynSharedMem.hpp"
 #include "pmacc/lockstep/BlockCfg.hpp"
 #include "pmacc/lockstep/Worker.hpp"
@@ -74,14 +73,16 @@ namespace pmacc::lockstep
                 using KernelFunctor = detail::LockStepKernel<T_UserKernelFunctor, T_BlockCfg>;
 
                 T_UserKernelFunctor const m_UserKernelFunctor;
-                pmacc::exec::detail::KernelMetaData const m_metaData;
+                std::string const m_file;
+                size_t const m_line;
 
                 HINLINE KernelPreperationWrapper(
                     T_UserKernelFunctor const& kernelFunctor,
                     std::string const& file = std::string(),
                     size_t const line = 0)
                     : m_UserKernelFunctor(kernelFunctor)
-                    , m_metaData(file, line)
+                    , m_file(file)
+                    , m_line(line)
                 {
                 }
 
@@ -109,7 +110,8 @@ namespace pmacc::lockstep
                     blockExtent.x() = BlockConfiguration::numWorkers();
                     return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
                         m_UserKernelFunctor,
-                        m_metaData,
+                        m_file,
+                        m_line,
                         gridSize,
                         blockExtent};
                 }
@@ -132,7 +134,8 @@ namespace pmacc::lockstep
                     blockSizeND.x() = BlockConfiguration::numWorkers();
                     return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
                         m_UserKernelFunctor,
-                        m_metaData,
+                        m_file,
+                        m_line,
                         gridSize,
                         blockSizeND};
                 }
@@ -155,7 +158,8 @@ namespace pmacc::lockstep
                     blockExtent.x() = BlockConfiguration::numWorkers();
                     return pmacc::exec::detail::KernelLauncher<KernelFunctor<BlockConfiguration>, dim>{
                         m_UserKernelFunctor,
-                        m_metaData,
+                        m_file,
+                        m_line,
                         gridSize,
                         blockExtent};
                 }
@@ -181,7 +185,8 @@ namespace pmacc::lockstep
                         pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>(
                             m_UserKernelFunctor,
                             sharedMemByte),
-                        m_metaData,
+                        m_file,
+                        m_line,
                         gridSize,
                         blockExtent};
                 }
@@ -210,7 +215,8 @@ namespace pmacc::lockstep
                         pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>(
                             m_UserKernelFunctor,
                             sharedMemByte),
-                        m_metaData,
+                        m_file,
+                        m_line,
                         gridSize,
                         blockExtent};
                 }
@@ -241,7 +247,8 @@ namespace pmacc::lockstep
                         pmacc::exec::detail::KernelWithDynSharedMem<KernelFunctor<BlockConfiguration>>(
                             m_UserKernelFunctor,
                             sharedMemByte),
-                        m_metaData,
+                        m_file,
+                        m_line,
                         gridSize,
                         blockExtent};
                 }
