@@ -162,6 +162,21 @@ Normalize by Bin Volume
 Since it is possible to have non-uniformly sized axes, it makes sense to normalize the binned quantity by the bin volume to enable a fair comparison between bins.
 
 
+Binning Particles Leaving the Simulation Volume
+-----------------------------------------------
+
+.. doxygenenum:: picongpu::plugins::binning::ParticleRegion
+
+By default, only particles within the simulation volume are binned. However, users can modify this behavior to include or exclusively bin particles that are leaving the global simulation volume.
+This can be configured using the ``enableRegion`` and ``disableRegion`` options with the regions defined by the ``ParticleRegion`` enum.
+
+.. attention::
+
+Users must carefully configure the notify period when using the binning plugin for leaving particles. The plugin bins particles leaving the global simulation volume at every timestep (except 0) after particles are pushed, regardless of the notify period. 
+If the plugin is not notified at every timestep, this can cause discrepancies between the binning process and time-averaged data or histogram dumps, which follow the notify period.
+Additionally, the binning plugin is first notified at timestep 0, allowing users to bin initial conditions. However, leaving particles are first binned at timestep 1, after the initial particle push.
+Therefore, users should consider setting the notify period’s start at timestep 1, depending on their specific needs.
+
 writeOpenPMDFunctor
 -------------------
 Users can also write out custom output to file, for example other quantites related to the simulation which the user is interested in.

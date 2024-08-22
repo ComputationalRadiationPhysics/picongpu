@@ -53,11 +53,11 @@ namespace picongpu
                 T_AxisTuple const& axes,
                 DomainInfo const& domainInfo,
                 DataSpace<T_nAxes> const& extents,
-                const T_Particle& particle) const
+                T_Particle const& particle) const
             {
                 using DepositionType = typename T_HistBox::ValueType;
 
-                auto binsDataspace = DataSpace<T_nAxes>{};
+                auto binsDataspace = pmacc::DataSpace<T_nAxes>{};
                 bool validIdx = true;
                 apply(
                     [&](auto const&... tupleArgs)
@@ -121,6 +121,10 @@ namespace picongpu
                 auto forEachParticle
                     = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
 
+                // stop kernel if we have no particles
+                if(!forEachParticle.hasParticles())
+                    return;
+
                 forEachParticle(
                     [&](auto const& lockstepWorker, auto& particle) {
                         functorParticle(
@@ -134,5 +138,100 @@ namespace picongpu
                     });
             }
         };
+
+        namespace detail
+        {
+            template<typename T1, typename T2, typename T3, std::size_t... Is>
+            DINLINE bool insideBoundsImpl(
+                T1 const& localCell,
+                T2 const& beginCellIdxLocal,
+                T3 const& endCellIdxLocal,
+                std::index_sequence<Is...>)
+            {
+                return ((localCell[Is] >= beginCellIdxLocal[Is] && localCell[Is] < endCellIdxLocal[Is]) && ...);
+            }
+
+            template<typename T1, typename T2, typename T3>
+            DINLINE bool insideBounds(T1 const& localCell, T2 const& beginCellIdxLocal, T3 const& endCellIdxLocal)
+            {
+                return insideBoundsImpl(
+                    localCell,
+                    beginCellIdxLocal,
+                    endCellIdxLocal,
+                    std::make_index_sequence<simDim>{});
+            }
+        } // namespace detail
+
+        struct BinningFunctorLeaving
+        {
+            using result_type = void;
+
+            HINLINE BinningFunctorLeaving() = default;
+
+            template<
+                typename T_Worker,
+                typename TParticlesBox,
+                typename T_HistBox,
+                typename T_DepositionFunctor,
+                typename T_AxisTuple,
+                typename T_Mapping,
+                uint32_t T_nAxes>
+            DINLINE void operator()(
+                T_Worker const& worker,
+                T_HistBox binningBox,
+                TParticlesBox particlesBox,
+                pmacc::DataSpace<simDim> const& localOffset,
+                pmacc::DataSpace<simDim> const& globalOffset,
+                T_AxisTuple const& axisTuple,
+                T_DepositionFunctor const& quantityFunctor,
+                DataSpace<T_nAxes> const& extents,
+                uint32_t const currentStep,
+                pmacc::DataSpace<simDim> const& beginCellIdxLocal,
+                pmacc::DataSpace<simDim> const& endCellIdxLocal,
+                T_Mapping const& mapper) const
+            {
+                /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
+                pmacc::DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
+                auto const superCellCellOffsetNoGuard
+                    = (superCellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
+
+                auto const domainInfo = DomainInfo{
+                    currentStep,
+                    globalOffset,
+                    localOffset,
+                    superCellIdx - mapper.getGuardingSuperCells()};
+                auto const functorParticle = FunctorParticle{};
+
+                auto forEachParticle
+                    = pmacc::particles::algorithm::acc::makeForEach(worker, particlesBox, superCellIdx);
+
+                // stop kernel if we have no particles
+                if(!forEachParticle.hasParticles())
+                    return;
+
+                forEachParticle(
+                    [&](auto const& lockstepWorker, auto& particle)
+                    {
+                        // Check if it fits the internal cells range
+                        auto const cellInSuperCell
+                            = pmacc::math::mapToND(SuperCellSize::toRT(), static_cast<int>(particle[localCellIdx_]));
+                        auto const localCell = superCellCellOffsetNoGuard + cellInSuperCell;
+
+                        if(detail::insideBounds(localCell, beginCellIdxLocal, endCellIdxLocal))
+                        {
+                            functorParticle(
+                                lockstepWorker,
+                                binningBox,
+                                quantityFunctor,
+                                axisTuple,
+                                domainInfo,
+                                extents,
+                                particle);
+                        }
+                    });
+            }
+        };
+
+
     } // namespace plugins::binning
 } // namespace picongpu

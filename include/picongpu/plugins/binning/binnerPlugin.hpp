@@ -21,6 +21,7 @@
 
 #include "picongpu/plugins/binning/Axis.hpp"
 #include "picongpu/plugins/binning/BinningCreator.hpp"
+#include "picongpu/plugins/binning/BinningData.hpp"
 #include "picongpu/plugins/binning/FunctorDescription.hpp"
 #include "picongpu/plugins/binning/UnitConversion.hpp"
 #include "picongpu/plugins/binning/axis/LinearAxis.hpp"
