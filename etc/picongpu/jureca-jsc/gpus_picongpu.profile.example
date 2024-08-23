@@ -38,6 +38,7 @@ module load GCC/12.3.0
 module load CUDA/12
 module load CMake
 module load OpenMPI/4.1.5
+module load MPI-settings/CUDA
 module load Python/3.11.3
 module load ADIOS2/2.9.2
 module load HDF5/1.14.2
@@ -47,6 +48,8 @@ module load Boost/1.82.0
 module load SciPy-bundle/2023.07
 module load matplotlib/3.7.2
 module load h5py/3.9.0
+module load numba
+module load tqdm
 
 # Self-Build Software #########################################################
 #
