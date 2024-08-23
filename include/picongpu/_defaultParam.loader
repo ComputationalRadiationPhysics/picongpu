@@ -54,9 +54,6 @@
 #include "picongpu/param/atomicPhysics_Debug.param"
 #include "picongpu/param/atomicPhysics.param"
 #include "picongpu/param/particleFilters.param"
-#include "picongpu/param/radiation.param"
-#include "picongpu/param/transitionRadiation.param"
-#include "picongpu/param/shadowgraphy.param"
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/collision.param"
@@ -65,5 +62,4 @@
 #include "picongpu/param/pngColorScales.param"
 #include "picongpu/param/png.param"
 #include "picongpu/param/particleCalorimeter.param"
-#include "picongpu/param/radiationObserver.param"
 // clang-format on

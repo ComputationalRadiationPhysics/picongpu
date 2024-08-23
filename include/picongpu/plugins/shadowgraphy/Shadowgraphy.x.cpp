@@ -17,11 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
 #if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 
+// clang-format off
 #    include "picongpu/simulation_defines.hpp"
+#    include "picongpu/param/shadowgraphy.param"
+// clang-format on
 
 #    include "picongpu/fields/FieldB.hpp"
 #    include "picongpu/fields/FieldE.hpp"

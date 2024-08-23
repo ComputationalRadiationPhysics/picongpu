@@ -19,9 +19,10 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/algorithms/Set.hpp"
 #include "picongpu/plugins/PhaseSpace/Pair.hpp"
-#include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>

@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
+
 namespace picongpu
 {
     namespace plugins

@@ -17,12 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #if(ENABLE_OPENPMD == 1)
 
 #    include "picongpu/simulation_defines.hpp"
 
+#    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/plugins/ILightweightPlugin.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"
 #    include "picongpu/plugins/common/openPMDAttributes.hpp"
@@ -33,6 +32,8 @@
 #    include <pmacc/mappings/kernel/AreaMapping.hpp>
 #    include <pmacc/memory/buffers/GridBuffer.hpp>
 #    include <pmacc/memory/shared/Allocate.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #    include <pmacc/particles/algorithm/ForEach.hpp>
 
 #    include <fstream>
