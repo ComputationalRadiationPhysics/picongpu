@@ -30,7 +30,7 @@
 
 #pragma once
 
-#pragma once
+#include <picongpu/simulation_types.hpp>
 
 #ifndef PARAM_PRECISION
 #    define PARAM_PRECISION precision64Bit
