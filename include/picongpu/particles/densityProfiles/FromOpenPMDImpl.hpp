@@ -23,7 +23,7 @@
 
 #    include "picongpu/simulation_defines.hpp"
 
-#    include "picongpu/fields/Fields.hpp"
+#    include "picongpu/fields/FieldTmp.hpp"
 #    include "picongpu/simulation/control/MovingWindow.hpp"
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
