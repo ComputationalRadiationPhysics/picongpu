@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include <picongpu/simulation_types.hpp>
 
 namespace picongpu
 {
