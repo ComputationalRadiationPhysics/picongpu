@@ -17,9 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "picongpu/simulation/stage/IterationStart.hpp"
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/param/iterationStart.param"
+#include "picongpu/particles/filter/filter.hpp"
 
 #include <pmacc/functor/Call.hpp>
 
@@ -32,18 +36,11 @@ namespace picongpu
     {
         namespace stage
         {
-            /** Functor for the very first stage of the PIC loop
-             *
-             * Calls functors defined in iterationStart.param
-             */
-            struct IterationStart
+            void IterationStart::operator()(uint32_t const step) const
             {
-                /** Call all iteration start functors
-                 *
-                 * @param step index of time iteration
-                 */
-                void operator()(uint32_t const step) const;
-            };
+                meta::ForEach<IterationStartPipeline, pmacc::functor::Call<boost::mpl::_1>> callFunctors;
+                callFunctors(step);
+            }
 
         } // namespace stage
     } // namespace simulation
