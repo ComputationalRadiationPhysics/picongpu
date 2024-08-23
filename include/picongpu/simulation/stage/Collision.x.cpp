@@ -28,6 +28,7 @@
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/particles/particleToGrid/FoldDeriveFields.hpp"
 #include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"
+#include "picongpu/unitless/checkpoints.unitless"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/algorithms/GlobalReduce.hpp>
@@ -151,7 +152,7 @@ namespace picongpu
                 }
             }
 
-            void Collision::operator()(uint32_t const currentStep) const
+            void Collision::operator()(MappingDesc const cellDescription, uint32_t const currentStep) const
             {
                 // Calculate squared Debye length using the formula form [Perez 2012].
                 // A species temperature is assumed to be (2/3)<E_kin>
@@ -178,6 +179,7 @@ namespace picongpu
                         particles::particleToGrid::combinedAttributes::ScreeningInvSquared>{}(
                         *screeningLengthSquared,
                         currentStep,
+                        cellDescription,
                         slot + 1u);
 
                     // The Debye length is bound to be greater than the mean inter-atomic distance of the most
@@ -188,10 +190,16 @@ namespace picongpu
                         CORE + BORDER,
                         SpeciesSeq,
                         pmacc::math::operation::Max,
-                        particles::particleToGrid::derivedAttributes::Density>{}(*maxDensity, currentStep, slot + 2u);
+                        particles::particleToGrid::derivedAttributes::Density>{}(
+                        *maxDensity,
+                        currentStep,
+                        cellDescription,
+                        slot + 2u);
 
                     // Invert the calculated value and apply the cut-off to get the squared debye length
-                    screeningLengthSquared->modifyByField<CORE + BORDER, collision::GetSquaredScreeningLength>(
+                    modifyFieldTmpByField<CORE + BORDER, collision::GetSquaredScreeningLength>(
+                        *screeningLengthSquared,
+                        cellDescription,
                         *maxDensity);
                     // the FieldTmp slot used for storing  the max density is no longer needed beyond this point
                     maxDensity.reset();

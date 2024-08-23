@@ -23,6 +23,7 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Counter.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Density.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Energy.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.hpp"

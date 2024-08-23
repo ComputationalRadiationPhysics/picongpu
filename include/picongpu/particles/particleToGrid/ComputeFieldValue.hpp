@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/fields/FieldTmpOperations.hpp"
 #include "picongpu/particles/particleToGrid/CombinedDerive.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
@@ -87,7 +87,7 @@ namespace picongpu
 
                     fieldTmp.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType::create(0.0));
                     /*run algorithm*/
-                    fieldTmp.template computeValue<AREA, Solver, T_Filter>(*speciesTmp, currentStep);
+                    computeFieldTmpValue<AREA, Solver, T_Filter>(fieldTmp, *speciesTmp, currentStep);
                     // Particles can contribute to cells in GUARD (due to their shape) this values need to be
                     //  added to the neighbouring GPU BOARDERs.
                     return fieldTmp.asyncCommunication(eventSystem::getTransactionEvent());
@@ -115,7 +115,8 @@ namespace picongpu
                     fieldTmp2->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType::create(0.0));
 
                     // Derive the first attribute from the particle data.
-                    fieldTmp1.template computeValue<AREA, typename CombinedSolver::BaseAttributeSolver, T_Filter>(
+                    computeFieldTmpValue<AREA, typename CombinedSolver::BaseAttributeSolver, T_Filter>(
+                        fieldTmp1,
                         *speciesTmp,
                         currentStep);
                     /* Particles can contribute to cells in GUARD (due to their shape) these values need to be
@@ -124,7 +125,8 @@ namespace picongpu
                      * is computed. */
                     EventTask fieldTmpEvent1 = fieldTmp1.asyncCommunication(eventSystem::getTransactionEvent());
                     // Derive the second attribute from the particle data
-                    fieldTmp2->template computeValue<AREA, typename CombinedSolver::ModifierAttributeSolver, T_Filter>(
+                    computeFieldTmpValue<AREA, typename CombinedSolver::ModifierAttributeSolver, T_Filter>(
+                        *fieldTmp2,
                         *speciesTmp,
                         currentStep);
                     EventTask fieldTmpEvent2 = fieldTmp2->asyncCommunication(eventSystem::getTransactionEvent());
@@ -134,7 +136,10 @@ namespace picongpu
                     eventSystem::setTransactionEvent(fieldTmpEvent2);
 
                     // Modify the 1st field by the values in the 2nd field according to the ModifyingOperation.
-                    fieldTmp1.template modifyByField<AREA, typename CombinedSolver::ModifyingOperation>(*fieldTmp2);
+                    modifyFieldTmpByField<AREA, typename CombinedSolver::ModifyingOperation>(
+                        fieldTmp1,
+                        speciesTmp->getCellDescription(),
+                        *fieldTmp2);
                     return std::nullopt;
                 }
             };

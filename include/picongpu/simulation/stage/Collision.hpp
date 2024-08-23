@@ -41,7 +41,7 @@ namespace picongpu
                  *
                  * @param step index of time iteration
                  */
-                void operator()(uint32_t const currentStep) const;
+                void operator()(MappingDesc const cellDescription, uint32_t const currentStep) const;
 
             private:
                 std::shared_ptr<DeviceHeap> m_heap;

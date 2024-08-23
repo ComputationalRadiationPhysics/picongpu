@@ -17,10 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/multi/IHelp.hpp"
@@ -49,7 +50,7 @@ namespace picongpu
         Checkpoint() : checkpointFilename("checkpoint")
         {
 #if(ENABLE_OPENPMD == 1)
-            ioBackendsHelp["openPMD"] = std::shared_ptr<plugins::multi::IHelp>(openPMD::openPMDWriter::getHelp());
+            ioBackendsHelp["openPMD"] = std::shared_ptr<plugins::multi::IHelp>(openPMD::getOpenPMDWriterHelp());
 #endif
             // currently we support only `openPMD` as IO checkpoint plugin
             if(!ioBackendsHelp.empty())
