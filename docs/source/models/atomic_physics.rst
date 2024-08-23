@@ -71,8 +71,25 @@ Changes of the PIC-simulation state by the atomic physics/FLYonPIC step are prop
 
 Which transitions and states are included in this update is user configurable, with the user providing all transition coefficients and state energies via an input file.
 
+Getting Started With FLYonPIC
+-----------------------------
+
+To use FLYonPIC in a simulation setup, you need to provide a set of atomic input data files, see :ref:`Input Data For FLYonPIC <atomicPhysicsInputData>`, and mark at least one species as an atomic physics ion species and one species as an atomic physics electron species.
+
+See the `compile time test of atomic physics <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileAtomicPhysics>`_ and the `compile sparser test <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileSparser>`_ for examples using atomic physics.
+
+.. warning::
+
+  These setups are **tests** of FLYonPIC components and therefore activate a lot of debug options negatively impacting runtime.
+
+  **Do not base production simulations directly on them!**
+
+  To disable all atomic physics debug options simple remove the ``atomicPhysics_Debug.param`` from the setup.
+
 Input Data for FLYonPIC
 -----------------------
+
+.. _atomicPhysicsInputData:
 
 FLYonPIC requires user provided input data describing the properties of charge- and atomic-states as well the cross section coefficients of all transitions to be modelled for all atomic Physics ions species.
 
