@@ -625,7 +625,7 @@ namespace picongpu::simulation::stage
                 OnlyIPDIonSpecies,
                 AtomicPhysicsElectronSpecies,
                 OnlyIPDElectronSpecies,
-                numberAtomicPhysicsSpecies>{}(mappingDesc, currentStep);
+                numberAtomicPhysicsIonSpecies>{}(mappingDesc, currentStep);
         }
     }
 

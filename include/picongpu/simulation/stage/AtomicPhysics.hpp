@@ -38,8 +38,21 @@ namespace picongpu::simulation::stage
     {
         using SpeciesRepresentingAtomicPhysicsIons = particles::atomicPhysics::traits::
             FilterByParticleType_t<VectorAllSpecies, picongpu::particles::atomicPhysics::Tags::Ion>;
-        auto static constexpr numberAtomicPhysicsSpecies = pmacc::mp_size<SpeciesRepresentingAtomicPhysicsIons>::value;
-        static bool constexpr atomicPhysicsActive = (numberAtomicPhysicsSpecies >= 1);
+        auto static constexpr numberAtomicPhysicsIonSpecies
+            = pmacc::mp_size<SpeciesRepresentingAtomicPhysicsIons>::value;
+
+        // check at least one electron species defined if atomicPhyiscs is active
+        using SpeciesRepresentingAtomicPhysicsElectrons = particles::atomicPhysics::traits::
+            FilterByParticleType_t<VectorAllSpecies, picongpu::particles::atomicPhysics::Tags::Electron>;
+        auto static constexpr numberAtomicPhysicsElectronSpecies
+            = pmacc::mp_size<SpeciesRepresentingAtomicPhysicsElectrons>::value;
+
+        static bool constexpr atomicPhysicsActive
+            = (numberAtomicPhysicsIonSpecies > 0 && numberAtomicPhysicsElectronSpecies > 0);
+
+        PMACC_CASSERT_MSG(
+            at_least_one_species_marked_as_atomic_physics_electron_species_required,
+            (numberAtomicPhysicsIonSpecies == 0) || (numberAtomicPhysicsElectronSpecies > 0));
 
     private:
         /** load the atomic input files for each species with atomicData
