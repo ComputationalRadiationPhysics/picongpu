@@ -23,10 +23,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/param/transitionRadiation.param"
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "picongpu/plugins/transitionRadiation/Calculator.hpp"
 #include "picongpu/plugins/transitionRadiation/GammaMask.hpp"
 #include "picongpu/plugins/transitionRadiation/Particle.hpp"
+#include "picongpu/unitless/transitionRadiation.unitless"
 
 #include <pmacc/kernel/atomic.hpp>
 

@@ -69,6 +69,8 @@
 #    include <pmacc/mappings/simulation/SubGrid.hpp>
 #    include <pmacc/math/Vector.hpp>
 #    include <pmacc/meta/AllCombinations.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #    include <pmacc/particles/IdProvider.hpp>
 #    include <pmacc/particles/frame_types.hpp>
 #    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>

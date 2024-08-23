@@ -18,19 +18,25 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #if(ENABLE_OPENPMD == 1)
 
+// clang-format off
 #    include "picongpu/simulation_defines.hpp"
+#    include "picongpu/param/radiation.param"
+#    include "picongpu/param/radiationObserver.param"
+// clang-format on
 
+#    include "picongpu/plugins/radiation/Radiation.kernel"
+
+#    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
 #    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
 #    include "picongpu/plugins/common/openPMDVersion.def"
 #    include "picongpu/plugins/common/stringHelpers.hpp"
-#    include "picongpu/plugins/radiation/Radiation.kernel"
 #    include "picongpu/plugins/radiation/executeParticleFilter.hpp"
+#    include "picongpu/unitless/radiation.unitless"
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/filesystem.hpp>

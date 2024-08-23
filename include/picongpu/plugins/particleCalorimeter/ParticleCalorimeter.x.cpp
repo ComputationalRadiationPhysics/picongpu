@@ -18,13 +18,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #if(ENABLE_OPENPMD == 1)
 
 #    include "ParticleCalorimeter.kernel"
+
 #    include "ParticleCalorimeterFunctors.hpp"
 #    include "picongpu/particles/boundary/Utility.hpp"
+#    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"
 #    include "picongpu/plugins/common/openPMDAttributes.hpp"

@@ -21,8 +21,9 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-#include "pmacc/attribute/FunctionSpecifier.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include <string>
 
