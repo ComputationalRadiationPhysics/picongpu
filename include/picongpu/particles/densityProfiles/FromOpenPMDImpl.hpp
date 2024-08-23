@@ -19,7 +19,7 @@
 
 #if(ENABLE_OPENPMD == 1)
 
-#    pragma once
+#    pragma once 
 
 #    include "picongpu/defines.hpp"
 #    include "picongpu/fields/FieldTmp.hpp"
