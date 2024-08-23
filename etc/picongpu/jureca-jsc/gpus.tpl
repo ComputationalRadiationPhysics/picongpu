@@ -28,7 +28,6 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --exclusive
-#SBATCH --distribution=*:block
 #SBATCH --gres=gpu:!TBG_devicesPerNode
 #SBATCH --ntasks=!TBG_tasks
 #SBATCH --ntasks-per-node=!TBG_devicesPerNode
