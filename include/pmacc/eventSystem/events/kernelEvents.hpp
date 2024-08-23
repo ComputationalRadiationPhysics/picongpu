@@ -25,7 +25,6 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/exec/KernelLauncher.hpp"
-#include "pmacc/exec/KernelMetaData.hpp"
 #include "pmacc/exec/KernelWithDynSharedMem.hpp"
 #include "pmacc/traits/GetNComponents.hpp"
 #include "pmacc/types.hpp"
@@ -59,14 +58,16 @@ namespace pmacc::exec
         struct KernelPreperationWrapper
         {
             T_KernelFunctor const m_kernelFunctor;
-            KernelMetaData const m_metaData;
+            std::string const m_file;
+            size_t const m_line;
 
             HINLINE KernelPreperationWrapper(
                 T_KernelFunctor const& kernelFunctor,
                 std::string const& file = std::string(),
                 size_t const line = 0)
                 : m_kernelFunctor(kernelFunctor)
-                , m_metaData(file, line)
+                , m_file(file)
+                , m_line(line)
             {
             }
 

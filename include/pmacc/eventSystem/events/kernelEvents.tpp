@@ -39,7 +39,8 @@ namespace pmacc::exec::detail
     {
         return {
             KernelWithDynSharedMem<T_KernelFunctor>(m_kernelFunctor, sharedMemByte),
-            m_metaData,
+            m_file,
+            m_line,
             gridExtent,
             blockExtent};
     }
@@ -50,7 +51,7 @@ namespace pmacc::exec::detail
         T_VectorGrid const& gridExtent,
         T_VectorBlock const& blockExtent) const -> KernelLauncher<T_KernelFunctor, GetDim<T_VectorGrid>::dim>
     {
-        return {m_kernelFunctor, m_metaData, gridExtent, blockExtent};
+        return {m_kernelFunctor, m_file, m_line, gridExtent, blockExtent};
     }
 
 } // namespace pmacc::exec::detail

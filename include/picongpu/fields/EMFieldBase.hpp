@@ -20,10 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/fields/Fields.def"
-#include "picongpu/simulation_types.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
@@ -53,17 +50,12 @@ namespace picongpu
          * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
          * ISimulationData.
          *
-         * @tparam T_DerivedField derived field type
          */
-        template<typename T_DerivedField>
         class EMFieldBase
             : public SimulationFieldHelper<MappingDesc>
             , public ISimulationData
         {
         public:
-            //! Derived field type
-            using DerivedField = T_DerivedField;
-
             //! Type of each field value
             using ValueType = float3_X;
 
@@ -84,40 +76,44 @@ namespace picongpu
              * @param cellDescription mapping for kernels
              * @param id unique id
              */
-            HINLINE EMFieldBase(MappingDesc const& cellDescription, pmacc::SimulationDataId const& id);
+            EMFieldBase(
+                MappingDesc const& cellDescription,
+                pmacc::SimulationDataId const& id,
+                math::Vector<int, simDim> const& lowerMargin,
+                math::Vector<int, simDim> const& upperMargin);
 
             //! Get a reference to the host-device buffer for the field values
-            HINLINE Buffer& getGridBuffer();
+            Buffer& getGridBuffer();
 
             //! Get the grid layout
-            HINLINE GridLayout<simDim> getGridLayout();
+            GridLayout<simDim> getGridLayout();
 
             //! Get the host data box for the field values
-            HINLINE DataBoxType getHostDataBox();
+            DataBoxType getHostDataBox();
 
             //! Get the device data box for the field values
-            HINLINE DataBoxType getDeviceDataBox();
+            DataBoxType getDeviceDataBox();
 
             /** Start asynchronous communication of field values
              *
              * @param serialEvent event to depend on
              */
-            HINLINE EventTask asyncCommunication(EventTask serialEvent);
+            EventTask asyncCommunication(EventTask serialEvent);
 
             /** Reset the host-device buffer for field values
              *
              * @param currentStep index of time iteration
              */
-            HINLINE void reset(uint32_t currentStep) override;
+            void reset(uint32_t currentStep) override;
 
             //! Synchronize device data with host data
-            HINLINE void syncToDevice() override;
+            void syncToDevice() override;
 
             //! Synchronize host data with device data
-            HINLINE void synchronize() override;
+            void synchronize() override;
 
             //! Get id
-            HINLINE SimulationDataId getUniqueId() override;
+            SimulationDataId getUniqueId() override;
 
         private:
             //! Host-device buffer for field values

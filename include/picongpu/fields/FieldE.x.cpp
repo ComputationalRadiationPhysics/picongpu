@@ -18,11 +18,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "picongpu/fields/FieldE.hpp"
+
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/EMFieldBase.hpp"
-#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/simulation_types.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <string>
@@ -32,30 +37,36 @@
 
 namespace picongpu
 {
-    FieldB::FieldB(MappingDesc const& cellDescription) : fields::EMFieldBase<FieldB>(cellDescription, getName())
+    FieldE::FieldE(MappingDesc const& cellDescription)
+        : fields::EMFieldBase(
+            cellDescription,
+            getName(),
+            GetLowerMargin<fields::Solver, FieldE>::type::toRT(),
+            GetUpperMargin<fields::Solver, FieldE>::type::toRT())
     {
     }
 
-    HDINLINE FieldB::UnitValueType FieldB::getUnit()
+    FieldE::UnitValueType FieldE::getUnit()
     {
-        return UnitValueType{UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD};
+        return UnitValueType{UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD};
     }
 
-    std::vector<float_64> FieldB::getUnitDimension()
+    std::vector<float_64> FieldE::getUnitDimension()
     {
-        /* B is in Tesla : kg / (A * s^2)
-         *   -> M * T^-2 * I^-1
+        /* E is in volts per meters: V / m = kg * m / (A * s^3)
+         *   -> L * M * T^-3 * I^-1
          */
         std::vector<float_64> unitDimension(7, 0.0);
+        unitDimension.at(SIBaseUnits::length) = 1.0;
         unitDimension.at(SIBaseUnits::mass) = 1.0;
-        unitDimension.at(SIBaseUnits::time) = -2.0;
+        unitDimension.at(SIBaseUnits::time) = -3.0;
         unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
         return unitDimension;
     }
 
-    std::string FieldB::getName()
+    std::string FieldE::getName()
     {
-        return "B";
+        return "E";
     }
 
 } // namespace picongpu

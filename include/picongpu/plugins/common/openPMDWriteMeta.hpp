@@ -20,7 +20,7 @@
 #pragma once
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/absorber/Absorber.hpp"
+#include "picongpu/fields/absorber/absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"

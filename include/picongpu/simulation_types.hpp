@@ -31,7 +31,6 @@
 #include <pmacc/traits/GetStringProperties.hpp>
 #include <pmacc/traits/NumberOfExchanges.hpp>
 
-
 namespace picongpu
 {
     namespace precision32Bit
