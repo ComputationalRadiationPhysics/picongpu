@@ -101,7 +101,11 @@ namespace picongpu
                         // enforce a lower cutoff for the Debye length equal to the mean inter atomic distance
                         // of the species with the highest density
                         const float_X maxDens
+<<<<<<< HEAD
                             = dens[0] * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle());
+=======
+                            = dens[0] * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
                         const float_X val = 2.0_X * pmacc::math::Pi<float_X>::doubleValue / 3.0_X * maxDens;
                         const float_X rMin = 1.0_X / math::cbrt(val);
                         const float_X rMin2 = rMin * rMin;
@@ -145,7 +149,11 @@ namespace picongpu
                         outFile.open(fileName.c_str(), std::ofstream::out | std::ostream::app);
                         outFile << currentStep << " " << std::scientific
                                 << static_cast<float_64>(reducedValue[0]) / static_cast<float_64>(reducedCellAmount)
+<<<<<<< HEAD
                                 * sim.unit.length()
+=======
+                                * UNIT_LENGTH
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
                                 << std::endl;
                         outFile.flush();
                         outFile.close();
@@ -153,7 +161,11 @@ namespace picongpu
                 }
             }
 
+<<<<<<< HEAD
             void Collision::operator()(MappingDesc const cellDescription, uint32_t const currentStep) const
+=======
+            void Collision::operator()(uint32_t const currentStep) const
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
             {
                 // Calculate squared Debye length using the formula form [Perez 2012].
                 // A species temperature is assumed to be (2/3)<E_kin>
@@ -180,7 +192,10 @@ namespace picongpu
                         particles::particleToGrid::combinedAttributes::ScreeningInvSquared>{}(
                         *screeningLengthSquared,
                         currentStep,
+<<<<<<< HEAD
                         cellDescription,
+=======
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
                         slot + 1u);
 
                     // The Debye length is bound to be greater than the mean inter-atomic distance of the most
@@ -191,6 +206,7 @@ namespace picongpu
                         CORE + BORDER,
                         SpeciesSeq,
                         pmacc::math::operation::Max,
+<<<<<<< HEAD
                         particles::particleToGrid::derivedAttributes::Density>{}(
                         *maxDensity,
                         currentStep,
@@ -201,6 +217,12 @@ namespace picongpu
                     modifyFieldTmpByField<CORE + BORDER, collision::GetSquaredScreeningLength>(
                         *screeningLengthSquared,
                         cellDescription,
+=======
+                        particles::particleToGrid::derivedAttributes::Density>{}(*maxDensity, currentStep, slot + 2u);
+
+                    // Invert the calculated value and apply the cut-off to get the squared debye length
+                    screeningLengthSquared->modifyByField<CORE + BORDER, collision::GetSquaredScreeningLength>(
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
                         *maxDensity);
                     // the FieldTmp slot used for storing  the max density is no longer needed beyond this point
                     maxDensity.reset();

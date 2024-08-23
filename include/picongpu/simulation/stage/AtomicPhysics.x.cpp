@@ -127,7 +127,11 @@ namespace picongpu::simulation::stage
             {
                 pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
                 auto& localTimeRemainingField = *dc.get<S_TimeRemainingField>("LocalTimeRemainingField");
+<<<<<<< HEAD
                 localTimeRemainingField.getDeviceBuffer().setValue(picongpu::sim.pic.getDt()); // sim.unit.time()
+=======
+                localTimeRemainingField.getDeviceBuffer().setValue(picongpu::DELTA_T); // UNIT_TIME
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
             }
 
             //! reset the histogram on device side
@@ -298,10 +302,17 @@ namespace picongpu::simulation::stage
             void chooseTransition(picongpu::MappingDesc const& mappingDesc, uint32_t const currentStep) const
             {
                 // randomly roll transition for each not yet accepted macro ion
+<<<<<<< HEAD
                 using ForEachIonSpeciesChooseTransitionGroup = pmacc::meta::ForEach<
                     AtomicPhysicsIonSpecies,
                     particles::atomicPhysics::stage::ChooseTransitionGroup<boost::mpl::_1>>;
                 ForEachIonSpeciesChooseTransitionGroup{}(mappingDesc, currentStep);
+=======
+                using ForEachIonSpeciesChooseTransitionType = pmacc::meta::ForEach<
+                    AtomicPhysicsIonSpecies,
+                    particles::atomicPhysics::stage::ChooseTransitionType<boost::mpl::_1>>;
+                ForEachIonSpeciesChooseTransitionType{}(mappingDesc, currentStep);
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
 
                 using ForEachIonSpeciesChooseTransition = pmacc::meta::ForEach<
                     AtomicPhysicsIonSpecies,
@@ -625,7 +636,11 @@ namespace picongpu::simulation::stage
                 OnlyIPDIonSpecies,
                 AtomicPhysicsElectronSpecies,
                 OnlyIPDElectronSpecies,
+<<<<<<< HEAD
                 numberAtomicPhysicsIonSpecies>{}(mappingDesc, currentStep);
+=======
+                numberAtomicPhysicsSpecies>{}(mappingDesc, currentStep);
+>>>>>>> eec4bc33c (compile unit: stage refactoring)
         }
     }
 
