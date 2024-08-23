@@ -18,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/FieldJ.hpp"

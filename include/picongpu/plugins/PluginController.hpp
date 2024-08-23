@@ -25,15 +25,11 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/CountParticles.hpp"
-#include "picongpu/plugins/Emittance.hpp"
-#include "picongpu/plugins/EnergyFields.hpp"
-#include "picongpu/plugins/EnergyParticles.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/PngPlugin.hpp"
-#include "picongpu/plugins/SumCurrents.hpp"
+#include "picongpu/plugins/SumCurrents.x.cpp"
 #include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 

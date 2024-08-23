@@ -17,11 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// required for SIMDIM definition
+#include "picongpu/simulation_defines.hpp"
 
 #if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 
-// clang-format off
-#    include "picongpu/simulation_defines.hpp"
+// clang-format of
 #    include "picongpu/param/shadowgraphy.param"
 // clang-format on
 

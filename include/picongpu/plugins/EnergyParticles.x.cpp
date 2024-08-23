@@ -18,11 +18,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
