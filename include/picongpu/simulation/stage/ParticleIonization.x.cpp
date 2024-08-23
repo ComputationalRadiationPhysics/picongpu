@@ -19,9 +19,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "picongpu/simulation/stage/ParticleIonization.hpp"
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/ionization/byCollision/ionizers.hpp"
+#include "picongpu/particles/ionization/byField/ionizers.hpp"
+
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include <cstdint>
 
@@ -32,34 +41,18 @@ namespace picongpu
     {
         namespace stage
         {
-            /** Functor for the stage of the PIC loop performing particle ionization
+            /** Ionize particles
              *
-             * Only affects particle species with the ionizers attribute.
+             * @param step index of time iteration
              */
-            class ParticleIonization
+            void ParticleIonization::operator()(uint32_t const step) const
             {
-            public:
-                /** Create a particle ionization functor
-                 *
-                 * Having this in constructor is a temporary solution.
-                 *
-                 * @param cellDescription mapping for kernels
-                 */
-                ParticleIonization(MappingDesc const cellDescription) : cellDescription(cellDescription)
-                {
-                }
-
-                /** Ionize particles
-                 *
-                 * @param step index of time iteration
-                 */
-                void operator()(uint32_t const step) const;
-
-            private:
-                //! Mapping for kernels
-                MappingDesc cellDescription;
-            };
-
+                using pmacc::particles::traits::FilterByFlag;
+                using SpeciesWithIonizers = typename FilterByFlag<VectorAllSpecies, ionizers<>>::type;
+                pmacc::meta::ForEach<SpeciesWithIonizers, particles::CallIonization<boost::mpl::_1>>
+                    particleIonization;
+                particleIonization(cellDescription, step);
+            }
         } // namespace stage
     } // namespace simulation
 } // namespace picongpu

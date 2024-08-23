@@ -20,10 +20,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/Fields.def"
-#include "picongpu/particles/filter/filter.def"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
@@ -121,7 +119,10 @@ namespace picongpu
 
         //! Get unit of field components
         template<class FrameSolver>
-        HDINLINE static UnitValueType getUnit();
+        static UnitValueType getUnit()
+        {
+            return FrameSolver().getUnit();
+        }
 
         /** Get unit representation as powers of the 7 base measures
          *
@@ -131,7 +132,10 @@ namespace picongpu
          *  luminous intensity J)
          */
         template<class FrameSolver>
-        static std::vector<float_64> getUnitDimension();
+        static std::vector<float_64> getUnitDimension()
+        {
+            return FrameSolver().getUnitDimension();
+        }
 
         //! Get mapping for kernels
         MappingDesc getCellDescription()
@@ -149,31 +153,6 @@ namespace picongpu
          * explicit handling to avoid race conditions between both methods.
          */
         EventTask asyncCommunicationGather(EventTask serialEvent);
-
-        /** Compute an attribute derived from species in an area
-         *
-         * @tparam AREA area to compute values in
-         * @tparam T_Species particle species type
-         * @tparam Filter particle filter used to filter contributing particles
-         *         (default is all particles contribute)
-         *
-         * @param species particle species
-         * @param currentStep index of time iteration
-         */
-        template<uint32_t AREA, class FrameSolver, typename Filter = particles::filter::All, class ParticlesClass>
-        void computeValue(ParticlesClass& parClass, uint32_t currentStep);
-
-        /** Modify this field by an another field
-         *
-         * @tparam AREA area where the values are modified
-         * @tparam T_ModifyingOperation a binary operation defining the result of the modification as a function
-         *  of two values. The 1st value is this field and the 2nd value is the modifying field.
-         * @tparam T_ModifyingField type of the second field
-         *
-         * @param modifyingField the second field
-         */
-        template<uint32_t AREA, typename T_ModifyingOperation, typename T_ModifyingField>
-        void modifyByField(T_ModifyingField& modifyingField);
 
         /** Bash particles in a direction.
          * Copy all particles from the guard of a direction to the device exchange buffer

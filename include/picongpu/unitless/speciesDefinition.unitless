@@ -21,8 +21,6 @@
 
 #include "picongpu/fields/currentDeposition/Solver.hpp"
 #include "picongpu/particles/Particles.tpp"
-#include "picongpu/particles/ionization/byCollision/ionizers.hpp"
-#include "picongpu/particles/ionization/byField/ionizers.hpp"
 #include "picongpu/traits/attribute/GetCharge.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"

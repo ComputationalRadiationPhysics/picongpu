@@ -23,6 +23,7 @@
 
 #include "picongpu/param/particleFilters.param"
 #include "picongpu/param/speciesInitialization.param"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
 

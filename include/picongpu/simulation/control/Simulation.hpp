@@ -534,7 +534,7 @@ namespace picongpu
             IterationStart{}(currentStep);
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
-            Collision{deviceHeap}(currentStep);
+            Collision{deviceHeap}(*cellDescription, currentStep);
             ParticleIonization{*cellDescription}(currentStep);
             (*atomicPhysics)(*cellDescription, currentStep);
             (*synchrotronRadiation)(currentStep);
@@ -808,5 +808,3 @@ namespace picongpu
         }
     };
 } /* namespace picongpu */
-
-#include "picongpu/fields/Fields.tpp"

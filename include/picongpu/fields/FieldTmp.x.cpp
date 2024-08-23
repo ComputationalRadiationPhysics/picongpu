@@ -18,12 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "picongpu/fields/FieldTmp.hpp"
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/FieldTmp.kernel"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
@@ -165,44 +167,6 @@ namespace picongpu
         }
     }
 
-    template<uint32_t AREA, class FrameSolver, typename Filter, class ParticlesClass>
-    void FieldTmp::computeValue(ParticlesClass& parClass, uint32_t)
-    {
-        using BlockArea = SuperCellDescription<
-            typename MappingDesc::SuperCellSize,
-            typename FrameSolver::LowerMargin,
-            typename FrameSolver::UpperMargin>;
-
-        auto mapper = makeStrideAreaMapper<AREA, 3>(cellDescription);
-        typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox();
-        FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer().getDataBox();
-        FrameSolver solver;
-        using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
-        const uint32_t currentStep = Environment<>::get().SimulationDescription().getCurrentStep();
-
-        DataConnector& dc = Environment<>::get().DataConnector();
-        auto idProvider = dc.get<IdProvider>("globalId");
-
-        auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep, idProvider->getDeviceGenerator()};
-
-        do
-        {
-            PMACC_LOCKSTEP_KERNEL(KernelComputeSupercells<BlockArea>{})
-                .config(mapper.getGridDim(), pBox)(tmpBox, pBox, solver, iFilter, mapper);
-        } while(mapper.next());
-    }
-
-    template<uint32_t AREA, typename T_ModifyingOperation, typename T_ModifyingField>
-    void FieldTmp::modifyByField(T_ModifyingField& modifyingField)
-    {
-        auto mapper = makeAreaMapper<AREA>(cellDescription);
-        FieldTmp::DataBoxType thisBox = this->fieldTmp->getDeviceBuffer().getDataBox();
-        const auto modifyingBox = modifyingField.getGridBuffer().getDeviceBuffer().getDataBox();
-
-        using Kernel = ModifyByFieldKernel<T_ModifyingOperation, MappingDesc::SuperCellSize>;
-        PMACC_LOCKSTEP_KERNEL(Kernel{}).config(mapper.getGridDim(), SuperCellSize{})(mapper, thisBox, modifyingBox);
-    }
-
     SimulationDataId FieldTmp::getUniqueId(uint32_t slotId)
     {
         return getName() + std::to_string(slotId);
@@ -282,18 +246,6 @@ namespace picongpu
     {
         fieldTmp->getHostBuffer().reset(true);
         fieldTmp->getDeviceBuffer().reset(false);
-    }
-
-    template<class FrameSolver>
-    HDINLINE FieldTmp::UnitValueType FieldTmp::getUnit()
-    {
-        return FrameSolver().getUnit();
-    }
-
-    template<class FrameSolver>
-    HINLINE std::vector<float_64> FieldTmp::getUnitDimension()
-    {
-        return FrameSolver().getUnitDimension();
     }
 
     std::string FieldTmp::getName()
