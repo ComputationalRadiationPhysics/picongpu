@@ -76,35 +76,5 @@ namespace picongpu
         constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
             = mCT::volume<startPosition::QuietParam::numParticlesPerDimension>::type::value;
 
-        namespace manipulators
-        {
-            /** Define Lorentz factor of initial particle drift along +X. */
-            struct DriftParamPositive
-            {
-                static constexpr float_64 gamma = 1.021;
-                /** Define initial particle drift direction vector.
-                 */
-                static constexpr auto driftDirection = float3_X(1.0, 0.0, 0.0);
-            };
-            /** Definition of manipulator that assigns a drift in +X
-             *  using parameters from struct DriftParamPositive.
-             */
-            using AssignXDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
-
-
-            /** Define initial particle temperature. */
-            struct TemperatureParam
-            {
-                /** Initial temperature
-                 *  unit: keV
-                 */
-                static constexpr float_64 temperature = 0.0005;
-            };
-            /** Definition of manipulator assigning a temperature
-             *  using parameters from struct TemperatureParam.
-             */
-            using AddTemperature = unary::Temperature<TemperatureParam>;
-
-        } // namespace manipulators
     } // namespace particles
 } // namespace picongpu
