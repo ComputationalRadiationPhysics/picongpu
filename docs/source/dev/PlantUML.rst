@@ -9,7 +9,7 @@ For each UML diagram generated using PlantUML we also provide the source file ``
 Install PlantUML
 ----------------
 
-See `PlantUML documentation<https://plantuml.com/starting>`_ for detailed instructions.
+See `PlantUML documentation <https://plantuml.com/starting>`_ for detailed instructions.
 
 TLDR:
 ^^^^^
