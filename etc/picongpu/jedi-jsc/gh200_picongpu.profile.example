@@ -1,0 +1,131 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project and account for allocation
+#   jutil user projects will return a table of project associations.
+#   Each row contains: project,unixgroup,PI-uid,project-type,budget-accounts
+#   We need the first and last entry.
+#   Here: select the last available project.
+export proj=$( jutil user projects --noheader | awk '{print $1}' | tail -n 1 )
+export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# Set up environment, including $SCRATCH and $PROJECT
+# Handle a case where the budgeting account is not set.
+if [ "$account" = "-" ]; then
+    jutil env activate --project $proj;
+else
+    jutil env activate --project $proj --budget $account
+fi
+
+# General modules #############################################################
+#
+module purge
+module load Stages/2024
+module load GCC/12.3.0
+module load CUDA/12
+module load CMake
+module load ParaStationMPI/5.9.2-1
+module load MPI-settings/CUDA
+module load Python/3.11.3
+module load HDF5
+module load Boost/1.82.0
+
+# necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
+module load SciPy-bundle/2023.07
+module load matplotlib/3.7.2
+module load h5py/3.9.0
+module load numba
+module load tqdm
+
+# Self-Build Software #########################################################
+#
+# needs to be compiled by the user
+# Check the install script at
+# https://gist.github.com/ikbuibui/3b20afc3eb3577f43b74cdbd9c3f53c0
+#
+export PIC_LIBS=$PROJECT/share/lib
+export PNG_WRITER=$PIC_LIBS/pngwriter
+export OPENPMD_ROOT=$PIC_LIBS/openPMD-api
+export ADIOS2_ROOT=$PIC_LIBS/adios2
+
+export CMAKE_PREFIX_PATH=$PNG_WRITER:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH
+
+export PATH=$OPENPMD_ROOT/bin:$PATH
+
+export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.11/site-packages/openpmd_api:$PYTHONPATH
+# Environment #################################################################
+
+export PICSRC=$PROJECT/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:90" # Nvidia H100 architecture
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/jedi-jsc"}
+
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "gpus" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/jedi-jsc/gh200.tpl"
+
+# allocate an interactive shell for one hour
+#   getNode 2  # allocates 2 interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    if [ $numNodes -gt 8 ] ; then
+        echo "The maximal number of interactive nodes is 8." 1>&2
+        return 1
+    fi
+    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=460G -A $account -p all bash
+}
+
+# allocate an interactive shell for one hour
+#   getDevice 2  # allocates 2 interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numDevices=1
+    else
+        if [ "$1" -gt 4 ] ; then
+            echo "The maximal number of devices per node is 4." 1>&2
+            return 1
+        else
+            numDevices=$1
+        fi
+    fi
+    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=460G -A $account -p all --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
