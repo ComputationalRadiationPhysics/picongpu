@@ -29,7 +29,6 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/PngPlugin.hpp"
-#include "picongpu/plugins/SumCurrents.x.cpp"
 #include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 

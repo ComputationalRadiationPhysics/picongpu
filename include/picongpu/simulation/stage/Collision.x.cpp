@@ -28,6 +28,7 @@
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/particles/particleToGrid/FoldDeriveFields.hpp"
 #include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"
+#include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.hpp"
 #include "picongpu/unitless/checkpoints.unitless"
 
 #include <pmacc/Environment.hpp>
