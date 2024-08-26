@@ -77,41 +77,12 @@ namespace picongpu
 
         namespace manipulators
         {
-            /** Define Lorentz factor of initial particle drift. */
-            struct DriftParamPositive
+            struct SparserParam
             {
-                static constexpr float_64 gamma = 1.021;
-                /** Define initial particle drift direction vector.
-                 */
-                static constexpr auto driftDirection = float3_X(1.0, 0.0, 0.0);
+                //! local index of cell in each superCell whose macro particles to keep
+                using idxCellToKeep = pmacc::math::CT::shrinkTo<pmacc::math::CT::Int<1, 1, 1>, picongpu::simDim>::type;
             };
-            /** Definition of manipulator that assigns a drift in X
-             *  using parameters from struct DriftParamPositive.
-             */
-            using AssignXDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
-
-
-            /** Define initial particle temperature as a function of position.
-             *  This is a functor which needs to follow the requirements of param::TemperatureFunctor.
-             */
-            struct TemperatureFunctor
-            {
-                /** Return the temperature in keV for the given position
-                 *
-                 * Return type may be float_X or float_64.
-                 *
-                 * @param position_SI total offset including all slides [meter]
-                 * @param cellSize_SI cell sizes [meter]
-                 */
-                HDINLINE float_X operator()(floatD_64 const& position_SI, float3_64 const& cellSize_SI)
-                {
-                    return 0.0005_X;
-                }
-            };
-            /** Definition of manipulator that assigns a temperature
-             *  according to the functor defined by struct TemperaturFunctor.
-             */
-            using AddFreeTemperature = unary::FreeTemperature<TemperatureFunctor>;
+            using Sparse = picongpu::particles::manipulators::unary::SparserMacroParticlesPerSuperCell<SparserParam>;
 
         } // namespace manipulators
     } // namespace particles
