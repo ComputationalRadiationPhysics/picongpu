@@ -152,8 +152,6 @@ namespace picongpu
 
     /** configuration of species for atomicPhysics algorithm, see picongpu/particles/atomicPhysics/ParticleType.hpp for
      * details
-     *
-     * @details underscore to prevent name collision with atomic physics param namespace, piconpgu::atomicPhysics
      */
     alias(atomicPhysicsParticle);
 
