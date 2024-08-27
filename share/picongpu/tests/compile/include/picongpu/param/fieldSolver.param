@@ -34,6 +34,19 @@
 
 #include "picongpu/fields/MaxwellSolver/Solvers.def"
 
+#ifndef PARAM_SUBSTEPPINGSOLVER
+#    define PARAM_SUBSTEPPINGSOLVER 0
+#endif
+
+#ifndef PARAM_FIELDSOLVER
+#    define PARAM_FIELDSOLVER Yee
+#endif
+
+#if PARAM_SUBSTEPPINGSOLVER
+#    define SOLVER maxwellSolver::Substepping<maxwellSolver::PARAM_FIELDSOLVER, 5>
+#else
+#    define SOLVER maxwellSolver::PARAM_FIELDSOLVER
+#endif
 
 namespace picongpu
 {
@@ -44,8 +57,7 @@ namespace picongpu
          * Field Solver Selection (note <> for some solvers), all in namespace maxwellSolver:
          *  - Yee: Standard Yee solver approximating derivatives with respect to time and
          * space by second order finite differences.
-         *  - CKC: Cole-Karkkainen-Cowan Solver, Dispersion free solver in the direction of the smallest
-         *  grid size.
+         *  - CKC: Cole-Karkkainen-Cowan Solver, Dispersion free solver in the direction of the smallest grid size.
          *  - Lehe<>: Num. Cherenkov free field solver in a chosen direction
          *  - ArbitraryOrderFDTD<4>: Solver using 4 neighbors to each direction to approximate
          * *spatial* derivatives by finite differences. The number of neighbors can be changed from 4 to any positive,
@@ -54,7 +66,7 @@ namespace picongpu
          *  - Substepping<Solver, 4>: use the given Solver (Yee, etc.) and substep each time step by factor 4
          *  - None: disable the vacuum update of E and B, including no J contribution to E
          */
-        using Solver = maxwellSolver::Yee;
+        using Solver = SOLVER;
 
     } // namespace fields
 } // namespace picongpu

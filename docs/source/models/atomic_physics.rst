@@ -76,7 +76,7 @@ Getting Started With FLYonPIC
 
 To use FLYonPIC in a simulation setup, you need to provide a set of atomic input data files, see :ref:`Input Data For FLYonPIC <atomicPhysicsInputData>`, and mark at least one species as an atomic physics ion species and one species as an atomic physics electron species.
 
-See the `compile time test of atomic physics <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileAtomicPhysics>`_ and the `compile sparser test <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileSparser>`_ for examples using atomic physics.
+See the `compile time test of atomic physics <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/tests/compileAtomicPhysics>`_ for examples using atomic physics.
 
 .. warning::
 

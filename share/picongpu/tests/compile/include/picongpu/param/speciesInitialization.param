@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Rene Widera, Axel Huebl, Brian Marre
+/* Copyright 2015-2023 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -9,7 +9,7 @@
  *
  * PIConGPU is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -31,7 +31,6 @@
 #include "picongpu/particles/InitFunctors.hpp"
 
 
-// init of particles with
 namespace picongpu
 {
     namespace particles
@@ -41,13 +40,8 @@ namespace picongpu
          * the functors are called in order (from first to last functor)
          */
         using InitPipeline = pmacc::mp_list<
-            CreateDensity<densityProfiles::Homogenous, startPosition::Random, CopperIons>,
-            Manipulate<manipulators::Sparse, CopperIons>,
-            FillAllGaps<CopperIons>,
-            ManipulateDerive<manipulators::binary::DensityWeighting, CopperIons, BulkElectrons>,
-            // set ions to atomic ground state for charge state 9
-            Manipulate<manipulators::SetChargeState, CopperIons>,
-            // Set initial temperature of bulk electrons
-            Manipulate<manipulators::AddTemperature, BulkElectrons>>;
+            CreateDensity<densityProfiles::Homogenous, startPosition::RandomPositionAndWeighting, PIC_Electrons>,
+            Manipulate<manipulators::Sparse, PIC_Electrons>>;
+
     } // namespace particles
 } // namespace picongpu

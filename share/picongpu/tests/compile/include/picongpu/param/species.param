@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger, Sergei Bastrakov
+/* Copyright 2014-2023 Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -68,7 +68,10 @@ namespace picongpu
      * - currentSolver::strategy::NonCachedSupercells
      * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
      */
-    using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
+#ifndef PARAM_CURRENTSOLVER
+#    define PARAM_CURRENTSOLVER Esirkepov<UsedParticleShape>
+#endif
+    using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER;
 
 /** particle pusher configuration
  *
