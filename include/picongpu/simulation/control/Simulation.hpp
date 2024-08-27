@@ -55,6 +55,7 @@
 #include "picongpu/simulation/stage/IterationStart.hpp"
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
 #include "picongpu/simulation/stage/ParticleBoundaries.hpp"
+#include "picongpu/simulation/stage/ParticleInit.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
@@ -494,18 +495,8 @@ namespace picongpu
                 else
                 {
                     initialiserController->init();
-                    meta::ForEach<particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
-                    initSpecies(0);
-                    /* Remove all particles that are outside the respective boundaries
-                     * (this can happen if density functor didn't account for it).
-                     * For the rest of the simulation we can be sure the only external particles just crossed the
-                     * border.
-                     */
-                    particles::RemoveOuterParticlesAllSpecies removeOuterParticlesAllSpecies;
-                    removeOuterParticlesAllSpecies(step);
-
+                    simulation::stage::ParticleInit{}(step);
                     (*atomicPhysics).fixAtomicStateInit(*cellDescription);
-
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);
                 }
@@ -543,7 +534,7 @@ namespace picongpu
             IterationStart{}(currentStep);
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
-            Collision{deviceHeap}(currentStep);
+            Collision{deviceHeap}(*cellDescription, currentStep);
             ParticleIonization{*cellDescription}(currentStep);
             (*atomicPhysics)(*cellDescription, currentStep);
             (*synchrotronRadiation)(currentStep);
@@ -604,8 +595,8 @@ namespace picongpu
                 log<picLog::SIMULATION_STATE>("slide in step %1%") % currentStep;
                 resetAll(currentStep);
                 initialiserController->slide(currentStep);
-                meta::ForEach<particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
-                initSpecies(currentStep);
+                simulation::stage::ParticleInit{}(currentStep);
+                (*atomicPhysics).fixAtomicStateInit(*cellDescription);
             }
         }
 
@@ -817,5 +808,3 @@ namespace picongpu
         }
     };
 } /* namespace picongpu */
-
-#include "picongpu/fields/Fields.tpp"

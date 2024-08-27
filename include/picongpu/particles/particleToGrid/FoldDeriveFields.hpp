@@ -83,6 +83,7 @@ namespace picongpu
                         FieldTmp& fieldTmp1,
                         FieldTmp& fieldTmp2,
                         uint32_t const& currentStep,
+                        MappingDesc const cellDescription,
                         uint32_t const& extraSlotNr) const
                     {
                         using DeriveOperation = particles::particleToGrid::
@@ -99,7 +100,7 @@ namespace picongpu
                         // wait for unfinished asynchronous communication
                         if(event.has_value())
                             eventSystem::setTransactionEvent(*event);
-                        fieldTmp1.template modifyByField<CORE + BORDER, T_Op>(fieldTmp2);
+                        modifyFieldTmpByField<CORE + BORDER, T_Op>(fieldTmp1, cellDescription, fieldTmp2);
                     }
                 };
             } // namespace detail
@@ -134,7 +135,11 @@ namespace picongpu
                  *      | simple attribute   |      1       |     0        |
                  *      ####################################################
                  */
-                void operator()(FieldTmp& fieldTmp1, uint32_t const& currentStep, uint32_t const& extraSlot) const
+                void operator()(
+                    FieldTmp& fieldTmp1,
+                    uint32_t const& currentStep,
+                    MappingDesc const cellDescription,
+                    uint32_t const& extraSlot) const
                 {
                     using FilteredSpeciesSeq
                         = pmacc::mp_transform_q<pmacc::mp_quote_trait<detail::GetSpeciesFilter>, T_SpeciesSeq>;
@@ -167,6 +172,7 @@ namespace picongpu
                             fieldTmp1,
                             *fieldTmp2,
                             currentStep,
+                            cellDescription,
                             extraSlot + 1u);
                     }
                 }

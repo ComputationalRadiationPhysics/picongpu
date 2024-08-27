@@ -20,6 +20,7 @@
 #pragma once
 
 
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/utilities.hpp"
 
 #include <cstdint>

@@ -24,3 +24,4 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/fields/Fields.def"

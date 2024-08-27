@@ -18,13 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "picongpu/fields/FieldJ.hpp"
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/FieldJ.kernel"
-#include "picongpu/fields/currentDeposition/Deposit.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
@@ -186,14 +185,12 @@ namespace picongpu
         return getName();
     }
 
-    HDINLINE
     FieldJ::UnitValueType FieldJ::getUnit()
     {
         const float_64 unitCurrentDensity = UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
         return UnitValueType(unitCurrentDensity, unitCurrentDensity, unitCurrentDensity);
     }
 
-    HINLINE
     std::vector<float_64> FieldJ::getUnitDimension()
     {
         /* L, M, T, I, theta, N, J
@@ -217,44 +214,6 @@ namespace picongpu
     {
         buffer.getDeviceBuffer().setValue(value);
         // fieldJ.reset(false);
-    }
-
-    template<uint32_t T_area, class T_Species>
-    void FieldJ::computeCurrent(T_Species& species, uint32_t)
-    {
-        /* Current deposition logic (for all schemes we implement) requires that a particle cannot pass more than a
-         * cell in a time step. For 2d this concerns only steps in x, y. This check is same as in particle pusher, but
-         * we do not require that pusher and current deposition are both enabled for a species, so check in both
-         * places.
-         */
-        constexpr auto dz = (simDim == 3) ? CELL_DEPTH : std::numeric_limits<float_X>::infinity();
-        constexpr auto minCellSize = std::min({CELL_WIDTH, CELL_HEIGHT, dz});
-        PMACC_CASSERT_MSG(
-            Particle_in_current_deposition_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
-            (SPEED_OF_LIGHT * DELTA_T / minCellSize <= 1.0) && sizeof(T_Species*) != 0);
-
-        using FrameType = typename T_Species::FrameType;
-        using ParticleCurrentSolver =
-            typename pmacc::traits::Resolve<typename pmacc::traits::GetFlagType<FrameType, current<>>::type>::type;
-
-        using FrameSolver
-            = currentSolver::ComputePerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize>;
-
-        using BlockArea = SuperCellDescription<
-            typename MappingDesc::SuperCellSize,
-            typename GetMargin<ParticleCurrentSolver>::LowerMargin,
-            typename GetMargin<ParticleCurrentSolver>::UpperMargin>;
-
-        using Strategy = currentSolver::traits::GetStrategy_t<FrameSolver>;
-
-        auto const depositionKernel = currentSolver::KernelComputeCurrent<BlockArea>{};
-
-        typename T_Species::ParticlesBoxType pBox = species.getDeviceParticlesBox();
-        FieldJ::DataBoxType jBox = buffer.getDeviceBuffer().getDataBox();
-        FrameSolver solver(DELTA_T);
-
-        auto const deposit = currentSolver::Deposit<Strategy>{};
-        deposit.template execute<T_area>(cellDescription, depositionKernel, solver, jBox, pBox);
     }
 
     void FieldJ::bashField(uint32_t exchangeType)

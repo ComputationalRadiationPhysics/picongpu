@@ -17,11 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #if(ENABLE_OPENPMD == 1)
 
 #    include "picongpu/param/binningSetup.param"
+#    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/plugins/ISimulationPlugin.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"
 #    include "picongpu/plugins/binning/BinningCreator.hpp"

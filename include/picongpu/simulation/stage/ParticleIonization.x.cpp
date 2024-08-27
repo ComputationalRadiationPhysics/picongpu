@@ -19,9 +19,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "picongpu/simulation/stage/ParticleIonization.hpp"
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/ionization/byCollision/ionizers.hpp"
+#include "picongpu/particles/ionization/byField/ionizers.hpp"
+
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include <cstdint>
+
 
 namespace picongpu
 {
@@ -29,17 +41,18 @@ namespace picongpu
     {
         namespace stage
         {
-            //! Functor for the stage of the PIC loop performing current deposition
-            struct CurrentDeposition
+            /** Ionize particles
+             *
+             * @param step index of time iteration
+             */
+            void ParticleIonization::operator()(uint32_t const step) const
             {
-                /** Compute the current created by particles and add it to the current
-                 *  density
-                 *
-                 * @param step index of time iteration
-                 */
-                void operator()(uint32_t const step) const;
-            };
-
+                using pmacc::particles::traits::FilterByFlag;
+                using SpeciesWithIonizers = typename FilterByFlag<VectorAllSpecies, ionizers<>>::type;
+                pmacc::meta::ForEach<SpeciesWithIonizers, particles::CallIonization<boost::mpl::_1>>
+                    particleIonization;
+                particleIonization(cellDescription, step);
+            }
         } // namespace stage
     } // namespace simulation
 } // namespace picongpu

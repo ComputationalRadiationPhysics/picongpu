@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "picongpu/particles/manipulators/manipulators.hpp"
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace simulation
+    {
+        namespace stage
+        {
+            //! Initialize particles
+            struct ParticleInit
+            {
+                /** Initialize particles dependent of the given step
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const;
+            };
+        } // namespace stage
+    } // namespace simulation
+} // namespace picongpu

@@ -30,6 +30,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/particleToGrid/CombinedDerive.def"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
 

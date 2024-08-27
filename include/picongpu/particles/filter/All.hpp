@@ -20,7 +20,12 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+
+#include <string>
 
 namespace picongpu
 {

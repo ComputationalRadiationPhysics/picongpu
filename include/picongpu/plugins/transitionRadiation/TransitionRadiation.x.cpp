@@ -19,19 +19,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
+// clang-format off
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/param/transitionRadiation.param"
+// clang-format on
 
+#include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
+
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
 #include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
 #include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
 #include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
+#include "picongpu/unitless/transitionRadiation.unitless"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep/lockstep.hpp>

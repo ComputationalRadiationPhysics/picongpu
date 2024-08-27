@@ -1,6 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Marco Garten,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+/* Copyright 2021-2023 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +17,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+
+#include "picongpu/simulation/stage/IterationStart.hpp"
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/param/iterationStart.param"
+#include "picongpu/particles/filter/filter.hpp"
+
+#include <pmacc/functor/Call.hpp>
 
 #include <cstdint>
+
 
 namespace picongpu
 {
@@ -29,16 +36,11 @@ namespace picongpu
     {
         namespace stage
         {
-            //! Functor for the stage of the PIC loop performing current deposition
-            struct CurrentDeposition
+            void IterationStart::operator()(uint32_t const step) const
             {
-                /** Compute the current created by particles and add it to the current
-                 *  density
-                 *
-                 * @param step index of time iteration
-                 */
-                void operator()(uint32_t const step) const;
-            };
+                meta::ForEach<IterationStartPipeline, pmacc::functor::Call<boost::mpl::_1>> callFunctors;
+                callFunctors(step);
+            }
 
         } // namespace stage
     } // namespace simulation

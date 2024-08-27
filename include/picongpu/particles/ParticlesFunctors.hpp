@@ -26,7 +26,6 @@
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/creation/creation.hpp"
-#include "picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -334,59 +333,6 @@ namespace picongpu
                         particleIonization;
                     particleIonization(cellDesc, currentStep);
                 }
-            }
-        };
-
-        /** Call Synchrotron Algorithm of an electron species
-         * called from: /include/picongpu/simulation/stage/SynchrotronRadiation.hpp
-         *
-         * Tests if species can radiate photons and calls the kernels to do that
-         *
-         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for Synchrotron
-         */
-        template<typename T_SpeciesType>
-        struct CallSynchrotron
-        {
-            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
-            using FrameType = typename SpeciesType::FrameType;
-
-            //! the following line only fetches the alias
-            using FoundSynchrotronAlias =
-                typename pmacc::traits::GetFlagType<FrameType, picongpu::synchrotron<>>::type;
-
-            //! this now resolves the alias into the actual object type, a list of photons
-            using DestinationSpecies = typename pmacc::traits::Resolve<FoundSynchrotronAlias>::type;
-
-            /** Functor implementation
-             *
-             * @tparam T_CellDescription contains the number of blocks and blocksize
-             *                           that is later passed to the kernel
-             * @param cellDesc logical block information like dimension and cell sizes
-             * @param currentStep The current time step
-             * @param F1F2DeviceBuff GridBuffer on the device side containing F1 and F2 values for each particle
-             */
-            template<typename T_CellDescription>
-            HINLINE void operator()(
-                T_CellDescription cellDesc,
-                const uint32_t currentStep,
-                GridBuffer<float_X, 2>::DataBoxType F1F2DeviceBuff,
-                std::shared_ptr<GridBuffer<int32_t, 1>> failedRequirementQ) const
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-
-                //! alias for pointer on source species
-                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
-                //! alias for pointer on destination species
-                auto photonsPtr = dc.get<DestinationSpecies>(DestinationSpecies::FrameType::getName());
-
-                auto synchrotronFunctor
-                    = particles::synchrotron::AlgorithmSynchrotron<SpeciesType, DestinationSpecies>(
-                        currentStep,
-                        F1F2DeviceBuff,
-                        failedRequirementQ->getDeviceBuffer().getDataBox());
-
-                creation::createParticlesFromSpecies(*srcSpeciesPtr, *photonsPtr, synchrotronFunctor, cellDesc);
-                photonsPtr->fillAllGaps();
             }
         };
 

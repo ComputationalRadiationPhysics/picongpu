@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Rene Widera, Felix Schmitt
+/* Copyright 2013-2023 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* this file must be empty
+ *
+ * this file is used to load extensions in own test cases.
+ * Write in an include to load extension.
+ */
+
+
 #pragma once
 
-#include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
-#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
+#include "picongpu/param/fileOutput.param"

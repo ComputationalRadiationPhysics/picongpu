@@ -29,6 +29,7 @@
 
 #include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
 #include <cstdint>
 #include <memory>

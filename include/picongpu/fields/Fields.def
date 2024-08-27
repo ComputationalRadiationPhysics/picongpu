@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/filter/All.hpp"
 
 namespace picongpu
 {

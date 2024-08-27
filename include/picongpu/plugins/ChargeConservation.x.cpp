@@ -17,15 +17,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
 
 #include <pmacc/algorithms/GlobalReduce.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 

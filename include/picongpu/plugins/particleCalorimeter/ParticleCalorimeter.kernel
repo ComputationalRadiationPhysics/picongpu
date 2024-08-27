@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>

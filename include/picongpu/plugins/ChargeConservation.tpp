@@ -21,6 +21,7 @@
 
 #include "common/txtFileHandling.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/FieldTmpOperations.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -156,7 +157,7 @@ namespace picongpu
             using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
             static const uint32_t area = T_Area::value;
 
-            HINLINE void operator()(FieldTmp* fieldTmp, const uint32_t currentStep) const
+            HINLINE void operator()(FieldTmp& fieldTmp, const uint32_t currentStep) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
 
@@ -168,7 +169,7 @@ namespace picongpu
                     SpeciesType,
                     particles::particleToGrid::derivedAttributes::ChargeDensity>::Solver;
 
-                fieldTmp->computeValue<area, ChargeDensitySolver>(*speciesTmp, currentStep);
+                computeFieldTmpValue<area, ChargeDensitySolver>(fieldTmp, *speciesTmp, currentStep);
             }
         };
     } // namespace detail
@@ -199,7 +200,7 @@ namespace picongpu
             picongpu::detail::ComputeChargeDensity<boost::mpl::_1, pmacc::mp_int<CORE + BORDER>>,
             boost::mpl::_1>
             computeChargeDensity;
-        computeChargeDensity(fieldTmp.get(), currentStep);
+        computeChargeDensity(*fieldTmp, currentStep);
 
         /* add results of all species that are still in GUARD to next GPUs BORDER */
         EventTask fieldTmpEvent = fieldTmp->asyncCommunication(eventSystem::getTransactionEvent());
