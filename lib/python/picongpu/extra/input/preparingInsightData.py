@@ -143,6 +143,8 @@ class PrepRoutines:
         f = h5py.File(self.path + self.name, "r")
         groups = list(f.keys())
         self.Ew = np.asarray(f["data/{}".format(*f["/{}".format(groups[0])].keys())])  # 3D array (x, y, w)
+        # rescale the amplitude to 1
+        self.Ew /= np.abs(self.Ew).max()
         # change scale name here if necessary
         self.x = np.asarray(f["scales/x"])  # mm
         self.y = np.asarray(f["scales/y"])  # mm
@@ -190,7 +192,8 @@ class PrepRoutines:
         self.yc_NF = popt_NF[2]  # y center coordinate
         self.waist_NF = popt_NF[3]  # waist size
 
-        self.isPhaseCorrected = False  # phase has not been corrected yet
+        self.is_phase_corrected = False  # phase has not been corrected yet
+        self.is_masked = False  # no aperture has been applied (yet)
 
         # print fit parameters etc.
         print("Central wavelength: %.f nm" % (self.lamb[self.wc_idx] * 10**6))
@@ -219,19 +222,20 @@ class PrepRoutines:
         NF = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(self.Ew * fac, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
         a = np.fft.fftshift(np.fft.fftfreq(self.x.size, self.dx))
         b = np.fft.fftshift(np.fft.fftfreq(self.y.size, self.dy))
-        # rescaling from spatial frequency to space for every lambda (x = a * lamb * f)
-        NF_resc = np.empty_like(NF, dtype=complex)
+        # rescaling from spatial frequency to x/y for every lambda (x = a * lamb * f)
         scale = self.lamb * self.foc
         self.x_NF = np.linspace(a[0] * scale[-1], a[-1] * scale[-1], a.size)
         self.y_NF = np.linspace(b[0] * scale[-1], b[-1] * scale[-1], b.size)
         self.dx_NF = np.diff(self.x_NF)[0]
         self.dy_NF = np.diff(self.y_NF)[0]
         Y_NF, X_NF = np.meshgrid(self.y_NF, self.x_NF, indexing="ij")
+        self.Ew_NF = np.empty_like(NF, dtype=complex)
         for i in range(self.w.size):
             interp_NF = RegularGridInterpolator((b * scale[i], a * scale[i]), NF[:, :, i], method=method)
-            NF_resc[:, :, i] = interp_NF((Y_NF, X_NF))
+            self.Ew_NF[:, :, i] = interp_NF((Y_NF, X_NF))
 
-        self.Ew_NF = NF_resc / np.abs(NF_resc).max()  # rescale amplitude to 1
+        # rescale the amplitude to 1
+        self.Ew_NF /= np.abs(self.Ew_NF).max()
 
     def nf_to_ff(self, d=0, method="linear"):
         """
@@ -252,16 +256,15 @@ class PrepRoutines:
         FF = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(self.Ew_NF, axes=(0, 1)), axes=(0, 1)), axes=(0, 1)) * fac
         # rescaling from spatial frequency to space for every lambda
         scale = self.lamb * self.foc
-        self.x = np.linspace(a[0] * scale[-1], a[-1] * scale[-1], a.size)
-        self.y = np.linspace(b[0] * scale[-1], b[-1] * scale[-1], b.size)
-        self.dx = np.diff(self.x)[0]
-        self.dy = np.diff(self.y)[0]
         Y, X = np.meshgrid(self.y, self.x, indexing="ij")
         for i in range(self.w.size):
-            interp_FF = RegularGridInterpolator((b * scale[i], a * scale[i]), FF[:, :, i], method=method)
+            interp_FF = RegularGridInterpolator(
+                (b * scale[i], a * scale[i]), FF[:, :, i], method=method, bounds_error=False, fill_value=0
+            )
             self.Ew[:, :, i] = interp_FF((Y, X))
 
-        self.Ew = self.Ew / np.abs(self.Ew).max()  # rescale amplitude to 1
+        # rescale the amplitude to 1
+        self.Ew /= np.abs(self.Ew).max()
 
     def correct_phase(self, GVD=0, TOD=0):
         """
@@ -286,7 +289,7 @@ class PrepRoutines:
         self.Ew_NF = np.abs(self.Ew_NF) * np.exp(1j * (np.angle(self.Ew_NF) - phase_centr + dispersion))
         # correcting far field
         self.Ew = np.abs(self.Ew) * np.exp(1j * (np.angle(self.Ew) - phase_centr + dispersion))
-        self.isPhaseCorrected = True
+        self.is_phase_corrected = True
         print(
             "Phase has been corrected. \nApplied dispersion parameters: GVD = %.f fs**2/rad, TOD = %.f fs**3/rad**2"
             % (GVD, TOD)
@@ -368,7 +371,7 @@ class PrepRoutines:
 
         if nx == 0 and ny == 0:
             print("already centered, no corrections necessary")
-            return 0
+            return None
 
         if nx != 0:
             if nx > 0:
@@ -399,35 +402,49 @@ class PrepRoutines:
     def aperture_in_mf(self, d, R, xc=0, yc=0):
         """
         Put an aperture in the mid field.
-        This function propagates far field to mid field, applies an aperture there and propagates back.
+        This function propagates far field to mid field, applies an aperture there, propagates back and updates
+        the (far field) group member Ew.
 
         Arguments:
         d: distance of aperture to focal plane (same unit as the transverse scales)
         R: radius of aperture (same unit as the transverse scales)
         xc, yc: center coordinates of aperture in mid field (w.r.t. the transverse scales)
         """
+        if self.is_masked:
+            print("Aperture has already been applied!")
+            return None
 
-        # propagation FF to MF
-        X, Y, W = np.meshgrid(self.x, self.y, self.w)
-        fac = 1j / (2 * np.pi * c) * W / self.foc * np.exp(-1j * W / c / 2 / d * (X**2 + Y**2))
-        MF = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(self.Ew * fac, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
-        # transversal scales in mid field, but still as spatial frequencies
-        a = np.fft.fftshift(np.fft.fftfreq(self.x.size, self.dx))  # = x / (lamb * d)
-        b = np.fft.fftshift(np.fft.fftfreq(self.y.size, self.dy))  # = y / (lamb * d)
+        else:
+            # original field integral (needed for field ratio calculation)
+            int_orig = np.sum(np.abs(self.Ew))
 
-        # aperture = cropping MF content
-        MF_cropped = np.zeros_like(MF, dtype=complex)
-        for i in range(a.size):
-            for j in range(b.size):
-                for k in range(self.w.size):
-                    if np.abs(a[i] * self.lamb[k] * d - xc) < R:
-                        if np.abs(b[j] * self.lamb[k] * d - yc) < np.sqrt(R**2 - (a[i] * self.lamb[k] * d - xc) ** 2):
-                            MF_cropped[j, i, k] = MF[j, i, k]
+            # propagation FF to MF
+            X, Y, W = np.meshgrid(self.x, self.y, self.w)
+            fac = 1j / (2 * np.pi * c) * W / self.foc * np.exp(-1j * W / c / 2 / d * (X**2 + Y**2))
+            MF = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(self.Ew * fac, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
+            # transversal scales in mid field, but still as spatial frequencies
+            a = np.fft.fftshift(np.fft.fftfreq(self.x.size, self.dx))  # = x / (lamb * d)
+            b = np.fft.fftshift(np.fft.fftfreq(self.y.size, self.dy))  # = y / (lamb * d)
 
-        # propagation MF to FF
-        self.Ew = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(MF_cropped, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
-        # rescale amplitude to 1
-        self.Ew = self.Ew / np.abs(self.Ew).max()
+            # aperture = cropping MF content
+            MF_cropped = np.zeros_like(MF, dtype=complex)
+            for i in range(a.size):
+                for j in range(b.size):
+                    for k in range(self.w.size):
+                        if np.abs(a[i] * self.lamb[k] * d - xc) < R:
+                            if np.abs(b[j] * self.lamb[k] * d - yc) < np.sqrt(
+                                R**2 - (a[i] * self.lamb[k] * d - xc) ** 2
+                            ):
+                                MF_cropped[j, i, k] = MF[j, i, k]
+
+            # propagation MF to FF
+            self.Ew = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(MF_cropped, axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
+            self.Ew /= fac
+            self.is_masked = True
+            print("Aperture of radius %.2f mm at distance %.2e mm has been applied." % (R, d))
+
+            # we need the ratio of the masked far field data to the original one to calculate the correct beam energy later
+            self.field_ratio = np.sum(np.abs(self.Ew)) / int_orig
 
     def measure_ad_in_nf(self):
         """
@@ -652,9 +669,9 @@ class PrepRoutines:
         z: propagation distance in mm
 
         Returns:
-        propagated (complex) field data
+        propagated (complex) field data; the corresponding scales are self.x, self.y and self.w.
         """
-        assert self.isPhaseCorrected, "Oops, you forgot to correct the phase!"
+        assert self.is_phase_corrected, "Oops, you forgot to correct the phase!"
 
         # check that propagated beam will still fit into the window
         w_exp = self.waist * np.sqrt(1 + (z / self.zR) ** 2)
@@ -689,7 +706,7 @@ class PrepRoutines:
         lamb_supp: number of sampling points on one wavelength;
                    from this, the number of zeros to be padded will be derived. Default is 10.
         """
-        assert self.isPhaseCorrected, "Oops, you forgot to correct the phase!"
+        assert self.is_phase_corrected, "Oops, you forgot to correct the phase!"
 
         # calculate the number of zeros to be padded at the right side of the spectrum
         # longitudinal axis length N_tot = 2 * pi / (dw * dt)
@@ -743,9 +760,9 @@ class PrepRoutines:
         Arguments:
         outputpath: path to the openPMD file
         outputname: name of the output file, e.g. "insightData%T.h5"
-        pol: polarisation direction, either "x" or "y". Default is "x"
         energy: beam energy in Joule. Is used to determine the correct amplitude in the time domain.
                 For that, the approximation z = c*t is used, which holds only for tau << zR/c!
+        pol: polarisation direction, either "x" or "y". Default is "x"
         crop_x/y/t: if the field data chunk is too big, one can crop the borders from both sides by the length
                     given with these values (same unit as the corresponding scales). Default is 0.
         """
@@ -798,6 +815,10 @@ class PrepRoutines:
         # 1st sign for pol = "x", 2nd for "y"
         dV = self.dx * self.dy * self.dt * c * 10**-9  # m**3
         W = dV * 8.854e-12 * np.sum(E_save**2)
+        # correct the value if working with an applied aperture
+        if self.is_masked:
+            energy *= self.field_ratio**2
+            print("Masked pulse energy: %.3f J" % (energy))
         # scaling to actual beam energy
         amp_fac = np.sqrt(energy / W)
         print("Maximum amplitude: %.2e V/m" % (amp_fac))
