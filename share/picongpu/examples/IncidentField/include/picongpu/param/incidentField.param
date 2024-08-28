@@ -134,7 +134,7 @@ namespace picongpu
                     auto const normalizedY = (totalCellIdx.y() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_Y_CELLS;
                     auto normalizedZ = 0.0;
                     if constexpr(simDim == 3)
-                        normalizedZ = (totalCellIdx.z() - LASER_CENTER_Z_CELLS) / LASER_WIDTH_Z_CELLS;
+                        normalizedZ = (totalCellIdx[2] - LASER_CENTER_Z_CELLS) / LASER_WIDTH_Z_CELLS;
                     auto const transversal = math::exp(-(normalizedY * normalizedY + normalizedZ * normalizedZ));
                     return AMPLITUDE_SI * longitudinal * transversal;
                 }
@@ -152,7 +152,7 @@ namespace picongpu
                     auto const normalizedX = (totalCellIdx.x() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_X_CELLS;
                     auto normalizedZ = 0.0;
                     if constexpr(simDim == 3)
-                        normalizedZ = (totalCellIdx.z() - LASER_CENTER_Z_CELLS) / LASER_WIDTH_Z_CELLS;
+                        normalizedZ = (totalCellIdx[2] - LASER_CENTER_Z_CELLS) / LASER_WIDTH_Z_CELLS;
                     auto const transversal = math::exp(-(normalizedX * normalizedX + normalizedZ * normalizedZ));
                     return AMPLITUDE_SI * longitudinal * transversal;
                 }

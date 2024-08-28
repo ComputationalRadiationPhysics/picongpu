@@ -69,7 +69,6 @@
             PMACC_CASSERT_MSG(                                                                                        \
                 __PMACC_CONST_VECTOR_dimension_needs_to_be_less_than_or_equal_to_the_number_of_arguments__,           \
                 Dim <= count);                                                                                        \
-            static constexpr bool isConst = true;                                                                     \
             typedef T_Type type;                                                                                      \
             static constexpr uint32_t dim = T_dim;                                                                    \
                                                                                                                       \
@@ -80,8 +79,7 @@
             }                                                                                                         \
         };                                                                                                            \
         /*define a const vector type, ConstArrayStorage is used as Storage policy*/                                   \
-        typedef const pmacc::math::Vector<Type, Dim, pmacc::math::IdentityNavigator, ConstArrayStorage<Type, Dim>>    \
-            PMACC_JOIN(Name, _t);                                                                                     \
+        typedef const pmacc::math::Vector<Type, Dim, ConstArrayStorage<Type, Dim>> PMACC_JOIN(Name, _t);              \
     } /* namespace pmacc_static_const_storage + id */                                                                 \
     using namespace PMACC_JOIN(pmacc_static_const_storage, id)
 

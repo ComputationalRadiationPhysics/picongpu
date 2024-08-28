@@ -905,7 +905,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 pmacc::math::UInt64<simDim> recordGlobalSizeDims{
                     subGrid.getGlobalDomain().size / SuperCellSize::toRT() * numRNGsPerSuperCell};
 
-                if(recordLocalSizeDims != rngProvider->getSize())
+                if(recordLocalSizeDims != precisionCast<uint64_t>(rngProvider->getSize()))
                     throw std::runtime_error("openPMD: RNG state can't be written due to not matching size");
 
                 // Reinterpret state as chars, it must be bitwise-copyable for it
@@ -967,7 +967,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 VecUInt64 recordOffsetDims{
                     subGrid.getLocalDomain().offset / SuperCellSize::toRT() * numRNGsPerSuperCell};
 
-                if(recordLocalSizeDims != rngProvider->getSize())
+                if(recordLocalSizeDims != precisionCast<uint64_t>(rngProvider->getSize()))
                     throw std::runtime_error("openPMD: RNG state can't be loaded due to not matching size");
 
                 // Reinterpret state as chars, it must be bitwise-copyable for it

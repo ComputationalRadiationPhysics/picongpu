@@ -313,9 +313,11 @@ namespace picongpu
                         if constexpr(GetOriginY<Unitless>::value == Origin::Center)
                             result.y() += static_cast<float_X>(globalDomainCells.y() / 2u) * cellSize.y();
 
-                        // if condition is guarded against aout of memory access for 2D simulations
+                        /* If condition is guarded against out of memory access for 2D simulations.
+                         * Array access is used to avoid compile issue because in 2D accessing `.z()` is not allowed.
+                         */
                         if constexpr(GetOriginZ<Unitless>::value == Origin::Center && simDim == DIM3)
-                            result.z() += static_cast<float_X>(globalDomainCells.z() / 2u) * cellSize.z();
+                            result.z() += static_cast<float_X>(globalDomainCells[2] / 2u) * cellSize.z();
 
                         return result;
                     }
