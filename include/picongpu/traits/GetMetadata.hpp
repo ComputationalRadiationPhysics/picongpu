@@ -225,8 +225,8 @@ namespace pmacc::math
     /**
      * Provide conversion of pmacc::math::Vector to json.
      */
-    template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-    void to_json(nlohmann::json& j, Vector<T_Type, T_dim, T_Navigator, T_Storage> const& vec)
+    template<typename T_Type, uint32_t T_dim, typename T_Storage>
+    void to_json(nlohmann::json& j, Vector<T_Type, T_dim, T_Storage> const& vec)
     {
         std::vector<T_Type> stdvec{};
         for(size_t i = 0; i < T_dim; ++i)

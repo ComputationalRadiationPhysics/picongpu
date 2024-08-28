@@ -40,16 +40,16 @@ namespace pmacc
 {
     namespace traits
     {
-        template<typename T_DataType, uint32_t T_dim>
-        struct GetComponentsType<pmacc::math::Vector<T_DataType, T_dim>, false>
+        template<typename T_DataType, uint32_t T_dim, typename T_Storage>
+        struct GetComponentsType<pmacc::math::Vector<T_DataType, T_dim, T_Storage>, false>
         {
-            using type = typename pmacc::math::Vector<T_DataType, T_dim>::type;
+            using type = typename pmacc::math::Vector<T_DataType, T_dim, T_Storage>::type;
         };
 
-        template<typename T_DataType, uint32_t T_dim>
-        struct GetNComponents<pmacc::math::Vector<T_DataType, T_dim>, false>
+        template<typename T_DataType, uint32_t T_dim, typename T_Storage>
+        struct GetNComponents<pmacc::math::Vector<T_DataType, T_dim, T_Storage>, false>
         {
-            static constexpr uint32_t value = (uint32_t) pmacc::math::Vector<T_DataType, T_dim>::dim;
+            static constexpr uint32_t value = (uint32_t) pmacc::math::Vector<T_DataType, T_dim, T_Storage>::dim;
         };
     } // namespace traits
 } // namespace pmacc
@@ -60,8 +60,10 @@ namespace pmacc
     namespace math
     {
         /*! Specialisation of cross where base is a vector with three components */
-        template<typename Type>
-        struct Cross<::pmacc::math::Vector<Type, DIM3>, ::pmacc::math::Vector<Type, DIM3>>
+        template<typename Type, typename T_StorageLeft, typename T_StorageRight>
+        struct Cross<
+            ::pmacc::math::Vector<Type, DIM3, T_StorageLeft>,
+            ::pmacc::math::Vector<Type, DIM3, T_StorageRight>>
         {
             using myType = ::pmacc::math::Vector<Type, DIM3>;
             using result = myType;
@@ -76,8 +78,8 @@ namespace pmacc
         };
 
         /*! Specialisation of Dot where base is a vector */
-        template<typename Type, uint32_t dim>
-        struct Dot<::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim>>
+        template<typename Type, uint32_t dim, typename T_StorageLeft, typename T_StorageRight>
+        struct Dot<::pmacc::math::Vector<Type, dim, T_StorageLeft>, ::pmacc::math::Vector<Type, dim, T_StorageRight>>
         {
             using myType = ::pmacc::math::Vector<Type, dim>;
             using result = Type;
@@ -94,12 +96,12 @@ namespace pmacc
 
         /** specialize l2norm2 algorithm
          */
-        template<typename Type, uint32_t dim>
-        struct L2norm2<::pmacc::math::Vector<Type, dim>>
+        template<typename Type, uint32_t dim, typename T_Storage>
+        struct L2norm2<::pmacc::math::Vector<Type, dim, T_Storage>>
         {
             using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
-            HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim>& vector)
+            HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim, T_Storage>& vector)
             {
                 result tmp = pmacc::math::norm(vector.x());
                 for(uint32_t i = 1; i < dim; ++i)
@@ -110,8 +112,8 @@ namespace pmacc
 
         /** specialize l2norm algorithm
          */
-        template<typename Type, uint32_t dim>
-        struct L2norm<::pmacc::math::Vector<Type, dim>>
+        template<typename Type, uint32_t dim, typename T_Storage>
+        struct L2norm<::pmacc::math::Vector<Type, dim, T_Storage>>
         {
             using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
@@ -137,14 +139,14 @@ namespace pmacc
  * errors, therefore the alpaka math trait must be used.
  */
 #define PMACC_UNARY_APAKA_MATH_SPECIALIZATION(functionName, alpakaMathTrait)                                          \
-    template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim>                                                   \
-    struct alpakaMathTrait<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, void>                                   \
+    template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim, typename T_Storage>                               \
+    struct alpakaMathTrait<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage>, void>                        \
     {                                                                                                                 \
         using ResultType = ::pmacc::math::Vector<T_ScalarType, T_dim>;                                                \
                                                                                                                       \
         ALPAKA_FN_ACC auto operator()(                                                                                \
             T_Ctx const& mathConcept,                                                                                 \
-            ::pmacc::math::Vector<T_ScalarType, T_dim> const& vector) -> ResultType                                   \
+            ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage> const& vector) -> ResultType                        \
         {                                                                                                             \
             PMACC_CASSERT(T_dim > 0);                                                                                 \
                                                                                                                       \
@@ -165,14 +167,14 @@ namespace alpaka
              *
              * Create pow separately for every component of the vector.
              */
-            template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim>
-            struct Pow<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim>, T_ScalarType, void>
+            template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim, typename T_Storage>
+            struct Pow<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage>, T_ScalarType, void>
             {
                 using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
 
                 ALPAKA_FN_HOST_ACC auto operator()(
                     T_Ctx const& mathConcept,
-                    ::pmacc::math::Vector<T_ScalarType, T_dim> const& vector,
+                    ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage> const& vector,
                     T_ScalarType const& exponent) -> ResultType
                 {
                     PMACC_CASSERT(T_dim > 0);
@@ -183,11 +185,17 @@ namespace alpaka
                 }
             };
 
-            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, uint32_t T_dim>
+            template<
+                typename T_Ctx,
+                typename T_ScalarType1,
+                typename T_ScalarType2,
+                uint32_t T_dim,
+                typename T_Storage1,
+                typename T_Storage2>
             struct Min<
                 T_Ctx,
-                ::pmacc::math::Vector<T_ScalarType1, T_dim>,
-                ::pmacc::math::Vector<T_ScalarType2, T_dim>,
+                ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1>,
+                ::pmacc::math::Vector<T_ScalarType2, T_dim, T_Storage2>,
                 void>
             {
                 using ScalarResultType = std::decay_t<decltype(alpaka::math::min(
@@ -198,8 +206,8 @@ namespace alpaka
 
                 ALPAKA_FN_HOST_ACC auto operator()(
                     T_Ctx const& mathConcept,
-                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector1,
-                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector2) -> ResultType
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1> const& vector1,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage2> const& vector2) -> ResultType
                 {
                     PMACC_CASSERT(T_dim > 0);
                     ResultType tmp;
@@ -209,11 +217,17 @@ namespace alpaka
                 }
             };
 
-            template<typename T_Ctx, typename T_ScalarType1, typename T_ScalarType2, uint32_t T_dim>
+            template<
+                typename T_Ctx,
+                typename T_ScalarType1,
+                typename T_ScalarType2,
+                uint32_t T_dim,
+                typename T_Storage1,
+                typename T_Storage2>
             struct Max<
                 T_Ctx,
-                ::pmacc::math::Vector<T_ScalarType1, T_dim>,
-                ::pmacc::math::Vector<T_ScalarType2, T_dim>,
+                ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1>,
+                ::pmacc::math::Vector<T_ScalarType2, T_dim, T_Storage2>,
                 void>
             {
                 using ScalarResultType = std::decay_t<decltype(alpaka::math::max(
@@ -224,8 +238,8 @@ namespace alpaka
 
                 ALPAKA_FN_HOST_ACC auto operator()(
                     T_Ctx const& mathConcept,
-                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector1,
-                    ::pmacc::math::Vector<T_ScalarType1, T_dim> const& vector2) -> ResultType
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1> const& vector1,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage2> const& vector2) -> ResultType
                 {
                     PMACC_CASSERT(T_dim > 0);
                     ResultType tmp;
@@ -250,27 +264,25 @@ namespace alpaka
     namespace trait
     {
         //! dimension get trait specialization
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        struct DimType<pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
+        template<typename T_Type, uint32_t T_dim, typename T_Storage>
+        struct DimType<pmacc::math::Vector<T_Type, T_dim, T_Storage>>
         {
             using type = ::alpaka::DimInt<T_dim>;
         };
 
         //! element type trait specialization
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        struct ElemType<pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
+        template<typename T_Type, uint32_t T_dim, typename T_Storage>
+        struct ElemType<pmacc::math::Vector<T_Type, T_dim, T_Storage>>
         {
             using type = T_Type;
         };
 
         //! extent get trait specialization
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        struct GetExtents<
-            pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>,
-            std::enable_if_t<std::is_integral_v<T_Type>>>
+        template<typename T_Type, uint32_t T_dim, typename T_Storage>
+        struct GetExtents<pmacc::math::Vector<T_Type, T_dim, T_Storage>, std::enable_if_t<std::is_integral_v<T_Type>>>
         {
             ALPAKA_FN_HOST_ACC
-            constexpr auto operator()(pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage> const& extents)
+            constexpr auto operator()(pmacc::math::Vector<T_Type, T_dim, T_Storage> const& extents)
                 -> Vec<::alpaka::DimInt<T_dim>, T_Type>
             {
                 Vec<::alpaka::DimInt<T_dim>, T_Type> result;
@@ -281,13 +293,11 @@ namespace alpaka
         };
 
         //! offset get trait specialization
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        struct GetOffsets<
-            pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>,
-            std::enable_if_t<std::is_integral_v<T_Type>>>
+        template<typename T_Type, uint32_t T_dim, typename T_Storage>
+        struct GetOffsets<pmacc::math::Vector<T_Type, T_dim, T_Storage>, std::enable_if_t<std::is_integral_v<T_Type>>>
         {
             ALPAKA_FN_HOST_ACC
-            constexpr auto operator()(pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage> const& offsets)
+            constexpr auto operator()(pmacc::math::Vector<T_Type, T_dim, T_Storage> const& offsets)
                 -> Vec<::alpaka::DimInt<T_dim>, T_Type>
             {
                 Vec<::alpaka::DimInt<T_dim>, T_Type> result;
@@ -298,10 +308,8 @@ namespace alpaka
         };
 
         //! size type trait specialization.
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        struct IdxType<
-            pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>,
-            std::enable_if_t<std::is_integral_v<T_Type>>>
+        template<typename T_Type, uint32_t T_dim, typename T_Storage>
+        struct IdxType<pmacc::math::Vector<T_Type, T_dim, T_Storage>, std::enable_if_t<std::is_integral_v<T_Type>>>
         {
             using type = T_Type;
         };
@@ -316,11 +324,12 @@ namespace pmacc
     {
         namespace precisionCast
         {
-            template<typename CastToType, uint32_t dim, typename T_Navigator, typename T_Storage>
-            struct TypeCast<CastToType, ::pmacc::math::Vector<CastToType, dim, T_Navigator, T_Storage>>
+            template<typename CastToType, uint32_t dim, typename T_Storage>
+            struct TypeCast<CastToType, ::pmacc::math::Vector<CastToType, dim, T_Storage>>
             {
-                using result = ::pmacc::math::Vector<CastToType, dim>;
-                using ParamType = ::pmacc::math::Vector<CastToType, dim, T_Navigator, T_Storage>;
+                // do not change the storage policy
+                using result = ::pmacc::math::Vector<CastToType, dim, T_Storage>;
+                using ParamType = ::pmacc::math::Vector<CastToType, dim, T_Storage>;
 
                 HDINLINE result operator()(ParamType const& vector) const
                 {
@@ -328,17 +337,11 @@ namespace pmacc
                 }
             };
 
-            template<
-                typename CastToType,
-                typename OldType,
-                uint32_t dim,
-
-                typename T_Navigator,
-                typename T_Storage>
-            struct TypeCast<CastToType, ::pmacc::math::Vector<OldType, dim, T_Navigator, T_Storage>>
+            template<typename CastToType, typename OldType, uint32_t dim, typename T_Storage>
+            struct TypeCast<CastToType, ::pmacc::math::Vector<OldType, dim, T_Storage>>
             {
                 using result = ::pmacc::math::Vector<CastToType, dim>;
-                using ParamType = ::pmacc::math::Vector<OldType, dim, T_Navigator, T_Storage>;
+                using ParamType = ::pmacc::math::Vector<OldType, dim, T_Storage>;
 
                 HDINLINE result operator()(const ParamType& vector) const
                 {
@@ -356,8 +359,8 @@ namespace pmacc
     {
         namespace promoteType
         {
-            template<typename PromoteToType, typename OldType, uint32_t dim>
-            struct promoteType<PromoteToType, ::pmacc::math::Vector<OldType, dim>>
+            template<typename PromoteToType, typename OldType, uint32_t dim, typename T_Storage>
+            struct promoteType<PromoteToType, ::pmacc::math::Vector<OldType, dim, T_Storage>>
             {
                 using PartType = typename promoteType<OldType, PromoteToType>::type;
                 using type = ::pmacc::math::Vector<PartType, dim>;

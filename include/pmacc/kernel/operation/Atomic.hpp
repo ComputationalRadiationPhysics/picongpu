@@ -51,14 +51,12 @@ namespace pmacc
                     typename T_Worker,
                     typename T_Type,
                     uint32_t T_dim,
-                    typename T_DstNavigator,
                     typename T_DstStorage,
-                    typename T_SrcNavigator,
                     typename T_SrcStorage>
                 HDINLINE void operator()(
                     T_Worker const& worker,
-                    pmacc::math::Vector<T_Type, T_dim, T_DstNavigator, T_DstStorage>& dst,
-                    pmacc::math::Vector<T_Type, T_dim, T_SrcNavigator, T_SrcStorage> const& src) const
+                    pmacc::math::Vector<T_Type, T_dim, T_DstStorage>& dst,
+                    pmacc::math::Vector<T_Type, T_dim, T_SrcStorage> const& src) const
                 {
                     for(uint32_t i = 0; i < T_dim; ++i)
                         ::alpaka::atomicOp<T_AlpakaOperation>(worker.getAcc(), &dst[i], src[i], T_AlpakaHierarchy{});
