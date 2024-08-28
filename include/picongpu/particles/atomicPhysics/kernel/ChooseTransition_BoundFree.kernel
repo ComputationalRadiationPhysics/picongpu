@@ -257,7 +257,7 @@ namespace picongpu::particles::atomicPhysics::kernel
         {
             ion[processClass_] = selectedProcessClass;
             ion[transitionIndex_] = selectedTransitionIndex;
-            ion[binIndex_] = u32(selectedBinIndex);
+            ion[binIndex_] = selectedBinIndex;
             ion[accepted_] = true;
         }
     };
