@@ -36,6 +36,12 @@ namespace pmacc
 {
     namespace math
     {
+        /** Array storge for vector data
+         *
+         * This class is a workaround and is simply wrapping std::array. It is required because the size in std::array
+         * in the template signature is size_t. This produces template deduction issues for math::Vector if we sue
+         * array as default storage without this wrapper.
+         */
         template<typename T_Type, uint32_t T_dim>
         struct ArrayStorage : private std::array<T_Type, T_dim>
         {
