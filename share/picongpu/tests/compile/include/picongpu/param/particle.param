@@ -69,12 +69,6 @@ namespace picongpu
          *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
 
-        /** Approximate number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParam::numParticlesPerCell;
-
         namespace manipulators
         {
             struct SparserParam

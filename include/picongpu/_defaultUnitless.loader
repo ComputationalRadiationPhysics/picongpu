@@ -28,9 +28,6 @@
 
 // clang-format off
 
-#include "picongpu/unitless/physicalConstants.unitless"
-#include "picongpu/unitless/speciesConstants.unitless"
-#include "picongpu/unitless/grid.unitless"
 #include "picongpu/unitless/density.unitless"
 #include "picongpu/unitless/particle.unitless"
 #include "picongpu/unitless/fieldAbsorber.unitless"

@@ -42,35 +42,62 @@
 
 #pragma once
 
+
 namespace picongpu
 {
     namespace SI
     {
-        /** Duration of one timestep
-         *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 1.39e-16;
+        /** This setup is based on section 7.11.1 of
+         *  A. Taflove, S.C. Hagness. Computational Electrodynamics
+         *  The Finite-Difference Time-Domain Method. 3rd Edition.
+         *  The difference is we consider both 2D and 3D cases,
+         *  and grid size is increased due to our absorber being part of
+         *  the simulation area, not located outside of it as in the book.
+         */
+
+        constexpr float_64 CELL_SIZE_SI = 1.0e-3; // 1 mm
 
         /** equals X
          *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = 0.1772e-6;
-        /** equals Y - the laser & moving window propagation direction
+        constexpr float_64 CELL_WIDTH_SI = CELL_SIZE_SI;
+        /** equals Y
          *  unit: meter */
-        constexpr float_64 CELL_HEIGHT_SI = 0.4430e-7;
+        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
         /** equals Z
          *  unit: meter */
         constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
 
-        /** Note on units in reduced dimensions
+        /** Additional CFL factor compared to the Yee solver.
          *
-         * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
-         * is still used for normalization of densities, etc.
-         *
-         * A 2D3V simulation in a cartesian PIC simulation such as
-         * ours only changes the degrees of freedom in motion for
-         * (macro) particles and all (field) information in z
-         * travels instantaneously, making the 2D3V simulation
-         * behave like the interaction of infinite "wire particles"
-         * in fields with perfect symmetry in Z.
+         * Has to be set for ArbitraryOrderFDTD to be >= its additional factor (see table in readthedocs).
+         * Otherwise the configuration would violate the CFL
          */
+#ifndef PARAM_CFLFACTOR
+#    define SELECTED_CFL_FACTOR 1.0
+#else
+#    define SELECTED_CFL_FACTOR PARAM_CFLFACTOR
+#endif
+
+        /** Duration of one timestep is just below the CFL limit
+         *  unit: seconds */
+        constexpr float_64 CFL_RATIO = 0.999 / SELECTED_CFL_FACTOR;
+        constexpr float_64 SQRT_3 = 1.73205080757;
+        constexpr float_64 DELTA_T_SI = CFL_RATIO * CELL_SIZE_SI / (SPEED_OF_LIGHT_SI * SQRT_3);
+
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
 } // namespace picongpu

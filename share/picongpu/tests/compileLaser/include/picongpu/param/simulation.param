@@ -1,5 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Rene Widera, Richard Pausch,
- *                     Benjamin Worpitz
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -43,20 +42,18 @@
 
 #pragma once
 
+
 namespace picongpu
 {
     namespace SI
     {
         /** Duration of one timestep
          *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 9.65531e-14;
+        constexpr float_64 DELTA_T_SI = 1.79e-16;
 
         /** equals X
          *  unit: meter */
-
-        /** equals X
-         *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = 5.78918e-05;
+        constexpr float_64 CELL_WIDTH_SI = 9.34635e-8;
         /** equals Y
          *  unit: meter */
         constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
@@ -64,17 +61,20 @@ namespace picongpu
          *  unit: meter */
         constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
 
-        /** Note on units in reduced dimensions
+        /** Base density in particles per m^3 in the density profiles.
          *
-         * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
-         * is still used for normalization of densities, etc.
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
          *
-         * A 2D3V simulation in a cartesian PIC simulation such as
-         * ours only changes the degrees of freedom in motion for
-         * (macro) particles and all (field) information in z
-         * travels instantaneously, making the 2D3V simulation
-         * behave like the interaction of infinite "wire particles"
-         * in fields with perfect symmetry in Z.
+         * unit: ELEMENTS/m^3
          */
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
 } // namespace picongpu

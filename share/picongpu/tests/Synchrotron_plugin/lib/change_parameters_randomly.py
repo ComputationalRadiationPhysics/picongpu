@@ -20,7 +20,7 @@ If not, see <http://www.gnu.org/licenses/>.
 
 # Usage:
 # This script changes:
-#  - DELTA_T_SI         in file grid.param
+#  - DELTA_T_SI         in file simulation.param
 #  - field_Strength_SI  in file fieldBackground.param
 #  - gamma              in file particle.param
 # gamma and Heff are randomly chosen from the lists gamma and Heff
@@ -57,7 +57,7 @@ def change_param_file(file_name, param_name, value):
 
 
 def changeParams(dt, Heff, gamma):
-    change_param_file("grid.param", "DELTA_T_SI", dt)
+    change_param_file("simulation.param", "DELTA_T_SI", dt)
     change_param_file("fieldBackground.param", "field_Strength_SI", Heff)
     change_param_file("particle.param", "gamma", gamma)
 

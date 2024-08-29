@@ -48,11 +48,5 @@ namespace picongpu
             using Random2ppc = RandomImpl<RandomParameter2ppc>;
 
         } // namespace startPosition
-
-        /** During unit normalization, we assume this is a typical
-         *  number of particles per cell for normalization of weighted
-         *  particle attributes.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter2ppc::numParticlesPerCell;
     } // namespace particles
 } // namespace picongpu

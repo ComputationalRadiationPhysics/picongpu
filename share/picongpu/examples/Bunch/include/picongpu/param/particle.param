@@ -46,18 +46,8 @@ namespace picongpu
          *  unit: none */
         // note: this specific setting allows all kinds of weightings > 0.0
         constexpr float_X MIN_WEIGHTING = std::numeric_limits<float_X>::min();
-
-        /** (Approximate) Number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         * And used in startPosition functors further below
-         * to set real maximum number of macro-particles per cell.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
 #else
         constexpr float_X MIN_WEIGHTING = 10.0;
-
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
 #endif
 
         namespace manipulators

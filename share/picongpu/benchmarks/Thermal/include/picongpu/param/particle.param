@@ -34,10 +34,6 @@
 
 #include <pmacc/math/operation.hpp>
 
-#ifndef PARAM_PPC
-#    define PARAM_PPC 25u
-#endif
-
 namespace picongpu
 {
     namespace particles
@@ -69,12 +65,6 @@ namespace picongpu
          *
          *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
-
-        /** Approximate number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameterXppc::numParticlesPerCell;
 
         namespace manipulators
         {

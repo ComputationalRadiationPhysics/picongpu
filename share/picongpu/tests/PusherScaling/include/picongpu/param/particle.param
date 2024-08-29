@@ -94,12 +94,5 @@ namespace picongpu
             using OnePosition = OnePositionImpl<OnePositionParameter>;
 
         } // namespace startPosition
-
-        /** Approximate number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::OnePositionParameter::numParticlesPerCell;
-
     } // namespace particles
 } // namespace picongpu

@@ -53,25 +53,6 @@
 
 namespace picongpu
 {
-    namespace SI
-    {
-        /** Base density in particles per m^3 in the density profiles.
-         *
-         * This is often taken as reference maximum density in normalized profiles.
-         * Individual particle species can define a `densityRatio` flag relative
-         * to this value.
-         *
-         * unit: ELEMENTS/m^3
-         *
-         * We take n_e ("fully ionized") as reference density.
-         * Our target material (see speciesDefinition) is a liquid crystal called
-         * 8CB (4'-octyl-4-cyanobiphenyl).
-         */
-        constexpr float_64 nc = 1.11485e21 * 1.e6 / 0.8 / 0.8;
-        constexpr float_64 BASE_DENSITY_SI = 192. * nc;
-
-    } // namespace SI
-
     namespace densityProfiles
     {
         struct FlatFoilWithRampFunctor
