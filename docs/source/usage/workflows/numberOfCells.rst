@@ -5,14 +5,14 @@ Setting the Number of Cells
 
 .. sectionauthor:: Axel Huebl
 
-Together with the grid resolution in :ref:`grid.param <usage-params-core>`, the number of cells in our :ref:`.cfg files <usage-tbg>` determine the overall size of a simulation (box).
+Together with the grid resolution in :ref:`simulation.param <usage-params-core>`, the number of cells in our :ref:`.cfg files <usage-tbg>` determine the overall size of a simulation (box).
 The following rules need to be applied when setting the number of cells:
 
 Each device needs to:
 
 #. contain an integer *multiple* of supercells
 #. at least *three* supercells
-#. for non periodic boundary conditions, the number of absorbing boundary cells for devices at the simulation boundary (see :ref:`grid.param <usage-params-core>`) must fit into the local volume
+#. for non periodic boundary conditions, the number of absorbing boundary cells for devices at the simulation boundary (see :ref:`simulation.param <usage-params-core>`) must fit into the local volume
 
 The grid size will be automatically adjusted if the conditions above are not fulfilled. 
 This behavior can be disabled by using the command line option ``--autoAdjustGrid off``

@@ -76,7 +76,7 @@ To enable collisions between the Ions and Electrons with a constant coulomb loga
                 * To reduce the fragmentation of the heap memory on accelerators the collision algorithm is allocating a
                 * multiple of this value to store a cell list of particle IDs. The value must be non zero.
                 */
-               constexpr uint32_t cellListChunkSize = particles::TYPICAL_PARTICLES_PER_CELL;
+               constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
            } // namespace collision
        } // namespace particles
    } // namespace picongpu

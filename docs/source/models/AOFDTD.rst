@@ -447,7 +447,7 @@ In this case, each iteration of the main PIC loop involves multiple invocations 
 Substepping is fully compatible with other numerics, such as absorbers, incident field, laser generation.
 A substepping field solver has the same orders of accuracy in spatial and time steps as the base solver.
 
-A user sets main PIC time step value as usual in :ref:`grid.param <usage-params-core>`, and selects the number of field solver substeps via template argument `T_numSubsteps`.
+A user sets main PIC time step value as usual in :ref:`simulation.param <usage-params-core>`, and selects the number of field solver substeps via template argument `T_numSubsteps`.
 Field solver will internally operate with :math:`\Delta t_{sub} = \Delta t / \mathrm{T\_numSubsteps}`.
 Solver properties including the Courant-Friedrichs-Lewy condition are then expressed with :math:`\Delta t_{sub}`, which is less restricting.
 However, regardless of field solver and substepping PIConGPU also limits its main time step to
