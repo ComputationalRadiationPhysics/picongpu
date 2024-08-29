@@ -510,6 +510,8 @@ namespace picongpu
                         log<picLog::INPUT_OUTPUT>("openPMD: flush particle records for %1%, dumping round %2%")
                             % T_SpeciesFilter::getName() % dumpIteration;
 
+                        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                        eventSystem::getTransactionEvent().waitForFinished();
                         params->m_dumpTimes.now<std::chrono::milliseconds>(
                             "\tslice " + std::to_string(dumpIteration) + " flush");
                         params->openPMDSeries->flush(PreferredFlushTarget::Disk);
