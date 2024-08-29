@@ -933,6 +933,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ValueType* nativePtr = buffer.getHostBuffer().data();
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
                 mrc.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
+                // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                eventSystem::getTransactionEvent().waitForFinished();
                 params->openPMDSeries->flush(PreferredFlushTarget::Disk);
             }
 
@@ -1658,6 +1660,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     if(numDataPoints == 0)
                     {
+                        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                        eventSystem::getTransactionEvent().waitForFinished();
                         params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                         continue;
                     }
@@ -1711,6 +1715,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         }
                     }
 
+                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                    eventSystem::getTransactionEvent().waitForFinished();
                     params->m_dumpTimes.now<std::chrono::milliseconds>("\tComponent " + std::to_string(d) + " flush");
                     params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                     params->m_dumpTimes.now<std::chrono::milliseconds>("\tComponent " + std::to_string(d) + " end");
