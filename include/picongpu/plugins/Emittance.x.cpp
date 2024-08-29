@@ -127,8 +127,7 @@ namespace picongpu
                     if(accFilter(lockstepWorker, particle))
                     {
                         float_X const weighting = particle[weighting_];
-                        float_X const normedWeighting
-                            = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                        float_X const normedWeighting = weighting / float_X(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
                         float3_X const mom = particle[momentum_] / weighting;
                         floatD_X const pos = particle[position_];
                         int const cellIdx = particle[localCellIdx_];
@@ -654,7 +653,7 @@ namespace picongpu
                             / SI::ELECTRON_MASS_SI;
                     }
                     /* the scaling with normalized weighting (weighting /
-                     * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) is compendated by the division by
+                     * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) is compendated by the division by
                      * (normalized) number of particles
                      */
                     float_64 emit_all = math::sqrt(

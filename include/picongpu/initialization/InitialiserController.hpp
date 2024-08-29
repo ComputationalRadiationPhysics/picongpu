@@ -147,10 +147,9 @@ namespace picongpu
 
                 const int localNrOfCells = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
                 log<picLog::PHYSICS>("macro particles per device: %1%")
-                    % (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
-                       * (pmacc::mp_size<VectorAllSpecies>::value));
+                    % (localNrOfCells * TYPICAL_PARTICLES_PER_CELL * (pmacc::mp_size<VectorAllSpecies>::value));
                 log<picLog::PHYSICS>("typical macro particle weighting: %1%")
-                    % (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                    % (TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
 
                 log<picLog::PHYSICS>("UNIT_SPEED %1%") % UNIT_SPEED;

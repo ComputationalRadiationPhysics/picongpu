@@ -774,7 +774,7 @@ namespace picongpu
                         const int localNrOfCells
                             = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
                         cellCount = localNrOfCells * numProc;
-                        particleCount = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
+                        particleCount = localNrOfCells * TYPICAL_PARTICLES_PER_CELL
                             * (pmacc::mp_size<VectorAllSpecies>::type::value) * numProc;
                         lastNotify = getTicksUs();
                         if(rank == 0)
