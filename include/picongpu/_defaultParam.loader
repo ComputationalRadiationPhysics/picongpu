@@ -32,17 +32,9 @@
 
 // clang-format off
 
-#include "picongpu/param/dimension.param"
-#include "picongpu/param/precision.param"
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-#    include "picongpu/param/mallocMC.param"
-#endif
-#include "picongpu/param/memory.param"
-#include "picongpu/param/random.param"
-#include "picongpu/param/physicalConstants.param"
-#include "picongpu/param/speciesConstants.param"
+#include "picongpu/defines.hpp"
+
 #include "picongpu/param/speciesAttributes.param"
-#include "picongpu/param/grid.param"
 #include "picongpu/param/pusher.param"
 #include "picongpu/param/fieldAbsorber.param"
 #include "picongpu/param/incidentField.param"
@@ -50,7 +42,6 @@
 #include "picongpu/param/ionizationEnergies.param"
 #include "picongpu/param/density.param"
 #include "picongpu/param/particle.param"
-#include "picongpu/param/unit.param"
 #include "picongpu/param/atomicPhysics_Debug.param"
 #include "picongpu/param/atomicPhysics.param"
 #include "picongpu/param/particleFilters.param"

@@ -34,20 +34,17 @@ namespace picongpu
     /** Unit of length */
     constexpr float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
-    namespace particles
-    {
-        /** Typical number of particles per macro particle (= typical macro particle weighting)
-         *  unit: none */
-        constexpr float_64 TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-            = (SI::BASE_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI)
-            / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
-    } // namespace particles
 
+    /** Typical number of particles per macro particle (= typical macro particle weighting)
+     *  unit: none */
+    constexpr float_64 TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+        = (SI::BASE_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI)
+        / float_64(TYPICAL_PARTICLES_PER_CELL);
 
     /** Unit of mass */
-    constexpr float_64 UNIT_MASS = SI::BASE_MASS_SI * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+    constexpr float_64 UNIT_MASS = SI::BASE_MASS_SI * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
     /** Unit of charge */
-    constexpr float_64 UNIT_CHARGE = -1.0 * SI::BASE_CHARGE_SI * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+    constexpr float_64 UNIT_CHARGE = -1.0 * SI::BASE_CHARGE_SI * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
     /** Unit of energy */
     constexpr float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */

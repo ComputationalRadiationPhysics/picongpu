@@ -49,20 +49,35 @@ namespace picongpu
     {
         /** Duration of one timestep
          *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 0.8e-16;
+        constexpr float_64 DELTA_T_SI = 1.79e-16;
 
         /** equals X
          *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = 0.1772e-6;
-        /** equals Y - the laser & moving window propagation direction
+
+        /** equals X
          *  unit: meter */
-        constexpr float_64 CELL_HEIGHT_SI = 0.4430e-7;
+        constexpr float_64 CELL_WIDTH_SI = 9.34635e-8;
+        /** equals Y
+         *  unit: meter */
+        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
         /** equals Z
-         *  unit: meter
-         *
-         * @attention if SIMDIM = DIM2, CELL_DEPTH_SI must be set to system size integrated over in projection!
-         */
+         *  unit: meter */
         constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
 
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
 } // namespace picongpu

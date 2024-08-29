@@ -81,12 +81,5 @@ namespace picongpu
             using Random = RandomImpl<RandomParameter>;
 
         } // namespace startPosition
-
-        /** Approximate number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter::numParticlesPerCell;
-
     } // namespace particles
 } // namespace picongpu

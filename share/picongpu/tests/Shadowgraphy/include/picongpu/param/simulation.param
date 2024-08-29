@@ -47,21 +47,43 @@ namespace picongpu
 {
     namespace SI
     {
+        /** This setup is based on section 7.11.1 of
+         *  A. Taflove, S.C. Hagness. Computational Electrodynamics
+         *  The Finite-Difference Time-Domain Method. 3rd Edition.
+         *  The difference is we consider both 2D and 3D cases,
+         *  and grid size is increased due to our absorber being part of
+         *  the simulation area, not located outside of it as in the book.
+         */
+
         /** equals X
          *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = 0.8e-6 / 384.;
-        /** equals Y - the laser & moving window propagation direction
+        constexpr float_64 CELL_WIDTH_SI = 40e-8;
+        /** equals Y
          *  unit: meter */
-        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
+        constexpr float_64 CELL_HEIGHT_SI = 40e-8;
         /** equals Z
-         *  unit: meter */
-        constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
+         *  unit: meter
+         * resolves the pulse wavelength 40 times */
+        constexpr float_64 CELL_DEPTH_SI = 2e-8;
 
-        /** Duration of one timestep
-         *  unit: seconds                       CFL criteria for Yee MW Solver
-         *                                             2D: sqrt(2)
-         *                                             3D: sqrt(3)   */
-        constexpr float_64 DELTA_T_SI = CELL_WIDTH_SI / (1.415 * SPEED_OF_LIGHT_SI);
+        /** Duration of one timestep is just below the CFL limit
+         *  unit: seconds */
+        constexpr float_64 DELTA_T_SI = 6.621392653093993e-17;
 
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
 } // namespace picongpu

@@ -1,4 +1,5 @@
-/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Richard Pausch,
+ *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -9,7 +10,7 @@
  *
  * PIConGPU is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -46,22 +47,16 @@ namespace picongpu
 {
     namespace SI
     {
-        /** Period of a gyro-motion in s for an electron with beta=0.5 in B=50T
-         *  unit: seconds */
-        constexpr float_64 T_GYRO_SI = 0.825e-12;
-
         /** Duration of one timestep
          *  unit: seconds */
-
-#ifndef PARAM_DT_SI
-#    define PARAM_DT_SI 0.0165e-12
-#endif
-
-        constexpr float_64 DELTA_T_SI = PARAM_DT_SI;
+        constexpr float_64 DELTA_T_SI = 1.79e-16;
 
         /** equals X
          *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = 4.3e-5;
+
+        /** equals X
+         *  unit: meter */
+        constexpr float_64 CELL_WIDTH_SI = 9.34635e-8;
         /** equals Y
          *  unit: meter */
         constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
@@ -82,5 +77,20 @@ namespace picongpu
          * in fields with perfect symmetry in Z.
          */
 
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 25u;
 } // namespace picongpu

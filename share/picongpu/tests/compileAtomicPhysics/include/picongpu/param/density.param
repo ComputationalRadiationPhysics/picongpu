@@ -27,22 +27,6 @@
 // base density 1e25m^(-3), 10 macro particle per cell, uniform distribution
 namespace picongpu
 {
-    namespace SI
-    {
-        /** Base density in particles per m^3 in the density profiles.
-         *
-         * This is often taken as reference maximum density in normalized profiles.
-         * Individual particle species can define a `densityRatio` flag relative
-         * to this value.
-         *
-         * unit: ELEMENTS/m^3
-         */
-#ifndef PARAM_BASE_DENSITY_SI
-#    define PARAM_BASE_DENSITY_SI 1.e25
-#endif
-        constexpr float_64 BASE_DENSITY_SI = 1e25;
-    } // namespace SI
-
     namespace densityProfiles
     {
         struct FreeFormulaFunctor

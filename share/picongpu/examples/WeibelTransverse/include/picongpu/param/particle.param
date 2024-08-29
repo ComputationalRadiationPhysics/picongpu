@@ -111,13 +111,5 @@ namespace picongpu
             using Quiet = QuietImpl<QuietParam>;
 
         } // namespace startPosition
-
-        /** Approximate number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
-            = mCT::volume<startPosition::QuietParam::numParticlesPerDimension>::type::value;
-
     } // namespace particles
 } // namespace picongpu

@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <pmacc/math/ConstVector.hpp>
 #include <pmacc/math/Vector.hpp>
 
 namespace picongpu
@@ -30,7 +31,7 @@ namespace picongpu
     constexpr float_X CELL_WIDTH = float_X(SI::CELL_WIDTH_SI / UNIT_LENGTH);
     constexpr float_X CELL_HEIGHT = float_X(SI::CELL_HEIGHT_SI / UNIT_LENGTH);
     constexpr float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH);
-    CONST_VECTOR(float_X, DIM3, cellSize, CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH);
+    PMACC_CONST_VECTOR(float_X, DIM3, cellSize, CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH);
 
     // always a 3D cell, even in 1D3V or 2D3V
     constexpr float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
