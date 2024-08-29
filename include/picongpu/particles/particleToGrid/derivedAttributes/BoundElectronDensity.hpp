@@ -38,7 +38,7 @@ namespace picongpu
                 HDINLINE float1_64 BoundElectronDensity::getUnit() const
                 {
                     constexpr float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
-                    return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
+                    return TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
                 }
 
                 template<class T_Particle>
@@ -50,7 +50,7 @@ namespace picongpu
 
                     // calculate new attribute
                     float_X const boundElectronDensity = weighting * boundElectrons
-                        / (static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME);
+                        / (static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME);
 
                     return boundElectronDensity;
                 }

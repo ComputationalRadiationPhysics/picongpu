@@ -150,9 +150,8 @@ namespace picongpu
             return float3_X::create(1.0_X);
 #else
             constexpr auto baseCharge = BASE_CHARGE;
-            const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL
-                * static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
-                / DELTA_T;
+            const float_X tyCurrent = TYPICAL_PARTICLES_PER_CELL
+                * static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge) / DELTA_T;
             const float_X tyEField = getAmplitude() + FLT_MIN;
             const float_X tyBField = tyEField * MUE0_EPS0;
             return float3_X(tyBField, tyEField, tyCurrent);
@@ -483,8 +482,7 @@ namespace picongpu
                             lockstepWorker.getAcc(),
                             &(counter(reducedCell)),
                             // normalize the value to avoid bad precision for large macro particle weightings
-                            particle[weighting_]
-                                / static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
+                            particle[weighting_] / static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
                             ::alpaka::hierarchy::Threads{});
                     }
                 });
@@ -506,12 +504,12 @@ namespace picongpu
 
                         DataSpace<DIM2> const localCell(cellIdx[transpose.x()], cellIdx[transpose.y()]);
 
-                        /** Note: normally, we would multiply by particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                        /** Note: normally, we would multiply by TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
                          * again. BUT: since we are interested in a simple value between 0 and 1, we stay with this
                          * number (normalized to the order of macro particles) and devide by the number of typical
                          * macro particles per cell
                          */
-                        float_X value = counter(localCell) / float_X(particles::TYPICAL_PARTICLES_PER_CELL);
+                        float_X value = counter(localCell) / float_X(TYPICAL_PARTICLES_PER_CELL);
                         if(value > 1.0)
                             value = 1.0;
 

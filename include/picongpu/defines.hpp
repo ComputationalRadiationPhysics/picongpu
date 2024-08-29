@@ -31,5 +31,16 @@ namespace picongpu
 // clang-format off
 #include "picongpu/param/precision.param"
 #include "picongpu/param/dimension.param"
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#    include "picongpu/param/mallocMC.param"
+#endif
 #include "picongpu/param/memory.param"
+#include "picongpu/param/random.param"
+#include "picongpu/param/physicalConstants.param"
+#include "picongpu/param/speciesConstants.param"
+#include "picongpu/param/simulation.param"
+#include "picongpu/param/unit.param"
+#include "picongpu/unitless/simulation.unitless"
+#include "picongpu/unitless/physicalConstants.unitless"
+#include "picongpu/unitless/speciesConstants.unitless"
 // clang-format on

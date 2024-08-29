@@ -49,7 +49,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
 
             // UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2
             float_64 const momentumSquared = pmacc::math::l2norm2(momentumVector)
-                / pmacc::math::cPow(picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE, 2u);
+                / pmacc::math::cPow(picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE, 2u);
 
             // UNIT_MASS, not weighted
             float_64 const mass
