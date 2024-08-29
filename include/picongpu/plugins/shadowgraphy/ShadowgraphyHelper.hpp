@@ -236,8 +236,8 @@ namespace picongpu
                             (field(DataSpace<DIM3>(0, 0, 0)).x() + field(DataSpace<DIM3>(0, -1, 0)).x()
                              + field(DataSpace<DIM3>(0, 0, -1)).x() + field(DataSpace<DIM3>(0, -1, -1)).x())
                                 / 4.0_X,
-                            (field(DataSpace<DIM3>(0, 0, 0)).x() + field(DataSpace<DIM3>(-1, 0, 0)).x()
-                             + field(DataSpace<DIM3>(-1, 0, 0)).x() + field(DataSpace<DIM3>(-1, 0, -1)).x())
+                            (field(DataSpace<DIM3>(0, 0, 0)).y() + field(DataSpace<DIM3>(-1, 0, 0)).y()
+                             + field(DataSpace<DIM3>(-1, 0, 0)).y() + field(DataSpace<DIM3>(-1, 0, -1)).y())
                                 / 4.0_X);
                     }
                     else
