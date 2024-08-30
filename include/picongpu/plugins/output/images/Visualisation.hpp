@@ -802,7 +802,7 @@ namespace picongpu
                 hostBox({size.x() - 1, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
             }
 
-            auto picture = gather->gatherSlice(img->getHostBuffer(), header.sim.size, header.node.offset);
+            auto picture = gather->gatherSlice(img->getHostBuffer(), header.simHeader.size, header.node.offset);
 
             if(isMaster)
             {

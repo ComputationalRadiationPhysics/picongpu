@@ -55,7 +55,7 @@ namespace picongpu
         }
 
         std::stringstream step;
-        step << std::setw(6) << std::setfill('0') << header.sim.step;
+        step << std::setw(6) << std::setfill('0') << header.simHeader.step;
         std::string filename(m_name + "_" + step.str() + ".png");
 
         auto size = header.window.size;
@@ -90,8 +90,8 @@ namespace picongpu
         if(scale_to_cellsize)
         {
             // scale to real cell size
-            scale_x *= header.sim.scale[0];
-            scale_y *= header.sim.scale[1];
+            scale_x *= header.simHeader.scale[0];
+            scale_y *= header.simHeader.scale[1];
         }
 
         /* to prevent artifacts scale only, if at least one of scale_x and

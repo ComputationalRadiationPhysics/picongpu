@@ -49,8 +49,8 @@ namespace picongpu
             const Size2D localSize2D(localSize[transpose.x()], localSize[transpose.y()]);
 
             const auto globalSize(subGrid.getGlobalDomain().size);
-            sim.size.x() = globalSize[transpose.x()];
-            sim.size.y() = globalSize[transpose.y()];
+            simHeader.size.x() = globalSize[transpose.x()];
+            simHeader.size.y() = globalSize[transpose.y()];
 
             node.maxSize = Size2D(localSize[transpose.x()], localSize[transpose.y()]);
 
@@ -58,24 +58,24 @@ namespace picongpu
             window.size = Size2D(windowSize[transpose.x()], windowSize[transpose.y()]);
 
             picongpu::float_32 scale[2];
-            scale[0] = cellSize[transpose.x()];
-            scale[1] = cellSize[transpose.y()];
-            sim.cellSizeArr[0] = cellSize[transpose.x()];
-            sim.cellSizeArr[1] = cellSize[transpose.y()];
+            scale[0] = sim.pic.getCellSize()[transpose.x()];
+            scale[1] = sim.pic.getCellSize()[transpose.y()];
+            simHeader.cellSizeArr[0] = sim.pic.getCellSize()[transpose.x()];
+            simHeader.cellSizeArr[1] = sim.pic.getCellSize()[transpose.y()];
 
             const picongpu::float_32 scale0to1 = scale[0] / scale[1];
 
             if(scale0to1 > 1.0f)
             {
-                sim.setScale(scale0to1, 1.f);
+                simHeader.setScale(scale0to1, 1.f);
             }
             else if(scale0to1 < 1.0f)
             {
-                sim.setScale(1.f, 1.0f / scale0to1);
+                simHeader.setScale(1.f, 1.0f / scale0to1);
             }
             else
             {
-                sim.setScale(1.f, 1.f);
+                simHeader.setScale(1.f, 1.f);
             }
 
             const auto offsetToSimNull(subGrid.getLocalDomain().offset);
@@ -93,18 +93,18 @@ namespace picongpu
             const Size2D currentLocalSize2D(currentLocalSize[transpose.x()], currentLocalSize[transpose.y()]);
             node.size = currentLocalSize2D;
 
-            sim.step = currentStep;
+            simHeader.step = currentStep;
         }
 
         MessageHeader& operator=(MessageHeader const&) = default;
 
-        SimHeader sim;
+        SimHeader simHeader;
         WindowHeader window;
         NodeHeader node;
 
         void writeToConsole(std::ostream& ocons) const
         {
-            sim.writeToConsole(ocons);
+            simHeader.writeToConsole(ocons);
             window.writeToConsole(ocons);
             node.writeToConsole(ocons);
         }
