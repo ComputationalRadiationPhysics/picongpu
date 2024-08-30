@@ -26,24 +26,189 @@
 
 namespace picongpu
 {
+    struct Sim
+    {
+        struct PicUnits
+        {
+            constexpr float3_X getCellSize() const
+            {
+                return float3_X(si.getCellSize() / unit.length());
+            }
+
+            constexpr float_X getDt() const
+            {
+                return float_X(si.getDt() / unit.time());
+            }
+
+            constexpr float_X getSpeedOfLight() const
+            {
+                return float_X(si.getSpeedOfLight() / unit.speed());
+            }
+
+            constexpr float_X getBaseMass() const
+            {
+                return float_X(si.getBaseMass() / unit.mass());
+            }
+
+            constexpr float_X getBaseCharge() const
+            {
+                return float_X(si.getBaseCharge() / unit.charge());
+            }
+
+            constexpr float_X getBaseDensity() const
+            {
+                return float_X(si.getBaseDensity() * unit.length() * unit.length() * unit.length());
+            }
+
+            constexpr float_X getElectronMass() const
+            {
+                return float_X(si.getElectronMass() / unit.mass());
+            }
+
+            constexpr float_X getElectronCharge() const
+            {
+                return float_X(si.getElectronCharge() / unit.charge());
+            }
+        };
+        struct SiUnits
+        {
+            /** unit: meter */
+            constexpr float3_64 getCellSize() const
+            {
+                return {SI::CELL_WIDTH_SI, SI::CELL_HEIGHT_SI, SI::CELL_DEPTH_SI};
+            }
+
+            /** unit: seconds */
+            constexpr float_64 getDt() const
+            {
+                return SI::DELTA_T_SI;
+            }
+
+            /** unit: meter / seconds */
+            constexpr float_64 getSpeedOfLight() const
+            {
+                return SI::SPEED_OF_LIGHT_SI;
+            }
+
+            /** Base density in particles per m^3 in the density profiles.
+             *
+             * This is often taken as reference maximum density in normalized profiles.
+             * Individual particle species can define a `densityRatio` flag relative
+             * to this value.
+             *
+             * unit: ELEMENTS/m^3
+             */
+            constexpr float_64 getBaseDensity() const
+            {
+                return SI::BASE_DENSITY_SI;
+            }
+
+            /** base particle mass
+             *
+             * reference for massRatio in speciesDefinition.param
+             *
+             * unit: kg
+             */
+            constexpr float_64 getBaseMass() const
+            {
+                return SI::BASE_MASS_SI;
+            }
+            /** base particle charge
+             *
+             * reference for chargeRatio in speciesDefinition.param
+             *
+             * unit: C
+             */
+            constexpr float_64 getBaseCharge() const
+            {
+                return SI::BASE_CHARGE_SI;
+            }
+
+            /** Electron properties
+             * unit: kg
+             */
+            constexpr float_64 getElectronMass() const
+            {
+                return SI::ELECTRON_MASS_SI;
+            }
+            /** Electron properties
+             * unit: C
+             */
+            constexpr float_64 getElectronCharge() const
+            {
+                return SI::ELECTRON_CHARGE_SI;
+            }
+        };
+        struct Units
+        {
+            constexpr float_64 length() const
+            {
+                return time() * speed();
+            }
+            constexpr float_64 time() const
+            {
+                return SI::DELTA_T_SI;
+            }
+            constexpr float_64 speed() const
+            {
+                return si.getSpeedOfLight();
+            }
+            constexpr float_64 mass() const
+            {
+                return si.getBaseMass() * typicalNumParticlesPerMacroParticle();
+            }
+            constexpr float_64 charge() const
+            {
+                return -1.0 * si.getBaseCharge() * typicalNumParticlesPerMacroParticle();
+            }
+            constexpr float_64 energy() const
+            {
+                return mass() * length() * length() / (time() * time());
+            }
+            constexpr float_64 eField() const
+            {
+                return 1.0 / (time() * time() / mass() / length() * length());
+            }
+            constexpr float_64 bField() const
+            {
+                return mass() / (time() * charge());
+            }
+            /** Typical number of particles per macro particle (= typical macro particle weighting)
+             *  unit: none
+             */
+            constexpr float_64 typicalNumParticlesPerMacroParticle() const
+            {
+                return (si.getBaseDensity() * si.getCellSize().productOfComponents())
+                    / float_64(getTypicalNumParticlesPerCell());
+            }
+        };
+
+        static constexpr uint32_t getTypicalNumParticlesPerCell()
+        {
+            return TYPICAL_PARTICLES_PER_CELL;
+        }
+
+        static constexpr PicUnits pic{};
+        static constexpr SiUnits si{};
+        static constexpr Units unit{};
+    };
+
+    constexpr auto sim = Sim{};
+
+
     // normed grid parameter
-    constexpr float_X DELTA_T = float_X(SI::DELTA_T_SI / UNIT_TIME);
-    constexpr float_X CELL_WIDTH = float_X(SI::CELL_WIDTH_SI / UNIT_LENGTH);
-    constexpr float_X CELL_HEIGHT = float_X(SI::CELL_HEIGHT_SI / UNIT_LENGTH);
-    constexpr float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH);
-    PMACC_CONST_VECTOR(float_X, DIM3, cellSize, CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH);
+    constexpr float_X DELTA_T = sim.pic.getDt();
+    constexpr float_X CELL_WIDTH = sim.pic.getCellSize().x();
+    constexpr float_X CELL_HEIGHT = sim.pic.getCellSize().y();
+    constexpr float_X CELL_DEPTH = sim.pic.getCellSize().z();
+
+    constexpr float3_X cellSize = sim.pic.getCellSize();
 
     // always a 3D cell, even in 1D3V or 2D3V
-    constexpr float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
+    constexpr float_X CELL_VOLUME = sim.pic.getCellSize().productOfComponents();
 
     // only used for CFL checks
-#if(SIMDIM == DIM3)
     constexpr float_X INV_CELL2_SUM
-        = 1.0 / (CELL_WIDTH * CELL_WIDTH) + 1.0 / (CELL_HEIGHT * CELL_HEIGHT) + 1.0 / (CELL_DEPTH * CELL_DEPTH);
-#elif(SIMDIM == DIM2)
-    constexpr float_X INV_CELL2_SUM = 1.0 / (CELL_WIDTH * CELL_WIDTH) + 1.0 / (CELL_HEIGHT * CELL_HEIGHT);
-#else
-    constexpr float_X INV_CELL2_SUM = 1.0 / (CELL_WIDTH * CELL_WIDTH);
-#endif
+        = (1.0 / (sim.pic.getCellSize().shrink<simDim>() * sim.pic.getCellSize().shrink<simDim>())).sumOfComponents();
 
 } // namespace picongpu
