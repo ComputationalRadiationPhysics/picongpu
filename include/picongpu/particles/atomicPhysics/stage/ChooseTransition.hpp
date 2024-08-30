@@ -36,7 +36,7 @@ namespace picongpu::particles::atomicPhysics::stage
     /** atomic physics sub-stage choosing the specific transition from the previously chosen transitionType
      *    for each macro-ion of the given species
      *
-     * @attention assumes that the the chooseTransitionType kernel has been completed already
+     * @attention assumes that the the ChooseTransitionGroup kernel has been completed already
      *
      * @tparam T_IonSpecies ion species type
      */
@@ -80,7 +80,7 @@ namespace picongpu::particles::atomicPhysics::stage
 
             RngFactoryFloat rngFactoryFloat = RngFactoryFloat{currentStep};
 
-            // no-change transitions are already accepted by chooseTransitionTypeKernel
+            // no-change transitions are already accepted by ChooseTransitionGroupKernel
 
             // bound-bound(upward) transitions
             if constexpr(AtomicDataType::switchElectronicExcitation)

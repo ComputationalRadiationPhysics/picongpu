@@ -193,7 +193,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     {
                         if constexpr(T_electronicIonization)
                         {
-                            rateCache.template add<T_Worker, s_enums::TransitionDataSet::boundFreeUpward>(
+                            rateCache.template add<T_Worker, s_enums::ChooseTransitionGroup::boundFreeUpward>(
                                 worker,
                                 atomicStateCollectionIndex,
                                 picongpu::particles::atomicPhysics::rateCalculation::BoundFreeTransitionRates<

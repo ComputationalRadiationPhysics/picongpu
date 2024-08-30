@@ -21,12 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/CheckForInvalidTransitionType.hpp"
+#include "picongpu/particles/atomicPhysics/CheckForInvalidChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrderingFor.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeTransitionRates.hpp"
@@ -169,11 +169,11 @@ namespace picongpu::particles::atomicPhysics::kernel
                  &ionizationPotentialDepression](T_Worker const& worker, auto& ion)
                 {
                     // debug
-                    checkForInvalidTransitionType(ion);
+                    checkForInvalidChooseTransitionGroup(ion);
 
                     // reject already accepted macro-ions and other transitionTypes
                     bool const selectedBoundFreeUpwardTransition
-                        = (ion[transitionIndex_] == u32(s_enums::TransitionDataSet::boundFreeUpward));
+                        = (ion[transitionIndex_] == u32(s_enums::ChooseTransitionGroup::boundFreeUpward));
                     if(ion[accepted_] || !selectedBoundFreeUpwardTransition)
                         return;
 
@@ -216,7 +216,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
                                 cumSum += rateTransition
                                     / rateCache.rate(
-                                        u32(s_enums::TransitionDataSet::boundFreeUpward),
+                                        u32(s_enums::ChooseTransitionGroup::boundFreeUpward),
                                         atomicStateCollectionIndex);
 
                                 // inclusive limit, to make sure that r==1 is assigned a transition

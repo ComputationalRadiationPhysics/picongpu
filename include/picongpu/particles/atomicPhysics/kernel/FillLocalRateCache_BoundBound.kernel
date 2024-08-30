@@ -24,8 +24,8 @@
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundBoundTransitionRates.hpp"
 
 #include <pmacc/algorithms/math/PowerFunction.hpp>
@@ -194,7 +194,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             // electronic excitation
                             if constexpr(isUpward)
                             {
-                                rateCache.template add<T_Worker, s_enums::TransitionDataSet::boundBoundUpward>(
+                                rateCache.template add<T_Worker, s_enums::ChooseTransitionGroup::boundBoundUpward>(
                                     worker,
                                     atomicStateCollectionIndex,
                                     // rate
@@ -214,7 +214,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             // electronic deexcitation
                             else
                             {
-                                rateCache.template add<T_Worker, s_enums::TransitionDataSet::boundBoundDownward>(
+                                rateCache.template add<T_Worker, s_enums::ChooseTransitionGroup::boundBoundDownward>(
                                     worker,
                                     atomicStateCollectionIndex,
                                     // rate
@@ -259,7 +259,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitions;
                             ++transitionID)
                         {
-                            rateCache.template add<s_enums::TransitionDataSet::boundBoundDownward>(
+                            rateCache.template add<s_enums::ChooseTransitionGroup::boundBoundDownward>(
                                 atomicStateCollectionIndex,
                                 // rate
                                 picongpu::particles::atomicPhysics::rateCalculation::BoundBoundTransitionRates<
