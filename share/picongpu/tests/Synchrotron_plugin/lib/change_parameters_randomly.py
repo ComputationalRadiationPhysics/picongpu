@@ -29,7 +29,7 @@ If not, see <http://www.gnu.org/licenses/>.
 # This script is run from the ../bin/ci.sh
 
 # This script assumes that the files:
-# grid.param, fieldBackground.param, particle.param
+# simulation.param, fieldBackground.param, particle.param
 # are in the directory ../include/picongpu/param
 # and that the output directory ./simOutput exists
 

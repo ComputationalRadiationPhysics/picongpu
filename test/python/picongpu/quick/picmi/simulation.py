@@ -608,7 +608,7 @@ class TestPicmiSimulation(unittest.TestCase):
         self.assertTrue(not os.path.isdir(outdir))
         sim.write_input_file(outdir)
         self.assertTrue(os.path.isdir(outdir))
-        self.assertTrue(os.path.exists(outdir + "/include/picongpu/param/grid.param"))
+        self.assertTrue(os.path.exists(outdir + "/include/picongpu/param/simulation.param"))
 
     def test_custom_template_dir_basic_write_input_file(self):
         """providing custom template dir possible or write_input_file"""
