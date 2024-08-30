@@ -50,7 +50,7 @@ namespace picongpu::particles::atomicPhysics::kernel
         bool T_electronicIonization,
         bool T_autonomousIonization,
         bool T_fieldIonization>
-    struct ChooseTransitionTypeKernel
+    struct ChooseTransitionGroupKernel
     {
     private:
         /** is transitionType active in user channel configuration?
@@ -61,19 +61,19 @@ namespace picongpu::particles::atomicPhysics::kernel
          */
         HDINLINE static constexpr bool transitionTypeActive(uint32_t const transitionTypeIndex)
         {
-            if(transitionTypeIndex == u32(s_enums::TransitionDataSet::noChange))
+            if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::noChange))
                 return true;
             if constexpr(T_electronicExcitation)
-                if(transitionTypeIndex == u32(s_enums::TransitionDataSet::boundBoundUpward))
+                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::boundBoundUpward))
                     return true;
             if constexpr(T_electronicDeexcitation || T_spontaneousDeexcitation)
-                if(transitionTypeIndex == u32(s_enums::TransitionDataSet::boundBoundDownward))
+                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::boundBoundDownward))
                     return true;
             if constexpr(T_electronicIonization || T_fieldIonization)
-                if(transitionTypeIndex == u32(s_enums::TransitionDataSet::boundFreeUpward))
+                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::boundFreeUpward))
                     return true;
             if constexpr(T_autonomousIonization)
-                if(transitionTypeIndex == u32(s_enums::TransitionDataSet::autonomousDownward))
+                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::autonomousDownward))
                     return true;
 
             // unknown or deactivated transitionType
@@ -83,7 +83,7 @@ namespace picongpu::particles::atomicPhysics::kernel
     public:
         /** call operator
          *
-         * called by ChooseTransitionType atomic physics sub-stage
+         * called by ChooseTransitionGroup atomic physics sub-stage
          *
          * @param worker object containing the device and block
          *  information, passed by PMACC_KERNEL call

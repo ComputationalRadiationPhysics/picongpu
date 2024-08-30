@@ -36,7 +36,7 @@
 #include "picongpu/particles/atomicPhysics/stage/CheckForOverSubscription.hpp"
 #include "picongpu/particles/atomicPhysics/stage/CheckPresence.hpp"
 #include "picongpu/particles/atomicPhysics/stage/ChooseTransition.hpp"
-#include "picongpu/particles/atomicPhysics/stage/ChooseTransitionType.hpp"
+#include "picongpu/particles/atomicPhysics/stage/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/stage/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics/stage/FillLocalRateCache.hpp"
 #include "picongpu/particles/atomicPhysics/stage/FixAtomicState.hpp"
@@ -298,10 +298,10 @@ namespace picongpu::simulation::stage
             void chooseTransition(picongpu::MappingDesc const& mappingDesc, uint32_t const currentStep) const
             {
                 // randomly roll transition for each not yet accepted macro ion
-                using ForEachIonSpeciesChooseTransitionType = pmacc::meta::ForEach<
+                using ForEachIonSpeciesChooseTransitionGroup = pmacc::meta::ForEach<
                     AtomicPhysicsIonSpecies,
-                    particles::atomicPhysics::stage::ChooseTransitionType<boost::mpl::_1>>;
-                ForEachIonSpeciesChooseTransitionType{}(mappingDesc, currentStep);
+                    particles::atomicPhysics::stage::ChooseTransitionGroup<boost::mpl::_1>>;
+                ForEachIonSpeciesChooseTransitionGroup{}(mappingDesc, currentStep);
 
                 using ForEachIonSpeciesChooseTransition = pmacc::meta::ForEach<
                     AtomicPhysicsIonSpecies,

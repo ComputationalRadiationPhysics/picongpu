@@ -17,11 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file get TransitionDataSet from TransitionDirection and TransitionType
+//! @file get ChooseTransitionGroup from TransitionDirection and TransitionType
 
 #pragma once
 
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSet.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionType.hpp"
 
@@ -29,47 +29,47 @@ namespace picongpu::particles::atomicPhysics::enums
 {
     // error case, unknown is always false
     template<TransitionType T_TransitionType, TransitionDirection T_TransitionDirection>
-    struct TransitionDataSetFor;
+    struct ChooseTransitionGroupFor;
 
     //! bound-bound(upward)
     template<>
-    struct TransitionDataSetFor<TransitionType::boundBound, TransitionDirection::upward>
+    struct ChooseTransitionGroupFor<TransitionType::boundBound, TransitionDirection::upward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundBoundUpward;
+        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundBoundUpward;
     };
 
     //! bound-bound(downward)
     template<>
-    struct TransitionDataSetFor<TransitionType::boundBound, TransitionDirection::downward>
+    struct ChooseTransitionGroupFor<TransitionType::boundBound, TransitionDirection::downward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundBoundDownward;
+        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundBoundDownward;
     };
 
     //! bound-free(upward)
     template<>
-    struct TransitionDataSetFor<TransitionType::boundFree, TransitionDirection::upward>
+    struct ChooseTransitionGroupFor<TransitionType::boundFree, TransitionDirection::upward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::boundFreeUpward;
+        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundFreeUpward;
     };
 
     //! autonomous(downward)
     template<>
-    struct TransitionDataSetFor<TransitionType::autonomous, TransitionDirection::downward>
+    struct ChooseTransitionGroupFor<TransitionType::autonomous, TransitionDirection::downward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::autonomousDownward;
+        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::autonomousDownward;
     };
 
     //! noChange
     //@{
     template<>
-    struct TransitionDataSetFor<TransitionType::noChange, TransitionDirection::upward>
+    struct ChooseTransitionGroupFor<TransitionType::noChange, TransitionDirection::upward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::noChange;
+        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::noChange;
     };
     template<>
-    struct TransitionDataSetFor<TransitionType::noChange, TransitionDirection::downward>
+    struct ChooseTransitionGroupFor<TransitionType::noChange, TransitionDirection::downward>
     {
-        static constexpr TransitionDataSet dataSet = TransitionDataSet::noChange;
+        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::noChange;
     };
     //@}
 } // namespace picongpu::particles::atomicPhysics::enums

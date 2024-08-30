@@ -21,18 +21,18 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSet.hpp"
 
 #include <cstdint>
 
 namespace picongpu::particles::atomicPhysics::enums
 {
-    template<TransitionDataSet T_TransitionDataSet>
+    template<ChooseTransitionGroup T_ChooseTransitionGroup>
     struct LastResort;
 
     template<>
-    struct LastResort<TransitionDataSet::boundBoundUpward>
+    struct LastResort<ChooseTransitionGroup::boundBoundUpward>
     {
         template<bool T_spontaneousDeexcitation>
         static constexpr uint8_t processClass()
@@ -42,7 +42,7 @@ namespace picongpu::particles::atomicPhysics::enums
     };
 
     template<>
-    struct LastResort<TransitionDataSet::boundBoundDownward>
+    struct LastResort<ChooseTransitionGroup::boundBoundDownward>
     {
         template<bool T_spontaneousDeexcitation>
         static constexpr uint8_t processClass()
@@ -55,7 +55,7 @@ namespace picongpu::particles::atomicPhysics::enums
     };
 
     template<>
-    struct LastResort<TransitionDataSet::boundFreeUpward>
+    struct LastResort<ChooseTransitionGroup::boundFreeUpward>
     {
         static constexpr uint8_t processClass()
         {
@@ -64,7 +64,7 @@ namespace picongpu::particles::atomicPhysics::enums
     };
 
     template<>
-    struct LastResort<TransitionDataSet::autonomousDownward>
+    struct LastResort<ChooseTransitionGroup::autonomousDownward>
     {
         static constexpr uint8_t processClass()
         {

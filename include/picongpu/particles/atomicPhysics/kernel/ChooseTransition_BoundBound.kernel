@@ -21,13 +21,13 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/CheckForInvalidTransitionType.hpp"
+#include "picongpu/particles/atomicPhysics/CheckForInvalidChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroupFor.hpp"
 #include "picongpu/particles/atomicPhysics/enums/LastResortProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSetFor.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrderingFor.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionType.hpp"
@@ -64,8 +64,9 @@ namespace picongpu::particles::atomicPhysics::kernel
         bool T_spontaneousDeexcitation>
     struct ChooseTransitionKernel_BoundBound
     {
-        static constexpr s_enums::TransitionDataSet transitionDataSet
-            = s_enums::TransitionDataSetFor<s_enums::TransitionType::boundBound, T_TransitionDirection>::dataSet;
+        static constexpr s_enums::ChooseTransitionGroup chooseTransitionGroup
+            = s_enums::ChooseTransitionGroupFor<s_enums::TransitionType::boundBound, T_TransitionDirection>::
+                chooseTransitionGroup;
 
         // get possible transitions' collectionIndices
         static constexpr bool isUpward = (u8(T_TransitionDirection) == u8(s_enums::TransitionDirection::upward));
@@ -177,11 +178,11 @@ namespace picongpu::particles::atomicPhysics::kernel
                  &rateCache](T_Worker const& worker, auto& ion)
                 {
                     // debug
-                    checkForInvalidTransitionType(ion);
+                    checkForInvalidChooseTransitionGroup(ion);
 
                     // reject already accepted macro-ions and other transitionTypes
                     bool const selectedBoundBoundT_TransitionDirectionTransition
-                        = (ion[transitionIndex_] == u32(transitionDataSet));
+                        = (ion[transitionIndex_] == u32(chooseTransitionGroup));
                     if(ion[accepted_] || !selectedBoundBoundT_TransitionDirectionTransition)
                         return;
 
@@ -231,7 +232,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                                         transitionDataBox);
 
                                 cumSum += rateTransition
-                                    / rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex);
+                                    / rateCache.rate(u32(chooseTransitionGroup), atomicStateCollectionIndex);
 
                                 // debug only
                                 if constexpr(picongpu::atomicPhysics::debug::kernel::chooseTransition::
@@ -241,7 +242,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                                     {
                                         printf("atomicPhyiscs ERROR: cumSum overflow in chooseTranstion_BoundBound "
                                                "collisional\n");
-                                        printf("    dataSet = %u\n", u32(transitionDataSet));
+                                        printf("    chooseTransitionGroup = %u\n", u32(chooseTransitionGroup));
                                         printf("    stateIndex = %u\n", atomicStateCollectionIndex);
                                         printf("    transitionID = %u\n", transitionID);
                                         printf("    rateTransition = %f\n", rateTransition);
@@ -249,7 +250,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                                         printf("        density = %f\n", density);
                                         printf(
                                             "    rateCache.rate = %.8e\n",
-                                            rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex));
+                                            rateCache.rate(u32(chooseTransitionGroup), atomicStateCollectionIndex));
                                         printf("    (cumSum-1)*1e6 = %f\n", (cumSum - 1._X) * 1.e6);
                                     }
                                 }
@@ -281,8 +282,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                                     atomicStateDataDataBox,
                                     transitionDataBox);
 
-                            cumSum
-                                += rateTransition / rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex);
+                            cumSum += rateTransition
+                                / rateCache.rate(u32(chooseTransitionGroup), atomicStateCollectionIndex);
 
                             // debug only
                             if constexpr(picongpu::atomicPhysics::debug::kernel::chooseTransition::
@@ -292,13 +293,13 @@ namespace picongpu::particles::atomicPhysics::kernel
                                 {
                                     printf("atomicPhyiscs ERROR: cumSum overflow in chooseTranstion_BoundBound "
                                            "spontaneous\n");
-                                    printf("    dataSet = %u\n", u32(transitionDataSet));
+                                    printf("    chooseTransitionGroup = %u\n", u32(chooseTransitionGroup));
                                     printf("    stateIndex = %u\n", atomicStateCollectionIndex);
                                     printf("    transitionID = %u\n", transitionID);
                                     printf("    rateTransition = %f\n", rateTransition);
                                     printf(
                                         "    rateCache.rate = %f\n",
-                                        rateCache.rate(u32(transitionDataSet), atomicStateCollectionIndex));
+                                        rateCache.rate(u32(chooseTransitionGroup), atomicStateCollectionIndex));
                                     printf("    (cumSum-1)*1e6 = %.8e\n", (cumSum - 1._X) * 1.e6);
                                 }
                             }
@@ -319,7 +320,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // select last resort, choose last possible transition
                     updateIon(
                         ion,
-                        s_enums::LastResort<transitionDataSet>::template processClass<T_spontaneousDeexcitation>(),
+                        s_enums::LastResort<chooseTransitionGroup>::template processClass<T_spontaneousDeexcitation>(),
                         startIndexTransitionBlock + numberTransitions - 1u,
                         (isUpward || !T_spontaneousDeexcitation) ? static_cast<int>(T_Histogram::numberBins - 1u)
                                                                  : -1);
