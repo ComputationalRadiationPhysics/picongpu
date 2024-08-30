@@ -235,7 +235,7 @@ FLYonPIC step
 
 overview of the FLYonPIC step
 
-.. image:: media/AtomicPhyiscsStep_v3_1.svg
+.. image:: media/AtomicPhyiscsStep.svg
    :name: model-FLYonPIC_Step
    :width: 100%
 
