@@ -39,7 +39,7 @@ namespace picongpu
                 HDINLINE float1_64 EnergyDensity::getUnit() const
                 {
                     constexpr float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
-                    return UNIT_ENERGY / UNIT_VOLUME;
+                    return sim.unit.energy() / UNIT_VOLUME;
                 }
 
                 template<class T_Particle>

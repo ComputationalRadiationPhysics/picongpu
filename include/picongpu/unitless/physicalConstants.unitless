@@ -23,7 +23,7 @@
 namespace picongpu
 {
     //! reduced Planck constant
-    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / sim.unit.time());
+    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / sim.unit.energy() / sim.unit.time());
 
     //! Charge of electron
     constexpr float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / sim.unit.charge());

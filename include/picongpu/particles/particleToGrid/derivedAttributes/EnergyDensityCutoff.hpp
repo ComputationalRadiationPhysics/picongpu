@@ -51,7 +51,7 @@ namespace picongpu
 
                     /* value for energy cut-off */
                     float_X const cutoffMaxEnergy = ParamClass::cutoffMaxEnergy;
-                    float_X const cutoff = cutoffMaxEnergy / UNIT_ENERGY * weighting;
+                    float_X const cutoff = cutoffMaxEnergy / sim.unit.energy() * weighting;
 
                     float_X const kinEnergy = KinEnergy<>()(mom, mass);
 

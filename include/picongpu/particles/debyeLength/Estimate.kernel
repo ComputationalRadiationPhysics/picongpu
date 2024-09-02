@@ -213,7 +213,7 @@ namespace picongpu
                     using Frame = typename T_ElectronBox::FrameType;
                     auto const mass = static_cast<double>(picongpu::traits::frame::getMass<Frame>());
                     auto const kT = (momentumVariance[0] + momentumVariance[1] + momentumVariance[2]) / (3.0 * mass);
-                    auto const temperatureKeV = kT * UNIT_ENERGY / UNITCONV_keV_to_Joule;
+                    auto const temperatureKeV = kT * sim.unit.energy() / UNITCONV_keV_to_Joule;
                     auto const electronCharge = picongpu::traits::frame::getCharge<Frame>();
                     auto const debyeLength = sqrt(EPS0 * kT / (electronDensity * electronCharge * electronCharge));
                     auto maxCellSize = sim.pic.getCellSize()[0];

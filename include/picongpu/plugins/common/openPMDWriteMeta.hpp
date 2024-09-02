@@ -225,7 +225,7 @@ namespace picongpu
 
                 /* write base units */
                 log<picLog::INPUT_OUTPUT>("openPMD: meta: units");
-                iteration.setAttribute<double>("unit_energy", UNIT_ENERGY);
+                iteration.setAttribute<double>("unit_energy", sim.unit.energy());
                 iteration.setAttribute<double>("unit_length", sim.unit.length());
                 iteration.setAttribute<double>("unit_speed", UNIT_SPEED);
                 iteration.setAttribute<double>("unit_time", sim.unit.time());

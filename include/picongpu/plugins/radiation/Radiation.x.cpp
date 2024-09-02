@@ -803,7 +803,7 @@ namespace picongpu
                         /* get the radiation amplitude unit */
                         Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
                         const picongpu::float_64 factor
-                            = UnityAmplitude.calcRadiation() * UNIT_ENERGY * sim.unit.time();
+                            = UnityAmplitude.calcRadiation() * sim.unit.energy() * sim.unit.time();
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
@@ -887,7 +887,7 @@ namespace picongpu
                         /* get the radiation amplitude unit */
                         Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
                         const picongpu::float_64 factor
-                            = UnityAmplitude.calcRadiation() * UNIT_ENERGY * sim.unit.time();
+                            = UnityAmplitude.calcRadiation() * sim.unit.energy() * sim.unit.time();
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
@@ -1141,7 +1141,7 @@ namespace picongpu
                                 // and write to file.
                                 outFile << values[index_omega + index_direction * radiation_frequencies::N_omega]
                                                .calcRadiation()
-                                        * UNIT_ENERGY * sim.unit.time()
+                                        * sim.unit.energy() * sim.unit.time()
                                         << "\t";
                             }
                             outFile << std::endl;

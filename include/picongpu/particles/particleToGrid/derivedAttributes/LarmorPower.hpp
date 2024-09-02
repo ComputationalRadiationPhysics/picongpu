@@ -39,7 +39,7 @@ namespace picongpu
             {
                 HDINLINE float1_64 LarmorPower::getUnit() const
                 {
-                    return UNIT_ENERGY;
+                    return sim.unit.energy();
                 }
 
                 template<class T_Particle>

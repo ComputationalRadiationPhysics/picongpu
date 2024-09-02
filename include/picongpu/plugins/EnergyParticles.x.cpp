@@ -387,8 +387,8 @@ namespace picongpu
                 using dbl = std::numeric_limits<float_64>;
 
                 outFile.precision(dbl::digits10);
-                outFile << currentStep << " " << std::scientific << reducedEnergy[0] * UNIT_ENERGY << " "
-                        << reducedEnergy[1] * UNIT_ENERGY << std::endl;
+                outFile << currentStep << " " << std::scientific << reducedEnergy[0] * sim.unit.energy() << " "
+                        << reducedEnergy[1] * sim.unit.energy() << std::endl;
             }
         }
 
