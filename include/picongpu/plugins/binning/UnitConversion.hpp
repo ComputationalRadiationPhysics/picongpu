@@ -31,7 +31,7 @@ namespace picongpu
         constexpr unsigned numUnits = 7;
         // @todo add where this 7D format is from
         std::array<double, numUnits> UnitDimensions{
-            UNIT_LENGTH, // length
+            sim.unit.length(), // length
             UNIT_MASS, // mass
             sim.unit.time(), // time
             UNIT_CHARGE / sim.unit.time(), // current

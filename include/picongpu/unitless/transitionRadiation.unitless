@@ -59,7 +59,7 @@ namespace picongpu
             //! unit for foil position
             namespace parameters
             {
-                constexpr float_X foilPosition = SI::foilPosition / UNIT_LENGTH;
+                constexpr float_X foilPosition = SI::foilPosition / sim.unit.length();
             }
 
         } // namespace transitionRadiation

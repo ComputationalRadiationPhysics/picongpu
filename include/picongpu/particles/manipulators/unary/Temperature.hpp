@@ -144,7 +144,7 @@ namespace picongpu
                             T_StandardNormalRng& standardNormalRng,
                             T_Particle& particle)
                         {
-                            auto const unitLength = UNIT_LENGTH;
+                            auto const unitLength = sim.unit.length();
                             auto const cellSize_SI = precisionCast<float_64>(sim.pic.getCellSize()) * unitLength;
                             auto const position_SI = (precisionCast<float_64>(totalCellOffset)
                                                       + precisionCast<float_64>(particle[position_]))

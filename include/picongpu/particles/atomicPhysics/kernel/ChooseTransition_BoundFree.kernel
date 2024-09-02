@@ -143,7 +143,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
 
-            // UNIT_LENGTH^3
+            // sim.unit.length()^3
             constexpr float_X volumeScalingFactor
                 = pmacc::math::CT::volume<SuperCellSize>::type::value * sim.pic.getCellSize().productOfComponents();
 

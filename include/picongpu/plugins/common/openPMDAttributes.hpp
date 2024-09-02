@@ -53,7 +53,7 @@ namespace picongpu
             ::openPMD::Mesh::Geometry m_geometry = ::openPMD::Mesh::Geometry::cartesian;
             std::vector<float_64> m_gridGlobalOffset; // no default since it depends on time step
             std::vector<float_X> m_gridSpacing = initGridSpacing();
-            double m_gridUnitSI = UNIT_LENGTH;
+            double m_gridUnitSI = sim.unit.length();
             float_X m_timeOffset = 0.;
             std::map<::openPMD::UnitDimension, double> m_unitDimension{};
 

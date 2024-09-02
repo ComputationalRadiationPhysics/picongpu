@@ -37,7 +37,7 @@ namespace picongpu
             {
                 HDINLINE float1_64 Density::getUnit() const
                 {
-                    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+                    const float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
                     return TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
                 }
 

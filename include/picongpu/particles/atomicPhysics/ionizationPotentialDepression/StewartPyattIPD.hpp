@@ -115,7 +115,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
 
             // create IPD input Fields
             //@{
-            // in UNIT_LENGTH, not weighted
+            // in sim.unit.length(), not weighted
             auto localDebyeLengthField
                 = std::make_unique<s_IPD::localHelperFields::LocalDebyeLengthField<picongpu::MappingDesc>>(
                     mappingDesc);
@@ -189,11 +189,11 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
         /** calculate ionization potential depression
          *
          * @param localTemperatureEnergyBox deviceDataBox giving access to the local temperature * k_Boltzman for all
-         *  local superCells, in UNIT_MASS * UNIT_LENGTH^2 / sim.unit.time()^2, not weighted
+         *  local superCells, in UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2, not weighted
          * @param localZStarBox deviceDataBox giving access to the local z^Star value, = average(q^2) / average(q),
          *  for all local superCells, unitless, not weighted
          * @param localDebyeLengthBox deviceDataBox giving access to the local debye length for all local superCells,
-         *  UNIT_LENGTH, not weighted
+         *  sim.unit.length(), not weighted
          * @param superCellFieldIdx index of superCell in superCellField(without guards)
          *
          * @return unit: eV, not weighted
@@ -209,26 +209,26 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             T_LocalTemperatureEnergyBox const localTemperatureEnergyBox,
             T_LocalZStarBox const localZStarBox)
         {
-            // eV/(UNIT_MASS * UNIT_LENGTH^2 / sim.unit.time()^2)
+            // eV/(UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2)
             constexpr float_X eV = static_cast<float_X>(
-                picongpu::UNIT_MASS * pmacc::math::cPow(picongpu::UNIT_LENGTH, 2u)
+                picongpu::UNIT_MASS * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
                 / pmacc::math::cPow(picongpu::sim.unit.time(), 2u) * picongpu::UNITCONV_Joule_to_keV * 1e3);
 
-            // eV/(UNIT_MASS * UNIT_LENGTH^2 / sim.unit.time()^2) * unitless * UNIT_CHARGE^2
-            //  / ( unitless * UNIT_CHARGE^2 * sim.unit.time()^2 / (UNIT_LENGTH^3 * UNIT_MASS))
-            // = eV * sim.unit.time()^2 * UNIT_MASS^(-1) * UNIT_LENGTH^(-2) * UNIT_CHARGE^2 * UNIT_CHARGE^(-2)
-            //  * sim.unit.time()^(-2) * UNIT_LENGTH^3 * UNIT_MASS^1 = eV * UNIT_LENGTH
-            // eV * UNIT_LENGTH
+            // eV/(UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2) * unitless * UNIT_CHARGE^2
+            //  / ( unitless * UNIT_CHARGE^2 * sim.unit.time()^2 / (sim.unit.length()^3 * UNIT_MASS))
+            // = eV * sim.unit.time()^2 * UNIT_MASS^(-1) * sim.unit.length()^(-2) * UNIT_CHARGE^2 * UNIT_CHARGE^(-2)
+            //  * sim.unit.time()^(-2) * sim.unit.length()^3 * UNIT_MASS^1 = eV * sim.unit.length()
+            // eV * sim.unit.length()
             constexpr float_X constFactor = eV * static_cast<float_X>(T_atomicNumber)
                 * pmacc::math::cPow(picongpu::ELECTRON_CHARGE, 2u)
                 / (4._X * static_cast<float_X>(picongpu::PI) * picongpu::EPS0);
 
             // eV, not weighted
             float_X const temperatureTimesk_Boltzman = localTemperatureEnergyBox(superCellFieldIdx);
-            // UNIT_LENGTH, not weighted
+            // sim.unit.length(), not weighted
             float_X const debyeLength = localDebyeLengthBox(superCellFieldIdx);
 
-            // (eV * UNIT_LENGTH) / (eV * UNIT_LENGTH), not weighted
+            // (eV * sim.unit.length()) / (eV * sim.unit.length()), not weighted
             // unitless, not weighted
             float_X const K = constFactor / (temperatureTimesk_Boltzman * debyeLength);
 

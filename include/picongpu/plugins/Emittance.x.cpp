@@ -648,8 +648,9 @@ namespace picongpu
                         numElec_all += static_cast<long double>(globalCount_e.data()[i]);
                         ux2_all += static_cast<long double>(globalSumMom2.data()[i]) * UNIT_MASS * UNIT_MASS
                             / (SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
-                        pos2_SI_all += static_cast<long double>(globalSumPos2.data()[i]) * UNIT_LENGTH * UNIT_LENGTH;
-                        xux_all += static_cast<long double>(globalSumMomPos.data()[i]) * UNIT_MASS * UNIT_LENGTH
+                        pos2_SI_all += static_cast<long double>(globalSumPos2.data()[i]) * sim.unit.length()
+                            * sim.unit.length();
+                        xux_all += static_cast<long double>(globalSumMomPos.data()[i]) * UNIT_MASS * sim.unit.length()
                             / SI::ELECTRON_MASS_SI;
                     }
                     /* the scaling with normalized weighting (weighting /
@@ -674,14 +675,14 @@ namespace picongpu
                     {
                         float_64 numElec = globalCount_e.data()[i];
                         float_64 mom2_SI = globalSumMom2.data()[i] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
-                        float_64 pos2_SI = globalSumPos2.data()[i] * UNIT_LENGTH * UNIT_LENGTH;
-                        float_64 mompos_SI = globalSumMomPos.data()[i] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
+                        float_64 pos2_SI = globalSumPos2.data()[i] * sim.unit.length() * sim.unit.length();
+                        float_64 mompos_SI = globalSumMomPos.data()[i] * UNIT_MASS * UNIT_SPEED * sim.unit.length();
                         for(int j = i + 1; j < i + 10 && j < endWindow_y; j++)
                         {
                             numElec += globalCount_e.data()[j];
                             mom2_SI += globalSumMom2.data()[j] * UNIT_MASS * UNIT_SPEED * UNIT_MASS * UNIT_SPEED;
-                            pos2_SI += globalSumPos2.data()[j] * UNIT_LENGTH * UNIT_LENGTH;
-                            mompos_SI += globalSumMomPos.data()[j] * UNIT_MASS * UNIT_SPEED * UNIT_LENGTH;
+                            pos2_SI += globalSumPos2.data()[j] * sim.unit.length() * sim.unit.length();
+                            mompos_SI += globalSumMomPos.data()[j] * UNIT_MASS * UNIT_SPEED * sim.unit.length();
                         }
                         float_64 ux2
                             = mom2_SI / (UNIT_SPEED * UNIT_SPEED * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);

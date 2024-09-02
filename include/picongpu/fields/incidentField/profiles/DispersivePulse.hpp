@@ -60,8 +60,8 @@ namespace picongpu
                         // unit: none
                         using Params::SPECTRAL_SUPPORT;
 
-                        // unit: UNIT_LENGTH
-                        static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
+                        // unit: sim.unit.length()
+                        static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / sim.unit.length());
 
                         // rayleigh length in propagation direction
                         static constexpr float_X rayleighLength
@@ -73,9 +73,9 @@ namespace picongpu
                             = static_cast<float_X>(Params::PULSE_INIT) * Base::PULSE_DURATION;
 
                         // Dispersion parameters
-                        // unit: UNIT_LENGTH * sim.unit.time()
+                        // unit: sim.unit.length() * sim.unit.time()
                         static constexpr float_X SD
-                            = static_cast<float_X>(Params::SD_SI / sim.unit.time() / UNIT_LENGTH);
+                            = static_cast<float_X>(Params::SD_SI / sim.unit.time() / sim.unit.length());
                         // unit: rad * sim.unit.time()
                         static constexpr float_X AD = static_cast<float_X>(Params::AD_SI / sim.unit.time());
                         // unit: sim.unit.time()^2
