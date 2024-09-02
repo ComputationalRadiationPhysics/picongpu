@@ -110,7 +110,7 @@ namespace picongpu
      * CONVENTION: WE DO NOT CONVERT FROM ANY STRANGE UNIT TO UNITLESS UNITS DIRECTLY!
      *             convert steps: INPUT -> float_64_convert to SI -> float_64_convert to unitless
      *                                  -> cast to float
-     * WE DO NOT define "UNIT_ENERGY_keV" or something similar! Never!
+     * WE DO NOT define "sim.unit.energy()_keV" or something similar! Never!
      * Stay SI, stay free ;-)
      *
      * example:
@@ -122,13 +122,13 @@ namespace picongpu
      *   unit: Joule
      *
      *   // now the "real" convert to our internal unitless system
-     *   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI / UNIT_ENERGY) // unit:
-     *   none
+     *   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI / sim.unit.energy()) //
+     * unit: none
      *
      * As a convention, we DO NOT use the short track:
      *   constexpr float_64 An_Arbitrary_Energy_Input_keV = 30.0; // unit: keV
      *   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI * UNITCONV_keV_to_Joule /
-     *   UNIT_ENERGY) // unit: none
+     *   sim.unit.energy()) // unit: none
      */
     constexpr float_64 UNITCONV_keV_to_Joule = 1.602176634e-16;
     constexpr float_64 UNITCONV_eV_to_Joule = UNITCONV_keV_to_Joule * 1e-3;

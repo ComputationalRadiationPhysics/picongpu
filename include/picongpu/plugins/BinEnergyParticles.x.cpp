@@ -427,8 +427,8 @@ namespace picongpu
             auto idProvider = dc.get<IdProvider>("globalId");
 
             /* convert energy values from keV to PIConGPU units */
-            float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
-            float_X const maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+            float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / sim.unit.energy();
+            float_X const maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / sim.unit.energy();
 
             auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 

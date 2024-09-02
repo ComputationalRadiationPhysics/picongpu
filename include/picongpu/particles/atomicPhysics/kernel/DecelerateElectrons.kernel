@@ -133,8 +133,9 @@ namespace picongpu::particles::atomicPhysics::kernel
                         = static_cast<float_X>(picongpu::SI::SPEED_OF_LIGHT_SI * sim.unit.time() / sim.unit.length());
                     // usually ~1, internal units
 
-                    constexpr float_X conversionEnergy = static_cast<float_X>(UNITCONV_eV_to_Joule * 1. / UNIT_ENERGY);
-                    // J/(eV) * UNIT_ENERGY/J  = J/J * UNIT_ENERGY/(eV)
+                    constexpr float_X conversionEnergy
+                        = static_cast<float_X>(UNITCONV_eV_to_Joule * 1. / sim.unit.energy());
+                    // J/(eV) * sim.unit.energy()/J  = J/J * sim.unit.energy()/(eV)
 
                     constexpr float_X scalingFactor = 1._X / c_internal * conversionEnergy;
 
@@ -142,8 +143,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                     float_X const newElectronMomentum
                         = math::sqrt(newEnergyElectron * (newEnergyElectron + 2 * mcSquaredElectron)) * scalingFactor;
                     // AU = ATOMIC_UNIT_ENERGY
-                    // sqrt(eV * (eV + eV))/(sim.unit.length()/sim.unit.time()) * (UNIT_ENERGY/eV)
-                    //  = sqrt((eV)^2)/(eV) * sim.unit.time()/sim.unit.length() * UNIT_ENERGY
+                    // sqrt(eV * (eV + eV))/(sim.unit.length()/sim.unit.time()) * (sim.unit.energy()/eV)
+                    //  = sqrt((eV)^2)/(eV) * sim.unit.time()/sim.unit.length() * sim.unit.energy()
                     //  = sim.unit.mass() * sim.unit.length()^2/sim.unit.time()^2 * sim.unit.time()/sim.unit.length()
                     //  = sim.unit.mass() * sim.unit.length()/sim.unit.time()
                     // internal units, not weighted
