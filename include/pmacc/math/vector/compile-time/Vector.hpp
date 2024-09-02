@@ -36,48 +36,6 @@ namespace pmacc
         {
             namespace detail
             {
-                template<uint32_t dim>
-                struct VectorFromCT;
-
-                template<>
-                struct VectorFromCT<1u>
-                {
-                    template<typename Vec, typename CTVec>
-                    HDINLINE void operator()(Vec& vec, CTVec) const
-                    {
-                        BOOST_STATIC_ASSERT(Vec::dim == 1u);
-                        BOOST_STATIC_ASSERT(CTVec::dim == 1u);
-                        vec[0] = (typename Vec::type) CTVec::x::value;
-                    }
-                };
-
-                template<>
-                struct VectorFromCT<2u>
-                {
-                    template<typename Vec, typename CTVec>
-                    HDINLINE void operator()(Vec& vec, CTVec) const
-                    {
-                        BOOST_STATIC_ASSERT(Vec::dim == 2u);
-                        BOOST_STATIC_ASSERT(CTVec::dim == 2u);
-                        vec[0] = (typename Vec::type) CTVec::x::value;
-                        vec[1] = (typename Vec::type) CTVec::y::value;
-                    }
-                };
-
-                template<>
-                struct VectorFromCT<3u>
-                {
-                    template<typename Vec, typename CTVec>
-                    HDINLINE void operator()(Vec& vec, CTVec) const
-                    {
-                        BOOST_STATIC_ASSERT(Vec::dim == 3u);
-                        BOOST_STATIC_ASSERT(CTVec::dim == 3u);
-                        vec[0] = (typename Vec::type) CTVec::x::value;
-                        vec[1] = (typename Vec::type) CTVec::y::value;
-                        vec[2] = (typename Vec::type) CTVec::z::value;
-                    }
-                };
-
                 struct na
                 {
                 };
@@ -128,9 +86,7 @@ namespace pmacc
                 template<typename OtherType>
                 HDINLINE operator math::Vector<OtherType, dim>() const
                 {
-                    math::Vector<OtherType, dim> result;
-                    math::CT::detail::VectorFromCT<dim>()(result, *this);
-                    return result;
+                    return toRT();
                 }
 
                 /** Create a runtime Vector
@@ -139,11 +95,20 @@ namespace pmacc
                  *
                  *  @return RT_type runtime vector with same value type
                  */
-                HDINLINE static RT_type toRT()
+                template<uint32_t T_deferDim = dim, std::enable_if_t<T_deferDim == 1u, int> = 0>
+                static constexpr RT_type toRT()
                 {
-                    math::Vector<type, dim> result;
-                    math::CT::detail::VectorFromCT<dim>()(result, This());
-                    return result;
+                    return RT_type(This::x::value);
+                }
+                template<uint32_t T_deferDim = dim, std::enable_if_t<T_deferDim == 2u, int> = 0>
+                static constexpr RT_type toRT()
+                {
+                    return RT_type(This::x::value, This::y::value);
+                }
+                template<uint32_t T_deferDim = dim, std::enable_if_t<T_deferDim == 3u, int> = 0>
+                static constexpr RT_type toRT()
+                {
+                    return RT_type(This::x::value, This::y::value, This::z::value);
                 }
             };
 

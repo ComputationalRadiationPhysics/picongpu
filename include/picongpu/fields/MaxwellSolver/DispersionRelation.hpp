@@ -23,6 +23,8 @@
 
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 
+#include <pmacc/math/Vector.hpp>
+
 #include <cstdint>
 
 

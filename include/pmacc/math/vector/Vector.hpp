@@ -23,14 +23,12 @@
 #pragma once
 
 #include "pmacc/algorithms/math.hpp"
-#include "pmacc/math/vector/navigator/IdentityNavigator.hpp"
-#include "pmacc/memory/Align.hpp"
-#include "pmacc/memory/Array.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/call_traits.hpp>
 
+#include <array>
 #include <iostream>
 #include <type_traits>
 
@@ -38,84 +36,34 @@ namespace pmacc
 {
     namespace math
     {
-        namespace detail
+        /** Array storge for vector data
+         *
+         * This class is a workaround and is simply wrapping std::array. It is required because the size in std::array
+         * in the template signature is size_t. This produces template deduction issues for math::Vector if we sue
+         * array as default storage without this wrapper.
+         */
+        template<typename T_Type, uint32_t T_dim>
+        struct ArrayStorage : private std::array<T_Type, T_dim>
         {
-            template<typename T_Type, uint32_t T_dim>
-            struct Vector_components
+            using BaseType = std::array<T_Type, T_dim>;
+            using BaseType::operator[];
+
+            // constructor is required because exposing the array constructors does not work
+            template<typename... T_Args>
+            constexpr ArrayStorage(T_Args&&... args) : BaseType{std::forward<T_Args>(args)...}
             {
-                static constexpr bool isConst = false;
-                static constexpr uint32_t dim = T_dim;
-                using type = T_Type;
+            }
+        };
 
-                constexpr Vector_components() = default;
+        template<typename T_Type, uint32_t T_dim, typename T_Storage = ArrayStorage<T_Type, T_dim>>
+        struct Vector;
 
-                constexpr Vector_components& operator=(const Vector_components&) = default;
-
-                constexpr Vector_components(const Vector_components&) = default;
-
-                template<
-                    typename T_Navigator,
-                    typename... T_Args,
-                    typename = std::enable_if_t<
-                        (std::is_convertible_v<T_Args, T_Type> && ...)
-                        && !std::is_same_v<T_Navigator, IdentityNavigator>>>
-                HDINLINE constexpr Vector_components(T_Navigator const& navigator, T_Args... args)
-                {
-                    static_assert(
-                        sizeof...(T_Args) == dim,
-                        "Number of arguments must be equal to the vector dimension.");
-                    int i = 0;
-                    ([&] { operator[](navigator(i++)) = static_cast<type>(args); }(), ...);
-                }
-
-                template<
-                    typename... T_Args,
-                    typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
-                HDINLINE constexpr Vector_components(IdentityNavigator const&, T_Args... args)
-                    : v{static_cast<type>(args)...}
-                {
-                    static_assert(
-                        sizeof...(T_Args) == dim,
-                        "Number of arguments must be equal to the vector dimension.");
-                }
-
-                /*align full vector*/
-                PMACC_ALIGN(v[dim], type) = {};
-
-                HDINLINE
-                constexpr type& operator[](const uint32_t idx)
-                {
-                    return v[idx];
-                }
-
-                HDINLINE
-                const type& operator[](const uint32_t idx) const
-                {
-                    return v[idx];
-                }
-            };
-
-        } // namespace detail
-
-        namespace tag
-        {
-            struct Vector;
-        }
-
-        template<
-            typename T_Type,
-            uint32_t T_dim,
-            typename T_Navigator = IdentityNavigator,
-            typename T_Storage = detail::Vector_components<T_Type, T_dim>>
-        struct Vector
-            : private T_Storage
-            , protected T_Navigator
+        template<typename T_Type, uint32_t T_dim, typename T_Storage>
+        struct Vector : private T_Storage
         {
             using Storage = T_Storage;
-            using type = typename Storage::type;
-            static constexpr uint32_t dim = Storage::dim;
-            using tag = tag::Vector;
-            using Navigator = T_Navigator;
+            using type = T_Type;
+            static constexpr uint32_t dim = T_dim;
             using ParamType = typename boost::call_traits<type>::param_type;
 
             /*Vectors without elements are not allowed*/
@@ -131,15 +79,15 @@ namespace pmacc
             template<
                 typename F,
                 std::enable_if_t<std::is_invocable_v<F, std::integral_constant<uint32_t, 0u>>, uint32_t> = 0u>
-            ALPAKA_FN_HOST_ACC constexpr explicit Vector(F&& generator)
+            constexpr explicit Vector(F&& generator)
                 : Vector(std::forward<F>(generator), std::make_integer_sequence<uint32_t, dim>{})
             {
             }
 
         private:
             template<typename F, uint32_t... Is>
-            ALPAKA_FN_HOST_ACC constexpr explicit Vector(F&& generator, std::integer_sequence<uint32_t, Is...>)
-                : Storage(Navigator{}, generator(std::integral_constant<uint32_t, Is>{})...)
+            constexpr explicit Vector(F&& generator, std::integer_sequence<uint32_t, Is...>)
+                : Storage{generator(std::integral_constant<uint32_t, Is>{})...}
             {
             }
 
@@ -151,25 +99,27 @@ namespace pmacc
              * @param args value of each dimension, x,y,z,...
              */
             template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
-            HDINLINE constexpr Vector(T_Args... args) : Storage(Navigator{}, args...)
+            constexpr Vector(T_Args... args) : Storage(static_cast<T_Type>(args)...)
             {
             }
 
-            HDINLINE
             constexpr Vector(const Vector& other) = default;
 
-            template<typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE Vector(const Vector<T_Type, dim, T_OtherNavigator, T_OtherStorage>& other) : Storage{}
+            /** constructor allows changing the storage policy
+             */
+            template<typename T_OtherStorage>
+            constexpr Vector(const Vector<T_Type, T_dim, T_OtherStorage>& other)
+                : Vector([=](uint32_t const i) constexpr { return other[i]; })
             {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] = other[i];
             }
 
-            template<typename T_OtherType, typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE explicit Vector(const Vector<T_OtherType, dim, T_OtherNavigator, T_OtherStorage>& other)
+            template<
+                typename T_OtherType,
+                typename T_OtherStorage,
+                typename = std::enable_if_t<std::is_convertible_v<T_OtherType, T_Type>>>
+            constexpr explicit Vector(const Vector<T_OtherType, dim, T_OtherStorage>& other)
+                : Vector([=](uint32_t const i) constexpr { return static_cast<T_Type>(other[i]); })
             {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] = static_cast<type>(other[i]);
             }
 
             /** Transforms an alpaka vector into the corresponding PMacc vector
@@ -177,15 +127,14 @@ namespace pmacc
              * The order of members is automatically permuted from z,y,x to x,y,z.
              */
             template<typename T_MemberType>
-            HDINLINE explicit Vector(alpaka::Vec<::alpaka::DimInt<T_dim>, T_MemberType> const& value)
+            constexpr explicit Vector(alpaka::Vec<::alpaka::DimInt<T_dim>, T_MemberType> const& alpakaVec)
+                : Vector([=](uint32_t const i) constexpr { return alpakaVec[T_dim - 1 - i]; })
             {
-                for(uint32_t i = 0u; i < T_dim; i++)
-                    (*this)[T_dim - 1 - i] = value[i];
             }
 
             /** Allow static_cast / explicit cast to member type for 1D vector */
             template<uint32_t T_deferDim = T_dim, typename = typename std::enable_if<T_deferDim == 1u>::type>
-            HDINLINE explicit operator type()
+            constexpr explicit operator type()
             {
                 return (*this)[0];
             }
@@ -201,138 +150,112 @@ namespace pmacc
              * @param value Value which is set for all dimensions
              * @return new Vector<...>
              */
-            HDINLINE
-            static constexpr Vector create(ParamType value)
+            static constexpr Vector create(T_Type const& value)
             {
-                Vector result;
-                for(uint32_t i = 0u; i < dim; i++)
-                    result[i] = value;
+                Vector result([=](uint32_t const) { return value; });
 
                 return result;
             }
 
-            HDINLINE const Vector& toRT() const
+            constexpr Vector toRT() const
             {
                 return *this;
             }
 
-            HDINLINE Vector& toRT()
+            constexpr Vector revert() const
             {
-                return *this;
-            }
-
-            HDINLINE Vector revert()
-            {
-                Vector invertedVector;
+                Vector invertedVector{};
                 for(uint32_t i = 0u; i < dim; i++)
                     invertedVector[dim - 1 - i] = (*this)[i];
 
                 return invertedVector;
             }
 
-            HDINLINE Vector& operator=(const Vector&) = default;
+            constexpr Vector& operator=(const Vector&) = default;
 
-            template<typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE Vector& operator=(const Vector<type, dim, T_OtherNavigator, T_OtherStorage>& rhs)
+            constexpr Vector operator-() const
             {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] = rhs[i];
-                return *this;
+                return Vector([=](uint32_t const i) constexpr { return -(*this)[i]; });
             }
 
-            HDINLINE
-            type& operator[](const uint32_t idx)
+/** assign operator
+ * @{
+ */
+#define PMACC_VECTOR_ASSIGN_OP(op)                                                                                    \
+    template<typename T_OtherStorage>                                                                                 \
+    constexpr Vector& operator op(Vector<T_Type, T_dim, T_OtherStorage> const& rhs)                                   \
+    {                                                                                                                 \
+        for(uint32_t i = 0u; i < dim; i++)                                                                            \
+            (*this)[i] op rhs[i];                                                                                     \
+        return *this;                                                                                                 \
+    }                                                                                                                 \
+    constexpr Vector& operator op(T_Type const value)                                                                 \
+    {                                                                                                                 \
+        for(uint32_t i = 0u; i < dim; i++)                                                                            \
+            (*this)[i] op value;                                                                                      \
+        return *this;                                                                                                 \
+    }
+            PMACC_VECTOR_ASSIGN_OP(+=)
+            PMACC_VECTOR_ASSIGN_OP(-=)
+            PMACC_VECTOR_ASSIGN_OP(/=)
+            PMACC_VECTOR_ASSIGN_OP(*=)
+            PMACC_VECTOR_ASSIGN_OP(=)
+
+#undef PMACC_VECTOR_ASSIGN_OP
+            /** @} */
+
+            constexpr type& operator[](const uint32_t idx)
             {
-                return Storage::operator[](Navigator::operator()(idx));
+                return Storage::operator[](idx);
             }
 
-            HDINLINE
-            const type& operator[](const uint32_t idx) const
+            constexpr type const& operator[](const uint32_t idx) const
             {
-                return Storage::operator[](Navigator::operator()(idx));
+                return Storage::operator[](idx);
             }
 
-            HDINLINE type& x()
-            {
-                return (*this)[0];
-            }
+            /** named member access
+             *
+             * index -> name [0->x,1->y,2->z,3->w]
+             * @{
+             */
+#define PMACC_NAMED_ARRAY_ACCESS(functionName, dimValue)                                                              \
+    template<uint32_t T_deferDim = dim, std::enable_if_t<T_deferDim >= dimValue + 1u, int> = 0>                       \
+    constexpr type& functionName()                                                                                    \
+    {                                                                                                                 \
+        return (*this)[dimValue];                                                                                     \
+    }                                                                                                                 \
+    template<uint32_t T_deferDim = dim, std::enable_if_t<T_deferDim >= dimValue + 1u, int> = 0>                       \
+    constexpr type const& functionName() const                                                                        \
+    {                                                                                                                 \
+        return (*this)[dimValue];                                                                                     \
+    }
 
-            HDINLINE type& y()
-            {
-                PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_for_DIM_lesser_than_2, dim >= 2u);
-                return (*this)[1];
-            }
+            PMACC_NAMED_ARRAY_ACCESS(x, 0)
+            PMACC_NAMED_ARRAY_ACCESS(y, 1)
+            PMACC_NAMED_ARRAY_ACCESS(z, 2)
+            PMACC_NAMED_ARRAY_ACCESS(w, 3)
 
-            HDINLINE type& z()
-            {
-                PMACC_CASSERT_MSG(math_Vector__access_to_z_is_not_allowed_for_DIM_lesser_than_3, dim >= 3u);
-                return (*this)[2];
-            }
-
-            HDINLINE const type& x() const
-            {
-                return (*this)[0];
-            }
-
-            HDINLINE const type& y() const
-            {
-                PMACC_CASSERT_MSG(math_Vector__access_to_y_is_not_allowed_for_DIM_lesser_than_2, dim >= 2u);
-                return (*this)[1];
-            }
-
-            HDINLINE const type& z() const
-            {
-                PMACC_CASSERT_MSG(math_Vector__access_to_z_is_not_allowed_for_DIM_lesser_than_3, dim >= 3u);
-                return (*this)[2];
-            }
+#undef PMACC_NAMED_ARRAY_ACCESS
+            /** @} */
 
             /** Shrink the number of elements of a vector.
              *
              * @tparam T_numElements New dimension of the vector.
              * @return First T_numElements elements of the origin vector
-             *
-             * @{
              */
             template<uint32_t T_numElements>
-            HDINLINE constexpr Vector<type, T_numElements, Navigator> shrink()
+            constexpr Vector<T_Type, T_numElements> shrink() const
             {
                 PMACC_CASSERT_MSG(
                     math_Vector__T_numElements_must_be_lesser_or_equal_to_Vector_DIM,
                     T_numElements <= dim);
-                if constexpr(T_numElements == 1u)
-                    return Vector<type, 1u, Navigator>(Storage::operator[](Navigator{}(0)));
-                else if constexpr(T_numElements == 2u)
-                    return Vector<type, 2u, Navigator>(
-                        Storage::operator[](Navigator{}(0)),
-                        Storage::operator[](Navigator{}(1)));
-                else if constexpr(T_numElements == 3u)
-                    return Vector<type, 3u, Navigator>(
-                        Storage::operator[](Navigator{}(0)),
-                        Storage::operator[](Navigator{}(1)),
-                        Storage::operator[](Navigator{}(2)));
-                else
-                {
-                    Vector<type, T_numElements, Navigator> result;
-                    for(uint32_t i = 0u; i < T_numElements; i++)
-                        result[i] = (*this)[i];
-                    return result;
-                }
-
-                ALPAKA_UNREACHABLE(Vector<type, T_numElements, Navigator>{});
-            }
-
-            template<uint32_t T_numElements>
-            HDINLINE Vector<type, T_numElements, Navigator> shrink() const
-            {
-                PMACC_CASSERT_MSG(
-                    math_Vector__T_numElements_must_be_lesser_or_equal_to_Vector_DIM,
-                    T_numElements <= dim);
-                Vector<type, T_numElements, Navigator> result;
+                Vector<T_Type, T_numElements> result{};
                 for(uint32_t i = 0u; i < T_numElements; i++)
                     result[i] = (*this)[i];
+
                 return result;
             }
-            /** @} */
 
             /** Shrink the number of elements of a vector.
              *
@@ -342,12 +265,12 @@ namespace pmacc
              *         Indexing will wrapp around when the end of the origin vector is reached.
              */
             template<uint32_t T_numElements>
-            HDINLINE Vector<type, T_numElements, Navigator> shrink(const int startIdx) const
+            HDINLINE Vector<type, T_numElements> shrink(const int startIdx) const
             {
                 PMACC_CASSERT_MSG(
                     math_Vector_T_numElements_must_be_lesser_or_equal_to_Vector_DIM,
                     T_numElements <= dim);
-                Vector<type, T_numElements, Navigator> result;
+                Vector<type, T_numElements> result;
                 for(uint32_t i = 0u; i < T_numElements; i++)
                     result[i] = (*this)[(startIdx + i) % dim];
                 return result;
@@ -360,16 +283,14 @@ namespace pmacc
              * @tparam dimToRemove index which shall be removed; range: [ 0; dim - 1 ]
              * @return vector with `dim - 1` elements
              */
-            template<uint32_t dimToRemove>
-            HDINLINE Vector<type, dim - 1, Navigator> remove() const
+            template<uint32_t dimToRemove, uint32_t T_deferDim = T_dim, std::enable_if_t<T_deferDim >= 2u, int> = 0>
+            constexpr Vector<type, dim - 1> remove() const
             {
-                PMACC_CASSERT_MSG(__math_Vector__dim_must_be_greater_than_1__, dim > 1u);
-                PMACC_CASSERT_MSG(__math_Vector__dimToRemove_must_be_lesser_than_dim__, dimToRemove < dim);
-                Vector<type, dim - 1, Navigator> result;
+                Vector<type, dim - 1> result{};
                 for(uint32_t i = 0u; i < dim - 1; ++i)
                 {
                     // skip component which must be deleted
-                    const int sourceIdx = i >= dimToRemove ? i + 1 : i;
+                    int const sourceIdx = i >= dimToRemove ? i + 1 : i;
                     result[i] = (*this)[sourceIdx];
                 }
                 return result;
@@ -379,7 +300,7 @@ namespace pmacc
              *
              * @return product of components
              */
-            HDINLINE type productOfComponents() const
+            constexpr type productOfComponents() const
             {
                 type result = (*this)[0];
                 for(uint32_t i = 1u; i < dim; i++)
@@ -391,88 +312,12 @@ namespace pmacc
              *
              * @return sum of components
              */
-            HDINLINE type sumOfComponents() const
+            constexpr type sumOfComponents() const
             {
                 type result = (*this)[0];
                 for(uint32_t i = 1u; i < dim; i++)
                     result += (*this)[i];
                 return result;
-            }
-
-            /*! += operator
-             * @param other instance with same type and dimension like the left instance
-             * @return reference to manipulated left instance
-             */
-            template<typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE Vector& operator+=(const Vector<type, dim, T_OtherNavigator, T_OtherStorage>& other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] += other[i];
-                return *this;
-            }
-
-            /*! -= operator
-             * @param other instance with same type and dimension like the left instance
-             * @return reference to manipulated left instance
-             */
-            template<typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE Vector& operator-=(const Vector<type, dim, T_OtherNavigator, T_OtherStorage>& other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] -= other[i];
-                return *this;
-            }
-
-            /*! *= operator
-             * @param other instance with same type and dimension like the left instance
-             * @return reference to manipulated left instance
-             */
-            template<typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE Vector& operator*=(const Vector<type, dim, T_OtherNavigator, T_OtherStorage>& other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] *= other[i];
-                return *this;
-            }
-
-            /*! /= operator
-             * @param other instance with same type and dimension like the left instance
-             * @return reference to manipulated left instance
-             */
-            template<typename T_OtherNavigator, typename T_OtherStorage>
-            HDINLINE Vector& operator/=(const Vector<type, dim, T_OtherNavigator, T_OtherStorage>& other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] /= other[i];
-                return *this;
-            }
-
-            HDINLINE Vector& operator+=(ParamType other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] += other;
-                return *this;
-            }
-
-            HDINLINE Vector& operator-=(ParamType other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] -= other;
-                return *this;
-            }
-
-            HDINLINE Vector& operator*=(ParamType other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] *= other;
-                return *this;
-            }
-
-            HDINLINE Vector& operator/=(ParamType other)
-            {
-                for(uint32_t i = 0u; i < dim; i++)
-                    (*this)[i] /= other;
-                return *this;
             }
 
             /**
@@ -483,7 +328,8 @@ namespace pmacc
              * @param other Vector to compare to
              * @return true if all components in both vectors are equal, else false
              */
-            HDINLINE bool operator==(const Vector& rhs) const
+            template<typename T_OtherStorage>
+            constexpr bool operator==(Vector<T_Type, T_dim, T_OtherStorage> const& rhs) const
             {
                 bool result = true;
                 for(uint32_t i = 0u; i < dim; i++)
@@ -499,7 +345,8 @@ namespace pmacc
              * @param other Vector to compare to
              * @return true if one component in both vectors are not equal, else false
              */
-            HDINLINE bool operator!=(const Vector& rhs) const
+            template<typename T_OtherStorage>
+            constexpr bool operator!=(Vector<T_Type, T_dim, T_OtherStorage> const& rhs) const
             {
                 return !((*this) == rhs);
             }
@@ -572,14 +419,14 @@ namespace pmacc
             }
         };
 
-        template<std::size_t I, typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        auto get(const Vector<T_Type, T_dim, T_Navigator, T_Storage>& v)
+        template<std::size_t I, typename T_Type, uint32_t T_dim, typename T_Storage>
+        constexpr auto get(const Vector<T_Type, T_dim, T_Storage>& v)
         {
             return v[I];
         }
 
-        template<std::size_t I, typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        auto& get(Vector<T_Type, T_dim, T_Navigator, T_Storage>& v)
+        template<std::size_t I, typename T_Type, uint32_t T_dim, typename T_Storage>
+        constexpr auto& get(Vector<T_Type, T_dim, T_Storage>& v)
         {
             return v[I];
         }
@@ -591,7 +438,7 @@ namespace pmacc
             static constexpr uint32_t dim = 0;
 
             template<typename OtherType>
-            HDINLINE operator Vector<OtherType, 0>() const
+            constexpr operator Vector<OtherType, 0>() const
             {
                 return Vector<OtherType, 0>();
             }
@@ -601,7 +448,7 @@ namespace pmacc
              *
              * Returns always true
              */
-            HDINLINE bool operator==(const Vector& rhs) const
+            constexpr bool operator==(const Vector& rhs) const
             {
                 return true;
             }
@@ -611,13 +458,12 @@ namespace pmacc
              *
              * Returns always false
              */
-            HDINLINE bool operator!=(const Vector& rhs) const
+            constexpr bool operator!=(const Vector& rhs) const
             {
                 return false;
             }
 
-            HDINLINE
-            static Vector create(Type)
+            constexpr static Vector create(Type)
             {
                 /* this method should never be actually called,
                  * it exists only for Visual Studio to handle pmacc::math::Size_t< 0 >
@@ -626,179 +472,79 @@ namespace pmacc
             }
         };
 
-        template<typename Type, uint32_t dim, typename Navigator>
-        std::ostream& operator<<(std::ostream& s, const Vector<Type, dim, Navigator>& vec)
+        // type deduction guide
+        template<typename... T_Args>
+        ALPAKA_FN_HOST_ACC Vector(T_Args... args)
+            ->Vector<
+                typename std::tuple_element<0, std::tuple<T_Args...>>::type,
+                uint32_t(sizeof...(T_Args)),
+                ArrayStorage<
+                    typename std::tuple_element<0, std::tuple<T_Args...>>::type,
+                    uint32_t(sizeof...(T_Args))>>;
+
+        template<typename Type, uint32_t dim, typename T_Storage>
+        std::ostream& operator<<(std::ostream& s, const Vector<Type, dim, T_Storage>& vec)
         {
             return s << vec.toString();
         }
 
-        template<
-            typename T_Type,
-            uint32_t T_dim,
-            typename T_Navigator,
-            typename T_Storage,
+        /** binary operators
+         * @{
+         */
+#define PMACC_VECTOR_BINARY_OP(resultScalarType, op)                                                                  \
+    template<typename T_Type, uint32_t T_dim, typename T_Storage, typename T_OtherStorage>                            \
+    constexpr auto operator op(                                                                                       \
+        const Vector<T_Type, T_dim, T_Storage>& lhs,                                                                  \
+        const Vector<T_Type, T_dim, T_OtherStorage>& rhs)                                                             \
+    {                                                                                                                 \
+        /* to avoid allocation side effects the result is always a vector                                             \
+         * with default policies                                                                                      \
+         */                                                                                                           \
+        Vector<resultScalarType, T_dim> result{};                                                                     \
+        for(uint32_t i = 0u; i < T_dim; i++)                                                                          \
+            result[i] = lhs[i] op rhs[i];                                                                             \
+        return result;                                                                                                \
+    }                                                                                                                 \
+                                                                                                                      \
+    template<typename T_Type, uint32_t T_dim, typename T_Storage>                                                     \
+    constexpr auto operator op(                                                                                       \
+        const Vector<T_Type, T_dim, T_Storage>& lhs,                                                                  \
+        typename Vector<T_Type, T_dim, T_Storage>::ParamType rhs)                                                     \
+    {                                                                                                                 \
+        /* to avoid allocation side effects the result is always a vector                                             \
+         * with default policies                                                                                      \
+         */                                                                                                           \
+        Vector<resultScalarType, T_dim> result{};                                                                     \
+        for(uint32_t i = 0u; i < T_dim; i++)                                                                          \
+            result[i] = lhs[i] op rhs;                                                                                \
+        return result;                                                                                                \
+    }                                                                                                                 \
+    template<typename T_Type, uint32_t T_dim, typename T_Storage>                                                     \
+    constexpr auto operator op(                                                                                       \
+        typename Vector<T_Type, T_dim, T_Storage>::ParamType lhs,                                                     \
+        const Vector<T_Type, T_dim, T_Storage>& rhs)                                                                  \
+    {                                                                                                                 \
+        /* to avoid allocation side effects the result is always a vector                                             \
+         * with default policies                                                                                      \
+         */                                                                                                           \
+        Vector<resultScalarType, T_dim> result{};                                                                     \
+        for(uint32_t i = 0u; i < T_dim; i++)                                                                          \
+            result[i] = lhs op rhs[i];                                                                                \
+        return result;                                                                                                \
+    }
+        PMACC_VECTOR_BINARY_OP(T_Type, +)
+        PMACC_VECTOR_BINARY_OP(T_Type, -)
+        PMACC_VECTOR_BINARY_OP(T_Type, *)
+        PMACC_VECTOR_BINARY_OP(T_Type, /)
+        PMACC_VECTOR_BINARY_OP(bool, >=)
+        PMACC_VECTOR_BINARY_OP(bool, >)
+        PMACC_VECTOR_BINARY_OP(bool, <=)
+        PMACC_VECTOR_BINARY_OP(bool, <)
+        PMACC_VECTOR_BINARY_OP(T_Type, %)
 
-            typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE Vector<T_Type, T_dim> operator+(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            const Vector<T_Type, T_dim, T_OtherNavigator, T_OtherStorage>& rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result += rhs;
-            return result;
-        }
+#undef PMACC_VECTOR_BINARY_OP
+        /** @} */
 
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        HDINLINE Vector<T_Type, T_dim> operator+(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            typename Vector<T_Type, T_dim, T_Navigator, T_Storage>::ParamType rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result += rhs;
-            return result;
-        }
-
-        template<
-            typename T_Type,
-            uint32_t T_dim,
-            typename T_Navigator,
-            typename T_Storage,
-
-            typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE Vector<T_Type, T_dim> operator-(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            const Vector<T_Type, T_dim, T_OtherNavigator, T_OtherStorage>& rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result -= rhs;
-            return result;
-        }
-
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        HDINLINE Vector<T_Type, T_dim> operator-(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            typename Vector<T_Type, T_dim, T_Navigator, T_Storage>::ParamType rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result -= rhs;
-            return result;
-        }
-
-        template<
-            typename T_Type,
-            uint32_t T_dim,
-            typename T_Navigator,
-            typename T_Storage,
-
-            typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE Vector<T_Type, T_dim> operator*(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            const Vector<T_Type, T_dim, T_OtherNavigator, T_OtherStorage>& rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result *= rhs;
-            return result;
-        }
-
-        template<
-            typename T_Type,
-            uint32_t T_dim,
-            typename T_Navigator,
-            typename T_Storage,
-
-            typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE Vector<T_Type, T_dim> operator/(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            const Vector<T_Type, T_dim, T_OtherNavigator, T_OtherStorage>& rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result /= rhs;
-            return result;
-        }
-
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        HDINLINE Vector<T_Type, T_dim> operator*(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            typename Vector<T_Type, T_dim, T_Navigator, T_Storage>::ParamType rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result *= rhs;
-            return result;
-        }
-
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        HDINLINE Vector<T_Type, T_dim> operator*(
-            typename boost::call_traits<T_Type>::param_type lhs,
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(rhs);
-            result *= lhs;
-            return result;
-        }
-
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        HDINLINE Vector<T_Type, T_dim> operator/(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            typename Vector<T_Type, T_dim, T_Navigator, T_Storage>::ParamType rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(lhs);
-            result /= rhs;
-            return result;
-        }
-
-        template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-        HDINLINE Vector<T_Type, T_dim> operator-(const Vector<T_Type, T_dim, T_Navigator, T_Storage>& vec)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<T_Type, T_dim> result(vec);
-
-            for(uint32_t i = 0u; i < T_dim; i++)
-                result[i] = -result[i];
-            return result;
-        }
-
-        template<
-            typename T_Type,
-            uint32_t T_dim,
-            typename T_Navigator,
-            typename T_Storage,
-
-            typename T_OtherNavigator,
-            typename T_OtherStorage>
-        HDINLINE Vector<bool, T_dim> operator>=(
-            const Vector<T_Type, T_dim, T_Navigator, T_Storage>& lhs,
-            const Vector<T_Type, T_dim, T_OtherNavigator, T_OtherStorage>& rhs)
-        {
-            /* to avoid allocation side effects the result is always a vector
-             * with default policies*/
-            Vector<bool, T_dim> result;
-            for(uint32_t i = 0u; i < T_dim; ++i)
-                result[i] = (lhs[i] >= rhs[i]);
-            return result;
-        }
 
         /** Give the linear index of an N-dimensional index within an N-dimensional index space.
          *
@@ -814,15 +560,13 @@ namespace pmacc
          */
         template<
             typename T_IntegralType,
-            typename T_Navigator,
             typename T_Storage,
-            typename T_OtherNavigator,
             typename T_OtherStorage,
             uint32_t T_dim,
             typename = std::enable_if_t<std::is_integral_v<T_IntegralType> && T_dim >= DIM2>>
-        HDINLINE T_IntegralType linearize(
-            const Vector<T_IntegralType, T_dim - 1u, T_Navigator, T_Storage>& size,
-            const Vector<T_IntegralType, T_dim, T_OtherNavigator, T_OtherStorage>& idx)
+        constexpr T_IntegralType linearize(
+            const Vector<T_IntegralType, T_dim - 1u, T_Storage>& size,
+            const Vector<T_IntegralType, T_dim, T_OtherStorage>& idx)
         {
             T_IntegralType linearIdx{idx[T_dim - 1u]};
             for(int d = T_dim - 2; d >= 0; --d)
@@ -833,29 +577,25 @@ namespace pmacc
 
         template<
             typename T_IntegralType,
-            typename T_Navigator,
             typename T_Storage,
-            typename T_OtherNavigator,
             typename T_OtherStorage,
             uint32_t T_dim,
             typename = std::enable_if_t<std::is_integral_v<T_IntegralType>>>
-        HDINLINE T_IntegralType linearize(
-            const Vector<T_IntegralType, T_dim, T_Navigator, T_Storage>& size,
-            const Vector<T_IntegralType, T_dim, T_OtherNavigator, T_OtherStorage>& idx)
+        constexpr T_IntegralType linearize(
+            const Vector<T_IntegralType, T_dim, T_Storage>& size,
+            const Vector<T_IntegralType, T_dim, T_OtherStorage>& idx)
         {
             return linearize(size.template shrink<T_dim - 1u>(), idx);
         }
 
         template<
             typename T_IntegralType,
-            typename T_Navigator,
             typename T_Storage,
-            typename T_OtherNavigator,
             typename T_OtherStorage,
             typename = std::enable_if_t<std::is_integral_v<T_IntegralType>>>
         HDINLINE T_IntegralType linearize(
-            const Vector<T_IntegralType, DIM1, T_Navigator, T_Storage>&,
-            const Vector<T_IntegralType, DIM1, T_OtherNavigator, T_OtherStorage>& idx)
+            const Vector<T_IntegralType, DIM1, T_Storage>&,
+            const Vector<T_IntegralType, DIM1, T_OtherStorage>& idx)
         {
             return idx.x();
         }
@@ -875,15 +615,12 @@ namespace pmacc
          */
         template<
             typename T_IntegralType,
-            typename T_Navigator,
             typename T_Storage,
             uint32_t T_dim,
             typename = std::enable_if_t<std::is_integral_v<T_IntegralType> && T_dim >= DIM2>>
-        HDINLINE auto mapToND(
-            const Vector<T_IntegralType, T_dim, T_Navigator, T_Storage>& size,
-            T_IntegralType linearIdx)
+        HDINLINE auto mapToND(const Vector<T_IntegralType, T_dim, T_Storage>& size, T_IntegralType linearIdx)
         {
-            Vector<T_IntegralType, T_dim - 1u, T_Navigator, T_Storage> pitchExtents;
+            Vector<T_IntegralType, T_dim - 1u> pitchExtents;
             pitchExtents[0] = size[0];
             for(uint32_t d = 1u; d < T_dim - 1u; ++d)
                 pitchExtents[d] = size[d] * pitchExtents[d - 1u];
@@ -900,27 +637,14 @@ namespace pmacc
 
         template<
             typename T_IntegralType,
-            typename T_Navigator,
             typename T_Storage,
             typename = std::enable_if_t<std::is_integral_v<T_IntegralType>>>
-        HDINLINE auto mapToND(
-            const Vector<T_IntegralType, DIM1, T_Navigator, T_Storage>& size,
-            T_IntegralType linearIdx)
+        HDINLINE auto mapToND(const Vector<T_IntegralType, DIM1, T_Storage>& size, T_IntegralType linearIdx)
         {
             return linearIdx;
         }
 
         /** @} */
-
-        template<typename Lhs, typename Rhs>
-        HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)
-        {
-            Lhs result;
-
-            for(uint32_t i = 0u; i < Lhs::dim; i++)
-                result[i] = lhs[i] % rhs[i];
-            return result;
-        }
 
         /** Get the unit basis vector of the given type along the given direction
          *
@@ -939,14 +663,14 @@ namespace pmacc
 
 namespace std
 {
-    template<typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-    struct tuple_size<pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
+    template<typename T_Type, uint32_t T_dim, typename T_Storage>
+    struct tuple_size<pmacc::math::Vector<T_Type, T_dim, T_Storage>>
     {
         static constexpr std::size_t value = T_dim;
     };
 
-    template<std::size_t I, typename T_Type, uint32_t T_dim, typename T_Navigator, typename T_Storage>
-    struct tuple_element<I, pmacc::math::Vector<T_Type, T_dim, T_Navigator, T_Storage>>
+    template<std::size_t I, typename T_Type, uint32_t T_dim, typename T_Storage>
+    struct tuple_element<I, pmacc::math::Vector<T_Type, T_dim, T_Storage>>
     {
         using type = T_Type;
     };

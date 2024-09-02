@@ -59,7 +59,7 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_host, id)                                                      \
         {                                                                                                             \
             /* store all values in a const C array on host*/                                                          \
-            constexpr Type PMACC_JOIN(Name, _data)[] = {__VA_ARGS__};                                                 \
+            [[maybe_unused]] constexpr Type PMACC_JOIN(Name, _data)[] = {__VA_ARGS__};                                \
         } /* namespace pmacc_static_const_vector_host + id  */                                                        \
         /* select host or device namespace depending on __CUDA_ARCH__ compiler flag*/                                 \
         PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id);                                                                \
@@ -69,7 +69,6 @@
             PMACC_CASSERT_MSG(                                                                                        \
                 __PMACC_CONST_VECTOR_dimension_needs_to_be_less_than_or_equal_to_the_number_of_arguments__,           \
                 Dim <= count);                                                                                        \
-            static constexpr bool isConst = true;                                                                     \
             typedef T_Type type;                                                                                      \
             static constexpr uint32_t dim = T_dim;                                                                    \
                                                                                                                       \
@@ -80,8 +79,7 @@
             }                                                                                                         \
         };                                                                                                            \
         /*define a const vector type, ConstArrayStorage is used as Storage policy*/                                   \
-        typedef const pmacc::math::Vector<Type, Dim, pmacc::math::IdentityNavigator, ConstArrayStorage<Type, Dim>>    \
-            PMACC_JOIN(Name, _t);                                                                                     \
+        typedef const pmacc::math::Vector<Type, Dim, ConstArrayStorage<Type, Dim>> PMACC_JOIN(Name, _t);              \
     } /* namespace pmacc_static_const_storage + id */                                                                 \
     using namespace PMACC_JOIN(pmacc_static_const_storage, id)
 
@@ -90,7 +88,7 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \
             /* create const instance on device */                                                                     \
-            __device__ const PMACC_JOIN(Name, _t) Name;                                                               \
+            [[maybe_unused]] __device__ const PMACC_JOIN(Name, _t) Name;                                              \
         } /* namespace pmacc_static_const_vector_device + id */
 #else
 #    define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name, id)
@@ -106,7 +104,7 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_host, id)                                                      \
         {                                                                                                             \
             /* create const instance on host*/                                                                        \
-            constexpr PMACC_JOIN(Name, _t) Name;                                                                      \
+            [[maybe_unused]] constexpr PMACC_JOIN(Name, _t) Name;                                                     \
         } /* namespace pmacc_static_const_vector_host + id  */                                                        \
     } /* namespace pmacc_static_const_storage + id */
 

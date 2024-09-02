@@ -54,7 +54,7 @@ namespace picongpu
             HDINLINE float_X operator()(DataSpace<simDim> const& totalCellOffset)
             {
                 // modulo!
-                auto const isThisCellWithProbe(totalCellOffset % SkipCells::toRT());
+                auto const isThisCellWithProbe(totalCellOffset % precisionCast<int>(SkipCells::toRT()));
 
                 // is this cell populated with a probe particle?
                 bool const isPopulated(isThisCellWithProbe == DataSpace<simDim>::create(0));

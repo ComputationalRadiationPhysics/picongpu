@@ -61,11 +61,10 @@ namespace pmacc
          *
          * Sets size of all dimensions to 0.
          */
-        HDINLINE constexpr DataSpace() : math::Vector<int, T_dim>(math::Vector<int, T_dim>::create(0))
+        constexpr DataSpace() : BaseType(BaseType::create(0))
         {
         }
 
-        HDINLINE
         constexpr DataSpace(const DataSpace&) = default;
 
         HDINLINE constexpr DataSpace& operator=(const DataSpace&) = default;
@@ -88,12 +87,12 @@ namespace pmacc
          * @param args size of each dimension, x,y,z,...
          */
         template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, int> && ...)>>
-        HDINLINE constexpr DataSpace(T_Args&&... args) : BaseType(std::forward<T_Args>(args)...)
+        constexpr DataSpace(T_Args&&... args) : BaseType(std::forward<T_Args>(args)...)
         {
             static_assert(sizeof...(T_Args) == T_dim, "Number of arguments must be equal to the DataSpace dimension.");
         }
 
-        HDINLINE constexpr DataSpace(const BaseType& vec) : BaseType(vec)
+        constexpr DataSpace(const BaseType& vec) : BaseType(vec)
         {
         }
 
