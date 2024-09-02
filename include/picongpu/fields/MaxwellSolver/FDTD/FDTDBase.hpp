@@ -50,7 +50,7 @@ namespace picongpu
                 /** Base class with common implementation details for finite-difference time-domain field solvers
                  *
                  * All field update operations are expressed in terms of getTimeStep().
-                 * They work for both getTimeStep() == DELTA_T and getTimeStep() != DELTA_T.
+                 * They work for both getTimeStep() == sim.pic.getDt() and getTimeStep() != sim.pic.getDt().
                  * Thus, they can be used to construct both a normal and a substepping version of FDTD.
                  *
                  * @tparam T_CurlE functor to compute curl of E
@@ -86,13 +86,13 @@ namespace picongpu
                     static constexpr auto timeStep = getTimeStep();
 
                     /** Perform the first part of E and B propagation
-                     *  from t_start = currentStep * DELTA_T to t_end = t_start + timeStep.
+                     *  from t_start = currentStep * sim.pic.getDt() to t_end = t_start + timeStep.
                      *
                      * Does not account for the J term, which will be added by addCurrent().
                      * Together with addCurrent() and updateAfterCurrent() forms the full propagation by timeStep.
                      *
                      * @param currentStep index of the current time iteration,
-                     *                    note that it is in units of DELTA_T, not timeStep
+                     *                    note that it is in units of sim.pic.getDt(), not timeStep
                      */
                     void updateBeforeCurrent(float_X const currentStep)
                     {
@@ -110,11 +110,11 @@ namespace picongpu
                         incidentFieldSolver.updateBHalf(currentStep);
                         EventTask eRfieldB = fieldB->asyncCommunication(eventSystem::getTransactionEvent());
                         /* Incident field solver update does not use exchanged B, so does not have to wait for it.
-                         * Update E by timeStep, to time = currentStep * DELTA_T + timeStep.
-                         * It uses values of B_inc at time = currentStep * DELTA_T + 0.5 * timeStep.
-                         * In units of DELTA_T that is equal to currentStep + 0.5 * timeStep / DELTA_T
+                         * Update E by timeStep, to time = currentStep * sim.pic.getDt() + timeStep.
+                         * It uses values of B_inc at time = currentStep * sim.pic.getDt() + 0.5 * timeStep.
+                         * In units of sim.pic.getDt() that is equal to currentStep + 0.5 * timeStep / sim.pic.getDt()
                          */
-                        incidentFieldSolver.updateE(currentStep + 0.5_X * timeStep / DELTA_T);
+                        incidentFieldSolver.updateE(currentStep + 0.5_X * timeStep / sim.pic.getDt());
                         updateE<CORE>(currentStep);
                         eventSystem::setTransactionEvent(eRfieldB);
                         updateE<BORDER>(currentStep);
@@ -140,13 +140,13 @@ namespace picongpu
                     }
 
                     /** Perform the last part of E and B propagation
-                     *  from t_start = currentStep * DELTA_T to t_end = t_start + timeStep.
+                     *  from t_start = currentStep * sim.pic.getDt() to t_end = t_start + timeStep.
                      *
                      * Does not account for the J term, which has been added by addCurrent().
                      * Together with addCurrent() and updateBeforeCurrent() forms the full propagation by timeStep.
                      *
                      * @param currentStep index of the current time iteration,
-                     *                    note that it is in units of DELTA_T, not timeStep
+                     *                    note that it is in units of sim.pic.getDt(), not timeStep
                      */
                     void updateAfterCurrent(float_X const currentStep)
                     {
@@ -159,11 +159,11 @@ namespace picongpu
 
                         // Incident field solver update does not use exchanged E, so does not have to wait for it
                         auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
-                        /* Update B by half timeStep, to time = currentStep * DELTA_T + 1.5 * timeStep.
-                         * It uses values of E_inc at time = currentStep * DELTA_T + timeStep.
-                         * In units of DELTA_T that is equal to currentStep + timeStep / DELTA_T
+                        /* Update B by half timeStep, to time = currentStep * sim.pic.getDt() + 1.5 * timeStep.
+                         * It uses values of E_inc at time = currentStep * sim.pic.getDt() + timeStep.
+                         * In units of sim.pic.getDt() that is equal to currentStep + timeStep / sim.pic.getDt()
                          */
-                        incidentFieldSolver.updateBHalf(currentStep + timeStep / DELTA_T);
+                        incidentFieldSolver.updateBHalf(currentStep + timeStep / sim.pic.getDt());
 
                         EventTask eRfieldE = fieldE->asyncCommunication(eventSystem::getTransactionEvent());
 

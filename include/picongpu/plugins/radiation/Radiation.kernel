@@ -140,7 +140,7 @@ namespace picongpu
                     int const theta_idx = worker.blockDomIdxND().x();
 
                     // simulation time (needed for retarded time)
-                    picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(DELTA_T));
+                    picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(sim.pic.getDt()));
 
                     // looking direction (needed for observer) used in the thread
                     vector_64 const look = radiation_observer::observationDirection(theta_idx);
@@ -298,7 +298,7 @@ namespace picongpu
                                                 using CalcAmplitudeNSim1 = CalcAmplitude<RetardedTime1, OldDFT>;
 
                                                 // calculate amplitude
-                                                CalcAmplitudeNSim1 const amplitude3(particle, DELTA_T, t);
+                                                CalcAmplitudeNSim1 const amplitude3(particle, sim.pic.getDt(), t);
 
                                                 // get charge of single electron ! (weighting=1.0f)
                                                 float_X const particle_charge = frame::getCharge<FrameType>();
@@ -307,7 +307,7 @@ namespace picongpu
                                                  * a single electron
                                                  */
                                                 real_amplitude_s[saveParticleAt] = amplitude3.getVector(look)
-                                                    * particle_charge * picongpu::float_64(DELTA_T);
+                                                    * particle_charge * picongpu::float_64(sim.pic.getDt());
 
                                                 // retarded time stored in shared memory
                                                 t_ret_s[saveParticleAt]

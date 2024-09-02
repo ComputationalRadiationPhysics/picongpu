@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 // need timeStepAlpha factor from atomicPhysics.param
-// need access to DELTA_T from grid.unitless
+// need access to sim.pic.getDt() from grid.unitless
 
 #include <pmacc/lockstep/ForEach.hpp>
 
@@ -95,7 +95,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     {
                         // no loss state, for example completely ionized state, set to neutral element
                         // 1/UNIT_TIME
-                        lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / DELTA_T;
+                        lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / sim.pic.getDt();
                     }
                     else
                     {
@@ -109,7 +109,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             printf("atomicPhysics ERROR: encountered negative loss rate in "
                                    "calculateStepLength kernel\n");
                             // 1/UNIT_TIME
-                            lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / DELTA_T;
+                            lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / sim.pic.getDt();
                         }
 
                     // 1/(1/UNIT_TIME) = UNIT_TIME

@@ -31,11 +31,11 @@ namespace picongpu
         {
             /** A time-substepping version of the given field solver
              *
-             * To propagate fields by DELTA_T, will do T_numSubsteps updates of the given solver
-             * with dt = DELTA_T / T_numSubsteps.
+             * To propagate fields by sim.pic.getDt(), will do T_numSubsteps updates of the given solver
+             * with dt = sim.pic.getDt() / T_numSubsteps.
              * Is suited for the case when plasma dynamics can be sufficiently resolved with a larger dt than laser.
              *
-             * CFL for this solver is CFL of T_BaseSolver for dt = DELTA_T / T_numSubsteps.
+             * CFL for this solver is CFL of T_BaseSolver for dt = sim.pic.getDt() / T_numSubsteps.
              * Note that with substepping we would often be relatively far off the CFL for the base solver.
              * Depending on the solver type, this may be undesired due to numerical dispersion, e.g. for classic Yee.
              * For higher order solvers, on the contrary, it may be beneficial wrt dispersion.

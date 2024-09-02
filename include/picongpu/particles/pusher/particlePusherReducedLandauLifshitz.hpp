@@ -83,7 +83,7 @@ namespace picongpu
                 if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value)
                     particle[probeE_] = eField;
 
-                const float_X deltaT = DELTA_T;
+                const float_X deltaT = sim.pic.getDt();
                 const uint32_t dimMomentum = GetNComponents<TypeMomentum>::value;
                 // the transver data type adjust to 3D3V, 2D3V, 2D2V, ...
                 using VariableType = pmacc::math::Vector<picongpu::float_X, simDim + dimMomentum>;

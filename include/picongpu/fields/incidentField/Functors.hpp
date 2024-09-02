@@ -187,7 +187,7 @@ namespace picongpu
                     HINLINE BaseFunctorE(float_X const currentStep, float3_64 const unitField)
                         : origin(getOrigin())
                         , focus(getFocus())
-                        , currentTimeOrigin(currentStep * DELTA_T)
+                        , currentTimeOrigin(currentStep * sim.pic.getDt())
                         , phaseVelocity(getPhaseVelocity())
                     {
                         checkUnit(unitField);

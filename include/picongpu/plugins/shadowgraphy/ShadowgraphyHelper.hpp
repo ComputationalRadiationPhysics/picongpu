@@ -124,7 +124,7 @@ namespace picongpu
                     : duration(duration)
                     , fourierOutputEnabled(fourierOutputEnabled)
                 {
-                    dt = params::tRes * SI::DELTA_T_SI;
+                    dt = params::tRes * sim.si.getDt();
                     pluginNumT = duration / params::tRes;
                     numOmegas = getNumOmegas();
 
@@ -308,7 +308,7 @@ namespace picongpu
                  */
                 void computeDFT(int t)
                 {
-                    float_64 const tSI = t * int(params::tRes) * float_64(picongpu::SI::DELTA_T_SI);
+                    float_64 const tSI = t * int(params::tRes) * float_64(picongpu::sim.si.getDt());
 
                     for(int o = 0; o < numOmegas; ++o)
                     {
@@ -688,7 +688,7 @@ namespace picongpu
                     // Loop over all timesteps
                     for(int t = 0; t < pluginNumT; ++t)
                     {
-                        float_64 const tSI = t * int(params::tRes) * float_64(picongpu::SI::DELTA_T_SI);
+                        float_64 const tSI = t * int(params::tRes) * float_64(picongpu::sim.si.getDt());
 
                         // Initialization of storage arrays
                         vec2c ExTmpSum = vec2c(pluginNumX, vec1c(pluginNumY));
@@ -736,7 +736,7 @@ namespace picongpu
                 //! Returns the minimum index for trimmed arrays in the omega dimension
                 int getOmegaMinIndex() const
                 {
-                    double const stepSize = params::tRes * SI::DELTA_T_SI;
+                    double const stepSize = params::tRes * sim.si.getDt();
                     int const tmpIndex = static_cast<int>(
                         std::floor(pluginNumT * ((stepSize * params::omegaWfMin) / (2.0 * PI) + 0.5)));
                     return std::max(tmpIndex, pluginNumT / 2 + 1);
@@ -745,7 +745,7 @@ namespace picongpu
                 //! Return maximum omega index for trimmed arrays in the omega dimension.
                 int getOmegaMaxIndex() const
                 {
-                    float_64 const actualStep = params::tRes * SI::DELTA_T_SI;
+                    float_64 const actualStep = params::tRes * sim.si.getDt();
                     int const tmpIndex
                         = math::ceil(pluginNumT * ((actualStep * params::omegaWfMax) / (2.0 * PI) + 0.5));
                     return std::min(tmpIndex, pluginNumT) + 1;

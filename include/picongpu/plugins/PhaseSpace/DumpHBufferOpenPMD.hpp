@@ -201,7 +201,7 @@ namespace picongpu
             mesh.setGridSpacing(
                 std::vector<float_X>{dr, (axis_p_range.second - axis_p_range.first) / globalPhaseSpace_extent[1]});
             mesh.setAttribute("dr_unit", UNIT_LENGTH);
-            iteration.setDt(DELTA_T);
+            iteration.setDt(sim.pic.getDt());
             iteration.setTimeUnitSI(UNIT_TIME);
             /*
              * The value represents an aggregation over one cell, so any value is correct for the mesh position.

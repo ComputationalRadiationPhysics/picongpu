@@ -218,8 +218,8 @@ namespace picongpu
                 {
                     /** Construct the form factor functor for the given frequency
                      *
-                     * Currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
-                     * parameter.
+                     * Currently a fixed sigma of sim.pic.getDt() * c is used to describe the distribution - might
+                     * become a parameter.
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction,
@@ -227,7 +227,7 @@ namespace picongpu
                      */
                     HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
                         : normalizedCoherentAmplification(
-                            util::square(math::exp(-0.5_X * util::square(omega * 0.5_X * DELTA_T))))
+                            util::square(math::exp(-0.5_X * util::square(omega * 0.5_X * sim.pic.getDt()))))
                     {
                     }
 

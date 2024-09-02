@@ -147,7 +147,7 @@ namespace picongpu
             }
             constexpr float_64 time() const
             {
-                return SI::DELTA_T_SI;
+                return si.getDt();
             }
             constexpr float_64 speed() const
             {
@@ -194,10 +194,6 @@ namespace picongpu
     };
 
     constexpr auto sim = Sim{};
-
-
-    // normed grid parameter
-    constexpr float_X DELTA_T = sim.pic.getDt();
 
     // only used for CFL checks
     constexpr float_X INV_CELL2_SUM
