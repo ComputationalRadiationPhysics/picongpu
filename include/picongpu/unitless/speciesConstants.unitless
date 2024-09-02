@@ -23,7 +23,7 @@
 namespace picongpu
 {
     //! Charge of base particle
-    constexpr float_X BASE_CHARGE = (float_X) (SI::BASE_CHARGE_SI / UNIT_CHARGE);
+    constexpr float_X BASE_CHARGE = (float_X) (SI::BASE_CHARGE_SI / sim.unit.charge());
     //! Mass of base particle
     constexpr float_X BASE_MASS = (float_X) (SI::BASE_MASS_SI / sim.unit.mass());
 

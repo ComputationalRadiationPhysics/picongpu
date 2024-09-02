@@ -34,7 +34,7 @@ namespace picongpu
             sim.unit.length(), // length
             sim.unit.mass(), // mass
             sim.unit.time(), // time
-            UNIT_CHARGE / sim.unit.time(), // current
+            sim.unit.charge() / sim.unit.time(), // current
             1., // thermodynamicTemperature
             1., // amountOfSubstance add N_AVOGADRO HERE? FROM physicalConstants.param
             1., // luminousIntensity

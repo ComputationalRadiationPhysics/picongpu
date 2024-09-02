@@ -118,10 +118,10 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                     // weight / sim.unit.typicalNumParticlesPerMacroParticle()
                     sumWeight += weightNormalized;
 
-                    // UNIT_CHARGE
+                    // sim.unit.charge()
                     constexpr auto elementaryCharge = -picongpu::ELECTRON_CHARGE;
 
-                    // UNIT_CHARGE / UNIT_CHARGE = unitless
+                    // sim.unit.charge() / sim.unit.charge() = unitless
                     auto const chargeNumber = picongpu::traits::attribute::getCharge(1._X, ion) / elementaryCharge;
 
                     // unitless * weight / sim.unit.typicalNumParticlesPerMacroParticle()

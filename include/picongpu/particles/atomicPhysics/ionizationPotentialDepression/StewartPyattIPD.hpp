@@ -214,10 +214,10 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
                 picongpu::sim.unit.mass() * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
                 / pmacc::math::cPow(picongpu::sim.unit.time(), 2u) * picongpu::UNITCONV_Joule_to_keV * 1e3);
 
-            // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2) * unitless * UNIT_CHARGE^2
-            //  / ( unitless * UNIT_CHARGE^2 * sim.unit.time()^2 / (sim.unit.length()^3 * sim.unit.mass()))
-            // = eV * sim.unit.time()^2 * sim.unit.mass()^(-1) * sim.unit.length()^(-2) * UNIT_CHARGE^2 *
-            // UNIT_CHARGE^(-2)
+            // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2) * unitless * sim.unit.charge()^2
+            //  / ( unitless * sim.unit.charge()^2 * sim.unit.time()^2 / (sim.unit.length()^3 * sim.unit.mass()))
+            // = eV * sim.unit.time()^2 * sim.unit.mass()^(-1) * sim.unit.length()^(-2) * sim.unit.charge()^2 *
+            // sim.unit.charge()^(-2)
             //  * sim.unit.time()^(-2) * sim.unit.length()^3 * sim.unit.mass()^1 = eV * sim.unit.length()
             // eV * sim.unit.length()
             constexpr float_X constFactor = eV * static_cast<float_X>(T_atomicNumber)
