@@ -101,7 +101,7 @@ namespace picongpu
                         // enforce a lower cutoff for the Debye length equal to the mean inter atomic distance
                         // of the species with the highest density
                         const float_X maxDens
-                            = dens[0] * static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                            = dens[0] * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle());
                         const float_X val = 2.0_X * pmacc::math::Pi<float_X>::doubleValue / 3.0_X * maxDens;
                         const float_X rMin = 1.0_X / math::cbrt(val);
                         const float_X rMin2 = rMin * rMin;

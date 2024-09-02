@@ -141,7 +141,7 @@ namespace picongpu
                     = {float_X(maxPitch_deg - posPitch_deg) / dataset.getExtent()[1],
                        float_X(maxYaw_deg - posYaw_deg) / dataset.getExtent()[2]};
             }
-            constexpr float_64 unitSI = TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * UNIT_ENERGY;
+            constexpr float_64 unitSI = sim.unit.typicalNumParticlesPerMacroParticle() * UNIT_ENERGY;
             setMeshAttributes.m_unitSI = unitSI;
             setMeshAttributes.m_unitDimension // Joule
                 = {{::openPMD::UnitDimension::M, 1},

@@ -38,7 +38,7 @@ namespace picongpu
                 HDINLINE float1_64 Density::getUnit() const
                 {
                     const float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
-                    return TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
+                    return sim.unit.typicalNumParticlesPerMacroParticle() / UNIT_VOLUME;
                 }
 
                 template<class T_Particle>
@@ -49,7 +49,7 @@ namespace picongpu
 
                     /* calculate new attribute */
                     const float_X particleDensity = weighting
-                        / (static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
+                        / (static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle())
                            * sim.pic.getCellSize().productOfComponents());
 
                     /* return attribute */

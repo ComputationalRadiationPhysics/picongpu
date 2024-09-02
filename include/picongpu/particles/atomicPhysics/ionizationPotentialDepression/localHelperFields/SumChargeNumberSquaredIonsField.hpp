@@ -30,14 +30,14 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::loc
 {
     /**helper superCell field of the weighted sum of (charge/(e * weight))^2 of all macro particles of all ion species.
      *
-     * @details weighted by macro particle weight /TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-     * @details unit: unitless * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+     * @details weighted by macro particle weight /sim.unit.typicalNumParticlesPerMacroParticle()
+     * @details unit: unitless * weight / sim.unit.typicalNumParticlesPerMacroParticle()
      *
      * @note required for calculating local z^* for ionization potential depression(IPD)
      * @note is used to keep intermediate results between kernel calls for different species
      *
      * @attention field value only valid after fillIPDSumFields kernel has been executed for **all** ion species.
-     * @attention in units of picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE!
+     * @attention in units of picongpu::sim.unit.typicalNumParticlesPerMacroParticle()!
      *
      * @tparam T_MappingDescription description of local mapping from device to grid
      */

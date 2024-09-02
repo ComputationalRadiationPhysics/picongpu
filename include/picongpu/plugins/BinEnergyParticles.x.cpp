@@ -164,7 +164,8 @@ namespace picongpu
                          * uses a normed float weighting to avoid an overflow of the floating point result
                          * for the reduced weighting if the particle weighting is very large
                          */
-                        float_X const normedWeighting = weighting / float_X(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                        float_X const normedWeighting
+                            = weighting / float_X(sim.unit.typicalNumParticlesPerMacroParticle());
                         alpaka::atomicAdd(
                             lockstepWorker.getAcc(),
                             &(shBin[binNumber]),
@@ -473,12 +474,14 @@ namespace picongpu
                 for(int i = 0; i < realNumBins; ++i)
                 {
                     count_particles += float_64(binReduced[i]);
-                    outFile << std::scientific << (binReduced[i]) * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE << " ";
+                    outFile << std::scientific << (binReduced[i]) * sim.unit.typicalNumParticlesPerMacroParticle()
+                            << " ";
                 }
                 /* endl: Flush any step to the file.
                  * Thus, we will have data if the program should crash.
                  */
-                outFile << std::scientific << count_particles * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE << std::endl;
+                outFile << std::scientific << count_particles * sim.unit.typicalNumParticlesPerMacroParticle()
+                        << std::endl;
             }
         }
     };

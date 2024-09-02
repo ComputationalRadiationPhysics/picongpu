@@ -151,7 +151,7 @@ namespace picongpu
 #else
             constexpr auto baseCharge = BASE_CHARGE;
             const float_X tyCurrent = TYPICAL_PARTICLES_PER_CELL
-                * static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge)
+                * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle()) * math::abs(baseCharge)
                 / sim.pic.getDt();
             const float_X tyEField = getAmplitude() + FLT_MIN;
             const float_X tyBField = tyEField * MUE0_EPS0;
@@ -484,7 +484,8 @@ namespace picongpu
                             lockstepWorker.getAcc(),
                             &(counter(reducedCell)),
                             // normalize the value to avoid bad precision for large macro particle weightings
-                            particle[weighting_] / static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
+                            particle[weighting_]
+                                / static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle()),
                             ::alpaka::hierarchy::Threads{});
                     }
                 });
@@ -506,7 +507,7 @@ namespace picongpu
 
                         DataSpace<DIM2> const localCell(cellIdx[transpose.x()], cellIdx[transpose.y()]);
 
-                        /** Note: normally, we would multiply by TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                        /** Note: normally, we would multiply by sim.unit.typicalNumParticlesPerMacroParticle()
                          * again. BUT: since we are interested in a simple value between 0 and 1, we stay with this
                          * number (normalized to the order of macro particles) and devide by the number of typical
                          * macro particles per cell
