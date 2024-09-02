@@ -67,21 +67,23 @@ namespace picongpu
                         static constexpr float_X rayleighLength
                             = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
 
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         // corresponds to period length of DFT
                         static constexpr float_X INIT_TIME
                             = static_cast<float_X>(Params::PULSE_INIT) * Base::PULSE_DURATION;
 
                         // Dispersion parameters
-                        // unit: UNIT_LENGTH * UNIT_TIME
-                        static constexpr float_X SD = static_cast<float_X>(Params::SD_SI / UNIT_TIME / UNIT_LENGTH);
-                        // unit: rad * UNIT_TIME
-                        static constexpr float_X AD = static_cast<float_X>(Params::AD_SI / UNIT_TIME);
-                        // unit: UNIT_TIME^2
-                        static constexpr float_X GDD = static_cast<float_X>(Params::GDD_SI / UNIT_TIME / UNIT_TIME);
-                        // unit: UNIT_TIME^3
-                        static constexpr float_X TOD
-                            = static_cast<float_X>(Params::TOD_SI / UNIT_TIME / UNIT_TIME / UNIT_TIME);
+                        // unit: UNIT_LENGTH * sim.unit.time()
+                        static constexpr float_X SD
+                            = static_cast<float_X>(Params::SD_SI / sim.unit.time() / UNIT_LENGTH);
+                        // unit: rad * sim.unit.time()
+                        static constexpr float_X AD = static_cast<float_X>(Params::AD_SI / sim.unit.time());
+                        // unit: sim.unit.time()^2
+                        static constexpr float_X GDD
+                            = static_cast<float_X>(Params::GDD_SI / sim.unit.time() / sim.unit.time());
+                        // unit: sim.unit.time()^3
+                        static constexpr float_X TOD = static_cast<float_X>(
+                            Params::TOD_SI / sim.unit.time() / sim.unit.time() / sim.unit.time());
                     };
 
                     /** DispersivePulse incident E functor

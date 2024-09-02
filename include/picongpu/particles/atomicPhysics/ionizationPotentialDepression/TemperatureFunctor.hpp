@@ -37,7 +37,8 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @param particle
          * @param weightNormalized weight of particle normalized by picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
          *
-         * @return unit: UNIT_MASS * UNIT_LENGTH^2 / UNIT_TIME^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+         * @return unit: UNIT_MASS * UNIT_LENGTH^2 / sim.unit.time()^2 * weight /
+         * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
          */
         template<typename T_Particle>
         HDINLINE static float_X term(T_Particle& particle, float_64 const weightNormalized);

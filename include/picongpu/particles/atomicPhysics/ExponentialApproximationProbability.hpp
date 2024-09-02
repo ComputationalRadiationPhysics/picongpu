@@ -26,25 +26,25 @@ namespace picongpu::particles::atomicPhysics
     {
         /** probability for transition with initial and final atomic state the same
          *
-         * @param rate rate R_ji of transition, with convention R_ji > 0, [1/UNIT_TIME]
+         * @param rate rate R_ji of transition, with convention R_ji > 0, [1/sim.unit.time()]
          * @param timeStep time step length of the current atomic physics step(may be != PIC-time step),
-         *  [UNIT_TIME]
+         *  [sim.unit.time()]
          */
         HDINLINE static float_X probabilityChange(float_64 const rate, float_64 const timeStep)
         {
-            // unitless - exp(1/UNIT_TIME * UNIT_TIME) = unitless - exp(unitless) = unitless
+            // unitless - exp(1/sim.unit.time() * sim.unit.time()) = unitless - exp(unitless) = unitless
             return static_cast<float_X>(1. - math::exp(-rate * timeStep)); // unitless
         }
 
         /** probability for transition with initial and final atomic state the same
          *
-         * @param rate rate R_ii of transition, with convention R_ii < 0, [1/UNIT_TIME]
+         * @param rate rate R_ii of transition, with convention R_ii < 0, [1/sim.unit.time()]
          * @param timeStep time step length of the current atomic physics step(may be != PIC-time step),
-         *  [UNIT_TIME]
+         *  [sim.unit.time()]
          */
         HDINLINE static float_X probabilityNoChange(float_64 const rate, float_64 const timeStep)
         {
-            // exp(1/UNIT_TIME * UNIT_TIME) = exp(unitless) = unitless
+            // exp(1/sim.unit.time() * sim.unit.time()) = exp(unitless) = unitless
             return static_cast<float_X>(math::exp(rate * timeStep)); // unitless
         }
     };

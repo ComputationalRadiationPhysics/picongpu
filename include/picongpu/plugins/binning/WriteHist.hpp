@@ -126,7 +126,7 @@ namespace picongpu
                 iteration.setDt<float_X>(sim.pic.getDt());
                 const float_X time = float_X(currentStep) * sim.pic.getDt();
                 iteration.setTime(time);
-                iteration.setTimeUnitSI(UNIT_TIME);
+                iteration.setTimeUnitSI(sim.unit.time());
                 /* end required openPMD global attributes */
 
                 /**

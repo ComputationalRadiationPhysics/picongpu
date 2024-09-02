@@ -55,13 +55,13 @@ namespace picongpu
 
                         /** Frequency
                          *
-                         * unit: 1/UNIT_TIME
+                         * unit: 1/sim.unit.time()
                          */
                         static constexpr float_X f = static_cast<float_X>(SPEED_OF_LIGHT / WAVE_LENGTH);
 
                         /** Angular frequency
                          *
-                         * unit: 1/UNIT_TIME
+                         * unit: 1/sim.unit.time()
                          */
                         static constexpr float_X w = pmacc::math::Pi<float_X>::doubleValue * f;
 
@@ -73,10 +73,10 @@ namespace picongpu
 
                         /** Pulse duration
                          *
-                         * unit: UNIT_TIME
+                         * unit: sim.unit.time()
                          */
                         static constexpr float_X PULSE_DURATION
-                            = static_cast<float_X>(Params::PULSE_DURATION_SI / UNIT_TIME);
+                            = static_cast<float_X>(Params::PULSE_DURATION_SI / sim.unit.time());
 
                         // Some utility that is not part of public interface
                     private:
@@ -117,10 +117,10 @@ namespace picongpu
                     public:
                         /** Time delay
                          *
-                         * unit: UNIT_TIME
+                         * unit: sim.unit.time()
                          */
                         static constexpr float_X TIME_DELAY
-                            = static_cast<float_X>(GetTimeDelay<Params>::value / UNIT_TIME);
+                            = static_cast<float_X>(GetTimeDelay<Params>::value / sim.unit.time());
                         PMACC_CASSERT_MSG(
                             _error_laser_time_delay_must_be_positive____check_your_incidentField_param_file,
                             (TIME_DELAY >= 0.0));

@@ -34,7 +34,7 @@ namespace picongpu::particles2::atomicPhysics::rateCalculation
      * @param densityElectrons, [1/(m^3 * eV)]
      * @param sigma crossSection of collisional transition [1e6*b]
      *
-     * @return unit: 1/UNIT_TIME
+     * @return unit: 1/sim.unit.time()
      */
     HDINLINE static float_X collisionalRate(
         float_X const energyElectron, // [eV]
@@ -52,8 +52,8 @@ namespace picongpu::particles2::atomicPhysics::rateCalculation
 
         PMACC_CASSERT_MSG(
             Assumption_of_c_internal_equal_1_broken,
-            (c_SI / picongpu::UNIT_LENGTH * picongpu::UNIT_TIME - 1.) <= 1.e-9);
-        constexpr float_X c_internal = 1._X; // [UNIT_LENGTH/UNIT_TIME]
+            (c_SI / picongpu::UNIT_LENGTH * picongpu::sim.unit.time() - 1.) <= 1.e-9);
+        constexpr float_X c_internal = 1._X; // [UNIT_LENGTH/sim.unit.time()]
 
         constexpr float_X conversion_Factor_sigma
             = static_cast<float_X>(1.e-22 / (picongpu::UNIT_LENGTH * picongpu::UNIT_LENGTH));
@@ -63,10 +63,10 @@ namespace picongpu::particles2::atomicPhysics::rateCalculation
         // DeltaE * sigma * rho_e/DeltaE * v_e
         return energyElectronBinWidth * sigma * conversion_Factor_sigma * densityElectrons * c_internal
             * math::sqrt(1._X - 1._X / (pmacc::math::cPow(1._X + energyElectron / electronRestMassEnergy, 2u)));
-        // eV * 1e6b * UNIT_LENGTH^2/(1e6b) * 1/(UNIT_LENGTH^3*eV) * UNIT_LENGTH/UNIT_TIME
+        // eV * 1e6b * UNIT_LENGTH^2/(1e6b) * 1/(UNIT_LENGTH^3*eV) * UNIT_LENGTH/sim.unit.time()
         //    * sqrt( unitless - [(unitless + (eV)/(eV))^2] )
-        // = (eV)/(eV) * UNIT_LENGTH^2 *^1/UNIT_LENGTH^3 * UNIT_LENGTH/UNIT_TIME
-        // = UNIT_LENGTH^3/UNIT_LENGTH^3 * 1/UNIT_TIME = 1/UNIT_TIME
-        // [1/UNIT_TIME]
+        // = (eV)/(eV) * UNIT_LENGTH^2 *^1/UNIT_LENGTH^3 * UNIT_LENGTH/sim.unit.time()
+        // = UNIT_LENGTH^3/UNIT_LENGTH^3 * 1/sim.unit.time() = 1/sim.unit.time()
+        // [1/sim.unit.time()]
     }
 } // namespace picongpu::particles2::atomicPhysics::rateCalculation

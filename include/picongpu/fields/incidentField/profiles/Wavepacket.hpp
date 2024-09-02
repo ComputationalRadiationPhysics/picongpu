@@ -62,16 +62,16 @@ namespace picongpu
                         //! Base unitless parameters
                         using Base = BaseTransversalGaussianParamUnitless<T_Params>;
 
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         static constexpr float_X LASER_NOFOCUS_CONSTANT
-                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME);
+                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / sim.unit.time());
 
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         static constexpr float_X INIT_TIME
                             = Params::PULSE_INIT * Base::PULSE_DURATION + LASER_NOFOCUS_CONSTANT;
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         static constexpr float_X endUpramp = -0.5_X * LASER_NOFOCUS_CONSTANT;
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         static constexpr float_X startDownramp = 0.5_X * LASER_NOFOCUS_CONSTANT;
                     };
 

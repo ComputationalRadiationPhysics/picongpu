@@ -23,7 +23,7 @@
 namespace picongpu
 {
     //! reduced Planck constant
-    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
+    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / sim.unit.time());
 
     //! Charge of electron
     constexpr float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
@@ -46,6 +46,6 @@ namespace picongpu
     constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
 
     /* Atomic unit of time in PIC units */
-    constexpr float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
+    constexpr float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / sim.unit.time());
 
 } // namespace picongpu

@@ -34,7 +34,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::loc
      * sum of kinetic particle temperature contributions A according to equipartition theorem
      *  k_Boltzman * T = average(A)
      *
-     * @details unit: UNIT_MASS * UNIT_LENGTH^2 / UNIT_TIME^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+     * @details unit: UNIT_MASS * UNIT_LENGTH^2 / sim.unit.time()^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
      *
      * @note required for calculating local temperature for ionization potential depression(IPD)
      * @note is used to keep intermediate results between kernel calls for different species

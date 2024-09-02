@@ -218,7 +218,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             for(int binIndex = 0; binIndex < static_cast<int>(T_Histogram::numberBins); ++binIndex)
                             {
                                 float_X const density = cachedHistogram.density[binIndex];
-                                // 1/UNIT_TIME
+                                // 1/sim.unit.time()
                                 float_X const rateTransition = picongpu::particles::atomicPhysics::rateCalculation::
                                     BoundBoundTransitionRates<T_n_max>::template rateCollisionalBoundBoundTransition<
                                         T_AtomicStateDataDataBox,
@@ -273,7 +273,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         {
                             // only if we completed the bin-for-loop without finding a chosen transition
 
-                            // 1/UNIT_TIME
+                            // 1/sim.unit.time()
                             float_X const rateTransition = picongpu::particles::atomicPhysics::rateCalculation::
                                 BoundBoundTransitionRates<T_n_max>::template rateSpontaneousRadiativeDeexcitation<
                                     T_AtomicStateDataDataBox,

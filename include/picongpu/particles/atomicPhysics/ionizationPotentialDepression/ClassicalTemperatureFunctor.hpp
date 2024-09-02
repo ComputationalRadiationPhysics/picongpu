@@ -39,38 +39,40 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @param particle
          * @param weightNormalized weight of particle normalized by picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
          *
-         * @return unit: UNIT_MASS * UNIT_LENGTH^2 / UNIT_TIME^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+         * @return unit: UNIT_MASS * UNIT_LENGTH^2 / sim.unit.time()^2 * weight /
+         * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
          */
         template<typename T_Particle>
         HDINLINE static float_X term(T_Particle& particle, float_64 const weightNormalized)
         {
-            // UNIT_MASS * UNIT_LENGTH / UNIT_TIME * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+            // UNIT_MASS * UNIT_LENGTH / sim.unit.time() * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
             float3_64 const momentumVectorNormalized
                 = precisionCast<float3_64>(particle[momentum_] / picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
-            // UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2
+            // UNIT_MASS^2 * UNIT_LENGTH^2 / sim.unit.time()^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2
             float_64 momentumSquared = pmacc::math::l2norm2(momentumVectorNormalized);
 
             // get classical momentum
             // UNIT_MASS, not weighted
             float_64 const mass = static_cast<float_64>(picongpu::traits::frame::getMass<T_Particle::FrameType>());
-            // UNIT_LENGTH^2 / UNIT_TIME^2, not weighted
+            // UNIT_LENGTH^2 / sim.unit.time()^2, not weighted
             constexpr float_64 c2 = picongpu::SPEED_OF_LIGHT * picongpu::SPEED_OF_LIGHT;
-            // UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2, not weighted
+            // UNIT_MASS^2 * UNIT_LENGTH^2 / sim.unit.time()^2, not weighted
             float_64 const m2_c2_reciproc = 1.0 / (mass * mass * c2);
 
-            // unitless + (UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2 * weight^2
+            // unitless + (UNIT_MASS^2 * UNIT_LENGTH^2 / sim.unit.time()^2 * weight^2
             //  / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2)
-            //  / (UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2) =
+            //  / (UNIT_MASS^2 * UNIT_LENGTH^2 / sim.unit.time()^2 * weight^2 /
+            //  TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2) =
             // unitless
             float_64 const gamma
                 = math::sqrt(1.0 + momentumSquared / (m2_c2_reciproc * weightNormalized * weightNormalized));
 
             momentumSquared *= 1. / (gamma * gamma);
 
-            // (UNIT_MASS^2 * UNIT_TIME^2 / UNIT_LENGTH^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2)
+            // (UNIT_MASS^2 * sim.unit.time()^2 / UNIT_LENGTH^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2)
             //  / (UNIT_MASS * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
-            // UNIT_MASS * UNIT_TIME^2 / UNIT_LENGTH^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+            // UNIT_MASS * sim.unit.time()^2 / UNIT_LENGTH^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
             return (2._X / 3._X) * static_cast<float_X>(momentumSquared / (2.0 * mass * weightNormalized));
         }
     };

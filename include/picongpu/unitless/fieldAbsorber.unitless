@@ -75,12 +75,12 @@ namespace picongpu
                 /** Max value of normalized conductivity in PIC units
                  *
                  * unit: 1 / time
-                 * (that is why we multiply by UNIT_TIME and not divide)
+                 * (that is why we multiply by sim.unit.time() and not divide)
                  */
                 constexpr float_64 NORMALIZED_SIGMA_MAX[3]
-                    = {NORMALIZED_SIGMA_MAX_SI[0] * UNIT_TIME,
-                       NORMALIZED_SIGMA_MAX_SI[1] * UNIT_TIME,
-                       NORMALIZED_SIGMA_MAX_SI[2] * UNIT_TIME};
+                    = {NORMALIZED_SIGMA_MAX_SI[0] * sim.unit.time(),
+                       NORMALIZED_SIGMA_MAX_SI[1] * sim.unit.time(),
+                       NORMALIZED_SIGMA_MAX_SI[2] * sim.unit.time()};
 
                 /* Normalize complex frequency shift by eps0, so that the result can be used
                  * for matching electric conductivity and magnetic permeability
@@ -92,12 +92,12 @@ namespace picongpu
                 /** Max value of normalized complex frequency shift in PIC units
                  *
                  * unit: 1 / time
-                 * (that is why we multiply by UNIT_TIME and not divide)
+                 * (that is why we multiply by sim.unit.time() and not divide)
                  */
                 constexpr float_64 NORMALIZED_ALPHA_MAX[3]
-                    = {NORMALIZED_ALPHA_MAX_SI[0] * UNIT_TIME,
-                       NORMALIZED_ALPHA_MAX_SI[1] * UNIT_TIME,
-                       NORMALIZED_ALPHA_MAX_SI[2] * UNIT_TIME};
+                    = {NORMALIZED_ALPHA_MAX_SI[0] * sim.unit.time(),
+                       NORMALIZED_ALPHA_MAX_SI[1] * sim.unit.time(),
+                       NORMALIZED_ALPHA_MAX_SI[2] * sim.unit.time()};
 
             } // namespace pml
         } // namespace absorber

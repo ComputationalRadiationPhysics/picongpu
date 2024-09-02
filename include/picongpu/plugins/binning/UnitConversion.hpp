@@ -33,8 +33,8 @@ namespace picongpu
         std::array<double, numUnits> UnitDimensions{
             UNIT_LENGTH, // length
             UNIT_MASS, // mass
-            UNIT_TIME, // time
-            UNIT_CHARGE / UNIT_TIME, // current
+            sim.unit.time(), // time
+            UNIT_CHARGE / sim.unit.time(), // current
             1., // thermodynamicTemperature
             1., // amountOfSubstance add N_AVOGADRO HERE? FROM physicalConstants.param
             1., // luminousIntensity

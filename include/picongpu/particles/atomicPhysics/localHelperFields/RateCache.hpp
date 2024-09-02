@@ -51,7 +51,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
 
     private:
         // partial sums of rates for each atomic state, one for each ChooseTransitionGroup except noChange
-        // 1/UNIT_TIME
+        // 1/sim.unit.time()
         float_X rateEntries[T_numberAtomicStates * numberStoredDataSets] = {0};
         uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
 
@@ -78,7 +78,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
          *
          * @param worker object containing the device and block information
          * @param collectionIndex collection Index of atomic state to add rate to
-         * @param rate rate of transition, [1/UNIT_TIME]
+         * @param rate rate of transition, [1/sim.unit.time()]
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          */
@@ -111,7 +111,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
          * @tparam T_ChooseTransitionGroup ChooseTransitionGroup to add rate to
          *
          * @param collectionIndex collection Index of atomic state to add rate to
-         * @param rate rate of transition, [1/UNIT_TIME]
+         * @param rate rate of transition, [1/sim.unit.time()]
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          * @attention only use if only ever one thread accesses each rate cache entry!
@@ -160,7 +160,8 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
          *
          * @param chooseTransitionGroupIndex collectionIndex of chooseTransitionGroup to get rate for
          * @param collectionIndex collection index of atomic state to get rate for
-         * @return rate of transition, [1/UNIT_TIME], 0 if unknown T_TransitionType T_TransitionDirection combination
+         * @return rate of transition, [1/sim.unit.time()], 0 if unknown T_TransitionType T_TransitionDirection
+         * combination
          *
          * @attention no range checks outside a debug compile, invalid memory access on failure
          * @attention returns invalid value if state not present
@@ -189,7 +190,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
         /** get cached total loss rate for an atomic state
          *
          * @param collectionIndex collection Index of atomic state
-         * @return rate of transition, [1/UNIT_TIME], by convention >0
+         * @return rate of transition, [1/sim.unit.time()], by convention >0
          *
          * @attention no range checks outside a debug compile, invalid memory access on failure
          * @attention returns invalid value if state not present

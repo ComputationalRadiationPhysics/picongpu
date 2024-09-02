@@ -133,7 +133,7 @@ namespace picongpu
             constexpr auto normalizationB = static_cast<float_X>(customNormalizationSI[0] / UNIT_BFIELD);
             constexpr auto normalizationE = static_cast<float_X>(customNormalizationSI[1] / UNIT_EFIELD);
             constexpr auto normalizationCurrent
-                = static_cast<float_X>(customNormalizationSI[2] / (UNIT_CHARGE / UNIT_TIME));
+                = static_cast<float_X>(customNormalizationSI[2] / (UNIT_CHARGE / sim.unit.time()));
             return float3_X{normalizationB, normalizationE, normalizationCurrent};
 #endif
         }

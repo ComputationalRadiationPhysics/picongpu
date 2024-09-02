@@ -307,7 +307,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          * @param atomicStateDataBox access to atomic state property data
          * @param boundBoundTransitionDataBox access to bound-bound transition data
          *
-         * @return unit: 1/UNIT_TIME
+         * @return unit: 1/sim.unit.time()
          */
         template<typename T_AtomicStateDataBox, typename T_BoundBoundTransitionDataBox, bool T_excitation>
         HDINLINE static float_X rateCollisionalBoundBoundTransition(
@@ -353,7 +353,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          * @param atomicStateDataBox access to atomic state property data
          * @param boundBoundTransitionDataBox access to bound-bound transition data
          *
-         * @return unit: 1/UNIT_TIME, usually Delta_T_SI ... PIC time step length
+         * @return unit: 1/sim.unit.time(), usually Delta_T_SI ... PIC time step length
          */
         template<typename T_AtomicStateDataBox, typename T_BoundBoundTransitionDataBox>
         HDINLINE static float_X rateSpontaneousRadiativeDeexcitation(
@@ -387,12 +387,12 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             float_X deltaEnergyTransition = static_cast<float_X>(
                 atomicStateDataBox.energy(upperStateClctIdx) - atomicStateDataBox.energy(lowerStateClctIdx));
 
-            // J/(eV) / (Js) * s/UNIT_TIME = J/J * s/s * 1/(eV * UNIT_TIME)
-            constexpr float_X scalingConstantPhotonFrequency
-                = static_cast<float_X>(picongpu::UNITCONV_eV_to_Joule / (2 * pi * hbar_SI) * picongpu::UNIT_TIME);
+            // J/(eV) / (Js) * s/sim.unit.time() = J/J * s/s * 1/(eV * sim.unit.time())
+            constexpr float_X scalingConstantPhotonFrequency = static_cast<float_X>(
+                picongpu::UNITCONV_eV_to_Joule / (2 * pi * hbar_SI) * picongpu::sim.unit.time());
 
             /// @attention actual SI frequency, NOT angular frequency
-            // 1/UNIT_TIME
+            // 1/sim.unit.time()
             float_X frequencyPhoton = deltaEnergyTransition * scalingConstantPhotonFrequency;
 
             // unitless
@@ -403,20 +403,22 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             if constexpr(picongpu::atomicPhysics::debug::rateCalculation::DEBUG_CHECKS)
                 debugChecksMultiplicity(ratio, lowerStateClctIdx, upperStateClctIdx, atomicStateDataBox);
 
-            // (2 * pi * e^2)/(eps_0 * m_e * c^3 * s/UNIT_TIME) = (2 * pi * e^2 * mue_0) / (m_e * c * s/UNIT_TIME)
-            /* (N/A^2 * (As)^2) / (kg * m/s * s/UNIT_TIME) = (A^2/A^2 *s^2 * N * UNIT_TIME) / (kg * m * s/s)
-             * = (s^2 * kg*m/(s^2) * UNIT_TIME) / ( kg * m) = s^2/(s^2) (kg*m)/(kg*m) * UNIT_TIME = UNIT_TIME
+            // (2 * pi * e^2)/(eps_0 * m_e * c^3 * s/sim.unit.time()) = (2 * pi * e^2 * mue_0) / (m_e * c *
+            // s/sim.unit.time())
+            /* (N/A^2 * (As)^2) / (kg * m/s * s/sim.unit.time()) = (A^2/A^2 *s^2 * N * sim.unit.time()) / (kg * m *
+             * s/s) = (s^2 * kg*m/(s^2) * sim.unit.time()) / ( kg * m) = s^2/(s^2) (kg*m)/(kg*m) * sim.unit.time() =
+             * sim.unit.time()
              */
-            // UNIT_TIME
-            constexpr float_X scalingConstantRate
-                = static_cast<float_X>((2. * pi * e_SI * e_SI * mue0_SI) / (m_e_SI * c_SI * picongpu::UNIT_TIME));
+            // sim.unit.time()
+            constexpr float_X scalingConstantRate = static_cast<float_X>(
+                (2. * pi * e_SI * e_SI * mue0_SI) / (m_e_SI * c_SI * picongpu::sim.unit.time()));
 
             /* [(2 * pi * e^2)/(eps_0 * m_e * c^3)] * nu^2 * g_new/g_old * faax
              * taken from https://en.wikipedia.org/wiki/Einstein_coefficients
              * s * (1/s)^2 = 1/s
              */
-            // UNIT_TIME * 1/(UNIT_TIME^2) * unitless * unitless = 1/UNIT_TIME
-            // 1/UNIT_TIME
+            // sim.unit.time() * 1/(sim.unit.time()^2) * unitless * unitless = 1/sim.unit.time()
+            // 1/sim.unit.time()
             return scalingConstantRate * frequencyPhoton * frequencyPhoton * ratio
                 * boundBoundTransitionDataBox.absorptionOscillatorStrength(transitionCollectionIndex);
         }
