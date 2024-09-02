@@ -293,7 +293,8 @@ namespace picongpu
                     {
                         return util::square(math::exp(
                             -0.5_X
-                            * (util::square(observerUnitVec.x() * CELL_WIDTH / (SPEED_OF_LIGHT * 2.0_X) * omega)
+                            * (util::square(
+                                   observerUnitVec.x() * sim.pic.getCellSize().x() / (SPEED_OF_LIGHT * 2.0_X) * omega)
                                + util::square(observerUnitVec.y() * CELL_HEIGHT / (SPEED_OF_LIGHT * 2.0_X) * omega)
                                + util::square(observerUnitVec.z() * CELL_DEPTH / (SPEED_OF_LIGHT * 2.0_X) * omega))));
                     }

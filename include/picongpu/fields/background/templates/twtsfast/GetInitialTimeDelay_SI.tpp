@@ -117,8 +117,8 @@ namespace picongpu
                         /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
                          * projection we calculate the y-distance walkoff of the TWTS-pulse.
                          * The abs( )-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                        float_64 const y1
-                            = float_64(halfSimSize[0] * picongpu::SI::CELL_WIDTH_SI) * math::abs(math::cos(eta));
+                        float_64 const y1 = float_64(halfSimSize[0] * picongpu::sim.si.getCellSize().x())
+                            * math::abs(math::cos(eta));
                         /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                          * at low intensity values. */
                         float_64 const m = 3.;

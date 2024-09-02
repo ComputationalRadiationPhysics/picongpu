@@ -123,7 +123,7 @@ namespace picongpu
                         constexpr uint32_t dir2 = (dir0 + 2) % 3;
 
                         // cellSize is not constexpr currently, so make an own constexpr array
-                        constexpr float_X step[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
+                        constexpr float_X step[3] = {sim.pic.getCellSize().x(), CELL_HEIGHT, CELL_DEPTH};
 
                         /* beta_xy and beta_xz from eq. (11), generic for any T_direction;
                          * for 2D the betas corresponding to z are 0

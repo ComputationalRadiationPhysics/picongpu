@@ -264,10 +264,10 @@ namespace picongpu
                     int const currentSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
                     if(!initializedDataBox)
                     {
-                        xMin = fields::absorber::NUM_CELLS[0][0] * SI::CELL_WIDTH_SI;
+                        xMin = fields::absorber::NUM_CELLS[0][0] * sim.si.getCellSize().x();
                         yMin = (fields::absorber::NUM_CELLS[1][0] + yTotalMinIndex) * SI::CELL_HEIGHT_SI;
 
-                        xStep = params::xRes * SI::CELL_WIDTH_SI;
+                        xStep = params::xRes * sim.si.getCellSize().x();
                         yStep = params::yRes * SI::CELL_HEIGHT_SI;
                         initializedDataBox = true;
                     }
@@ -760,7 +760,7 @@ namespace picongpu
                  */
                 float_X kx(int i) const
                 {
-                    float_X const actualStep = params::xRes * SI::CELL_WIDTH_SI;
+                    float_X const actualStep = params::xRes * sim.si.getCellSize().x();
                     return 2.0_X * float_X(PI) * (float_X(i) - float_X(pluginNumX) / 2.0_X) / float_X(pluginNumX)
                         / actualStep;
                 }
