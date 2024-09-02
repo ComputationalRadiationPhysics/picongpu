@@ -40,8 +40,6 @@ namespace picongpu::particles::atomicPhysics::kernel
          *  superCells
          * @param localTimeStepBox deviceDataBox giving access to superCell local rateCaches
          *  of all local superCells
-         *
-         * @todo refactor for storing atomic state collection index, Brian Marre, 2023
          */
         template<
             typename T_Worker,
