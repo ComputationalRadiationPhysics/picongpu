@@ -348,7 +348,7 @@ namespace picongpu
             /* example: periodicity of 20 microns ( = 2.0e-5 m) */
             constexpr float_64 period_SI(20.0e-6);
             /* calculate cells -> SI -> m to microns*/
-            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            const float_64 y_SI = cellIdx.y() * sim.si.getCellSize().y() * 1.0e6;
             /* note: you can also transform the time step to seconds by
              *       multiplying with DELTA_T_SI */
 

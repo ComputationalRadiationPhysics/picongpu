@@ -631,7 +631,7 @@ namespace picongpu
                         outFile << "#step emit_all" << std::scientific;
                         for(int i = startWindow_y; i < (endWindow_y + 10); i += 10)
                         {
-                            outFile << " " << i * SI::CELL_HEIGHT_SI;
+                            outFile << " " << i * sim.si.getCellSize().y();
                         }
                         outFile << std::endl;
                         fisttimestep = false;

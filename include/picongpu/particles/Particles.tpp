@@ -325,7 +325,7 @@ namespace picongpu
          * For 2d this concerns only steps in x, y.
          */
         constexpr auto dz = (simDim == 3) ? CELL_DEPTH : std::numeric_limits<float_X>::infinity();
-        constexpr auto minCellSize = std::min({sim.pic.getCellSize().x(), CELL_HEIGHT, dz});
+        constexpr auto minCellSize = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), dz});
         PMACC_CASSERT_MSG(
             Particle_in_pusher_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
             (SPEED_OF_LIGHT * DELTA_T / minCellSize <= 1.0) && sizeof(T_Pusher*) != 0);

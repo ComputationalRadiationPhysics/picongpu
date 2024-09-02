@@ -107,9 +107,9 @@ namespace picongpu
             // j = I/A
 
             auto const realCurrent = float3_X(
-                gCurrent.x() * CELL_HEIGHT * CELL_DEPTH,
+                gCurrent.x() * sim.pic.getCellSize().y() * CELL_DEPTH,
                 gCurrent.y() * sim.pic.getCellSize().x() * CELL_DEPTH,
-                gCurrent.z() * sim.pic.getCellSize().x() * CELL_HEIGHT);
+                gCurrent.z() * sim.pic.getCellSize().x() * sim.pic.getCellSize().y());
 
             float3_64 realCurrent_SI(
                 float_64(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),

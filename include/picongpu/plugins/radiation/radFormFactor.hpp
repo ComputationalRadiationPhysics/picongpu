@@ -184,8 +184,8 @@ namespace picongpu
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
                     HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
-                        : normalizedCoherentAmplification(
-                            util::square(pmacc::math::sinc(CELL_HEIGHT / (SPEED_OF_LIGHT * 2.0_X) * omega)))
+                        : normalizedCoherentAmplification(util::square(
+                            pmacc::math::sinc(sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)))
                     {
                     }
 
@@ -295,7 +295,8 @@ namespace picongpu
                             -0.5_X
                             * (util::square(
                                    observerUnitVec.x() * sim.pic.getCellSize().x() / (SPEED_OF_LIGHT * 2.0_X) * omega)
-                               + util::square(observerUnitVec.y() * CELL_HEIGHT / (SPEED_OF_LIGHT * 2.0_X) * omega)
+                               + util::square(
+                                   observerUnitVec.y() * sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)
                                + util::square(observerUnitVec.z() * CELL_DEPTH / (SPEED_OF_LIGHT * 2.0_X) * omega))));
                     }
                 };
