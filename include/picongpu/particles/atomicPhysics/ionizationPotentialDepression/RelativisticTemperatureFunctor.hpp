@@ -37,21 +37,23 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
         /** calculate term value for given particle
          *
          * @param particle
-         * @param weightNormalized weight of particle normalized by picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+         * @param weightNormalized weight of particle normalized by
+         * picongpu::sim.unit.typicalNumParticlesPerMacroParticle()
          *
          * @return unit: UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
-         * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+         * sim.unit.typicalNumParticlesPerMacroParticle()
          */
         template<typename T_Particle>
         HDINLINE static float_X term(T_Particle& particle, float_64 const weightNormalized)
         {
-            // UNIT_MASS * sim.unit.length() / sim.unit.time() * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+            // UNIT_MASS * sim.unit.length() / sim.unit.time() * weight /
+            // sim.unit.typicalNumParticlesPerMacroParticle()
             float3_64 const momentumVector = static_cast<float3_64>(particle[momentum_]);
 
             // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
-            // TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2
+            // sim.unit.typicalNumParticlesPerMacroParticle()^2
             float_64 const momentumSquared = pmacc::math::l2norm2(momentumVector)
-                / pmacc::math::cPow(picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE, 2u);
+                / pmacc::math::cPow(picongpu::sim.unit.typicalNumParticlesPerMacroParticle(), 2u);
 
             // UNIT_MASS, not weighted
             float_64 const mass
@@ -63,11 +65,12 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
 
             // sim.unit.length() / sim.unit.time()
             //  * (UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
-            //  TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2) / sqrt((UNIT_MASS^2 * sim.unit.length()^2 /
+            //  sim.unit.typicalNumParticlesPerMacroParticle()^2) / sqrt((UNIT_MASS^2 * sim.unit.length()^2 /
             //  sim.unit.time()^2 * weight^2
-            //      / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2) + UNIT_MASS^2 * sim.unit.length()^2 /
-            //      sim.unit.time()^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2)
-            // = UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+            //      / sim.unit.typicalNumParticlesPerMacroParticle()^2) + UNIT_MASS^2 * sim.unit.length()^2 /
+            //      sim.unit.time()^2 * weight^2 / sim.unit.typicalNumParticlesPerMacroParticle()^2)
+            // = UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+            // sim.unit.typicalNumParticlesPerMacroParticle()
             return /*since we sum over all three dimensions */ (1._X / 3._X)
                 * static_cast<float_X>(
                        c * momentumSquared

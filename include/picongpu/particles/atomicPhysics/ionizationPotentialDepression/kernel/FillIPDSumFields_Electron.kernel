@@ -99,16 +99,16 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             forEachLocalParticleBoxEntry(
                 [&sumWeight, &sumTemperatureFunctional, &sumElectronWeight](T_Worker const& worker, auto& electron)
                 {
-                    // unitless * 1/TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                    // unitless * 1/sim.unit.typicalNumParticlesPerMacroParticle()
                     float_X const weightNormalized
-                        = electron[weighting_] / picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                        = electron[weighting_] / picongpu::sim.unit.typicalNumParticlesPerMacroParticle();
 
                     // UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
-                    // TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                    // sim.unit.typicalNumParticlesPerMacroParticle()
                     sumTemperatureFunctional
                         += T_TemperatureFunctor::term(electron, precisionCast<float_64>(weightNormalized));
 
-                    // weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                    // weight / sim.unit.typicalNumParticlesPerMacroParticle()
                     sumWeight += weightNormalized;
                     sumElectronWeight += weightNormalized;
                 });

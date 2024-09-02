@@ -41,7 +41,8 @@ namespace picongpu
                 using float3_COLL = pmacc::math::Vector<float_COLL, 3>;
                 const float_COLL DELTA_T_COLL = static_cast<float_COLL>(sim.pic.getDt());
                 const float_COLL EPS0_COLL = static_cast<float_COLL>(EPS0);
-                const float_COLL WEIGHT_NORM_COLL = static_cast<float_COLL>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                const float_COLL WEIGHT_NORM_COLL
+                    = static_cast<float_COLL>(sim.unit.typicalNumParticlesPerMacroParticle());
                 const float_COLL CELL_VOLUME_COLL
                     = static_cast<float_COLL>(sim.pic.getCellSize().productOfComponents());
             } // namespace precision

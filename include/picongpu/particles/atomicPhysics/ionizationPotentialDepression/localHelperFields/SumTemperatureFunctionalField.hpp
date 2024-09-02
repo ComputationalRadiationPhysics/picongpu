@@ -35,14 +35,14 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::loc
      *  k_Boltzman * T = average(A)
      *
      * @details unit: UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
-     * TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+     * sim.unit.typicalNumParticlesPerMacroParticle()
      *
      * @note required for calculating local temperature for ionization potential depression(IPD)
      * @note is used to keep intermediate results between kernel calls for different species
      *
      * @attention field value only valid after fillIPDSumFields kernel has been executed for **all** electron **and**
      *  ion species.
-     * @attention in units of picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE!
+     * @attention in units of picongpu::sim.unit.typicalNumParticlesPerMacroParticle()!
      *
      * @tparam T_MappingDescription description of local mapping from device to grid
      */

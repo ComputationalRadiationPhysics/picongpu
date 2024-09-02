@@ -149,7 +149,7 @@ namespace picongpu
                 log<picLog::PHYSICS>("macro particles per device: %1%")
                     % (localNrOfCells * TYPICAL_PARTICLES_PER_CELL * (pmacc::mp_size<VectorAllSpecies>::value));
                 log<picLog::PHYSICS>("typical macro particle weighting: %1%")
-                    % (TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                    % (sim.unit.typicalNumParticlesPerMacroParticle());
 
 
                 log<picLog::PHYSICS>("UNIT_SPEED %1%") % UNIT_SPEED;

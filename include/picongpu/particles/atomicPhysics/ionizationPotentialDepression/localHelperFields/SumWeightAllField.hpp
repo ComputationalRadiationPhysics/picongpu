@@ -28,7 +28,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::loc
 {
     /**helper superCell field of sum of weight of all electrons and ion macro particles.
      *
-     * @details unit: 1 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+     * @details unit: 1 / sim.unit.typicalNumParticlesPerMacroParticle()
      *
      * @note required for calculating local temperature for ionization potential depression(IPD)
      * @note is used to keep intermediate results between kernel calls for different species
