@@ -39,7 +39,6 @@ namespace picongpu
 #include "picongpu/param/physicalConstants.param"
 #include "picongpu/param/speciesConstants.param"
 #include "picongpu/param/simulation.param"
-#include "picongpu/param/unit.param"
 #include "picongpu/unitless/simulation.unitless"
 #include "picongpu/unitless/physicalConstants.unitless"
 #include "picongpu/unitless/speciesConstants.unitless"
