@@ -295,8 +295,8 @@ namespace picongpu
                             }
                             else if constexpr(T_fieldType == FieldType::B)
                             {
-                                tmpBx[i][j] = UNIT_BFIELD * wf * value.x();
-                                tmpBy[i][j] = UNIT_BFIELD * wf * value.y();
+                                tmpBx[i][j] = sim.unit.bField() * wf * value.x();
+                                tmpBy[i][j] = sim.unit.bField() * wf * value.y();
                             }
                         }
                     }

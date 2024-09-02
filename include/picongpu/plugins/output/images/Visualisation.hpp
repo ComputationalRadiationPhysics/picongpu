@@ -130,7 +130,7 @@ namespace picongpu
 #else
             // Convert customNormalizationSI to internal units
             using visPreview::customNormalizationSI;
-            constexpr auto normalizationB = static_cast<float_X>(customNormalizationSI[0] / UNIT_BFIELD);
+            constexpr auto normalizationB = static_cast<float_X>(customNormalizationSI[0] / sim.unit.bField());
             constexpr auto normalizationE = static_cast<float_X>(customNormalizationSI[1] / sim.unit.eField());
             constexpr auto normalizationCurrent
                 = static_cast<float_X>(customNormalizationSI[2] / (sim.unit.charge() / sim.unit.time()));

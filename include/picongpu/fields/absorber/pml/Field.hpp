@@ -388,7 +388,7 @@ namespace picongpu
                     //! Get units of field components
                     HDINLINE static UnitValueType getUnit()
                     {
-                        return UnitValueType::create(UNIT_BFIELD);
+                        return UnitValueType::create(sim.unit.bField());
                     }
 
                     /** Get unit representation as powers of the 7 base measures
