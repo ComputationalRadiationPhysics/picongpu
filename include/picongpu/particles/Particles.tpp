@@ -324,7 +324,7 @@ namespace picongpu
         /* Particle push logic requires that a particle cannot pass more than a cell in a time step.
          * For 2d this concerns only steps in x, y.
          */
-        constexpr auto dz = (simDim == 3) ? CELL_DEPTH : std::numeric_limits<float_X>::infinity();
+        constexpr auto dz = (simDim == 3) ? sim.pic.getCellSize().z() : std::numeric_limits<float_X>::infinity();
         constexpr auto minCellSize = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), dz});
         PMACC_CASSERT_MSG(
             Particle_in_pusher_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
