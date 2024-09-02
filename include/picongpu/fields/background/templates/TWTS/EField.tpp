@@ -64,7 +64,7 @@ namespace picongpu
                 , beta_0(beta_0)
                 , tdelay_user_SI(tdelay_user_SI)
                 , dt(sim.si.getDt())
-                , unit_length(UNIT_LENGTH)
+                , unit_length(sim.unit.length())
                 , tdelay(0.0)
                 , auto_tdelay(auto_tdelay)
                 , pol(pol)
@@ -208,7 +208,7 @@ namespace picongpu
                 using complex_T = alpaka::Complex<float_T>;
                 using complex_64 = alpaka::Complex<float_64>;
                 /* Unit of speed */
-                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+                const float_64 UNIT_SPEED = sim.si.getSpeedOfLight();
                 /* Unit of time */
                 const float_64 UNIT_TIME = sim.si.getDt();
                 /* Unit of length */
