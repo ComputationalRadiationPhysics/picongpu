@@ -11,12 +11,12 @@ dimension.param
    :path: include/picongpu/param/dimension.param
    :no-link:
 
-grid.param
+simulation.param
 ^^^^^^^^^^
 
-.. doxygenfile:: grid.param
+.. doxygenfile:: simulation.param
    :project: PIConGPU
-   :path: include/picongpu/param/grid.param
+   :path: include/picongpu/param/simulation.param
    :no-link:
 
 iterationStart.param

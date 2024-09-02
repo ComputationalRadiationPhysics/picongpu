@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz, Pawel Ordyna
+/* Copyright 2013-2023 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -42,29 +42,48 @@
 
 #pragma once
 
-#include "picongpu/param/density.param"
 
 namespace picongpu
 {
     namespace SI
     {
         /** Duration of one timestep
-         *
          *  unit: seconds */
-        constexpr float_64 REFERENCE_TIME_SI = 2.0 * PI / REFERENCE_OMEGA_SI;
-        constexpr float_64 DELTA_T_SI = 0.2 * REFERENCE_TIME_SI;
+        constexpr float_64 DELTA_T_SI = 0.64e-16;
 
         /** equals X
-         *
          *  unit: meter */
-        constexpr float_64 REFERENCE_LENGTH_SI = SPEED_OF_LIGHT_SI * REFERENCE_TIME_SI;
-        constexpr float_64 CELL_WIDTH_SI = 10.0 * REFERENCE_LENGTH_SI;
+        constexpr float_64 CELL_WIDTH_SI = 0.16e-6;
         /** equals Y - the laser & moving window propagation direction
          *  unit: meter */
-        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
+        constexpr float_64 CELL_HEIGHT_SI = 0.40e-7;
         /** equals Z
          *  unit: meter */
         constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
 
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+#ifdef PARAM_SINGLE_PARTICLE
+        /* one particle per cell with weighting 1.0 */
+        constexpr float_64 BASE_DENSITY_SI = 1.0 / (CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI);
+#else
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
+#endif
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+#ifdef PARAM_SINGLE_PARTICLE
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
+#else
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
+#endif
 } // namespace picongpu

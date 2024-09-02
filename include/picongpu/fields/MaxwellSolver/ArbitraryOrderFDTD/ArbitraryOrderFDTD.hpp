@@ -68,7 +68,8 @@ namespace picongpu
                     if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * invCorrectedCell2Sum > 1.0_X)
                     {
                         throw std::runtime_error(
-                            std::string("Courant-Friedrichs-Lewy condition check failed, check your grid.param file\n")
+                            std::string(
+                                "Courant-Friedrichs-Lewy condition check failed, check your simulation.param file\n")
                             + "Courant Friedrichs Lewy condition: c * dt <= " + std::to_string(maxC_DT)
                             + " ? (c * dt = " + std::to_string(SPEED_OF_LIGHT * dt) + ")");
                     }

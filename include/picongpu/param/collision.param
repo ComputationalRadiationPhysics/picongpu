@@ -57,7 +57,7 @@ namespace picongpu
              * Our experience shows that 4 or 8 are working quite well. Higher numbers lead to more inefficient memory
              * usage, so we cap this chunk size by default at the TYPICAL_PARTICLES_PER_CELL value.
              */
-            constexpr uint32_t cellListChunkSize = std::min(particles::TYPICAL_PARTICLES_PER_CELL, 4u);
+            constexpr uint32_t cellListChunkSize = std::min(TYPICAL_PARTICLES_PER_CELL, 4u);
 
         } // namespace collision
     } // namespace particles

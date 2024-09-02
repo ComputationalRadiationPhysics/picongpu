@@ -101,7 +101,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                 {
                     // unitless * 1/TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
                     float_X const weightNormalized
-                        = electron[weighting_] / picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                        = electron[weighting_] / picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
 
                     // UNIT_MASS * UNIT_LENGTH^2 / UNIT_TIME^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
                     sumTemperatureFunctional

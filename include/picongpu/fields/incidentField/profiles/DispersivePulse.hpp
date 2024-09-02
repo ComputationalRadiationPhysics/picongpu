@@ -282,7 +282,7 @@ namespace picongpu
 
                     private:
                         /** Get value of E field in time domain for the given position, using DFT
-                         * Interpolation order of DFT given via timestep in grid.param and INIT_TIME
+                         * Interpolation order of DFT given via timestep in simulation.param and INIT_TIME
                          * Neglecting the constant part of DFT (k = 0) because there should be no constant field
                          *
                          * @param totalCellIdx cell index in the total domain (including all moving window slides)

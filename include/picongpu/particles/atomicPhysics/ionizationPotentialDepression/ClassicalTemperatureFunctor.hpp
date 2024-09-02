@@ -45,8 +45,8 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
         HDINLINE static float_X term(T_Particle& particle, float_64 const weightNormalized)
         {
             // UNIT_MASS * UNIT_LENGTH / UNIT_TIME * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-            float3_64 const momentumVectorNormalized = precisionCast<float3_64>(
-                particle[momentum_] / picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+            float3_64 const momentumVectorNormalized
+                = precisionCast<float3_64>(particle[momentum_] / picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 
             // UNIT_MASS^2 * UNIT_LENGTH^2 / UNIT_TIME^2 * weight^2 / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE^2
             float_64 momentumSquared = pmacc::math::l2norm2(momentumVectorNormalized);

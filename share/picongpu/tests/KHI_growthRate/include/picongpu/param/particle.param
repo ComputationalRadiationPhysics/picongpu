@@ -58,7 +58,9 @@ namespace picongpu
                 /** Count of macro-particles per cell per direction at initial state
                  *
                  *  unit: none */
-                using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type;
+                using numParticlesPerDimension = mCT::shrinkTo<
+                    mCT::Int<TYPICAL_PARTICLES_PER_CELL / 5, TYPICAL_PARTICLES_PER_CELL / 5, 1>,
+                    simDim>::type;
             };
             /** Definition of Quiet start position functor that positions macro-particles regularly on the grid.
              * No random number generator used.
@@ -72,13 +74,6 @@ namespace picongpu
          *
          *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
-
-        /** Approximate number of maximum macro-particles per cell.
-         *
-         * Used internally for unit normalization.
-         */
-        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
-            = mCT::volume<startPosition::QuietParam::numParticlesPerDimension>::type::value;
 
         namespace manipulators
         {

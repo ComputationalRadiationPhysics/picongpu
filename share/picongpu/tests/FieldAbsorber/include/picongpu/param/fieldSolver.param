@@ -58,7 +58,7 @@ namespace picongpu
 
 #ifndef PARAM_FIELDSOLVER
         /* WARNING: if you change field solver by hand please update your CELL_WIDTH_SI
-         * in `grid.param` to fulfill the convergence condition (CFL)
+         * in `simulation.param` to fulfill the convergence condition (CFL)
          */
 #    define SELECTED_FIELD_SOLVER Yee
 #else

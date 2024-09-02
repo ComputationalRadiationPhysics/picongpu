@@ -54,22 +54,6 @@
 
 namespace picongpu
 {
-    namespace SI
-    {
-        /** Base density in particles per m^3 in the density profiles.
-         *
-         * This is often taken as reference maximum density in normalized profiles.
-         * Individual particle species can define a `densityRatio` flag relative
-         * to this value.
-         *
-         * unit: ELEMENTS/m^3
-         *
-         * One particle per cell with weighting 1.0:
-         */
-        constexpr float_64 BASE_DENSITY_SI = 1.0 / (CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI);
-
-    } // namespace SI
-
     namespace densityProfiles
     {
         struct FreeFormulaFunctor

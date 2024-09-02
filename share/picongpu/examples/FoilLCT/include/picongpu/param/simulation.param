@@ -42,35 +42,46 @@
 
 #pragma once
 
+
 namespace picongpu
 {
     namespace SI
     {
         /** Duration of one timestep
          *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 3.0e-17;
-
-        /** equals X
+        constexpr float_64 CELL_WIDTH_SI = 0.8e-6 / 384.;
+        /** equals Y - the laser & moving window propagation direction
          *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = 1.8e-8;
-        /** equals Y
-         *  unit: meter */
-        constexpr float_64 CELL_HEIGHT_SI = 1.8e-8;
+        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
         /** equals Z
          *  unit: meter */
-        constexpr float_64 CELL_DEPTH_SI = 1.8e-8;
+        constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
 
-        /** Note on units in reduced dimensions
+        /** Duration of one timestep
+         *  unit: seconds                       CFL criteria for Yee MW Solver
+         *                                             2D: sqrt(2)
+         *                                             3D: sqrt(3)   */
+        constexpr float_64 DELTA_T_SI = CELL_WIDTH_SI / (1.415 * SPEED_OF_LIGHT_SI);
+
+        /** Base density in particles per m^3 in the density profiles.
          *
-         * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
-         * is still used for normalization of densities, etc.
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
          *
-         * A 2D3V simulation in a cartesian PIC simulation such as
-         * ours only changes the degrees of freedom in motion for
-         * (macro) particles and all (field) information in z
-         * travels instantaneously, making the 2D3V simulation
-         * behave like the interaction of infinite "wire particles"
-         * in fields with perfect symmetry in Z.
+         * unit: ELEMENTS/m^3
+         *
+         * We take n_e ("fully ionized") as reference density.
+         * Our target material (see speciesDefinition) is a liquid crystal called
+         * 8CB (4'-octyl-4-cyanobiphenyl).
          */
+        constexpr float_64 nc = 1.11485e21 * 1.e6 / 0.8 / 0.8;
+        constexpr float_64 BASE_DENSITY_SI = 192. * nc;
     } // namespace SI
+
+    /** (Approximate) Number of maximum macro-particles per cell.
+     *
+     * Used internally for unit normalization.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
 } // namespace picongpu

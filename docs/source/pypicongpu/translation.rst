@@ -660,7 +660,7 @@ e.g. in the ``N.cfg.mustache``:
    TBG_periodic="--periodic {{{x}}} {{{y}}} {{{z}}}"
    {{/grid.boundary_condition}}
 
-and in ``grid.param.mustache``:
+and in ``simulation.param.mustache``:
 
 .. code::
 
