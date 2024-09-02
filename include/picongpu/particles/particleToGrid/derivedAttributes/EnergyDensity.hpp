@@ -50,9 +50,9 @@ namespace picongpu
                     const float3_X mom = particle[momentum_];
                     const float_X mass = attribute::getMass(weighting, particle);
 
-                    constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
+                    constexpr float_X invCellVolume = float_X(1.0) / sim.pic.getCellSize().productOfComponents();
 
-                    return KinEnergy<>()(mom, mass) * INV_CELL_VOLUME;
+                    return KinEnergy<>()(mom, mass) * invCellVolume;
                 }
 
                 //! Energy density is weighted

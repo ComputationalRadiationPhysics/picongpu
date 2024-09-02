@@ -49,7 +49,7 @@ namespace picongpu
                     const float_X charge = attribute::getCharge(weighting, particle);
 
                     /* calculate new attribute */
-                    const float_X particleChargeDensity = charge / CELL_VOLUME;
+                    const float_X particleChargeDensity = charge / sim.pic.getCellSize().productOfComponents();
 
                     /* return attribute */
                     return particleChargeDensity;

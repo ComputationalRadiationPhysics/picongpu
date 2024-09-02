@@ -85,7 +85,7 @@ namespace picongpu
             std::vector<float_X> gridSpacing(simDim, 0.0);
             for(uint32_t d = 0; d < simDim; ++d)
             {
-                gridSpacing.at(simDim - 1 - d) = cellSize[d];
+                gridSpacing.at(simDim - 1 - d) = sim.pic.getCellSize()[d];
             }
             return gridSpacing;
         }
@@ -106,8 +106,8 @@ namespace picongpu
             globalSlideOffset.y() += numSlides * localDomain.size.y();
             for(uint32_t d = 0; d < simDim; ++d)
             {
-                gridGlobalOffset.at(simDim - 1 - d)
-                    = float_64(cellSize[d]) * float_64(movingWindow.globalDimensions.offset[d] + globalSlideOffset[d]);
+                gridGlobalOffset.at(simDim - 1 - d) = float_64(sim.pic.getCellSize()[d])
+                    * float_64(movingWindow.globalDimensions.offset[d] + globalSlideOffset[d]);
             }
             return gridGlobalOffset;
         }

@@ -112,7 +112,7 @@ namespace picongpu
                                 finiteDifference += weights[l] * (data(upperIndex) - data(lowerIndex));
                             }
 
-                            return finiteDifference / cellSize[T_direction];
+                            return finiteDifference / sim.pic.getCellSize()[T_direction];
                         }
                     };
                 } // namespace detail

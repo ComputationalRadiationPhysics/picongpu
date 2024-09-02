@@ -61,7 +61,7 @@ namespace picongpu
                 {
                     using Index = pmacc::DataSpace<simDim>;
                     auto const upperIndex = pmacc::math::basisVector<Index, T_direction>();
-                    return (data(upperIndex) - data(Index{})) / cellSize[T_direction];
+                    return (data(upperIndex) - data(Index{})) / sim.pic.getCellSize()[T_direction];
                 }
             };
 

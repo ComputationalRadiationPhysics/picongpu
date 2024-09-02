@@ -46,7 +46,7 @@ namespace picongpu
                 template<typename T_Particle>
                 DINLINE float_X MomentumDensity<T_direction>::operator()(T_Particle& particle) const
                 {
-                    constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
+                    constexpr float_X INV_CELL_VOLUME = float_X(1.0) / sim.pic.getCellSize().productOfComponents();
                     return particle[momentum_][T_direction] * INV_CELL_VOLUME;
                 }
 

@@ -113,7 +113,7 @@ namespace picongpu
                         float_X sincValue = 1.0_X;
                         for(uint32_t d = 0; d < DIM3; ++d)
                             sincValue *= pmacc::math::sinc(
-                                observerUnitVec[d] * cellSize[d] / (SPEED_OF_LIGHT * 2.0_X) * omega);
+                                observerUnitVec[d] * sim.pic.getCellSize()[d] / (SPEED_OF_LIGHT * 2.0_X) * omega);
                         return pmacc::math::cPow(sincValue, static_cast<uint32_t>(2u) * T_shapeOrder);
                     }
                 };

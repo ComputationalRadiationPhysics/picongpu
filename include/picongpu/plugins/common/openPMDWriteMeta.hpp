@@ -219,7 +219,7 @@ namespace picongpu
                 std::string names[3] = {"cell_width", "cell_height", "cell_depth"};
                 for(unsigned i = 0; i < 3; ++i)
                 {
-                    iteration.setAttribute(names[i], cellSize[i]);
+                    iteration.setAttribute(names[i], sim.pic.getCellSize()[i]);
                 }
 
 

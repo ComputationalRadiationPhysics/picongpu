@@ -81,7 +81,7 @@ namespace picongpu
                 const uint32_t gpuNumberOfCellsInMoveDirection = subGrid.getLocalDomain().size[moveDirection];
 
                 /* unit PIConGPU length */
-                const auto cellSizeInMoveDirection = float_64(cellSize[moveDirection]);
+                const auto cellSizeInMoveDirection = float_64(sim.pic.getCellSize()[moveDirection]);
 
                 const float_64 deltaWayPerStep = (windowMovingSpeed * float_64(DELTA_T));
 

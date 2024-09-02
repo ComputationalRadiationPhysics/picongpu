@@ -262,7 +262,7 @@ namespace picongpu
                                                 // run over all components and compute gobal position
                                                 for(uint32_t i = 0; i < simDim; ++i)
                                                     particle_locationNow[i]
-                                                        = (float_64(globalPos[i]) + pos[i]) * cellSize[i];
+                                                        = (float_64(globalPos[i]) + pos[i]) * sim.pic.getCellSize()[i];
 
                                                 /* get macro-particle weighting
                                                  *
@@ -327,7 +327,7 @@ namespace picongpu
                                                 {
                                                     windowFactor *= winFkt(
                                                         particle_locationNow[d],
-                                                        simBoxSize[d] * cellSize[d]);
+                                                        simBoxSize[d] * sim.pic.getCellSize()[d]);
                                                 }
 
                                                 /* apply window function factor to amplitude */

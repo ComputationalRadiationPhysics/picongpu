@@ -202,11 +202,6 @@ namespace picongpu
     constexpr float_X CELL_HEIGHT = sim.pic.getCellSize().y();
     constexpr float_X CELL_DEPTH = sim.pic.getCellSize().z();
 
-    constexpr float3_X cellSize = sim.pic.getCellSize();
-
-    // always a 3D cell, even in 1D3V or 2D3V
-    constexpr float_X CELL_VOLUME = sim.pic.getCellSize().productOfComponents();
-
     // only used for CFL checks
     constexpr float_X INV_CELL2_SUM
         = (1.0 / (sim.pic.getCellSize().shrink<simDim>() * sim.pic.getCellSize().shrink<simDim>())).sumOfComponents();

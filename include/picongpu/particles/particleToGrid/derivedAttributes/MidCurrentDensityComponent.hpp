@@ -58,7 +58,8 @@ namespace picongpu
                     const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
 
                     /* calculate new attribute */
-                    const float_X particleCurrentDensity = charge / CELL_VOLUME * /* rho */
+                    const float_X particleCurrentDensity = charge / sim.pic.getCellSize().productOfComponents()
+                        * /* rho */
                         momCom / (gamma * mass); /* v_component */
 
                     /* return attribute */

@@ -175,7 +175,7 @@ namespace picongpu
                     for(uint32_t i = 0; i < picongpu::simDim; ++i)
                     {
                         posInterpolation[i] = var[i];
-                        pos[i] = var[i] * cellSize[i];
+                        pos[i] = var[i] * sim.pic.getCellSize()[i];
                     }
 
                     auto fieldE = fieldEFunc(
@@ -216,7 +216,7 @@ namespace picongpu
 
                     VariableType returnVar;
                     for(uint32_t i = 0; i < picongpu::simDim; ++i)
-                        returnVar[i] = diffPos[i] / cellSize[i];
+                        returnVar[i] = diffPos[i] / sim.pic.getCellSize()[i];
 
                     for(uint32_t i = 0; i < dimMomentum; ++i)
                         returnVar[simDim + i] = diffMom[i];

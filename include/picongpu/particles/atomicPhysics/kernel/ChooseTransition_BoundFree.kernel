@@ -145,7 +145,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
             // UNIT_LENGTH^3
             constexpr float_X volumeScalingFactor
-                = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+                = pmacc::math::CT::volume<SuperCellSize>::type::value * sim.pic.getCellSize().productOfComponents();
 
             PMACC_SMEM(worker, cachedHistogram, CachedHistogram<T_Histogram::numberBins>);
             cachedHistogram.fill(worker, electronHistogram, volumeScalingFactor);

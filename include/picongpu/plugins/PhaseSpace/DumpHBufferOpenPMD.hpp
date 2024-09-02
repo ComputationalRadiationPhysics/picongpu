@@ -173,7 +173,7 @@ namespace picongpu
                 globalDomainAxisLabels = {"z", "y", "x"}; // 3D: F[z][y][x]
             }
 
-            float_X const dr = cellSize[axis_element.space];
+            float_X const dr = sim.pic.getCellSize()[axis_element.space];
 
             mesh.setAttribute("globalDomainSize", globalDomainSize);
             mesh.setAttribute("globalDomainOffset", globalDomainOffset);
@@ -197,7 +197,7 @@ namespace picongpu
             mesh.setAttribute("movingWindowOffset", globalMovingWindowOffset);
             mesh.setAttribute("movingWindowSize", globalMovingWindowSize);
             mesh.setAttribute("dr", dr);
-            mesh.setAttribute("dV", CELL_VOLUME);
+            mesh.setAttribute("dV", sim.pic.getCellSize().productOfComponents());
             mesh.setGridSpacing(
                 std::vector<float_X>{dr, (axis_p_range.second - axis_p_range.first) / globalPhaseSpace_extent[1]});
             mesh.setAttribute("dr_unit", UNIT_LENGTH);
