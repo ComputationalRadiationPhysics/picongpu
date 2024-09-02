@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
      * The atomicPhysics step relies on a model of atomic states and transitions for each
      * atomicPhysics ion species.
      * These model's parameters are provided by the user in .txt files of specified format
-     * (see documentation, @todo coming soon) at runtime.
+     * (see atomicPhysics model documentation) at runtime.
      *
      *  PIConGPU itself only includes charge state data, for ADK-, Thomas-Fermi- and BSI-ionization.
      *  All other atomic state data is kept separate from PIConGPU itself, due to licensing requirements.

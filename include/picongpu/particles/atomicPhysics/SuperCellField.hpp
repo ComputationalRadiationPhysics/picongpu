@@ -96,7 +96,6 @@ namespace picongpu::particles::atomicPhysics
         // required by SimulationFieldHelper
         HINLINE void reset(uint32_t currentStep) override
         {
-            /// @todo figure out why exactly this way
             superCellField->getHostBuffer().reset(true);
             superCellField->getDeviceBuffer().reset(false);
         };

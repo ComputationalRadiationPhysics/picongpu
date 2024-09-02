@@ -375,7 +375,7 @@ namespace picongpu::particles::atomicPhysics::debug
                 correctRate,
                 rate,
                 "collisional ionization rate",
-                1e-3); /// error limit larger dur to larger error on cross section, @todo investigate , Brian Marre,
+                1e-3); /// error limit larger due to larger error on cross section, @todo investigate , Brian Marre,
                        /// 2023
         }
 

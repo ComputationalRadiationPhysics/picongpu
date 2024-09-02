@@ -81,7 +81,7 @@ namespace picongpu
         constexpr float_64 ATOMIC_UNIT_EFIELD = 5.14e11;
 
         /* atomic unit for time in s:
-         * 150 attoseconds (classical electron orbit time in hydrogen)  / 2 PI
+         * 150 attoseconds (classical electron orbit time in hydrogen) / 2 PI
          */
         constexpr float_64 ATOMIC_UNIT_TIME = 2.4189e-17;
 
