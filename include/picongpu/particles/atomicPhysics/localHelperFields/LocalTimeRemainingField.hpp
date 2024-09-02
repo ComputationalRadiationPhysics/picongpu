@@ -65,7 +65,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
 
     /** holds a gridBuffer of the per-superCell timeRemaining:float_X for atomicPhysics
      *
-     * unit: UNIT_TIME
+     * unit: sim.unit.time()
      */
     template<typename T_MappingDescription>
     struct LocalTimeRemainingField : public SuperCellField<float_X, T_MappingDescription, false /*no guards*/>

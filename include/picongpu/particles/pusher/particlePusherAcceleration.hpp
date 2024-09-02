@@ -38,7 +38,8 @@ namespace picongpu
             static constexpr float_X AMPLITUDEy = float_X(AMPLITUDEy_SI / UNIT_EFIELD); // unit: Volt / meter
             static constexpr float_X AMPLITUDEz = float_X(AMPLITUDEz_SI / UNIT_EFIELD); // unit: Volt / meter
 
-            static constexpr float_X ACCELERATION_TIME = float_X(ACCELERATION_TIME_SI / UNIT_TIME); // unit: second
+            static constexpr float_X ACCELERATION_TIME
+                = float_X(ACCELERATION_TIME_SI / sim.unit.time()); // unit: second
         };
 
         template<class Velocity, class Gamma>

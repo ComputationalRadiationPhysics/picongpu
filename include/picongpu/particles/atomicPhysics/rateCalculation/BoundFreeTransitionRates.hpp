@@ -201,7 +201,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          * @param atomicStateDataBox access to atomic state property data
          * @param boundBoundTransitionDataBox access to bound-bound transition data
          *
-         * @return unit: 1/UNIT_TIME
+         * @return unit: 1/sim.unit.time()
          */
         template<typename T_ChargeStateDataBox, typename T_AtomicStateDataBox, typename T_BoundFreeTransitionDataBox>
         HDINLINE static float_X rateCollisionalIonizationTransition(
@@ -246,7 +246,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          *
          * @attention only valid for single electron ionization
          *
-         * @return 1/UNIT_TIME
+         * @return 1/sim.unit.time()
          * @todo Brian Marre, 2023
          */
         // template<

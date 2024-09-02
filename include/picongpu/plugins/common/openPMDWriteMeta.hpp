@@ -141,7 +141,7 @@ namespace picongpu
                 // iteration-level attributes
                 iteration.setDt<float_X>(sim.pic.getDt());
                 iteration.setTime(float_X(currentStep) * sim.pic.getDt());
-                iteration.setTimeUnitSI(UNIT_TIME);
+                iteration.setTimeUnitSI(sim.unit.time());
 
                 if(writeFieldMeta)
                 {
@@ -228,7 +228,7 @@ namespace picongpu
                 iteration.setAttribute<double>("unit_energy", UNIT_ENERGY);
                 iteration.setAttribute<double>("unit_length", UNIT_LENGTH);
                 iteration.setAttribute<double>("unit_speed", UNIT_SPEED);
-                iteration.setAttribute<double>("unit_time", UNIT_TIME);
+                iteration.setAttribute<double>("unit_time", sim.unit.time());
                 iteration.setAttribute<double>("unit_mass", UNIT_MASS);
                 iteration.setAttribute<double>("unit_charge", UNIT_CHARGE);
                 iteration.setAttribute<double>("unit_efield", UNIT_EFIELD);

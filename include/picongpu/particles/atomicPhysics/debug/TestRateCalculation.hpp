@@ -311,7 +311,7 @@ namespace picongpu::particles::atomicPhysics::debug
                               0u,
                               atomicStateBuffer->getHostDataBox(),
                               boundBoundBuffer->getHostDataBox()))
-                * 1. / UNIT_TIME; // 1/s
+                * 1. / sim.unit.time(); // 1/s
 
             return testRelativeError(correctRate, rate, "collisional excitation rate", 1e-5);
         }
@@ -330,7 +330,7 @@ namespace picongpu::particles::atomicPhysics::debug
                               0u,
                               atomicStateBuffer->getHostDataBox(),
                               boundBoundBuffer->getHostDataBox()))
-                * 1. / UNIT_TIME; // 1/s
+                * 1. / sim.unit.time(); // 1/s
 
             return testRelativeError(correctRate, rate, "collisional deexcitation rate", 1e-5);
         }
@@ -345,7 +345,7 @@ namespace picongpu::particles::atomicPhysics::debug
                           0u,
                           atomicStateBuffer->getHostDataBox(),
                           boundBoundBuffer->getHostDataBox()))
-                * 1. / UNIT_TIME; // 1/s
+                * 1. / sim.unit.time(); // 1/s
 
             return testRelativeError(correctRate, rate, "spontaneous radiative deexcitation rate", 1e-5);
         }
@@ -366,7 +366,7 @@ namespace picongpu::particles::atomicPhysics::debug
                           chargeStateBuffer->getHostDataBox(),
                           atomicStateBuffer->getHostDataBox(),
                           boundFreeBuffer->getHostDataBox()))
-                * 1. / UNIT_TIME; // 1/s
+                * 1. / sim.unit.time(); // 1/s
 
             return testRelativeError(
                 correctRate,

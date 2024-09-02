@@ -72,7 +72,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         static constexpr auto transitionOrdering = T_TransitionOrdering;
 
     private:
-        typename S_TransitionDataBox::S_DataBox::BoxValue m_boxTransitionRate; // unit: 1/UNIT_TIME
+        typename S_TransitionDataBox::S_DataBox::BoxValue m_boxTransitionRate; // unit: 1/sim.unit.time()
 
     public:
         /** constructor
@@ -124,9 +124,9 @@ namespace picongpu::particles::atomicPhysics::atomicData
                     return;
                 }
 
-            // 1/s * s/UNIT_TIME) = s/s * 1/UNIT_TIME = 1/UNIT_TIME
+            // 1/s * s/sim.unit.time()) = s/s * 1/sim.unit.time() = 1/sim.unit.time()
             m_boxTransitionRate[collectionIndex]
-                = static_cast<float_X>(std::get<0>(tuple) * picongpu::UNIT_TIME); // 1/UNIT_TIME
+                = static_cast<float_X>(std::get<0>(tuple) * picongpu::sim.unit.time()); // 1/sim.unit.time()
 
             // find collection indices
             uint32_t lowerStateCollIdx

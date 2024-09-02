@@ -75,7 +75,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                 return;
 
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
-            // UNIT_TIME
+            // sim.unit.time()
             float_X& timeStep = localTimeStepBox(superCellFieldIdx);
 
             auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
@@ -89,12 +89,12 @@ namespace picongpu::particles::atomicPhysics::kernel
 
                     float_X const rateCacheLossRate = rateCache.totalLossRate(atomicStateCollectionIndex);
 
-                    // 1/UNIT_TIME
+                    // 1/sim.unit.time()
                     float_X lossRateState = 0._X;
                     if(rateCacheLossRate == 0._X)
                     {
                         // no loss state, for example completely ionized state, set to neutral element
-                        // 1/UNIT_TIME
+                        // 1/sim.unit.time()
                         lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / sim.pic.getDt();
                     }
                     else
@@ -108,17 +108,17 @@ namespace picongpu::particles::atomicPhysics::kernel
                         {
                             printf("atomicPhysics ERROR: encountered negative loss rate in "
                                    "calculateStepLength kernel\n");
-                            // 1/UNIT_TIME
+                            // 1/sim.unit.time()
                             lossRateState = picongpu::atomicPhysics::RateSolverParam::timeStepAlpha / sim.pic.getDt();
                         }
 
-                    // 1/(1/UNIT_TIME) = UNIT_TIME
+                    // 1/(1/sim.unit.time()) = sim.unit.time()
                     float_X const speciesStateLimitTimeStep = 1._X / (lossRateState);
 
-                    // UNIT_TIME
+                    // sim.unit.time()
                     alpaka::atomicMin(
                         worker.getAcc(),
-                        &timeStep, // UNIT_TIME
+                        &timeStep, // sim.unit.time()
                         speciesStateLimitTimeStep * picongpu::atomicPhysics::RateSolverParam::timeStepAlpha,
                         ::alpaka::hierarchy::Threads{});
                 });

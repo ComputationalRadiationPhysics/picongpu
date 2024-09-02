@@ -39,7 +39,7 @@ namespace picongpu
                 HDINLINE float1_64 MidCurrentDensityComponent<T_direction>::getUnit() const
                 {
                     const float_64 UNIT_AREA = UNIT_LENGTH * UNIT_LENGTH;
-                    return UNIT_CHARGE / (UNIT_TIME * UNIT_AREA);
+                    return UNIT_CHARGE / (sim.unit.time() * UNIT_AREA);
                 }
 
                 template<size_t T_direction>

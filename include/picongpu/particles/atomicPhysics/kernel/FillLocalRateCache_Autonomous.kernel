@@ -133,7 +133,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
                         for(uint32_t i = static_cast<uint32_t>(0u); i < numberTransitionsDown; i++)
                         {
-                            // 1/UNIT_TIME
+                            // 1/sim.unit.time()
                             rateCache.template add<atomicPhysics::enums::ChooseTransitionGroup::autonomousDownward>(
                                 atomicStateCollectionIndex,
                                 picongpu::particles::atomicPhysics::rateCalculation::AutonomousTransitionRates::

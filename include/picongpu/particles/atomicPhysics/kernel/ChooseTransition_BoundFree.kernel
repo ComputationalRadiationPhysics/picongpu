@@ -199,7 +199,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         {
                             for(uint32_t binIndex = 0u; binIndex < numberBins; ++binIndex)
                             {
-                                // 1/UNIT_TIME
+                                // 1/sim.unit.time()
                                 float_X const rateTransition = picongpu::particles::atomicPhysics::rateCalculation::
                                     BoundFreeTransitionRates<T_n_max>::template rateCollisionalIonizationTransition<
                                         T_ChargeStateDataDataBox,
