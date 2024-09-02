@@ -137,7 +137,7 @@ namespace picongpu
                             = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
                         int const index_y = frameCellOffset.y();
                         auto const globalCellOffset = globalOffset + localSupercellStart + frameCellOffset;
-                        float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
+                        float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * sim.pic.getCellSize().x();
 
                         alpaka::atomicAdd(
                             lockstepWorker.getAcc(),

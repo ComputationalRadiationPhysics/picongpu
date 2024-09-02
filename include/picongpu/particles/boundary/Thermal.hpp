@@ -147,9 +147,10 @@ namespace picongpu
                              */
                             auto timeAfterCross = 0.0_X;
                             if(crossedBoundary[d] > 0)
-                                timeAfterCross = pos[d] * cellSize[d] / (velBeforeThermal[d] + epsilon);
+                                timeAfterCross = pos[d] * sim.pic.getCellSize()[d] / (velBeforeThermal[d] + epsilon);
                             else if(crossedBoundary[d] < 0)
-                                timeAfterCross = (1.0_X - pos[d]) * cellSize[d] / (-velBeforeThermal[d] - epsilon);
+                                timeAfterCross
+                                    = (1.0_X - pos[d]) * sim.pic.getCellSize()[d] / (-velBeforeThermal[d] - epsilon);
                             timeAfterFirstBoundaryCross = math::max(timeAfterFirstBoundaryCross, timeAfterCross);
                         }
 
@@ -160,7 +161,7 @@ namespace picongpu
                         for(uint32_t d = 0; d < simDim; d++)
                         {
                             pos[d] += (velAfterThermal[d] - velBeforeThermal[d]) * timeAfterFirstBoundaryCross
-                                / cellSize[d];
+                                / sim.pic.getCellSize()[d];
                             if((crossedBoundary[d] > 0) && (pos[d] >= -epsilon))
                                 pos[d] = -epsilon;
                             else if((crossedBoundary[d] < 0) && (pos[d] <= 1.0_X))

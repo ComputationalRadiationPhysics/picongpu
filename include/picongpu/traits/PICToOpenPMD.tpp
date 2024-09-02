@@ -82,7 +82,7 @@ namespace picongpu
                 /* cell positionOffset needs two transformations to get to SI:
                    cell begin -> dimensionless scaling to grid -> SI */
                 for(uint32_t i = 0; i < simDim; ++i)
-                    unit[i] = cellSize[i] * UNIT_LENGTH;
+                    unit[i] = sim.pic.getCellSize()[i] * UNIT_LENGTH;
 
                 return unit;
             }

@@ -70,9 +70,9 @@ namespace picongpu
             {
                 this->charge = charge;
                 const float3_X deltaPos = float3_X(
-                    velocity.x() * deltaTime / cellSize.x(),
-                    velocity.y() * deltaTime / cellSize.y(),
-                    velocity.z() * deltaTime / cellSize.z());
+                    velocity.x() * deltaTime / sim.pic.getCellSize().x(),
+                    velocity.y() * deltaTime / sim.pic.getCellSize().y(),
+                    velocity.z() * deltaTime / sim.pic.getCellSize().z());
                 const PosType oldPos = pos - deltaPos;
                 Line<float3_X> line(oldPos, pos);
 
@@ -119,19 +119,19 @@ namespace picongpu
                     DataSpace<DIM3>(status.y(), status.z(), status.x()),
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 2, 0>>(fieldJ),
                     rotateOrigin<1, 2, 0>(line),
-                    cellSize.x());
+                    sim.pic.getCellSize().x());
                 cptCurrent1D(
                     worker,
                     DataSpace<DIM3>(status.z(), status.x(), status.y()),
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<2, 0, 1>>(fieldJ),
                     rotateOrigin<2, 0, 1>(line),
-                    cellSize.y());
+                    sim.pic.getCellSize().y());
                 cptCurrent1D(
                     worker,
                     status,
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1, 2>>(fieldJ),
                     line,
-                    cellSize.z());
+                    sim.pic.getCellSize().z());
             }
 
             /** deposites current in z-direction (rotated PIConGPU coordinate system)
@@ -188,8 +188,8 @@ namespace picongpu
                 /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
                  * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1)
                  */
-                const float_X currentSurfaceDensity
-                    = this->charge * (1.0_X / float_X(CELL_VOLUME * DELTA_T)) * cellEdgeLength;
+                const float_X currentSurfaceDensity = this->charge
+                    * (1.0_X / float_X(sim.pic.getCellSize().productOfComponents() * DELTA_T)) * cellEdgeLength;
 
                 int const leaveCellI = bitpacking::getValue(parStatus[0], bitpacking::Status::LEAVE_CELL);
                 /* pick every cell in the xy-plane that is overlapped by particle's

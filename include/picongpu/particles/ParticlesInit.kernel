@@ -150,7 +150,8 @@ namespace picongpu
                     /** @bug volatile is required for CUDA 9.2 and sm_60 else the compiler will
                      * optimize out `if(realParticlesPerCell > 0.0_X)` later on.
                      */
-                    volatile float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
+                    volatile float_X const realParticlesPerCell
+                        = realDensity * sim.pic.getCellSize().productOfComponents();
 
                     // create an independent position functor for each cell in the supercell
                     auto posFunctor = positionFunctor(forEachCellInSuperCell.getWorker(), localSuperCellOffset);

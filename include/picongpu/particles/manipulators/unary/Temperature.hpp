@@ -145,7 +145,7 @@ namespace picongpu
                             T_Particle& particle)
                         {
                             auto const unitLength = UNIT_LENGTH;
-                            auto const cellSize_SI = precisionCast<float_64>(cellSize) * unitLength;
+                            auto const cellSize_SI = precisionCast<float_64>(sim.pic.getCellSize()) * unitLength;
                             auto const position_SI = (precisionCast<float_64>(totalCellOffset)
                                                       + precisionCast<float_64>(particle[position_]))
                                 * cellSize_SI.shrink<simDim>();

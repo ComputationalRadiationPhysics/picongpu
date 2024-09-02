@@ -50,7 +50,7 @@ namespace picongpu::particles::collision::detail
                     auto particle = parAccess[partIdx];
                     density += particle[weighting_];
                 }
-                densityArray[linearIdx] = density / CELL_VOLUME;
+                densityArray[linearIdx] = density / sim.pic.getCellSize().productOfComponents();
             });
     }
 } // namespace picongpu::particles::collision::detail

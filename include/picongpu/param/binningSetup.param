@@ -130,7 +130,8 @@ namespace picongpu
                 auto getParticleChargeDensity = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
                 {
                     const float_X charge = attribute::getCharge(particle[weighting_], particle);
-                    const float_X particleChargeDensity = precisionCast<float_X>(charge / CELL_VOLUME);
+                    const float_X particleChargeDensity
+                        = precisionCast<float_X>(charge / sim.pic.getCellSize().productOfComponents());
                     return particleChargeDensity;
                 };
 

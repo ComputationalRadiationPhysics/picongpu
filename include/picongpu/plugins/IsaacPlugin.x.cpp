@@ -679,11 +679,13 @@ namespace picongpu
                     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
                     if(MovingWindow::getInstance().isEnabled())
                         movingWindow = true;
-                    isaac_float minCellSize = math::min(cellSize[0], math::min(cellSize[1], cellSize[2]));
+                    isaac_float minCellSize = math::min(
+                        sim.pic.getCellSize()[0],
+                        math::min(sim.pic.getCellSize()[1], sim.pic.getCellSize()[2]));
                     isaac_float3 cellSizeFactor(
-                        cellSize[0] / minCellSize,
-                        cellSize[1] / minCellSize,
-                        cellSize[2] / minCellSize);
+                        sim.pic.getCellSize()[0] / minCellSize,
+                        sim.pic.getCellSize()[1] / minCellSize,
+                        sim.pic.getCellSize()[2] / minCellSize);
 
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 

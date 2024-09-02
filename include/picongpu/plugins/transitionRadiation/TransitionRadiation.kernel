@@ -240,7 +240,7 @@ namespace picongpu
                                                 // run over all components and compute gobal position
                                                 for(uint32_t i = 0; i < simDim; ++i)
                                                     particleLocation[i]
-                                                        = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
+                                                        = (float_X(globalPos[i]) + pos[i]) * sim.pic.getCellSize()[i];
 
                                                 /* get macro-particle weighting
                                                  *

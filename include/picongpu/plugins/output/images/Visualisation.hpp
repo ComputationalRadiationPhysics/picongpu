@@ -315,7 +315,8 @@ namespace picongpu
                     typename T_JBox::ValueType field_j = fieldJ(cellOffset);
 
                     // multiply with the area size of each plane to get current
-                    auto field_current = field_j * float3_X::create(CELL_VOLUME) / cellSize;
+                    auto field_current = field_j * float3_X::create(sim.pic.getCellSize().productOfComponents())
+                        / sim.pic.getCellSize();
 
                     /* reset picture to black
                      *   color range for each RGB channel: [0.0, 1.0]

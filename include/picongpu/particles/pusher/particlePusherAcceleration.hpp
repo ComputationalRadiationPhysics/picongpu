@@ -93,7 +93,7 @@ namespace picongpu
 
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    pos[d] += (vel[d] * deltaT) / cellSize[d];
+                    pos[d] += (vel[d] * deltaT) / sim.pic.getCellSize()[d];
                 }
             }
 

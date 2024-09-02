@@ -54,7 +54,7 @@ namespace picongpu
                 float_64 const timeStep = static_cast<float_64>(getTimeStep());
 
                 //! Grid steps as float_64
-                float3_64 const step = precisionCast<float_64>(cellSize);
+                float3_64 const step = precisionCast<float_64>(sim.pic.getCellSize());
 
                 //! Angular frequency
                 float_64 const omega;

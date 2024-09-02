@@ -213,7 +213,7 @@ namespace picongpu
                     //! 3d version
                     HDINLINE float_X getCurrentTime(float3_X const& totalCellIdx) const
                     {
-                        auto const shiftFromOrigin = totalCellIdx * cellSize - origin;
+                        auto const shiftFromOrigin = totalCellIdx * sim.pic.getCellSize() - origin;
                         auto const distance = pmacc::math::dot(shiftFromOrigin, getDirection());
                         auto const timeDelay = distance / phaseVelocity + Unitless::TIME_DELAY;
                         return currentTimeOrigin - timeDelay;
@@ -255,7 +255,7 @@ namespace picongpu
                     //! 3d version
                     HDINLINE float3_X getInternalCoordinates(float3_X const& totalCellIdx) const
                     {
-                        auto const shiftFromOrigin = totalCellIdx * cellSize - origin;
+                        auto const shiftFromOrigin = totalCellIdx * sim.pic.getCellSize() - origin;
                         float3_X result;
                         result[0] = pmacc::math::dot(shiftFromOrigin, getAxis0());
                         result[1] = pmacc::math::dot(shiftFromOrigin, getAxis1());
@@ -308,16 +308,16 @@ namespace picongpu
 
                         if constexpr(GetOriginX<Unitless>::value == Origin::Center)
                         {
-                            result.x() += static_cast<float_X>(globalDomainCells.x() / 2u) * cellSize.x();
+                            result.x() += static_cast<float_X>(globalDomainCells.x() / 2u) * sim.pic.getCellSize().x();
                         }
                         if constexpr(GetOriginY<Unitless>::value == Origin::Center)
-                            result.y() += static_cast<float_X>(globalDomainCells.y() / 2u) * cellSize.y();
+                            result.y() += static_cast<float_X>(globalDomainCells.y() / 2u) * sim.pic.getCellSize().y();
 
                         /* If condition is guarded against out of memory access for 2D simulations.
                          * Array access is used to avoid compile issue because in 2D accessing `.z()` is not allowed.
                          */
                         if constexpr(GetOriginZ<Unitless>::value == Origin::Center && simDim == DIM3)
-                            result.z() += static_cast<float_X>(globalDomainCells[2] / 2u) * cellSize.z();
+                            result.z() += static_cast<float_X>(globalDomainCells[2] / 2u) * sim.pic.getCellSize().z();
 
                         return result;
                     }
@@ -348,12 +348,12 @@ namespace picongpu
                             {
                                 // Take into account 0.75 cells inwards shift of Huygens surface
                                 auto const minPosition
-                                    = (static_cast<float_X>(POSITION[axis][0]) + 0.75_X) * cellSize[axis];
+                                    = (static_cast<float_X>(POSITION[axis][0]) + 0.75_X) * sim.pic.getCellSize()[axis];
                                 auto const maxPositionIdx = (POSITION[axis][1] > 0)
                                     ? POSITION[axis][1]
                                     : globalDomainCells[axis] + POSITION[axis][1];
                                 auto const maxPosition
-                                    = (static_cast<float_X>(maxPositionIdx) - 0.75_X) * cellSize[axis];
+                                    = (static_cast<float_X>(maxPositionIdx) - 0.75_X) * sim.pic.getCellSize()[axis];
                                 /* First we find intersection of line(p) with continuations of the generation planes
                                  * along the axis. Between these two points we choose the smaller parameter value as
                                  * described above. Note that a point line(axisP) does not have to be inside the

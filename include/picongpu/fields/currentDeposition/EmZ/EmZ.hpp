@@ -74,7 +74,7 @@ namespace picongpu
             {
                 floatD_X deltaPos;
                 for(uint32_t d = 0; d < simDim; ++d)
-                    deltaPos[d] = (velocity[d] * DELTA_T) / cellSize[d];
+                    deltaPos[d] = (velocity[d] * DELTA_T) / sim.pic.getCellSize()[d];
 
                 /*note: all positions are normalized to the grid*/
                 const floatD_X posStart(posEnd - deltaPos);
@@ -92,7 +92,7 @@ namespace picongpu
                 }
 
                 Line<floatD_X> line;
-                const float_X chargeDensity = charge / CELL_VOLUME;
+                const float_X chargeDensity = charge / sim.pic.getCellSize().productOfComponents();
 
                 /* Esirkepov implementation for the current deposition */
                 emz::DepositCurrent<T_Strategy, ParticleAssign, begin, end> deposit;

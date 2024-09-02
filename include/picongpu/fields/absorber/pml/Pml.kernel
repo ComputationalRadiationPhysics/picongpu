@@ -331,12 +331,12 @@ namespace picongpu
                     LocalParameters const& parameters,
                     uint32_t const axis)
                 {
-                    // Note that velocity in units of [cellSize[axis] / time], which is more natural here
+                    // Note that velocity in units of [sim.pic.getCellSize()[axis] / time], which is more natural here
                     auto const vel = (finishPos - startPos) / timeDuration;
 
                     // For near-zero velocity use an approximate formula
                     constexpr auto eps = 1e-5;
-                    if(math::abs(vel) < eps * cellSize[axis])
+                    if(math::abs(vel) < eps * sim.pic.getCellSize()[axis])
                     {
                         auto const startNormalizedSigma = detail::getNormalizedSigma(startPos, parameters, axis);
                         auto const finishNormalizedSigma = detail::getNormalizedSigma(finishPos, parameters, axis);

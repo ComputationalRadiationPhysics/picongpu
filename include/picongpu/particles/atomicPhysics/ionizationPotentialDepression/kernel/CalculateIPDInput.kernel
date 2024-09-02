@@ -159,11 +159,13 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                     // eV
                     localTemperatureTimesk_Boltzman = eV * localSumTemperatureFunctional / localSumWeightAll;
 
-                    //! @note in case simDim = DIM2, we assumes CELL_VOLUME = CELL_WIDTH * CELL_DEPTH * (system size)
+                    //! @note in case simDim = DIM2, we assumes sim.pic.getCellSize().productOfComponents() =
+                    //! CELL_WIDTH * CELL_DEPTH * (system size)
                     // (UNIT_CHARGE^2 / (UNIT_ENERGY * UNIT_LENGTH)) * UNIT_LENGTH^3 / UNIT_CHARGE^2
                     // UNIT_LENGTH^2 / UNIT_ENERGY
-                    constexpr float_X constFactorDebyeLength
-                        = picongpu::EPS0 * picongpu::CELL_VOLUME / pmacc::math::cPow(picongpu::ELECTRON_CHARGE, 2u);
+                    constexpr float_X constFactorDebyeLength = picongpu::EPS0
+                        * sim.pic.getCellSize().productOfComponents()
+                        / pmacc::math::cPow(picongpu::ELECTRON_CHARGE, 2u);
 
                     // sqrt(UNIT_LENGTH^2 / UNIT_ENERGY * UNIT_ENERGY) = UNIT_LENGTH
                     localDebyeLength = math::sqrt(
