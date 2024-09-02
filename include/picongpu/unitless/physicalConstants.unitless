@@ -44,7 +44,7 @@ namespace picongpu
     constexpr float_X Z0 = MUE0 * SPEED_OF_LIGHT;
 
     /* Atomic unit of electric field in PIC Efield units */
-    constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
+    constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / sim.unit.eField());
 
     /* Atomic unit of time in PIC units */
     constexpr float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / sim.unit.time());

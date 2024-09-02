@@ -34,9 +34,9 @@ namespace picongpu
         struct UnitlessParam : public particlePusherAccelerationParam
         {
             /** Normalize input values from `pusher.param` to PIC units */
-            static constexpr float_X AMPLITUDEx = float_X(AMPLITUDEx_SI / UNIT_EFIELD); // unit: Volt / meter
-            static constexpr float_X AMPLITUDEy = float_X(AMPLITUDEy_SI / UNIT_EFIELD); // unit: Volt / meter
-            static constexpr float_X AMPLITUDEz = float_X(AMPLITUDEz_SI / UNIT_EFIELD); // unit: Volt / meter
+            static constexpr float_X AMPLITUDEx = float_X(AMPLITUDEx_SI / sim.unit.eField()); // unit: Volt / meter
+            static constexpr float_X AMPLITUDEy = float_X(AMPLITUDEy_SI / sim.unit.eField()); // unit: Volt / meter
+            static constexpr float_X AMPLITUDEz = float_X(AMPLITUDEz_SI / sim.unit.eField()); // unit: Volt / meter
 
             static constexpr float_X ACCELERATION_TIME
                 = float_X(ACCELERATION_TIME_SI / sim.unit.time()); // unit: second

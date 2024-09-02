@@ -257,7 +257,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         //    typename T_BoundFreeTransitionDataBox,
         //    bool T_linPol>
         // HDINLINE static rateFieldIonizationADK(
-        //    T_ETypeValue const eFieldStrength, // UNIT_EFIELD
+        //    T_ETypeValue const eFieldStrength, // sim.unit.eField()
         //    uint32_t const transitionCollectionIndex,
         //    T_ChargeStateDataBox const chargeStateDataBox,
         //    T_AtomicStateDataBox const atomicStateDataBox,
@@ -308,7 +308,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         //    float_X energyDifference = upperStateEnergy - lowerStateEnergy + m_ionizationEnergy; // eV
         //
         //    float_X eFieldStrength_AtomicUnits = math::abs(eFieldStrength) / ATOMIC_UNIT_EFIELD; // 5.14e11 V/m
-        //    // UNIT_EFIELD / (UNIT_EFIELD/UNIT_EFIELD_AtomicUnits)
+        //    // sim.unit.eField() / (sim.unit.eField()/sim.unit.eField()_AtomicUnits)
         //
         //    /* core charge visible to ionization electron `effectiveCharge - #electrons in current shell - 1(ionized
         //    electron)`*/ float_X effectiveCharge = chargeStateDataBox.effectiveCharge(lowerStateChargeState) -
