@@ -58,10 +58,13 @@ namespace picongpu
                     return 0._X;
                 }
 
-                constexpr float_X gasCenterLeft = static_cast<float_X>(ParamClass::gasCenterLeft_SI / UNIT_LENGTH);
-                constexpr float_X gasCenterRight = static_cast<float_X>(ParamClass::gasCenterRight_SI / UNIT_LENGTH);
-                constexpr float_X gasSigmaLeft = static_cast<float_X>(ParamClass::gasSigmaLeft_SI / UNIT_LENGTH);
-                constexpr float_X gasSigmaRight = static_cast<float_X>(ParamClass::gasSigmaRight_SI / UNIT_LENGTH);
+                constexpr float_X gasCenterLeft
+                    = static_cast<float_X>(ParamClass::gasCenterLeft_SI / sim.unit.length());
+                constexpr float_X gasCenterRight
+                    = static_cast<float_X>(ParamClass::gasCenterRight_SI / sim.unit.length());
+                constexpr float_X gasSigmaLeft = static_cast<float_X>(ParamClass::gasSigmaLeft_SI / sim.unit.length());
+                constexpr float_X gasSigmaRight
+                    = static_cast<float_X>(ParamClass::gasSigmaRight_SI / sim.unit.length());
 
                 auto exponent = 0._X;
                 if(globalCellPos.y() < gasCenterLeft)

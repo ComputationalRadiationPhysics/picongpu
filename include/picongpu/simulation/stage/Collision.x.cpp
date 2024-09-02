@@ -145,7 +145,7 @@ namespace picongpu
                         outFile.open(fileName.c_str(), std::ofstream::out | std::ostream::app);
                         outFile << currentStep << " " << std::scientific
                                 << static_cast<float_64>(reducedValue[0]) / static_cast<float_64>(reducedCellAmount)
-                                * UNIT_LENGTH
+                                * sim.unit.length()
                                 << std::endl;
                         outFile.flush();
                         outFile.close();

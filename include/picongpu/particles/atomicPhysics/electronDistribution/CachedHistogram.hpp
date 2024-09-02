@@ -65,7 +65,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // eV
                     float_X const binWithValue = electronHistogram.getBinWidth(idx);
                     binWidth[idx] = binWithValue;
-                    // 1/(UNIT_LENGTH^3 * eV)
+                    // 1/(sim.unit.length()^3 * eV)
                     density[idx] = electronHistogram.getBinWeight0(idx) / volumeScalingFactor / binWithValue;
                 });
             worker.sync();

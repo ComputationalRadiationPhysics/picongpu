@@ -200,7 +200,7 @@ namespace picongpu
             mesh.setAttribute("dV", sim.pic.getCellSize().productOfComponents());
             mesh.setGridSpacing(
                 std::vector<float_X>{dr, (axis_p_range.second - axis_p_range.first) / globalPhaseSpace_extent[1]});
-            mesh.setAttribute("dr_unit", UNIT_LENGTH);
+            mesh.setAttribute("dr_unit", sim.unit.length());
             iteration.setDt(sim.pic.getDt());
             iteration.setTimeUnitSI(sim.unit.time());
             /*

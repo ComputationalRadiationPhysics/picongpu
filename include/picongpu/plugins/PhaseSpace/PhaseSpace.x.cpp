@@ -447,7 +447,7 @@ namespace picongpu
                 return;
 
             /* write to file */
-            const float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
+            const float_64 UNIT_VOLUME = sim.unit.length() * sim.unit.length() * sim.unit.length();
             const float_64 unit = UNIT_CHARGE / UNIT_VOLUME;
 
             /* (momentum) p range: unit is m_species * c

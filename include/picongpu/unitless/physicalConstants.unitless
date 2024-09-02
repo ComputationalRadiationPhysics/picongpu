@@ -31,7 +31,7 @@ namespace picongpu
     constexpr float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
 
     //! magnetic constexprant must be double 3.92907e-39
-    constexpr float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+    constexpr float_X MUE0 = (float_X) (SI::MUE0_SI / sim.unit.length() / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
 
     //! electric constexprant must be double 2.54513e+38
     constexpr float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);

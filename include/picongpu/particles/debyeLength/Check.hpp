@@ -143,7 +143,7 @@ namespace picongpu
                             for(uint32_t d = 1; d < simDim; d++)
                                 maxCellSize = std::max(maxCellSize, sim.pic.getCellSize()[d]);
                             auto const cellsPerDebyeLength = debyeLength / maxCellSize;
-                            auto const debyeLengthSI = debyeLength * UNIT_LENGTH;
+                            auto const debyeLengthSI = debyeLength * sim.unit.length();
                             log<picLog::PHYSICS>("Estimate used momentum variance in %1% supercells with at least %2% "
                                                  "macroparticles each")
                                 % estimate.numUsedSupercells % minMacroparticlesPerSupercell;

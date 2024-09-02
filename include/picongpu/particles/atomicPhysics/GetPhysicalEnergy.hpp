@@ -44,24 +44,24 @@ namespace picongpu::particles::atomicPhysics
             // is by definition == 1 in current internal unit system
             /// @todo convert to assert/ compile time check with special case, Brian Marre, 2023
             constexpr float_X conversionFactor = static_cast<float_X>(
-                (picongpu::UNIT_LENGTH * picongpu::UNIT_LENGTH)
+                (picongpu::sim.unit.length() * picongpu::sim.unit.length())
                 / (picongpu::sim.unit.time() * picongpu::sim.unit.time() * picongpu::SI::SPEED_OF_LIGHT_SI
                    * picongpu::SI::SPEED_OF_LIGHT_SI));
 
             // UNIT_MASS, not scaled
             float_X const m = picongpu::traits::frame::getMass<typename T_Particle::FrameType>();
 
-            // UNIT_MASS * UNIT_LENGTH / sim.unit.time(), scaled
+            // UNIT_MASS * sim.unit.length() / sim.unit.time(), scaled
             float3_X vectorMomentum_Scaled = particle[momentum_];
 
-            // UNIT_MASS^2 * UNIT_LENGTH^2 / sim.unit.time()^2, not scaled
+            // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2, not scaled
             float_X momentumSquared
                 = pmacc::math::l2norm2(vectorMomentum_Scaled) / (particle[weighting_] * particle[weighting_]);
 
             // float_X should be sufficient,
             // m^2 + p^2 = (<=80 * ~2000)^2 + (<2000[10^9eV])^2 ~ 2.5*10^10
             //{
-            // UNIT_LENGTH^2 / (sim.unit.time()^2*c_SI) = 1
+            // sim.unit.length()^2 / (sim.unit.time()^2*c_SI) = 1
             // UNIT_MASS * c_SI^2
             float_X const energy = (math::sqrt(m * m + momentumSquared * conversionFactor) - m);
             //}

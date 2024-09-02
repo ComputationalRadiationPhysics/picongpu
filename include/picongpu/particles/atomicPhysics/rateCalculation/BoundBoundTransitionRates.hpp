@@ -313,7 +313,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         HDINLINE static float_X rateCollisionalBoundBoundTransition(
             float_X const energyElectron, // [eV]
             float_X const energyElectronBinWidth, // [eV]
-            float_X const densityElectrons, // [1/(UNIT_LENGTH^3*eV)]
+            float_X const densityElectrons, // [1/(sim.unit.length()^3*eV)]
             uint32_t const transitionCollectionIndex,
             T_AtomicStateDataBox const atomicStateDataBox,
             T_BoundBoundTransitionDataBox const boundBoundTransitionDataBox)

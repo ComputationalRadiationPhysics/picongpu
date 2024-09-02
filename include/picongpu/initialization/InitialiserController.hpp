@@ -154,7 +154,7 @@ namespace picongpu
 
                 log<picLog::PHYSICS>("UNIT_SPEED %1%") % UNIT_SPEED;
                 log<picLog::PHYSICS>("sim.unit.time() %1%") % sim.unit.time();
-                log<picLog::PHYSICS>("UNIT_LENGTH %1%") % UNIT_LENGTH;
+                log<picLog::PHYSICS>("sim.unit.length() %1%") % sim.unit.length();
                 log<picLog::PHYSICS>("UNIT_MASS %1%") % UNIT_MASS;
                 log<picLog::PHYSICS>("UNIT_CHARGE %1%") % UNIT_CHARGE;
                 log<picLog::PHYSICS>("UNIT_EFIELD %1%") % UNIT_EFIELD;

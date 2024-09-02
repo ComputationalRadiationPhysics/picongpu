@@ -37,7 +37,7 @@ namespace picongpu
             {
                 HDINLINE float1_64 ChargeDensity::getUnit() const
                 {
-                    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+                    const float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
                     return UNIT_CHARGE / UNIT_VOLUME;
                 }
 

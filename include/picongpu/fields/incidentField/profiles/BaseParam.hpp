@@ -48,10 +48,10 @@ namespace picongpu
 
                         /** Wave length along propagation direction
                          *
-                         * unit: UNIT_LENGTH
+                         * unit: sim.unit.length()
                          */
                         static constexpr float_X WAVE_LENGTH
-                            = static_cast<float_X>(Params::WAVE_LENGTH_SI / UNIT_LENGTH);
+                            = static_cast<float_X>(Params::WAVE_LENGTH_SI / sim.unit.length());
 
                         /** Frequency
                          *
@@ -167,16 +167,16 @@ namespace picongpu
 
                         /** Focus position in total cooridnate system
                          *
-                         * unit: UNIT_LENGTH
+                         * unit: sim.unit.length()
                          *
                          * @{
                          */
                         static constexpr float_X FOCUS_POSITION_X
-                            = static_cast<float_X>(Params::FOCUS_POSITION_X_SI / UNIT_LENGTH);
+                            = static_cast<float_X>(Params::FOCUS_POSITION_X_SI / sim.unit.length());
                         static constexpr float_X FOCUS_POSITION_Y
-                            = static_cast<float_X>(Params::FOCUS_POSITION_Y_SI / UNIT_LENGTH);
+                            = static_cast<float_X>(Params::FOCUS_POSITION_Y_SI / sim.unit.length());
                         static constexpr float_X FOCUS_POSITION_Z
-                            = static_cast<float_X>(getFocusPositionZ() / UNIT_LENGTH);
+                            = static_cast<float_X>(getFocusPositionZ() / sim.unit.length());
                         /** @} */
                     };
 
@@ -193,10 +193,12 @@ namespace picongpu
                         //! User SI parameters
                         using Params = T_BaseParam;
 
-                        // unit: UNIT_LENGTH
-                        static constexpr float_X W0_AXIS_1 = static_cast<float_X>(Params::W0_AXIS_1_SI / UNIT_LENGTH);
-                        // unit: UNIT_LENGTH
-                        static constexpr float_X W0_AXIS_2 = static_cast<float_X>(Params::W0_AXIS_2_SI / UNIT_LENGTH);
+                        // unit: sim.unit.length()
+                        static constexpr float_X W0_AXIS_1
+                            = static_cast<float_X>(Params::W0_AXIS_1_SI / sim.unit.length());
+                        // unit: sim.unit.length()
+                        static constexpr float_X W0_AXIS_2
+                            = static_cast<float_X>(Params::W0_AXIS_2_SI / sim.unit.length());
                     };
 
                 } // namespace detail

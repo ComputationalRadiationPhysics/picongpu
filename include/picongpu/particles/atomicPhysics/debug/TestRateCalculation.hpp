@@ -306,8 +306,9 @@ namespace picongpu::particles::atomicPhysics::debug
                           template rateCollisionalBoundBoundTransition<S_AtomicStateBox, S_BoundBoundBox, true>(
                               energyElectron,
                               energyElectronBinWidth,
-                              // 1/(eV*m^3) * (m/UNIT_LENGTH)^3 = = 1/(eV * UNIT_LENGTH^3)
-                              static_cast<float_X>(densityElectrons * pmacc::math::cPow(picongpu::UNIT_LENGTH, 3u)),
+                              // 1/(eV*m^3) * (m/sim.unit.length())^3 = = 1/(eV * sim.unit.length()^3)
+                              static_cast<float_X>(
+                                  densityElectrons * pmacc::math::cPow(picongpu::sim.unit.length(), 3u)),
                               0u,
                               atomicStateBuffer->getHostDataBox(),
                               boundBoundBuffer->getHostDataBox()))
@@ -326,7 +327,8 @@ namespace picongpu::particles::atomicPhysics::debug
                           template rateCollisionalBoundBoundTransition<S_AtomicStateBox, S_BoundBoundBox, false>(
                               energyElectron,
                               energyElectronBinWidth,
-                              static_cast<float_X>(densityElectrons * pmacc::math::cPow(picongpu::UNIT_LENGTH, 3u)),
+                              static_cast<float_X>(
+                                  densityElectrons * pmacc::math::cPow(picongpu::sim.unit.length(), 3u)),
                               0u,
                               atomicStateBuffer->getHostDataBox(),
                               boundBoundBuffer->getHostDataBox()))
@@ -359,7 +361,7 @@ namespace picongpu::particles::atomicPhysics::debug
                       rateCalculation::BoundFreeTransitionRates<T_n_max, true>::rateCollisionalIonizationTransition(
                           energyElectron,
                           energyElectronBinWidth,
-                          static_cast<float_X>(densityElectrons * pmacc::math::cPow(picongpu::UNIT_LENGTH, 3u)),
+                          static_cast<float_X>(densityElectrons * pmacc::math::cPow(picongpu::sim.unit.length(), 3u)),
                           // ionization potential depression
                           0._X,
                           0u,

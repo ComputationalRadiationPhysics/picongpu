@@ -39,7 +39,7 @@ namespace picongpu::particles2::atomicPhysics::rateCalculation
     HDINLINE static float_X collisionalRate(
         float_X const energyElectron, // [eV]
         float_X const energyElectronBinWidth, // [eV]
-        float_X const densityElectrons, // [1/(UNIT_LENGTH^3*eV)]
+        float_X const densityElectrons, // [1/(sim.unit.length()^3*eV)]
         float_X const sigma) // [1e6*b]
     {
         // constants in SI
@@ -52,21 +52,21 @@ namespace picongpu::particles2::atomicPhysics::rateCalculation
 
         PMACC_CASSERT_MSG(
             Assumption_of_c_internal_equal_1_broken,
-            (c_SI / picongpu::UNIT_LENGTH * picongpu::sim.unit.time() - 1.) <= 1.e-9);
-        constexpr float_X c_internal = 1._X; // [UNIT_LENGTH/sim.unit.time()]
+            (c_SI / picongpu::sim.unit.length() * picongpu::sim.unit.time() - 1.) <= 1.e-9);
+        constexpr float_X c_internal = 1._X; // [sim.unit.length()/sim.unit.time()]
 
         constexpr float_X conversion_Factor_sigma
-            = static_cast<float_X>(1.e-22 / (picongpu::UNIT_LENGTH * picongpu::UNIT_LENGTH));
-        // m^2 / ((m/UNIT_LENGTH)^2) = m^2/m^2 * UNIT_LENGTH^2
-        // [UNIT_LENGTH^2] ~ 1.022e-6
+            = static_cast<float_X>(1.e-22 / (picongpu::sim.unit.length() * picongpu::sim.unit.length()));
+        // m^2 / ((m/sim.unit.length())^2) = m^2/m^2 * sim.unit.length()^2
+        // [sim.unit.length()^2] ~ 1.022e-6
 
         // DeltaE * sigma * rho_e/DeltaE * v_e
         return energyElectronBinWidth * sigma * conversion_Factor_sigma * densityElectrons * c_internal
             * math::sqrt(1._X - 1._X / (pmacc::math::cPow(1._X + energyElectron / electronRestMassEnergy, 2u)));
-        // eV * 1e6b * UNIT_LENGTH^2/(1e6b) * 1/(UNIT_LENGTH^3*eV) * UNIT_LENGTH/sim.unit.time()
+        // eV * 1e6b * sim.unit.length()^2/(1e6b) * 1/(sim.unit.length()^3*eV) * sim.unit.length()/sim.unit.time()
         //    * sqrt( unitless - [(unitless + (eV)/(eV))^2] )
-        // = (eV)/(eV) * UNIT_LENGTH^2 *^1/UNIT_LENGTH^3 * UNIT_LENGTH/sim.unit.time()
-        // = UNIT_LENGTH^3/UNIT_LENGTH^3 * 1/sim.unit.time() = 1/sim.unit.time()
+        // = (eV)/(eV) * sim.unit.length()^2 *^1/sim.unit.length()^3 * sim.unit.length()/sim.unit.time()
+        // = sim.unit.length()^3/sim.unit.length()^3 * 1/sim.unit.time() = 1/sim.unit.time()
         // [1/sim.unit.time()]
     }
 } // namespace picongpu::particles2::atomicPhysics::rateCalculation

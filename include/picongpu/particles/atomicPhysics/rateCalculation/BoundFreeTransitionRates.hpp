@@ -209,7 +209,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             float_X const energyElectron,
             // eV
             float_X const energyElectronBinWidth,
-            // 1/(UNIT_LENGTH^3*eV)
+            // 1/(sim.unit.length()^3*eV)
             float_X const densityElectrons,
             // eV
             float_X const ionizationPotentialDepression,
