@@ -35,7 +35,7 @@ namespace picongpu
              * @param weighting weighting of the particle
              * @param particle a reference to a particle
              *
-             * @return mass of the macro particle, UNIT_MASS
+             * @return mass of the macro particle, sim.unit.mass()
              */
             template<typename T_Particle>
             HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)

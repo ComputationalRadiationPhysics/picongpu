@@ -296,7 +296,7 @@ namespace picongpu
 
                     auto unitMap = convertToUnitDimension(getMassOrZero.dimension());
                     massRecord.setUnitDimension(unitMap);
-                    massComponent.setUnitSI(::picongpu::UNIT_MASS);
+                    massComponent.setUnitSI(::picongpu::sim.unit.mass());
                     massRecord.setAttribute("macroWeighted", int32_t(false));
                     massRecord.setAttribute("weightingPower", float_64(1.0));
                     massRecord.setAttribute("timeOffset", float_64(0.0));

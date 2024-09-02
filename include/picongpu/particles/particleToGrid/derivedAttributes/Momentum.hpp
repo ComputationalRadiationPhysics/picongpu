@@ -38,7 +38,7 @@ namespace picongpu
                 template<size_t T_direction>
                 HDINLINE float1_64 Momentum<T_direction>::getUnit() const
                 {
-                    return UNIT_MASS * UNIT_SPEED;
+                    return sim.unit.mass() * UNIT_SPEED;
                 }
 
                 template<size_t T_direction>
