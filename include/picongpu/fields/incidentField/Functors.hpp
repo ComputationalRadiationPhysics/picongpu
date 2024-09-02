@@ -414,9 +414,9 @@ namespace picongpu
                     //! Check that the input units are valid
                     HINLINE static void checkUnit(float3_64 const unitField)
                     {
-                        /* Ensure that we always get unitField = (UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD) so that
-                         * we can always calculate in internal units and avoid conversions in child types.
-                         * We can afford it each time, as this is done on host before kernel.
+                        /* Ensure that we always get unitField = (sim.unit.eField(), sim.unit.eField(),
+                         * sim.unit.eField()) so that we can always calculate in internal units and avoid conversions
+                         * in child types. We can afford it each time, as this is done on host before kernel.
                          */
                         for(uint32_t axis = 0; axis < 3; axis++)
                         {
@@ -424,12 +424,12 @@ namespace picongpu
                             constexpr double ulp = 4.0;
                             constexpr double eps = std::numeric_limits<double>::epsilon();
                             bool const isMatchingUnit
-                                = (math::abs(unitField[axis] - UNIT_EFIELD) <= eps * UNIT_EFIELD * ulp);
+                                = (math::abs(unitField[axis] - sim.unit.eField()) <= eps * sim.unit.eField() * ulp);
                             if(!isMatchingUnit)
                             {
                                 throw std::runtime_error(
                                     "Incident field BaseFunctorE created with wrong unit: expected "
-                                    + std::to_string(UNIT_EFIELD) + ", got " + std::to_string(unitField[axis]));
+                                    + std::to_string(sim.unit.eField()) + ", got " + std::to_string(unitField[axis]));
                             }
                         }
                     }
@@ -572,7 +572,7 @@ namespace picongpu
                     using Base = T_FunctorIncidentE;
 
                     //! Relation between unitField for E and B: E = B * unitConversionBtoE
-                    static constexpr float_64 unitConversionBtoE = UNIT_EFIELD / UNIT_BFIELD;
+                    static constexpr float_64 unitConversionBtoE = sim.unit.eField() / UNIT_BFIELD;
 
                     /** Create a functor on the host side for the given time step
                      *

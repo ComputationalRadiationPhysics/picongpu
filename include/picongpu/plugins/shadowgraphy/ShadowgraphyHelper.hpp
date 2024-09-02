@@ -290,8 +290,8 @@ namespace picongpu
 
                             if constexpr(T_fieldType == FieldType::E)
                             {
-                                tmpEx[i][j] = UNIT_EFIELD * wf * value.x();
-                                tmpEy[i][j] = UNIT_EFIELD * wf * value.y();
+                                tmpEx[i][j] = sim.unit.eField() * wf * value.x();
+                                tmpEy[i][j] = sim.unit.eField() * wf * value.y();
                             }
                             else if constexpr(T_fieldType == FieldType::B)
                             {

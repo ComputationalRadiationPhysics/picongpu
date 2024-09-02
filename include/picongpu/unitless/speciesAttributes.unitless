@@ -381,7 +381,7 @@ namespace picongpu
             {
                 uint32_t const components = 3u;
 
-                std::vector<double> const unit(components, UNIT_EFIELD);
+                std::vector<double> const unit(components, sim.unit.eField());
 
                 return unit;
             }

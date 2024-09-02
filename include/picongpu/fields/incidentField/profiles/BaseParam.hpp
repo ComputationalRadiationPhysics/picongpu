@@ -67,9 +67,10 @@ namespace picongpu
 
                         /** Max amplitude of E field
                          *
-                         * unit: UNIT_EFIELD
+                         * unit: sim.unit.eField()
                          */
-                        static constexpr float_X AMPLITUDE = static_cast<float_X>(Params::AMPLITUDE_SI / UNIT_EFIELD);
+                        static constexpr float_X AMPLITUDE
+                            = static_cast<float_X>(Params::AMPLITUDE_SI / sim.unit.eField());
 
                         /** Pulse duration
                          *
