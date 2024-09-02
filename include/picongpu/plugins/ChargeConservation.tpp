@@ -255,7 +255,7 @@ namespace picongpu
         {
             this->output_file << currentStep << " "
                               << (maxChargeDiff * sim.pic.getCellSize().productOfComponents()).x() << " "
-                              << UNIT_CHARGE << std::endl;
+                              << sim.unit.charge() << std::endl;
         }
     }
 

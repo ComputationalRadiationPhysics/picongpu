@@ -112,9 +112,9 @@ namespace picongpu
                 gCurrent.z() * sim.pic.getCellSize().x() * sim.pic.getCellSize().y());
 
             float3_64 realCurrent_SI(
-                float_64(realCurrent.x()) * (UNIT_CHARGE / sim.unit.time()),
-                float_64(realCurrent.y()) * (UNIT_CHARGE / sim.unit.time()),
-                float_64(realCurrent.z()) * (UNIT_CHARGE / sim.unit.time()));
+                float_64(realCurrent.x()) * (sim.unit.charge() / sim.unit.time()),
+                float_64(realCurrent.y()) * (sim.unit.charge() / sim.unit.time()),
+                float_64(realCurrent.z()) * (sim.unit.charge() / sim.unit.time()));
 
             /*FORMAT OUTPUT*/
             using dbl = std::numeric_limits<float_64>;
