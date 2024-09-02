@@ -62,7 +62,8 @@ namespace picongpu
                          * as in particle pusher, but we do not require that pusher and current deposition are both
                          * enabled for a species, so check in both places.
                          */
-                        constexpr auto dz = (simDim == 3) ? CELL_DEPTH : std::numeric_limits<float_X>::infinity();
+                        constexpr auto dz
+                            = (simDim == 3) ? sim.pic.getCellSize().z() : std::numeric_limits<float_X>::infinity();
                         constexpr auto minCellSize
                             = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), dz});
                         PMACC_CASSERT_MSG(

@@ -90,12 +90,12 @@ namespace picongpu
                         constexpr uint32_t dir2 = (dir0 + 2) % 3;
 
                         constexpr float_64 step[3]
-                            = {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), CELL_DEPTH};
+                            = {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), sim.pic.getCellSize().z()};
                         constexpr float_64 step2[3] = {step[0] * step[0], step[1] * step[1], step[2] * step[2]};
 
                         // delta: smallest step size
-                        constexpr float_64 delta
-                            = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), CELL_DEPTH});
+                        constexpr float_64 delta = std::min(
+                            {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), sim.pic.getCellSize().z()});
 
                         constexpr float_64 delta2 = delta * delta;
 

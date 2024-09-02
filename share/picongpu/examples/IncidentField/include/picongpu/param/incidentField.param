@@ -100,8 +100,8 @@ namespace picongpu
                 static constexpr uint32_t LASER_WIDTH_X_CELLS = LASER_WIDTH_X_SI / sim.si.getCellSize().x();
                 static constexpr uint32_t LASER_CENTER_Y_CELLS = LASER_CENTER_Y_SI / sim.si.getCellSize().y();
                 static constexpr uint32_t LASER_WIDTH_Y_CELLS = LASER_WIDTH_Y_SI / sim.si.getCellSize().y();
-                static constexpr uint32_t LASER_CENTER_Z_CELLS = LASER_CENTER_Z_SI / SI::CELL_DEPTH_SI;
-                static constexpr uint32_t LASER_WIDTH_Z_CELLS = LASER_WIDTH_Z_SI / SI::CELL_DEPTH_SI;
+                static constexpr uint32_t LASER_CENTER_Z_CELLS = LASER_CENTER_Z_SI / sim.si.getCellSize().z();
+                static constexpr uint32_t LASER_WIDTH_Z_CELLS = LASER_WIDTH_Z_SI / sim.si.getCellSize().z();
 
                 // Delay at initialization to ensure a smooth start
                 static constexpr float_64 initializationDurationSI = 16.0 * DURATION_SI;

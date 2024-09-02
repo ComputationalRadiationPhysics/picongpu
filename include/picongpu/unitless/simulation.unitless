@@ -198,7 +198,6 @@ namespace picongpu
 
     // normed grid parameter
     constexpr float_X DELTA_T = sim.pic.getDt();
-    constexpr float_X CELL_DEPTH = sim.pic.getCellSize().z();
 
     // only used for CFL checks
     constexpr float_X INV_CELL2_SUM

@@ -297,7 +297,9 @@ namespace picongpu
                                    observerUnitVec.x() * sim.pic.getCellSize().x() / (SPEED_OF_LIGHT * 2.0_X) * omega)
                                + util::square(
                                    observerUnitVec.y() * sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)
-                               + util::square(observerUnitVec.z() * CELL_DEPTH / (SPEED_OF_LIGHT * 2.0_X) * omega))));
+                               + util::square(
+                                   observerUnitVec.z() * sim.pic.getCellSize().z() / (SPEED_OF_LIGHT * 2.0_X)
+                                   * omega))));
                     }
                 };
             } // namespace radFormFactor_Gauss_cell

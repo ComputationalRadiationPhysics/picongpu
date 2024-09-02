@@ -52,7 +52,8 @@ namespace picongpu
                 float_X operator()() const
                 {
                     // cellSize is not constexpr currently, so make an own constexpr array
-                    constexpr float_X step[3] = {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), CELL_DEPTH};
+                    constexpr float_X step[3]
+                        = {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), sim.pic.getCellSize().z()};
                     constexpr float_X cdt = SPEED_OF_LIGHT * getTimeStep(); // c * dt
 
                     constexpr float_64 delta = std::min({step[0], step[1], step[2]});
