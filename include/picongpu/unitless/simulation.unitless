@@ -145,30 +145,39 @@ namespace picongpu
             {
                 return time() * speed();
             }
+
             constexpr float_64 time() const
             {
                 return si.getDt();
             }
+
             constexpr float_64 speed() const
             {
                 return si.getSpeedOfLight();
             }
+
             constexpr float_64 mass() const
             {
                 return si.getBaseMass() * typicalNumParticlesPerMacroParticle();
             }
+
             constexpr float_64 charge() const
             {
                 return -1.0 * si.getBaseCharge() * typicalNumParticlesPerMacroParticle();
             }
+
             constexpr float_64 energy() const
             {
                 return mass() * length() * length() / (time() * time());
             }
+
+            /** Unit of EField: V/m */
             constexpr float_64 eField() const
             {
                 return 1.0 / (time() * time() / mass() / length() * length());
             }
+
+            /** Unit of BField: Tesla [T] = Vs/m^2 */
             constexpr float_64 bField() const
             {
                 return mass() / (time() * charge());
