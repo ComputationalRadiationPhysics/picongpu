@@ -139,8 +139,8 @@ namespace picongpu
                 ::openPMD::Container<::openPMD::Mesh>& meshes = iteration.meshes;
 
                 // iteration-level attributes
-                iteration.setDt<float_X>(DELTA_T);
-                iteration.setTime(float_X(currentStep) * DELTA_T);
+                iteration.setDt<float_X>(sim.pic.getDt());
+                iteration.setTime(float_X(currentStep) * sim.pic.getDt());
                 iteration.setTimeUnitSI(UNIT_TIME);
 
                 if(writeFieldMeta)

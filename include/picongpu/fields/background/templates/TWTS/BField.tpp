@@ -64,7 +64,7 @@ namespace picongpu
                 , phiPositive(float_X(1.0))
                 , beta_0(beta_0)
                 , tdelay_user_SI(tdelay_user_SI)
-                , dt(SI::DELTA_T_SI)
+                , dt(sim.si.getDt())
                 , unit_length(UNIT_LENGTH)
                 , auto_tdelay(auto_tdelay)
                 , pol(pol)
@@ -298,7 +298,7 @@ namespace picongpu
                 /* Unit of speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /* Unit of time */
-                const float_64 UNIT_TIME = SI::DELTA_T_SI;
+                const float_64 UNIT_TIME = sim.si.getDt();
                 /* Unit of length */
                 const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
@@ -448,7 +448,7 @@ namespace picongpu
                 /** Unit of Speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /** Unit of time */
-                const float_64 UNIT_TIME = SI::DELTA_T_SI;
+                const float_64 UNIT_TIME = sim.si.getDt();
                 /** Unit of length */
                 const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
@@ -575,7 +575,7 @@ namespace picongpu
                 /** Unit of speed */
                 const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
                 /** Unit of time */
-                const float_64 UNIT_TIME = SI::DELTA_T_SI;
+                const float_64 UNIT_TIME = sim.si.getDt();
                 /** Unit of length */
                 const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 

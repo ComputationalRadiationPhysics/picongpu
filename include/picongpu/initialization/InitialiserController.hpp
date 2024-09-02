@@ -112,7 +112,7 @@ namespace picongpu
                 const float_32 mass = frame::getMass<FrameType>();
                 const auto densityRatio = traits::GetDensityRatio<T_Species>::type::getValue();
                 const auto density = BASE_DENSITY * densityRatio;
-                const auto omegaP_dt = sqrt(density * charge / mass * charge / EPS0) * DELTA_T;
+                const auto omegaP_dt = sqrt(density * charge / mass * charge / EPS0) * sim.pic.getDt();
                 log<picLog::PHYSICS>("species %2%: omega_p * dt <= 0.1 ? (omega_p * dt = %1%)") % omegaP_dt
                     % FrameType::getName();
             }
@@ -130,7 +130,7 @@ namespace picongpu
                 auto const dtName = std::string{isSubstepping ? "substepping_dt" : "dt"};
                 auto const cflMessage
                     = std::string{"Field solver condition: c * "} + dtName + " <= %1% ? (c * " + dtName + " = %2%)";
-                log<picLog::PHYSICS>(cflMessage.c_str()) % maxC_DT % (SPEED_OF_LIGHT * DELTA_T);
+                log<picLog::PHYSICS>(cflMessage.c_str()) % maxC_DT % (SPEED_OF_LIGHT * sim.pic.getDt());
 
                 printDispersionInformation();
 

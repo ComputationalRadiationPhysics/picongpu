@@ -68,7 +68,7 @@ namespace picongpu
                             = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), dz});
                         PMACC_CASSERT_MSG(
                             Particle_in_current_deposition_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
-                            (SPEED_OF_LIGHT * DELTA_T / minCellSize <= 1.0) && sizeof(SpeciesType*) != 0);
+                            (SPEED_OF_LIGHT * sim.pic.getDt() / minCellSize <= 1.0) && sizeof(SpeciesType*) != 0);
 
                         using FrameType = typename SpeciesType::FrameType;
                         using ParticleCurrentSolver = typename pmacc::traits::Resolve<
@@ -88,7 +88,7 @@ namespace picongpu
 
                         typename SpeciesType::ParticlesBoxType pBox = species->getDeviceParticlesBox();
                         FieldJ::DataBoxType jBox = fieldJ.getGridBuffer().getDeviceBuffer().getDataBox();
-                        FrameSolver solver(DELTA_T);
+                        FrameSolver solver(sim.pic.getDt());
 
                         auto const deposit = currentSolver::Deposit<Strategy>{};
                         deposit.template execute<T_Area::value>(

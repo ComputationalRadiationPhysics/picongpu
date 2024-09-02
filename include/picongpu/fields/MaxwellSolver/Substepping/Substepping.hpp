@@ -176,15 +176,15 @@ namespace picongpu
                     /* In order to keep the central nature of time derivatives in the field solver (and the consequent
                      * approximation order in time), we have to add contribution of J in the middle of the given
                      * subStep, so at time
-                     *     t_sub = currentStep * DELTA_T + (subStep + 0.5) * DELTA_T / numSubsteps.
+                     *     t_sub = currentStep * sim.pic.getDt() + (subStep + 0.5) * sim.pic.getDt() / numSubsteps.
                      * We process each grid point separately and independently, so the following only concerts time.
                      * With Esirkepov/EmZ current deposition we have, assuming sufficient smoothness of J(t):
-                     *     fieldJ = J(t_curr) + O(DELTA_T^2) with t_curr = (currentStep + 0.5) * DELTA_T,
-                     *     previousJ = J(t_prev) + O(DELTA_T^2) with t_prev = (currentStep - 0.5) * DELTA_T.
-                     * Using linear interpolation or extrapolation (depending on subStep) of J(t) yields
-                     *     J_sub = J(t_prev) + (t_sub - t_prev) / (t_curr - t_prev) * (J(t_curr) - J(t_prev)).
+                     *     fieldJ = J(t_curr) + O(sim.pic.getDt()^2) with t_curr = (currentStep + 0.5) *
+                     * sim.pic.getDt(), previousJ = J(t_prev) + O(sim.pic.getDt()^2) with t_prev = (currentStep - 0.5)
+                     * * sim.pic.getDt(). Using linear interpolation or extrapolation (depending on subStep) of J(t)
+                     * yields J_sub = J(t_prev) + (t_sub - t_prev) / (t_curr - t_prev) * (J(t_curr) - J(t_prev)).
                      * Applying Taylor expansion and again assuming sufficient smoothness of J(t) one can obtain
-                     *     J_sub =  J(t_sub) + O(DELTA_T^2).
+                     *     J_sub =  J(t_sub) + O(sim.pic.getDt()^2).
                      * Since J(t_curr), J(t_prev) terms appear linearly in J_sub, same approximation order holds when
                      * fieldJ, previousJ are used instead.
                      * Denoting

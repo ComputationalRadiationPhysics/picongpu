@@ -300,7 +300,7 @@ namespace picongpu
                                 return 0.0_X;
 
                             // interpolation order
-                            float_X N_raw = Unitless::INIT_TIME / DELTA_T;
+                            float_X N_raw = Unitless::INIT_TIME / sim.pic.getDt();
                             int const n = static_cast<int>(N_raw * 0.5_X); // -0 instead of -1 for rounding up N_raw
 
                             // frequency step for DFT
@@ -344,7 +344,7 @@ namespace picongpu
                                 float_X const omegaTK = Omk * time;
                                 E_t += amp(totalCellIdx, Omk) * pmacc::math::cos(phiK - omegaTK);
                             }
-                            E_t *= 2.0_X / DELTA_T;
+                            E_t *= 2.0_X / sim.pic.getDt();
 
                             E_t /= static_cast<float_X>(2 * n + 1); // Normalization from DFT
 

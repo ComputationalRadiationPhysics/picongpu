@@ -37,9 +37,9 @@ namespace picongpu
                 //! @todo bool for turning on or off the photon generation
 
                 /* energy HiPass filter: accept only photons with energy higher than this value
-                 * in PIC units: use HBAR, DELTA_T etc. from /picongpu/include/picongpu/unitless/?.unitless
+                 * in PIC units: use HBAR, sim.pic.getDt() etc. from /picongpu/include/picongpu/unitless/?.unitless
                  */
-                constexpr float_64 minEnergy = HBAR / DELTA_T;
+                constexpr float_64 minEnergy = HBAR / sim.pic.getDt();
 
                 //! Parameters how to compute first synhrotron function
                 struct FirstSynchrotronFunctionParams

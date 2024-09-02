@@ -62,7 +62,7 @@ namespace picongpu
                 , phiPositive(float_X(1.0))
                 , beta_0(beta_0)
                 , tdelay_user_SI(tdelay_user_SI)
-                , dt(SI::DELTA_T_SI)
+                , dt(sim.si.getDt())
                 , unit_length(UNIT_LENGTH)
                 , auto_tdelay(auto_tdelay)
                 , pol(pol)

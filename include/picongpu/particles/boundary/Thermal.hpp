@@ -172,11 +172,11 @@ namespace picongpu
                              * This particle could be at the center of cell in x and near the border in y.
                              * Now, consider what happens when it moves diagonally in x, y and crosses both boundaries.
                              * Since y was very close to threshold, timeAfterFirstBoundaryCross would be almost
-                             * DELTA_T. So we will revert almost the whole movement and effectively do another push.
-                             * Then it can happen that in x we move sufficiently to end up in 2 cells from the current
-                             * one. There is nothing we can easily fix here, so just clump the position to be in valid
-                             * range. This case is rare and so should not disrupt the physics. This clump also guards
-                             * against the case when the original momentum of the particle was somehow modified
+                             * sim.pic.getDt(). So we will revert almost the whole movement and effectively do another
+                             * push. Then it can happen that in x we move sufficiently to end up in 2 cells from the
+                             * current one. There is nothing we can easily fix here, so just clump the position to be
+                             * in valid range. This case is rare and so should not disrupt the physics. This clump also
+                             * guards against the case when the original momentum of the particle was somehow modified
                              * non-consistently with a position. For example, when the particle crossed by its cell
                              * index, but (current position - v * dt) is on the same side as current position.
                              */

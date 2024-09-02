@@ -139,7 +139,7 @@ namespace picongpu
             if(math::abs(float_X(static_cast<int32_t>(cellIdx.x()) - positionX) + .5_X) < halfWidth
                && math::abs(float_X(static_cast<int32_t>(cellIdx.y()) - positionY) + .5_X) < halfWidth)
             {
-                float_X const duration = 26.53e-12 / SI::DELTA_T_SI; // 26.53 ps in PIC units
+                float_X const duration = 26.53e-12 / sim.si.getDt(); // 26.53 ps in PIC units
                 float_X const delay = 4._X * duration;
                 float_X const relativeTime = (static_cast<float_X>(currentStep) - delay) / duration;
                 currentDensity = amplitudeSI * relativeTime * math::exp(-relativeTime * relativeTime);

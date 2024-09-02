@@ -147,13 +147,14 @@ namespace picongpu
                         auto const localCellIdx = offsetToTotalOrigin - m_parameters.localToTotalDomainOffset;
                         auto const positionCurrent
                             = (precisionCast<float_X>(localCellIdx) + particle[position_])[axis];
-                        auto const positionPrevious = positionCurrent - vel * DELTA_T / sim.pic.getCellSize()[axis];
+                        auto const positionPrevious
+                            = positionCurrent - vel * sim.pic.getDt() / sim.pic.getCellSize()[axis];
 
                         // Integral over the last time step as described in comment of this struct
                         auto const timeStepIntegral = fields::absorber::pml::getNormalizedSigmaIntegral(
                             positionPrevious,
                             positionCurrent,
-                            DELTA_T,
+                            sim.pic.getDt(),
                             m_parameters.localParameters,
                             axis);
 

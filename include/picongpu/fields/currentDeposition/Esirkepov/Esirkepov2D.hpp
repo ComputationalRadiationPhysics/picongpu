@@ -173,10 +173,11 @@ namespace picongpu
                         bitpacking::test(parStatus[1], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 
                 /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
-                 * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1)
+                 * in-cell particle `position` (and it's change in sim.pic.getDt()) is normalize to [0,1)
                  */
                 const float_X currentSurfaceDensity = this->charge
-                    * (1.0_X / float_X(sim.pic.getCellSize().productOfComponents() * DELTA_T)) * cellEdgeLength;
+                    * (1.0_X / float_X(sim.pic.getCellSize().productOfComponents() * sim.pic.getDt()))
+                    * cellEdgeLength;
 
                 for(int j = begin; j < end + 1; ++j)
                     if(j < end + bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL))
