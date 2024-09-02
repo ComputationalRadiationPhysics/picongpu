@@ -171,8 +171,8 @@ namespace picongpu
 
                     pluginNumX = globalGridSize[0] / params::xRes;
 
-                    pluginNumY
-                        = math::floor((yWindowSize - slidingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::yRes));
+                    pluginNumY = math::floor(
+                        (yWindowSize - slidingWindowCorrection / sim.si.getCellSize().y()) / (params::yRes));
 
                     // Don't use fields inside the field absorber
                     pluginNumX
@@ -191,8 +191,8 @@ namespace picongpu
 
                     // The total domain indices of the integration slice are constant, because the screen is not
                     // co-propagating with the moving window
-                    yTotalMinIndex
-                        = yTotalOffset + yGlobalOffset + math::floor(slidingWindowCorrection / SI::CELL_HEIGHT_SI);
+                    yTotalMinIndex = yTotalOffset + yGlobalOffset
+                        + math::floor(slidingWindowCorrection / sim.si.getCellSize().y());
 
                     // Initialization of storage arrays
                     ExOmega = vec3c(pluginNumX, vec2c(pluginNumY, vec1c(numOmegas)));
@@ -265,10 +265,10 @@ namespace picongpu
                     if(!initializedDataBox)
                     {
                         xMin = fields::absorber::NUM_CELLS[0][0] * sim.si.getCellSize().x();
-                        yMin = (fields::absorber::NUM_CELLS[1][0] + yTotalMinIndex) * SI::CELL_HEIGHT_SI;
+                        yMin = (fields::absorber::NUM_CELLS[1][0] + yTotalMinIndex) * sim.si.getCellSize().y();
 
                         xStep = params::xRes * sim.si.getCellSize().x();
-                        yStep = params::yRes * SI::CELL_HEIGHT_SI;
+                        yStep = params::yRes * sim.si.getCellSize().y();
                         initializedDataBox = true;
                     }
 
@@ -773,7 +773,7 @@ namespace picongpu
                  */
                 float_X ky(int i) const
                 {
-                    float_X const actualStep = params::yRes * SI::CELL_HEIGHT_SI;
+                    float_X const actualStep = params::yRes * sim.si.getCellSize().y();
                     return 2.0_X * float_X(PI) * (float_X(i) - float_X(pluginNumY) / 2.0_X) / float_X(pluginNumY)
                         / actualStep;
                 }

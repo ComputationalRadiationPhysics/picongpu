@@ -99,8 +99,8 @@ namespace picongpu
                 static constexpr uint32_t DURATION_STEPS = DURATION_SI / SI::DELTA_T_SI;
                 static constexpr uint32_t LASER_CENTER_X_CELLS = LASER_CENTER_X_SI / sim.si.getCellSize().x();
                 static constexpr uint32_t LASER_WIDTH_X_CELLS = LASER_WIDTH_X_SI / sim.si.getCellSize().x();
-                static constexpr uint32_t LASER_CENTER_Y_CELLS = LASER_CENTER_Y_SI / SI::CELL_HEIGHT_SI;
-                static constexpr uint32_t LASER_WIDTH_Y_CELLS = LASER_WIDTH_Y_SI / SI::CELL_HEIGHT_SI;
+                static constexpr uint32_t LASER_CENTER_Y_CELLS = LASER_CENTER_Y_SI / sim.si.getCellSize().y();
+                static constexpr uint32_t LASER_WIDTH_Y_CELLS = LASER_WIDTH_Y_SI / sim.si.getCellSize().y();
                 static constexpr uint32_t LASER_CENTER_Z_CELLS = LASER_CENTER_Z_SI / SI::CELL_DEPTH_SI;
                 static constexpr uint32_t LASER_WIDTH_Z_CELLS = LASER_WIDTH_Z_SI / SI::CELL_DEPTH_SI;
 
@@ -147,7 +147,7 @@ namespace picongpu
                 HDINLINE float_X getYMaxSourceValueSI(floatD_X const& totalCellIdx) const
                 {
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
-                    auto const y = totalCellIdx.y() * SI::CELL_HEIGHT_SI;
+                    auto const y = totalCellIdx.y() * sim.si.getCellSize().y();
                     auto const longitudinal = timeEnvelope * sin(k * (y + SI::SPEED_OF_LIGHT_SI * currentTime));
                     auto const normalizedX = (totalCellIdx.x() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_X_CELLS;
                     auto normalizedZ = 0.0;
