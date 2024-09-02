@@ -63,7 +63,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
          * @param localSumChargeNumberSquaredBox deviceDataBox giving access to the weighted sum of the charge number
          *  squared of ion macro particles for all local superCells
          * @param localTemperatureEnergyBox deviceDataBox giving access to the local temperature * k_Boltzman for all
-         *  local superCells, in UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2, not weighted
+         *  local superCells, in sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2, not weighted
          * @param localZStarBox deviceDataBox giving access to the local z^Star value, = average(q^2) / average(q),
          *  for all local superCells, unitless, not weighted
          * @param localDebyeLengthBox deviceDataBox giving access to the local debye length for all local superCells,
@@ -108,7 +108,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
 
             // localSumFieldValues
             //{
-            // UNIT_MASS * sim.unit.length() / sim.unit.time() * weight / TYPICAL_PARTICLES_PER_MACROPARTICLE
+            // sim.unit.mass() * sim.unit.length() / sim.unit.time() * weight / TYPICAL_PARTICLES_PER_MACROPARTICLE
             float_X const localSumTemperatureFunctional = localSumTemperatureFunctionalBox(superCellFieldIdx);
             // weight / TYPICAL_PARTICLES_PER_MACROPARTICLE
             float_X const localSumWeightAll = localSumWeightAllBox(superCellFieldIdx);
@@ -123,7 +123,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
 
             // IPD input parameter
             //{
-            // UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2, not weighted
+            // sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2, not weighted
             float_X& localTemperatureTimesk_Boltzman = localTemperatureEnergyBox(superCellFieldIdx);
             // unitless, non weighted
             float_X& localZStar = localZStarBox(superCellFieldIdx);
@@ -149,13 +149,13 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                     // unitless
                     localZStar = localSumChargeNumberSquared / localSumChargeNumber;
 
-                    // eV/(UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2)
+                    // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2)
                     constexpr float_X eV = static_cast<float_X>(
-                        picongpu::UNIT_MASS * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
+                        picongpu::sim.unit.mass() * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
                         / pmacc::math::cPow(picongpu::sim.unit.time(), 2u) * picongpu::UNITCONV_Joule_to_keV * 1e3);
 
-                    // eV/(UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2) * UNIT_MASS * sim.unit.length()^2 /
-                    // sim.unit.time()^2
+                    // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2) * sim.unit.mass() *
+                    // sim.unit.length()^2 / sim.unit.time()^2
                     //  * weight / TYPICAL_PARTICLES_PER_MACROPARTICLE / (weight / TYPICAL_PARTICLES_PER_MACROPARTICLE)
                     // eV
                     localTemperatureTimesk_Boltzman = eV * localSumTemperatureFunctional / localSumWeightAll;

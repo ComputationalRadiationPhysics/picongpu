@@ -38,7 +38,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @param weightNormalized weight of particle normalized by
          * picongpu::sim.unit.typicalNumParticlesPerMacroParticle()
          *
-         * @return unit: UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+         * @return unit: sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2 * weight /
          * sim.unit.typicalNumParticlesPerMacroParticle()
          */
         template<typename T_Particle>

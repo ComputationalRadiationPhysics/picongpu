@@ -189,7 +189,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
         /** calculate ionization potential depression
          *
          * @param localTemperatureEnergyBox deviceDataBox giving access to the local temperature * k_Boltzman for all
-         *  local superCells, in UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2, not weighted
+         *  local superCells, in sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2, not weighted
          * @param localZStarBox deviceDataBox giving access to the local z^Star value, = average(q^2) / average(q),
          *  for all local superCells, unitless, not weighted
          * @param localDebyeLengthBox deviceDataBox giving access to the local debye length for all local superCells,
@@ -209,15 +209,16 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             T_LocalTemperatureEnergyBox const localTemperatureEnergyBox,
             T_LocalZStarBox const localZStarBox)
         {
-            // eV/(UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2)
+            // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2)
             constexpr float_X eV = static_cast<float_X>(
-                picongpu::UNIT_MASS * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
+                picongpu::sim.unit.mass() * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
                 / pmacc::math::cPow(picongpu::sim.unit.time(), 2u) * picongpu::UNITCONV_Joule_to_keV * 1e3);
 
-            // eV/(UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2) * unitless * UNIT_CHARGE^2
-            //  / ( unitless * UNIT_CHARGE^2 * sim.unit.time()^2 / (sim.unit.length()^3 * UNIT_MASS))
-            // = eV * sim.unit.time()^2 * UNIT_MASS^(-1) * sim.unit.length()^(-2) * UNIT_CHARGE^2 * UNIT_CHARGE^(-2)
-            //  * sim.unit.time()^(-2) * sim.unit.length()^3 * UNIT_MASS^1 = eV * sim.unit.length()
+            // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2) * unitless * UNIT_CHARGE^2
+            //  / ( unitless * UNIT_CHARGE^2 * sim.unit.time()^2 / (sim.unit.length()^3 * sim.unit.mass()))
+            // = eV * sim.unit.time()^2 * sim.unit.mass()^(-1) * sim.unit.length()^(-2) * UNIT_CHARGE^2 *
+            // UNIT_CHARGE^(-2)
+            //  * sim.unit.time()^(-2) * sim.unit.length()^3 * sim.unit.mass()^1 = eV * sim.unit.length()
             // eV * sim.unit.length()
             constexpr float_X constFactor = eV * static_cast<float_X>(T_atomicNumber)
                 * pmacc::math::cPow(picongpu::ELECTRON_CHARGE, 2u)

@@ -48,13 +48,13 @@ namespace picongpu::particles::atomicPhysics
                 / (picongpu::sim.unit.time() * picongpu::sim.unit.time() * picongpu::SI::SPEED_OF_LIGHT_SI
                    * picongpu::SI::SPEED_OF_LIGHT_SI));
 
-            // UNIT_MASS, not scaled
+            // sim.unit.mass(), not scaled
             float_X const m = picongpu::traits::frame::getMass<typename T_Particle::FrameType>();
 
-            // UNIT_MASS * sim.unit.length() / sim.unit.time(), scaled
+            // sim.unit.mass() * sim.unit.length() / sim.unit.time(), scaled
             float3_X vectorMomentum_Scaled = particle[momentum_];
 
-            // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2, not scaled
+            // sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2, not scaled
             float_X momentumSquared
                 = pmacc::math::l2norm2(vectorMomentum_Scaled) / (particle[weighting_] * particle[weighting_]);
 
@@ -62,13 +62,13 @@ namespace picongpu::particles::atomicPhysics
             // m^2 + p^2 = (<=80 * ~2000)^2 + (<2000[10^9eV])^2 ~ 2.5*10^10
             //{
             // sim.unit.length()^2 / (sim.unit.time()^2*c_SI) = 1
-            // UNIT_MASS * c_SI^2
+            // sim.unit.mass() * c_SI^2
             float_X const energy = (math::sqrt(m * m + momentumSquared * conversionFactor) - m);
             //}
 
             // unit conversion factor for eV
             constexpr float_X eV = static_cast<float_X>(
-                picongpu::UNIT_MASS * picongpu::SI::SPEED_OF_LIGHT_SI * picongpu::SI::SPEED_OF_LIGHT_SI
+                picongpu::sim.unit.mass() * picongpu::SI::SPEED_OF_LIGHT_SI * picongpu::SI::SPEED_OF_LIGHT_SI
                 * picongpu::UNITCONV_Joule_to_keV * 1e3);
 
             // eV

@@ -40,32 +40,32 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @param weightNormalized weight of particle normalized by
          * picongpu::sim.unit.typicalNumParticlesPerMacroParticle()
          *
-         * @return unit: UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+         * @return unit: sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2 * weight /
          * sim.unit.typicalNumParticlesPerMacroParticle()
          */
         template<typename T_Particle>
         HDINLINE static float_X term(T_Particle& particle, float_64 const weightNormalized)
         {
-            // UNIT_MASS * sim.unit.length() / sim.unit.time() * weight /
+            // sim.unit.mass() * sim.unit.length() / sim.unit.time() * weight /
             // sim.unit.typicalNumParticlesPerMacroParticle()
             float3_64 const momentumVectorNormalized = precisionCast<float3_64>(
                 particle[momentum_] / picongpu::sim.unit.typicalNumParticlesPerMacroParticle());
 
-            // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
+            // sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
             // sim.unit.typicalNumParticlesPerMacroParticle()^2
             float_64 momentumSquared = pmacc::math::l2norm2(momentumVectorNormalized);
 
             // get classical momentum
-            // UNIT_MASS, not weighted
+            // sim.unit.mass(), not weighted
             float_64 const mass = static_cast<float_64>(picongpu::traits::frame::getMass<T_Particle::FrameType>());
             // sim.unit.length()^2 / sim.unit.time()^2, not weighted
             constexpr float_64 c2 = picongpu::SPEED_OF_LIGHT * picongpu::SPEED_OF_LIGHT;
-            // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2, not weighted
+            // sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2, not weighted
             float_64 const m2_c2_reciproc = 1.0 / (mass * mass * c2);
 
-            // unitless + (UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2
+            // unitless + (sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2
             //  / sim.unit.typicalNumParticlesPerMacroParticle()^2)
-            //  / (UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
+            //  / (sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
             //  sim.unit.typicalNumParticlesPerMacroParticle()^2) =
             // unitless
             float_64 const gamma
@@ -73,10 +73,10 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
 
             momentumSquared *= 1. / (gamma * gamma);
 
-            // (UNIT_MASS^2 * sim.unit.time()^2 / sim.unit.length()^2 * weight^2 /
+            // (sim.unit.mass()^2 * sim.unit.time()^2 / sim.unit.length()^2 * weight^2 /
             // sim.unit.typicalNumParticlesPerMacroParticle()^2)
-            //  / (UNIT_MASS * weight / sim.unit.typicalNumParticlesPerMacroParticle())
-            // UNIT_MASS * sim.unit.time()^2 / sim.unit.length()^2 * weight /
+            //  / (sim.unit.mass() * weight / sim.unit.typicalNumParticlesPerMacroParticle())
+            // sim.unit.mass() * sim.unit.time()^2 / sim.unit.length()^2 * weight /
             // sim.unit.typicalNumParticlesPerMacroParticle()
             return (2._X / 3._X) * static_cast<float_X>(momentumSquared / (2.0 * mass * weightNormalized));
         }

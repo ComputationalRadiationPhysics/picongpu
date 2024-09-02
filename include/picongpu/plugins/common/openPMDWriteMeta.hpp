@@ -229,7 +229,7 @@ namespace picongpu
                 iteration.setAttribute<double>("unit_length", sim.unit.length());
                 iteration.setAttribute<double>("unit_speed", UNIT_SPEED);
                 iteration.setAttribute<double>("unit_time", sim.unit.time());
-                iteration.setAttribute<double>("unit_mass", UNIT_MASS);
+                iteration.setAttribute<double>("unit_mass", sim.unit.mass());
                 iteration.setAttribute<double>("unit_charge", UNIT_CHARGE);
                 iteration.setAttribute<double>("unit_efield", UNIT_EFIELD);
                 iteration.setAttribute<double>("unit_bfield", UNIT_BFIELD);

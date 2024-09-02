@@ -114,8 +114,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                     //  = Nm/J * eV = J/J * eV = eV, ~ 511e3 eV
                     float_X const mcSquaredElectron = static_cast<float_X>(
                         static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Electron::FrameType>())
-                        * UNIT_MASS * pmacc::math::cPow(picongpu::SI::SPEED_OF_LIGHT_SI, 2u) * UNITCONV_Joule_to_keV
-                        * 1.e3);
+                        * sim.unit.mass() * pmacc::math::cPow(picongpu::SI::SPEED_OF_LIGHT_SI, 2u)
+                        * UNITCONV_Joule_to_keV * 1.e3);
                     // eV, not weighted
 
                     // distribute energy change as mean by weight on all electrons in bin
@@ -144,8 +144,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // AU = ATOMIC_UNIT_ENERGY
                     // sqrt(eV * (eV + eV))/(sim.unit.length()/sim.unit.time()) * (UNIT_ENERGY/eV)
                     //  = sqrt((eV)^2)/(eV) * sim.unit.time()/sim.unit.length() * UNIT_ENERGY
-                    //  = UNIT_MASS * sim.unit.length()^2/sim.unit.time()^2 * sim.unit.time()/sim.unit.length()
-                    //  = UNIT_MASS * sim.unit.length()/sim.unit.time()
+                    //  = sim.unit.mass() * sim.unit.length()^2/sim.unit.time()^2 * sim.unit.time()/sim.unit.length()
+                    //  = sim.unit.mass() * sim.unit.length()/sim.unit.time()
                     // internal units, not weighted
 
                     float_X previousMomentumVectorLength = pmacc::math::l2norm(electron[momentum_]);
@@ -156,7 +156,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         previousMomentumVectorLength = 1._X;
 
                     // if previous momentum == 0, discards electron
-                    // UNIT_MASS * sim.unit.length() / sim.unit.time(), weighted
+                    // sim.unit.mass() * sim.unit.length() / sim.unit.time(), weighted
                     electron[momentum_]
                         *= newElectronMomentum * electron[weighting_] * 1._X / previousMomentumVectorLength;
                 });

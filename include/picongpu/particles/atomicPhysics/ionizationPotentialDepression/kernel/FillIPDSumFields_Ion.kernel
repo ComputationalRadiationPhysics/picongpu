@@ -110,7 +110,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                     float_X const weightNormalized
                         = ion[weighting_] / picongpu::sim.unit.typicalNumParticlesPerMacroParticle();
 
-                    // UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+                    // sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2 * weight /
                     // sim.unit.typicalNumParticlesPerMacroParticle()
                     sumTemperatureFunctional
                         += T_TemperatureFunctor::term(ion, precisionCast<float_64>(weightNormalized));

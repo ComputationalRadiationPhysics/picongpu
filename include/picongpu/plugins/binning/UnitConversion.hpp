@@ -32,7 +32,7 @@ namespace picongpu
         // @todo add where this 7D format is from
         std::array<double, numUnits> UnitDimensions{
             sim.unit.length(), // length
-            UNIT_MASS, // mass
+            sim.unit.mass(), // mass
             sim.unit.time(), // time
             UNIT_CHARGE / sim.unit.time(), // current
             1., // thermodynamicTemperature

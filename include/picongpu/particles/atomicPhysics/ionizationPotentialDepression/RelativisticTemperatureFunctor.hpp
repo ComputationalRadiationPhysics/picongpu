@@ -40,36 +40,36 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @param weightNormalized weight of particle normalized by
          * picongpu::sim.unit.typicalNumParticlesPerMacroParticle()
          *
-         * @return unit: UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+         * @return unit: sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2 * weight /
          * sim.unit.typicalNumParticlesPerMacroParticle()
          */
         template<typename T_Particle>
         HDINLINE static float_X term(T_Particle& particle, float_64 const weightNormalized)
         {
-            // UNIT_MASS * sim.unit.length() / sim.unit.time() * weight /
+            // sim.unit.mass() * sim.unit.length() / sim.unit.time() * weight /
             // sim.unit.typicalNumParticlesPerMacroParticle()
             float3_64 const momentumVector = static_cast<float3_64>(particle[momentum_]);
 
-            // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
+            // sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
             // sim.unit.typicalNumParticlesPerMacroParticle()^2
             float_64 const momentumSquared = pmacc::math::l2norm2(momentumVector)
                 / pmacc::math::cPow(picongpu::sim.unit.typicalNumParticlesPerMacroParticle(), 2u);
 
-            // UNIT_MASS, not weighted
+            // sim.unit.mass(), not weighted
             float_64 const mass
                 = static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Particle::FrameType>());
             // sim.unit.length() / sim.unit.time(), not weighted
             constexpr float_64 c = picongpu::SPEED_OF_LIGHT;
-            // UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2, not weighted
+            // sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2, not weighted
             float_64 const m2c2 = pmacc::math::cPow(mass * c, 2u);
 
             // sim.unit.length() / sim.unit.time()
-            //  * (UNIT_MASS^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
-            //  sim.unit.typicalNumParticlesPerMacroParticle()^2) / sqrt((UNIT_MASS^2 * sim.unit.length()^2 /
+            //  * (sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2 * weight^2 /
+            //  sim.unit.typicalNumParticlesPerMacroParticle()^2) / sqrt((sim.unit.mass()^2 * sim.unit.length()^2 /
             //  sim.unit.time()^2 * weight^2
-            //      / sim.unit.typicalNumParticlesPerMacroParticle()^2) + UNIT_MASS^2 * sim.unit.length()^2 /
+            //      / sim.unit.typicalNumParticlesPerMacroParticle()^2) + sim.unit.mass()^2 * sim.unit.length()^2 /
             //      sim.unit.time()^2 * weight^2 / sim.unit.typicalNumParticlesPerMacroParticle()^2)
-            // = UNIT_MASS * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+            // = sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2 * weight /
             // sim.unit.typicalNumParticlesPerMacroParticle()
             return /*since we sum over all three dimensions */ (1._X / 3._X)
                 * static_cast<float_X>(
