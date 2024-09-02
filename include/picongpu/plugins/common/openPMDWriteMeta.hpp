@@ -232,7 +232,7 @@ namespace picongpu
                 iteration.setAttribute<double>("unit_mass", sim.unit.mass());
                 iteration.setAttribute<double>("unit_charge", sim.unit.charge());
                 iteration.setAttribute<double>("unit_efield", sim.unit.eField());
-                iteration.setAttribute<double>("unit_bfield", UNIT_BFIELD);
+                iteration.setAttribute<double>("unit_bfield", sim.unit.bField());
 
 
                 /* write physical constants */

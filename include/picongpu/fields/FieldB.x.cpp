@@ -47,7 +47,7 @@ namespace picongpu
 
     FieldB::UnitValueType FieldB::getUnit()
     {
-        return UnitValueType{UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD};
+        return UnitValueType{sim.unit.bField(), sim.unit.bField(), sim.unit.bField()};
     }
 
     std::vector<float_64> FieldB::getUnitDimension()

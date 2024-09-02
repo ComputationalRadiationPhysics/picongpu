@@ -430,7 +430,7 @@ namespace picongpu
             {
                 uint32_t const components = 3u;
 
-                std::vector<double> const unit(components, UNIT_BFIELD);
+                std::vector<double> const unit(components, sim.unit.bField());
 
                 return unit;
             }

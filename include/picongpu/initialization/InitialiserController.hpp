@@ -158,7 +158,7 @@ namespace picongpu
                 log<picLog::PHYSICS>("sim.unit.mass() %1%") % sim.unit.mass();
                 log<picLog::PHYSICS>("sim.unit.charge() %1%") % sim.unit.charge();
                 log<picLog::PHYSICS>("sim.unit.eField() %1%") % sim.unit.eField();
-                log<picLog::PHYSICS>("UNIT_BFIELD %1%") % UNIT_BFIELD;
+                log<picLog::PHYSICS>("sim.unit.bField() %1%") % sim.unit.bField();
                 log<picLog::PHYSICS>("sim.unit.energy() %1%") % sim.unit.energy();
             }
         }

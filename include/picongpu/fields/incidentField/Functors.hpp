@@ -572,7 +572,7 @@ namespace picongpu
                     using Base = T_FunctorIncidentE;
 
                     //! Relation between unitField for E and B: E = B * unitConversionBtoE
-                    static constexpr float_64 unitConversionBtoE = sim.unit.eField() / UNIT_BFIELD;
+                    static constexpr float_64 unitConversionBtoE = sim.unit.eField() / sim.unit.bField();
 
                     /** Create a functor on the host side for the given time step
                      *
