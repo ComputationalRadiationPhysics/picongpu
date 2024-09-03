@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 // need: picongpu/param/atomicPhysics_Debug.param and picongpu/param/atomicPhysics.param
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics/atomicData/DataBox.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/DataBuffer.hpp"
@@ -92,11 +93,11 @@ namespace picongpu::particles::atomicPhysics::atomicData
          */
         HINLINE void store(uint32_t const collectionIndex, S_ChargeStateTuple& tuple)
         {
-            uint8_t chargeState = static_cast<uint8_t>(std::get<0>(tuple));
+            uint8_t chargeState = u8(std::get<0>(tuple));
 
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_LOAD)
             {
-                if(collectionIndex >= static_cast<uint32_t>(T_atomicNumber))
+                if(collectionIndex >= u32(T_atomicNumber))
                 {
                     throw std::runtime_error(
                         "atomicPhysics ERROR: out of range call store() chargeState property data");
@@ -134,7 +135,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         HDINLINE T_Value ionizationEnergy(uint8_t const chargeState) const
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_QUERIES)
-                if(chargeState >= static_cast<uint32_t>(T_atomicNumber))
+                if(chargeState >= u32(T_atomicNumber))
                 {
                     printf("atomicPhysics ERROR: out of range ionizationEnergy() call\n");
                     return static_cast<T_Value>(0.);
@@ -147,7 +148,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         HDINLINE T_Value screenedCharge(uint8_t const chargeState) const
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_QUERIES)
-                if(chargeState >= static_cast<uint32_t>(T_atomicNumber))
+                if(chargeState >= u32(T_atomicNumber))
                 {
                     printf("atomicPhysics ERROR: out of range ionizationEnergy() call\n");
                     return static_cast<T_Value>(0.);

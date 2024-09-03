@@ -121,7 +121,7 @@ namespace picongpu::particles::atomicPhysics::electronDistribution
             if(energy >= 1._X)
             {
                 // standard bin
-                return static_cast<uint32_t>(math::log(energy) / math::log(computeBase())) + 1u;
+                return u32(math::log(energy) / math::log(computeBase())) + 1u;
             }
             else
                 return 0u; // first bin

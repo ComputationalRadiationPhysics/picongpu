@@ -31,6 +31,7 @@
 #include "picongpu/simulation_defines.hpp"
 // need unit.param
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundBoundTransitionRates.hpp"
@@ -123,11 +124,11 @@ namespace picongpu::particles::atomicPhysics::debug
             // charge states
             S_ChargeStateBox chargeStateHostBox = chargeStateBuffer->getHostDataBox();
             //      ionizationEnergy = 100 eV, screened charge = 5 e
-            auto tupleChargeState_1 = std::make_tuple(static_cast<uint8_t>(0u), 100._X, 5._X);
-            chargeStateHostBox.store(static_cast<uint8_t>(0u), tupleChargeState_1);
+            auto tupleChargeState_1 = std::make_tuple(u8(0u), 100._X, 5._X);
+            chargeStateHostBox.store(u8(0u), tupleChargeState_1);
             //      only target charge state, states do not matter
-            auto tupleChargeState_2 = std::make_tuple(static_cast<uint8_t>(1u), 100._X, 5._X);
-            chargeStateHostBox.store(static_cast<uint8_t>(1u), tupleChargeState_2);
+            auto tupleChargeState_2 = std::make_tuple(u8(1u), 100._X, 5._X);
+            chargeStateHostBox.store(u8(1u), tupleChargeState_2);
             chargeStateBuffer->hostToDevice();
 
             /// atomic states, @attention caution all atomic state must differ in configNumber
@@ -135,17 +136,17 @@ namespace picongpu::particles::atomicPhysics::debug
 
             // 1:(1,1,0,0,0,0,1,0,1,0) lowerStateBoundFree
             auto tupleAtomicState_1 = std::make_tuple(static_cast<uint64_t>(243754u), 0._X);
-            atomicStateHostBox.store(static_cast<uint8_t>(1u), tupleAtomicState_1);
+            atomicStateHostBox.store(u8(1u), tupleAtomicState_1);
             // 2:(1,1,0,0,0,0,1,0,0,0) upperStateBoundFree, excitationEnergyDifference = 5 eV
             auto tupleAtomicState_2 = std::make_tuple(static_cast<uint64_t>(9379u), 5._X);
-            atomicStateHostBox.store(static_cast<uint8_t>(3u), tupleAtomicState_2);
+            atomicStateHostBox.store(u8(3u), tupleAtomicState_2);
 
             // 1:(1,0,2,0,0,0,1,0,0,0) lowerStateBoundBound
             auto tupleAtomicState_3 = std::make_tuple(static_cast<uint64_t>(9406u), 0._X);
-            atomicStateHostBox.store(static_cast<uint8_t>(0u), tupleAtomicState_3);
+            atomicStateHostBox.store(u8(0u), tupleAtomicState_3);
             // 1:(1,0,1,0,0,0,1,0,1,0) upperStateBoundBound, energyDiffLowerUpper = 5 eV
             auto tupleAtomicState_4 = std::make_tuple(static_cast<uint64_t>(243766u), 5._X);
-            atomicStateHostBox.store(static_cast<uint8_t>(2u), tupleAtomicState_4);
+            atomicStateHostBox.store(u8(2u), tupleAtomicState_4);
             atomicStateBuffer->hostToDevice();
 
             // bound-bound transitions
@@ -243,7 +244,7 @@ namespace picongpu::particles::atomicPhysics::debug
             float_X const crossSection = rateCalculation::BoundBoundTransitionRates<T_n_max>::
                 template collisionalBoundBoundCrossSection<S_AtomicStateBox, S_BoundBoundBox, true>(
                     energyElectron,
-                    static_cast<uint32_t>(0u),
+                    u32(0u),
                     atomicStateBuffer->getHostDataBox(),
                     boundBoundBuffer->getHostDataBox()); // 1e6b
 

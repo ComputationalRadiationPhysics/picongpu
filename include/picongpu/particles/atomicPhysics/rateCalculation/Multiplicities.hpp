@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BinomialCoefficient.hpp"
 
 #include <pmacc/algorithms/math.hpp>
@@ -51,7 +52,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             //  number configurations over number electrons
             result *= picongpu::particles::atomicPhysics::rateCalculation::binomialCoefficient(
                 // 2*n^2, number of atomic configurations in (i+1)-th shell
-                static_cast<uint8_t>(2u) * pmacc::math::cPow(i + static_cast<uint8_t>(1u), static_cast<uint8_t>(2u)),
+                u8(2u) * pmacc::math::cPow(i + u8(1u), u8(2u)),
                 // k, number electrons in the (i+1)-th shell
                 levelVector[i]);
         }

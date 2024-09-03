@@ -136,7 +136,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                 = T_IPDModel::template calculateIPD<T_ChargeStateDataBox::atomicNumber>(
                     superCellFieldIndex,
                     ipdInputBoxes...);
-            kernelState.foundUnbound = static_cast<uint32_t>(false);
+            kernelState.foundUnbound = u32(false);
         }
     };
 
@@ -205,7 +205,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                 alpaka::atomicExch(
                     worker.getAcc(),
                     &kernelState.foundUnbound,
-                    static_cast<uint32_t>(true),
+                    u32(true),
                     ::alpaka::hierarchy::Threads{});
             }
 
@@ -265,7 +265,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             T_IPDInputBoxes const...)
         {
             uint32_t& foundUnbound = localFoundUnboundIonBox(superCellFieldIndex);
-            foundUnbound = foundUnbound || static_cast<uint32_t>(kernelState.foundUnbound);
+            foundUnbound = foundUnbound || u32(kernelState.foundUnbound);
         }
     };
 

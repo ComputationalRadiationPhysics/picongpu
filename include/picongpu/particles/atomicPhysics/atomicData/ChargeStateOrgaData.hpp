@@ -95,7 +95,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         HINLINE void store(uint32_t const collectionIndex, T_Number numberAtomicStates, T_Number startIndex)
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_LOAD)
-                if(collectionIndex > static_cast<uint32_t>(T_atomicNumber))
+                if(collectionIndex > u32(T_atomicNumber))
                 {
                     throw std::runtime_error("atomicPhysics ERROR: out of range call store() chargeState orga data");
                     return;
@@ -109,7 +109,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         HDINLINE T_Number numberAtomicStates(uint8_t chargeState) const
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_QUERIES)
-                if(chargeState > static_cast<uint32_t>(T_atomicNumber))
+                if(chargeState > u32(T_atomicNumber))
                 {
                     printf("atomicPhysics ERROR: out of range chargeStateOrgaData.numberAtomicStates() call\n");
                     return static_cast<T_Number>(0._X);
@@ -122,7 +122,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         HDINLINE T_Number startIndexBlockAtomicStates(uint8_t chargeState) const
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_QUERIES)
-                if(chargeState > static_cast<uint32_t>(T_atomicNumber))
+                if(chargeState > u32(T_atomicNumber))
                 {
                     printf(
                         "atomicPhysics ERROR: out of range chargeStateOrgaData.startIndexBlockAtomicStates() call\n");

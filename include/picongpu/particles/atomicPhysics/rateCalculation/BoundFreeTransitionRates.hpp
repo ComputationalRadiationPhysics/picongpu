@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp" // need atomicPhysics_Debug.param
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/CollisionalRate.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/Multiplicities.hpp"
@@ -286,9 +287,9 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         //    LevelVector diffLevelVector = lowerStateLevelVector - upperStateLevelVector;
         //
         //    uint8_t shellIonizedElectron;
-        //    for (uint8_t i = static_cast<uint8_t>(0u); i < T_numberLevels; i++ )
+        //    for (uint8_t i = u8(0u); i < T_numberLevels; i++ )
         //    {
-        //        if (diffLevelVector[i] != static_cast<uint8_t>(0u))
+        //        if (diffLevelVector[i] != u8(0u))
         //        {
         //            shellIonizedElectron = i;
         //            break;
@@ -296,7 +297,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         //    }
         //
         //    if constexpr (ATOMIC_PYHSICS_RATE_CALCULATION_HOT_DEBUG)
-        //        if (diffLevelVector.sumOfComponents() != static_cast<uint8_t>(1u))
+        //        if (diffLevelVector.sumOfComponents() != u8(1u))
         //        {
         //            printf("atomicPhysics ERROR: rateADK assumption single electron ionization broken\n");
         //            return 0._X;
@@ -314,26 +315,26 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         //    electron)`*/ float_X effectiveCharge = chargeStateDataBox.effectiveCharge(lowerStateChargeState) -
         //    upperStateLevelVector[shellIonizedElectron]; // e
         //
-        //    uint8_t n = shellIonizedElectron + static_cast<uint8_t>(1u);
+        //    uint8_t n = shellIonizedElectron + u8(1u);
         //    /* nameless variable for convenience dFromADK*/
-        //    float_X dBase = 4._X * pmacc::math::cPow(effectiveCharge, static_cast<uint8_t>(3u))
-        //        / (eFieldStrength_AtomicUnits * pmacc::math::cPow(n, static_cast<uint8_t>(4u)));
+        //    float_X dBase = 4._X * pmacc::math::cPow(effectiveCharge, u8(3u))
+        //        / (eFieldStrength_AtomicUnits * pmacc::math::cPow(n, u8(4u)));
         //    float_X const dFromADK = math::pow(dBase, n);
         //
         //    constexpr float_X pi = pmacc::math::Pi<float_X>::value;
         //    /* ionization rate (for CIRCULAR polarization)*/
-        //    float_X rateADK = eFieldStrength_AtomicUnits * pmacc::math::cPow(dFromADK, static_cast<uint8_t>(2u))
+        //    float_X rateADK = eFieldStrength_AtomicUnits * pmacc::math::cPow(dFromADK, u8(2u))
         //        / (8._X * pi * effectiveCharge)
-        //        * math::exp(-2._X * pmacc::math::cPow(effectiveCharge, static_cast<uint8_t>(3u))
-        //                    / (float_X(3.0) * pmacc::math::cPow(n, static_cast<uint8_t>(3u)) *
+        //        * math::exp(-2._X * pmacc::math::cPow(effectiveCharge, u8(3u))
+        //                    / (float_X(3.0) * pmacc::math::cPow(n, u8(3u)) *
         //                    eFieldStrength_AtomicUnits));
         //
         //    /* in case of linear polarization the rate is modified by an additional factor */
         //    if constexpr(T_linPol)
         //    {
         //        /* factor from averaging over one laser cycle with LINEAR polarization */
-        //        rateADK *= math::sqrt(float_X(3.0) * pmacc::math::cPow(n, static_cast<uint8_t>(3u)) *
-        //        eFieldStrength_AtomicUnits / (pi * pmacc::math::cPow(effectiveCharge, static_cast<uint8_t>(3u))));
+        //        rateADK *= math::sqrt(float_X(3.0) * pmacc::math::cPow(n, u8(3u)) *
+        //        eFieldStrength_AtomicUnits / (pi * pmacc::math::cPow(effectiveCharge, u8(3u))));
         //    }
         //
         //    return rateADK;

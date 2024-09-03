@@ -188,8 +188,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     [[maybe_unused]] auto const binWidth = cachedHistogram.binWidth[binIndex];
                     [[maybe_unused]] auto const density = cachedHistogram.density[binIndex];
 
-                    for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitionsUp;
-                        ++transitionID)
+                    for(uint32_t transitionID = u32(0u); transitionID < numberTransitionsUp; ++transitionID)
                     {
                         if constexpr(T_electronicIonization)
                         {

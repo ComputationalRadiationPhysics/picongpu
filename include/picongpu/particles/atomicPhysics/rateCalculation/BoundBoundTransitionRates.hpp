@@ -26,6 +26,7 @@
  *  - unit.param                      unit of time for normalization
  */
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/CollisionalRate.hpp"
@@ -245,16 +246,16 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
 
             // (unitless * m)^2 / (unitless * m^2/1e6b) = m^2 / m^2 * 1e6b = 1e6b
             constexpr float_X scalingConstant = static_cast<float_X>(
-                8. * pmacc::math::cPow(picongpu::PI * picongpu::SI::BOHR_RADIUS, static_cast<uint8_t>(2u))
+                8. * pmacc::math::cPow(picongpu::PI * picongpu::SI::BOHR_RADIUS, u8(2u))
                 / (1.e-22)); // [1e6b], ~ 2211,01 * 1e6b
             // 1e6b
-            constexpr float_X constantPart = scalingConstant
-                * static_cast<float_X>(pmacc::math::cPow(picongpu::SI::RYDBERG_ENERGY, static_cast<uint8_t>(2u)));
+            constexpr float_X constantPart
+                = scalingConstant * static_cast<float_X>(pmacc::math::cPow(picongpu::SI::RYDBERG_ENERGY, u8(2u)));
             // [1e6b * (eV)^2]
 
             // 1e6b*(eV)^2 / (eV)^2 * unitless * (eV)/(eV) * unitless = 1e6b
             float_X crossSection_butGaunt = constantPart / math::sqrt(3._X)
-                / pmacc::math::cPow(energyDifference, static_cast<uint8_t>(2u)) * collisionalOscillatorStrength
+                / pmacc::math::cPow(energyDifference, u8(2u)) * collisionalOscillatorStrength
                 * (energyDifference / energyElectron);
             // [1e6b]
 

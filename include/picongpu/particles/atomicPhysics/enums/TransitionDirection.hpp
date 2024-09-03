@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -38,11 +40,9 @@ namespace picongpu::particles::atomicPhysics
     template<enums::TransitionDirection T_TransitionDirection>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(
-            static_cast<uint8_t>(T_TransitionDirection) == static_cast<uint8_t>(enums::TransitionDirection::upward))
+        if constexpr(u8(T_TransitionDirection) == u8(enums::TransitionDirection::upward))
             return "upward";
-        if constexpr(
-            static_cast<uint8_t>(T_TransitionDirection) == static_cast<uint8_t>(enums::TransitionDirection::downward))
+        if constexpr(u8(T_TransitionDirection) == u8(enums::TransitionDirection::downward))
             return "downward";
         return "unknown";
     }

@@ -91,7 +91,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                 = localRejectionProbabilityCacheBox(superCellFieldIdx);
 
             // reset to initial value
-            onlyMaster([&histogramOverSubscribed]() { histogramOverSubscribed = static_cast<uint32_t>(false); });
+            onlyMaster([&histogramOverSubscribed]() { histogramOverSubscribed = u32(false); });
             worker.sync();
 
             /* check all bins for overSubscription
@@ -120,7 +120,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         alpaka::atomicExch(
                             worker.getAcc(),
                             &histogramOverSubscribed,
-                            static_cast<uint32_t>(true),
+                            u32(true),
                             ::alpaka::hierarchy::Threads{});
                     }
                     else
