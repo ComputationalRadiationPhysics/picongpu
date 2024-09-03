@@ -104,7 +104,7 @@ struct TestWindowFunction
                     {
                         auto windowFunc = T_WindowFunction{};
 
-                        result[valueIdx] = windowFunc(positions[valueIdx], lx[valueIdx]);
+                        result[valueIdx] = windowFunc(positions[valueIdx] * lx[valueIdx], lx[valueIdx]);
                     }
                 });
         };
@@ -123,7 +123,7 @@ struct TestWindowFunction
         {
             auto pos = inCellPositionBuffer.getDataBox()[i];
             auto lx = inLxBuffer.getDataBox()[i];
-            auto hostVal = T_WindowFunction{}(pos, lx);
+            auto hostVal = T_WindowFunction{}(pos * lx, lx);
             auto isCorrect = isApproxEqual(hostVal, res[i]);
             if(!isCorrect)
                 std::cerr << "pos=" << pos << " lx=" << lx << " result=" << res[i] << std::endl;

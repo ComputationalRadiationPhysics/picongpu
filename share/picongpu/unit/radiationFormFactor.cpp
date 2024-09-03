@@ -23,6 +23,7 @@
 
 // STL
 #include <pmacc/Environment.hpp>
+#include <pmacc/algorithms/math.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/ConstVector.hpp>
@@ -37,21 +38,6 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <picongpu/param/precision.param>
-
-/* Values must be defined because they are required by the radiation functions.
- * Typically these values coming from simulation_defines but we try to avoid including these in unit tests.
- */
-namespace picongpu
-{
-    constexpr picongpu::float_X SPEED_OF_LIGHT = 1.0;
-    constexpr picongpu::float_X CELL_WIDTH = 2.0;
-    constexpr picongpu::float_X CELL_HEIGHT = 3.0;
-    constexpr picongpu::float_X CELL_DEPTH = 4.0;
-    constexpr picongpu::float_X DELTA_T = 5.0;
-
-    PMACC_CONST_VECTOR(picongpu::float_X, TEST_DIM, cellSize, CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH);
-} // namespace picongpu
-
 #include <picongpu/plugins/radiation/VectorTypes.hpp>
 #include <picongpu/plugins/radiation/radFormFactor.hpp>
 #include <picongpu/plugins/radiation/vector.hpp>
@@ -93,22 +79,35 @@ struct TestFormFactor
      * @param inMacroWeightingBuffer Buffer with makro particle weighting [0.0;Inf)
      */
     template<typename T_OmegaBuffer, typename T_MacroWeightingBUffer>
-    void operator()(T_OmegaBuffer& inOmegaBuffer, T_MacroWeightingBUffer& inMacroWeightingBuffer)
+    void operator()(
+        T_OmegaBuffer& inOmegaBuffer,
+        T_OmegaBuffer& inPhiBuffer,
+        T_OmegaBuffer& inThetaBuffer,
+        T_MacroWeightingBUffer& inMacroWeightingBuffer)
     {
         std::cout << "Test form factor function" << typeid(T_FormFactorFunctions).name() << std::endl;
         ::pmacc::DeviceBuffer<float_X, 1u> deviceInOmegaBuffer(numValues);
+        ::pmacc::DeviceBuffer<float_X, 1u> deviceInPhiBuffer(numValues);
+        ::pmacc::DeviceBuffer<float_X, 1u> deviceInThetaBuffer(numValues);
         ::pmacc::DeviceBuffer<float_X, 1u> deviceInMacroWeightingBuffer(numValues);
 
         ::pmacc::HostBuffer<float_X, 1u> resultHost(numValues);
         ::pmacc::DeviceBuffer<float_X, 1u> resultDevice(numValues);
 
         deviceInOmegaBuffer.copyFrom(inOmegaBuffer);
+        deviceInPhiBuffer.copyFrom(inPhiBuffer);
+        deviceInThetaBuffer.copyFrom(inThetaBuffer);
         deviceInMacroWeightingBuffer.copyFrom(inMacroWeightingBuffer);
 
         resultDevice.setValue(0.0_X);
 
-        auto shapeTestKernel
-            = [this] DEVICEONLY(auto const& worker, auto const& omega, auto const& weighting, auto result)
+        auto shapeTestKernel = [this] DEVICEONLY(
+                                   auto const& worker,
+                                   auto const& omega,
+                                   auto const& phi,
+                                   auto const& theta,
+                                   auto const& weighting,
+                                   auto result)
         {
             auto blockIdx = worker.blockDomIdxND().x();
 
@@ -122,9 +121,13 @@ struct TestFormFactor
                     if(valueIdx < numValues)
                     {
                         float_X const omg = omega[valueIdx];
-                        auto const windowFunc = T_FormFactorFunctions{omg, {1.0, 1.0, 1.0}};
+                        auto const formFactorFunc = T_FormFactorFunctions{
+                            omg,
+                            {math::cos(phi[valueIdx]) * math::sin(theta[valueIdx]),
+                             math::sin(phi[valueIdx]) * math::sin(theta[valueIdx]),
+                             math::cos(theta[valueIdx])}};
 
-                        result[valueIdx] = windowFunc(weighting[valueIdx]);
+                        result[valueIdx] = formFactorFunc(weighting[valueIdx]);
                     }
                 });
         };
@@ -133,6 +136,8 @@ struct TestFormFactor
         PMACC_LOCKSTEP_KERNEL(shapeTestKernel)
             .template config<elemPerBlock>(numBlocks)(
                 deviceInOmegaBuffer.getDataBox(),
+                deviceInPhiBuffer.getDataBox(),
+                deviceInThetaBuffer.getDataBox(),
                 deviceInMacroWeightingBuffer.getDataBox(),
                 resultDevice.getDataBox());
 
@@ -142,11 +147,16 @@ struct TestFormFactor
         for(uint32_t i = 0u; i < numValues; ++i)
         {
             auto omega = inOmegaBuffer.getDataBox()[i];
+            auto phi = inPhiBuffer.getDataBox()[i];
+            auto theta = inThetaBuffer.getDataBox()[i];
             auto weighting = inMacroWeightingBuffer.getDataBox()[i];
-            auto hostVal = T_FormFactorFunctions(omega, {1.0, 1.0, 1.0})(weighting);
+            auto hostVal = T_FormFactorFunctions(
+                omega,
+                {math::cos(phi) * math::sin(theta), math::sin(phi) * math::sin(theta), math::cos(theta)})(weighting);
             auto isCorrect = isApproxEqual(hostVal, res[i]);
             if(!isCorrect)
-                std::cerr << "omega=" << omega << " weighting=" << weighting << " result=" << res[i] << std::endl;
+                std::cerr << "omega=" << omega << " phi=" << phi << " theta=" << theta << " weighting=" << weighting
+                          << " result=" << res[i] << std::endl;
             REQUIRE(isCorrect);
         }
     }
@@ -155,17 +165,25 @@ struct TestFormFactor
 TEST_CASE("unit::windowFormFactor", "[radiation window formfactor test]")
 {
     ::pmacc::HostBuffer<float_X, 1u> inOmegaBuffer(numValues);
+    ::pmacc::HostBuffer<float_X, 1u> inPhiBuffer(numValues);
+    ::pmacc::HostBuffer<float_X, 1u> inThetaBuffer(numValues);
     ::pmacc::HostBuffer<float_X, 1u> inMacroWeightingBuffer(numValues);
 
     std::mt19937 mt(42.0);
     std::uniform_real_distribution<> dist(0.0, 999999.0);
+    std::uniform_real_distribution<> phiDist(0.0, pmacc::math::Pi<float_X>::doubleValue);
+    std::uniform_real_distribution<> thetaDist(0.0, pmacc::math::Pi<float_X>::value);
 
     auto omegaBox = inOmegaBuffer.getDataBox();
+    auto phiBox = inPhiBuffer.getDataBox();
+    auto thetaBox = inThetaBuffer.getDataBox();
     auto weightingBox = inMacroWeightingBuffer.getDataBox();
     // provide random in cell positions
     for(uint32_t i = 0u; i < numValues; ++i)
     {
         omegaBox[i] = dist(mt);
+        phiBox[i] = phiDist(mt);
+        thetaBox[i] = thetaDist(mt);
         weightingBox[i] = dist(mt);
     }
 
@@ -180,5 +198,9 @@ TEST_CASE("unit::windowFormFactor", "[radiation window formfactor test]")
         plugins::radiation::radFormFactor_incoherent::RadFormFactor,
         plugins::radiation::radFormFactor_coherent::RadFormFactor>;
 
-    meta::ForEach<FormFactorFunctions, TestFormFactor<>>{}(inOmegaBuffer, inMacroWeightingBuffer);
+    meta::ForEach<FormFactorFunctions, TestFormFactor<>>{}(
+        inOmegaBuffer,
+        inPhiBuffer,
+        inThetaBuffer,
+        inMacroWeightingBuffer);
 }
