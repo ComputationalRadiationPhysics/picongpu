@@ -46,18 +46,6 @@ namespace picongpu::particles
              */
             static constexpr uint32_t numParticlesPerCell = 10u;
         };
-
-        struct OnePositionParameter
-        {
-            /** Count of particles per cell at initial state
-             *  unit: none
-             */
-            static constexpr uint32_t numParticlesPerCell = 1u;
-            // sit directly in lower corner of the cell
-            // each x, y, z in-cell position component in range [0.0, 1.0)
-            static constexpr auto inCellOffset = float3_X(0.0, 0.0, 0.0);
-        };
-        using OnePosition = OnePositionImpl<OnePositionParameter>;
         using Random10ppc = RandomImpl<RandomParameter10ppc>;
     } // namespace startPosition
 
@@ -71,17 +59,7 @@ namespace picongpu::particles
         };
         using Assign200keVDrift = unary::Drift<Drift200keVParam, pmacc::math::operation::Assign>;
 
-        struct TemperatureParam
-        {
-            /** Initial temperature
-             *  unit: keV
-             */
-            static constexpr float_64 temperature = 1.;
-        };
-        using AddTemperature = unary::Temperature<TemperatureParam>;
-
         // definition of set initial ionization
         using SetIonization = unary::ChargeState<16u>;
-
     } // namespace manipulators
 } // namespace picongpu::particles
