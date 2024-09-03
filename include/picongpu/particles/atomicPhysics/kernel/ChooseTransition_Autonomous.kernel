@@ -56,7 +56,7 @@ namespace picongpu::particles::atomicPhysics::kernel
          * @param areMapping mapping of blockIndex to block superCell index
          * @param rngFactoryFloat factory for uniformly distributed random number generator, for float_X [0,1)
          * @param numberTransitionsBox deviceDataBox giving access to the number of
-         *  bound-free transitions for each atomic state
+         *  autonomous transitions for each atomic state
          * @param startIndexBox deviceDataBox giving access to the start index of each
          *  atomic states block of transitions
          * @param transitionDataBox deviceDataBox giving access to autonomous
@@ -80,7 +80,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_RngGeneratorFactoryFloat rngFactoryFloat,
-            /// @todo we strictly speaking only need autonomousDownward chooseTransitionGroup, Brian Marre, 2023
+            /// @todo strictly speaking, we only need autonomousDownward chooseTransitionGroup, Brian Marre, 2023
             T_AtomicStateAutonomousNumberTransitionsDataBox const numberTransitionsBox,
             T_AtomicStateAutonomousStartIndexBlockDataBox const startIndexBox,
             T_AutonomousTransitionDataBox const transitionDataBox,
