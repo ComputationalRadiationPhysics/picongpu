@@ -23,7 +23,7 @@
 // need: picongpu/param/atomicPhysics_Debug.param
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSet.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionType.hpp"
 
@@ -47,10 +47,10 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
         static constexpr uint32_t numberAtomicStates = T_numberAtomicStates;
         // we do not store noChange since noChange is always reminder to 1
         static constexpr uint32_t numberStoredDataSets
-            = particles::atomicPhysics::enums::numberTransitionDataSets - 1u;
+            = particles::atomicPhysics::enums::numberChooseTransitionGroups - 1u;
 
     private:
-        // partial sums of rates for each atomic state, one for each TransitionDataSet except noChange
+        // partial sums of rates for each atomic state, one for each ChooseTransitionGroup except noChange
         // 1/UNIT_TIME
         float_X rateEntries[T_numberAtomicStates * numberStoredDataSets] = {0};
         uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
@@ -82,15 +82,15 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
          *
          * @attention no range checks outside a debug compile, invalid memory write on failure
          */
-        template<typename T_Worker, particles::atomicPhysics::enums::TransitionDataSet T_TransitionDataSet>
+        template<typename T_Worker, particles::atomicPhysics::enums::ChooseTransitionGroup T_ChooseTransitionGroup>
         HDINLINE void add(T_Worker const& worker, uint32_t const collectionIndex, float_X rate)
         {
             PMACC_CASSERT_MSG(
-                noChange_not_allowed_as_T_TransitionDataSet,
-                u32(T_TransitionDataSet) != u32(particles::atomicPhysics::enums::TransitionDataSet::noChange));
+                noChange_not_allowed_as_T_ChooseTransitionGroup,
+                u32(T_ChooseTransitionGroup) != u32(particles::atomicPhysics::enums::ChooseTransitionGroup::noChange));
             PMACC_CASSERT_MSG(
-                unknown_T_TransitionDataSet,
-                u32(T_TransitionDataSet) < particles::atomicPhysics::enums::numberTransitionDataSets);
+                unknown_T_ChooseTransitionGroup,
+                u32(T_ChooseTransitionGroup) < particles::atomicPhysics::enums::numberChooseTransitionGroups);
 
             if constexpr(picongpu::atomicPhysics::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
@@ -101,14 +101,14 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
 
             alpaka::atomicAdd(
                 worker.getAcc(),
-                &(this->rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))]),
+                &(this->rateEntries[linearIndex(collectionIndex, u32(T_ChooseTransitionGroup))]),
                 rate,
                 ::alpaka::hierarchy::Threads{});
         }
 
         /** add to cache entry, no atomics
          *
-         * @tparam T_TransitionDataSet TransitionDataSet to add rate to
+         * @tparam T_ChooseTransitionGroup ChooseTransitionGroup to add rate to
          *
          * @param collectionIndex collection Index of atomic state to add rate to
          * @param rate rate of transition, [1/UNIT_TIME]
@@ -116,15 +116,15 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
          * @attention no range checks outside a debug compile, invalid memory write on failure
          * @attention only use if only ever one thread accesses each rate cache entry!
          */
-        template<particles::atomicPhysics::enums::TransitionDataSet T_TransitionDataSet>
+        template<particles::atomicPhysics::enums::ChooseTransitionGroup T_ChooseTransitionGroup>
         HDINLINE void add(uint32_t const collectionIndex, float_X rate)
         {
             PMACC_CASSERT_MSG(
-                noChange_not_allowed_as_T_TransitionDataSet,
-                u32(T_TransitionDataSet) != u32(particles::atomicPhysics::enums::TransitionDataSet::noChange));
+                noChange_not_allowed_as_T_ChooseTransitionGroup,
+                u32(T_ChooseTransitionGroup) != u32(particles::atomicPhysics::enums::ChooseTransitionGroup::noChange));
             PMACC_CASSERT_MSG(
-                unknown_T_TransitionDataSet,
-                u32(T_TransitionDataSet) < particles::atomicPhysics::enums::numberTransitionDataSets);
+                unknown_T_ChooseTransitionGroup,
+                u32(T_ChooseTransitionGroup) < particles::atomicPhysics::enums::numberChooseTransitionGroups);
 
             if constexpr(picongpu::atomicPhysics::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
@@ -133,7 +133,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
                     return;
                 }
 
-            rateEntries[linearIndex(collectionIndex, u32(T_TransitionDataSet))] += rate;
+            rateEntries[linearIndex(collectionIndex, u32(T_ChooseTransitionGroup))] += rate;
             return;
         }
 
@@ -158,31 +158,32 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
 
         /** get cached rate for an atomic state
          *
-         * @param transitionDataSetIndex collectionIndex of transitionDataSet to get rate for
+         * @param chooseTransitionGroupIndex collectionIndex of chooseTransitionGroup to get rate for
          * @param collectionIndex collection index of atomic state to get rate for
          * @return rate of transition, [1/UNIT_TIME], 0 if unknown T_TransitionType T_TransitionDirection combination
          *
          * @attention no range checks outside a debug compile, invalid memory access on failure
          * @attention returns invalid value if state not present
          */
-        HDINLINE float_X rate(uint32_t const transitionDataSetIndex, uint32_t const collectionIndex) const
+        HDINLINE float_X rate(uint32_t const chooseTransitionGroupIndex, uint32_t const collectionIndex) const
         {
             if constexpr(picongpu::atomicPhysics::debug::rateCache::TRANSITION_DATA_SET_INDEX_RANGE_CHECKS)
             {
-                if(transitionDataSetIndex
-                   == u8(picongpu::particles::atomicPhysics::enums::TransitionDataSet::noChange))
+                if(chooseTransitionGroupIndex
+                   == u8(picongpu::particles::atomicPhysics::enums::ChooseTransitionGroup::noChange))
                 {
-                    printf("atomicPhysics ERROR: noChange not allowed as transitionDataSet in rate() call\n");
+                    printf("atomicPhysics ERROR: noChange not allowed as chooseTransitionGroup in rate() call\n");
                     return 0._X;
                 }
-                if(transitionDataSetIndex >= u8(picongpu::particles::atomicPhysics::enums::numberTransitionDataSets))
+                if(chooseTransitionGroupIndex
+                   >= u8(picongpu::particles::atomicPhysics::enums::numberChooseTransitionGroups))
                 {
-                    printf("atomicPhysics ERROR: unknown transitionDataSet index in rate() call\n");
+                    printf("atomicPhysics ERROR: unknown chooseTransitionGroup index in rate() call\n");
                     return 0._X;
                 }
             }
 
-            return rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)];
+            return rateEntries[linearIndex(collectionIndex, chooseTransitionGroupIndex)];
         }
 
         /** get cached total loss rate for an atomic state
@@ -203,10 +204,10 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
                 }
 
             float_X totalLossRate = 0._X;
-            for(uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < numberStoredDataSets;
-                ++transitionDataSetIndex)
+            for(uint32_t chooseTransitionGroupIndex = 0u; chooseTransitionGroupIndex < numberStoredDataSets;
+                ++chooseTransitionGroupIndex)
             {
-                totalLossRate += rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)];
+                totalLossRate += rateEntries[linearIndex(collectionIndex, chooseTransitionGroupIndex)];
             }
             return totalLossRate;
         }
@@ -247,10 +248,11 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
                 if(this->present(collectionIndex))
                 {
                     std::cout << "\t" << collectionIndex << "[";
-                    for(uint32_t transitionDataSetIndex = 0u; transitionDataSetIndex < (numberStoredDataSets - 1u);
-                        ++transitionDataSetIndex)
+                    for(uint32_t chooseTransitionGroupIndex = 0u;
+                        chooseTransitionGroupIndex < (numberStoredDataSets - 1u);
+                        ++chooseTransitionGroupIndex)
                     {
-                        std::cout << rateEntries[linearIndex(collectionIndex, transitionDataSetIndex)] << ", ";
+                        std::cout << rateEntries[linearIndex(collectionIndex, chooseTransitionGroupIndex)] << ", ";
                     }
                     // last dataSet
                     std::cout << rateEntries[linearIndex(collectionIndex, numberStoredDataSets - 1u)] << "]"

@@ -21,11 +21,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/CheckForInvalidTransitionType.hpp"
+#include "picongpu/particles/atomicPhysics/CheckForInvalidChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionDataSet.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrderingFor.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
@@ -56,7 +56,7 @@ namespace picongpu::particles::atomicPhysics::kernel
          * @param areMapping mapping of blockIndex to block superCell index
          * @param rngFactoryFloat factory for uniformly distributed random number generator, for float_X [0,1)
          * @param numberTransitionsBox deviceDataBox giving access to the number of
-         *  bound-free transitions for each atomic state
+         *  autonomous transitions for each atomic state
          * @param startIndexBox deviceDataBox giving access to the start index of each
          *  atomic states block of transitions
          * @param transitionDataBox deviceDataBox giving access to autonomous
@@ -80,7 +80,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
             T_RngGeneratorFactoryFloat rngFactoryFloat,
-            /// @todo we strictly speaking only need autonomousDownward dataSet, Brian Marre, 2023
+            /// @todo strictly speaking, we only need autonomousDownward chooseTransitionGroup, Brian Marre, 2023
             T_AtomicStateAutonomousNumberTransitionsDataBox const numberTransitionsBox,
             T_AtomicStateAutonomousStartIndexBlockDataBox const startIndexBox,
             T_AutonomousTransitionDataBox const transitionDataBox,
@@ -128,10 +128,10 @@ namespace picongpu::particles::atomicPhysics::kernel
                     auto& ion)
                 {
                     // debug
-                    checkForInvalidTransitionType(ion);
+                    checkForInvalidChooseTransitionGroup(ion);
 
                     bool const selectedAutonomousDownwardTransition
-                        = (ion[transitionIndex_] == u32(s_enums::TransitionDataSet::autonomousDownward));
+                        = (ion[transitionIndex_] == u32(s_enums::ChooseTransitionGroup::autonomousDownward));
                     if(ion[accepted_] || !selectedAutonomousDownwardTransition)
                         return;
 
@@ -153,7 +153,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     {
                         cumSum += transitionDataBox.rate(transitionID + startIndexTransitionBlock)
                             / rateCache.rate(
-                                u32(s_enums::TransitionDataSet::autonomousDownward),
+                                u32(s_enums::ChooseTransitionGroup::autonomousDownward),
                                 atomicStateCollectionIndex);
 
                         // inclusive limit, to make sure that r==1 is assigned a transition

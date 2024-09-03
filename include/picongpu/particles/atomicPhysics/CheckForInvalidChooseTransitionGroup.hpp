@@ -25,17 +25,17 @@
 
 namespace picongpu::particles::atomicPhysics
 {
-    //! check if TransitionType previously assigned by chooseTransitionType is valid
+    //! check if ChooseTransitionGroup previously assigned by ChooseTransitionGroupKernel is valid
     template<typename T_Ion>
-    HDINLINE void checkForInvalidTransitionType(T_Ion const ion)
+    HDINLINE void checkForInvalidChooseTransitionGroup(T_Ion const ion)
     {
         if constexpr(picongpu::atomicPhysics::debug::kernel::chooseTransition::CHECK_FOR_INVALID_TRANSITION_TYPE)
         {
-            constexpr uint32_t maxValueTransitionTypeIndex
-                = picongpu::particles::atomicPhysics::enums::numberTransitionDataSets;
+            constexpr uint32_t maxValueChooseTransitionGroupIndex
+                = picongpu::particles::atomicPhysics::enums::numberChooseTransitionGroups;
 
-            if(!ion[accepted_] && (ion[transitionIndex_] >= maxValueTransitionTypeIndex))
-                printf("atomicPhyiscs ERROR: detected invalid transitionType\n");
+            if(!ion[accepted_] && (ion[transitionIndex_] >= maxValueChooseTransitionGroupIndex))
+                printf("atomicPhyiscs ERROR: detected invalid chooseTransitionGroup\n");
         }
     }
 } // namespace picongpu::particles::atomicPhysics

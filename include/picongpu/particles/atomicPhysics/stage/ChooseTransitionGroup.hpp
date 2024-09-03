@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file chooseTransitionType sub-stage of atomicPhysics
+/** @file ChooseTransitionGroup sub-stage of atomicPhysics
  *
  * randomly choose one transitionType for each macro-ion
  */
@@ -26,7 +26,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/kernel/ChooseTransitionType.kernel"
+#include "picongpu/particles/atomicPhysics/kernel/ChooseTransitionGroup.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 
@@ -42,7 +42,7 @@ namespace picongpu::particles::atomicPhysics::stage
      * @tparam T_IonSpecies ion species type
      */
     template<typename T_IonSpecies>
-    struct ChooseTransitionType
+    struct ChooseTransitionGroup
     {
         // might be alias, from here on out no more
         //! resolved type of alias T_IonSpecies
@@ -75,8 +75,8 @@ namespace picongpu::particles::atomicPhysics::stage
             auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
             RngFactoryFloat rngFactoryFloat = RngFactoryFloat{currentStep};
 
-            using ChooseTransitionTypeKernel =
-                typename picongpu::particles::atomicPhysics::kernel::ChooseTransitionTypeKernel<
+            using ChooseTransitionGroupKernel =
+                typename picongpu::particles::atomicPhysics::kernel::ChooseTransitionGroupKernel<
                     RateCacheType,
                     AtomicDataType::switchElectronicExcitation,
                     AtomicDataType::switchElectronicDeexcitation,
@@ -84,7 +84,7 @@ namespace picongpu::particles::atomicPhysics::stage
                     AtomicDataType::switchAutonomousIonization,
                     AtomicDataType::switchElectronicIonization,
                     AtomicDataType::switchFieldIonization>;
-            PMACC_LOCKSTEP_KERNEL(ChooseTransitionTypeKernel())
+            PMACC_LOCKSTEP_KERNEL(ChooseTransitionGroupKernel())
                 .config(mapper.getGridDim(), ions)(
                     mapper,
                     rngFactoryFloat,
