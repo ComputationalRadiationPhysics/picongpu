@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 
@@ -84,9 +85,9 @@ namespace picongpu::particles::atomicPhysics::enums
     {
         HDINLINE static constexpr bool check(uint8_t processClass)
         {
-            if((processClass == static_cast<uint8_t>(ProcessClass::electronicIonization))
-               || (processClass == static_cast<uint8_t>(ProcessClass::autonomousIonization))
-               || (processClass == static_cast<uint8_t>(ProcessClass::fieldIonization)))
+            if((processClass == u8(ProcessClass::electronicIonization))
+               || (processClass == u8(ProcessClass::autonomousIonization))
+               || (processClass == u8(ProcessClass::fieldIonization)))
                 return true;
             return false;
         }

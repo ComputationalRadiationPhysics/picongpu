@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -45,13 +47,13 @@ namespace picongpu::particles::atomicPhysics
     template<enums::TransitionType T_TransitionType>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::boundBound))
+        if constexpr(u8(T_TransitionType) == u8(enums::TransitionType::boundBound))
             return "bound-bound";
-        if constexpr(static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::boundFree))
+        if constexpr(u8(T_TransitionType) == u8(enums::TransitionType::boundFree))
             return "bound-free";
-        if constexpr(static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::autonomous))
+        if constexpr(u8(T_TransitionType) == u8(enums::TransitionType::autonomous))
             return "autonomous";
-        if constexpr(static_cast<uint8_t>(T_TransitionType) == static_cast<uint8_t>(enums::TransitionType::noChange))
+        if constexpr(u8(T_TransitionType) == u8(enums::TransitionType::noChange))
             return "noChange";
         return "unknown";
     }
