@@ -82,7 +82,7 @@ struct ParticleStub
         return multiMaskValue;
     }
 
-    HDINLINE bool operator==(ParticleStub const& other) const
+    HINLINE bool operator==(ParticleStub const& other) const
     {
         return isApproxEqual(pos, other.pos) && localCellIdxValue == other.localCellIdxValue
             && multiMaskValue == other.multiMaskValue;
