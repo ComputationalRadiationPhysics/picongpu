@@ -27,62 +27,53 @@
 
 namespace picongpu
 {
-/*---------------------------- generic solver---------------------------------*/
+    /*---------------------------- generic solver---------------------------------*/
 
-/*! Particle Shape definitions -------------------------------------------------
- *  - particles::shapes::CIC : 1st order
- *  - particles::shapes::TSC : 2nd order
- *  - particles::shapes::PCS : 3rd order
- *  - particles::shapes::P4S : 4th order
- *
- *  example: using UsedParticleShape = particles::shapes::CIC;
- */
-#ifndef PARAM_PARTICLESHAPE
-#    define PARAM_PARTICLESHAPE CIC
-#endif
-    using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
+    /*! Particle Shape definitions -------------------------------------------------
+     *  - particles::shapes::CIC : 1st order
+     *  - particles::shapes::TSC : 2nd order
+     *  - particles::shapes::PCS : 3rd order
+     *  - particles::shapes::P4S : 4th order
+     *
+     *  example: using UsedParticleShape = particles::shapes::CIC;
+     */
+    using UsedParticleShape = particles::shapes::CIC;
 
     /* define which interpolation method is used to interpolate fields to particle*/
     using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-/*! select current solver method
- * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- * - currentSolver::EZ< SHAPE, STRATEGY >        : same as EmZ (just an alias to match the currently used naming)
- *
- * STRATEGY (optional):
- * - currentSolver::strategy::StridedCachedSupercells
- * - currentSolver::strategy::StridedCachedSupercellsScaled<N> with N >= 1
- * - currentSolver::strategy::CachedSupercells
- * - currentSolver::strategy::CachedSupercellsScaled<N> with N >= 1
- * - currentSolver::strategy::NonCachedSupercells
- * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
- */
-#ifndef PARAM_CURRENTSOLVER
-#    define PARAM_CURRENTSOLVER EmZ
-#endif
-    using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape>;
+    /*! select current solver method
+     * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     * - currentSolver::EZ< SHAPE, STRATEGY >        : same as EmZ (just an alias to match the currently used naming)
+     *
+     * STRATEGY (optional):
+     * - currentSolver::strategy::StridedCachedSupercells
+     * - currentSolver::strategy::StridedCachedSupercellsScaled<N> with N >= 1
+     * - currentSolver::strategy::CachedSupercells
+     * - currentSolver::strategy::CachedSupercellsScaled<N> with N >= 1
+     * - currentSolver::strategy::NonCachedSupercells
+     * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
+     */
+    using UsedParticleCurrentSolver = currentSolver::EmZ<UsedParticleShape>;
 
-/*! particle pusher configuration ----------------------------------------------
- *
- * Defining a pusher is optional for particles
- *
- * - particles::pusher::Vay : better suited relativistic boris pusher
- * - particles::pusher::Boris : standard boris pusher
- * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
- *                                              with classical radiation reaction
- *
- * For diagnostics & modeling: ------------------------------------------------
- * - particles::pusher::Free : free propagation, ignore fields
- *                             (= free stream model)
- * - particles::pusher::Photon : propagate with c in direction of normalized mom.
- * - particles::pusher::Probe : Probe particles that interpolate E & B
- * For development purposes: --------------------------------------------------
- * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
- */
-#ifndef PARAM_PARTICLEPUSHER
-#    define PARAM_PARTICLEPUSHER Boris
-#endif
-    using UsedParticlePusher = particles::pusher::PARAM_PARTICLEPUSHER;
+    /*! particle pusher configuration ----------------------------------------------
+     *
+     * Defining a pusher is optional for particles
+     *
+     * - particles::pusher::Vay : better suited relativistic boris pusher
+     * - particles::pusher::Boris : standard boris pusher
+     * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
+     *                                              with classical radiation reaction
+     *
+     * For diagnostics & modeling: ------------------------------------------------
+     * - particles::pusher::Free : free propagation, ignore fields
+     *                             (= free stream model)
+     * - particles::pusher::Photon : propagate with c in direction of normalized mom.
+     * - particles::pusher::Probe : Probe particles that interpolate E & B
+     * For development purposes: --------------------------------------------------
+     * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
+     */
+    using UsedParticlePusher = particles::pusher::Boris;
 
 } // namespace picongpu
