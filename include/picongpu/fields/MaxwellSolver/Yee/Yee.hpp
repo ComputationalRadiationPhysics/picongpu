@@ -51,11 +51,15 @@ namespace picongpu
                 {
                     // Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
                     constexpr auto dt = getTimeStep();
+                    constexpr auto cellSizeSimDim = sim.pic.getCellSize().shrink<simDim>();
+                    constexpr float_X invCellSizeSquaredSum
+                        = (1.0 / (cellSizeSimDim * cellSizeSimDim)).sumOfComponents();
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
-                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * INV_CELL2_SUM) <= 1.0 && sizeof(T_Defer*) != 0);
+                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * invCellSizeSquaredSum) <= 1.0
+                            && sizeof(T_Defer*) != 0);
 
-                    return 1.0_X / math::sqrt(INV_CELL2_SUM);
+                    return 1.0_X / math::sqrt(invCellSizeSquaredSum);
                 }
             };
 

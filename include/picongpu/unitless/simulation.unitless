@@ -197,15 +197,15 @@ namespace picongpu
             return TYPICAL_PARTICLES_PER_CELL;
         }
 
+        static constexpr uint32_t dim()
+        {
+            return simDim;
+        }
+
         static constexpr PicUnits pic{};
         static constexpr SiUnits si{};
         static constexpr Units unit{};
     };
 
     constexpr auto sim = Sim{};
-
-    // only used for CFL checks
-    constexpr float_X INV_CELL2_SUM
-        = (1.0 / (sim.pic.getCellSize().shrink<simDim>() * sim.pic.getCellSize().shrink<simDim>())).sumOfComponents();
-
 } // namespace picongpu
