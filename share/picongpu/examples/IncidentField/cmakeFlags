@@ -31,8 +31,11 @@
 
 # Test 3d and 2d
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
 
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
+fi
 
 ################################################################################
 # execution

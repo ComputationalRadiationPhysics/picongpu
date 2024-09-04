@@ -32,6 +32,12 @@ parser.add_argument(
     action="store_true",
     help="test only every second boost version",
 )
+parser.add_argument(
+    "--quick",
+    dest="quick_check",
+    action="store_true",
+    help="quick test where not each compiler chain is combined with all tests",
+)
 args = parser.parse_args()
 n_pairs = int(args.n_pairs)
 
@@ -258,7 +264,7 @@ rounds = 1
 # activate looping over the compiler categories to minimize the test matrix
 # a small test matrix for each compiler e.g. clang, nvcc, g++, clang,
 # clangCuda is created
-if n_pairs == 1:
+if n_pairs == 1 and not args.quick_check:
     rounds = len(compilers)
 
 
@@ -267,7 +273,7 @@ job_list = []
 # generate a list with all jobs
 for i in range(rounds):
     used_compilers = []
-    if n_pairs == 1:
+    if n_pairs == 1 and not args.quick_check:
         used_compilers = compilers[i]
     else:
         for c in compilers:

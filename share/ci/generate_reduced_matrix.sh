@@ -29,16 +29,25 @@ else
   echo "Label 'CI:no-compile' for the current CI job not set." >&2
 fi
 
+if [ -n "$QUICK_CI_TESTS" ] ; then
+  # For user PRs only run reduced set of tests.
+  # If a PR is merged to the `dev` branch a non-reduced test will be executed.
+  is_pr=$(echo "$CI_COMMIT_REF_NAME" | grep -q "^pr-" && echo 1 || echo 0)
+  if [ $is_pr -eq 1 ] ; then
+      ADDITIONAL_GENRATOR_FLAGS="--quick"
+  fi
+fi
+
 folders=()
 if [ "$PIC_INPUTS" == "pmacc" ] ; then
   # create test cases for PMacc
-  echo "pmacc" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version
+  echo "pmacc" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
 elif [ "$PIC_INPUTS" == "pmacc_header" ] ; then
     # create test cases for PMacc
-    echo "pmacc_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version
+    echo "pmacc_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
 elif [ "$PIC_INPUTS" == "unit" ] ; then
    # create test cases for PMacc
-   echo "unit" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version
+   echo "unit" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
 else
   # create test cases for PIConGPU
   for CASE in ${PIC_INPUTS}; do
@@ -52,5 +61,5 @@ else
     done
   done
 
-  echo "${folders[@]}" | tr " " "\n" | n_wise_generator.py $@
+  echo "${folders[@]}" | tr " " "\n" | n_wise_generator.py $@ $ADDITIONAL_GENRATOR_FLAGS
 fi

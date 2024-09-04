@@ -32,10 +32,11 @@
 # test all pushers in 3D and 2D
 # Boris Pusher
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
 
 # limit examles if we run CI tests
 if [ -z  "$CI_PROJECT_DIR" ] ; then
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
+
   # Vay Pusher
   flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PARTICLEPUSHER=Vay'"
   flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_PARTICLEPUSHER=Vay;-DPARAM_DIMENSION=DIM2'"

@@ -31,10 +31,13 @@
 
 # Yee solver is tested in the example FieldAbsorberTest
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit'"
-flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_DIMENSION=DIM2'"
 
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
+  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit'"
+  flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_DIMENSION=DIM2'"
+fi
 
 ################################################################################
 # execution
