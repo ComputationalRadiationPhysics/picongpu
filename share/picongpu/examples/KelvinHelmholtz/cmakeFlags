@@ -30,9 +30,12 @@
 #   - increase by 1, no gaps
 
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADIATION=1'"
 
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
+  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADIATION=1'"
+fi
 
 ################################################################################
 # execution

@@ -30,7 +30,11 @@
 #   - increase by 1, no gaps
 
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=ExpRampWithPrepulseBeam;-DPARAM_IONIZATIONCURRENT=EnergyConservation'"
+
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=ExpRampWithPrepulseBeam;-DPARAM_IONIZATIONCURRENT=EnergyConservation'"
+fi
 
 ################################################################################
 # execution
