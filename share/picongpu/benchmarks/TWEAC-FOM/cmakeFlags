@@ -31,12 +31,16 @@
 
 # use field background for laser generation (will not use incident field)
 flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELD_BACKGROUND=1'"
-# use incident field for laser generation (will not use field background and should be faster)
-# use full field calculation
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELD_BACKGROUND=0;-DPARAM_COMPONENTWISE=0'"
-# use incident field for laser generation (will not use field background and should be faster)
-# use componentwise field calculation (may be faster?)
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELD_BACKGROUND=0;-DPARAM_COMPONENTWISE=1'"
+
+# limit examles if we run CI tests
+if [ -z  "$CI_PROJECT_DIR" ] ; then
+  # use incident field for laser generation (will not use field background and should be faster)
+  # use full field calculation
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELD_BACKGROUND=0;-DPARAM_COMPONENTWISE=0'"
+  # use incident field for laser generation (will not use field background and should be faster)
+  # use componentwise field calculation (may be faster?)
+  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELD_BACKGROUND=0;-DPARAM_COMPONENTWISE=1'"
+fi
 
 ################################################################################
 # execution
