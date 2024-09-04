@@ -64,6 +64,7 @@ picongpu-generate-reduced-matrix_examples:
   variables:
     PIC_INPUTS: "examples"
     TEST_TUPLE_NUM_ELEM: 1
+    QUICK_CI_TESTS: 1
   extends: ".base_generate-reduced-matrix"
 
 picongpu-compile-reduced-matrix_examples:
@@ -78,6 +79,7 @@ picongpu-generate-reduced-matrix_tests:
   variables:
     PIC_INPUTS: "tests"
     TEST_TUPLE_NUM_ELEM: 1
+    QUICK_CI_TESTS: 1
   extends: ".base_generate-reduced-matrix"
 
 picongpu-compile-reduced-matrix_tests:
@@ -92,6 +94,7 @@ picongpu-generate-reduced-matrix_benchmarks:
   variables:
     PIC_INPUTS: "benchmarks"
     TEST_TUPLE_NUM_ELEM: 1
+    QUICK_CI_TESTS: 1
   extends: ".base_generate-reduced-matrix"
 
 picongpu-compile-reduced-matrix_benchmarks:
