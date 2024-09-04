@@ -97,6 +97,16 @@ namespace pmacc
              * @attention This constructor allows implicit casts.
              *
              * @param args value of each dimension, x,y,z,...
+             *
+             * A constexpr vector should be initialized with {} instead of () because at least
+             * CUDA 11.6 has problems in cases where a compile time evaluation is required.
+             * @code{.cpp}
+             *   constexpr auto vec1 = Vector{ 1 };
+             *   constexpr auto vec2 = Vector{ 1, 2 };
+             *   //or explicit
+             *   constexpr auto vec3 = Vector<int, 3u>{ 1, 2, 3 };
+             *   constexpr auto vec4 = Vector<int, 3u>{ {1, 2, 3} };
+             * @endcode
              */
             template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
             constexpr Vector(T_Args... args) : Storage(static_cast<T_Type>(args)...)
@@ -109,7 +119,7 @@ namespace pmacc
              */
             template<typename T_OtherStorage>
             constexpr Vector(const Vector<T_Type, T_dim, T_OtherStorage>& other)
-                : Vector([=](uint32_t const i) constexpr { return other[i]; })
+                : Vector([&](uint32_t const i) constexpr { return other[i]; })
             {
             }
 
@@ -118,7 +128,7 @@ namespace pmacc
                 typename T_OtherStorage,
                 typename = std::enable_if_t<std::is_convertible_v<T_OtherType, T_Type>>>
             constexpr explicit Vector(const Vector<T_OtherType, dim, T_OtherStorage>& other)
-                : Vector([=](uint32_t const i) constexpr { return static_cast<T_Type>(other[i]); })
+                : Vector([&](uint32_t const i) constexpr { return static_cast<T_Type>(other[i]); })
             {
             }
 
@@ -128,7 +138,7 @@ namespace pmacc
              */
             template<typename T_MemberType>
             constexpr explicit Vector(alpaka::Vec<::alpaka::DimInt<T_dim>, T_MemberType> const& alpakaVec)
-                : Vector([=](uint32_t const i) constexpr { return alpakaVec[T_dim - 1 - i]; })
+                : Vector([&](uint32_t const i) constexpr { return alpakaVec[T_dim - 1 - i]; })
             {
             }
 
@@ -473,14 +483,9 @@ namespace pmacc
         };
 
         // type deduction guide
-        template<typename... T_Args>
-        ALPAKA_FN_HOST_ACC Vector(T_Args... args)
-            ->Vector<
-                typename std::tuple_element<0, std::tuple<T_Args...>>::type,
-                uint32_t(sizeof...(T_Args)),
-                ArrayStorage<
-                    typename std::tuple_element<0, std::tuple<T_Args...>>::type,
-                    uint32_t(sizeof...(T_Args))>>;
+        template<typename T_1, typename... T_Args>
+        ALPAKA_FN_HOST_ACC Vector(T_1, T_Args...)
+            ->Vector<T_1, uint32_t(sizeof...(T_Args) + 1u), ArrayStorage<T_1, uint32_t(sizeof...(T_Args) + 1u)>>;
 
         template<typename Type, uint32_t dim, typename T_Storage>
         std::ostream& operator<<(std::ostream& s, const Vector<Type, dim, T_Storage>& vec)
