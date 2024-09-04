@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-// need grid.unitless for sim.pic.getCellSize().productOfComponents()
+// need simulation.unitless for sim.pic.getCellSize().productOfComponents()
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
