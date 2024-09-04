@@ -41,7 +41,7 @@ namespace picongpu
                      * Is the same for all directions.
                      * Note that the support is actually 1, but this shape is used only for
                      * certain operations and not as the main simulation shape, and so for
-                     * enabling more generic implementations is set to one.
+                     * enabling more generic implementations is set to zero.
                      */
                     static constexpr uint32_t support = 0;
                 };
