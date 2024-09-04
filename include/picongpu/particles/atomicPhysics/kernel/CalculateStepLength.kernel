@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 // need timeStepAlpha factor from atomicPhysics.param
-// need access to sim.pic.getDt() from grid.unitless
+// need access to sim.pic.getDt() from simulation.unitless
 
 #include <pmacc/lockstep/ForEach.hpp>
 
