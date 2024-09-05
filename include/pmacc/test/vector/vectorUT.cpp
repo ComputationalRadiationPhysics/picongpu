@@ -72,23 +72,6 @@ TEST_CASE("vector constructor generator", "[vector]")
     REQUIRE(hostDeviceBuffer.getHostBuffer().data()[1] == Vector<uint32_t, 3u>(0u, 2u, 4u).shrink<TEST_DIM>());
 }
 
-/** maps to static_assert() or assert() depending on the compiler
- *
- * compiler workaround nvcc 11.6
- *
- * error for `static_assert` in non constexpr functions is:
- *     expression must have a constant value
- *     note #2721-D: expression cannot be interpreted
- *
- *  known issue: performing tests with a release build will skip the tests where this macro is used
- */
-#if BOOST_COMP_NVCC && BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(11, 6, 0)                                              \
-    && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 7, 0)
-#    define STATIC_ASSERT(...) assert(__VA_ARGS__)
-#else
-#    define STATIC_ASSERT(...) static_assert(__VA_ARGS__)
-#endif
-
 /** define one dimensional vector compile time test cases for operator +,-,*,/ */
 struct CompileTimeKernel1D
 {
@@ -97,10 +80,10 @@ struct CompileTimeKernel1D
     {
         using namespace pmacc::math;
 
-        constexpr auto vec = Vector(3);
-        STATIC_ASSERT(vec.size() == 1);
-        STATIC_ASSERT(vec.x() == 3);
-        STATIC_ASSERT(vec == Vector(3));
+        constexpr auto vec = Vector{3};
+        static_assert(vec.size() == 1);
+        static_assert(vec.x() == 3);
+        static_assert(vec == Vector{3});
 
         constexpr auto typeLambda = [](auto const typeDummy) constexpr
         {
@@ -145,11 +128,11 @@ struct CompileTimeKernel2D
     {
         using namespace pmacc::math;
 
-        constexpr auto vec = Vector(3, 7);
-        STATIC_ASSERT(vec.size() == 2);
-        STATIC_ASSERT(vec.x() == 3 && vec.y() == 7);
-        STATIC_ASSERT(vec == Vector(3, 7));
-        STATIC_ASSERT(vec != Vector(7, 3));
+        constexpr auto vec = Vector{3, 7};
+        static_assert(vec.size() == 2);
+        static_assert(vec.x() == 3 && vec.y() == 7);
+        static_assert(vec == Vector{3, 7});
+        static_assert(vec != Vector{7, 3});
 
         constexpr auto typeLambda = [](auto const typeDummy) constexpr
         {
@@ -285,9 +268,9 @@ struct RunTimeKernel
         }
         {
             // revert vector
-            constexpr auto vec = Vector(42, 43);
+            constexpr auto vec = Vector{42, 43};
             constexpr auto vecRevert = vec.revert();
-            STATIC_ASSERT(vecRevert.size() == 2u);
+            static_assert(vecRevert.size() == 2u);
             data[i++] = vecRevert.x() == 43u && vecRevert.y() == 42u;
         }
         {
@@ -298,15 +281,15 @@ struct RunTimeKernel
             data[i++] = vecCopy.x() == 42u && vecCopy.y() == 43u;
         }
         {
-            constexpr auto vec = Vector<uint32_t, 2u>(42, 43);
+            constexpr auto vec = Vector<uint32_t, 2u>{42, 43};
             constexpr auto vecShrinked = vec.shrink<1u>();
-            STATIC_ASSERT(vecShrinked.size() == 1u);
+            static_assert(vecShrinked.size() == 1u);
             data[i++] = vecShrinked.x() == 42u;
         }
         {
-            constexpr auto vec = Vector<uint32_t, 2u>(42, 43);
+            constexpr auto vec = Vector<uint32_t, 2u>{42, 43};
             constexpr auto vecRemoved = vec.remove<1u>();
-            STATIC_ASSERT(vecRemoved.size() == 1u);
+            static_assert(vecRemoved.size() == 1u);
             data[i++] = vecRemoved.x() == 42u;
         }
         {
@@ -363,9 +346,9 @@ struct RunTimeKernel
         }
         {
             // modulo
-            constexpr auto vec = Vector(4, 3, 2);
+            constexpr auto vec = Vector{4, 3, 2};
             constexpr auto vec2 = vec % 2;
-            STATIC_ASSERT((vec2 == Vector<int, 3u>(0, 1, 0)));
+            static_assert(vec2 == Vector<int, 3u>{0, 1, 0});
             auto vecRuntime = Vector(4, 3, 2);
             auto vecRuntime2 = vecRuntime % 3;
             data[i++] = vecRuntime2 == Vector<int, 3u>(1, 0, 2);
