@@ -130,9 +130,10 @@ namespace picongpu
                          *
                          * This parameter is *not* optional, as it is in other Laser implementations.
                          *
-                         * unit: UNIT_TIME
+                         * unit:  sim.unit.time()
                          */
-                        static constexpr float_X TIME_DELAY = static_cast<float_X>(Params::TIME_DELAY_SI / UNIT_TIME);
+                        static constexpr float_X TIME_DELAY
+                            = static_cast<float_X>(Params::TIME_DELAY_SI / sim.unit.time());
                         PMACC_CASSERT_MSG(
                             _error_laser_time_delay_must_be_positive____check_your_incidentField_param_file,
                             (TIME_DELAY >= 0.0));
@@ -265,10 +266,10 @@ namespace picongpu
                                 extentOpenPMD[aligningAxisIndex[d]] = static_cast<int>(extentRaw[d]);
                                 dataBoxExtent(aligningAxisIndex[d]) = static_cast<float_X>(extentRaw[d]);
                                 dataBoxCellSize(aligningAxisIndex[d])
-                                    = static_cast<float_X>(cellSizeRaw[d] * mesh.gridUnitSI()) / UNIT_LENGTH;
+                                    = static_cast<float_X>(cellSizeRaw[d] * mesh.gridUnitSI()) / sim.unit.length();
                                 dataBoxOffset(aligningAxisIndex[d]) = 0.5_X
                                     * (static_cast<float_X>(extentPIC[aligningAxisIndex[d]] - 1)
-                                           * cellSize[aligningAxisIndex[d]]
+                                           * sim.pic.getCellSize()[aligningAxisIndex[d]]
                                        - (dataBoxExtent(aligningAxisIndex[d]) - 1.0_X)
                                            * dataBoxCellSize(aligningAxisIndex[d]));
                             }
@@ -307,7 +308,7 @@ namespace picongpu
                                 }
                                 hostFieldDataBox(openPMDIdx)
                                     = static_cast<float_X>(fieldData.get()[linearIdx] * meshRecord.unitSI())
-                                    / UNIT_EFIELD;
+                                    / sim.unit.eField();
                             }
 
                             /* If the transversal simulation window is smaller than the transversal DataBox extent,
@@ -420,7 +421,7 @@ namespace picongpu
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
                         HINLINE FromOpenPMDPulseFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
-                            : timeOriginPIC(currentStep * DELTA_T)
+                            : timeOriginPIC(currentStep * sim.pic.getDt())
                         {
                             // load data at timestep 0
                             auto& openPMDdata = OpenPMDdata<T_Params>::get();
@@ -486,7 +487,7 @@ namespace picongpu
                          */
                         HDINLINE float_X getValueE(floatD_X const& totalCellIdx) const
                         {
-                            auto const posPIC = totalCellIdx * cellSize; // position in simulation volume
+                            auto const posPIC = totalCellIdx * sim.pic.getCellSize(); // position in simulation volume
 
                             DataSpace<3u> internalAxisIndex = getInternalAxisIndex();
 
