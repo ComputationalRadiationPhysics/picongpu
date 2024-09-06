@@ -112,6 +112,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 
    dev/CONTRIBUTING.md
    dev/docs/COMMIT.md
+   dev/ci
    dev/repostructure
    dev/styleguide
    dev/sphinx
