@@ -27,7 +27,7 @@ cd $CI_PROJECT_DIR
 # use miniconda as python environment
 apt update && apt install -y curl
 cd /tmp/
-curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+curl -Ls https://github.com/mamba-org/micromamba-releases/releases/download/1.5.9-0/micromamba-linux-64.tar.bz2 | tar -xvj bin/micromamba
 export MAMBA_ROOT_PREFIX=/tmp/mamba-forge/
 mkdir -p "${MAMBA_ROOT_PREFIX}"
 eval "$(./bin/micromamba shell hook -s posix)"
@@ -38,7 +38,7 @@ micromamba config set channel_priority strict
 
 cd $CI_PROJECT_DIR
 # generates modified requirements.txt
-micromamba create -n pypicongpu python=${PYTHON_VERSION}
+micromamba create -n pypicongpu python=${PYTHON_VERSION} --ssl-verify false
 micromamba activate pypicongpu
 python3 --version
 MODIFIED_REQUIREMENT_TXT_PICMI=$CI_PROJECT_DIR/lib/python/picongpu/picmi/modified_requirements.txt
