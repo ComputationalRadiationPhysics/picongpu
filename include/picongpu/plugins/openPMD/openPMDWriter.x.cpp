@@ -1463,7 +1463,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // cellSize is {x, y, z} but fields are F[z][y][x]
                 std::vector<float_X> gridSpacing(simDim, 0.0);
                 for(uint32_t d = 0; d < simDim; ++d)
-                    gridSpacing.at(simDim - 1 - d) = cellSize[d];
+                    gridSpacing.at(simDim - 1 - d) = sim.pic.getCellSize()[d];
 
                 mesh.setGridSpacing(gridSpacing);
 
@@ -1479,11 +1479,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // globalDimensions is {x, y, z} but fields are F[z][y][x]
                 std::vector<float_64> gridGlobalOffset(simDim, 0.0);
                 for(uint32_t d = 0; d < simDim; ++d)
-                    gridGlobalOffset.at(simDim - 1 - d) = float_64(cellSize[d])
+                    gridGlobalOffset.at(simDim - 1 - d) = float_64(sim.pic.getCellSize()[d])
                         * float_64(params->window.globalDimensions.offset[d] + globalSlideOffset[d]);
 
                 mesh.setGridGlobalOffset(std::move(gridGlobalOffset));
-                mesh.setGridUnitSI(UNIT_LENGTH);
+                mesh.setGridUnitSI(sim.unit.length());
                 mesh.setAttribute("fieldSmoothing", "none");
             }
 

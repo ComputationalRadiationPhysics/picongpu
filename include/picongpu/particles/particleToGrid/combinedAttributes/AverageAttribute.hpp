@@ -44,7 +44,8 @@ namespace picongpu
                     const float1_X& dens) const
                 {
                     // avoid dividing by zero. Return zero if density is close to zero.
-                    if(dens[0] * static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME
+                    if(dens[0] * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle())
+                           * sim.pic.getCellSize().productOfComponents()
                        <= std::numeric_limits<float_X>::min())
                     {
                         dst = float1_X{0.0};
@@ -52,8 +53,9 @@ namespace picongpu
                     else
                     {
                         // average value is total value over number of particles
-                        // number of particles is density * CELL_VOLUME
-                        dst /= dens * static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * CELL_VOLUME;
+                        // number of particles is density * sim.pic.getCellSize().productOfComponents()
+                        dst /= dens * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle())
+                            * sim.pic.getCellSize().productOfComponents();
                     }
                 }
 

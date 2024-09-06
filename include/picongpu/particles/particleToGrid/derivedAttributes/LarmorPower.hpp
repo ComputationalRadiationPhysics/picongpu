@@ -39,7 +39,7 @@ namespace picongpu
             {
                 HDINLINE float1_64 LarmorPower::getUnit() const
                 {
-                    return UNIT_ENERGY;
+                    return sim.unit.energy();
                 }
 
                 template<class T_Particle>
@@ -65,7 +65,7 @@ namespace picongpu
                     const float_X gamma2 = gamma * gamma;
                     const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                    const float3_X mom_dt = (mom - mom_mt1) / float_X(DELTA_T);
+                    const float3_X mom_dt = (mom - mom_mt1) / float_X(sim.pic.getDt());
                     const float_X el_factor = charge * charge
                         / (float_X(6.0) * PI * EPS0 * c2 * SPEED_OF_LIGHT * mass * mass) * gamma2 * gamma2;
                     const float_X momentumToBetaConvert = float_X(1.0) / (mass * SPEED_OF_LIGHT * gamma);

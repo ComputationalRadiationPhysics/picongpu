@@ -53,7 +53,7 @@ namespace picongpu
             ::openPMD::Mesh::Geometry m_geometry = ::openPMD::Mesh::Geometry::cartesian;
             std::vector<float_64> m_gridGlobalOffset; // no default since it depends on time step
             std::vector<float_X> m_gridSpacing = initGridSpacing();
-            double m_gridUnitSI = UNIT_LENGTH;
+            double m_gridUnitSI = sim.unit.length();
             float_X m_timeOffset = 0.;
             std::map<::openPMD::UnitDimension, double> m_unitDimension{};
 
@@ -85,7 +85,7 @@ namespace picongpu
             std::vector<float_X> gridSpacing(simDim, 0.0);
             for(uint32_t d = 0; d < simDim; ++d)
             {
-                gridSpacing.at(simDim - 1 - d) = cellSize[d];
+                gridSpacing.at(simDim - 1 - d) = sim.pic.getCellSize()[d];
             }
             return gridSpacing;
         }
@@ -106,8 +106,8 @@ namespace picongpu
             globalSlideOffset.y() += numSlides * localDomain.size.y();
             for(uint32_t d = 0; d < simDim; ++d)
             {
-                gridGlobalOffset.at(simDim - 1 - d)
-                    = float_64(cellSize[d]) * float_64(movingWindow.globalDimensions.offset[d] + globalSlideOffset[d]);
+                gridGlobalOffset.at(simDim - 1 - d) = float_64(sim.pic.getCellSize()[d])
+                    * float_64(movingWindow.globalDimensions.offset[d] + globalSlideOffset[d]);
             }
             return gridGlobalOffset;
         }

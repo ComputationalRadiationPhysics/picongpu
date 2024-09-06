@@ -112,7 +112,7 @@ namespace picongpu
                 const float_32 mass = frame::getMass<FrameType>();
                 const auto densityRatio = traits::GetDensityRatio<T_Species>::type::getValue();
                 const auto density = BASE_DENSITY * densityRatio;
-                const auto omegaP_dt = sqrt(density * charge / mass * charge / EPS0) * DELTA_T;
+                const auto omegaP_dt = sqrt(density * charge / mass * charge / EPS0) * sim.pic.getDt();
                 log<picLog::PHYSICS>("species %2%: omega_p * dt <= 0.1 ? (omega_p * dt = %1%)") % omegaP_dt
                     % FrameType::getName();
             }
@@ -130,7 +130,7 @@ namespace picongpu
                 auto const dtName = std::string{isSubstepping ? "substepping_dt" : "dt"};
                 auto const cflMessage
                     = std::string{"Field solver condition: c * "} + dtName + " <= %1% ? (c * " + dtName + " = %2%)";
-                log<picLog::PHYSICS>(cflMessage.c_str()) % maxC_DT % (SPEED_OF_LIGHT * DELTA_T);
+                log<picLog::PHYSICS>(cflMessage.c_str()) % maxC_DT % (SPEED_OF_LIGHT * sim.pic.getDt());
 
                 printDispersionInformation();
 
@@ -149,17 +149,17 @@ namespace picongpu
                 log<picLog::PHYSICS>("macro particles per device: %1%")
                     % (localNrOfCells * TYPICAL_PARTICLES_PER_CELL * (pmacc::mp_size<VectorAllSpecies>::value));
                 log<picLog::PHYSICS>("typical macro particle weighting: %1%")
-                    % (TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                    % (sim.unit.typicalNumParticlesPerMacroParticle());
 
 
                 log<picLog::PHYSICS>("UNIT_SPEED %1%") % UNIT_SPEED;
-                log<picLog::PHYSICS>("UNIT_TIME %1%") % UNIT_TIME;
-                log<picLog::PHYSICS>("UNIT_LENGTH %1%") % UNIT_LENGTH;
-                log<picLog::PHYSICS>("UNIT_MASS %1%") % UNIT_MASS;
-                log<picLog::PHYSICS>("UNIT_CHARGE %1%") % UNIT_CHARGE;
-                log<picLog::PHYSICS>("UNIT_EFIELD %1%") % UNIT_EFIELD;
-                log<picLog::PHYSICS>("UNIT_BFIELD %1%") % UNIT_BFIELD;
-                log<picLog::PHYSICS>("UNIT_ENERGY %1%") % UNIT_ENERGY;
+                log<picLog::PHYSICS>("sim.unit.time() %1%") % sim.unit.time();
+                log<picLog::PHYSICS>("sim.unit.length() %1%") % sim.unit.length();
+                log<picLog::PHYSICS>("sim.unit.mass() %1%") % sim.unit.mass();
+                log<picLog::PHYSICS>("sim.unit.charge() %1%") % sim.unit.charge();
+                log<picLog::PHYSICS>("sim.unit.eField() %1%") % sim.unit.eField();
+                log<picLog::PHYSICS>("sim.unit.bField() %1%") % sim.unit.bField();
+                log<picLog::PHYSICS>("sim.unit.energy() %1%") % sim.unit.energy();
             }
         }
 

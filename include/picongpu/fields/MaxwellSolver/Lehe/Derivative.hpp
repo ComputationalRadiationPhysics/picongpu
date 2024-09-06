@@ -94,14 +94,16 @@ namespace picongpu
                         constexpr uint32_t dir1 = (dir0 + 1) % 3;
                         constexpr uint32_t dir2 = (dir0 + 2) % 3;
 
-                        float_64 const stepRatio = cellSize[dir0] / (SPEED_OF_LIGHT * DELTA_T);
+                        float_64 const stepRatio = sim.pic.getCellSize()[dir0] / (SPEED_OF_LIGHT * sim.pic.getDt());
                         float_64 const coeff = stepRatio
                             * math::sin(pmacc::math::Pi<float_64>::halfValue * float_64(SPEED_OF_LIGHT)
-                                        * float_64(DELTA_T) / float_64(cellSize[dir0]));
+                                        * float_64(sim.pic.getDt()) / float_64(sim.pic.getCellSize()[dir0]));
                         delta = static_cast<float_X>(0.25 * (1.0 - coeff * coeff));
                         // for 2D the betas corresponding to z are 0
-                        float_64 const stepRatio1 = dir1 < simDim ? cellSize[dir0] / cellSize[dir1] : 0.0;
-                        float_64 const stepRatio2 = dir2 < simDim ? cellSize[dir0] / cellSize[dir2] : 0.0;
+                        float_64 const stepRatio1
+                            = dir1 < simDim ? sim.pic.getCellSize()[dir0] / sim.pic.getCellSize()[dir1] : 0.0;
+                        float_64 const stepRatio2
+                            = dir2 < simDim ? sim.pic.getCellSize()[dir0] / sim.pic.getCellSize()[dir2] : 0.0;
                         float_64 const betaDir1 = 0.125 * stepRatio1 * stepRatio1;
                         float_64 const betaDir2 = 0.125 * stepRatio2 * stepRatio2;
                         alpha = static_cast<float_X>(1.0 - 2.0 * betaDir1 - 2.0 * betaDir2 - 3.0 * delta);
@@ -121,7 +123,8 @@ namespace picongpu
                         constexpr uint32_t dir2 = (dir0 + 2) % 3;
 
                         // cellSize is not constexpr currently, so make an own constexpr array
-                        constexpr float_X step[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
+                        constexpr float_X step[3]
+                            = {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), sim.pic.getCellSize().z()};
 
                         /* beta_xy and beta_xz from eq. (11), generic for any T_direction;
                          * for 2D the betas corresponding to z are 0

@@ -30,8 +30,8 @@ namespace picongpu
             //! units for linear frequencies distribution for transition radiation plugin
             namespace linearFrequencies
             {
-                constexpr float_X omegaMin = SI::omegaMin * UNIT_TIME;
-                constexpr float_X omegaMax = SI::omegaMax * UNIT_TIME;
+                constexpr float_X omegaMin = SI::omegaMin * sim.unit.time();
+                constexpr float_X omegaMax = SI::omegaMax * sim.unit.time();
                 constexpr float_X deltaOmega
                     = (float_X) ((omegaMax - omegaMin) / (float_X) (nOmega - 1)); // difference beween two omega
 
@@ -42,8 +42,8 @@ namespace picongpu
             //! units for logarithmic frequencies distribution for transition radiation plugin
             namespace logFrequencies
             {
-                constexpr float_X omegaMin = (SI::omegaMin * UNIT_TIME);
-                constexpr float_X omegaMax = (SI::omegaMax * UNIT_TIME);
+                constexpr float_X omegaMin = (SI::omegaMin * sim.unit.time());
+                constexpr float_X omegaMax = (SI::omegaMax * sim.unit.time());
 
                 constexpr unsigned int blocksizeOmega = numFrameSlots;
                 constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
@@ -59,7 +59,7 @@ namespace picongpu
             //! unit for foil position
             namespace parameters
             {
-                constexpr float_X foilPosition = SI::foilPosition / UNIT_LENGTH;
+                constexpr float_X foilPosition = SI::foilPosition / sim.unit.length();
             }
 
         } // namespace transitionRadiation

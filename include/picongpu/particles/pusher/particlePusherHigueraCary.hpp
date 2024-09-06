@@ -79,7 +79,7 @@ namespace picongpu
                 if constexpr(pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value)
                     particle[probeE_] = eField;
 
-                float_X const deltaT = DELTA_T;
+                float_X const deltaT = sim.pic.getDt();
 
 
                 Gamma gamma;
@@ -138,7 +138,7 @@ namespace picongpu
 
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    pos[d] += (vel[d] * deltaT) / cellSize[d];
+                    pos[d] += (vel[d] * deltaT) / sim.pic.getCellSize()[d];
                 }
             }
 

@@ -174,7 +174,7 @@ namespace picongpu
                     }
 
                     //! Calculating the numeric factor: dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 * np.pi))
-                    float_X numericFactor = DELTA_T
+                    float_X numericFactor = sim.pic.getDt()
                         * (ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_MASS * SPEED_OF_LIGHT
                            / (HBAR * HBAR * EPS0 * 4._X * PI));
 

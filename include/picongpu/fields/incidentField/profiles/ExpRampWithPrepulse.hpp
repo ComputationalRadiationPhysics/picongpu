@@ -59,24 +59,26 @@ namespace picongpu::fields::incidentField
 
                 using Base = BaseParamUnitless<T_Params>;
 
-                // unit: UNIT_TIME
+                // unit: sim.unit.time()
                 static constexpr float_X LASER_NOFOCUS_CONSTANT
-                    = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME);
+                    = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / sim.unit.time());
 
-                static constexpr float_X TIME_PREPULSE = static_cast<float_X>(Params::TIME_PREPULSE_SI / UNIT_TIME);
-                static constexpr float_X TIME_PEAKPULSE = static_cast<float_X>(Params::TIME_PEAKPULSE_SI / UNIT_TIME);
-                static constexpr float_X TIME_1 = static_cast<float_X>(Params::TIME_POINT_1_SI / UNIT_TIME);
-                static constexpr float_X TIME_2 = static_cast<float_X>(Params::TIME_POINT_2_SI / UNIT_TIME);
-                static constexpr float_X TIME_3 = static_cast<float_X>(Params::TIME_POINT_3_SI / UNIT_TIME);
+                static constexpr float_X TIME_PREPULSE
+                    = static_cast<float_X>(Params::TIME_PREPULSE_SI / sim.unit.time());
+                static constexpr float_X TIME_PEAKPULSE
+                    = static_cast<float_X>(Params::TIME_PEAKPULSE_SI / sim.unit.time());
+                static constexpr float_X TIME_1 = static_cast<float_X>(Params::TIME_POINT_1_SI / sim.unit.time());
+                static constexpr float_X TIME_2 = static_cast<float_X>(Params::TIME_POINT_2_SI / sim.unit.time());
+                static constexpr float_X TIME_3 = static_cast<float_X>(Params::TIME_POINT_3_SI / sim.unit.time());
                 static constexpr float_X endUpramp = TIME_PEAKPULSE - 0.5_X * LASER_NOFOCUS_CONSTANT;
                 static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5_X * LASER_NOFOCUS_CONSTANT;
 
                 /** Pulse duration
                  *
-                 * unit: UNIT_TIME
+                 * unit: sim.unit.time()
                  */
                 static constexpr float_X PREPULSE_DURATION
-                    = static_cast<float_X>(Params::PREPULSE_DURATION_SI / UNIT_TIME);
+                    = static_cast<float_X>(Params::PREPULSE_DURATION_SI / sim.unit.time());
 
                 // compile-time checks for physical sanity:
                 static_assert(

@@ -124,7 +124,7 @@ namespace picongpu
                     : duration(duration)
                     , fourierOutputEnabled(fourierOutputEnabled)
                 {
-                    dt = params::tRes * SI::DELTA_T_SI;
+                    dt = params::tRes * sim.si.getDt();
                     pluginNumT = duration / params::tRes;
                     numOmegas = getNumOmegas();
 
@@ -161,7 +161,7 @@ namespace picongpu
                     if(isSlidingWindowActive)
                     {
                         int const cellsUntilIntegrationPlane = slicePoint * globalGridSize[2];
-                        slidingWindowCorrection = cellsUntilIntegrationPlane * SI::CELL_DEPTH_SI
+                        slidingWindowCorrection = cellsUntilIntegrationPlane * sim.si.getCellSize().z()
                             + pluginNumT * dt * float_64(SI::SPEED_OF_LIGHT_SI);
                     }
                     else
@@ -171,8 +171,8 @@ namespace picongpu
 
                     pluginNumX = globalGridSize[0] / params::xRes;
 
-                    pluginNumY
-                        = math::floor((yWindowSize - slidingWindowCorrection / SI::CELL_HEIGHT_SI) / (params::yRes));
+                    pluginNumY = math::floor(
+                        (yWindowSize - slidingWindowCorrection / sim.si.getCellSize().y()) / (params::yRes));
 
                     // Don't use fields inside the field absorber
                     pluginNumX
@@ -191,8 +191,8 @@ namespace picongpu
 
                     // The total domain indices of the integration slice are constant, because the screen is not
                     // co-propagating with the moving window
-                    yTotalMinIndex
-                        = yTotalOffset + yGlobalOffset + math::floor(slidingWindowCorrection / SI::CELL_HEIGHT_SI);
+                    yTotalMinIndex = yTotalOffset + yGlobalOffset
+                        + math::floor(slidingWindowCorrection / sim.si.getCellSize().y());
 
                     // Initialization of storage arrays
                     ExOmega = vec3c(pluginNumX, vec2c(pluginNumY, vec1c(numOmegas)));
@@ -264,11 +264,11 @@ namespace picongpu
                     int const currentSlideCount = MovingWindow::getInstance().getSlideCounter(currentStep);
                     if(!initializedDataBox)
                     {
-                        xMin = fields::absorber::NUM_CELLS[0][0] * SI::CELL_WIDTH_SI;
-                        yMin = (fields::absorber::NUM_CELLS[1][0] + yTotalMinIndex) * SI::CELL_HEIGHT_SI;
+                        xMin = fields::absorber::NUM_CELLS[0][0] * sim.si.getCellSize().x();
+                        yMin = (fields::absorber::NUM_CELLS[1][0] + yTotalMinIndex) * sim.si.getCellSize().y();
 
-                        xStep = params::xRes * SI::CELL_WIDTH_SI;
-                        yStep = params::yRes * SI::CELL_HEIGHT_SI;
+                        xStep = params::xRes * sim.si.getCellSize().x();
+                        yStep = params::yRes * sim.si.getCellSize().y();
                         initializedDataBox = true;
                     }
 
@@ -290,13 +290,13 @@ namespace picongpu
 
                             if constexpr(T_fieldType == FieldType::E)
                             {
-                                tmpEx[i][j] = UNIT_EFIELD * wf * value.x();
-                                tmpEy[i][j] = UNIT_EFIELD * wf * value.y();
+                                tmpEx[i][j] = sim.unit.eField() * wf * value.x();
+                                tmpEy[i][j] = sim.unit.eField() * wf * value.y();
                             }
                             else if constexpr(T_fieldType == FieldType::B)
                             {
-                                tmpBx[i][j] = UNIT_BFIELD * wf * value.x();
-                                tmpBy[i][j] = UNIT_BFIELD * wf * value.y();
+                                tmpBx[i][j] = sim.unit.bField() * wf * value.x();
+                                tmpBy[i][j] = sim.unit.bField() * wf * value.y();
                             }
                         }
                     }
@@ -308,7 +308,7 @@ namespace picongpu
                  */
                 void computeDFT(int t)
                 {
-                    float_64 const tSI = t * int(params::tRes) * float_64(picongpu::SI::DELTA_T_SI);
+                    float_64 const tSI = t * int(params::tRes) * float_64(picongpu::sim.si.getDt());
 
                     for(int o = 0; o < numOmegas; ++o)
                     {
@@ -688,7 +688,7 @@ namespace picongpu
                     // Loop over all timesteps
                     for(int t = 0; t < pluginNumT; ++t)
                     {
-                        float_64 const tSI = t * int(params::tRes) * float_64(picongpu::SI::DELTA_T_SI);
+                        float_64 const tSI = t * int(params::tRes) * float_64(picongpu::sim.si.getDt());
 
                         // Initialization of storage arrays
                         vec2c ExTmpSum = vec2c(pluginNumX, vec1c(pluginNumY));
@@ -736,7 +736,7 @@ namespace picongpu
                 //! Returns the minimum index for trimmed arrays in the omega dimension
                 int getOmegaMinIndex() const
                 {
-                    double const stepSize = params::tRes * SI::DELTA_T_SI;
+                    double const stepSize = params::tRes * sim.si.getDt();
                     int const tmpIndex = static_cast<int>(
                         std::floor(pluginNumT * ((stepSize * params::omegaWfMin) / (2.0 * PI) + 0.5)));
                     return std::max(tmpIndex, pluginNumT / 2 + 1);
@@ -745,7 +745,7 @@ namespace picongpu
                 //! Return maximum omega index for trimmed arrays in the omega dimension.
                 int getOmegaMaxIndex() const
                 {
-                    float_64 const actualStep = params::tRes * SI::DELTA_T_SI;
+                    float_64 const actualStep = params::tRes * sim.si.getDt();
                     int const tmpIndex
                         = math::ceil(pluginNumT * ((actualStep * params::omegaWfMax) / (2.0 * PI) + 0.5));
                     return std::min(tmpIndex, pluginNumT) + 1;
@@ -760,7 +760,7 @@ namespace picongpu
                  */
                 float_X kx(int i) const
                 {
-                    float_X const actualStep = params::xRes * SI::CELL_WIDTH_SI;
+                    float_X const actualStep = params::xRes * sim.si.getCellSize().x();
                     return 2.0_X * float_X(PI) * (float_X(i) - float_X(pluginNumX) / 2.0_X) / float_X(pluginNumX)
                         / actualStep;
                 }
@@ -773,7 +773,7 @@ namespace picongpu
                  */
                 float_X ky(int i) const
                 {
-                    float_X const actualStep = params::yRes * SI::CELL_HEIGHT_SI;
+                    float_X const actualStep = params::yRes * sim.si.getCellSize().y();
                     return 2.0_X * float_X(PI) * (float_X(i) - float_X(pluginNumY) / 2.0_X) / float_X(pluginNumY)
                         / actualStep;
                 }

@@ -49,18 +49,22 @@ namespace picongpu
              */
             HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
             {
-                floatD_X const globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
+                floatD_X const globalCellPos(
+                    precisionCast<float_X>(totalCellOffset) * sim.pic.getCellSize().shrink<simDim>());
 
-                float_X const vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-                if(globalCellPos.y() * cellSize.y() < vacuum_y)
+                float_X const vacuum_y = float_X(ParamClass::vacuumCellsY) * sim.pic.getCellSize().y();
+                if(globalCellPos.y() * sim.pic.getCellSize().y() < vacuum_y)
                 {
                     return 0._X;
                 }
 
-                constexpr float_X gasCenterLeft = static_cast<float_X>(ParamClass::gasCenterLeft_SI / UNIT_LENGTH);
-                constexpr float_X gasCenterRight = static_cast<float_X>(ParamClass::gasCenterRight_SI / UNIT_LENGTH);
-                constexpr float_X gasSigmaLeft = static_cast<float_X>(ParamClass::gasSigmaLeft_SI / UNIT_LENGTH);
-                constexpr float_X gasSigmaRight = static_cast<float_X>(ParamClass::gasSigmaRight_SI / UNIT_LENGTH);
+                constexpr float_X gasCenterLeft
+                    = static_cast<float_X>(ParamClass::gasCenterLeft_SI / sim.unit.length());
+                constexpr float_X gasCenterRight
+                    = static_cast<float_X>(ParamClass::gasCenterRight_SI / sim.unit.length());
+                constexpr float_X gasSigmaLeft = static_cast<float_X>(ParamClass::gasSigmaLeft_SI / sim.unit.length());
+                constexpr float_X gasSigmaRight
+                    = static_cast<float_X>(ParamClass::gasSigmaRight_SI / sim.unit.length());
 
                 auto exponent = 0._X;
                 if(globalCellPos.y() < gasCenterLeft)

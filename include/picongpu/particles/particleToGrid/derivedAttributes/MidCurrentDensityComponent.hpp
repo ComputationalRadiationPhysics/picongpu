@@ -38,8 +38,8 @@ namespace picongpu
                 template<size_t T_direction>
                 HDINLINE float1_64 MidCurrentDensityComponent<T_direction>::getUnit() const
                 {
-                    const float_64 UNIT_AREA = UNIT_LENGTH * UNIT_LENGTH;
-                    return UNIT_CHARGE / (UNIT_TIME * UNIT_AREA);
+                    const float_64 UNIT_AREA = sim.unit.length() * sim.unit.length();
+                    return sim.unit.charge() / (sim.unit.time() * UNIT_AREA);
                 }
 
                 template<size_t T_direction>
@@ -58,7 +58,8 @@ namespace picongpu
                     const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
 
                     /* calculate new attribute */
-                    const float_X particleCurrentDensity = charge / CELL_VOLUME * /* rho */
+                    const float_X particleCurrentDensity = charge / sim.pic.getCellSize().productOfComponents()
+                        * /* rho */
                         momCom / (gamma * mass); /* v_component */
 
                     /* return attribute */

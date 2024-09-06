@@ -62,7 +62,10 @@ namespace picongpu
                         auto const term = (i % 2) ? -weights[i] : weights[i];
                         additionalFactor += term;
                     }
-                    auto const invCorrectedCell2Sum = INV_CELL2_SUM * additionalFactor * additionalFactor;
+                    constexpr auto cellSizeSimDim = sim.pic.getCellSize().shrink<simDim>();
+                    constexpr float_X invCellSizeSquaredSum
+                        = (1.0 / (cellSizeSimDim * cellSizeSimDim)).sumOfComponents();
+                    auto const invCorrectedCell2Sum = invCellSizeSquaredSum * additionalFactor * additionalFactor;
                     auto const maxC_DT = 1.0_X / math::sqrt(invCorrectedCell2Sum);
                     constexpr auto dt = getTimeStep();
                     if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * invCorrectedCell2Sum > 1.0_X)

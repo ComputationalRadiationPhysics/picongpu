@@ -414,7 +414,7 @@ namespace picongpu
                     mesh.setGridUnitSI(1);
                     mesh.setGridSpacing(std::vector<double>{1.0, 1.0});
                     mesh.setAttribute<int>("duration", m_help->optionDuration.get(m_id));
-                    mesh.setAttribute<float_X>("dt", UNIT_TIME * params::tRes);
+                    mesh.setAttribute<float_X>("dt", sim.unit.time() * params::tRes);
                     mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
 
                     auto shadowgram = mesh[::openPMD::RecordComponent::SCALAR];

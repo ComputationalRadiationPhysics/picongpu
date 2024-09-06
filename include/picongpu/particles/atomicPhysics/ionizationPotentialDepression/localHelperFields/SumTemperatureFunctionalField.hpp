@@ -34,14 +34,15 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::loc
      * sum of kinetic particle temperature contributions A according to equipartition theorem
      *  k_Boltzman * T = average(A)
      *
-     * @details unit: UNIT_MASS * UNIT_LENGTH^2 / UNIT_TIME^2 * weight / TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+     * @details unit: sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2 * weight /
+     * sim.unit.typicalNumParticlesPerMacroParticle()
      *
      * @note required for calculating local temperature for ionization potential depression(IPD)
      * @note is used to keep intermediate results between kernel calls for different species
      *
      * @attention field value only valid after fillIPDSumFields kernel has been executed for **all** electron **and**
      *  ion species.
-     * @attention in units of picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE!
+     * @attention in units of picongpu::sim.unit.typicalNumParticlesPerMacroParticle()!
      *
      * @tparam T_MappingDescription description of local mapping from device to grid
      */

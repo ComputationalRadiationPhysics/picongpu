@@ -56,14 +56,14 @@ namespace picongpu::particles::atomicPhysics::kernel
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = areaMapping.getSuperCellIndex(worker.blockDomIdxND()) - areaMapping.getGuardingSuperCells();
 
-            // UNIT_TIME
+            // sim.unit.time()
             float_X& timeRemaining = localTimeRemainingBox(superCellFieldIdx);
 
             // end kernel if superCell already finished
             if(timeRemaining <= 0._X)
                 return;
 
-            // UNIT_TIME
+            // sim.unit.time()
             float_X const timeStep = localTimeStepBox(superCellFieldIdx);
 
             auto onlyMaster = lockstep::makeMaster(worker);

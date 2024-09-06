@@ -154,9 +154,9 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
 
-            // UNIT_LENGTH^3
+            // sim.unit.length()^3
             constexpr float_X volumeScalingFactor
-                = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+                = pmacc::math::CT::volume<SuperCellSize>::type::value * sim.pic.getCellSize().productOfComponents();
 
             PMACC_SMEM(
                 worker,
@@ -218,7 +218,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             for(int binIndex = 0; binIndex < static_cast<int>(T_Histogram::numberBins); ++binIndex)
                             {
                                 float_X const density = cachedHistogram.density[binIndex];
-                                // 1/UNIT_TIME
+                                // 1/sim.unit.time()
                                 float_X const rateTransition = picongpu::particles::atomicPhysics::rateCalculation::
                                     BoundBoundTransitionRates<T_n_max>::template rateCollisionalBoundBoundTransition<
                                         T_AtomicStateDataDataBox,
@@ -273,7 +273,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         {
                             // only if we completed the bin-for-loop without finding a chosen transition
 
-                            // 1/UNIT_TIME
+                            // 1/sim.unit.time()
                             float_X const rateTransition = picongpu::particles::atomicPhysics::rateCalculation::
                                 BoundBoundTransitionRates<T_n_max>::template rateSpontaneousRadiativeDeexcitation<
                                     T_AtomicStateDataDataBox,

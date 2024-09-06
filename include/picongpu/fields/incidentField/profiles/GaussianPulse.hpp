@@ -102,8 +102,8 @@ namespace picongpu::fields::incidentField
                 //! Base unitless parameters
                 using Base = BaseParamUnitless<T_Params>;
 
-                // unit: UNIT_LENGTH
-                static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
+                // unit: sim.unit.length()
+                static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / sim.unit.length());
 
                 // rayleigh length in propagation direction
                 static constexpr float_X rayleighLength
@@ -249,7 +249,7 @@ namespace picongpu::fields::incidentField
                     {
                         auto const tiltTimeShift = phase / Unitless::w + focusPos / SPEED_OF_LIGHT;
                         auto const tiltPositionShift = SPEED_OF_LIGHT * tiltTimeShift
-                            / pmacc::math::dot(this->getDirection(), float3_X{cellSize});
+                            / pmacc::math::dot(this->getDirection(), float3_X{sim.pic.getCellSize()});
                         auto const tilt1 = Unitless::TILT_AXIS_1;
                         pos[1] += math::tan(tilt1) * tiltPositionShift;
                         auto const tilt2 = Unitless::TILT_AXIS_2;

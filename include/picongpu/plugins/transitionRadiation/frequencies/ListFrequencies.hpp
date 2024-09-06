@@ -99,7 +99,7 @@ namespace picongpu
                             // verbose output of loaded frequencies if verbose level PHYSICS is set:
                             log<plugins::radiation::PIConGPUVerboseRadiation::PHYSICS>("freq: %1% \t %2%") % i
                                 % frequencyDB[i];
-                            frequencyDB[i] *= UNIT_TIME;
+                            frequencyDB[i] *= sim.unit.time();
                         }
 
                         if(i != nOmega)

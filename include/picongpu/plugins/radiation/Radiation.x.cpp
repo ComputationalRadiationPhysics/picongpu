@@ -777,10 +777,10 @@ namespace picongpu
                     ::openPMD::Iteration openPMDdataFileIteration = openPMDdataFile.writeIterations()[currentStep];
 
                     /* begin required openPMD global attributes */
-                    openPMDdataFileIteration.setDt<float_X>(DELTA_T);
-                    const float_X time = float_X(currentStep) * DELTA_T;
+                    openPMDdataFileIteration.setDt<float_X>(sim.pic.getDt());
+                    const float_X time = float_X(currentStep) * sim.pic.getDt();
                     openPMDdataFileIteration.setTime(time);
-                    openPMDdataFileIteration.setTimeUnitSI(UNIT_TIME);
+                    openPMDdataFileIteration.setTimeUnitSI(sim.unit.time());
                     /* end required openPMD global attributes */
 
                     // begin: write per-rank amplitude data
@@ -802,7 +802,8 @@ namespace picongpu
 
                         /* get the radiation amplitude unit */
                         Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-                        const picongpu::float_64 factor = UnityAmplitude.calcRadiation() * UNIT_ENERGY * UNIT_TIME;
+                        const picongpu::float_64 factor
+                            = UnityAmplitude.calcRadiation() * sim.unit.energy() * sim.unit.time();
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
@@ -885,7 +886,8 @@ namespace picongpu
 
                         /* get the radiation amplitude unit */
                         Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-                        const picongpu::float_64 factor = UnityAmplitude.calcRadiation() * UNIT_ENERGY * UNIT_TIME;
+                        const picongpu::float_64 factor
+                            = UnityAmplitude.calcRadiation() * sim.unit.energy() * sim.unit.time();
 
                         // buffer for data re-arangement
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
@@ -1020,7 +1022,7 @@ namespace picongpu
 
                     // write mesh attributes
                     ::openPMD::MeshRecordComponent omega_mrc = mesh_omega[dataLabelsDetectorFrequency(0)];
-                    const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME;
+                    const picongpu::float_64 factorOmega = 1.0 / sim.unit.time();
                     omega_mrc.setUnitSI(factorOmega);
                     omega_mrc.setPosition(std::vector<double>{0.0, 0.0, 0.0});
 
@@ -1139,7 +1141,7 @@ namespace picongpu
                                 // and write to file.
                                 outFile << values[index_omega + index_direction * radiation_frequencies::N_omega]
                                                .calcRadiation()
-                                        * UNIT_ENERGY * UNIT_TIME
+                                        * sim.unit.energy() * sim.unit.time()
                                         << "\t";
                             }
                             outFile << std::endl;

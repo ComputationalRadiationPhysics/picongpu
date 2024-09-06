@@ -74,8 +74,9 @@ namespace picongpu
                 const float_X deltaTime)
             {
                 this->charge = charge;
-                const float2_X deltaPos
-                    = float2_X(velocity.x() * deltaTime / cellSize.x(), velocity.y() * deltaTime / cellSize.y());
+                const float2_X deltaPos = float2_X(
+                    velocity.x() * deltaTime / sim.pic.getCellSize().x(),
+                    velocity.y() * deltaTime / sim.pic.getCellSize().y());
                 const PosType oldPos = pos - deltaPos;
                 Line<float2_X> line(oldPos, pos);
 
@@ -121,13 +122,13 @@ namespace picongpu
                     status,
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1>>(fieldJ),
                     line,
-                    cellSize.x());
+                    sim.pic.getCellSize().x());
                 cptCurrent1D(
                     worker,
                     DataSpace<DIM2>(status[1], status[0]),
                     makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 0>>(fieldJ),
                     rotateOrigin<1, 0>(line),
-                    cellSize.y());
+                    sim.pic.getCellSize().y());
                 cptCurrentZ(worker, status, fieldJ, line, velocity.z());
             }
 
@@ -172,10 +173,11 @@ namespace picongpu
                         bitpacking::test(parStatus[1], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 
                 /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
-                 * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1)
+                 * in-cell particle `position` (and it's change in sim.pic.getDt()) is normalize to [0,1)
                  */
-                const float_X currentSurfaceDensity
-                    = this->charge * (1.0_X / float_X(CELL_VOLUME * DELTA_T)) * cellEdgeLength;
+                const float_X currentSurfaceDensity = this->charge
+                    * (1.0_X / float_X(sim.pic.getCellSize().productOfComponents() * sim.pic.getDt()))
+                    * cellEdgeLength;
 
                 for(int j = begin; j < end + 1; ++j)
                     if(j < end + bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL))
@@ -232,7 +234,8 @@ namespace picongpu
                         line.m_pos1[1],
                         bitpacking::test(parStatus[1], bitpacking::Status::END_PARTICLE_IN_ASSIGNMENT_CELL)});
 
-                float_X const currentSurfaceDensityZ = this->charge * (1.0_X / float_X(CELL_VOLUME)) * v_z;
+                float_X const currentSurfaceDensityZ
+                    = this->charge * (1.0_X / float_X(sim.pic.getCellSize().productOfComponents())) * v_z;
                 int const leaveCellJ = bitpacking::getValue(parStatus[1], bitpacking::Status::LEAVE_CELL);
 
                 for(int j = begin; j < end + 1; ++j)

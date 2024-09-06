@@ -126,9 +126,9 @@ namespace picongpu
             template<typename Field>
             HDINLINE ValueType operator()(Field field) const
             {
-                const ValueType reciWidth = float_X(1.0) / cellSize.x();
-                const ValueType reciHeight = float_X(1.0) / cellSize.y();
-                const ValueType reciDepth = float_X(1.0) / cellSize.z();
+                const ValueType reciWidth = float_X(1.0) / sim.pic.getCellSize().x();
+                const ValueType reciHeight = float_X(1.0) / sim.pic.getCellSize().y();
+                const ValueType reciDepth = float_X(1.0) / sim.pic.getCellSize().z();
                 return ((*field).x() - field(DataSpace<DIM3>(-1, 0, 0)).x()) * reciWidth
                     + ((*field).y() - field(DataSpace<DIM3>(0, -1, 0)).y()) * reciHeight
                     + ((*field).z() - field(DataSpace<DIM3>(0, 0, -1)).z()) * reciDepth;
@@ -143,8 +143,8 @@ namespace picongpu
             template<typename Field>
             HDINLINE ValueType operator()(Field field) const
             {
-                const ValueType reciWidth = float_X(1.0) / cellSize.x();
-                const ValueType reciHeight = float_X(1.0) / cellSize.y();
+                const ValueType reciWidth = float_X(1.0) / sim.pic.getCellSize().x();
+                const ValueType reciHeight = float_X(1.0) / sim.pic.getCellSize().y();
                 return ((*field).x() - (field(DataSpace<DIM2>(-1, 0))).x()) * reciWidth
                     + ((*field).y() - (field(DataSpace<DIM2>(0, -1))).y()) * reciHeight;
             }
@@ -253,8 +253,9 @@ namespace picongpu
 
         if(globalReduce->hasResult(mpiReduceMethod))
         {
-            this->output_file << currentStep << " " << (maxChargeDiff * CELL_VOLUME).x() << " " << UNIT_CHARGE
-                              << std::endl;
+            this->output_file << currentStep << " "
+                              << (maxChargeDiff * sim.pic.getCellSize().productOfComponents()).x() << " "
+                              << sim.unit.charge() << std::endl;
         }
     }
 

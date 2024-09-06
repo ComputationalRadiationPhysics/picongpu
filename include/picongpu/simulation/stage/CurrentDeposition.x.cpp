@@ -62,11 +62,13 @@ namespace picongpu
                          * as in particle pusher, but we do not require that pusher and current deposition are both
                          * enabled for a species, so check in both places.
                          */
-                        constexpr auto dz = (simDim == 3) ? CELL_DEPTH : std::numeric_limits<float_X>::infinity();
-                        constexpr auto minCellSize = std::min({CELL_WIDTH, CELL_HEIGHT, dz});
+                        constexpr auto dz
+                            = (simDim == 3) ? sim.pic.getCellSize().z() : std::numeric_limits<float_X>::infinity();
+                        constexpr auto minCellSize
+                            = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), dz});
                         PMACC_CASSERT_MSG(
                             Particle_in_current_deposition_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
-                            (SPEED_OF_LIGHT * DELTA_T / minCellSize <= 1.0) && sizeof(SpeciesType*) != 0);
+                            (SPEED_OF_LIGHT * sim.pic.getDt() / minCellSize <= 1.0) && sizeof(SpeciesType*) != 0);
 
                         using FrameType = typename SpeciesType::FrameType;
                         using ParticleCurrentSolver = typename pmacc::traits::Resolve<
@@ -86,7 +88,7 @@ namespace picongpu
 
                         typename SpeciesType::ParticlesBoxType pBox = species->getDeviceParticlesBox();
                         FieldJ::DataBoxType jBox = fieldJ.getGridBuffer().getDeviceBuffer().getDataBox();
-                        FrameSolver solver(DELTA_T);
+                        FrameSolver solver(sim.pic.getDt());
 
                         auto const deposit = currentSolver::Deposit<Strategy>{};
                         deposit.template execute<T_Area::value>(

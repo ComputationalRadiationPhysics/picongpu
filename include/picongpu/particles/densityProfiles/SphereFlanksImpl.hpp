@@ -48,15 +48,16 @@ namespace picongpu
              */
             HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
             {
-                const float_64 unit_length = UNIT_LENGTH;
-                const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+                const float_64 unit_length = sim.unit.length();
+                const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * sim.pic.getCellSize().y();
                 const floatD_X center = precisionCast<float_32>(ParamClass::center_SI / unit_length);
                 const float_X r = ParamClass::r_SI / unit_length;
                 const float_X ri = ParamClass::ri_SI / unit_length;
                 const float_X exponent = ParamClass::exponent_SI * unit_length;
 
 
-                const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
+                const floatD_X globalCellPos(
+                    precisionCast<float_X>(totalCellOffset) * sim.pic.getCellSize().shrink<simDim>());
 
                 if(globalCellPos.y() < vacuum_y)
                     return float_X(0.0);

@@ -48,7 +48,7 @@ A new file named ``chargeConservation.dat`` is generated:
    400 0.000154502 5.23234e-17
    500 0.000164952 5.23234e-17
 
-The charge is normalized to ``UNIT_CHARGE`` (third column) which is the typical charge of *one* macro-particle.
+The charge is normalized to ``sim.unit.charge()`` (third column) which is the typical charge of *one* macro-particle.
 
 There is a up 5% difference to a native hdf5 post-processing based implementation of the charge conversation check due to a different order of subtraction.
 And the zero-th time step (only numerical differences) might differ more then 5% relative due to the close to zero result. 

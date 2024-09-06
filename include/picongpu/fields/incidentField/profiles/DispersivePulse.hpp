@@ -60,28 +60,30 @@ namespace picongpu
                         // unit: none
                         using Params::SPECTRAL_SUPPORT;
 
-                        // unit: UNIT_LENGTH
-                        static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / UNIT_LENGTH);
+                        // unit: sim.unit.length()
+                        static constexpr float_X W0 = static_cast<float_X>(Params::W0_SI / sim.unit.length());
 
                         // rayleigh length in propagation direction
                         static constexpr float_X rayleighLength
                             = pmacc::math::Pi<float_X>::value * W0 * W0 / Base::WAVE_LENGTH;
 
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         // corresponds to period length of DFT
                         static constexpr float_X INIT_TIME
                             = static_cast<float_X>(Params::PULSE_INIT) * Base::PULSE_DURATION;
 
                         // Dispersion parameters
-                        // unit: UNIT_LENGTH * UNIT_TIME
-                        static constexpr float_X SD = static_cast<float_X>(Params::SD_SI / UNIT_TIME / UNIT_LENGTH);
-                        // unit: rad * UNIT_TIME
-                        static constexpr float_X AD = static_cast<float_X>(Params::AD_SI / UNIT_TIME);
-                        // unit: UNIT_TIME^2
-                        static constexpr float_X GDD = static_cast<float_X>(Params::GDD_SI / UNIT_TIME / UNIT_TIME);
-                        // unit: UNIT_TIME^3
-                        static constexpr float_X TOD
-                            = static_cast<float_X>(Params::TOD_SI / UNIT_TIME / UNIT_TIME / UNIT_TIME);
+                        // unit: sim.unit.length() * sim.unit.time()
+                        static constexpr float_X SD
+                            = static_cast<float_X>(Params::SD_SI / sim.unit.time() / sim.unit.length());
+                        // unit: rad * sim.unit.time()
+                        static constexpr float_X AD = static_cast<float_X>(Params::AD_SI / sim.unit.time());
+                        // unit: sim.unit.time()^2
+                        static constexpr float_X GDD
+                            = static_cast<float_X>(Params::GDD_SI / sim.unit.time() / sim.unit.time());
+                        // unit: sim.unit.time()^3
+                        static constexpr float_X TOD = static_cast<float_X>(
+                            Params::TOD_SI / sim.unit.time() / sim.unit.time() / sim.unit.time());
                     };
 
                     /** DispersivePulse incident E functor
@@ -300,7 +302,7 @@ namespace picongpu
                                 return 0.0_X;
 
                             // interpolation order
-                            float_X N_raw = Unitless::INIT_TIME / DELTA_T;
+                            float_X N_raw = Unitless::INIT_TIME / sim.pic.getDt();
                             int const n = static_cast<int>(N_raw * 0.5_X); // -0 instead of -1 for rounding up N_raw
 
                             // frequency step for DFT
@@ -344,7 +346,7 @@ namespace picongpu
                                 float_X const omegaTK = Omk * time;
                                 E_t += amp(totalCellIdx, Omk) * pmacc::math::cos(phiK - omegaTK);
                             }
-                            E_t *= 2.0_X / DELTA_T;
+                            E_t *= 2.0_X / sim.pic.getDt();
 
                             E_t /= static_cast<float_X>(2 * n + 1); // Normalization from DFT
 

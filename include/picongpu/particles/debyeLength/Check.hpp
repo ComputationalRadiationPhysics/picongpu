@@ -138,12 +138,12 @@ namespace picongpu
                         {
                             auto const temperatureKeV = estimate.sumTemperatureKeV / estimate.sumWeighting;
                             auto const debyeLength = estimate.sumDebyeLength / estimate.sumWeighting;
-                            auto maxCellSize = cellSize[0];
+                            auto maxCellSize = sim.pic.getCellSize()[0];
                             // For 2D do not use grid size along z, as it is always resolved
                             for(uint32_t d = 1; d < simDim; d++)
-                                maxCellSize = std::max(maxCellSize, cellSize[d]);
+                                maxCellSize = std::max(maxCellSize, sim.pic.getCellSize()[d]);
                             auto const cellsPerDebyeLength = debyeLength / maxCellSize;
-                            auto const debyeLengthSI = debyeLength * UNIT_LENGTH;
+                            auto const debyeLengthSI = debyeLength * sim.unit.length();
                             log<picLog::PHYSICS>("Estimate used momentum variance in %1% supercells with at least %2% "
                                                  "macroparticles each")
                                 % estimate.numUsedSupercells % minMacroparticlesPerSupercell;

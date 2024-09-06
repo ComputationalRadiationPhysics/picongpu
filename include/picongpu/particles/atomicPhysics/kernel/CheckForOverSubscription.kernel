@@ -114,7 +114,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             // proportion of weight we want to reject
                             (deltaWeight - weight0) / deltaWeight,
                             // but at least one average one macro ion should be rejected
-                            TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / deltaWeight);
+                            sim.unit.typicalNumParticlesPerMacroParticle() / deltaWeight);
 
                         // set flag that histogram has over subscribed bin
                         alpaka::atomicExch(

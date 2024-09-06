@@ -81,9 +81,9 @@ namespace picongpu
                 const uint32_t gpuNumberOfCellsInMoveDirection = subGrid.getLocalDomain().size[moveDirection];
 
                 /* unit PIConGPU length */
-                const auto cellSizeInMoveDirection = float_64(cellSize[moveDirection]);
+                const auto cellSizeInMoveDirection = float_64(sim.pic.getCellSize()[moveDirection]);
 
-                const float_64 deltaWayPerStep = (windowMovingSpeed * float_64(DELTA_T));
+                const float_64 deltaWayPerStep = (windowMovingSpeed * float_64(sim.pic.getDt()));
 
                 /* How many cells the virtual particle with speed of light is pushed forward
                  * at the begin of the simulation.

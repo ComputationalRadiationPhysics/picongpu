@@ -38,15 +38,15 @@ namespace picongpu
                 template<size_t T_direction>
                 HDINLINE float1_64 MomentumDensity<T_direction>::getUnit() const
                 {
-                    constexpr float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-                    return UNIT_MASS * UNIT_SPEED / UNIT_VOLUME;
+                    constexpr float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
+                    return sim.unit.mass() * UNIT_SPEED / UNIT_VOLUME;
                 }
 
                 template<size_t T_direction>
                 template<typename T_Particle>
                 DINLINE float_X MomentumDensity<T_direction>::operator()(T_Particle& particle) const
                 {
-                    constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
+                    constexpr float_X INV_CELL_VOLUME = float_X(1.0) / sim.pic.getCellSize().productOfComponents();
                     return particle[momentum_][T_direction] * INV_CELL_VOLUME;
                 }
 

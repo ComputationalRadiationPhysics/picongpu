@@ -107,14 +107,14 @@ namespace picongpu
             // j = I/A
 
             auto const realCurrent = float3_X(
-                gCurrent.x() * CELL_HEIGHT * CELL_DEPTH,
-                gCurrent.y() * CELL_WIDTH * CELL_DEPTH,
-                gCurrent.z() * CELL_WIDTH * CELL_HEIGHT);
+                gCurrent.x() * sim.pic.getCellSize().y() * sim.pic.getCellSize().z(),
+                gCurrent.y() * sim.pic.getCellSize().x() * sim.pic.getCellSize().z(),
+                gCurrent.z() * sim.pic.getCellSize().x() * sim.pic.getCellSize().y());
 
             float3_64 realCurrent_SI(
-                float_64(realCurrent.x()) * (UNIT_CHARGE / UNIT_TIME),
-                float_64(realCurrent.y()) * (UNIT_CHARGE / UNIT_TIME),
-                float_64(realCurrent.z()) * (UNIT_CHARGE / UNIT_TIME));
+                float_64(realCurrent.x()) * (sim.unit.charge() / sim.unit.time()),
+                float_64(realCurrent.y()) * (sim.unit.charge() / sim.unit.time()),
+                float_64(realCurrent.z()) * (sim.unit.charge() / sim.unit.time()));
 
             /*FORMAT OUTPUT*/
             using dbl = std::numeric_limits<float_64>;

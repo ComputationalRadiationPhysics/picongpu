@@ -447,8 +447,8 @@ namespace picongpu
                 return;
 
             /* write to file */
-            const float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
-            const float_64 unit = UNIT_CHARGE / UNIT_VOLUME;
+            const float_64 UNIT_VOLUME = sim.unit.length() * sim.unit.length() * sim.unit.length();
+            const float_64 unit = sim.unit.charge() / UNIT_VOLUME;
 
             /* (momentum) p range: unit is m_species * c
              *   During the kernels we calculate with a typical single/real
@@ -456,7 +456,7 @@ namespace picongpu
              *   on the p-axis should be scaled to represent single/real particles.
              *   @see PhaseSpaceMulti::pluginLoad( )
              */
-            float_64 const pRange_unit = UNIT_MASS * UNIT_SPEED;
+            float_64 const pRange_unit = sim.unit.mass() * UNIT_SPEED;
 
             DumpHBuffer dumpHBuffer;
 

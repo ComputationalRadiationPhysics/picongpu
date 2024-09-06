@@ -255,7 +255,7 @@ namespace picongpu
                     static auto getBaseCoefficient(float_X const direction, float_X const curlCoefficient)
                     {
                         auto const directionSign = (direction > 0.0_X ? 1.0_X : -1.0_X);
-                        auto const baseCoefficient = curlCoefficient / cellSize[T_axis] * directionSign;
+                        auto const baseCoefficient = curlCoefficient / sim.pic.getCellSize()[T_axis] * directionSign;
                         return baseCoefficient;
                     }
 
@@ -278,9 +278,10 @@ namespace picongpu
                      * The total coefficient in front of incidentField summed over all updatedFieldShift values
                      * is the same for all FDTD-type Maxwell's solvers (i.e. T_CurlIncidentField).
                      * Those summed coefficients are by absolute value equal to baseCoefficient and are
-                     * c^2 * dt / cellSize[axis] for updating the E field and dt / d(axis) for updating the B field.
-                     * The difference between solvers is basically in how this value is scattered between the nodes.
-                     * The scattering coefficients are taken from the finite-difference derivative operator used.
+                     * c^2 * dt / sim.pic.getCellSize()[axis] for updating the E field and dt / d(axis) for updating
+                     * the B field. The difference between solvers is basically in how this value is scattered between
+                     * the nodes. The scattering coefficients are taken from the finite-difference derivative operator
+                     * used.
                      *
                      * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
                      * @param incidentFieldShift1 base shift of the first incidentField component

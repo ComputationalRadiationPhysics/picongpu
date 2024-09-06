@@ -50,8 +50,8 @@ namespace picongpu
              */
             HDINLINE float_X operator()(DataSpace<simDim> const& totalCellOffset)
             {
-                float_64 const unitLength(UNIT_LENGTH); // workaround to use UNIT_LENGTH on device
-                float3_64 const cellSize_SI(precisionCast<float_64>(cellSize) * unitLength);
+                float_64 const unitLength(sim.unit.length()); // workaround to use sim.unit.length() on device
+                float3_64 const cellSize_SI(precisionCast<float_64>(sim.pic.getCellSize()) * unitLength);
                 // evaluate at cell center for a more accurate estimate for the cell
                 floatD_64 const totalCenterCellOffset
                     = precisionCast<float_64>(totalCellOffset) + floatD_64::create(0.5);

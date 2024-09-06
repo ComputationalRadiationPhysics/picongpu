@@ -51,17 +51,17 @@ namespace picongpu
                         worker,
                         makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 2, 0>>(fieldJ),
                         rotateOrigin<1, 2, 0>(line),
-                        cellSize.x() * chargeDensity / DELTA_T);
+                        sim.pic.getCellSize().x() * chargeDensity / sim.pic.getDt());
                     cptCurrent1D(
                         worker,
                         makePermutatedFieldValueAccess<pmacc::math::CT::Int<2, 0, 1>>(fieldJ),
                         rotateOrigin<2, 0, 1>(line),
-                        cellSize.y() * chargeDensity / DELTA_T);
+                        sim.pic.getCellSize().y() * chargeDensity / sim.pic.getDt());
                     cptCurrent1D(
                         worker,
                         makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1, 2>>(fieldJ),
                         line,
-                        cellSize.z() * chargeDensity / DELTA_T);
+                        sim.pic.getCellSize().z() * chargeDensity / sim.pic.getDt());
                 }
 
                 /** deposites current in z-direction
@@ -148,12 +148,12 @@ namespace picongpu
                         worker,
                         makePermutatedFieldValueAccess<pmacc::math::CT::Int<0, 1>>(fieldJ),
                         line,
-                        cellSize.x() * chargeDensity / DELTA_T);
+                        sim.pic.getCellSize().x() * chargeDensity / sim.pic.getDt());
                     cptCurrent1D(
                         worker,
                         makePermutatedFieldValueAccess<pmacc::math::CT::Int<1, 0>>(fieldJ),
                         rotateOrigin<1, 0>(line),
-                        cellSize.y() * chargeDensity / DELTA_T);
+                        sim.pic.getCellSize().y() * chargeDensity / sim.pic.getDt());
                 }
 
                 /** deposites current in x-direction

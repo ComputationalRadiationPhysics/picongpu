@@ -62,8 +62,8 @@ namespace picongpu
                 , phiPositive(float_X(1.0))
                 , beta_0(beta_0)
                 , tdelay_user_SI(tdelay_user_SI)
-                , dt(SI::DELTA_T_SI)
-                , unit_length(UNIT_LENGTH)
+                , dt(sim.si.getDt())
+                , unit_length(sim.unit.length())
                 , auto_tdelay(auto_tdelay)
                 , pol(pol)
 
@@ -421,13 +421,13 @@ namespace picongpu
                  * float_T const eta = float_T(PI/2) - (phiReal - alphaTilt);
                  */
 
-                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                auto const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / sim.unit.speed());
+                auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                auto const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                auto const tauG = float_T(pulselength_SI * 2.0 / sim.unit.time());
                 /* w0 is wx here --> w0 could be replaced by wx */
-                auto const w0 = float_T(w_x_SI / UNIT_LENGTH);
+                auto const w0 = float_T(w_x_SI / sim.unit.length());
                 auto const rho0 = float_T(PI * w0 * w0 / lambda0);
                 auto const k = float_T(2.0 * PI / lambda0);
 
@@ -450,10 +450,10 @@ namespace picongpu
                 auto const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
                 auto const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
 
-                auto const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                auto const y = float_T(phiPositive * yMod / UNIT_LENGTH);
-                auto const z = float_T(zMod / UNIT_LENGTH);
-                auto const t = float_T(timeMod / UNIT_TIME);
+                auto const x = float_T(phiPositive * pos.x() / sim.unit.length());
+                auto const y = float_T(phiPositive * yMod / sim.unit.length());
+                auto const z = float_T(zMod / sim.unit.length());
+                auto const t = float_T(timeMod / sim.unit.time());
 
                 /* Calculating shortcuts for speeding up field calculation */
                 float_T sinPhi;
@@ -526,7 +526,7 @@ namespace picongpu
                        * math::sqrt(cspeed * om0 * rho0 / helpVar2))
                     / (float_T(2.0) * cspeed * math::pow(helpVar4, float_T(1.5)));
 
-                return result.real() / UNIT_SPEED;
+                return result.real() / sim.unit.speed();
             }
 
             /** Calculate the Bz(r,t) field
@@ -568,13 +568,13 @@ namespace picongpu
                  * float_T const eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                auto const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / sim.unit.speed());
+                auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                auto const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                auto const tauG = float_T(pulselength_SI * 2.0 / sim.unit.time());
                 /* w0 is wx here --> w0 could be replaced by wx */
-                auto const w0 = float_T(w_x_SI / UNIT_LENGTH);
+                auto const w0 = float_T(w_x_SI / sim.unit.length());
                 auto const rho0 = float_T(PI * w0 * w0 / lambda0);
                 auto const k = float_T(2.0 * PI / lambda0);
 
@@ -597,10 +597,10 @@ namespace picongpu
                 auto const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
                 auto const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
 
-                auto const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                auto const y = float_T(phiPositive * yMod / UNIT_LENGTH);
-                auto const z = float_T(zMod / UNIT_LENGTH);
-                auto const t = float_T(timeMod / UNIT_TIME);
+                auto const x = float_T(phiPositive * pos.x() / sim.unit.length());
+                auto const y = float_T(phiPositive * yMod / sim.unit.length());
+                auto const z = float_T(zMod / sim.unit.length());
+                auto const t = float_T(timeMod / sim.unit.time());
 
                 /* Calculating shortcuts for speeding up field calculation */
                 float_T sinPhi;
@@ -667,7 +667,7 @@ namespace picongpu
                        * math::sqrt(om0 * rho0 / helpVar7))
                     / math::pow(helpVar9, float_T(1.5));
 
-                return result.real() / UNIT_SPEED;
+                return result.real() / sim.unit.speed();
             }
 
             /** Calculate the Bx(r,t) field
@@ -723,13 +723,13 @@ namespace picongpu
                  * float_T const eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                auto const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / sim.unit.speed());
+                auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                auto const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                auto const tauG = float_T(pulselength_SI * 2.0 / sim.unit.time());
                 /* w0 is wx here --> w0 could be replaced by wx */
-                auto const w0 = float_T(w_x_SI / UNIT_LENGTH);
+                auto const w0 = float_T(w_x_SI / sim.unit.length());
                 auto const rho0 = float_T(PI * w0 * w0 / lambda0);
                 auto const k = float_T(2.0 * PI / lambda0);
 
@@ -752,10 +752,10 @@ namespace picongpu
                 auto const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
                 auto const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
 
-                auto const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                auto const y = float_T(phiPositive * yMod / UNIT_LENGTH);
-                auto const z = float_T(zMod / UNIT_LENGTH);
-                auto const t = float_T(timeMod / UNIT_TIME);
+                auto const x = float_T(phiPositive * pos.x() / sim.unit.length());
+                auto const y = float_T(phiPositive * yMod / sim.unit.length());
+                auto const z = float_T(zMod / sim.unit.length());
+                auto const t = float_T(timeMod / sim.unit.time());
 
                 /* Shortcuts for speeding up the field calculation. */
                 float_T sinPhi;
@@ -829,7 +829,7 @@ namespace picongpu
                        * math::pow(float_T(1.0) / helpVar2, float_T(1.5)))
                     / math::sqrt(helpVar4);
 
-                return result.real() / UNIT_SPEED;
+                return result.real() / sim.unit.speed();
             }
 
         } /* namespace twtsfast */

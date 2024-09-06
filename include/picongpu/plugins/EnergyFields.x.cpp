@@ -212,9 +212,9 @@ namespace picongpu
             for(int d = 0; d < FieldB::numComponents; ++d)
             {
                 /* B field convert */
-                globalFieldEnergy[0][d] *= float_64(0.5 / MUE0 * CELL_VOLUME);
+                globalFieldEnergy[0][d] *= float_64(0.5 / MUE0 * sim.pic.getCellSize().productOfComponents());
                 /* E field convert */
-                globalFieldEnergy[1][d] *= float_64(EPS0 * CELL_VOLUME * 0.5);
+                globalFieldEnergy[1][d] *= float_64(EPS0 * sim.pic.getCellSize().productOfComponents() * 0.5);
 
                 /* add all to one */
                 energyFieldBReduced += globalFieldEnergy[0][d];
@@ -229,9 +229,9 @@ namespace picongpu
                 using dbl = std::numeric_limits<float_64>;
 
                 outFile.precision(dbl::digits10);
-                outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " "
-                        << (globalFieldEnergy[0] * UNIT_ENERGY).toString(" ", "") << " "
-                        << (globalFieldEnergy[1] * UNIT_ENERGY).toString(" ", "") << std::endl;
+                outFile << currentStep << " " << std::scientific << globalEnergy * sim.unit.energy() << " "
+                        << (globalFieldEnergy[0] * sim.unit.energy()).toString(" ", "") << " "
+                        << (globalFieldEnergy[1] * sim.unit.energy()).toString(" ", "") << std::endl;
             }
         }
 

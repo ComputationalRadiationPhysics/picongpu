@@ -54,7 +54,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
 
     /**@class superCell field of the current timeStep:float_X for one atomicPhysics iteration
      *
-     * unit: UNIT_TIME
+     * unit: sim.unit.time()
      *
      * @tparam T_MappingDescription description of local mapping from device to grid
      */

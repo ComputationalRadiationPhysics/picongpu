@@ -37,7 +37,8 @@ namespace picongpu
                  */
                 HDINLINE float3_X operator()(float_X const ionizationEnergy, float3_X const eField)
                 {
-                    float3_X jion = ionizationEnergy * eField / pmacc::math::l2norm2(eField) / DELTA_T / CELL_VOLUME;
+                    float3_X jion = ionizationEnergy * eField / pmacc::math::l2norm2(eField) / sim.pic.getDt()
+                        / sim.pic.getCellSize().productOfComponents();
                     return jion;
                 }
             };

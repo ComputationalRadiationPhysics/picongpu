@@ -42,7 +42,7 @@ namespace picongpu
                 //! Get the time step value
                 HDINLINE constexpr float_X operator()()
                 {
-                    return DELTA_T;
+                    return sim.pic.getDt();
                 }
             };
 
@@ -57,7 +57,7 @@ namespace picongpu
                 //! Get the time step value
                 HDINLINE constexpr float_X operator()()
                 {
-                    return DELTA_T / static_cast<float_X>(T_numSubsteps);
+                    return sim.pic.getDt() / static_cast<float_X>(T_numSubsteps);
                 }
             };
 

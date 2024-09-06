@@ -76,7 +76,8 @@ namespace picongpu
             const uint32_t r_bin = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
             const float_X charge = attribute::getCharge(weighting, particle);
-            const float_PS particleChargeDensity = precisionCast<float_PS>(charge / CELL_VOLUME);
+            const float_PS particleChargeDensity
+                = precisionCast<float_PS>(charge / sim.pic.getCellSize().productOfComponents());
 
             const float_X rel_bin
                 = (mom_i / weighting - axis_p_range.first) / (axis_p_range.second - axis_p_range.first);

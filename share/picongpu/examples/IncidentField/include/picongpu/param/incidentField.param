@@ -95,13 +95,13 @@ namespace picongpu
                 static constexpr float_64 LASER_WIDTH_Z_SI = 10.0e-3; // 10 mm
 
                 // Convert to grid units
-                static constexpr uint32_t DURATION_STEPS = DURATION_SI / SI::DELTA_T_SI;
-                static constexpr uint32_t LASER_CENTER_X_CELLS = LASER_CENTER_X_SI / SI::CELL_WIDTH_SI;
-                static constexpr uint32_t LASER_WIDTH_X_CELLS = LASER_WIDTH_X_SI / SI::CELL_WIDTH_SI;
-                static constexpr uint32_t LASER_CENTER_Y_CELLS = LASER_CENTER_Y_SI / SI::CELL_HEIGHT_SI;
-                static constexpr uint32_t LASER_WIDTH_Y_CELLS = LASER_WIDTH_Y_SI / SI::CELL_HEIGHT_SI;
-                static constexpr uint32_t LASER_CENTER_Z_CELLS = LASER_CENTER_Z_SI / SI::CELL_DEPTH_SI;
-                static constexpr uint32_t LASER_WIDTH_Z_CELLS = LASER_WIDTH_Z_SI / SI::CELL_DEPTH_SI;
+                static constexpr uint32_t DURATION_STEPS = DURATION_SI / sim.si.getDt();
+                static constexpr uint32_t LASER_CENTER_X_CELLS = LASER_CENTER_X_SI / sim.si.getCellSize().x();
+                static constexpr uint32_t LASER_WIDTH_X_CELLS = LASER_WIDTH_X_SI / sim.si.getCellSize().x();
+                static constexpr uint32_t LASER_CENTER_Y_CELLS = LASER_CENTER_Y_SI / sim.si.getCellSize().y();
+                static constexpr uint32_t LASER_WIDTH_Y_CELLS = LASER_WIDTH_Y_SI / sim.si.getCellSize().y();
+                static constexpr uint32_t LASER_CENTER_Z_CELLS = LASER_CENTER_Z_SI / sim.si.getCellSize().z();
+                static constexpr uint32_t LASER_WIDTH_Z_CELLS = LASER_WIDTH_Z_SI / sim.si.getCellSize().z();
 
                 // Delay at initialization to ensure a smooth start
                 static constexpr float_64 initializationDurationSI = 16.0 * DURATION_SI;
@@ -115,9 +115,9 @@ namespace picongpu
                 HINLINE FunctorBase(float_X const currentStep)
                 {
                     auto const normalizedDuration
-                        = (currentStep * SI::DELTA_T_SI - 0.5 * initializationDurationSI) / DURATION_SI;
+                        = (currentStep * sim.si.getDt() - 0.5 * initializationDurationSI) / DURATION_SI;
                     timeEnvelope = static_cast<float_X>(math::exp(-normalizedDuration * normalizedDuration));
-                    currentTime = currentStep * SI::DELTA_T_SI;
+                    currentTime = currentStep * sim.si.getDt();
                 }
 
                 /** Get value to calculate Ey / Bz for the XMin source
@@ -128,7 +128,7 @@ namespace picongpu
                 HDINLINE float_X getXMinSourceValueSI(floatD_X const& totalCellIdx) const
                 {
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
-                    auto const x = totalCellIdx.x() * SI::CELL_WIDTH_SI;
+                    auto const x = totalCellIdx.x() * sim.si.getCellSize().x();
                     auto const longitudinal = timeEnvelope * sin(k * (x - SI::SPEED_OF_LIGHT_SI * currentTime));
                     auto const normalizedY = (totalCellIdx.y() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_Y_CELLS;
                     auto normalizedZ = 0.0;
@@ -146,7 +146,7 @@ namespace picongpu
                 HDINLINE float_X getYMaxSourceValueSI(floatD_X const& totalCellIdx) const
                 {
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
-                    auto const y = totalCellIdx.y() * SI::CELL_HEIGHT_SI;
+                    auto const y = totalCellIdx.y() * sim.si.getCellSize().y();
                     auto const longitudinal = timeEnvelope * sin(k * (y + SI::SPEED_OF_LIGHT_SI * currentTime));
                     auto const normalizedX = (totalCellIdx.x() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_X_CELLS;
                     auto normalizedZ = 0.0;

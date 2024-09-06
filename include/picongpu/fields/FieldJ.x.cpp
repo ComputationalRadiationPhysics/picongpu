@@ -187,7 +187,8 @@ namespace picongpu
 
     FieldJ::UnitValueType FieldJ::getUnit()
     {
-        const float_64 unitCurrentDensity = UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
+        const float_64 unitCurrentDensity
+            = sim.unit.charge() / sim.unit.time() / (sim.unit.length() * sim.unit.length());
         return UnitValueType(unitCurrentDensity, unitCurrentDensity, unitCurrentDensity);
     }
 

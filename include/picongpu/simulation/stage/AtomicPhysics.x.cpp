@@ -127,7 +127,7 @@ namespace picongpu::simulation::stage
             {
                 pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
                 auto& localTimeRemainingField = *dc.get<S_TimeRemainingField>("LocalTimeRemainingField");
-                localTimeRemainingField.getDeviceBuffer().setValue(picongpu::DELTA_T); // UNIT_TIME
+                localTimeRemainingField.getDeviceBuffer().setValue(picongpu::sim.pic.getDt()); // sim.unit.time()
             }
 
             //! reset the histogram on device side

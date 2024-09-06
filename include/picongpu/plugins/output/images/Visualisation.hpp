@@ -130,10 +130,10 @@ namespace picongpu
 #else
             // Convert customNormalizationSI to internal units
             using visPreview::customNormalizationSI;
-            constexpr auto normalizationB = static_cast<float_X>(customNormalizationSI[0] / UNIT_BFIELD);
-            constexpr auto normalizationE = static_cast<float_X>(customNormalizationSI[1] / UNIT_EFIELD);
+            constexpr auto normalizationB = static_cast<float_X>(customNormalizationSI[0] / sim.unit.bField());
+            constexpr auto normalizationE = static_cast<float_X>(customNormalizationSI[1] / sim.unit.eField());
             constexpr auto normalizationCurrent
-                = static_cast<float_X>(customNormalizationSI[2] / (UNIT_CHARGE / UNIT_TIME));
+                = static_cast<float_X>(customNormalizationSI[2] / (sim.unit.charge() / sim.unit.time()));
             return float3_X{normalizationB, normalizationE, normalizationCurrent};
 #endif
         }
@@ -151,7 +151,8 @@ namespace picongpu
 #else
             constexpr auto baseCharge = BASE_CHARGE;
             const float_X tyCurrent = TYPICAL_PARTICLES_PER_CELL
-                * static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) * math::abs(baseCharge) / DELTA_T;
+                * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle()) * math::abs(baseCharge)
+                / sim.pic.getDt();
             const float_X tyEField = getAmplitude() + FLT_MIN;
             const float_X tyBField = tyEField * MUE0_EPS0;
             return float3_X(tyBField, tyEField, tyCurrent);
@@ -315,7 +316,8 @@ namespace picongpu
                     typename T_JBox::ValueType field_j = fieldJ(cellOffset);
 
                     // multiply with the area size of each plane to get current
-                    auto field_current = field_j * float3_X::create(CELL_VOLUME) / cellSize;
+                    auto field_current = field_j * float3_X::create(sim.pic.getCellSize().productOfComponents())
+                        / sim.pic.getCellSize();
 
                     /* reset picture to black
                      *   color range for each RGB channel: [0.0, 1.0]
@@ -482,7 +484,8 @@ namespace picongpu
                             lockstepWorker.getAcc(),
                             &(counter(reducedCell)),
                             // normalize the value to avoid bad precision for large macro particle weightings
-                            particle[weighting_] / static_cast<float_X>(TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE),
+                            particle[weighting_]
+                                / static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle()),
                             ::alpaka::hierarchy::Threads{});
                     }
                 });
@@ -504,7 +507,7 @@ namespace picongpu
 
                         DataSpace<DIM2> const localCell(cellIdx[transpose.x()], cellIdx[transpose.y()]);
 
-                        /** Note: normally, we would multiply by TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                        /** Note: normally, we would multiply by sim.unit.typicalNumParticlesPerMacroParticle()
                          * again. BUT: since we are interested in a simple value between 0 and 1, we stay with this
                          * number (normalized to the order of macro particles) and devide by the number of typical
                          * macro particles per cell
@@ -802,7 +805,7 @@ namespace picongpu
                 hostBox({size.x() - 1, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
             }
 
-            auto picture = gather->gatherSlice(img->getHostBuffer(), header.sim.size, header.node.offset);
+            auto picture = gather->gatherSlice(img->getHostBuffer(), header.simHeader.size, header.node.offset);
 
             if(isMaster)
             {

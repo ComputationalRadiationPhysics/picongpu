@@ -50,7 +50,7 @@ namespace picongpu
         /** Acceleration duration
          *  unit: second
          */
-        static constexpr float_64 ACCELERATION_TIME_SI = 10000.0 * ::picongpu::SI::DELTA_T_SI;
+        static constexpr float_64 ACCELERATION_TIME_SI = 10000.0 * ::picongpu::sim.si.getDt();
     };
 
     namespace particlePusherVay

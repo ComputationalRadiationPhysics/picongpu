@@ -37,8 +37,8 @@ namespace picongpu
             {
                 HDINLINE float1_64 ChargeDensity::getUnit() const
                 {
-                    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-                    return UNIT_CHARGE / UNIT_VOLUME;
+                    const float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
+                    return sim.unit.charge() / UNIT_VOLUME;
                 }
 
                 template<class T_Particle>
@@ -49,7 +49,7 @@ namespace picongpu
                     const float_X charge = attribute::getCharge(weighting, particle);
 
                     /* calculate new attribute */
-                    const float_X particleChargeDensity = charge / CELL_VOLUME;
+                    const float_X particleChargeDensity = charge / sim.pic.getCellSize().productOfComponents();
 
                     /* return attribute */
                     return particleChargeDensity;

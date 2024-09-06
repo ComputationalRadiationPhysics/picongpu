@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-// need grid.unitless for CELL_VOLUME
+// need simulation.unitless for sim.pic.getCellSize().productOfComponents()
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
@@ -145,9 +145,9 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
 
-            // UNIT_LENGTH^3
+            // sim.unit.length()^3
             constexpr float_X volumeScalingFactor
-                = pmacc::math::CT::volume<SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+                = pmacc::math::CT::volume<SuperCellSize>::type::value * sim.pic.getCellSize().productOfComponents();
 
             PMACC_SMEM(worker, cachedHistogram, CachedHistogram<T_numberBins>);
             cachedHistogram.fill(worker, histogram, volumeScalingFactor);

@@ -201,8 +201,8 @@ namespace picongpu
                     float3_64 const momentumVariance,
                     T_EstimateBox estimateBox) const
                 {
-                    auto const supercellVolume
-                        = CELL_VOLUME * precisionCast<float_64>(SuperCellSize::toRT().productOfComponents());
+                    auto const supercellVolume = sim.pic.getCellSize().productOfComponents()
+                        * precisionCast<float_64>(SuperCellSize::toRT().productOfComponents());
                     auto const electronDensity = sumWeighting / supercellVolume;
 
                     /* For the Maxwell-Boltzmann distribution,
@@ -213,13 +213,13 @@ namespace picongpu
                     using Frame = typename T_ElectronBox::FrameType;
                     auto const mass = static_cast<double>(picongpu::traits::frame::getMass<Frame>());
                     auto const kT = (momentumVariance[0] + momentumVariance[1] + momentumVariance[2]) / (3.0 * mass);
-                    auto const temperatureKeV = kT * UNIT_ENERGY / UNITCONV_keV_to_Joule;
+                    auto const temperatureKeV = kT * sim.unit.energy() / UNITCONV_keV_to_Joule;
                     auto const electronCharge = picongpu::traits::frame::getCharge<Frame>();
                     auto const debyeLength = sqrt(EPS0 * kT / (electronDensity * electronCharge * electronCharge));
-                    auto maxCellSize = cellSize[0];
+                    auto maxCellSize = sim.pic.getCellSize()[0];
                     // For 2D do not use grid size along z, as it is always resolved
                     for(uint32_t d = 1; d < simDim; d++)
-                        maxCellSize = math::max(maxCellSize, cellSize[d]);
+                        maxCellSize = math::max(maxCellSize, sim.pic.getCellSize()[d]);
                     bool const isDebyeLengthUnderOneCell = (debyeLength < maxCellSize);
 
                     alpaka::atomicAdd(

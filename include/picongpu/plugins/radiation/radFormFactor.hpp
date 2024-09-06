@@ -113,7 +113,7 @@ namespace picongpu
                         float_X sincValue = 1.0_X;
                         for(uint32_t d = 0; d < DIM3; ++d)
                             sincValue *= pmacc::math::sinc(
-                                observerUnitVec[d] * cellSize[d] / (SPEED_OF_LIGHT * 2.0_X) * omega);
+                                observerUnitVec[d] * sim.pic.getCellSize()[d] / (SPEED_OF_LIGHT * 2.0_X) * omega);
                         return pmacc::math::cPow(sincValue, static_cast<uint32_t>(2u) * T_shapeOrder);
                     }
                 };
@@ -184,8 +184,8 @@ namespace picongpu
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
                     HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
-                        : normalizedCoherentAmplification(
-                            util::square(pmacc::math::sinc(CELL_HEIGHT / (SPEED_OF_LIGHT * 2.0_X) * omega)))
+                        : normalizedCoherentAmplification(util::square(
+                            pmacc::math::sinc(sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)))
                     {
                     }
 
@@ -218,8 +218,8 @@ namespace picongpu
                 {
                     /** Construct the form factor functor for the given frequency
                      *
-                     * Currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
-                     * parameter.
+                     * Currently a fixed sigma of sim.pic.getDt() * c is used to describe the distribution - might
+                     * become a parameter.
                      *
                      * @param omega frequency
                      * @param observerUnitVec unit vector of observation direction,
@@ -227,7 +227,7 @@ namespace picongpu
                      */
                     HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
                         : normalizedCoherentAmplification(
-                            util::square(math::exp(-0.5_X * util::square(omega * 0.5_X * DELTA_T))))
+                            util::square(math::exp(-0.5_X * util::square(omega * 0.5_X * sim.pic.getDt()))))
                     {
                     }
 
@@ -293,9 +293,13 @@ namespace picongpu
                     {
                         return util::square(math::exp(
                             -0.5_X
-                            * (util::square(observerUnitVec.x() * CELL_WIDTH / (SPEED_OF_LIGHT * 2.0_X) * omega)
-                               + util::square(observerUnitVec.y() * CELL_HEIGHT / (SPEED_OF_LIGHT * 2.0_X) * omega)
-                               + util::square(observerUnitVec.z() * CELL_DEPTH / (SPEED_OF_LIGHT * 2.0_X) * omega))));
+                            * (util::square(
+                                   observerUnitVec.x() * sim.pic.getCellSize().x() / (SPEED_OF_LIGHT * 2.0_X) * omega)
+                               + util::square(
+                                   observerUnitVec.y() * sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)
+                               + util::square(
+                                   observerUnitVec.z() * sim.pic.getCellSize().z() / (SPEED_OF_LIGHT * 2.0_X)
+                                   * omega))));
                     }
                 };
             } // namespace radFormFactor_Gauss_cell

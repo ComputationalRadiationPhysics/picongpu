@@ -55,7 +55,8 @@ namespace picongpu
                 float_X operator()() const
                 {
                     // cellSize is not constexpr currently, so make an own constexpr array
-                    constexpr float_X step[3] = {CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH};
+                    constexpr float_X step[3]
+                        = {sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), sim.pic.getCellSize().z()};
                     constexpr auto stepFreeDirection = step[T_cherenkovFreeDir];
 
                     // Dependance on T_Defer is required, otherwise this check would have been enforced for each setup

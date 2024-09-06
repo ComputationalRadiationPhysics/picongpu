@@ -66,13 +66,13 @@ namespace picongpu
                         //! Base unitless parameters
                         using Base = BaseParamUnitless<T_Params>;
 
-                        // unit: UNIT_TIME
+                        // unit: sim.unit.time()
                         static constexpr float_X LASER_NOFOCUS_CONSTANT
-                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME);
-                        // unit: UNIT_TIME
+                            = static_cast<float_X>(Params::LASER_NOFOCUS_CONSTANT_SI / sim.unit.time());
+                        // unit: sim.unit.time()
                         static constexpr float_X INIT_TIME = static_cast<float_X>(
                             (Params::RAMP_INIT * Params::PULSE_DURATION_SI + Params::LASER_NOFOCUS_CONSTANT_SI)
-                            / UNIT_TIME);
+                            / sim.unit.time());
                     };
 
                     /** Plane wave incident E functor
