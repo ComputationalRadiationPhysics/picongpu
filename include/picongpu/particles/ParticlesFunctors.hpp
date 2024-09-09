@@ -29,7 +29,6 @@
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
@@ -121,34 +120,6 @@ namespace picongpu
             }
         };
 
-        /** Push a species and apply boundary conditions
-         *
-         * Both operations only affect species with a pusher
-         *
-         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked
-         */
-        template<typename T_SpeciesType>
-        struct PushSpecies
-        {
-            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
-            using FrameType = typename SpeciesType::FrameType;
-
-            template<typename T_EventList>
-            HINLINE void operator()(const uint32_t currentStep, const EventTask& eventInt, T_EventList& updateEvent)
-                const
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName());
-
-                eventSystem::startTransaction(eventInt);
-                species->update(currentStep);
-                // No need to wait here
-                species->applyBoundary(currentStep);
-                EventTask ev = eventSystem::endTransaction();
-                updateEvent.push_back(ev);
-            }
-        };
-
         /** Remove all particles of the species that are outside the respective boundaries
          *
          * Must be called only for species with a pusher
@@ -166,75 +137,6 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto species = dc.get<SpeciesType>(FrameType::getName());
                 boundary::removeOuterParticles(*species, currentStep);
-            }
-        };
-
-        /** Communicate a species
-         *
-         * communication is only triggered for species with a pusher
-         *
-         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked
-         */
-        template<typename T_SpeciesType>
-        struct CommunicateSpecies
-        {
-            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
-            using FrameType = typename SpeciesType::FrameType;
-
-            template<typename T_EventList>
-            HINLINE void operator()(T_EventList& updateEventList, T_EventList& commEventList) const
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-                auto species = dc.get<SpeciesType>(FrameType::getName());
-
-                EventTask updateEvent(*(updateEventList.begin()));
-
-                updateEventList.pop_front();
-                commEventList.push_back(communication::asyncCommunication(*species, updateEvent));
-            }
-        };
-
-        //! Push, apply boundaries, and communicate all species with pusher flag
-        struct PushAllSpecies
-        {
-            /** Process and communicate all species
-             *
-             * @param currentStep current simulation step
-             * @param pushEvent[out] grouped event that marks the end of the species push
-             * @param commEvent[out] grouped event that marks the end of the species communication
-             */
-            HINLINE void operator()(
-                const uint32_t currentStep,
-                const EventTask& eventInt,
-                EventTask& pushEvent,
-                EventTask& commEvent) const
-            {
-                using EventList = std::list<EventTask>;
-                EventList updateEventList;
-                EventList commEventList;
-
-                /* push all species */
-                using VectorSpeciesWithPusher =
-                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<boost::mpl::_1>> pushSpecies;
-                pushSpecies(currentStep, eventInt, updateEventList);
-
-                /* join all push events */
-                for(auto iter = updateEventList.begin(); iter != updateEventList.end(); ++iter)
-                {
-                    pushEvent += *iter;
-                }
-
-                /* call communication for all species */
-                meta::ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<boost::mpl::_1>>
-                    communicateSpecies;
-                communicateSpecies(updateEventList, commEventList);
-
-                /* join all communication events */
-                for(auto iter = commEventList.begin(); iter != commEventList.end(); ++iter)
-                {
-                    commEvent += *iter;
-                }
             }
         };
 
