@@ -23,7 +23,6 @@
 // need picongpu::simDim from picongpu/param/dimension.param
 //  and picongpu/param/atomicPhysics_debug.param
 
-#include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysicsSuperCellFields.hpp"
 #include "picongpu/particles/atomicPhysics/IPDModel.param" /// @todo move to atomicPhysics.param, Brian Marre, 2024
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
