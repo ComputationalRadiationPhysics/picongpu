@@ -94,10 +94,10 @@ namespace pmacc
          * ATTENTION: The pointer must be the last member to avoid local memory usage
          *            https://github.com/ComputationalRadiationPhysics/picongpu/pull/762
          */
-        PMACC_ALIGN(frame, FrameType*);
+        PMACC_ALIGN(frame, FrameType*) = nullptr;
 
         /** index of particle inside the Frame*/
-        PMACC_ALIGN(idx, uint32_t);
+        PMACC_ALIGN(idx, uint32_t) = std::numeric_limits<uint32_t>::max();
 
         /** set particle handle to invalid
          *
@@ -123,6 +123,8 @@ namespace pmacc
         {
             return frame != nullptr;
         }
+
+        HDINLINE Particle() = default;
 
         /** create particle
          *
@@ -169,8 +171,7 @@ namespace pmacc
          *
          * The common subset of the attribute lists from both particles is
          * used to set the attributes in this particle with the corresponding ones from source particle.
-         * The remaining attributes that only exist in this particle
-         * is simply set to their default values.
+         * The remaining attributes that only exist in this particle is simply set to their default values.
          */
         template<typename T_Worker, typename T_OtherFrameType, typename T_OtherValueTypeSeq>
         HDINLINE void copyAndInit(
@@ -199,7 +200,7 @@ namespace pmacc
 
             /* set all attributes which are not in src to their default value*/
             ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<boost::mpl::_1>> setAttributeToDefault;
-            setAttributeToDefault(worker, idGen, *this);
+            setAttributeToDefault(worker, idGen, *this, srcParticle);
         }
 
         /** Assign common attributes of one particle to another

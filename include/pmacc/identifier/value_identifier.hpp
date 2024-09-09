@@ -49,19 +49,22 @@
  * @{
  */
 
-/** @param ... must be a device function/lambda with arguments worker and  IdGenerator
+/** @param ... Must be a device function/lambda with arguments worker, IdGenerator and source particle.
+ *             @attention source particle can be invalid, isHandleValid() can be used to check the status.
+ *             To stay generic the lambda should be guarded against deriving from a particle which does not provide the
+ *             required attributes to initialize the value.
  *
  * @code{.cpp}
- * [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen) { return idGen.fetchInc(worker) };
+ * [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen, auto const& srcParticle) { return idGen.fetchInc(worker) };
  * @endcode
  */
 #define value_identifier_func(in_type, name, ...)                                                                     \
     identifier(                                                                                                       \
-        name, using type = in_type; template<typename T_Worker>                                                       \
-        DINLINE static type getValue(T_Worker const& worker, IdGenerator& idGen)                                      \
+        name, using type = in_type; template<typename T_Worker, typename T_SrcParticleType> DINLINE static type       \
+            getValue(T_Worker const& worker, IdGenerator& idGen, T_SrcParticleType const& srcParticle)                \
         {                                                                                                             \
             auto const func = __VA_ARGS__;                                                                            \
-            return func(worker, idGen);                                                                               \
+            return func(worker, idGen, srcParticle);                                                                  \
         } static std::string getName() { return std::string(#name); })
 
 /** getValue() is defined constexpr
@@ -74,7 +77,10 @@
  */
 #define value_identifier(in_type, name, ...)                                                                          \
     identifier(                                                                                                       \
-        name, using type = in_type; template<typename T_Worker> HDINLINE static constexpr type getValue(              \
+        name, using type = in_type; template<typename T_Worker, typename T_SrcParticleType>                           \
+        HDINLINE static constexpr type getValue(                                                                      \
             [[maybe_unused]] T_Worker const& acc,                                                                     \
-            [[maybe_unused]] IdGenerator& idGen) { return __VA_ARGS__; } HDINLINE static constexpr type getValue()    \
+            [[maybe_unused]] IdGenerator& idGen,                                                                      \
+            [[maybe_unused]] T_SrcParticleType const& srcParticle)                                                    \
+        { return __VA_ARGS__; } HDINLINE static constexpr type getValue()                                             \
         { return __VA_ARGS__; } static std::string getName() { return std::string(#name); })

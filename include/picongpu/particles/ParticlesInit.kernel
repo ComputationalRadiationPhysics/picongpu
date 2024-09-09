@@ -30,7 +30,6 @@
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/conversion/ResolveAndRemoveFromSeq.hpp>
-#include <pmacc/particles/operations/SetAttributeToDefault.hpp>
 
 namespace picongpu
 {

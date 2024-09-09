@@ -38,15 +38,32 @@ namespace pmacc
 
         /** set an attribute to their default value
          *
-         * @tparam T_Partcile particle type
+         * Check value_identifier and value_identifier_func for special behaviours on how defaults get derived.
+         *
+         * @tparam T_DestParticleType particle type
+         *
+         * @{
          */
-        template<typename T_Worker, typename T_Particle>
-        HDINLINE void operator()(T_Worker const& worker, IdGenerator idGen, T_Particle& particle)
+        template<typename T_Worker, typename T_DestParticleType>
+        HDINLINE void operator()(T_Worker const& worker, IdGenerator idGen, T_DestParticleType& destParticle)
         {
             using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
-            /* set attribute to it's user defined default value */
-            particle[Attribute()] = ResolvedAttr::getValue(worker, idGen);
+            /* set attribute to its user defined default value */
+            destParticle[Attribute()] = ResolvedAttr::getValue(worker, idGen, T_DestParticleType{});
         }
+
+        template<typename T_Worker, typename T_DestParticleType, typename T_SrcParticleType>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            IdGenerator idGen,
+            T_DestParticleType& destParticle,
+            T_SrcParticleType const& srcParticle)
+        {
+            using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
+            /* set attribute to its user defined default value */
+            destParticle[Attribute()] = ResolvedAttr::getValue(worker, idGen, srcParticle);
+        }
+        /** @} */
     };
 
 
