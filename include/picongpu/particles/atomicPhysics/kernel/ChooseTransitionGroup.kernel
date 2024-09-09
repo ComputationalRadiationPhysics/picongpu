@@ -1,4 +1,4 @@
-/* Copyright 2023 Brian Marre
+/* Copyright 2023-2024 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -21,8 +21,11 @@
 
 #pragma once
 
+#include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
+#include "picongpu/particles/shapes.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -35,15 +38,18 @@ namespace picongpu::particles::atomicPhysics::kernel
     /** choose transitionType
      *
      * @tparam T_RateCache dataType if RateCache
+     * @tparam T_IPDModel ionization potential depression model to use
      * @tparam T_electronicExcitation is channel active?
      * @tparam T_electronicDeexcitation is channel active?
      * @tparam T_spontaneousDeexcitation is channel active?
      * @tparam T_autonomousIonization is channel active?
-     * @tparam T_electonicIonization is channel active?
+     * @tparam T_electronicIonization is channel active?
      * @tparam T_fieldIonization is channel active?
      */
     template<
         typename T_RateCache,
+        typename T_IPDModel,
+        uint8_t T_numberLevels,
         bool T_electronicExcitation,
         bool T_electronicDeexcitation,
         bool T_spontaneousDeexcitation,
@@ -59,7 +65,7 @@ namespace picongpu::particles::atomicPhysics::kernel
          *
          * @returns true if active, false otherwise
          */
-        HDINLINE static constexpr bool transitionTypeActive(uint32_t const transitionTypeIndex)
+        static constexpr bool transitionTypeActive(uint32_t const transitionTypeIndex)
         {
             if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::noChange))
                 return true;
@@ -69,8 +75,11 @@ namespace picongpu::particles::atomicPhysics::kernel
             if constexpr(T_electronicDeexcitation || T_spontaneousDeexcitation)
                 if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::boundBoundDownward))
                     return true;
-            if constexpr(T_electronicIonization || T_fieldIonization)
-                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::boundFreeUpward))
+            if constexpr(T_electronicIonization)
+                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::collisionalBoundFreeUpward))
+                    return true;
+            if constexpr(T_fieldIonization)
+                if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::fieldBoundFreeUpward))
                     return true;
             if constexpr(T_autonomousIonization)
                 if(transitionTypeIndex == u32(s_enums::ChooseTransitionGroup::autonomousDownward))
@@ -129,37 +138,56 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_RateCache& rateCache = localRateCacheBox(superCellFieldIdx);
             auto rngGenerator = rngFactoryFloat(worker, superCellFieldIdx);
 
+            float_X const ionizationPotentialDepression
+                = T_IPDModel::template calculateIPD<T_ChargeStateDataDataBox::atomicNumber>(
+                    superCellFieldIdx,
+                    ipdInput...);
+
             // choose transition type randomly
             forEachLocalIonBoxEntry(
-                [&rngGenerator, &rateCache, &timeStep](T_Worker const& worker, auto& ion)
+                [&rngGenerator,
+                 &rateCache,
+                 &timeStep,
+                 &ionizationPotentialDepression,
+                 &chargeStateDataDataBox,
+                 &atomicStateDataDataBox,
+                 &numberTransitionsDataBox,
+                 &startIndexDataBox,
+                 &boundFreeTransitionDataBox](T_Worker const& worker, auto& ion)
                 {
                     constexpr uint32_t numberRateCacheTransitionTypes = T_RateCache::numberStoredDataSets;
 
                     if(ion[accepted_])
                         return;
-                    auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
                     float_X const r = rngGenerator();
 
+                    auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
+
+                    // per dataSet transition rates
                     /// @todo change to compile time loop, Brian Marre, 2023
                     float_X cumSum = 0._X;
-                    for(uint32_t transitionTypeID = 0u; transitionTypeID < numberRateCacheTransitionTypes;
-                        ++transitionTypeID)
+                    for(uint32_t chooseTransitionGroupID = 0u;
+                        chooseTransitionGroupID < numberRateCacheTransitionTypes;
+                        ++chooseTransitionGroupID)
                     {
                         // check whether user activated at least one process from the transitionType
-                        if(transitionTypeActive(transitionTypeID))
+                        /// @todo convert to compile time for loop?, Brian Marre, 2024
+                        if(transitionTypeActive(chooseTransitionGroupID))
                         {
-                            cumSum += timeStep * rateCache.rate(transitionTypeID, atomicStateCollectionIndex);
+                            cumSum += timeStep * rateCache.rate(chooseTransitionGroupID, atomicStateCollectionIndex);
                             if(r < cumSum)
                             {
                                 // only in between storage
-                                ion[transitionIndex_] = transitionTypeID;
+                                ion[transitionIndex_] = chooseTransitionGroupID;
                                 break;
                             }
                         }
                     }
+
                     // noChange transition as last resort transition, never stored in RateCache
-                    if(r >= cumSum) // and <= 1
+                    /// @todo test for no change first, since with default setting ~90% will take this branch anyway
+                    if(r >= cumSum) // and <= 1 by definition of timeStep
                     {
                         ion[processClass_] = u8(s_enums::ProcessClass::noChange);
                         // no need to set ion[transitionIndex_] since already uniquely known by processClass = noChange
