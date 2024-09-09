@@ -57,7 +57,7 @@ namespace pmacc
             {
                 using result = const pmacc::DataSpace<T_Dim>;
 
-                HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
+                constexpr result operator()(const pmacc::DataSpace<T_Dim>& vector) const
                 {
                     return vector;
                 }
@@ -68,7 +68,7 @@ namespace pmacc
             {
                 using result = ::pmacc::math::Vector<T_CastToType, T_Dim>;
 
-                HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
+                constexpr result operator()(const pmacc::DataSpace<T_Dim>& vector) const
                 {
                     return result(vector);
                 }
