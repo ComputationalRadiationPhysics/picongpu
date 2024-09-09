@@ -57,7 +57,7 @@ namespace picongpu
                          *
                          * unit: 1/sim.unit.time()
                          */
-                        static constexpr float_X f = static_cast<float_X>(SPEED_OF_LIGHT / WAVE_LENGTH);
+                        static constexpr float_X f = static_cast<float_X>(sim.pic.getSpeedOfLight() / WAVE_LENGTH);
 
                         /** Angular frequency
                          *

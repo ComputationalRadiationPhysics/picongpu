@@ -101,8 +101,8 @@ namespace picongpu
 
                 sqrt_HC::float_X const sigma = pmacc::math::norm(gamma_minus) - pmacc::math::l2norm2(tau);
 
-                sqrt_HC::float_X const u_star
-                    = pmacc::math::dot(mom_minus, tau) / precisionCast<sqrt_HC::float_X>(mass * SPEED_OF_LIGHT);
+                sqrt_HC::float_X const u_star = pmacc::math::dot(mom_minus, tau)
+                    / precisionCast<sqrt_HC::float_X>(mass * sim.pic.getSpeedOfLight());
 
                 sqrt_HC::float_X const gamma_plus = math::sqrt(
                     sqrt_HC::float_X(0.5)

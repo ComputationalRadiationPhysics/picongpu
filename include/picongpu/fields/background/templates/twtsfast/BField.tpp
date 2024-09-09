@@ -421,7 +421,7 @@ namespace picongpu
                  * float_T const eta = float_T(PI/2) - (phiReal - alphaTilt);
                  */
 
-                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / sim.unit.speed());
+                auto const cspeed = float_T(sim.si.getSpeedOfLight() / sim.unit.speed());
                 auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
@@ -442,7 +442,7 @@ namespace picongpu
                 pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
                 float_64 const tanAlpha = (1.0 - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
                 float_64 const tanFocalLine = math::tan(PI / 2.0 - phi);
-                float_64 const deltaT = wavelength_SI / SI::SPEED_OF_LIGHT_SI * (1.0 + tanAlpha / tanFocalLine);
+                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (1.0 + tanAlpha / tanFocalLine);
                 float_64 const deltaY = wavelength_SI / tanFocalLine;
                 float_64 const deltaZ = -wavelength_SI;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
@@ -568,7 +568,7 @@ namespace picongpu
                  * float_T const eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / sim.unit.speed());
+                auto const cspeed = float_T(sim.si.getSpeedOfLight() / sim.unit.speed());
                 auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
@@ -589,7 +589,7 @@ namespace picongpu
                 pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
                 float_64 const tanAlpha = (1.0 - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
                 float_64 const tanFocalLine = math::tan(PI / 2.0 - phi);
-                float_64 const deltaT = wavelength_SI / SI::SPEED_OF_LIGHT_SI * (1.0 + tanAlpha / tanFocalLine);
+                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (1.0 + tanAlpha / tanFocalLine);
                 float_64 const deltaY = wavelength_SI / tanFocalLine;
                 float_64 const deltaZ = -wavelength_SI;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
@@ -723,7 +723,7 @@ namespace picongpu
                  * float_T const eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / sim.unit.speed());
+                auto const cspeed = float_T(sim.si.getSpeedOfLight() / sim.unit.speed());
                 auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
@@ -744,7 +744,7 @@ namespace picongpu
                 pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
                 float_64 const tanAlpha = (1.0 - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
                 float_64 const tanFocalLine = math::tan(PI / 2.0 - phi);
-                float_64 const deltaT = wavelength_SI / SI::SPEED_OF_LIGHT_SI * (1.0 + tanAlpha / tanFocalLine);
+                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (1.0 + tanAlpha / tanFocalLine);
                 float_64 const deltaY = wavelength_SI / tanFocalLine;
                 float_64 const deltaZ = -wavelength_SI;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);

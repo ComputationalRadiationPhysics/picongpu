@@ -118,7 +118,7 @@ Since an adequate color scaling is essential, there several option the user can 
     * The order of normalization values is: B, E, current (note - current, not current density).
     * This variable must always be defined, but has no effect for other normalization types.
     */
-   constexpr float_64 customNormalizationSI[3] = {5.0e12 / SI::SPEED_OF_LIGHT_SI, 5.0e12, 15.0};
+   constexpr float_64 customNormalizationSI[3] = {5.0e12 / sim.si.getSpeedOfLight(), 5.0e12, 15.0};
 
 In the above example, all channels are set to **auto scale**.
 **Be careful**, when using a normalization other than auto-scale, depending on your setup, the normalization might fail due to parameters not set by PIConGPU.

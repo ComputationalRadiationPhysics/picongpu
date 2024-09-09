@@ -74,7 +74,7 @@ namespace picongpu
                          *  unit: seconds
                          */
                         static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
-                            = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+                            = 0.0 * WAVE_LENGTH_SI / ::picongpu::sim.si.getSpeedOfLight();
 
 
                         /** The laser pulse will be initialized half of RAMP_INIT times of the PULSE_DURATION before

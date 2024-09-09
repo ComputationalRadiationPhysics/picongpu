@@ -113,7 +113,8 @@ namespace picongpu
                         float_X sincValue = 1.0_X;
                         for(uint32_t d = 0; d < DIM3; ++d)
                             sincValue *= pmacc::math::sinc(
-                                observerUnitVec[d] * sim.pic.getCellSize()[d] / (SPEED_OF_LIGHT * 2.0_X) * omega);
+                                observerUnitVec[d] * sim.pic.getCellSize()[d] / (sim.pic.getSpeedOfLight() * 2.0_X)
+                                * omega);
                         return pmacc::math::cPow(sincValue, static_cast<uint32_t>(2u) * T_shapeOrder);
                     }
                 };
@@ -184,8 +185,8 @@ namespace picongpu
                      *                        not used for this form factor but requried by RadFormFactorConcept
                      */
                     HDINLINE RadFormFactor(const float_X omega, vector_64 const&)
-                        : normalizedCoherentAmplification(util::square(
-                            pmacc::math::sinc(sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)))
+                        : normalizedCoherentAmplification(util::square(pmacc::math::sinc(
+                            sim.pic.getCellSize().y() / (sim.pic.getSpeedOfLight() * 2.0_X) * omega)))
                     {
                     }
 
@@ -294,12 +295,14 @@ namespace picongpu
                         return util::square(math::exp(
                             -0.5_X
                             * (util::square(
-                                   observerUnitVec.x() * sim.pic.getCellSize().x() / (SPEED_OF_LIGHT * 2.0_X) * omega)
+                                   observerUnitVec.x() * sim.pic.getCellSize().x()
+                                   / (sim.pic.getSpeedOfLight() * 2.0_X) * omega)
                                + util::square(
-                                   observerUnitVec.y() * sim.pic.getCellSize().y() / (SPEED_OF_LIGHT * 2.0_X) * omega)
+                                   observerUnitVec.y() * sim.pic.getCellSize().y()
+                                   / (sim.pic.getSpeedOfLight() * 2.0_X) * omega)
                                + util::square(
-                                   observerUnitVec.z() * sim.pic.getCellSize().z() / (SPEED_OF_LIGHT * 2.0_X)
-                                   * omega))));
+                                   observerUnitVec.z() * sim.pic.getCellSize().z()
+                                   / (sim.pic.getSpeedOfLight() * 2.0_X) * omega))));
                     }
                 };
             } // namespace radFormFactor_Gauss_cell

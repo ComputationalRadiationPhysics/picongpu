@@ -71,7 +71,7 @@ namespace picongpu
                 HDINLINE
                 float_X getVel() const
                 {
-                    return betaAbs * picongpu::SPEED_OF_LIGHT;
+                    return betaAbs * picongpu::sim.pic.getSpeedOfLight();
                 }
 
                 //! propagates the current window to the foil position
@@ -137,14 +137,14 @@ namespace picongpu
                 HDINLINE
                 float3_X calcBeta() const
                 {
-                    return momentum * (1.0 / (mass * picongpu::SPEED_OF_LIGHT * gamma));
+                    return momentum * (1.0 / (mass * picongpu::sim.pic.getSpeedOfLight() * gamma));
                 }
 
                 //! @return gamma = E/(mc^2)
                 HDINLINE
                 float_X calcGamma() const
                 {
-                    float_X const massTimesC = mass * picongpu::SPEED_OF_LIGHT;
+                    float_X const massTimesC = mass * picongpu::sim.pic.getSpeedOfLight();
                     return picongpu::math::sqrt(
                         1.0 + (momentum * momentum).sumOfComponents() / (massTimesC * massTimesC));
                 }

@@ -38,7 +38,7 @@ namespace picongpu
                          *  unit: seconds
                          */
                         static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
-                            = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+                            = 7.0 * WAVE_LENGTH_SI / ::picongpu::sim.si.getSpeedOfLight();
 
                         /** Beam waist: distance from the axis where the pulse intensity (E^2)
                          *              decreases to its 1/e^2-th part,

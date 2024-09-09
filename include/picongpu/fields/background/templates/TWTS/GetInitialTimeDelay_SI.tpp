@@ -87,11 +87,11 @@ namespace picongpu
                         const float_64 m = 3.;
                         /* Approximate cross section of laser pulse through y-axis,
                          * scaled with "fudge factor" m. */
-                        const float_64 y2 = m * (pulselength_SI * picongpu::SI::SPEED_OF_LIGHT_SI) / math::cos(eta);
+                        const float_64 y2 = m * (pulselength_SI * picongpu::sim.si.getSpeedOfLight()) / math::cos(eta);
                         /* y-position of laser coordinate system origin within simulation. */
                         const float_64 y3 = focus_y_SI;
                         /* Programmatically obtained time-delay */
-                        const float_64 tdelay = (y1 + y2 + y3) / (picongpu::SI::SPEED_OF_LIGHT_SI * beta_0);
+                        const float_64 tdelay = (y1 + y2 + y3) / (picongpu::sim.si.getSpeedOfLight() * beta_0);
 
                         return tdelay;
                     }
@@ -124,11 +124,11 @@ namespace picongpu
                         const float_64 m = 3.;
                         /* Approximate cross section of laser pulse through y-axis,
                          * scaled with "fudge factor" m. */
-                        const float_64 y2 = m * (pulselength_SI * picongpu::SI::SPEED_OF_LIGHT_SI) / math::cos(eta);
+                        const float_64 y2 = m * (pulselength_SI * picongpu::sim.si.getSpeedOfLight()) / math::cos(eta);
                         /* y-position of laser coordinate system origin within simulation. */
                         const float_64 y3 = focus_y_SI;
                         /* Programmatically obtained time-delay */
-                        const float_64 tdelay = (y1 + y2 + y3) / (picongpu::SI::SPEED_OF_LIGHT_SI * beta_0);
+                        const float_64 tdelay = (y1 + y2 + y3) / (picongpu::sim.si.getSpeedOfLight() * beta_0);
 
                         return tdelay;
                     }

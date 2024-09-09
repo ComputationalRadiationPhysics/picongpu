@@ -60,7 +60,7 @@ namespace picongpu
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
                 /* speed of the moving window */
-                const auto windowMovingSpeed = float_64(SPEED_OF_LIGHT);
+                const auto windowMovingSpeed = float_64(sim.pic.getSpeedOfLight());
 
                 /* defines in which direction the window moves
                  *

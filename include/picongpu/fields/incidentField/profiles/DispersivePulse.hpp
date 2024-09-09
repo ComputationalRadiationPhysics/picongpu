@@ -139,7 +139,7 @@ namespace picongpu
                          */
                         HDINLINE float_X expandedWaveVectorX(float_X const Omega) const
                         {
-                            return Unitless::W0 / SPEED_OF_LIGHT
+                            return Unitless::W0 / sim.pic.getSpeedOfLight()
                                 * (Unitless::w * Unitless::AD * (Omega - Unitless::w)
                                    + Unitless::AD * (Omega - Unitless::w) * (Omega - Unitless::w)
                                    - Unitless::w / 6.0_X * Unitless::AD * Unitless::AD * Unitless::AD
@@ -184,7 +184,7 @@ namespace picongpu
 
                             // Center of a frequency's spatial distribution
                             float_X center = Unitless::SD * (Omega - Unitless::w)
-                                + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
+                                + sim.pic.getSpeedOfLight() * alpha * focusPos / (Unitless::W0 * Unitless::w);
 
                             // gaussian envelope in frequency domain
                             float_X const envFreqExp = -(Omega - Unitless::w) * (Omega - Unitless::w)
@@ -246,7 +246,7 @@ namespace picongpu
 
                             // Center of a frequency's spatial distribution
                             float_X center = Unitless::SD * (Omega - Unitless::w)
-                                + SPEED_OF_LIGHT * alpha * focusPos / (Unitless::W0 * Unitless::w);
+                                + sim.pic.getSpeedOfLight() * alpha * focusPos / (Unitless::W0 * Unitless::w);
 
                             // inverse radius of curvature of the pulse's wavefronts
                             auto const R_inv = -focusPos
@@ -256,16 +256,16 @@ namespace picongpu
 
                             // shifting pulse for half of INIT_TIME to start with the front of the laser pulse
                             constexpr auto mue = 0.5_X * Unitless::INIT_TIME;
-                            float_X const timeDelay = mue + focusPos / SPEED_OF_LIGHT;
+                            float_X const timeDelay = mue + focusPos / sim.pic.getSpeedOfLight();
 
-                            float_X phase = -Omega * focusPos / SPEED_OF_LIGHT
+                            float_X phase = -Omega * focusPos / sim.pic.getSpeedOfLight()
                                 + 0.5_X * Unitless::GDD * (Omega - Unitless::w) * (Omega - Unitless::w)
                                 + Unitless::TOD / 6.0_X * (Omega - Unitless::w) * (Omega - Unitless::w)
                                     * (Omega - Unitless::w)
                                 + phaseShift + Unitless::LASER_PHASE + Omega * timeDelay;
 
                             phase += ((pos[1] - center) * (pos[1] - center) + (pos[2] - center) * (pos[2] - center))
-                                * Omega * 0.5_X * R_inv / SPEED_OF_LIGHT;
+                                * Omega * 0.5_X * R_inv / sim.pic.getSpeedOfLight();
                             phase -= alpha * (pos[1] + pos[2]) / Unitless::W0;
 
                             // distinguish between dimensions
@@ -317,8 +317,8 @@ namespace picongpu
 
                             // index of the mean frequency of the Gaussian distributed spectrum
                             // unit: [dOmk]
-                            int const center_k
-                                = static_cast<int>(SPEED_OF_LIGHT * Unitless::INIT_TIME / Unitless::Base::WAVE_LENGTH);
+                            int const center_k = static_cast<int>(
+                                sim.pic.getSpeedOfLight() * Unitless::INIT_TIME / Unitless::Base::WAVE_LENGTH);
 
                             // index of the lowest frequency in the Gaussian distributed spectrum which is used in the
                             // DFT 4*sigma_Om distance from central frequency

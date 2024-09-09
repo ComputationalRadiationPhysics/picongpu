@@ -240,7 +240,7 @@ namespace picongpu
                  * const float_T eta = (PI / 2) - (phiReal - alphaTilt);
                  */
 
-                const auto cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                const auto cspeed = float_T(sim.si.getSpeedOfLight() / UNIT_SPEED);
                 const auto lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
                 const auto om0 = float_T(2.0 * PI * cspeed / lambda0);
                 /* factor 2  in tauG arises from definition convention in laser formula */

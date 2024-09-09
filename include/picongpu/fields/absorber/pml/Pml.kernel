@@ -428,7 +428,7 @@ namespace picongpu
                         T_LocalBBox const localB,
                         T_LocalEBox localE)
                     {
-                        constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        constexpr auto c2 = sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight();
                         constexpr auto dt = maxwellSolver::getTimeStep();
                         // with the current Yee grid, no shift needed here
                         auto const pmlIdx = precisionCast<float_X>(gridIndex);

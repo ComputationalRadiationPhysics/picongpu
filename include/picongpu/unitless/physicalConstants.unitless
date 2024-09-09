@@ -35,13 +35,13 @@ namespace picongpu
         = (float_X) (SI::MUE0_SI / sim.unit.length() / sim.unit.mass() * sim.unit.charge() * sim.unit.charge());
 
     //! electric constexprant must be double 2.54513e+38
-    constexpr float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    constexpr float_X EPS0 = (float_X) (1. / MUE0 / sim.pic.getSpeedOfLight() / sim.pic.getSpeedOfLight());
 
     // = 1/c^2
-    constexpr float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    constexpr float_X MUE0_EPS0 = float_X(1. / sim.pic.getSpeedOfLight() / sim.pic.getSpeedOfLight());
 
     //! Impedance of free space
-    constexpr float_X Z0 = MUE0 * SPEED_OF_LIGHT;
+    constexpr float_X Z0 = MUE0 * sim.pic.getSpeedOfLight();
 
     /* Atomic unit of electric field in PIC Efield units */
     constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / sim.unit.eField());
