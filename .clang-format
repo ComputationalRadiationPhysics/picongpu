@@ -101,31 +101,28 @@ UseTab: Never
 
 # Project specific options
 IncludeCategories:
-  # boost workaround must be always the first include
-  - Regex: 'pmacc/boost_workaround.hpp'
-    Priority: 1
-  # simulation_defines must be before other header except boost_workaround.hpp
+  # simulation_defines must be before other header
   - Regex: 'picongpu/simulation_defines.hpp'
-    Priority: 2
+    Priority: 1
   # Local headers (in "") above all else
   - Regex: '"([A-Za-z0-9.\/-_])+"'
-    Priority: 3
+    Priority: 2
     # <pmacc/foo.hpp>
   - Regex: '<pmacc/([A-Za-z0-9.\/-_])+>'
-    Priority: 4
+    Priority: 3
   # <alpaka/foo.hpp>
   - Regex: '<alpaka/([A-Za-z0-9.\/-_])+>'
-    Priority: 5
+    Priority: 4
   # <boost/foo.hpp>
   - Regex: '<boost/([A-Za-z0-9.\/-_])+>'
-    Priority: 6
+    Priority: 5
   # C++ standard library headers are the last group to be included
   - Regex: '<([A-Za-z0-9\/-_])+>'
-    Priority: 7
+    Priority: 6
   # Includes that made it this far are third-party headers and will be placed
   # below picongpu/pmacc includes
   - Regex: '<([A-Za-z0-9.\/-_])+>'
-    Priority: 8
+    Priority: 7
 
 # Future options - not supported in clang-format 12
 #

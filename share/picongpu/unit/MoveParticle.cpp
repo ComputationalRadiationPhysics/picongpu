@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pmacc/boost_workaround.hpp>
-
 #include <picongpu/simulation_defines.hpp>
 
 #include "picongpu/particles/filter/filter.hpp"

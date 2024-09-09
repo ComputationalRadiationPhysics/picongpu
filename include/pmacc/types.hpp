@@ -23,18 +23,11 @@
 
 #pragma once
 
-
-#define BOOST_MPL_LIMIT_VECTOR_SIZE 20
-#define BOOST_MPL_LIMIT_MAP_SIZE 20
-
 #include <alpaka/alpaka.hpp>
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
 #    include <mallocMC/mallocMC.hpp>
 #endif
-
-
-#include <pmacc/boost_workaround.hpp>
 
 #include "pmacc/alpakaHelper/ValidateCall.hpp"
 #include "pmacc/alpakaHelper/acc.hpp"

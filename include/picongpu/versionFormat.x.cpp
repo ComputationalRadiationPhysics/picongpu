@@ -19,8 +19,6 @@
 
 #include "picongpu/versionFormat.hpp"
 
-#include <pmacc/boost_workaround.hpp>
-
 #include <boost/version.hpp>
 // work-around: mallocMC PR #142
 #include <boost/config.hpp>

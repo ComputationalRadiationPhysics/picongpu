@@ -19,8 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pmacc/boost_workaround.hpp>
-
 #include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>

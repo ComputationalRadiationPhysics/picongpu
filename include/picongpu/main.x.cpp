@@ -18,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pmacc/boost_workaround.hpp>
-
 #include "picongpu/ArgsParser.hpp"
 #include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/plugins/PluginController.hpp"

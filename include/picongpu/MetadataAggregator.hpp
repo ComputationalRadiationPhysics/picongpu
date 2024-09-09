@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <pmacc/boost_workaround.hpp>
-
 #include <pmacc/filesystem.hpp>
 #include <pmacc/pluginSystem/IPlugin.hpp>
 

@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pmacc/boost_workaround.hpp>
-
 #include "picongpu/MetadataAggregator.hpp"
 
 #include <catch2/catch_test_macros.hpp>
