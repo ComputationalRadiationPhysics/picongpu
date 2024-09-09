@@ -32,8 +32,6 @@ namespace picongpu::particles::atomicPhysics::kernel
 {
     /** record used weight from bin of electron histogram for each accepted transition
      *
-     * @todo fuse into AcceptTransitionTest kernel?, Brian Marre, 2023
-     *
      * @tparam T_Histogram type of the histogram
      */
     template<typename T_Histogram>

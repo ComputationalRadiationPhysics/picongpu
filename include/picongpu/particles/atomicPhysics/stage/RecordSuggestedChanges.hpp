@@ -42,8 +42,6 @@ namespace picongpu::particles::atomicPhysics::stage
      *  and AcceptTransitionTest stages have been executed previously in the current
      *  atomicPhysics time step.
      *
-     * @todo fuse kernels into AcceptTransitionTest kernel?, Brian Marre, 2023
-     *
      * @tparam T_IonSpecies ion species type
      */
     template<typename T_IonSpecies>
