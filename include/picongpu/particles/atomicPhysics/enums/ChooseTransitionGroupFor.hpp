@@ -45,12 +45,7 @@ namespace picongpu::particles::atomicPhysics::enums
         static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundBoundDownward;
     };
 
-    //! bound-free(upward)
-    template<>
-    struct ChooseTransitionGroupFor<TransitionType::boundFree, TransitionDirection::upward>
-    {
-        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundFreeUpward;
-    };
+    //! bound-free(upward) may be either collisionalBoundFreeUpward or fieldBoundFreeUpward -> error to ask
 
     //! autonomous(downward)
     template<>
