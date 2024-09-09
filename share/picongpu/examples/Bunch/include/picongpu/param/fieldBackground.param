@@ -93,7 +93,7 @@ namespace picongpu
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /* UNITCONV */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
                 * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /* unit: W / m^2 */
@@ -179,7 +179,7 @@ namespace picongpu
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /* UNITCONV */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
                 * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /* unit: W / m^2 */

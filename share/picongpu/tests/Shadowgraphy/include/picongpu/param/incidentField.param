@@ -40,7 +40,7 @@ namespace picongpu
                     static constexpr float_64 WAVE_LENGTH_SI = 800e-9; // TIME_PERIOD_SI * sim.si.getSpeedOfLight();
                     static constexpr float_64 TIME_PERIOD_SI = WAVE_LENGTH_SI / sim.si.getSpeedOfLight();
                     static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                        * SI::ELECTRON_MASS_SI * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
                         / sim.si.getElectronCharge();
                     static constexpr float_64 A0 = 1.0;
                     static constexpr float_64 AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI;

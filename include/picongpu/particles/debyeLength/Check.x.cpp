@@ -48,9 +48,9 @@ namespace picongpu::particles::debyeLength
         {
             using FrameType = typename T_Species::FrameType;
             auto const charge = plugins::output::GetChargeOrZero<FrameType>{}();
-            auto const chargeRatio = charge / ELECTRON_CHARGE;
+            auto const chargeRatio = charge / sim.pic.getElectronCharge();
             auto const mass = plugins::output::GetMassOrZero<FrameType>{}();
-            auto const massRatio = mass / ELECTRON_MASS;
+            auto const massRatio = mass / sim.pic.getElectronMass();
             // Allow slight deviation due to unit conversions
             auto const tolerance = 0.001_X;
             return (std::abs(chargeRatio - 1.0_X) < tolerance) && (std::abs(massRatio - 1.0_X) < tolerance);

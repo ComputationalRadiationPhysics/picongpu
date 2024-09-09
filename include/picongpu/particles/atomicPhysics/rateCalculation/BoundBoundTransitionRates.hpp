@@ -368,7 +368,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             // m/s
             constexpr float_64 c_SI = picongpu::sim.si.getSpeedOfLight();
             // kg
-            constexpr float_64 m_e_SI = picongpu::SI::ELECTRON_MASS_SI;
+            constexpr float_64 m_e_SI = picongpu::sim.si.getElectronMass();
             // C
             constexpr float_64 e_SI = picongpu::sim.si.getElectronCharge();
 

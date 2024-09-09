@@ -108,8 +108,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -123,8 +124,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -170,8 +172,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -186,8 +189,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -233,8 +237,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -248,8 +253,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -295,8 +301,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -310,8 +317,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -357,8 +365,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -372,8 +381,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -419,8 +429,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -435,8 +446,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -482,8 +494,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -497,8 +510,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
@@ -545,8 +559,9 @@ namespace picongpu
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float3_64 invUnitField
                         = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
@@ -560,8 +575,9 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
                     constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                        * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+                    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                        * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                        / sim.si.getElectronCharge();
                     constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
                     const float_64 invUnitField = 1.0 / m_unitField[T_component];
                     const float_X amplitude
