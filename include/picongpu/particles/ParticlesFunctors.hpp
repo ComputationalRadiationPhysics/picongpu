@@ -25,9 +25,6 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-#include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
-#include <pmacc/traits/HasFlag.hpp>
 
 #include <memory>
 
@@ -113,11 +110,5 @@ namespace picongpu
                 species->reset(currentStep);
             }
         };
-
-    }
-}
-}
-;
-
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu
