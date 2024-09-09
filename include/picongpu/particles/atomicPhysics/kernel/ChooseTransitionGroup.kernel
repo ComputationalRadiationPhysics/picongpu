@@ -38,7 +38,6 @@ namespace picongpu::particles::atomicPhysics::kernel
     /** choose transitionType
      *
      * @tparam T_RateCache dataType if RateCache
-     * @tparam T_IPDModel ionization potential depression model to use
      * @tparam T_electronicExcitation is channel active?
      * @tparam T_electronicDeexcitation is channel active?
      * @tparam T_spontaneousDeexcitation is channel active?
@@ -48,8 +47,6 @@ namespace picongpu::particles::atomicPhysics::kernel
      */
     template<
         typename T_RateCache,
-        typename T_IPDModel,
-        uint8_t T_numberLevels,
         bool T_electronicExcitation,
         bool T_electronicDeexcitation,
         bool T_spontaneousDeexcitation,
@@ -138,22 +135,9 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_RateCache& rateCache = localRateCacheBox(superCellFieldIdx);
             auto rngGenerator = rngFactoryFloat(worker, superCellFieldIdx);
 
-            float_X const ionizationPotentialDepression
-                = T_IPDModel::template calculateIPD<T_ChargeStateDataDataBox::atomicNumber>(
-                    superCellFieldIdx,
-                    ipdInput...);
-
             // choose transition type randomly
             forEachLocalIonBoxEntry(
-                [&rngGenerator,
-                 &rateCache,
-                 &timeStep,
-                 &ionizationPotentialDepression,
-                 &chargeStateDataDataBox,
-                 &atomicStateDataDataBox,
-                 &numberTransitionsDataBox,
-                 &startIndexDataBox,
-                 &boundFreeTransitionDataBox](T_Worker const& worker, auto& ion)
+                [&rngGenerator, &rateCache, &timeStep](T_Worker const& worker, auto& ion)
                 {
                     constexpr uint32_t numberRateCacheTransitionTypes = T_RateCache::numberStoredDataSets;
 
@@ -179,6 +163,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             if(r < cumSum)
                             {
                                 // only in between storage
+                                // printf("ID: %lu, %i\n", ion[particleId_], chooseTransitionGroupID);
                                 ion[transitionIndex_] = chooseTransitionGroupID;
                                 break;
                             }
@@ -189,6 +174,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     /// @todo test for no change first, since with default setting ~90% will take this branch anyway
                     if(r >= cumSum) // and <= 1 by definition of timeStep
                     {
+                        // printf("ID: %lu, %i\n", ion[particleId_], u32(s_enums::ProcessClass::noChange));
                         ion[processClass_] = u8(s_enums::ProcessClass::noChange);
                         // no need to set ion[transitionIndex_] since already uniquely known by processClass = noChange
                         //  and accepted_ = true prevents it being worked on by ChooseTransitionKernels

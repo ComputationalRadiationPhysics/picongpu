@@ -56,7 +56,7 @@ namespace picongpu::particles::atomicPhysics::enums
         noChange, // = 5
         FINAL_NUMBER_ENTRIES // = 6
     };
-    constexpr uint32_t numberChooseTransitionGroups = u32(ChooseTransitionGroup::FINAL_NUMBER_BY_STATE_GROUPS);
+    constexpr uint32_t numberChooseTransitionGroups = u32(ChooseTransitionGroup::FINAL_NUMBER_ENTRIES);
 } // namespace picongpu::particles::atomicPhysics::enums
 
 namespace picongpu::particles::atomicPhysics

@@ -30,7 +30,6 @@
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/CalculateIPDInput.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/FillIPDSumFields_Electron.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/FillIPDSumFields_Ion.hpp"
-#include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_BoundFree.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalFoundUnboundIonField.hpp"
 
 #include <pmacc/meta/ForEach.hpp>

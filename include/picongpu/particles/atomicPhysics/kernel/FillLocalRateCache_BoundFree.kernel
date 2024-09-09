@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-// need unit.param, sim.unit.length() for normalisation and memory.param for SuperCellSize, simDim from dim.param
-
+// need unit.param for normalisation and units, memory.param for SuperCellSize and dim.param for simDim
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
@@ -102,6 +101,7 @@ namespace picongpu::particles::atomicPhysics::kernel
         template<
             typename T_Worker,
             typename T_RateCache,
+            typename T_LocalElectronHistogramDataBox,
             typename T_ChargeStateDataDataBox,
             typename T_AtomicStateDataDataBox,
             typename T_AtomicStateStartIndexBox,
@@ -111,9 +111,10 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_Worker const& worker,
             pmacc::DataSpace<picongpu::simDim> superCellFieldIdx,
             T_RateCache& rateCache,
+            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
             T_ChargeStateDataDataBox const chargeStateDataDataBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
-            T_AtomicStateStartIndexBox const startIndexBlockTransitionsUp,
+            T_AtomicStateStartIndexBox const startIndexDataBox,
             T_AtomicStateNumberTransitionsBox const numberTransitionsDataBox,
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox,
             float_X const ionizationPotentialDepression)
@@ -124,8 +125,8 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
             // picongpu::sim.unit.length()^3
-            constexpr float_X volumeScalingFactor
-                = pmacc::math::CT::volume<picongpu::SuperCellSize>::type::value * picongpu::CELL_VOLUME;
+            constexpr float_X volumeScalingFactor = pmacc::math::CT::volume<picongpu::SuperCellSize>::type::value
+                * picongpu::sim.pic.getCellSize().productOfComponents();
 
             PMACC_SMEM(worker, cachedHistogram, CachedHistogram<T_numberBins>);
             cachedHistogram.fill(worker, histogram, volumeScalingFactor);
@@ -158,7 +159,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     float_X const density = cachedHistogram.density[binIndex];
 
                     // 1/picongpu::sim.unit.time()
-                    float_X const sumRateTransitions = 0._X;
+                    float_X sumRateTransitions = 0._X;
                     for(uint32_t transitionID = u32(0u); transitionID < numberTransitionsUp; ++transitionID)
                     {
                         uint32_t const transitionCollectionIndex = offset + transitionID;
@@ -198,12 +199,12 @@ namespace picongpu::particles::atomicPhysics::kernel
             typename T_BoundFreeTransitionDataBox>
         HDINLINE static void fillWithFieldIonization(
             T_Worker const& worker,
-            pmacc::DataSpace<picongpu::simDim> superCellFieldIdx,
+            pmacc::DataSpace<picongpu::simDim> superCellIdx,
             T_RateCache& rateCache,
             T_EFieldDataBox const eFieldBox,
             T_ChargeStateDataDataBox const chargeStateDataDataBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
-            T_AtomicStateStartIndexBox const startIndexBlockTransitionsUp,
+            T_AtomicStateStartIndexBox const startIndexDataBox,
             T_AtomicStateNumberTransitionsBox const numberTransitionsDataBox,
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox,
             float_X const ionizationPotentialDepression)
@@ -218,40 +219,23 @@ namespace picongpu::particles::atomicPhysics::kernel
                 = pmacc::math::CT::volume<typename picongpu::SuperCellSize>::type::value;
             auto forEachCell = pmacc::lockstep::makeForEach<numberCellsInSuperCell, T_Worker>(worker);
 
-            DataSpace<picongpu::simDim> cellIndex;
             DataSpace<picongpu::simDim> const superCellCellOffset = superCellIdx * picongpu::SuperCellSize::toRT();
 
             /// @todo switch to shared memory reduce, Brian Marre, 2024
             forEachCell(
-                [&worker, &cellIndex, &superCellCellOffset, &maximumNormEFieldValueSuperCell, &eFieldBox](
-                    uint32_t const linearIdx)
+                [&worker, &superCellCellOffset, &maximumNormEFieldValueSuperCell, &eFieldBox](uint32_t const linearIdx)
                 {
-                    if constexpr(T_EFieldDataBox::Dim == 3u)
-                    {
-                        constexpr auto strideY = picongpu::SuperCellSize::at<0u>::type::value;
-                        constexpr auto strideZ = picongpu::SuperCellSize::at<0u>::type::value
-                            * picongpu::SuperCellSize::at<1u>::type::value;
-
-                        cellIndex = supercellCellOffset;
-                        cellIndex.x() += linearIdx % picongpu::SuperCellSize::at<0u>::type::value;
-                        cellIndex.y() += (linearIdx / strideY) % picongpu::SuperCellSize::at<1u>::type::value;
-                        cellIndex.z() += linearIdx / strideZ;
-                    }
-                    else
-                    {
-                        constexpr auto strideY = picongpu::SuperCellSize::at<0u>::type::value;
-
-                        cellIndex = supercellCellOffset;
-                        cellIndex.x() += linearIdx % picongpu::SuperCellSize::at<0u>::type::value;
-                        cellIndex.y() += linearIdx / strideY;
-                    }
+                    DataSpace<picongpu::simDim> const localCellIndex
+                        = pmacc::math::mapToND(picongpu::SuperCellSize::toRT(), static_cast<int>(linearIdx));
+                    DataSpace<picongpu::simDim> const cellIndex = localCellIndex + superCellCellOffset;
 
                     auto const eFieldNorm = pmacc::math::l2norm(eFieldBox(cellIndex));
+
                     alpaka::atomicMax(
                         worker.getAcc(),
                         // internal units
                         &maximumNormEFieldValueSuperCell,
-                        eFieldNorm));
+                        eFieldNorm);
                 });
             worker.sync();
 
@@ -267,7 +251,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                  &startIndexDataBox,
                  &chargeStateDataDataBox,
                  &atomicStateDataDataBox,
-                 &boundFreeTransitionDataBox](uint32_t const atomicStateCollectionIndex, float_X& fieldIonizationRate)
+                 &boundFreeTransitionDataBox](uint32_t const atomicStateCollectionIndex)
                 {
                     // check if atomic state present at all
                     if(!rateCache.present(atomicStateCollectionIndex))
@@ -278,7 +262,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     uint32_t const offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
 
                     // 1/picongpu::sim.unit.time()
-                    float_X const sumRateTransitions = 0._X;
+                    float_X sumRateTransitions = 0._X;
                     for(uint32_t transitionID = u32(0u); transitionID < numberTransitionsUp; ++transitionID)
                     {
                         uint32_t const transitionCollectionIndex = offset + transitionID;
@@ -380,9 +364,10 @@ namespace picongpu::particles::atomicPhysics::kernel
                     worker,
                     superCellFieldIdx,
                     rateCache,
+                    localElectronHistogramDataBox,
                     chargeStateDataDataBox,
                     atomicStateDataDataBox,
-                    startIndexBlockTransitionsUp,
+                    startIndexDataBox,
                     numberTransitionsDataBox,
                     boundFreeTransitionDataBox,
                     ionizationPotentialDepression);
@@ -390,12 +375,12 @@ namespace picongpu::particles::atomicPhysics::kernel
             if constexpr(T_fieldIonization)
                 fillWithFieldIonization(
                     worker,
-                    superCellFieldIdx,
+                    superCellIdx,
                     rateCache,
                     eFieldBox,
                     chargeStateDataDataBox,
                     atomicStateDataDataBox,
-                    startIndexBlockTransitionsUp,
+                    startIndexDataBox,
                     numberTransitionsDataBox,
                     boundFreeTransitionDataBox,
                     ionizationPotentialDepression);
