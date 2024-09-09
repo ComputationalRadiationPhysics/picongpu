@@ -60,7 +60,7 @@ namespace picongpu
     value_identifier_func(
         uint64_t,
         particleId,
-        [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen) { return idGen.fetchInc(worker); });
+        [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen, auto const&) { return idGen.fetchInc(worker); });
 
     //! specialization for the relative in-cell position
     value_identifier(floatD_X, position_pic, floatD_X::create(0.));
