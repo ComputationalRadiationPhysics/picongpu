@@ -30,7 +30,9 @@
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrderingFor.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeFieldTransitionRates.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
@@ -114,6 +116,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             typename T_AtomicStateBoundFreeStartIndexBlockDataBox,
             typename T_BoundFreeTransitionDataBox,
             typename T_LocalTimeRemainingBox,
+            typename T_EFieldBox,
             typename T_LocalRateCacheBox,
             typename T_IonBox,
             typename... T_IPDInput>
@@ -155,20 +158,22 @@ namespace picongpu::particles::atomicPhysics::kernel
 
             // FLYonPIC superCells must be independent therefore we need to use a support 1 particle shape
             using Field2Particle
-                = FieldToParticleInterpolation<particles::shape::Counter, AssignedTrilinearInterpolation>;
+                = FieldToParticleInterpolation<particles::shapes::CIC, AssignedTrilinearInterpolation>;
             using Margin = GetMargin<Field2Particle>;
             using BlockArea
                 = SuperCellDescription<typename picongpu::SuperCellSize, Margin::LowerMargin, Margin::UpperMargin>;
 
             /// create E-Field cache, @note is unique for kernel call by id and dataType, and thereby shared between
             /// workers
-            DataBox<SharedBox<T_EField::ValueType, typename BlockArea::FullSuperCellSize, 0u>> eFieldCache
-                = CachedBox::create<0u, T_EField::ValueType>(worker, BlockArea());
+            DataBox<SharedBox<typename T_EField::ValueType, typename BlockArea::FullSuperCellSize, 0u>> eFieldCache
+                = CachedBox::create<0u, typename T_EField::ValueType>(worker, BlockArea());
 
             // init E-Field cache
-            DataSpace<picongpu::simDim> const superCellCellOffset = superCellIdx * picongpu::SuperCellSize::toRT();
-            auto fieldEBlockToCache = eBox.shift(superCellCellOffset);
+            auto const superCellSize = picongpu::SuperCellSize::toRT();
+            DataSpace<picongpu::simDim> const superCellCellOffset = superCellIdx * superCellSize;
+            auto fieldEBlockToCache = eFieldBox.shift(superCellCellOffset);
             pmacc::math::operation::Assign assign;
+            auto collective = makeThreadCollective<BlockArea>();
             collective(worker, assign, eFieldCache, fieldEBlockToCache);
 
             // wait for init to finish
@@ -179,9 +184,13 @@ namespace picongpu::particles::atomicPhysics::kernel
                     superCellFieldIdx,
                     ipdInput...);
 
+            auto const fieldPosE = picongpu::traits::FieldPosition<fields::YeeCell, FieldE>();
+
             // check whether field bound-free transition and if yes, roll specific transition
             forEachLocalIonBoxEntry(
-                [&rngGeneratorFloat,
+                [&superCellSize,
+                 &fieldPosE,
+                 &rngGeneratorFloat,
                  &chargeStateDataDataBox,
                  &atomicStateDataDataBox,
                  &numberTransitionsBox,
@@ -204,8 +213,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     auto const atomicStateCollectionIndex = ion[atomicStateCollectionIndex_];
 
                     DataSpace<picongpu::SuperCellSize::dim> const localCell
-                        = pmacc::math::mapToND(picongpu::SuperCellSize::toRT(), particle[localCellIdx_]);
-                    auto const fieldPosE = picongpu::traits::FieldPosition<fields::CellType, FieldE>();
+                        = pmacc::math::mapToND(superCellSize, static_cast<int>(ion[localCellIdx_]));
                     float_X const eFieldNormAtParticle = pmacc::math::l2norm(
                         Field2Particle()(eFieldCache.shift(localCell), ionPosition, fieldPosE()));
 
@@ -221,17 +229,17 @@ namespace picongpu::particles::atomicPhysics::kernel
                     float_X cumSum = 0._X;
                     for(uint32_t transitionID = 0u; transitionID < numberTransitions; ++transitionID)
                     {
-                        uint32_t const transitionIndex = transitionID + startIndexTransitionBlock;
+                        uint32_t const transitionCollectionIndex = transitionID + startIndexTransitionBlock;
 
                         // 1/picongpu::sim.unit.time()
-                        sumRateTransitions += atomicPhysics::rateCalculation::
+                        float_X const rateTransition = atomicPhysics::rateCalculation::
                             BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::template rateADKFieldIonization(
                                 eFieldNormAtParticle,
                                 ionizationPotentialDepression,
                                 transitionCollectionIndex,
                                 chargeStateDataDataBox,
                                 atomicStateDataDataBox,
-                                boundFreeTransitionDataBox);
+                                transitionDataBox);
 
                         cumSum += rateTransition
                             / rateCache.rate(
@@ -243,7 +251,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         {
                             // found chosen transition
                             ion[processClass_] = u8(s_enums::ProcessClass::fieldIonization);
-                            ion[transitionIndex_] = transitionIndex;
+                            ion[transitionIndex_] = transitionCollectionIndex;
                             // field ionizations are not bin based therefore we do not set a bin, and old values are
                             // ignored
                             ion[accepted_] = true;

@@ -69,13 +69,8 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             T_AtomicStateDataBox const atomicStateDataBox,
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox)
         {
-            // eV
-            float_X const ionizationEnergy = DeltaEnergyTransition::get(
-                transitionCollectionIndex,
-                atomicStateDataBox,
-                boundFreeTransitionDataBox,
-                ionizationPotentialDepression,
-                chargeStateDataBox);
+            if(eFieldNorm == 0._X)
+                return 0._X;
 
             // get screenedCharge
             uint32_t const lowerStateClctIdx
@@ -88,13 +83,17 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             // e
             float_X const screenedCharge = chargeStateDataBox.screenedCharge(lowerStateChargeState) - 1._X;
 
+            // ev
+            float_X const ionizationEnergy = DeltaEnergyTransition::get(
+                transitionCollectionIndex,
+                atomicStateDataBox,
+                boundFreeTransitionDataBox,
+                ionizationPotentialDepression,
+                chargeStateDataBox);
             // unitless
             float_X const effectivePrincipalQuantumNumber
-                = screenedCharge / math::sqrt(float_X(2.0) * ionizationEnergy);
-
-            // electric field in atomic units
+                = screenedCharge / math::sqrt(2._X * ionizationEnergy * picongpu::UNITCONV_eV_to_AU);
             float_X const eFieldNorm_AU = eFieldNorm / ATOMIC_UNIT_EFIELD;
-
             float_X const screenedChargeCubed = pmacc::math::cPow(screenedCharge, 3u);
             float_X const dBase = 4.0_X * math::exp(1._X) * screenedChargeCubed
                 / (eFieldNorm_AU * pmacc::math::cPow(effectivePrincipalQuantumNumber, 4u));

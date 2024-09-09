@@ -28,6 +28,8 @@
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_Autonomous.kernel"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_BoundBound.kernel"
+#include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_CollisionalBoundFree.kernel"
+#include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_FieldBoundFree.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
 
 namespace picongpu::particles::atomicPhysics::stage

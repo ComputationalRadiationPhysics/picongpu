@@ -82,9 +82,9 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
                 u32(T_ChooseTransitionGroup) != u32(atomicPhysics::enums::ChooseTransitionGroup::noChange));
             PMACC_CASSERT_MSG(
                 not_a_by_state_choose_transition_group,
-                u32(T_ChooseTransitionGroup) < u32(atomicPhysics::enums::FINAL_NUMBER_BY_STATE_GROUPS));
+                u32(T_ChooseTransitionGroup) < u32(atomicPhysics::enums::ChooseTransitionGroup::FINAL_NUMBER_ENTRIES));
 
-            return true
+            return true;
         };
 
     public:
@@ -128,7 +128,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
         template<particles::atomicPhysics::enums::ChooseTransitionGroup T_ChooseTransitionGroup>
         HDINLINE void add(uint32_t const collectionIndex, float_X rate)
         {
-            PMACC_CASSERT(checkIsStoredChooseTransitionGroup<T_ChooseTransitionGroup>);
+            PMACC_CASSERT(checkIsStoredChooseTransitionGroup<T_ChooseTransitionGroup>());
 
             if constexpr(picongpu::atomicPhysics::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
@@ -247,8 +247,8 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
             -> std::enable_if_t<std::is_same_v<alpaka::Dev<T_Acc>, alpaka::DevCpu>>
         {
             std::cout << "rateCache" << superCellFieldIdx.toString(",", "[]")
-                      << " atomicStateCollectionIndex [bb(up), bb(down), bf(up), a(down)]" << std::endl;
-            for(uint16_t collectionIndex = 0u; collectionIndex < numberAtomicStates; ++collectionIndex)
+                      << " atomicStateCollectionIndex [bb(up), bb(down), col.bf(up), a(down), f.bf(up)]" << std::endl;
+            for(uint32_t collectionIndex = 0u; collectionIndex < numberAtomicStates; ++collectionIndex)
             {
                 if(this->present(collectionIndex))
                 {
