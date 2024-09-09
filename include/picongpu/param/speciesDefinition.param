@@ -55,7 +55,7 @@ namespace picongpu
 
     /*--------------------------- electrons --------------------------------------*/
 
-    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    /* ratio relative to base charge and base mass */
     value_identifier(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
@@ -72,7 +72,7 @@ namespace picongpu
 
     /*--------------------------- ions -------------------------------------------*/
 
-    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    /* ratio relative to base charge and base mass */
     value_identifier(float_X, MassRatioIons, 1836.152672);
     value_identifier(float_X, ChargeRatioIons, -1.0);
 

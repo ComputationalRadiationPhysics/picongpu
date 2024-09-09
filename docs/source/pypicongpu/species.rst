@@ -692,7 +692,7 @@ Ultimately rendering this code (reformatted for reading):
     value_identifier(float_X, MassRatio_species_e,
                     9.1093837015000008e-31 / SI::BASE_MASS_SI);
     value_identifier(float_X, ChargeRatio_species_e,
-                    -1.6021766339999999e-19 / SI::BASE_CHARGE_SI);
+                    -1.6021766339999999e-19 / sim.si.getBaseCharge());
 
     using ParticleFlags_species_e = MakeSeq_t<
         massRatio<MassRatio_species_e>, chargeRatio<ChargeRatio_species_e>,
@@ -710,7 +710,7 @@ Ultimately rendering this code (reformatted for reading):
     value_identifier(float_X, MassRatio_species_helium,
                     6.6464736679731602e-27 / SI::BASE_MASS_SI);
     value_identifier(float_X, ChargeRatio_species_helium,
-                    3.2043532679999998e-19 / SI::BASE_CHARGE_SI);
+                    3.2043532679999998e-19 / sim.si.getBaseCharge());
     value_identifier(float_X, DensityRatio_species_helium, 0.40000000000000002);
 
     using ParticleFlags_species_helium = MakeSeq_t<
