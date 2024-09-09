@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -39,13 +41,9 @@ namespace picongpu::particles::atomicPhysics
     template<enums::TransitionOrdering T_TransitionOrdering>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(
-            static_cast<uint8_t>(T_TransitionOrdering)
-            == static_cast<uint8_t>(enums::TransitionOrdering::byLowerState))
+        if constexpr(u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState))
             return "byLowerState";
-        if constexpr(
-            static_cast<uint8_t>(T_TransitionOrdering)
-            == static_cast<uint8_t>(enums::TransitionOrdering::byUpperState))
+        if constexpr(u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byUpperState))
             return "byUpperState";
     }
 } // namespace picongpu::particles::atomicPhysics

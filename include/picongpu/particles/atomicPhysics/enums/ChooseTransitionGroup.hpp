@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -59,25 +61,15 @@ namespace picongpu::particles::atomicPhysics
     template<enums::ChooseTransitionGroup T_ChooseTransitionGroup>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(
-            static_cast<uint8_t>(T_ChooseTransitionGroup)
-            == static_cast<uint8_t>(enums::ChooseTransitionGroup::boundBoundUpward))
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::boundBoundUpward))
             return "bound-bound(upward)";
-        if constexpr(
-            static_cast<uint8_t>(T_ChooseTransitionGroup)
-            == static_cast<uint8_t>(enums::ChooseTransitionGroup::boundBoundDownward))
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::boundBoundDownward))
             return "bound-bound(downward)";
-        if constexpr(
-            static_cast<uint8_t>(T_ChooseTransitionGroup)
-            == static_cast<uint8_t>(enums::ChooseTransitionGroup::boundFreeUpward))
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::boundFreeUpward))
             return "bound-free(upward)";
-        if constexpr(
-            static_cast<uint8_t>(T_ChooseTransitionGroup)
-            == static_cast<uint8_t>(enums::ChooseTransitionGroup::autonomousDownward))
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::autonomousDownward))
             return "autonomous(downward)";
-        if constexpr(
-            static_cast<uint8_t>(T_ChooseTransitionGroup)
-            == static_cast<uint8_t>(enums::ChooseTransitionGroup::noChange))
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::noChange))
             return "noChange";
         return "unknown";
     }

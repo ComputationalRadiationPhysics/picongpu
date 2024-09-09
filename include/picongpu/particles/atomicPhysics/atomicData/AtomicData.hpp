@@ -361,14 +361,14 @@ namespace picongpu::particles::atomicPhysics::atomicData
 
             while(file >> chargeState >> ionizationEnergy >> screenedCharge)
             {
-                if(chargeState == static_cast<uint32_t>(T_ConfigNumber::atomicNumber))
+                if(chargeState == u32(T_ConfigNumber::atomicNumber))
                     throw std::runtime_error(
                         "charge state " + std::to_string(chargeState)
                         + " should not be included in input file for Z = "
                         + std::to_string(T_ConfigNumber::atomicNumber));
 
                 S_ChargeStateTuple item = std::make_tuple(
-                    static_cast<uint8_t>(chargeState),
+                    u8(chargeState),
                     ionizationEnergy, // [eV]
                     screenedCharge); // [e]
 
@@ -868,8 +868,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
 
             uint32_t const numberTransitions = transitionHostBox.getNumberOfTransitionsTotal();
 
-            for(uint32_t collectionIndex = static_cast<uint32_t>(0u); collectionIndex < numberTransitions;
-                collectionIndex++)
+            for(uint32_t collectionIndex = u32(0u); collectionIndex < numberTransitions; collectionIndex++)
             {
                 float_X const deltaEnergy = picongpu::particles::atomicPhysics::DeltaEnergyTransition::get(
                     collectionIndex,

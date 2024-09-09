@@ -24,6 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 // need physicalConstants.param
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/initElectrons/CloneAdditionalAttributes.hpp"
 
 #include <pmacc/algorithms/math/PowerFunction.hpp>
@@ -77,10 +78,10 @@ namespace picongpu::particles::atomicPhysics::initElectrons
                 // standard case
                 for(uint32_t j = 0u; j < 3u; j++)
                 {
-                    auto const jTerm = (gamma - 1.) * beta(j, static_cast<uint32_t>(0u)) / normBetaSquared;
+                    auto const jTerm = (gamma - 1.) * beta(j, u32(0u)) / normBetaSquared;
                     for(uint32_t i = 0u; i < 3u; i++)
                     {
-                        lorentzMatrix(i, j) = jTerm * beta(i, static_cast<uint32_t>(0u));
+                        lorentzMatrix(i, j) = jTerm * beta(i, u32(0u));
                     }
                 }
             }
@@ -216,8 +217,7 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             // weight * (unitless^2 - unitless) * (sim.unit.mass() * sim.unit.length()/sim.unit.time())
             // = sim.unit.mass() * sim.unit.length() / sim.unit.time(), weighted
             float_64 const normMomentumStarElectron_IonSystem = static_cast<float_64>(electron[weighting_])
-                * mc_Electron
-                * math::sqrt(pmacc::math::cPow(gammaStarElectron_IonSystem, static_cast<uint8_t>(2u)) - 1.);
+                * mc_Electron * math::sqrt(pmacc::math::cPow(gammaStarElectron_IonSystem, u8(2u)) - 1.);
             ///@}
 
             /// choose scattering direction @{

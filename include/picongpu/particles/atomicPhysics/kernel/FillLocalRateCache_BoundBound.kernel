@@ -188,8 +188,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         auto const binWidth = cachedHistogram.binWidth[binIndex];
                         auto const density = cachedHistogram.density[binIndex];
 
-                        for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitions;
-                            ++transitionID)
+                        for(uint32_t transitionID = u32(0u); transitionID < numberTransitions; ++transitionID)
                         {
                             // electronic excitation
                             if constexpr(isUpward)
@@ -256,8 +255,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         uint32_t const offset
                             = startIndexDataBox.startIndexBlockTransitionsDown(atomicStateCollectionIndex);
 
-                        for(uint32_t transitionID = static_cast<uint32_t>(0u); transitionID < numberTransitions;
-                            ++transitionID)
+                        for(uint32_t transitionID = u32(0u); transitionID < numberTransitions; ++transitionID)
                         {
                             rateCache.template add<s_enums::ChooseTransitionGroup::boundBoundDownward>(
                                 atomicStateCollectionIndex,

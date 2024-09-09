@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
 #include <pmacc/math/Vector.hpp>
@@ -49,7 +50,7 @@ namespace picongpu::particles::atomicPhysics::stateRepresentation::debug
 
         for(uint8_t i = 0u; i < T_numberLevels; i++)
         {
-            temp = static_cast<uint8_t>(vector[i]);
+            temp = u8(vector[i]);
             levelVector[i] = temp;
         }
     }
@@ -127,7 +128,7 @@ namespace picongpu::particles::atomicPhysics::stateRepresentation::debug
             // getAtomicConfigNumber()
             for(uint8_t i = 0u; i < numberLevels; i++)
             {
-                levelVectorTemp[i] = static_cast<uint8_t>(knownLevelVector[i]); // reuse
+                levelVectorTemp[i] = u8(knownLevelVector[i]); // reuse
             }
             pass = (pass && (knownConfigNumber == Config::getAtomicConfigNumber(levelVectorTemp)));
 

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -43,30 +45,19 @@ namespace picongpu::particles::atomicPhysics
     template<enums::ProcessClassGroup T_ProcessClassGroup>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(enums::ProcessClassGroup::boundBoundBased))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::boundBoundBased))
             return "boundBound";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(enums::ProcessClassGroup::boundFreeBased))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased))
             return "boundFree";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(enums::ProcessClassGroup::autonomousBased))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::autonomousBased))
             return "autonomous";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::ionizing))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::ionizing))
             return "ionizing";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup)
-            == static_cast<uint8_t>(enums::ProcessClassGroup::electronicCollisional))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::electronicCollisional))
             return "electronicCollisional";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::upward))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::upward))
             return "upward";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClassGroup) == static_cast<uint8_t>(enums::ProcessClassGroup::downward))
+        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::downward))
             return "downard";
         return "unknown";
     }

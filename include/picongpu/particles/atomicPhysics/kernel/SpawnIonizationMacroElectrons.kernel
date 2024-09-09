@@ -129,15 +129,14 @@ namespace picongpu::particles::atomicPhysics::kernel
             if((timeRemaining <= 0._X) || (!ionFrame.isValid()))
                 return;
 
-            using FrameArray = memory::Array<ElectronFramePtr, static_cast<uint32_t>(2u)>;
+            using FrameArray = memory::Array<ElectronFramePtr, u32(2u)>;
             PMACC_SMEM(worker, electronFrameArray, FrameArray);
 
             PMACC_SMEM(worker, offsetLowFrame, int32_t);
             PMACC_SMEM(worker, totalNumberMacroElectronsToSpawn, uint32_t);
             PMACC_SMEM(worker, spawnCounter, uint32_t);
 
-            auto numberIonizationElectronsCtxArr
-                = lockstep::makeVar<uint8_t>(forEachFrameSlot, static_cast<uint8_t>(0u));
+            auto numberIonizationElectronsCtxArr = lockstep::makeVar<uint8_t>(forEachFrameSlot, u8(0u));
 
             [[maybe_unused]] float_X ionizationPotentialDepression = 0._X;
             if constexpr(T_ProcessClassGroup == enums::ProcessClassGroup::autonomousBased)
@@ -158,8 +157,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                     offsetLowFrame
                         = static_cast<int32_t>(ionizationElectronBox.getSuperCell(superCellIdx).getSizeLastFrame());
 
-                    totalNumberMacroElectronsToSpawn = static_cast<uint32_t>(0u);
-                    spawnCounter = static_cast<uint32_t>(0u);
+                    totalNumberMacroElectronsToSpawn = u32(0u);
+                    spawnCounter = u32(0u);
 
                     // might be nullptr if no electrons in superCell
                     electronFrameArray[u32(detail::Access::low)] = ionizationElectronBox.getLastFrame(superCellIdx);
@@ -184,7 +183,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             // no bound-free based ionizing process
                             || !(enums::IsProcess<T_ProcessClassGroup>::check(ion[processClass_])))
                         {
-                            numberIonizationElectrons = static_cast<uint8_t>(0u);
+                            numberIonizationElectrons = u8(0u);
                             return;
                         }
 
@@ -292,13 +291,13 @@ namespace picongpu::particles::atomicPhysics::kernel
                             auto ion = ionFrame[frameSlotIdx];
 
                             // not occupied or does not want to spawn an electron
-                            if(numberIonizationElectrons == static_cast<uint32_t>(0u))
+                            if(numberIonizationElectrons == u32(0u))
                                 return;
 
                             uint32_t const globalSlotIndex = alpaka::atomicAdd(
                                 worker.getAcc(),
                                 &spawnCounter,
-                                static_cast<uint32_t>(1u),
+                                u32(1u),
                                 ::alpaka::hierarchy::Threads{});
 
                             uint32_t const electronFrameIndex = (globalSlotIndex + offsetLowFrame) / frameSize;
@@ -343,7 +342,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
                             // update frame slot counter
                             //      will never underflow since we check for 0 above
-                            numberIonizationElectrons -= static_cast<uint8_t>(1u);
+                            numberIonizationElectrons -= u8(1u);
                         },
                         numberIonizationElectronsCtxArr);
                     worker.sync();
@@ -388,11 +387,11 @@ namespace picongpu::particles::atomicPhysics::kernel
                             // update numParticles in superCell for electrons
                             superCell.setNumParticles(superCell.getNumParticles() + spawnCounter);
 
-                            spawnCounter = static_cast<uint32_t>(0u);
+                            spawnCounter = u32(0u);
                         });
                     worker.sync();
 
-                    if(totalNumberMacroElectronsToSpawn == static_cast<uint32_t>(0u))
+                    if(totalNumberMacroElectronsToSpawn == u32(0u))
                         break;
                 }
 

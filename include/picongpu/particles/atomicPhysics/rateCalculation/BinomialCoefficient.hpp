@@ -17,7 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 
 namespace picongpu::particles::atomicPhysics::rateCalculation
 {
@@ -42,7 +46,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
 
         /// @todo beneficial?, Brian Marre, 2022
         // reduce necessary steps using symmetry in k
-        if(k > (n / static_cast<uint8_t>(2u)))
+        if(k > (n / u8(2u)))
         {
             k = n - k;
         }

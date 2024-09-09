@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -44,28 +46,21 @@ namespace picongpu::particles::atomicPhysics
     template<enums::ProcessClass T_ProcessClass>
     ALPAKA_FN_HOST std::string enumToString()
     {
-        if constexpr(static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::noChange))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::noChange))
             return "noChange";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::spontaneousDeexcitation))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::spontaneousDeexcitation))
             return "spontaneousDeexcitation";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::electronicExcitation))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::electronicExcitation))
             return "electronicExcitation";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::electronicDeexcitation))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::electronicDeexcitation))
             return "electronicDeexcitation";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::electronicIonization))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::electronicIonization))
             return "electronicIonization";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::autonomousIonization))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::autonomousIonization))
             return "autonomousIonization";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::fieldIonization))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::fieldIonization))
             return "fieldIonization";
-        if constexpr(
-            static_cast<uint8_t>(T_ProcessClass) == static_cast<uint8_t>(enums::ProcessClass::pressureIonization))
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::pressureIonization))
             return "pressureIonization";
         return "unknown";
     }
