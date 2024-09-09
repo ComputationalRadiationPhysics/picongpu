@@ -55,7 +55,7 @@ namespace picongpu::particles::atomicPhysics
                  */
 
                 // invalidate atomicStateCollectionIndex particle attribute for easier detection
-                ion[atomicStateCollectionIndex_] = 0u;
+                ion[atomicStateCollectionIndex_] = std::numeric_limits<uint32_t>::max();
             }
         }
     };

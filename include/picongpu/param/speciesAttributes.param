@@ -156,16 +156,16 @@ namespace picongpu
     alias(atomicPhysicsParticle);
 
     //! particle attribute, collectionIndex of atomic state of ions
-    value_identifier(uint32_t, atomicStateCollectionIndex, 0u);
+    value_identifier(uint32_t, atomicStateCollectionIndex, std::numeric_limits<uint32_t>::max());
 
     //! particle attribute, process class of selected atomicPhysics transition
-    value_identifier(uint8_t, processClass, 0u);
+    value_identifier(uint8_t, processClass, std::numeric_limits<uint8_t>::max());
 
     //! particle attribute, index of chosen atomicPhysics transition
-    value_identifier(uint32_t, transitionIndex, 0u);
+    value_identifier(uint32_t, transitionIndex, std::numeric_limits<uint32_t>::max());
 
     //! particle attribute, index of bin chosen for atomicPhysics transition, if applicable for
-    value_identifier(uint32_t, binIndex, 0u);
+    value_identifier(uint32_t, binIndex, std::numeric_limits<uint32_t>::max());
 
     //! particle attribute, whether the selected transition was accepted
     value_identifier(bool, accepted, false);
