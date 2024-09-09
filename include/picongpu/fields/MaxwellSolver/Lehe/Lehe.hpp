@@ -63,7 +63,7 @@ namespace picongpu
                     constexpr auto dt = getTimeStep();
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
-                        (SPEED_OF_LIGHT * dt) <= stepFreeDirection && sizeof(T_Defer*) != 0);
+                        (sim.pic.getSpeedOfLight() * dt) <= stepFreeDirection && sizeof(T_Defer*) != 0);
 
                     return stepFreeDirection;
                 }
@@ -93,12 +93,12 @@ namespace picongpu
                 float3_64 const stepSquared = step * step;
 
                 //! Inverse of Courant factor for the Cherenkov-free direction
-                float_64 const stepRatio = step[dir0] / static_cast<float_64>(SPEED_OF_LIGHT * timeStep);
+                float_64 const stepRatio = step[dir0] / static_cast<float_64>(sim.pic.getSpeedOfLight() * timeStep);
 
                 //! Helper to calculate delta
                 float_64 const coeff = stepRatio
-                    * math::sin(pmacc::math::Pi<float_64>::halfValue * static_cast<float_64>(SPEED_OF_LIGHT * timeStep)
-                                / step[dir0]);
+                    * math::sin(pmacc::math::Pi<float_64>::halfValue
+                                * static_cast<float_64>(sim.pic.getSpeedOfLight() * timeStep) / step[dir0]);
 
                 /** delta_x0 from eq. (10) in Lehe et al., generalized for any direction
                  *
@@ -150,7 +150,7 @@ namespace picongpu
                         * sSquared[dir1];
                     rhs -= 4.0 * (betaDir2 / stepSquared[dir2] + betaDir0 / stepSquared[dir0]) * sSquared[dir0]
                         * sSquared[dir2];
-                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (SPEED_OF_LIGHT * timeStep);
+                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (sim.pic.getSpeedOfLight() * timeStep);
                     auto const lhs = lhsTerm * lhsTerm;
                     return rhs - lhs;
                 }

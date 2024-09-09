@@ -76,7 +76,7 @@ namespace picongpu
                         T_LocalBBox const localB,
                         T_LocalEBox localE)
                     {
-                        constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        constexpr auto c2 = sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight();
                         localE() += curl(localB) * c2 * getTimeStep();
                     }
                     // keep curl as member to support stateful types

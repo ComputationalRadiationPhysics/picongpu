@@ -70,21 +70,23 @@ namespace picongpu
                 //! Central wavelength for the band-pass filter
                 constexpr float centralLambda = 750e-9;
                 //! Central frequency for the band-pass filter
-                constexpr float centralOmega = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / centralLambda;
+                constexpr float centralOmega = 2.0 * PI * sim.si.getSpeedOfLight() / centralLambda;
                 //! Plateaue size for band-pass filter
                 constexpr float dLambda = 20e-9;
                 //! Ramp size for band-pass filter window function
                 constexpr float dLambdaWf = 20e-9;
 
                 //! Smallest frequency for plateau value in band-pass filter
-                constexpr float omegaMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda);
+                constexpr float omegaMin = 2.0 * PI * sim.si.getSpeedOfLight() / (centralLambda + dLambda);
                 //! Largest frequency for plateau value in band-pass filter
-                constexpr float omegaMax = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda);
+                constexpr float omegaMax = 2.0 * PI * sim.si.getSpeedOfLight() / (centralLambda - dLambda);
 
                 //! Smallest frequency for window function
-                constexpr float omegaWfMin = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda + dLambda + dLambdaWf);
+                constexpr float omegaWfMin
+                    = 2.0 * PI * sim.si.getSpeedOfLight() / (centralLambda + dLambda + dLambdaWf);
                 //! Largest frequency for window function
-                constexpr float omegaWfMax = 2.0 * PI * SI::SPEED_OF_LIGHT_SI / (centralLambda - dLambda - dLambdaWf);
+                constexpr float omegaWfMax
+                    = 2.0 * PI * sim.si.getSpeedOfLight() / (centralLambda - dLambda - dLambdaWf);
             } // namespace params
 
 
@@ -216,10 +218,10 @@ namespace picongpu
                 HINLINE float_64 numericalAperture(float_64 kx, float_64 ky, float_64 omega)
                 {
                     float_64 const kperp = math::sqrt(kx * kx + ky * ky);
-                    float_64 const k = math::abs(omega / SI::SPEED_OF_LIGHT_SI);
+                    float_64 const k = math::abs(omega / sim.si.getSpeedOfLight());
 
                     float_64 const offsetWf
-                        = params::centralOmega * params::numericalApertureWfSize / SI::SPEED_OF_LIGHT_SI;
+                        = params::centralOmega * params::numericalApertureWfSize / sim.si.getSpeedOfLight();
 
                     float_64 const NAk = params::numericalAperture * k;
 

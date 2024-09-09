@@ -53,7 +53,7 @@ namespace picongpu
                      * approximation. Since realistic setups must be quite close to it, we should converge to a
                      * solution very quickly. So we are not particularly picky wrt numerical solver parameters.
                      */
-                    auto kAbs = omega * SPEED_OF_LIGHT;
+                    auto kAbs = omega * sim.pic.getSpeedOfLight();
                     auto const maxNumSteps = 100;
                     for(uint32_t d = 0; d < maxNumSteps; d++)
                     {

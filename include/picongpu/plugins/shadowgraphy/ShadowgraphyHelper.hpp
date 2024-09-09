@@ -162,7 +162,7 @@ namespace picongpu
                     {
                         int const cellsUntilIntegrationPlane = slicePoint * globalGridSize[2];
                         slidingWindowCorrection = cellsUntilIntegrationPlane * sim.si.getCellSize().z()
-                            + pluginNumT * dt * float_64(SI::SPEED_OF_LIGHT_SI);
+                            + pluginNumT * dt * float_64(sim.si.getSpeedOfLight());
                     }
                     else
                     {
@@ -355,7 +355,7 @@ namespace picongpu
                         {
                             int const omegaIndex = getOmegaIndex(o);
                             float_64 const omegaSI = omega(omegaIndex);
-                            float_64 const kSI = omegaSI / float_64(SI::SPEED_OF_LIGHT_SI);
+                            float_64 const kSI = omegaSI / float_64(sim.si.getSpeedOfLight());
 
                             // Put field into fftw array
                             for(int i = 0; i < pluginNumX; ++i)

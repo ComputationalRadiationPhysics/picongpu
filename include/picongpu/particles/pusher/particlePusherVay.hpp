@@ -76,7 +76,7 @@ namespace picongpu
 
                 // first step in Vay paper:
                 const float3_X velocity_atMinusHalf = velocity(mom, mass);
-                // mom /(mass*mass + abs2(mom)/(SPEED_OF_LIGHT*SPEED_OF_LIGHT));
+                // mom /(mass*mass + abs2(mom)/(sim.pic.getSpeedOfLight()*sim.pic.getSpeedOfLight()));
                 const MomType momentum_atZero
                     = mom + factor * (eField + pmacc::math::cross(velocity_atMinusHalf, bField));
 
@@ -87,7 +87,7 @@ namespace picongpu
                 const sqrt_Vay::float3_X tau(factor / mass * bField);
                 const sqrt_Vay::float_X u_star
                     = pmacc::math::dot(precisionCast<sqrt_Vay::float_X>(momentum_prime), tau)
-                    / precisionCast<sqrt_Vay::float_X>(SPEED_OF_LIGHT * mass);
+                    / precisionCast<sqrt_Vay::float_X>(sim.pic.getSpeedOfLight() * mass);
                 const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - pmacc::math::l2norm2(tau);
                 const sqrt_Vay::float_X gamma_atPlusHalf = math::sqrt(
                     sqrt_Vay::float_X(0.5)

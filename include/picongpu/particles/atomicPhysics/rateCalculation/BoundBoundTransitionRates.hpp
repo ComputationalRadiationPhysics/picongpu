@@ -366,7 +366,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
 
             // short hands for constants in SI
             // m/s
-            constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI;
+            constexpr float_64 c_SI = picongpu::sim.si.getSpeedOfLight();
             // kg
             constexpr float_64 m_e_SI = picongpu::SI::ELECTRON_MASS_SI;
             // C

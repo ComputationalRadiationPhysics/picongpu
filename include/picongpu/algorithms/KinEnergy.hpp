@@ -44,7 +44,7 @@ namespace picongpu
         HDINLINE ValueType operator()(MomType const& mom, MassType const& mass)
         {
             if(mass == MassType(0.0))
-                return SPEED_OF_LIGHT * pmacc::math::l2norm(precisionCast<ValueType>(mom));
+                return sim.pic.getSpeedOfLight() * pmacc::math::l2norm(precisionCast<ValueType>(mom));
 
             /* if mass is non-zero then gamma is well defined */
             const ValueType gamma = Gamma<ValueType>()(mom, mass);
@@ -59,7 +59,7 @@ namespace picongpu
             }
             else
             {
-                constexpr ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                constexpr ValueType c2 = sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight();
                 /* kinetic energy for particles: E = (gamma - 1) * m * c^2 */
                 kinEnergy = (gamma - ValueType(1.0)) * mass * c2;
             }

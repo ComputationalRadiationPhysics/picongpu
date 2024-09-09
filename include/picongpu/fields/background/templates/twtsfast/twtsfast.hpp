@@ -39,7 +39,7 @@
  *
  * float_64 const tanAlpha = (float_64(1.0) - beta_0 * math::cos(phi)) / (beta_0 * math::sin(phi));
  * float_64 const tanFocalLine = math::tan(PI / float_64(2.0) - phi);
- * float_64 const deltaT = wavelength_SI / SI::SPEED_OF_LIGHT_SI * (float_64(1.0) + tanAlpha / tanFocalLine);
+ * float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (float_64(1.0) + tanAlpha / tanFocalLine);
  * float_64 const deltaY = wavelength_SI / tanFocalLine;
  * float_64 const deltaZ = -wavelength_SI;
  * float_64 const numberOfPeriods = math::floor(time / deltaT);
