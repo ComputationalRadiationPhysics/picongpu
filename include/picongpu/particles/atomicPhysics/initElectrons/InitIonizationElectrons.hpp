@@ -59,7 +59,7 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             T_DataBox const... dataBoxes) const;
     };
 
-    /** specialisation for electronicIonization
+    /** specialisation for electronic collisional ionization
      *
      * @attention not momentum conserving! We do not model a three body inelastic
      *  collision, since interacting free electron momentum vector is unknown without
@@ -78,7 +78,29 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             T_ElectronParticle& electron,
             IdGenerator& idGen) const
         {
-            /// @todo sample three body inelastic collision for ionization, Brian Marre, 2023
+            CoMoving::initElectron(worker, ion, electron, idGen);
+        }
+    };
+
+    /** specialisation for field ionization
+     *
+     * @attention not momentum conserving! We do not model a three body inelastic
+     *  collision, since interacting free electron momentum vector is unknown without
+     *  binary pairing
+     *
+     * @todo implement three body inelastic collision, Brian Marre, 2023
+     */
+    template<>
+    struct InitIonizationElectron<s_enums::ProcessClass::fieldIonization>
+    {
+        //! call operator
+        template<typename T_Worker, typename T_IonParticle, typename T_ElectronParticle>
+        HDINLINE void operator()(
+            T_Worker const& worker,
+            T_IonParticle& ion,
+            T_ElectronParticle& electron,
+            IdGenerator& idGen) const
+        {
             CoMoving::initElectron(worker, ion, electron, idGen);
         }
     };
