@@ -52,7 +52,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          * @param atomicStateDataBox access to atomic state property data
          * @param boundBoundTransitionDataBox access to bound-bound transition data
          *
-         * @return unit: 1/UNIT_TIME
+         * @return unit: 1/picongpu::sim.unit.time()
          */
         template<
             typename T_EFieldType,

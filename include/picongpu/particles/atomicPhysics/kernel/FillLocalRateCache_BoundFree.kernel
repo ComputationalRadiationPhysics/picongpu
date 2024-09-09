@@ -123,7 +123,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
 
-            // UNIT_LENGTH^3
+            // picongpu::sim.unit.length()^3
             constexpr float_X volumeScalingFactor
                 = pmacc::math::CT::volume<picongpu::SuperCellSize>::type::value * picongpu::CELL_VOLUME;
 
