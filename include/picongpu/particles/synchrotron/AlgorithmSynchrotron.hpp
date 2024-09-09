@@ -173,10 +173,13 @@ namespace picongpu
                         logInterpolation(index, F2, Ftemp, f, 1, F1F2DeviceBuff);
                     }
 
-                    //! Calculating the numeric factor: dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 * np.pi))
-                    float_X numericFactor = sim.pic.getDt()
-                        * (ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_MASS * SPEED_OF_LIGHT
-                           / (HBAR * HBAR * EPS0 * 4._X * PI));
+                    /** Calculating the numeric factor:
+                     *      dt * (e**2 * m_e * c /( hbar**2 * eps0 * 4 * np.pi))
+                     *   == dt * (e/hbar * e/hbar * m_e * c /( eps0 * 4 * np.pi)) and avoid floating point precision
+                     * overflows
+                     */
+                    float_X numericFactor = sim.pic.getDt() * ELECTRON_CHARGE / HBAR * ELECTRON_CHARGE / HBAR
+                        * ELECTRON_MASS * SPEED_OF_LIGHT / (EPS0 * 4._X * PI);
 
                     if constexpr(params::supressRequirementWarning == false)
                     {
