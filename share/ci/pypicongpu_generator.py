@@ -324,7 +324,7 @@ def print_job_yaml(test_pkg_versions: Dict[str, List[str]]):
             name="PyPIConGPU_Python" + pyVer,
             body={
                 "variables": {
-                    "PYTHON_VERSION": pyVer + ".*",
+                    "PYTHON_VERSION": pyVer,
                     "CI_CONTAINER_NAME": "ubuntu20.04",
                 },
                 "extends": ".base_pypicongpu_quick_test",

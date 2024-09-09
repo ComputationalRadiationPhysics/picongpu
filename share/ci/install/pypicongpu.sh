@@ -27,20 +27,14 @@ cd $CI_PROJECT_DIR
 # use miniconda as python environment
 apt update && apt install -y curl
 cd /tmp/
-curl -Ls https://github.com/mamba-org/micromamba-releases/releases/download/1.5.9-0/micromamba-linux-64.tar.bz2 | tar -xvj bin/micromamba
-export MAMBA_ROOT_PREFIX=/tmp/mamba-forge/
-mkdir -p "${MAMBA_ROOT_PREFIX}"
-eval "$(./bin/micromamba shell hook -s posix)"
-export PATH=$(pwd -P)/bin:$PATH
-micromamba --version
-micromamba config append channels conda-forge
-micromamba config set channel_priority strict
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.cargo/env
+uv venv --python="${PYTHON_VERSION}"
+source .venv/bin/activate
+python3 --version
 
 cd $CI_PROJECT_DIR
 # generates modified requirements.txt
-micromamba create -n pypicongpu python=${PYTHON_VERSION} --ssl-verify false
-micromamba activate pypicongpu
-python3 --version
 MODIFIED_REQUIREMENT_TXT_PICMI=$CI_PROJECT_DIR/lib/python/picongpu/picmi/modified_requirements.txt
 MODIFIED_REQUIREMENT_TXT_PYPICONGPU=$CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/modified_requirements.txt
 python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $MODIFIED_REQUIREMENT_TXT_PICMI

@@ -181,7 +181,7 @@ pypicongpu-compiling-test:
   variables:
     PIP_BREAK_SYSTEM_PACKAGES: 1
     CI_CONTAINER_NAME: 'ubuntu20.04'
-    PYTHON_VERSION: '3.11.*'
+    PYTHON_VERSION: '3.11'
     CXX_VERSION: 'g++-11'
     CMAKE_VERSION: '3.25'
     BOOST_VERSION: '1.75.0'
