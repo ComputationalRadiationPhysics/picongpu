@@ -145,13 +145,13 @@ namespace picongpu
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
-             * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+            /* const double UNITCONV_Intens_to_A0 = sim.si.getElectronCharge()
+             * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
              * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * sim.si.getSpeedOfLight()
              * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
              * sim.si.getSpeedOfLight() * SI::EPS0_SI); */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / SI::ELECTRON_CHARGE_SI;
+                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /** unit: W / m^2 */
             /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
@@ -290,13 +290,13 @@ namespace picongpu
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
-            /* constexpr float_64 UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
-             * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+            /* constexpr float_64 UNITCONV_Intens_to_A0 = sim.si.getElectronCharge()
+             * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
              * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * sim.si.getSpeedOfLight()
              * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
              * sim.si.getSpeedOfLight() * SI::EPS0_SI); */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / SI::ELECTRON_CHARGE_SI;
+                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /** unit: W / m^2 */
             /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */

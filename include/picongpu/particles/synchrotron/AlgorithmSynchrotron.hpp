@@ -137,7 +137,7 @@ namespace picongpu
 
                     //! Calculate chi
                     float_X const gamma = Gamma()(parentElectron[momentum_], mass);
-                    float_X const inverse_E_Schwinger = (-ELECTRON_CHARGE * HBAR)
+                    float_X const inverse_E_Schwinger = (-sim.pic.getElectronCharge() * HBAR)
                         / (ELECTRON_MASS * ELECTRON_MASS * sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight()
                            * sim.pic.getSpeedOfLight());
                     float_X const chi = HeffValue * gamma * inverse_E_Schwinger;
@@ -179,7 +179,8 @@ namespace picongpu
                      *   == dt * (e/hbar * e/hbar * m_e * c /( eps0 * 4 * np.pi)) and avoid floating point precision
                      * overflows
                      */
-                    float_X numericFactor = sim.pic.getDt() * ELECTRON_CHARGE / HBAR * ELECTRON_CHARGE / HBAR
+                    float_X numericFactor = sim.pic.getDt() * sim.pic.getElectronCharge() / HBAR
+                        * sim.pic.getElectronCharge() / HBAR
                         * ELECTRON_MASS * sim.pic.getSpeedOfLight() / (EPS0 * 4._X * PI);
 
                     if constexpr(params::supressRequirementWarning == false)

@@ -221,7 +221,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             //  * sim.unit.time()^(-2) * sim.unit.length()^3 * sim.unit.mass()^1 = eV * sim.unit.length()
             // eV * sim.unit.length()
             constexpr float_X constFactor = eV * static_cast<float_X>(T_atomicNumber)
-                * pmacc::math::cPow(picongpu::ELECTRON_CHARGE, 2u)
+                * pmacc::math::cPow(picongpu::sim.pic.getElectronCharge(), 2u)
                 / (4._X * static_cast<float_X>(picongpu::PI) * picongpu::EPS0);
 
             // eV, not weighted

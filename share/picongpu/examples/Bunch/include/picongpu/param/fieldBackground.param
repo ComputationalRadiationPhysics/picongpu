@@ -94,7 +94,7 @@ namespace picongpu
 
             /* UNITCONV */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / SI::ELECTRON_CHARGE_SI;
+                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /* unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
@@ -180,7 +180,7 @@ namespace picongpu
 
             /* UNITCONV */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / SI::ELECTRON_CHARGE_SI;
+                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /* unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
