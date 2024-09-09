@@ -31,6 +31,7 @@
 #include "picongpu/simulation_defines.hpp"
 // need atomicPhysics.param, type of histogram
 
+#include "picongpu/fields/FieldB.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
@@ -150,15 +151,19 @@ namespace picongpu::particles::atomicPhysics::stage
                             enums::TransitionOrdering::byUpperState>());
             }
 
-            //    upward bound-free transition rates
+            //    upward bound-free transition rates, both collisional and field
             if constexpr(AtomicDataType::switchElectronicIonization)
             {
+                auto eField = dc.get<FieldE>(FieldE::getName());
+
                 using FillLocalRateCacheUpWardBoundFree = kernel::FillLocalRateCacheKernel_BoundFree<
                     IPDModel,
+                    AtomicDataType::ADKLaserPolarization,
                     n_max,
                     numberAtomicStatesOfSpecies,
                     numberBins,
                     AtomicDataType::switchElectronicIonization,
+                    AtomicDataType::switchFieldIonization,
                     enums::TransitionOrdering::byLowerState>;
 
                 IPDModel::template callKernelWithIPDInput<
@@ -169,6 +174,7 @@ namespace picongpu::particles::atomicPhysics::stage
                     localTimeRemainingField.getDeviceDataBox(),
                     localRateCacheField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
+                    eField->getDeviceDataBox(),
                     atomicData.template getChargeStateDataDataBox<false>(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData.template getBoundFreeStartIndexBlockDataBox<false>(),
@@ -176,8 +182,6 @@ namespace picongpu::particles::atomicPhysics::stage
                     atomicData
                         .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
             }
-
-            /// @todo add fieldIonization, Brian Marre, 2023
 
             //    downward autonomous transition rates
             if constexpr(AtomicDataType::switchAutonomousIonization)
