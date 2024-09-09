@@ -166,7 +166,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                     // sim.unit.charge()^2 sim.unit.length()^2 / sim.unit.energy()
                     constexpr float_X constFactorDebyeLength = picongpu::EPS0
                         * sim.pic.getCellSize().productOfComponents()
-                        / pmacc::math::cPow(picongpu::ELECTRON_CHARGE, 2u);
+                        / pmacc::math::cPow(picongpu::sim.pic.getElectronCharge(), 2u);
 
                     // sqrt(sim.unit.length()^2 / sim.unit.energy() * sim.unit.energy()) = sim.unit.length()
                     localDebyeLength = math::sqrt(

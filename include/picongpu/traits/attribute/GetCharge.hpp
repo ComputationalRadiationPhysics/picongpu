@@ -58,9 +58,9 @@ namespace picongpu
                         HasAtomicNumbers::value);
                     const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
 
-                    /* note: ELECTRON_CHARGE is negative and the second term is also negative
+                    /* note: sim.pic.getElectronCharge() is negative and the second term is also negative
                      */
-                    return ELECTRON_CHARGE * (particle[boundElectrons_] - protonNumber) * weighting;
+                    return sim.pic.getElectronCharge() * (particle[boundElectrons_] - protonNumber) * weighting;
                 }
 
                 return frame::getCharge<typename T_Particle::FrameType>() * weighting;
