@@ -23,6 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_Autonomous.kernel"
@@ -132,19 +133,17 @@ namespace picongpu::particles::atomicPhysics::stage
                         ions.getDeviceParticlesBox());
             }
 
-            // bound-free(upward) transitions
-            if constexpr(AtomicDataType::switchElectronicIonization || AtomicDataType::switchFieldIonization)
+            // bound-free(upward) collisional transitions
+            if constexpr(AtomicDataType::switchElectronicIonization)
             {
-                using ChooseTransitionKernel_BoundFree
-                    = picongpu::particles::atomicPhysics::kernel::ChooseTransitionKernel_BoundFree<
+                using ChooseTransitionKernel_CollisionalBoundFree
+                    = picongpu::particles::atomicPhysics::kernel::ChooseTransitionKernel_CollisionalBoundFree<
                         picongpu::atomicPhysics::ElectronHistogram,
                         AtomicDataType::ConfigNumber::numberLevels,
-                        IPDModel,
-                        AtomicDataType::switchElectronicIonization,
-                        AtomicDataType::switchFieldIonization>;
+                        IPDModel>;
 
                 IPDModel::template callKernelWithIPDInput<
-                    ChooseTransitionKernel_BoundFree,
+                    ChooseTransitionKernel_CollisionalBoundFree,
                     IonSpecies::FrameType::frameSize>(
                     dc,
                     mapper,
@@ -157,6 +156,36 @@ namespace picongpu::particles::atomicPhysics::stage
                         .template getBoundFreeTransitionDataBox<false, s_enums::TransitionOrdering::byLowerState>(),
                     localTimeRemainingField.getDeviceDataBox(),
                     localElectronHistogramField.getDeviceDataBox(),
+                    localRateCacheField.getDeviceDataBox(),
+                    ions.getDeviceParticlesBox());
+            }
+
+            // bound-free(upward) field transitions
+            if constexpr(AtomicDataType::switchFieldIonization)
+            {
+                using ChooseTransitionKernel_FieldBoundFree
+                    = picongpu::particles::atomicPhysics::kernel::ChooseTransitionKernel_FieldBoundFree<
+                        AtomicDataType::ADKLaserPolarization,
+                        FieldE,
+                        AtomicDataType::ConfigNumber::numberLevels,
+                        IPDModel>;
+
+                auto& fieldE = *dc.get<FieldE>(FieldE::getName());
+
+                IPDModel::template callKernelWithIPDInput<
+                    ChooseTransitionKernel_FieldBoundFree,
+                    IonSpecies::FrameType::frameSize>(
+                    dc,
+                    mapper,
+                    rngFactoryFloat,
+                    atomicData.template getChargeStateDataDataBox<false>(),
+                    atomicData.template getAtomicStateDataDataBox<false>(),
+                    atomicData.template getBoundFreeNumberTransitionsDataBox<false>(),
+                    atomicData.template getBoundFreeStartIndexBlockDataBox<false>(),
+                    atomicData
+                        .template getBoundFreeTransitionDataBox<false, s_enums::TransitionOrdering::byLowerState>(),
+                    localTimeRemainingField.getDeviceDataBox(),
+                    fieldE.getDeviceDataBox(),
                     localRateCacheField.getDeviceDataBox(),
                     ions.getDeviceParticlesBox());
             }
