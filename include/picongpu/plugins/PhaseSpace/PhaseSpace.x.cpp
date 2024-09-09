@@ -456,7 +456,7 @@ namespace picongpu
              *   on the p-axis should be scaled to represent single/real particles.
              *   @see PhaseSpaceMulti::pluginLoad( )
              */
-            float_64 const pRange_unit = sim.unit.mass() * UNIT_SPEED;
+            float_64 const pRange_unit = sim.unit.mass() * sim.unit.speed();
 
             DumpHBuffer dumpHBuffer;
 

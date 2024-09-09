@@ -99,10 +99,6 @@ namespace picongpu
             / (4.0 * PI * EPS0_SI * ELECTRON_MASS_SI * SPEED_OF_LIGHT_SI * SPEED_OF_LIGHT_SI);
     } // namespace SI
 
-    /** Unit of speed */
-    constexpr float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-    constexpr float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-
     /** conversions
      *
      * UNIT_A to UNIT_B
