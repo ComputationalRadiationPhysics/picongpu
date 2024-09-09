@@ -1,4 +1,4 @@
-/* Copyright 2023 Brian Marre, Axel Huebl
+/* Copyright 2023-2024 Brian Marre, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -31,11 +31,10 @@
 
 #include <cstdint>
 
-/** @file implements calculation of rates for bound-free atomic physics transitions
+/** @file implements calculation of rates for bound-free collisional atomic physics transitions
  *
  * this includes ionization due to:
  *  - free electron interaction
- *  - external field
  *  @todo photon ionization based processes, Brian Marre, 2023
  *  @todo recombination processes Brian Marre, 2023
  *
@@ -65,7 +64,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
      * @attention atomic data box input data is assumed to be in eV
      */
     template<uint8_t T_numberLevels, bool T_debug = false>
-    struct BoundFreeTransitionRates
+    struct BoundFreeCollisionalTransitionRates
     {
     private:
         /** beta factor from Burgess and Chidichimo(1983)
@@ -234,112 +233,6 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 densityElectrons,
                 sigma);
         }
-
-        /** rate for field ionization due to external field
-         *
-         * @tparam T_EType type of electric field
-         * @tparam T_BType type of magnetic field
-         * @tparam T_AtomicStateDataBox instantiated type of dataBox
-         * @tparam T_BoundFreeTransitionDataBox instantiated type of dataBox
-         * @tparam T_linPol true =^= linear polarization, false =^= circular polarization
-         *
-         * @param eFieldStrength electric field value at t=0
-         *
-         * @attention only valid for single electron ionization
-         *
-         * @return 1/sim.unit.time()
-         * @todo Brian Marre, 2023
-         */
-        // template<
-        //    typename T_ETypeValue,
-        //    typename T_BTypeValue,
-        //    typename T_ChargeStateDataBox,
-        //    typename T_AtomicStateDataBox,
-        //    typename T_BoundFreeTransitionDataBox,
-        //    bool T_linPol>
-        // HDINLINE static rateFieldIonizationADK(
-        //    T_ETypeValue const eFieldStrength, // sim.unit.eField()
-        //    uint32_t const transitionCollectionIndex,
-        //    T_ChargeStateDataBox const chargeStateDataBox,
-        //    T_AtomicStateDataBox const atomicStateDataBox,
-        //    T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox)
-        //{
-        //    using S_ConfigNumber = picongpu::particles::atomicPhysics::stateRepresentation::
-        //        ConfigNumber<T_AtomicStateDataBox::Idx T_numberLevels,
-        //        T_AtomicStateDataBox::S_DataBox::atomicNumber>;
-        //    using LevelVector = pmacc::math::Vector<uint8_t, T_numberLevels>;
-        //
-        //    uint32_t upperStateClctIdx
-        //        = boundFreeTransitionDataBox.upperStateCollectionIndex(collectionIndexTransition);
-        //    uint32_t lowerStateClctIdx
-        //        = boundFreeTransitionDataBox.lowerStateCollectionIndex(collectionIndexTransition);
-        //
-        //    auto upperStateConfigNumber = atomicStateDataBox.configNumber(upperStateClctIdx);
-        //    auto lowerStateConfigNumber = atomicStateDataBox.configNumber(lowerStateClctIdx);
-        //
-        //    // no need to test for chargeState < protonNumber,
-        //    // since no bound-free transition exists otherwise
-        //    uint8_t lowerStateChargeState
-        //        = S_ConfigNumber::getChargeState(lowerStateConfigNumber);
-        //
-        //    LevelVector upperStateLevelVector = S_ConfigNumber::getLevelVector(upperStateConfigNumber);
-        //    LevelVector lowerStateLevelVector = S_ConfigNumber::getLevelVector(lowerStateConfigNumber);
-        //    LevelVector diffLevelVector = lowerStateLevelVector - upperStateLevelVector;
-        //
-        //    uint8_t shellIonizedElectron;
-        //    for (uint8_t i = u8(0u); i < T_numberLevels; i++ )
-        //    {
-        //        if (diffLevelVector[i] != u8(0u))
-        //        {
-        //            shellIonizedElectron = i;
-        //            break;
-        //        }
-        //    }
-        //
-        //    if constexpr (ATOMIC_PYHSICS_RATE_CALCULATION_HOT_DEBUG)
-        //        if (diffLevelVector.sumOfComponents() != u8(1u))
-        //        {
-        //            printf("atomicPhysics ERROR: rateADK assumption single electron ionization broken\n");
-        //            return 0._X;
-        //        }
-        //
-        //    float_X m_ionizationEnergy = ionizationEnergy(upperStateChargeState, lowerStateChargeState);
-        //    float_X upperStateEnergy = atomicStateDataBox.energy(upperStateClctIdx); // eV
-        //    float_X lowerStateEnergy = atomicStateDataBox.energy(lowerStateClctIdx); // eV
-        //    float_X energyDifference = upperStateEnergy - lowerStateEnergy + m_ionizationEnergy; // eV
-        //
-        //    float_X eFieldStrength_AtomicUnits = math::abs(eFieldStrength) / ATOMIC_UNIT_EFIELD; // 5.14e11 V/m
-        //    // sim.unit.eField() / (sim.unit.eField()/sim.unit.eField()_AtomicUnits)
-        //
-        //    /* core charge visible to ionization electron `effectiveCharge - #electrons in current shell - 1(ionized
-        //    electron)`*/ float_X effectiveCharge = chargeStateDataBox.effectiveCharge(lowerStateChargeState) -
-        //    upperStateLevelVector[shellIonizedElectron]; // e
-        //
-        //    uint8_t n = shellIonizedElectron + u8(1u);
-        //    /* nameless variable for convenience dFromADK*/
-        //    float_X dBase = 4._X * pmacc::math::cPow(effectiveCharge, u8(3u))
-        //        / (eFieldStrength_AtomicUnits * pmacc::math::cPow(n, u8(4u)));
-        //    float_X const dFromADK = math::pow(dBase, n);
-        //
-        //    constexpr float_X pi = pmacc::math::Pi<float_X>::value;
-        //    /* ionization rate (for CIRCULAR polarization)*/
-        //    float_X rateADK = eFieldStrength_AtomicUnits * pmacc::math::cPow(dFromADK, u8(2u))
-        //        / (8._X * pi * effectiveCharge)
-        //        * math::exp(-2._X * pmacc::math::cPow(effectiveCharge, u8(3u))
-        //                    / (float_X(3.0) * pmacc::math::cPow(n, u8(3u)) *
-        //                    eFieldStrength_AtomicUnits));
-        //
-        //    /* in case of linear polarization the rate is modified by an additional factor */
-        //    if constexpr(T_linPol)
-        //    {
-        //        /* factor from averaging over one laser cycle with LINEAR polarization */
-        //        rateADK *= math::sqrt(float_X(3.0) * pmacc::math::cPow(n, u8(3u)) *
-        //        eFieldStrength_AtomicUnits / (pi * pmacc::math::cPow(effectiveCharge, u8(3u))));
-        //    }
-        //
-        //    return rateADK;
-        //}
-
 
         /// @todo radiativeIonizationCrossSection, Scofield+Kramer
         /// @todo rateRadiativeIonization
