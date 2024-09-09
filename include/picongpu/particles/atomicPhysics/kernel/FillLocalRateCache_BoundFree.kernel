@@ -157,13 +157,13 @@ namespace picongpu::particles::atomicPhysics::kernel
                     float_X const binWidth = cachedHistogram.binWidth[binIndex];
                     float_X const density = cachedHistogram.density[binIndex];
 
-                    // 1/UNIT_TIME
+                    // 1/picongpu::sim.unit.time()
                     float_X const sumRateTransitions = 0._X;
                     for(uint32_t transitionID = u32(0u); transitionID < numberTransitionsUp; ++transitionID)
                     {
                         uint32_t const transitionCollectionIndex = offset + transitionID;
 
-                        // 1/UNIT_TIME
+                        // 1/ picongpu::sim.unit.time()
                         sumRateTransitions
                             += atomicPhysics::rateCalculation::BoundFreeCollisionalTransitionRates<T_numberLevels>::
                                 template rateCollisionalIonizationTransition<
@@ -277,16 +277,18 @@ namespace picongpu::particles::atomicPhysics::kernel
                         = numberTransitionsDataBox.numberOfTransitionsUp(atomicStateCollectionIndex);
                     uint32_t const offset = startIndexDataBox.startIndexBlockTransitionsUp(atomicStateCollectionIndex);
 
+                    // 1/picongpu::sim.unit.time()
                     float_X const sumRateTransitions = 0._X;
                     for(uint32_t transitionID = u32(0u); transitionID < numberTransitionsUp; ++transitionID)
                     {
-                        // 1/UNIT_TIME
+                        uint32_t const transitionCollectionIndex = offset + transitionID;
+
+                        // 1/picongpu::sim.unit.time()
                         sumRateTransitions += atomicPhysics::rateCalculation::
                             BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::template rateADKFieldIonization(
                                 maximumNormEFieldValueSuperCell,
                                 ionizationPotentialDepression,
-                                // transitionCollectionIndex
-                                offset + transitionID,
+                                transitionCollectionIndex,
                                 chargeStateDataDataBox,
                                 atomicStateDataDataBox,
                                 boundFreeTransitionDataBox);
@@ -359,6 +361,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             pmacc::DataSpace<picongpu::simDim> const superCellFieldIdx
                 = superCellIdx - areaMapping.getGuardingSuperCells();
 
+            // picongpu::sim.unit.time()
             auto const timeRemaining = localTimeRemainingBox(superCellFieldIdx);
 
             // end kernel if superCell already finished
