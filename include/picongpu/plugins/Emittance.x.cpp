@@ -648,11 +648,11 @@ namespace picongpu
                     {
                         numElec_all += static_cast<long double>(globalCount_e.data()[i]);
                         ux2_all += static_cast<long double>(globalSumMom2.data()[i]) * sim.unit.mass()
-                            * sim.unit.mass() / (SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
+                            * sim.unit.mass() / (sim.si.getElectronMass() * sim.si.getElectronMass());
                         pos2_SI_all += static_cast<long double>(globalSumPos2.data()[i]) * sim.unit.length()
                             * sim.unit.length();
                         xux_all += static_cast<long double>(globalSumMomPos.data()[i]) * sim.unit.mass()
-                            * sim.unit.length() / SI::ELECTRON_MASS_SI;
+                            * sim.unit.length() / sim.si.getElectronMass();
                     }
                     /* the scaling with normalized weighting (weighting /
                      * sim.unit.typicalNumParticlesPerMacroParticle()) is compendated by the division by
@@ -690,8 +690,9 @@ namespace picongpu
                                 += globalSumMomPos.data()[j] * sim.unit.mass() * sim.unit.speed() * sim.unit.length();
                         }
                         float_64 ux2 = mom2_SI
-                            / (sim.unit.speed() * sim.unit.speed() * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
-                        float_64 xux = mompos_SI / (sim.unit.speed() * SI::ELECTRON_MASS_SI);
+                            / (sim.unit.speed() * sim.unit.speed() * sim.si.getElectronMass()
+                               * sim.si.getElectronMass());
+                        float_64 xux = mompos_SI / (sim.unit.speed() * sim.si.getElectronMass());
                         float_64 emit = math::sqrt((pos2_SI * ux2 - xux * xux)) / numElec;
                         if(numElec < std::numeric_limits<float_64>::epsilon())
                         {

@@ -25,9 +25,6 @@ namespace picongpu
     //! reduced Planck constant
     constexpr float_X HBAR = (float_X) (SI::HBAR_SI / sim.unit.energy() / sim.unit.time());
 
-    //! Mass of electron
-    constexpr float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / sim.unit.mass());
-
     //! magnetic constexprant must be double 3.92907e-39
     constexpr float_X MUE0
         = (float_X) (SI::MUE0_SI / sim.unit.length() / sim.unit.mass() * sim.unit.charge() * sim.unit.charge());
