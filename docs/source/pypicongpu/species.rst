@@ -690,7 +690,7 @@ Ultimately rendering this code (reformatted for reading):
 .. code:: c++
 
     value_identifier(float_X, MassRatio_species_e,
-                    9.1093837015000008e-31 / SI::BASE_MASS_SI);
+                    9.1093837015000008e-31 / sim.si.getBaseMass());
     value_identifier(float_X, ChargeRatio_species_e,
                     -1.6021766339999999e-19 / sim.si.getBaseCharge());
 
@@ -708,7 +708,7 @@ Ultimately rendering this code (reformatted for reading):
 
 
     value_identifier(float_X, MassRatio_species_helium,
-                    6.6464736679731602e-27 / SI::BASE_MASS_SI);
+                    6.6464736679731602e-27 / sim.si.getBaseMass());
     value_identifier(float_X, ChargeRatio_species_helium,
                     3.2043532679999998e-19 / sim.si.getBaseCharge());
     value_identifier(float_X, DensityRatio_species_helium, 0.40000000000000002);
