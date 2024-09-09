@@ -56,7 +56,7 @@ namespace picongpu::particles::atomicPhysics::enums
     };
 
     template<>
-    struct LastResort<ChooseTransitionGroup::boundFreeUpward>
+    struct LastResort<ChooseTransitionGroup::collisionalBoundFreeUpward>
     {
         static constexpr uint8_t processClass()
         {

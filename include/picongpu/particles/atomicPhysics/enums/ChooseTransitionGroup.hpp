@@ -39,6 +39,9 @@ namespace picongpu::particles::atomicPhysics::enums
 {
     /** enum of used ChooseTransitionGroups
      *
+     * for every entry before FINAL_NUMBER_DATE_CACHE_DATA_SETS the rate cache will have one per state rate data set,
+     *  while everything after excluding the second last entry will, get one entry for all states.
+     *
      * @attention noChange must always be second last entry!
      * @attention do not use custom values here, ChooseTransitionGroupKernel logic depends on continuous value
      * assignment starting at 0!
@@ -47,13 +50,13 @@ namespace picongpu::particles::atomicPhysics::enums
     {
         boundBoundUpward, // = 0
         boundBoundDownward, // = 1
-        boundFreeUpward, // = 2
+        collisionalBoundFreeUpward, // = 2
         autonomousDownward, // = 3
-        noChange, // = 4
-        FINAL_NUMBER_ENTRIES // = 5
+        fieldBoundFreeUpward, // = 4
+        noChange, // = 5
+        FINAL_NUMBER_ENTRIES // = 6
     };
-    constexpr uint32_t numberChooseTransitionGroups = u32(ChooseTransitionGroup::FINAL_NUMBER_ENTRIES);
-
+    constexpr uint32_t numberChooseTransitionGroups = u32(ChooseTransitionGroup::FINAL_NUMBER_BY_STATE_GROUPS);
 } // namespace picongpu::particles::atomicPhysics::enums
 
 namespace picongpu::particles::atomicPhysics
@@ -65,8 +68,10 @@ namespace picongpu::particles::atomicPhysics
             return "bound-bound(upward)";
         if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::boundBoundDownward))
             return "bound-bound(downward)";
-        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::boundFreeUpward))
-            return "bound-free(upward)";
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::collisionalBoundFreeUpward))
+            return "collisional bound-free(upward)";
+        if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::fieldBoundFreeUpward))
+            return "field bound-free(upward)";
         if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::autonomousDownward))
             return "autonomous(downward)";
         if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::noChange))
