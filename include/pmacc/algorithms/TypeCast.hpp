@@ -34,7 +34,7 @@ namespace pmacc
             {
                 using result = CastToType;
 
-                HDINLINE result operator()(const Type& value) const
+                constexpr result operator()(const Type& value) const
                 {
                     return static_cast<result>(value);
                 }
@@ -42,7 +42,7 @@ namespace pmacc
 
 
             template<typename CastToType, typename Type>
-            HDINLINE typename TypeCast<CastToType, Type>::result precisionCast(const Type& value)
+            constexpr typename TypeCast<CastToType, Type>::result precisionCast(const Type& value)
             {
                 return TypeCast<CastToType, Type>()(value);
             }
