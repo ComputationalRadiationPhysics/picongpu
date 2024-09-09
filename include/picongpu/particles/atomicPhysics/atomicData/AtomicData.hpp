@@ -48,11 +48,11 @@
 #include "picongpu/particles/atomicPhysics/atomicData/CompareTransitionTuple.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/GetStateFromTransitionTuple.hpp"
 
-// enum of groups of processClass's
-#include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
-// enum of transition ordering in dataBoxes
+// enums for configuration and meta description
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 
 // debug only
@@ -84,7 +84,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
     namespace s_enums = picongpu::particles::atomicPhysics::enums;
     using ProcClassGroup = picongpu::particles::atomicPhysics::enums::ProcessClassGroup;
 
-    /** gathering of all atomicPhyiscs input data
+    /** gathering of all atomicPhysics input data
      *
      * @tparam T_Number dataType used for number storage, typically uint32_t
      * @tparam T_Value dataType used for value storage, typically float_X
@@ -143,6 +143,8 @@ namespace picongpu::particles::atomicPhysics::atomicData
      * Assumptions about input data are described in CheckTransitionTuple.hpp, ordering requirements of transitions in
      *  CompareTransitionTuple.hpp and all other requirements in the checkChargeStateList(), checkAtomicStateList() and
      *  checkTransitionsForEnergyInversion() methods.
+     *
+     * @todo add photonic channels, Brian Marre, 2022
      */
     template<
         typename T_Number,
@@ -155,7 +157,8 @@ namespace picongpu::particles::atomicPhysics::atomicData
         bool T_spontaneousDeexcitation,
         bool T_electronicIonization,
         bool T_autonomousIonization,
-        bool T_fieldIonization> /// @todo add photonic channels, Brian Marre, 2022
+        bool T_fieldIonization,
+        atomicPhysics::enums::ADKLaserPolarization T_ADKLaserPolarization>
     class AtomicData : public pmacc::ISimulationData
     {
     public:
@@ -172,6 +175,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
         static constexpr bool switchElectronicIonization = T_electronicIonization;
         static constexpr bool switchAutonomousIonization = T_autonomousIonization;
         static constexpr bool switchFieldIonization = T_fieldIonization;
+        static constexpr s_enums::ADKLaserPolarization ADKLaserPolarization = T_ADKLaserPolarization;
 
         /// type shorthand definitions
         //@{
