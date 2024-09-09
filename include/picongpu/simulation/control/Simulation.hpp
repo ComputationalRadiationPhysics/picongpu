@@ -31,13 +31,9 @@
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
-#include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
-#include "picongpu/particles/InitFunctors.hpp"
-#include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
-#include "picongpu/particles/atomicPhysics/stage/FixAtomicState.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
@@ -64,14 +60,11 @@
 
 #include <pmacc/assert.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/functor/Call.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
-#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
