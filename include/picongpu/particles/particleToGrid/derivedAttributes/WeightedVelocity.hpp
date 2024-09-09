@@ -39,7 +39,7 @@ namespace picongpu
                 template<size_t T_direction>
                 HDINLINE float1_64 WeightedVelocity<T_direction>::getUnit() const
                 {
-                    return UNIT_SPEED;
+                    return sim.unit.speed();
                 }
 
                 template<size_t T_direction>

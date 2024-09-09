@@ -195,7 +195,7 @@ namespace picongpu
 
                 std::vector<double> unit(components);
                 for(uint32_t i = 0; i < components; ++i)
-                    unit[i] = sim.unit.mass() * UNIT_SPEED;
+                    unit[i] = sim.unit.mass() * sim.unit.speed();
 
                 return unit;
             }
@@ -248,7 +248,7 @@ namespace picongpu
 
                 std::vector<double> unit(components);
                 for(uint32_t i = 0; i < components; ++i)
-                    unit[i] = sim.unit.mass() * UNIT_SPEED;
+                    unit[i] = sim.unit.mass() * sim.unit.speed();
 
                 return unit;
             }

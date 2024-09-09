@@ -675,22 +675,23 @@ namespace picongpu
                     for(int i = startWindow_y; i < endWindow_y; i += 10)
                     {
                         float_64 numElec = globalCount_e.data()[i];
-                        float_64 mom2_SI
-                            = globalSumMom2.data()[i] * sim.unit.mass() * UNIT_SPEED * sim.unit.mass() * UNIT_SPEED;
+                        float_64 mom2_SI = globalSumMom2.data()[i] * sim.unit.mass() * sim.unit.speed()
+                            * sim.unit.mass() * sim.unit.speed();
                         float_64 pos2_SI = globalSumPos2.data()[i] * sim.unit.length() * sim.unit.length();
                         float_64 mompos_SI
-                            = globalSumMomPos.data()[i] * sim.unit.mass() * UNIT_SPEED * sim.unit.length();
+                            = globalSumMomPos.data()[i] * sim.unit.mass() * sim.unit.speed() * sim.unit.length();
                         for(int j = i + 1; j < i + 10 && j < endWindow_y; j++)
                         {
                             numElec += globalCount_e.data()[j];
-                            mom2_SI += globalSumMom2.data()[j] * sim.unit.mass() * UNIT_SPEED * sim.unit.mass()
-                                * UNIT_SPEED;
+                            mom2_SI += globalSumMom2.data()[j] * sim.unit.mass() * sim.unit.speed() * sim.unit.mass()
+                                * sim.unit.speed();
                             pos2_SI += globalSumPos2.data()[j] * sim.unit.length() * sim.unit.length();
-                            mompos_SI += globalSumMomPos.data()[j] * sim.unit.mass() * UNIT_SPEED * sim.unit.length();
+                            mompos_SI
+                                += globalSumMomPos.data()[j] * sim.unit.mass() * sim.unit.speed() * sim.unit.length();
                         }
-                        float_64 ux2
-                            = mom2_SI / (UNIT_SPEED * UNIT_SPEED * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
-                        float_64 xux = mompos_SI / (UNIT_SPEED * SI::ELECTRON_MASS_SI);
+                        float_64 ux2 = mom2_SI
+                            / (sim.unit.speed() * sim.unit.speed() * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI);
+                        float_64 xux = mompos_SI / (sim.unit.speed() * SI::ELECTRON_MASS_SI);
                         float_64 emit = math::sqrt((pos2_SI * ux2 - xux * xux)) / numElec;
                         if(numElec < std::numeric_limits<float_64>::epsilon())
                         {

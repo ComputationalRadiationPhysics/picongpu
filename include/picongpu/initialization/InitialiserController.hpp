@@ -152,7 +152,7 @@ namespace picongpu
                     % (sim.unit.typicalNumParticlesPerMacroParticle());
 
 
-                log<picLog::PHYSICS>("UNIT_SPEED %1%") % UNIT_SPEED;
+                log<picLog::PHYSICS>("sim.unit.speed() %1%") % sim.unit.speed();
                 log<picLog::PHYSICS>("sim.unit.time() %1%") % sim.unit.time();
                 log<picLog::PHYSICS>("sim.unit.length() %1%") % sim.unit.length();
                 log<picLog::PHYSICS>("sim.unit.mass() %1%") % sim.unit.mass();
