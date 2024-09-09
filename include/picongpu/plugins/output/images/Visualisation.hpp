@@ -105,7 +105,7 @@ namespace picongpu
 #else
             constexpr auto baseCharge = sim.pic.getBaseCharge();
             const float_X lambda_pl = pmacc::math::Pi<float_X>::doubleValue * sim.pic.getSpeedOfLight()
-                * sqrt(BASE_MASS * EPS0 / BASE_DENSITY / baseCharge / baseCharge);
+                * sqrt(sim.pic.getBaseMass() * EPS0 / BASE_DENSITY / baseCharge / baseCharge);
             const float_X tyEField = lambda_pl * BASE_DENSITY / 3.0f / EPS0;
             const float_X tyBField = tyEField * MUE0_EPS0;
             const float_X tyCurrent = tyBField / MUE0;

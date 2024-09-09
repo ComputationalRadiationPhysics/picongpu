@@ -41,5 +41,4 @@ namespace picongpu
 #include "picongpu/param/simulation.param"
 #include "picongpu/unitless/simulation.unitless"
 #include "picongpu/unitless/physicalConstants.unitless"
-#include "picongpu/unitless/speciesConstants.unitless"
 // clang-format on
