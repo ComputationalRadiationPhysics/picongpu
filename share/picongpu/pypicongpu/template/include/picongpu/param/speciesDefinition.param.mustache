@@ -42,7 +42,7 @@ namespace picongpu
                 value_identifier(float_X, MassRatio_{{{typename}}}, {{{mass_si}}} / SI::BASE_MASS_SI);
             {{/mass}}
             {{#charge}}
-                value_identifier(float_X, ChargeRatio_{{{typename}}}, {{{charge_si}}} / SI::BASE_CHARGE_SI);
+                value_identifier(float_X, ChargeRatio_{{{typename}}}, {{{charge_si}}} / sim.si.getBaseCharge());
             {{/charge}}
             {{#density_ratio}}
                 value_identifier(float_X, DensityRatio_{{{typename}}}, {{{ratio}}});

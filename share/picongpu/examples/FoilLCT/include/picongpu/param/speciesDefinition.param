@@ -59,7 +59,7 @@ namespace picongpu
 
     /*--------------------------- electrons --------------------------------------*/
 
-    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    /* ratio relative to base charge and base mass */
     value_identifier(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
@@ -76,7 +76,7 @@ namespace picongpu
 
     /*--------------------------- H+ --------------------------------------------*/
 
-    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    /* ratio relative to base charge and base mass */
     value_identifier(float_X, MassRatioHydrogen, 1836.152672);
     value_identifier(float_X, ChargeRatioHydrogen, -1.0);
 
@@ -108,7 +108,7 @@ namespace picongpu
 
     /*--------------------------- C ---------------------------------------------*/
 
-    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    /* ratio relative to base charge and base mass */
     value_identifier(float_X, MassRatioCarbon, 22032.0);
     value_identifier(float_X, ChargeRatioCarbon, -6.0);
 
@@ -136,7 +136,7 @@ namespace picongpu
 
     /*--------------------------- N ---------------------------------------------*/
 
-    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    /* ratio relative to base charge and base mass */
     value_identifier(float_X, MassRatioNitrogen, 25716.852);
     value_identifier(float_X, ChargeRatioNitrogen, -7.0);
 

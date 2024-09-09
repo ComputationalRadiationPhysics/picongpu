@@ -103,7 +103,7 @@ namespace picongpu
 #if !(EM_FIELD_SCALE_CHANNEL1 == 3 || EM_FIELD_SCALE_CHANNEL2 == 3 || EM_FIELD_SCALE_CHANNEL3 == 3)
             return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
-            constexpr auto baseCharge = BASE_CHARGE;
+            constexpr auto baseCharge = sim.pic.getBaseCharge();
             const float_X lambda_pl = pmacc::math::Pi<float_X>::doubleValue * sim.pic.getSpeedOfLight()
                 * sqrt(BASE_MASS * EPS0 / BASE_DENSITY / baseCharge / baseCharge);
             const float_X tyEField = lambda_pl * BASE_DENSITY / 3.0f / EPS0;
@@ -149,7 +149,7 @@ namespace picongpu
 #if !(EM_FIELD_SCALE_CHANNEL1 == 7 || EM_FIELD_SCALE_CHANNEL2 == 7 || EM_FIELD_SCALE_CHANNEL3 == 7)
             return float3_X::create(1.0_X);
 #else
-            constexpr auto baseCharge = BASE_CHARGE;
+            constexpr auto baseCharge = sim.pic.getBaseCharge();
             const float_X tyCurrent = TYPICAL_PARTICLES_PER_CELL
                 * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle()) * math::abs(baseCharge)
                 / sim.pic.getDt();
