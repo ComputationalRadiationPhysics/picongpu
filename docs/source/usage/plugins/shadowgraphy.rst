@@ -60,13 +60,13 @@ Plot the first shadowgram that is stored in the simulation output directory ``si
 
    import matplotlib.pyplot as plt
    import numpy as np
-   import openpmd_api as io
+   import openpmd_api as opmd
 
 
    def load_shadowgram(series):
       i = series.iterations[[i for i in series.iterations][0]]
 
-      shadowgram_tmp = i.meshes["shadowgram"][io.Mesh_Record_Component.SCALAR].load_chunk()
+      shadowgram_tmp = i.meshes["shadowgram"][opmd.Mesh_Record_Component.SCALAR].load_chunk()
       unit = i.meshes["shadowgram"].get_attribute("unitSI")
       series.flush()
 
@@ -91,7 +91,7 @@ Plot the first shadowgram that is stored in the simulation output directory ``si
 
    path = "PATH/TO/simOutput"
 
-   series = io.Series(path + "/shadowgraphy_" + "%T." + "bp5", io.Access.read_only)
+   series = opmd.Series(path + "/shadowgraphy_" + "%T." + "bp5", opmd.Access.read_only)
    shadowgram = load_shadowgram(series)
    xm, ym = load_meshgrids(series)
    series.close()

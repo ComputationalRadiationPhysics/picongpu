@@ -14,7 +14,7 @@ The deviation/width should be < 0.05.
 
 """
 
-import openpmd_api as io
+import openpmd_api as opmd
 import numpy as np
 import sys
 
@@ -40,7 +40,7 @@ class Comparison:
 
         """
         # load series
-        series = io.Series(self.path, io.Access.read_only)
+        series = opmd.Series(self.path, opmd.Access.read_only)
         indices = np.array(series.iterations)
         i = series.iterations[indices[0]]
 
@@ -91,9 +91,9 @@ class Comparison:
 
         i = self.series.iterations[0]
         # charge
-        self.charge = i.particles["e"]["charge"][io.Mesh_Record_Component.SCALAR]
+        self.charge = i.particles["e"]["charge"][opmd.Mesh_Record_Component.SCALAR]
         # mass
-        self.mass = i.particles["e"]["mass"][io.Mesh_Record_Component.SCALAR]
+        self.mass = i.particles["e"]["mass"][opmd.Mesh_Record_Component.SCALAR]
 
         # calculating the openPMD-period for later use
         indices = np.array(self.series.iterations)

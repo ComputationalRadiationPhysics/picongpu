@@ -17,7 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 import numpy as np
-import openpmd_api as io
+import openpmd_api as opmd
 
 
 class particleCalorimeter:
@@ -38,7 +38,7 @@ class particleCalorimeter:
                          path and openPMD file format for input series
                          e.g. "simOutput/e_calorimeter/e_calorimeter_all_%T.bp"
         """
-        self.series = io.Series(seriesFilename, access=io.Access_Type.read_only)
+        self.series = opmd.Series(seriesFilename, access=opmd.Access_Type.read_only)
         self.iterations = list(self.series.iterations)
 
         # get first iteration to extrat meta information
@@ -47,7 +47,7 @@ class particleCalorimeter:
             break
 
         self.detector_params = {}
-        h = it.meshes["calorimeter"][io.Mesh_Record_Component.SCALAR]
+        h = it.meshes["calorimeter"][opmd.Mesh_Record_Component.SCALAR]
         for i in h.attributes:
             self.detector_params[i] = h.get_attribute(i)
 
@@ -147,7 +147,7 @@ class particleCalorimeter:
                  size: [N_energy, N_pitch, N_yaw]
         """
         it = self.series.iterations[iteration]
-        h = it.meshes["calorimeter"][io.Mesh_Record_Component.SCALAR]
+        h = it.meshes["calorimeter"][opmd.Mesh_Record_Component.SCALAR]
         data = h.load_chunk()
         self.series.flush()
         return data * self.detector_params["unitSI"]
