@@ -6,7 +6,7 @@ License: LGPLv3+
 """
 import sys
 
-import openpmd_api as io
+import openpmd_api as opmd
 import numpy as np
 
 
@@ -106,7 +106,7 @@ class addParticles2Checkpoint:
         self.speciesName = speciesName
         self.filename_in = filename_in
         self.filename_out = filename_out
-        self.f = io.Series(self.filename_in, io.Access.read_only)
+        self.f = opmd.Series(self.filename_in, opmd.Access.read_only)
         if int(list(self.f.iterations)[0]) != self.timestep:
             # throw error if not time step zero
             raise NameError("Not time step zero")
@@ -138,14 +138,14 @@ class addParticles2Checkpoint:
         tmp_numOff = (
             self.f.iterations[self.timestep]
             .particles[self.speciesName]
-            .particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
+            .particle_patches["numParticlesOffset"][opmd.Mesh_Record_Component.SCALAR]
             .load()
         )
         # get number of particles in each patch
         tmp_num = (
             self.f.iterations[self.timestep]
             .particles[self.speciesName]
-            .particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
+            .particle_patches["numParticles"][opmd.Mesh_Record_Component.SCALAR]
             .load()
         )
 
@@ -216,7 +216,7 @@ class addParticles2Checkpoint:
         # extract data type for weighting
         self.dtype_weighting = (
             self.f.iterations[self.timestep]
-            .particles[self.speciesName]["weighting"][io.Mesh_Record_Component.SCALAR]
+            .particles[self.speciesName]["weighting"][opmd.Mesh_Record_Component.SCALAR]
             .dtype
         )
 
@@ -225,7 +225,7 @@ class addParticles2Checkpoint:
             # type of particleID
             self.dtype_id = (
                 self.f.iterations[self.timestep]
-                .particles[self.speciesName]["id"][io.Mesh_Record_Component.SCALAR]
+                .particles[self.speciesName]["id"][opmd.Mesh_Record_Component.SCALAR]
                 .dtype
             )
         self.print("contains id =  {}".format(self.has_id))
@@ -437,7 +437,7 @@ class pipe:
         particles=[],
         inconfig="{}",
         # can increase write performance with no known downsides, see:
-        # https://adios2.readthedocs.io/en/latest/engines/engines.html#bp5
+        # https://adios2.readthedocs.opmd/en/latest/engines/engines.html#bp5
         outconfig="adios2.engine.parameters.BufferChunkSize = 2147381248",
         verbose=False,
     ):
@@ -471,10 +471,10 @@ class pipe:
         """
         print("Opening data source")
         sys.stdout.flush()
-        inseries = io.Series(self.infile, io.Access.read_only, self.inconfig)
+        inseries = opmd.Series(self.infile, opmd.Access.read_only, self.inconfig)
         print("Opening data sink")
         sys.stdout.flush()
-        outseries = io.Series(self.outfile, io.Access.create, self.outconfig)
+        outseries = opmd.Series(self.outfile, opmd.Access.create, self.outconfig)
         print("Opened input and output")
         sys.stdout.flush()
 
@@ -500,8 +500,8 @@ class pipe:
 
         if (
             type(src) is not type(dest)
-            and not isinstance(src, io.IndexedIteration)
-            and not isinstance(dest, io.Iteration)
+            and not isinstance(src, opmd.IndexedIteration)
+            and not isinstance(dest, opmd.Iteration)
         ):
             raise RuntimeError("Internal error: Trying to copy mismatching types")
 
@@ -509,17 +509,17 @@ class pipe:
         self.copy_attributes(src, dest)
 
         container_types = [
-            io.Mesh_Container,
-            io.Particle_Container,
-            io.ParticleSpecies,
-            io.Record,
-            io.Mesh,
-            io.Particle_Patches,
-            io.Patch_Record,
+            opmd.Mesh_Container,
+            opmd.Particle_Container,
+            opmd.ParticleSpecies,
+            opmd.Record,
+            opmd.Mesh,
+            opmd.Particle_Patches,
+            opmd.Patch_Record,
         ]
         is_container = any([isinstance(src, container_type) for container_type in container_types])
 
-        if isinstance(src, io.Series):
+        if isinstance(src, opmd.Series):
             # main loop: read iterations of src, write to dest
             write_iterations = dest.write_iterations()
             for in_iteration in src.read_iterations():
@@ -565,12 +565,12 @@ class pipe:
                 self.__particle_patches.clear()
                 sys.stdout.flush()
 
-        elif isinstance(src, io.Record_Component) and (not is_container or src.scalar):
+        elif isinstance(src, opmd.Record_Component) and (not is_container or src.scalar):
             # copies record components
             shape = src.shape
             dtype = src.dtype
             offset = [0 for _ in shape]
-            dest.reset_dataset(io.Dataset(dtype, shape))
+            dest.reset_dataset(opmd.Dataset(dtype, shape))
             if src.empty:
                 # empty record component automatically created by
                 # dest.reset_dataset()
@@ -588,12 +588,12 @@ class pipe:
                 dest.store_chunk(loaded_buffer, local_chunk.offset, local_chunk.extent)
                 dest.series_flush()
 
-        elif isinstance(src, io.Patch_Record_Component) and (not is_container or src.scalar):
+        elif isinstance(src, opmd.Patch_Record_Component) and (not is_container or src.scalar):
             # copies patch record components
-            dest.reset_dataset(io.Dataset(src.dtype, src.shape))
+            dest.reset_dataset(opmd.Dataset(src.dtype, src.shape))
             self.__particle_patches.append(particle_patch_load(src.load(), dest))
 
-        elif isinstance(src, io.Iteration):
+        elif isinstance(src, opmd.Iteration):
             # copies iterations (meshes and particles)
             self.print("\ncopy meshes")
             self.__copy(src.meshes, dest.meshes, current_path + "meshes/")
@@ -603,17 +603,17 @@ class pipe:
         elif is_container:
             for key in src:
                 # writes given particle data instead of copying
-                if isinstance(src[key], io.ParticleSpecies) and key == self.particles.speciesName:
+                if isinstance(src[key], opmd.ParticleSpecies) and key == self.particles.speciesName:
                     self.print("writing new particles data")
                     self.write_particles(src[key], dest[key], current_path + key)
                     self.print("resume to copying")
                 # skips copying of RNGProvider3XorMin field to reduce memory if needed
-                elif not self.particles.copyRNG and isinstance(src[key], io.Mesh) and key == "RNGProvider3XorMin":
+                elif not self.particles.copyRNG and isinstance(src[key], opmd.Mesh) and key == "RNGProvider3XorMin":
                     self.print("skipped RNGProvider3XorMin")
                 else:
                     self.__copy(src[key], dest[key], current_path + key + "/")
 
-            if isinstance(src, io.ParticleSpecies):
+            if isinstance(src, opmd.ParticleSpecies):
                 # copies particle patches of species
                 self.__copy(src.particle_patches, dest.particle_patches, current_path + "particlePatches/")
         else:
@@ -726,16 +726,16 @@ class pipe:
 
         self.print("\twriting weighting")
         self.write(
-            src["weighting"][io.Mesh_Record_Component.SCALAR],
-            dest["weighting"][io.Mesh_Record_Component.SCALAR],
+            src["weighting"][opmd.Mesh_Record_Component.SCALAR],
+            dest["weighting"][opmd.Mesh_Record_Component.SCALAR],
             self.particles.weighting,
         )
 
         if self.particles.has_id:
             self.print("\twriting id")
             self.write(
-                src["id"][io.Mesh_Record_Component.SCALAR],
-                dest["id"][io.Mesh_Record_Component.SCALAR],
+                src["id"][opmd.Mesh_Record_Component.SCALAR],
+                dest["id"][opmd.Mesh_Record_Component.SCALAR],
                 self.particles.id,
             )
 
@@ -759,16 +759,16 @@ class pipe:
 
         # write own particle patches
         self.print("\tcopying patches")
-        temp_src = src.particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
-        temp_dest = dest.particle_patches["numParticles"][io.Mesh_Record_Component.SCALAR]
+        temp_src = src.particle_patches["numParticles"][opmd.Mesh_Record_Component.SCALAR]
+        temp_dest = dest.particle_patches["numParticles"][opmd.Mesh_Record_Component.SCALAR]
 
-        temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
+        temp_dest.reset_dataset(opmd.Dataset(temp_src.dtype, temp_src.shape))
         self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
 
-        temp_src = src.particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
-        temp_dest = dest.particle_patches["numParticlesOffset"][io.Mesh_Record_Component.SCALAR]
+        temp_src = src.particle_patches["numParticlesOffset"][opmd.Mesh_Record_Component.SCALAR]
+        temp_dest = dest.particle_patches["numParticlesOffset"][opmd.Mesh_Record_Component.SCALAR]
 
-        temp_dest.reset_dataset(io.Dataset(temp_src.dtype, temp_src.shape))
+        temp_dest.reset_dataset(opmd.Dataset(temp_src.dtype, temp_src.shape))
         self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
 
         # copy offset and extent from old checkpoint
@@ -801,9 +801,11 @@ class pipe:
         # The following attributes are written automatically by openPMD-api
         # and should not be manually overwritten here
         ignored_attributes = {
-            io.Series: ["basePath", "iterationEncoding", "iterationFormat", "openPMD"],
-            io.Iteration: ["snapshot"],
-            io.Record_Component: ["value", "shape"] if isinstance(src, io.Record_Component) and src.constant else [],
+            opmd.Series: ["basePath", "iterationEncoding", "iterationFormat", "openPMD"],
+            opmd.Iteration: ["snapshot"],
+            opmd.Record_Component: ["value", "shape"]
+            if isinstance(src, opmd.Record_Component) and src.constant
+            else [],
         }
         for key in src.attributes:
             ignore_this_attribute = False
@@ -835,7 +837,7 @@ class pipe:
         shape = (self.particles.N_particles,)
         dtype = src.dtype
 
-        dest.reset_dataset(io.Dataset(dtype, shape))
+        dest.reset_dataset(opmd.Dataset(dtype, shape))
         # write particle data for each patch
         for i in range(self.particles.N_gpus.prod()):
             dest.store_chunk(

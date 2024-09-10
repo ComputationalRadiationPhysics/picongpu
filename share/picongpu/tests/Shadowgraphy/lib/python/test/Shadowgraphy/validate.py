@@ -10,7 +10,7 @@ import itertools
 import sys
 
 import numpy as np
-import openpmd_api as io
+import openpmd_api as opmd
 import scipy.constants as const
 import scipy.optimize as optimize
 
@@ -97,10 +97,10 @@ def main(path):
     #########################################
 
     # Load data from simulation
-    series = io.Series(path + "/shadowgraphy_" + "%T." + "bp5", io.Access.read_only)
+    series = opmd.Series(path + "/shadowgraphy_" + "%T." + "bp5", opmd.Access.read_only)
     i = series.iterations[[i for i in series.iterations][0]]
 
-    shadowgram = i.meshes["shadowgram"][io.Mesh_Record_Component.SCALAR].load_chunk()
+    shadowgram = i.meshes["shadowgram"][opmd.Mesh_Record_Component.SCALAR].load_chunk()
     unit = i.meshes["shadowgram"].get_attribute("unitSI")
     series.flush()
 
@@ -153,7 +153,7 @@ def main(path):
     possible_signs = ["positive", "negative"]
     possible_fields = ["Ex", "Ey", "Bx", "By"]
     for sf in itertools.product(possible_signs, possible_fields):
-        series = io.Series(path + "/shadowgraphy_fourierdata_" + "%T." + "bp5", io.Access.read_only)
+        series = opmd.Series(path + "/shadowgraphy_fourierdata_" + "%T." + "bp5", opmd.Access.read_only)
         i = series.iterations[[i for i in series.iterations][0]]
 
         chunkdata = i.meshes[f"Fourier Domain Fields - {sf[0]}"][sf[1]].load_chunk()

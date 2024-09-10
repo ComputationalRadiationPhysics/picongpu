@@ -22,7 +22,7 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import openpmd_api as io
+import openpmd_api as opmd
 
 __doc__ = """
 This program reads electric field and charge density data
@@ -71,7 +71,7 @@ def plotError(file_pattern, slice_pos=[0.5, 0.5, 0.5], timestep=-1):
         openPMD file series pattern e.g. simData_%%T.bp
     """
     # load file
-    series = io.Series(file_pattern, io.Access.read_only)
+    series = opmd.Series(file_pattern, opmd.Access.read_only)
 
     # read time step
     if timestep == -1:
@@ -100,7 +100,7 @@ def plotError(file_pattern, slice_pos=[0.5, 0.5, 0.5], timestep=-1):
         search_pattern = "_chargeDensity"
         if fieldName[-len(search_pattern) :] == search_pattern:
             # load species density
-            species_Density = f.meshes[fieldName][io.Mesh_Record_Component.SCALAR][:]
+            species_Density = f.meshes[fieldName][opmd.Mesh_Record_Component.SCALAR][:]
             series.flush()
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])

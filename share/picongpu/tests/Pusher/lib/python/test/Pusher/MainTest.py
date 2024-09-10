@@ -12,7 +12,7 @@ epsilon = 1e-5, the test fails. Also, the absolute phase change during one turn
 is regarded. It should be smaller than 0.2 rad.
 """
 
-import openpmd_api as io
+import openpmd_api as opmd
 import numpy as np
 import sys
 
@@ -43,7 +43,7 @@ def get_params(path):
 
     """
     # load series
-    series = io.Series(path, io.Access.read_only)
+    series = opmd.Series(path, opmd.Access.read_only)
     indices = np.array(series.iterations)
     i = series.iterations[indices[0]]
 
@@ -107,9 +107,9 @@ def read_series(series):
 
     i = series.iterations[0]
     # charge
-    charge = i.particles["e"]["charge"][io.Mesh_Record_Component.SCALAR]
+    charge = i.particles["e"]["charge"][opmd.Mesh_Record_Component.SCALAR]
     # mass
-    mass = i.particles["e"]["mass"][io.Mesh_Record_Component.SCALAR]
+    mass = i.particles["e"]["mass"][opmd.Mesh_Record_Component.SCALAR]
 
     # calculating of the openPMD-period for later use
     indices = np.array(series.iterations)
