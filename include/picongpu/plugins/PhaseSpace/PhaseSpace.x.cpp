@@ -34,6 +34,7 @@
 
 #    include <pmacc/communication/manager_common.hpp>
 #    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/mappings/simulation/Filesystem.hpp>
 #    include <pmacc/math/Vector.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
 #    include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -319,7 +320,7 @@ namespace picongpu
             if(activatePlugin)
             {
                 /** create dir */
-                Environment<simDim>::get().Filesystem().createDirectoryWithPermissions("phaseSpace");
+                pmacc::Filesystem::get().createDirectoryWithPermissions("phaseSpace");
 
                 const uint32_t r_element = axis_element.space;
 

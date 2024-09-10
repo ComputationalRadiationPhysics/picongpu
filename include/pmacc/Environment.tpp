@@ -108,7 +108,6 @@ namespace pmacc
             return device::MemoryInfo::getInstance();
         }
 
-
         simulationControl::SimulationDescription& Environment::SimulationDescription()
         {
             return simulationControl::SimulationDescription::getInstance();
@@ -147,13 +146,6 @@ namespace pmacc
     }
 
     template<uint32_t T_dim>
-    pmacc::Filesystem<T_dim>& Environment<T_dim>::Filesystem()
-    {
-        return pmacc::Filesystem<T_dim>::getInstance();
-    }
-
-
-    template<uint32_t T_dim>
     void Environment<T_dim>::initDevices(DataSpace<T_dim> devices, DataSpace<T_dim> periodic)
     {
         // initialize the MPI context
@@ -163,8 +155,6 @@ namespace pmacc
         GridController().init(devices, periodic);
 
         EnvironmentController();
-
-        Filesystem();
 
         detail::EnvironmentContext::getInstance().setDevice(static_cast<int>(GridController().getHostRank()));
 

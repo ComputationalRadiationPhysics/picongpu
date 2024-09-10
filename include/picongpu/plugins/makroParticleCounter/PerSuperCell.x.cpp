@@ -30,6 +30,7 @@
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/mappings/kernel/AreaMapping.hpp>
+#    include <pmacc/mappings/simulation/Filesystem.hpp>
 #    include <pmacc/memory/buffers/GridBuffer.hpp>
 #    include <pmacc/memory/shared/Allocate.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
@@ -186,7 +187,7 @@ namespace picongpu
                 localResult = std::make_unique<GridBufferType>(localSuperCells);
 
                 /* create folder for hdf5 files*/
-                Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(foldername);
+                pmacc::Filesystem::get().createDirectoryWithPermissions(foldername);
             }
         }
 
