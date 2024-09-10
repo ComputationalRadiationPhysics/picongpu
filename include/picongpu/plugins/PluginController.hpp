@@ -22,19 +22,11 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"
-#include "picongpu/plugins/PngPlugin.hpp"
-#include "picongpu/plugins/multi/Master.hpp"
-#include "picongpu/plugins/radiation/VectorTypes.hpp"
 
-#include <pmacc/assert.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
-#include <pmacc/meta/AllCombinations.hpp>
 
 #include <memory>
 #include <vector>

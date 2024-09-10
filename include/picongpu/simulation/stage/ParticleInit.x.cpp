@@ -23,7 +23,7 @@
 
 #include "picongpu/param/particleFilters.param"
 #include "picongpu/param/speciesInitialization.param"
-#include "picongpu/particles/ParticlesFunctors.hpp"
+#include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
 
@@ -34,10 +34,49 @@
 
 namespace picongpu::simulation::stage
 {
+    namespace particles
+    {
+        /** Remove all particles of the species that are outside the respective boundaries
+         *
+         * Must be called only for species with a pusher
+         *
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked
+         */
+        template<typename T_SpeciesType>
+        struct RemoveOuterParticles
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using FrameType = typename SpeciesType::FrameType;
+
+            HINLINE void operator()(const uint32_t currentStep) const
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+                auto species = dc.get<SpeciesType>(FrameType::getName());
+                picongpu::particles::boundary::removeOuterParticles(*species, currentStep);
+            }
+        };
+
+        //! Remove all particles of all species with pusher flag that are outside the respective boundaries
+        struct RemoveOuterParticlesAllSpecies
+        {
+            /** Remove all external particles
+             *
+             * @param currentStep current simulation step
+             */
+            HINLINE void operator()(const uint32_t currentStep) const
+            {
+                using VectorSpeciesWithPusher =
+                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
+                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<boost::mpl::_1>> removeOuterParticles;
+                removeOuterParticles(currentStep);
+            }
+        };
+    } // namespace particles
+
     //! Initialize particles
     void ParticleInit::operator()(uint32_t const step) const
     {
-        meta::ForEach<particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
+        meta::ForEach<picongpu::particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
         initSpecies(step);
         /* Remove all particles that are outside the respective boundaries
          * (this can happen if density functor didn't account for it).

@@ -25,9 +25,11 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/param/fileOutput.param"
+#include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/ionization/byCollision/ionizers.hpp"
 #include "picongpu/particles/ionization/byField/ionizers.hpp"
+#include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
@@ -37,6 +39,90 @@
 
 namespace picongpu
 {
+    namespace particles
+    {
+        /** Call an ionization method upon an ion species
+         *
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is going to be ionized
+         * with ionization scheme T_SelectIonizer
+         */
+        template<typename T_SpeciesType, typename T_SelectIonizer>
+        struct CallIonizationScheme
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using SelectIonizer = T_SelectIonizer;
+            using FrameType = typename SpeciesType::FrameType;
+
+            /* define the type of the species to be created
+             * from inside the ionization model specialization
+             */
+            using DestSpecies = typename SelectIonizer::DestSpecies;
+            using DestFrameType = typename DestSpecies::FrameType;
+
+            /** Functor implementation
+             *
+             * @tparam T_CellDescription contains the number of blocks and blocksize
+             *                           that is later passed to the kernel
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
+             */
+            template<typename T_CellDescription>
+            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep) const
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+
+                // alias for pointer on source species
+                auto srcSpeciesPtr = dc.get<SpeciesType>(FrameType::getName());
+                // alias for pointer on destination species
+                auto electronsPtr = dc.get<DestSpecies>(DestFrameType::getName());
+
+                SelectIonizer selectIonizer(currentStep);
+
+                creation::createParticlesFromSpecies(*srcSpeciesPtr, *electronsPtr, selectIonizer, cellDesc);
+
+                /* fill the gaps in the created species' particle frames to ensure that only
+                 * the last frame is not completely filled but every other before is full
+                 */
+                electronsPtr->fillAllGaps();
+            }
+        };
+
+        /** Call all ionization schemes of an ion species
+         *
+         * Tests if species can be ionized and calls the kernels to do that
+         *
+         * @tparam T_SpeciesType type or name as PMACC_CSTRING of particle species that is checked for ionization
+         */
+        template<typename T_SpeciesType>
+        struct CallIonization
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using FrameType = typename SpeciesType::FrameType;
+
+            // SelectIonizer will be either the specified one or fallback: None
+            using SelectIonizerList = typename traits::GetIonizerList<SpeciesType>::type;
+
+            /** Functor implementation
+             *
+             * @tparam T_CellDescription contains the number of blocks and blocksize
+             *                           that is later passed to the kernel
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
+             */
+            template<typename T_CellDescription>
+            HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep) const
+            {
+                // only if an ionizer has been specified, this is executed
+                using hasIonizers = typename HasFlag<FrameType, ionizers<>>::type;
+                if(hasIonizers::value)
+                {
+                    meta::ForEach<SelectIonizerList, CallIonizationScheme<SpeciesType, boost::mpl::_1>>
+                        particleIonization;
+                    particleIonization(cellDesc, currentStep);
+                }
+            }
+        };
+    } // namespace particles
     namespace simulation
     {
         namespace stage
