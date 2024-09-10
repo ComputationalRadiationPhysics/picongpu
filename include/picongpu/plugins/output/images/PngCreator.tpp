@@ -24,6 +24,7 @@
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 
+#include <pmacc/mappings/simulation/Filesystem.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/types.hpp>
 #include <pmacc/verify.hpp>
@@ -50,7 +51,7 @@ namespace picongpu
 #if(PIC_ENABLE_PNG == 1)
         if(m_createFolder)
         {
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(m_folder);
+            pmacc::Filesystem::get().createDirectoryWithPermissions(m_folder);
             m_createFolder = false;
         }
 

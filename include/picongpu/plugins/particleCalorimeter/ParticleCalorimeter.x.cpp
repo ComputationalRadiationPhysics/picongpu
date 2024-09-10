@@ -37,6 +37,7 @@
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/lockstep/lockstep.hpp>
 #    include <pmacc/mappings/kernel/AreaMapping.hpp>
+#    include <pmacc/mappings/simulation/Filesystem.hpp>
 #    include <pmacc/math/Vector.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
 #    include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -214,8 +215,7 @@ namespace picongpu
              * Create folder for openPMD checkpoint files.
              * openPMD would also do it automatically, but let's keep things explicit.
              */
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(
-                checkpointDirectory + "/" + this->foldername);
+            pmacc::Filesystem::get().createDirectoryWithPermissions(checkpointDirectory + "/" + this->foldername);
             auto dataSize = this->dBufLeftParsCalorimeter->capacityND();
             HBufCalorimeter hBufLeftParsCalorimeter(dataSize);
             HBufCalorimeter hBufTotal(dataSize);
@@ -358,7 +358,7 @@ namespace picongpu
                 this->calorimeterFrameVecZ);
 
             /* create folder for openPMD files*/
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(this->foldername);
+            pmacc::Filesystem::get().createDirectoryWithPermissions(this->foldername);
 
             // set how often the plugin should be executed while PIConGPU is running
             Environment<>::get().PluginConnector().setNotificationPeriod(this, m_help->notifyPeriod.get(m_id));

@@ -28,6 +28,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/Manager.hpp"
 #include "pmacc/filesystem.hpp"
+#include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/particles/IdProvider.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
@@ -113,7 +114,7 @@ namespace pmacc
             /* create directory containing checkpoints  */
             if(numCheckpoints == 0)
             {
-                Environment<DIM>::get().Filesystem().createDirectoryWithPermissions(checkpointDirectory);
+                pmacc::Filesystem::get().createDirectoryWithPermissions(checkpointDirectory);
             }
 
             Environment<DIM>::get().PluginConnector().checkpointPlugins(currentStep, checkpointDirectory);

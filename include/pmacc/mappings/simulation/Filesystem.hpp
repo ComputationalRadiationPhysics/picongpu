@@ -30,10 +30,7 @@ namespace pmacc
 {
     /**
      * Singleton class providing common filesystem operations.
-     *
-     * @tparam DIM number of dimensions of the simulation
      */
-    template<unsigned DIM>
     class Filesystem
     {
     public:
@@ -64,9 +61,20 @@ namespace pmacc
          */
         std::string basename(const std::string pathFilename) const;
 
-    private:
-        friend class Environment<DIM>;
+        /**
+         * Returns the instance of the filesystem class.
+         *
+         * This class is a singleton class.
+         *
+         * @return a filesystem instance
+         */
+        static Filesystem& get()
+        {
+            static Filesystem instance;
+            return instance;
+        }
 
+    private:
         /**
          * Constructor
          */
@@ -76,19 +84,6 @@ namespace pmacc
          * Constructor
          */
         Filesystem(const Filesystem& fs) = default;
-
-        /**
-         * Returns the instance of the filesystem class.
-         *
-         * This class is a singleton class.
-         *
-         * @return a filesystem instance
-         */
-        static Filesystem<DIM>& getInstance()
-        {
-            static Filesystem<DIM> instance;
-            return instance;
-        }
     };
 
 } // namespace pmacc

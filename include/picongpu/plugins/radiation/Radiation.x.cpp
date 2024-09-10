@@ -41,6 +41,7 @@
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/filesystem.hpp>
 #    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/mappings/simulation/Filesystem.hpp>
 #    include <pmacc/math/operation.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
 #    include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -357,7 +358,7 @@ namespace picongpu
                         freqFkt = freqInit.getFunctor();
 
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-                        pmacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+                        auto& fs = pmacc::Filesystem::get();
 
                         if(isMaster)
                         {

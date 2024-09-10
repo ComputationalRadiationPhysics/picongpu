@@ -65,6 +65,7 @@
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/dimensions/GridLayout.hpp>
 #    include <pmacc/filesystem.hpp>
+#    include <pmacc/mappings/simulation/Filesystem.hpp>
 #    include <pmacc/mappings/simulation/GridController.hpp>
 #    include <pmacc/mappings/simulation/SubGrid.hpp>
 #    include <pmacc/math/Vector.hpp>
@@ -1116,16 +1117,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, emplaced->second.periods());
 
-                        /** create notify directory */
-                        Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
+                        /** create output directory */
+                        pmacc::Filesystem::get().createDirectoryWithPermissions(outputDirectory);
                     }
                     else if(not tomlSourcesSpecified && notifyPeriodSpecified)
                     {
                         std::string const& notifyPeriod = m_help->notifyPeriod.get(id);
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
-                        /** create notify directory */
-                        Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
+                        /** create output directory */
+                        pmacc::Filesystem::get().createDirectoryWithPermissions(outputDirectory);
                     }
                     else
                     {
