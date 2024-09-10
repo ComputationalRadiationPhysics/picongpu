@@ -199,6 +199,9 @@ namespace picongpu
 
         static constexpr uint32_t dim()
         {
+            static_assert(
+                simDim == SIMDIM,
+                "Preprocessor define SIMDIM and simDim must be equal! see file dimension.param");
             return simDim;
         }
 

@@ -18,6 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// required for SIMDIM definition
+#include "picongpu/defines.hpp"
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
 

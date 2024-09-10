@@ -414,10 +414,10 @@ namespace picongpu
                 calcPhaseSpace<AxisDescription::x>(currentStep);
             else if(this->axis_element.space == AxisDescription::y)
                 calcPhaseSpace<AxisDescription::y>(currentStep);
-#    if(SIMDIM == DIM3)
-            else
-                calcPhaseSpace<AxisDescription::z>(currentStep);
-#    endif
+
+            if constexpr(simDim == DIM3)
+                if(this->axis_element.space == AxisDescription::z)
+                    calcPhaseSpace<AxisDescription::z>(currentStep);
 
             /* transfer to host */
             this->dBuffer->deviceToHost();
