@@ -371,6 +371,13 @@ struct RunTimeKernel
             Vector<float, 3u> vec = cellSize;
             data[i++] = vec == Vector<float, 3u>(1., 2., 3.);
         }
+        {
+            // precisionCast
+            constexpr auto vec = Vector<int, 3u>{4, 3, 2};
+            constexpr auto vec2 = pmacc::algorithms::precisionCast::precisionCast<float>(vec);
+            static_assert(vec2 == Vector<float, 3u>{4.f, 3.f, 2.f});
+            data[i++] = vec2 == Vector<float, 3u>{4.f, 3.f, 2.f};
+        }
 
         *numTestsOut = i;
     }
@@ -382,7 +389,7 @@ TEST_CASE("vector generic", "[vector]")
     using namespace pmacc::math;
 
     // increase this variable in case new tests get added to RunTimeKernel
-    size_t const numElements = 16u;
+    size_t const numElements = 17u;
 
     auto hostDeviceBuffer = HostDeviceBuffer<bool, DIM1>(DataSpace<DIM1>{numElements});
     auto numTestsBuffer = HostDeviceBuffer<size_t, DIM1>(DataSpace<DIM1>{1});

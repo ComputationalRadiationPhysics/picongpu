@@ -331,7 +331,7 @@ namespace pmacc
                 using result = ::pmacc::math::Vector<CastToType, dim, T_Storage>;
                 using ParamType = ::pmacc::math::Vector<CastToType, dim, T_Storage>;
 
-                HDINLINE result operator()(ParamType const& vector) const
+                constexpr result operator()(ParamType const& vector) const
                 {
                     return vector;
                 }
@@ -343,7 +343,7 @@ namespace pmacc
                 using result = ::pmacc::math::Vector<CastToType, dim>;
                 using ParamType = ::pmacc::math::Vector<OldType, dim, T_Storage>;
 
-                HDINLINE result operator()(const ParamType& vector) const
+                constexpr result operator()(const ParamType& vector) const
                 {
                     return result(vector);
                 }
