@@ -81,9 +81,16 @@ namespace picongpu
 
             for(uint32_t d = 0; d < simDim; ++d)
             {
+                // doc-include-start: automatic-grid-adjustment
+                // The checks are performed for each dimension `d` individually.
+                // If not, the size in that dimension is rounded up to the nearest multiple:
                 multipleOfSuperCell(d);
+                // We need at least one GUARD supercell on either side per MPI rank and one CORE supercell; so, 2+1=3
+                // supercells in total. If not, this dimension is enlarged to fit this:
                 minThreeSuperCells(d);
+                // Only applies if an absorber is present in that direction. If so, it must fit into the box:
                 greaterEqualThanAbsorber(d);
+                // doc-include-end: automatic-grid-adjustment
                 deriveGlobalDomainSize(d);
                 updateLocalDomainOffset(d);
             }
