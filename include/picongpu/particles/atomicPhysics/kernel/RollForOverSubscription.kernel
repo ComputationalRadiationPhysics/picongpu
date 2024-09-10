@@ -68,7 +68,8 @@ namespace picongpu::particles::atomicPhysics::kernel
         HDINLINE void operator()(
             T_Worker const& worker,
             T_AreaMapping const areaMapping,
-            T_RngGeneratorFactoryFloat rngFactory, /// const?, @todo Brian Marre, 2023
+            /// const?, @todo Brian Marre, 2023
+            T_RngGeneratorFactoryFloat rngFactory,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalElectronHistogramOverSubscribedDataBox const localElectronHistogramOverSubscribedBox,
             T_IonBox ionBox,
