@@ -159,18 +159,6 @@ namespace picongpu::particles::debyeLength
 
     } // namespace detail
 
-    /** Check Debye length resolution
-     *
-     * Compute and print the weighted average Debye length for the electron species.
-     * Print in how many supercells the locally estimated Debye length is not resolved with a single cell.
-     *
-     * The check is supposed to be called just after the particles are initialized at start of a simulation.
-     * The results are output to log<picLog::PHYSICS>.
-     *
-     * This function must be called from all MPI ranks.
-     *
-     * @param cellDescription mapping for kernels
-     */
     void check(MappingDesc const cellDescription)
     {
         bool isPrinting = (Environment<simDim>::get().GridController().getGlobalRank() == 0);
