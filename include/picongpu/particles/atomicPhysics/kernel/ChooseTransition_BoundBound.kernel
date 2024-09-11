@@ -74,6 +74,31 @@ namespace picongpu::particles::atomicPhysics::kernel
         static constexpr bool electronicChannelActive
             = (T_electronicDeexcitation && !isUpward) || ((T_electronicExcitation && isUpward));
 
+        template<
+            typename T_AtomicStateBoundBoundStartIndexBlockDataBox,
+            typename T_AtomicStateBoundBoundNumberTransitionsDataBox,
+            typename T_BoundBoundTransitionDataBox>
+        static constexpr bool checkAtomicDataBoxes()
+        {
+            PMACC_CASSERT_MSG(
+                number_transition_dataBox_not_bound_bound_based,
+                u8(T_AtomicStateBoundBoundNumberTransitionsDataBox::processClassGroup)
+                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
+            PMACC_CASSERT_MSG(
+                startIndex_dataBox_not_bound_bound_based,
+                u8(T_AtomicStateBoundBoundStartIndexBlockDataBox::processClassGroup)
+                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
+            PMACC_CASSERT_MSG(
+                transitiondataBox_not_bound_bound_based,
+                u8(T_BoundBoundTransitionDataBox::processClassGroup)
+                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
+            PMACC_CASSERT_MSG(
+                wrong_transition_ordering_for_T_transitionDirection,
+                u8(T_BoundBoundTransitionDataBox::transitionOrdering)
+                    == u8(s_enums::TransitionOrderingFor<T_TransitionDirection>::ordering));
+            return true;
+        }
+
         /** call operator
          *
          * called by ChooseTransition atomic physics sub-stage
@@ -120,22 +145,10 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_IonBox ionBox) const
         {
             // check that correct databoxes are given
-            PMACC_CASSERT_MSG(
-                number_transition_dataBox_not_bound_bound_based,
-                u8(T_AtomicStateBoundBoundNumberTransitionsDataBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
-            PMACC_CASSERT_MSG(
-                startIndex_dataBox_not_bound_bound_based,
-                u8(T_AtomicStateBoundBoundStartIndexBlockDataBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
-            PMACC_CASSERT_MSG(
-                transitiondataBox_not_bound_bound_based,
-                u8(T_BoundBoundTransitionDataBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
-            PMACC_CASSERT_MSG(
-                wrong_transition_ordering_for_T_transitionDirection,
-                u8(T_BoundBoundTransitionDataBox::transitionOrdering)
-                    == u8(s_enums::TransitionOrderingFor<T_TransitionDirection>::ordering));
+            PMACC_CASSERT(checkAtomicDataBoxes<
+                          T_AtomicStateBoundBoundStartIndexBlockDataBox,
+                          T_AtomicStateBoundBoundNumberTransitionsDataBox,
+                          T_BoundBoundTransitionDataBox>());
 
             pmacc::DataSpace<simDim> const superCellIdx = areaMapping.getSuperCellIndex(worker.blockDomIdxND());
             // atomicPhysics superCellFields have no guard, but areMapping includes a guard
