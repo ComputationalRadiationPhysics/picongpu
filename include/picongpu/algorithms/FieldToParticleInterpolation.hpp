@@ -20,13 +20,13 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
-#include "picongpu/particles/shapes.hpp"
+#include "picongpu/particles/shapes/ShapeSelector.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/attribute/unroll.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/Array.hpp>
 
 namespace picongpu
 {

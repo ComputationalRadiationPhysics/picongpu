@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/Gamma.def"
+#include "picongpu/defines.hpp"
 
 
 namespace picongpu
