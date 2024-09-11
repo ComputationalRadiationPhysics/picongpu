@@ -57,6 +57,19 @@ namespace picongpu::particles::atomicPhysics::kernel
     template<typename T_IPDModel, picongpu::particles::atomicPhysics::enums::ProcessClassGroup T_ProcessClassGroup>
     struct SpawnIonizationMacroElectronsKernel
     {
+        template<typename T_TransitionDataBox, typename T_IonBox, typename T_IonizationElectronBox>
+        static constexpr bool checkPassedDataBoxes()
+        {
+            PMACC_CASSERT_MSG(
+                processClassGroup_and_transition_dataBox_not_consistent,
+                u8(T_ProcessClassGroup) == u8(T_TransitionDataBox::processClassGroup));
+            PMACC_CASSERT_MSG(
+                ion_and_electron_framesize_must_be_equal,
+                T_IonBox::frameSize == T_IonizationElectronBox::frameSize);
+
+            return true;
+        }
+
         /** call operator
          *
          * called by SpawnIonizationMacroElectrons atomic physics sub-stage
@@ -100,14 +113,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             using ElectronFramePtr = typename T_IonizationElectronBox::FramePtr;
             using IonFramePtr = typename T_IonBox::FramePtr;
 
-            // check transition data box content consistent with processClassGroup,
-            //  otherwise unpyhsical behaviour and/or illegal memory access
-            PMACC_CASSERT_MSG(
-                processClassGroup_and_transition_dataBox_not_consistent,
-                u8(T_ProcessClassGroup) == u8(T_TransitionDataBox::processClassGroup));
-            PMACC_CASSERT_MSG(
-                ion_and_electron_framesize_must_be_equal,
-                T_IonBox::frameSize == T_IonizationElectronBox::frameSize);
+            PMACC_CASSERT(checkPassedDataBoxes<T_TransitionDataBox, T_IonBox, T_IonizationElectronBox>());
 
             constexpr uint32_t frameSize = T_IonBox::frameSize;
 
