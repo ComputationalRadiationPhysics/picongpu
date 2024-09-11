@@ -26,6 +26,7 @@
 #include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep/lockstep.hpp>
