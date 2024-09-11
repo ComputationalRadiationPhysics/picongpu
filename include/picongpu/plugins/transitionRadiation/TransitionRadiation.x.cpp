@@ -26,49 +26,46 @@
 #include "picongpu/param/transitionRadiation.param"
 // clang-format on
 
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
-#include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/misc/misc.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
-#include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
+#    include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 
-#include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/PluginRegistry.hpp"
-#include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/radiation/VectorTypes.hpp"
-#include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
-#include "picongpu/unitless/transitionRadiation.unitless"
+#    include "picongpu/particles/filter/filter.hpp"
+#    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#    include "picongpu/plugins/ILightweightPlugin.hpp"
+#    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDAttributes.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#    include "picongpu/plugins/common/stringHelpers.hpp"
+#    include "picongpu/plugins/misc/misc.hpp"
+#    include "picongpu/plugins/multi/multi.hpp"
+#    include "picongpu/plugins/radiation/VectorTypes.hpp"
+#    include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
+#    include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
+#    include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
+#    include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
+#    include "picongpu/unitless/transitionRadiation.unitless"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/lockstep/lockstep.hpp>
-#include <pmacc/mappings/simulation/Filesystem.hpp>
-#include <pmacc/math/Complex.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/math/Complex.hpp>
+#    include <pmacc/math/operation.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#    include <pmacc/traits/HasIdentifier.hpp>
 
-#include <boost/filesystem.hpp>
+#    include <boost/filesystem.hpp>
 
-#include <chrono>
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
+#    include <chrono>
+#    include <cmath>
+#    include <cstdlib>
+#    include <ctime>
+#    include <fstream>
+#    include <iostream>
+#    include <memory>
+#    include <string>
+#    include <vector>
 
 
 namespace picongpu
@@ -574,8 +571,8 @@ namespace picongpu
                     transitionRadiation.resetDataset(dataset);
 
                     transitionRadiation.setUnitSI(
-                        SI::ELECTRON_CHARGE_SI * SI::ELECTRON_CHARGE_SI
-                        * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * SI::SPEED_OF_LIGHT_SI)));
+                        sim.si.getElectronCharge() * sim.si.getElectronCharge()
+                        * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * sim.si.getSpeedOfLight())));
 
                     auto span = transitionRadiation.storeChunk<float_X>(offset, extent);
                     auto spanBuffer = span.currentBuffer();
@@ -763,7 +760,7 @@ namespace picongpu
                             *m_cellDescription,
                             freqFkt,
                             subGrid.getGlobalDomain().size,
-                            foilPositionYSI / UNIT_LENGTH);
+                            foilPositionYSI / sim.unit.length());
                 }
             };
 
@@ -802,6 +799,6 @@ namespace picongpu
     } // namespace particles
 } // namespace picongpu
 
-PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>);
-
+PIC_REGISTER_SPECIES_PLUGIN(
+    picongpu::plugins::multi::Master<picongpu::plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>>);
 #endif
