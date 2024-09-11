@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/fields/absorber/absorber.hpp"
+#include "picongpu/fields/absorber.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>

@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/Velocity.hpp"
-#include "picongpu/fields/absorber/absorber.hpp"
+#include "picongpu/fields/absorber.hpp"
 #include "picongpu/fields/absorber/pml/Pml.kernel"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
