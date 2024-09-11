@@ -45,6 +45,25 @@ Feel free to copy & paste sections of the files below into your ``.cfg``, e.g. t
 .. literalinclude:: ../../TBG_macros.cfg
    :language: bash
 
+
+Automatic Grid Adjustment
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is important to note that PIConGPU has a feature to automatically adjust the grid to comply with PIConGPU's constraints.
+This feature is ACTIVE by default, meaning that unless explicit disabled PIConGPU does not guarantee that the grid you submitted is actually run.
+This can be deactivated by the commandline flag `--autoAdjustGrid 0`.
+If automatic adjustment kicks in, it prints a warning.
+If automatic adjustment is deactivated, the run will fail during the initialisation for incompatible parameters.
+
+The checks performed on the given grid parameters are the following:
+
+.. literalinclude:: ../../../include/picongpu/simulation/control/DomainAdjuster.hpp
+   :language: C++
+   :start-after: doc-include-start: automatic-grid-adjustment
+   :end-before: doc-include-end: automatic-grid-adjustment
+   :dedent:
+
+
 Batch System Examples
 ^^^^^^^^^^^^^^^^^^^^^
 
