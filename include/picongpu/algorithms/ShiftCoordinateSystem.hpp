@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <pmacc/attribute/unroll.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/types.hpp>
 
@@ -56,7 +58,7 @@ namespace picongpu
             constexpr uint32_t support = T_supports;
             constexpr bool isEven = (support % 2) == 0;
 
-            DataSpace<dim> intShift;
+            pmacc::DataSpace<dim> intShift;
             PMACC_UNROLL(dim)
             for(uint32_t d = 0; d < dim; ++d)
             {

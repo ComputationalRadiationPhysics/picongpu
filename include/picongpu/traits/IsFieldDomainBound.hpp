@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
 
 #include <type_traits>
 

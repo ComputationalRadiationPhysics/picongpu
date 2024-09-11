@@ -19,6 +19,13 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+#include "picongpu/param/speciesAttributes.param"
+#include "picongpu/traits/SIBaseUnits.hpp"
+
+#include <string>
+#include <vector>
+
 namespace picongpu
 {
     namespace traits
