@@ -1,5 +1,5 @@
 import sys
-import openpmd_api as io
+import openpmd_api as opmd
 import numpy as np
 from synchrotron_lib import analytical_Propability, momentum_to_energy, quad, const
 
@@ -36,7 +36,7 @@ def read_photon_data(series):
     h = it.particles["y"]  # photons
 
     # Reading photon weights
-    h1 = h["weighting"][io.Mesh_Record_Component.SCALAR]
+    h1 = h["weighting"][opmd.Mesh_Record_Component.SCALAR]
     w = h1[:]
     w_SI = h1.unit_SI
     series.flush()
@@ -66,7 +66,7 @@ def read_electron_data(series):
     e = it.particles["e"]  # electrons
 
     # Reading electron weights
-    h1 = e["weighting"][io.Mesh_Record_Component.SCALAR]
+    h1 = e["weighting"][opmd.Mesh_Record_Component.SCALAR]
     e_w = h1[:]  # get the weighting
     e_w_SI = h1.unit_SI  # get the weighting unit
     series.flush()
@@ -89,7 +89,7 @@ def main(dataPath):
     print(f"Validating data in {dataPath}")
     gamma, Heff, dt = read_setup(dataPath)
 
-    series = io.Series(dataPath + "/openPMD/simData_test_%T.bp", io.Access.read_only)
+    series = opmd.Series(dataPath + "/openPMD/simData_test_%T.bp", opmd.Access.read_only)
     it = series.iterations[iterNo]
 
     simulation_dt = it.get_attribute("dt") * it.get_attribute("unit_time")

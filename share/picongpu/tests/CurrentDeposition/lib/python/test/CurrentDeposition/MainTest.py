@@ -16,7 +16,7 @@ Returns whether they coincide or not.
 """
 
 
-import openpmd_api as io
+import openpmd_api as opmd
 import numpy as np
 from grid_class import grid
 import sys
@@ -39,7 +39,7 @@ def get_params(path):
     """
 
     # load series
-    series = io.Series(path, io.Access.read_only)
+    series = opmd.Series(path, opmd.Access.read_only)
     indices = np.array(series.iterations)
     i = series.iterations[indices[0]]
 
@@ -98,7 +98,7 @@ def read_series(series):
         J_z = i.meshes["J"]["z"].load_chunk()
 
         # charge
-        charge = i.particles["e"]["charge"][io.Mesh_Record_Component.SCALAR]
+        charge = i.particles["e"]["charge"][opmd.Mesh_Record_Component.SCALAR]
 
         # node coordinates
         pos2_x = i.particles["e"]["position"]["x"].load_chunk()

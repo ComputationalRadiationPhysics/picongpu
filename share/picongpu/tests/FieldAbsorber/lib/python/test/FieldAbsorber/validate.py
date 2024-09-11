@@ -8,7 +8,7 @@ License: GPLv3+
 
 import sys
 import numpy as np
-import openpmd_api as io
+import openpmd_api as opmd
 
 
 def main(dataPath):
@@ -23,8 +23,8 @@ def main(dataPath):
     Return zero in case of sufficient absorption at the boundary and
     one in case of too small absorption at the boundary.
     """
-    series_test = io.Series(dataPath + "/simData_test_%T.bp", io.Access.read_only)
-    series_ref = io.Series(dataPath + "/simData_ref_%T.bp", io.Access.read_only)
+    series_test = opmd.Series(dataPath + "/simData_test_%T.bp", opmd.Access.read_only)
+    series_ref = opmd.Series(dataPath + "/simData_ref_%T.bp", opmd.Access.read_only)
 
     """Read simulation parameters"""
     # shape of a data set

@@ -9,7 +9,7 @@ from .base_reader import DataReader
 
 import numpy as np
 import os
-import openpmd_api as io
+import openpmd_api as opmd
 import collections
 
 try:
@@ -149,7 +149,7 @@ class PhaseSpaceData(DataReader):
         # get the regular expression matching all available files
         data_file_path = self.get_data_path(ps, species, species_filter, file_ext=file_ext)
 
-        series = io.Series(data_file_path, io.Access.read_only)
+        series = opmd.Series(data_file_path, opmd.Access.read_only)
         iterations = [key for key, _ in series.iterations.items()]
 
         return iterations
@@ -189,7 +189,7 @@ class PhaseSpaceData(DataReader):
         """
 
         data_file_path = self.get_data_path(ps, species, species_filter, file_ext=file_ext)
-        series = io.Series(data_file_path, io.Access.read_only)
+        series = opmd.Series(data_file_path, opmd.Access.read_only)
         available_iterations = [key for key, _ in series.iterations.items()]
 
         if iteration is not None:
@@ -211,7 +211,7 @@ class PhaseSpaceData(DataReader):
             it = series.iterations[index]
             dataset_name = "{}_{}_{}".format(species, species_filter, ps)
             mesh = it.meshes[dataset_name]
-            ps_data = mesh[io.Mesh_Record_Component.SCALAR]
+            ps_data = mesh[opmd.Mesh_Record_Component.SCALAR]
 
             # all in SI
             dV = mesh.get_attribute("dV") * mesh.get_attribute("dr_unit") ** 3

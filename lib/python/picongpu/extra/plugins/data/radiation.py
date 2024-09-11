@@ -17,7 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 import numpy as np
-import openpmd_api as io
+import openpmd_api as opmd
 
 
 class RadiationData:
@@ -38,7 +38,7 @@ class RadiationData:
         """
         # set openPMD-api file
         self.filename = filename
-        self.rad_series = io.Series(filename, io.Access_Type.read_only)
+        self.rad_series = opmd.Series(filename, opmd.Access_Type.read_only)
 
         # extract time step
         self.timestep = timestep

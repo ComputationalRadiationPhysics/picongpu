@@ -26,7 +26,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import openpmd_api as io
+import openpmd_api as opmd
 
 __doc__ = """
 This program reads electric field and charge density data
@@ -76,7 +76,7 @@ def deviation_charge_conservation(series, iteration):
         if fieldName[-14:] == "_chargeDensity":
             # load species density
             # load species density
-            species_Density = iteration.meshes[fieldName][io.Mesh_Record_Component.SCALAR][:]
+            species_Density = iteration.meshes[fieldName][opmd.Mesh_Record_Component.SCALAR][:]
             series.flush()
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     sim_dir_counter = 1
 
     for pattern in file_patterns:
-        series = io.Series(pattern, io.Access.read_only)
+        series = opmd.Series(pattern, opmd.Access.read_only)
 
         first_step = args.start_timestep
         last_step = args.last_timestep
