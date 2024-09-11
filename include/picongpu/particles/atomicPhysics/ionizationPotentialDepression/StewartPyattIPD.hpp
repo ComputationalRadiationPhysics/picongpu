@@ -26,7 +26,7 @@
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/IPDModel.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/LocalIPDInputFields.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/SumFields.hpp"
-#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/ApplyPressureIonization.hpp"
+#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/ApplyIPDIonization.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/CalculateIPDInput.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/FillIPDSumFields_Electron.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/FillIPDSumFields_Ion.hpp"
