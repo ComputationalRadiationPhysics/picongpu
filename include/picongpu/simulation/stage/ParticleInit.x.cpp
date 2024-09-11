@@ -73,7 +73,6 @@ namespace picongpu::simulation::stage
         };
     } // namespace particles
 
-    //! Initialize particles
     void ParticleInit::operator()(uint32_t const step) const
     {
         meta::ForEach<picongpu::particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
