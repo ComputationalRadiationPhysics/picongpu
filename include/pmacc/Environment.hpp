@@ -31,7 +31,6 @@
 #include "pmacc/eventSystem/events/EventPool.hpp"
 #include "pmacc/eventSystem/queues/QueueController.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
 #include "pmacc/particles/tasks/ParticleFactory.hpp"
@@ -135,12 +134,6 @@ namespace pmacc
          * @return instance of SubGrid
          */
         HINLINE pmacc::SubGrid<T_dim>& SubGrid();
-
-        /** get the singleton Filesystem
-         *
-         * @return instance of Filesystem
-         */
-        HINLINE pmacc::Filesystem<T_dim>& Filesystem();
 
         /** get the singleton Environment< DIM >
          *

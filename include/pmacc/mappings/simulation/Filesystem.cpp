@@ -19,9 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if __cplusplus < 201703L
-#    error "C++17 is required"
-#endif
 
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 
@@ -31,15 +28,14 @@
 
 namespace pmacc
 {
-    template<unsigned DIM>
-    void Filesystem<DIM>::createDirectory(const std::string dir) const
+    void Filesystem::createDirectory(const std::string dir) const
     {
-        /* does not throw if the directory exists or has been created */
+        /* using `create_directories` instead of `create_directory` because the former does not throw if the directory
+         * exists or has been created */
         stdfs::create_directories(dir);
     }
 
-    template<unsigned DIM>
-    void Filesystem<DIM>::setDirectoryPermissions(const std::string dir) const
+    void Filesystem::setDirectoryPermissions(const std::string dir) const
     {
         using namespace stdfs;
         /* set permissions */
@@ -48,29 +44,21 @@ namespace pmacc
             perms::owner_all | perms::group_read | perms::group_exec | perms::others_read | perms::others_exec);
     }
 
-    template<unsigned DIM>
-    void Filesystem<DIM>::createDirectoryWithPermissions(const std::string dir) const
+    void Filesystem::createDirectoryWithPermissions(const std::string dir) const
     {
-        GridController<DIM>& gc = Environment<DIM>::get().GridController();
+        auto const mpiRank = Environment<>::get().EnvironmentController().getCommunicator().getRank();
+        bool const isRootRank = mpiRank == 0;
 
-        createDirectory(dir);
-
-        if(gc.getGlobalRank() == 0)
+        if(isRootRank)
         {
+            createDirectory(dir);
             /* must be set by only one process to avoid races */
             setDirectoryPermissions(dir);
         }
     }
 
-
-    template<unsigned DIM>
-    std::string Filesystem<DIM>::basename(const std::string pathFilename) const
+    std::string Filesystem::basename(const std::string pathFilename) const
     {
         return stdfs::path(pathFilename).filename().string();
     }
-
-    // Explicit template instantiation to provide symbols for usage together with PMacc
-    template class Filesystem<DIM2>;
-    template class Filesystem<DIM3>;
-
 } // namespace pmacc
