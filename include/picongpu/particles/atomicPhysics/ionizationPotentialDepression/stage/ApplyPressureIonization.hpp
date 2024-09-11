@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/LocalIPDInputFields.hpp"
-#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/kernel/ApplyPressureIonization.kernel"
+#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/kernel/ApplyIPDIonization.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalFoundUnboundIonField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
@@ -33,15 +33,15 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
     //! short hand for IPD namespace
     namespace s_IPD = picongpu::particles::atomicPhysics::ionizationPotentialDepression;
 
-    /** IPD sub-stage for performing ApplyPressureIonization kernel call for one Ion Species for the Stewart-Pyatt
-     *  ionization potential depression model
+    /** IPD sub-stage for performing ApplyIPDIonization kernel call for one Ion Species for an ionization potential
+     *  depression(IPD) model
      *
      * @todo implement version for non atomicPhysics data species
      *
      * @tparam ion species with atomic data
      */
     template<typename T_IonSpecies, typename T_IPDModel>
-    struct ApplyPressureIonization
+    struct ApplyIPDIonization
     {
         // might be alias, from here on out no more
         //! resolved type of alias T_ParticleSpecies
@@ -85,7 +85,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
             auto idProvider = dc.get<IdProvider>("globalId");
 
             // macro for call of kernel on every superCell, see pull request #4321
-            PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::ApplyPressureIonizationKernel<T_IPDModel>())
+            PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::ApplyIPDIonizationKernel<T_IPDModel>())
                 .config(mapper.getGridDim(), ions)(
                     mapper,
                     idProvider->getDeviceGenerator(),
@@ -103,8 +103,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
             // no need to call fillAllGaps, since we do not leave any gaps
 
             // debug call
-            if constexpr(picongpu::atomicPhysics::debug::kernel::applyPressureIonization::
-                             ELECTRON_PARTICLE_BOX_FILL_GAPS)
+            if constexpr(picongpu::atomicPhysics::debug::kernel::applyIPDIonization::ELECTRON_PARTICLE_BOX_FILL_GAPS)
                 electrons.fillAllGaps();
         }
     };

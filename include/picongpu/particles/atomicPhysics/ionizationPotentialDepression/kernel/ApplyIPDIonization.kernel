@@ -17,11 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file definition of ApplyPressure Ionization Kernel using the SpawnParticlesFromSourceSpecies kernel framework
+/** @file implements the ApplyIPDIonization kernel using the SpawnParticlesFromSourceSpecies kernel framework
+ *
+ * This kernel implements the ionization of ions due to ionization potential depression(IPD) causing atomic states to
+ * become unbound.
  *
  * see:
- *  include/picongpu/particles/creation/SpawnFromSourceSpecies.kernel/.stage for the kernel/stage implementation and
- *  include/picongpu/particles/creation/moduleInterfaces/ for interface definitions of the modules of the base kernel
+ *  include/picongpu/particles/creation/SpawnFromSourceSpecies.kernel for the kernel implementation and
+ *  include/picongpu/particles/creation/moduleInterfaces/ for interface definitions of the modules of the kernel
+ *      framework
  */
 
 
@@ -40,9 +44,9 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
     namespace s_enums = picongpu::particles::atomicPhysics::enums;
     namespace s_interfaces = picongpu::particles::creation::moduleInterfaces;
 
-    //! sanity checks for apply ApplyPressureIonizationKernel
+    //! sanity checks for apply ApplyIPDIonizationKernel
     template<typename T_IonBox, typename T_IonizationElectronBox, typename T_IPDModel>
-    struct ApplyPressureIonizationSanityCheckInputs
+    struct ApplyIPDIonizationSanityCheckInputs
         : public s_interfaces::SanityCheckInputs<T_IonBox, T_IonizationElectronBox, T_IPDModel>
     {
         template<
@@ -269,9 +273,9 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         }
     };
 
-    //! moduleConfig of the ApplyPressureIonizationKernel
-    using ApplyPressureIonizationModulConfig = particles::creation::ModuleConfig<
-        ApplyPressureIonizationSanityCheckInputs,
+    //! moduleConfig of the ApplyIPDIonizationKernel
+    using ApplyIPDIonizationModulConfig = particles::creation::ModuleConfig<
+        ApplyIPDIonizationSanityCheckInputs,
         SkipFinishedSuperCellsAtomicPhysics,
         PressureIonizationPredictor,
         InitAsCoMoving,
@@ -280,11 +284,12 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         SuperCellFieldIndexFunctor,
         WriteFoundUnboundToSuperCellField>;
 
-    //! definition of ApplyPressureIonizationKernel
+    //! actual definition of ApplyIonizationPotentialDepressionIonizationKernel
     template<typename T_IPDModel>
-    using ApplyPressureIonizationKernel = picongpu::particles::creation::SpawnFromSourceSpeciesKernelFramework<
-        // T_TypeNumber
-        uint8_t,
-        ApplyPressureIonizationModulConfig,
-        T_IPDModel>;
+    using ApplyIonizationPotentialDepressionIonizationKernel
+        = picongpu::particles::creation::SpawnFromSourceSpeciesKernelFramework<
+            // T_TypeNumber
+            uint8_t,
+            ApplyIPDIonizationModulConfig,
+            T_IPDModel>;
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::kernel
