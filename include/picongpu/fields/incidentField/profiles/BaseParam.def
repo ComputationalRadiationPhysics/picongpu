@@ -73,8 +73,8 @@ namespace picongpu
                      * To convert the normalized laser strength parameter a0 to Volt per meter:
                      * calculate A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized),
                      * calculate UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                     *     ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                     *     ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+                     *     ::picongpu::sim.si.getElectronMass() * ::picongpu::sim.si.getSpeedOfLight()
+                     *     ::picongpu::sim.si.getSpeedOfLight() / ::picongpu::sim.si.getElectronCharge();
                      * AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI
                      *
                      * unit: Volt / meter

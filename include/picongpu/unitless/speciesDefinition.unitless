@@ -39,7 +39,7 @@ namespace picongpu
         {
             /** default `getMass()` specialization
              *
-             * - the default mass is `BASE_MASS * massRatio<>`
+             * - the default mass is `sim.pic.getBaseMass() * massRatio<>`
              * - massRatio<> is the user defined ratio which is pinned as flag to a species
              */
             template<typename T_Frame>
@@ -48,13 +48,13 @@ namespace picongpu
                 using MassRatioValue = typename pmacc::traits::Resolve<
                     typename pmacc::traits::GetFlagType<T_Frame, massRatio<>>::type>::type;
 
-                return BASE_MASS * MassRatioValue::getValue();
+                return sim.pic.getBaseMass() * MassRatioValue::getValue();
             }
 
 
             /** default `getCharge()` specialization
              *
-             * - the default charge is `BASE_CHARGE * chargeRatio<>`
+             * - the default charge is `sim.pic.getBaseCharge() * chargeRatio<>`
              * - chargeRatio<> is the user defined ratio which is pinned as flag to a species
              */
             template<typename T_Frame>
@@ -63,7 +63,7 @@ namespace picongpu
                 using ChargeRatioValue = typename pmacc::traits::Resolve<
                     typename pmacc::traits::GetFlagType<T_Frame, chargeRatio<>>::type>::type;
 
-                return BASE_CHARGE * ChargeRatioValue::getValue();
+                return sim.pic.getBaseCharge() * ChargeRatioValue::getValue();
             }
 
         } // namespace frame

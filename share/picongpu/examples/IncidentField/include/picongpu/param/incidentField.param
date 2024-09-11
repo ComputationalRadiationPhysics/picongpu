@@ -79,9 +79,10 @@ namespace picongpu
             public:
                 // Constants for pulse generation
                 static constexpr float_64 TIME_PERIOD_SI = 0.0211e-9; // 0.0211 ns
-                static constexpr float_64 WAVE_LENGTH_SI = TIME_PERIOD_SI * SI::SPEED_OF_LIGHT_SI;
+                static constexpr float_64 WAVE_LENGTH_SI = TIME_PERIOD_SI * sim.si.getSpeedOfLight();
                 static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                    * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                    * sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                    / sim.si.getElectronCharge();
                 static constexpr float_64 A0 = 8.0;
                 static constexpr float_64 AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI;
                 static constexpr float_64 DURATION_SI = 0.026e-9; // 0.026 ns
@@ -129,7 +130,7 @@ namespace picongpu
                 {
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
                     auto const x = totalCellIdx.x() * sim.si.getCellSize().x();
-                    auto const longitudinal = timeEnvelope * sin(k * (x - SI::SPEED_OF_LIGHT_SI * currentTime));
+                    auto const longitudinal = timeEnvelope * sin(k * (x - sim.si.getSpeedOfLight() * currentTime));
                     auto const normalizedY = (totalCellIdx.y() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_Y_CELLS;
                     auto normalizedZ = 0.0;
                     if constexpr(simDim == 3)
@@ -147,7 +148,7 @@ namespace picongpu
                 {
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
                     auto const y = totalCellIdx.y() * sim.si.getCellSize().y();
-                    auto const longitudinal = timeEnvelope * sin(k * (y + SI::SPEED_OF_LIGHT_SI * currentTime));
+                    auto const longitudinal = timeEnvelope * sin(k * (y + sim.si.getSpeedOfLight() * currentTime));
                     auto const normalizedX = (totalCellIdx.x() - LASER_CENTER_Y_CELLS) / LASER_WIDTH_X_CELLS;
                     auto normalizedZ = 0.0;
                     if constexpr(simDim == 3)
@@ -225,7 +226,7 @@ namespace picongpu
                 HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                 {
                     auto const valueSI = getXMinSourceValueSI(totalCellIdx);
-                    auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
+                    auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / sim.si.getSpeedOfLight();
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
             };
@@ -293,7 +294,7 @@ namespace picongpu
                 HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                 {
                     auto const valueSI = getYMaxSourceValueSI(totalCellIdx);
-                    auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
+                    auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / sim.si.getSpeedOfLight();
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
             };

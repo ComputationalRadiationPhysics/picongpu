@@ -423,7 +423,7 @@ namespace picongpu
                         /* The update is structurally
                          * E(t + timeIncrement) = E(t) + timeIncrement * c2 * curl(B(t + timeIncrement/2))
                          */
-                        constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        constexpr auto c2 = sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight();
                         auto const curlCoefficient = parameters.timeIncrement * c2;
                         using UpdatedField = picongpu::FieldE;
                         using IncidentField = picongpu::FieldB;

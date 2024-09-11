@@ -432,8 +432,9 @@ namespace picongpu
                                 // Take Amplitude for one direction and frequency,
                                 // calculate the square of the absolute value
                                 // and write to file.
-                                constexpr float_X transRadUnit = SI::ELECTRON_CHARGE_SI * SI::ELECTRON_CHARGE_SI
-                                    * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * SI::SPEED_OF_LIGHT_SI));
+                                constexpr float_X transRadUnit = sim.si.getElectronCharge()
+                                    * sim.si.getElectronCharge()
+                                    * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * sim.si.getSpeedOfLight()));
                                 outFile
                                     << values[index_direction * transitionRadiation::frequencies::nOmega + index_omega]
                                         * transRadUnit

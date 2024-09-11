@@ -95,7 +95,7 @@ namespace picongpu
                         auto const term = absK * direction[d];
                         rhs += term * term;
                     }
-                    auto const lhsTerm = omega / SPEED_OF_LIGHT;
+                    auto const lhsTerm = omega / sim.pic.getSpeedOfLight();
                     auto const lhs = lhsTerm * lhsTerm;
                     return rhs - lhs;
                 }

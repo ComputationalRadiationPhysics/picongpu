@@ -241,14 +241,14 @@ namespace picongpu::fields::incidentField
                                      + (focusPos / Unitless::rayleighLength) * (focusPos / Unitless::rayleighLength));
 
 
-                    auto const phase
-                        = Unitless::w * (time - focusPos / SPEED_OF_LIGHT) + Unitless::LASER_PHASE + phaseShift;
+                    auto const phase = Unitless::w * (time - focusPos / sim.pic.getSpeedOfLight())
+                        + Unitless::LASER_PHASE + phaseShift;
 
                     // Apply tilt if needed
                     if constexpr(Unitless::TILT_AXIS_1 || Unitless::TILT_AXIS_2)
                     {
-                        auto const tiltTimeShift = phase / Unitless::w + focusPos / SPEED_OF_LIGHT;
-                        auto const tiltPositionShift = SPEED_OF_LIGHT * tiltTimeShift
+                        auto const tiltTimeShift = phase / Unitless::w + focusPos / sim.pic.getSpeedOfLight();
+                        auto const tiltPositionShift = sim.pic.getSpeedOfLight() * tiltTimeShift
                             / pmacc::math::dot(this->getDirection(), float3_X{sim.pic.getCellSize()});
                         auto const tilt1 = Unitless::TILT_AXIS_1;
                         pos[1] += math::tan(tilt1) * tiltPositionShift;
@@ -283,7 +283,7 @@ namespace picongpu::fields::incidentField
                     }
                     // time shifted by the distance (in propagation direction) to the point where the current wavefront
                     // is crossing the beam axis.
-                    auto const shiftedTime = time - r / SPEED_OF_LIGHT;
+                    auto const shiftedTime = time - r / sim.pic.getSpeedOfLight();
 
                     etrans *= LongitudinalEnvelope::getEnvelope(shiftedTime);
 

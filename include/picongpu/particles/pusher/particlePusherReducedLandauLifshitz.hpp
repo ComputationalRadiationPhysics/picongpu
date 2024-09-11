@@ -192,7 +192,7 @@ namespace picongpu
 
                     VelocityType velocityCalc;
                     GammaType gammaCalc;
-                    const float_X c = SPEED_OF_LIGHT;
+                    const float_X c = sim.pic.getSpeedOfLight();
                     const float3_X velocity = velocityCalc(mom, mass);
                     const float_X gamma = gammaCalc(mom, mass);
                     const float_X conversionMomentum2Beta = 1.0 / (gamma * mass * c);

@@ -137,8 +137,9 @@ namespace picongpu
 
                     //! Calculate chi
                     float_X const gamma = Gamma()(parentElectron[momentum_], mass);
-                    float_X const inverse_E_Schwinger = (-ELECTRON_CHARGE * HBAR)
-                        / (ELECTRON_MASS * ELECTRON_MASS * SPEED_OF_LIGHT * SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+                    float_X const inverse_E_Schwinger = (-sim.pic.getElectronCharge() * HBAR)
+                        / (sim.pic.getElectronMass() * sim.pic.getElectronMass() * sim.pic.getSpeedOfLight()
+                           * sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight());
                     float_X const chi = HeffValue * gamma * inverse_E_Schwinger;
 
                     //! zq
@@ -178,8 +179,9 @@ namespace picongpu
                      *   == dt * (e/hbar * e/hbar * m_e * c /( eps0 * 4 * np.pi)) and avoid floating point precision
                      * overflows
                      */
-                    float_X numericFactor = sim.pic.getDt() * ELECTRON_CHARGE / HBAR * ELECTRON_CHARGE / HBAR
-                        * ELECTRON_MASS * SPEED_OF_LIGHT / (EPS0 * 4._X * PI);
+                    float_X numericFactor = sim.pic.getDt() * sim.pic.getElectronCharge() / HBAR
+                        * sim.pic.getElectronCharge() / HBAR * sim.pic.getElectronMass() * sim.pic.getSpeedOfLight()
+                        / (EPS0 * 4._X * PI);
 
                     if constexpr(params::supressRequirementWarning == false)
                     {
@@ -374,7 +376,7 @@ namespace picongpu
 
 
                     //! conversion factor from photon energy to momentum
-                    constexpr float_X convFactor = 1.0_X / SPEED_OF_LIGHT;
+                    constexpr float_X convFactor = 1.0_X / sim.pic.getSpeedOfLight();
                     //! if this is wrong uncomment the lines below and comment this line
                     float3_X const PhotonMomentum = particle[momentum_] * photonEnergy * convFactor;
 

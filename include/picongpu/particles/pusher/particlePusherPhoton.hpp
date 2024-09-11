@@ -58,7 +58,7 @@ namespace picongpu
                     particle[probeE_] = eField;
 
                 const float_X normMom = pmacc::math::l2norm(mom);
-                const MomType vel = mom * (SPEED_OF_LIGHT / normMom);
+                const MomType vel = mom * (sim.pic.getSpeedOfLight() / normMom);
 
                 for(uint32_t d = 0; d < simDim; ++d)
                 {

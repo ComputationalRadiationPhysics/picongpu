@@ -598,7 +598,7 @@ namespace picongpu
                     {
                         // Get corresponding E value, it is already in internal units
                         auto const eValue = Base::operator()(totalCellIdx);
-                        return pmacc::math::cross(Base::getDirection(), eValue) / SPEED_OF_LIGHT;
+                        return pmacc::math::cross(Base::getDirection(), eValue) / sim.pic.getSpeedOfLight();
                     }
                 };
             } // namespace detail

@@ -56,7 +56,8 @@ namespace picongpu
                         = (1.0 / (cellSizeSimDim * cellSizeSimDim)).sumOfComponents();
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
-                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * invCellSizeSquaredSum) <= 1.0
+                        (sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight() * dt * dt * invCellSizeSquaredSum)
+                                <= 1.0
                             && sizeof(T_Defer*) != 0);
 
                     return 1.0_X / math::sqrt(invCellSizeSquaredSum);
@@ -92,7 +93,7 @@ namespace picongpu
                         auto const term = math::sin(arg) / step[d];
                         rhs += term * term;
                     }
-                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (SPEED_OF_LIGHT * timeStep);
+                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (sim.pic.getSpeedOfLight() * timeStep);
                     auto const lhs = lhsTerm * lhsTerm;
                     return rhs - lhs;
                 }

@@ -75,7 +75,7 @@ namespace picongpu
                   /* propagation speed of overlap [speed of light]. */
                   1.0,
                   /* manual time delay [s] if auto_tdelay is false */
-                  39.3e-6 / SI::SPEED_OF_LIGHT_SI,
+                  39.3e-6 / sim.si.getSpeedOfLight(),
                   /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
                   false)
         {
@@ -93,8 +93,8 @@ namespace picongpu
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /* UNITCONV */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
+                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /* unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
@@ -161,7 +161,7 @@ namespace picongpu
                   /* propagation speed of overlap [speed of light]. */
                   1.0,
                   /* manual time delay [s] if auto_tdelay is false */
-                  39.3e-6 / SI::SPEED_OF_LIGHT_SI,
+                  39.3e-6 / sim.si.getSpeedOfLight(),
                   /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
                   false)
         {
@@ -179,8 +179,8 @@ namespace picongpu
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /* UNITCONV */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
-                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
+                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
             /* unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)

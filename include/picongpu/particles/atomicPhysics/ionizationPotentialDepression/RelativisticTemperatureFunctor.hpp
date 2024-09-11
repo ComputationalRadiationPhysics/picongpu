@@ -59,7 +59,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             float_64 const mass
                 = static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Particle::FrameType>());
             // sim.unit.length() / sim.unit.time(), not weighted
-            constexpr float_64 c = picongpu::SPEED_OF_LIGHT;
+            constexpr float_64 c = picongpu::sim.pic.getSpeedOfLight();
             // sim.unit.mass()^2 * sim.unit.length()^2 / sim.unit.time()^2, not weighted
             float_64 const m2c2 = pmacc::math::cPow(mass * c, 2u);
 

@@ -114,7 +114,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     //  = Nm/J * eV = J/J * eV = eV, ~ 511e3 eV
                     float_X const mcSquaredElectron = static_cast<float_X>(
                         static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Electron::FrameType>())
-                        * sim.unit.mass() * pmacc::math::cPow(picongpu::SI::SPEED_OF_LIGHT_SI, 2u)
+                        * sim.unit.mass() * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u)
                         * UNITCONV_Joule_to_keV * 1.e3);
                     // eV, not weighted
 
@@ -129,8 +129,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                     if(newEnergyElectron < 0._X)
                         newEnergyElectron = 0._X; // extract as much as possible, rest is hopefully negligible
 
-                    constexpr float_X c_internal
-                        = static_cast<float_X>(picongpu::SI::SPEED_OF_LIGHT_SI * sim.unit.time() / sim.unit.length());
+                    constexpr float_X c_internal = static_cast<float_X>(
+                        picongpu::sim.si.getSpeedOfLight() * sim.unit.time() / sim.unit.length());
                     // usually ~1, internal units
 
                     constexpr float_X conversionEnergy

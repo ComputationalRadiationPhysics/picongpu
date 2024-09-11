@@ -99,8 +99,8 @@ namespace picongpu
 
                 /** Convert the normalized laser strength parameter a0 to Volt per meter */
                 static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+                    * ::picongpu::sim.si.getElectronMass() * ::picongpu::sim.si.getSpeedOfLight()
+                    * ::picongpu::sim.si.getSpeedOfLight() / ::picongpu::sim.si.getElectronCharge();
 
                 /** unit: none */
                 static constexpr float_64 _A0 = PARAM_A0;

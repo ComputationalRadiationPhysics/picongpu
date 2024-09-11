@@ -40,7 +40,7 @@ namespace picongpu
                 {
                     using namespace pmacc;
                     using namespace picongpu::particles::collision::precision;
-                    constexpr float_COLL c = static_cast<float_COLL>(SPEED_OF_LIGHT);
+                    constexpr float_COLL c = static_cast<float_COLL>(sim.pic.getSpeedOfLight());
 
 
                     /* Calculate @f[ \gamma^* m @f]

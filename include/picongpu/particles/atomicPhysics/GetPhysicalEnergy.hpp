@@ -45,8 +45,8 @@ namespace picongpu::particles::atomicPhysics
             /// @todo convert to assert/ compile time check with special case, Brian Marre, 2023
             constexpr float_X conversionFactor = static_cast<float_X>(
                 (picongpu::sim.unit.length() * picongpu::sim.unit.length())
-                / (picongpu::sim.unit.time() * picongpu::sim.unit.time() * picongpu::SI::SPEED_OF_LIGHT_SI
-                   * picongpu::SI::SPEED_OF_LIGHT_SI));
+                / (picongpu::sim.unit.time() * picongpu::sim.unit.time() * picongpu::sim.si.getSpeedOfLight()
+                   * picongpu::sim.si.getSpeedOfLight()));
 
             // sim.unit.mass(), not scaled
             float_X const m = picongpu::traits::frame::getMass<typename T_Particle::FrameType>();
@@ -68,7 +68,7 @@ namespace picongpu::particles::atomicPhysics
 
             // unit conversion factor for eV
             constexpr float_X eV = static_cast<float_X>(
-                picongpu::sim.unit.mass() * picongpu::SI::SPEED_OF_LIGHT_SI * picongpu::SI::SPEED_OF_LIGHT_SI
+                picongpu::sim.unit.mass() * picongpu::sim.si.getSpeedOfLight() * picongpu::sim.si.getSpeedOfLight()
                 * picongpu::UNITCONV_Joule_to_keV * 1e3);
 
             // eV

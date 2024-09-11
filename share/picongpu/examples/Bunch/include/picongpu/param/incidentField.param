@@ -84,7 +84,7 @@ namespace picongpu
                 /** Stretch temporal profile by a constant plateau between the up and downramp
                  *  unit: seconds */
                 static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
-                    = 50.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+                    = 50.0 * WAVE_LENGTH_SI / ::picongpu::sim.si.getSpeedOfLight();
 
                 /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_DURATION before and
                  * after the plateau unit: none */
@@ -92,8 +92,8 @@ namespace picongpu
 
                 /** Convert the normalized laser strength parameter a0 to Volt per meter */
                 static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
-                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+                    * ::picongpu::sim.si.getElectronMass() * ::picongpu::sim.si.getSpeedOfLight()
+                    * ::picongpu::sim.si.getSpeedOfLight() / ::picongpu::sim.si.getElectronCharge();
 
                 /** unit: none */
                 static constexpr float_64 _A0 = 1.0;

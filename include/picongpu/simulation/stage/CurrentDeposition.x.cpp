@@ -68,7 +68,8 @@ namespace picongpu
                             = std::min({sim.pic.getCellSize().x(), sim.pic.getCellSize().y(), dz});
                         PMACC_CASSERT_MSG(
                             Particle_in_current_deposition_cannot_pass_more_than_1_cell_per_time_step____check_your_grid_param_file,
-                            (SPEED_OF_LIGHT * sim.pic.getDt() / minCellSize <= 1.0) && sizeof(SpeciesType*) != 0);
+                            (sim.pic.getSpeedOfLight() * sim.pic.getDt() / minCellSize <= 1.0)
+                                && sizeof(SpeciesType*) != 0);
 
                         using FrameType = typename SpeciesType::FrameType;
                         using ParticleCurrentSolver = typename pmacc::traits::Resolve<

@@ -43,8 +43,8 @@ namespace picongpu::particles2::atomicPhysics::rateCalculation
         float_X const sigma) // [1e6*b]
     {
         // constants in SI
-        constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // [m/s]
-        constexpr float_64 m_e_SI = picongpu::SI::ELECTRON_MASS_SI; // [kg]
+        constexpr float_64 c_SI = picongpu::sim.si.getSpeedOfLight(); // [m/s]
+        constexpr float_64 m_e_SI = picongpu::sim.si.getElectronMass(); // [kg]
 
         constexpr float_64 electronRestMassEnergy = m_e_SI * c_SI * c_SI / picongpu::UNITCONV_eV_to_Joule;
         // kg * (m^2)/(s^2) * 1/(J/eV) = Nm * eV/J = J/J * eV

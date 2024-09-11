@@ -68,13 +68,13 @@ namespace picongpu
                     auto const invCorrectedCell2Sum = invCellSizeSquaredSum * additionalFactor * additionalFactor;
                     auto const maxC_DT = 1.0_X / math::sqrt(invCorrectedCell2Sum);
                     constexpr auto dt = getTimeStep();
-                    if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * dt * dt * invCorrectedCell2Sum > 1.0_X)
+                    if(sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight() * dt * dt * invCorrectedCell2Sum > 1.0_X)
                     {
                         throw std::runtime_error(
                             std::string(
                                 "Courant-Friedrichs-Lewy condition check failed, check your simulation.param file\n")
                             + "Courant Friedrichs Lewy condition: c * dt <= " + std::to_string(maxC_DT)
-                            + " ? (c * dt = " + std::to_string(SPEED_OF_LIGHT * dt) + ")");
+                            + " ? (c * dt = " + std::to_string(sim.pic.getSpeedOfLight() * dt) + ")");
                     }
 
                     return maxC_DT;
@@ -115,7 +115,7 @@ namespace picongpu
                         }
                         rhs += term * term;
                     }
-                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (SPEED_OF_LIGHT * timeStep);
+                    auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (sim.pic.getSpeedOfLight() * timeStep);
                     auto const lhs = lhsTerm * lhsTerm;
                     return rhs - lhs;
                 }

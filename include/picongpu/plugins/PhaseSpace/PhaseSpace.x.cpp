@@ -278,7 +278,7 @@ namespace picongpu
             , m_id(id)
         {
             // unit is m_species c (for a single "real" particle)
-            float_X pRangeSingle_unit(frame::getMass<typename Species::FrameType>() * SPEED_OF_LIGHT);
+            float_X pRangeSingle_unit(frame::getMass<typename Species::FrameType>() * sim.pic.getSpeedOfLight());
 
             axis_p_range.first = m_help->momentum_range_min.get(id) * pRangeSingle_unit;
             axis_p_range.second = m_help->momentum_range_max.get(id) * pRangeSingle_unit;
@@ -456,7 +456,7 @@ namespace picongpu
              *   on the p-axis should be scaled to represent single/real particles.
              *   @see PhaseSpaceMulti::pluginLoad( )
              */
-            float_64 const pRange_unit = sim.unit.mass() * UNIT_SPEED;
+            float_64 const pRange_unit = sim.unit.mass() * sim.unit.speed();
 
             DumpHBuffer dumpHBuffer;
 

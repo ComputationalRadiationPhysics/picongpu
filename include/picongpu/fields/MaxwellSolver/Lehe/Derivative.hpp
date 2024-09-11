@@ -94,9 +94,10 @@ namespace picongpu
                         constexpr uint32_t dir1 = (dir0 + 1) % 3;
                         constexpr uint32_t dir2 = (dir0 + 2) % 3;
 
-                        float_64 const stepRatio = sim.pic.getCellSize()[dir0] / (SPEED_OF_LIGHT * sim.pic.getDt());
+                        float_64 const stepRatio
+                            = sim.pic.getCellSize()[dir0] / (sim.pic.getSpeedOfLight() * sim.pic.getDt());
                         float_64 const coeff = stepRatio
-                            * math::sin(pmacc::math::Pi<float_64>::halfValue * float_64(SPEED_OF_LIGHT)
+                            * math::sin(pmacc::math::Pi<float_64>::halfValue * float_64(sim.pic.getSpeedOfLight())
                                         * float_64(sim.pic.getDt()) / float_64(sim.pic.getCellSize()[dir0]));
                         delta = static_cast<float_X>(0.25 * (1.0 - coeff * coeff));
                         // for 2D the betas corresponding to z are 0
