@@ -725,7 +725,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     field->synchronize();
                     bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
 
-                    const traits::FieldPosition<fields::CellType, T_Field> fieldPos;
+                    const traits::FieldPosition<fields::YeeCell, T_Field> fieldPos;
 
                     std::vector<std::vector<float_X>> inCellPosition;
                     for(uint32_t n = 0; n < T_Field::numComponents; ++n)
@@ -836,7 +836,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     const uint32_t components = GetNComponents<ValueType>::value;
 
                     /*wrap in a one-component vector for writeField API*/
-                    const traits::FieldPosition<typename fields::CellType, FieldTmp> fieldPos;
+                    const traits::FieldPosition<typename fields::YeeCell, FieldTmp> fieldPos;
 
                     std::vector<std::vector<float_X>> inCellPosition;
                     std::vector<float_X> inCellPositonComponent;

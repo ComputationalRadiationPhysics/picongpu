@@ -20,6 +20,7 @@
 #pragma once
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"

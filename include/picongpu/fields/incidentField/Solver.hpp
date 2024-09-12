@@ -25,10 +25,10 @@
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/Substepping/Substepping.def"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Solver.kernel"
-#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/profiles.hpp"
 #include "picongpu/traits/GetCurl.hpp"
 
@@ -121,7 +121,7 @@ namespace picongpu
                             && (sizeof(T_UpdateFunctor*) != 0));
 
                     // The implementation assumes the layout of the Yee grid where Ex is at (i + 0.5) cells in x
-                    auto const exPosition = traits::FieldPosition<cellType::Yee, FieldE>{}()[0];
+                    auto const exPosition = picongpu::traits::FieldPosition<fields::YeeCell, FieldE>{}()[0];
                     PMACC_VERIFY_MSG(
                         exPosition[0] == 0.5_X,
                         "incident field profile does not support the used Yee grid layout");
@@ -199,7 +199,7 @@ namespace picongpu
                      * total field when x component is not on the x cell border,
                      * scattered field when x component is on the x cell border
                      */
-                    auto updatedFieldPositions = traits::FieldPosition<cellType::Yee, T_UpdatedField>{}();
+                    auto updatedFieldPositions = picongpu::traits::FieldPosition<fields::YeeCell, T_UpdatedField>{}();
                     bool isUpdatedFieldTotal = (updatedFieldPositions[0][0] != 0.0_X);
 
                     /* Start and end of the source area in the user total coordinates.
@@ -329,7 +329,8 @@ namespace picongpu
                         else
                             incidentFieldBaseShift[T_axis] = 1.0_X;
                     }
-                    auto incidentFieldPositions = traits::FieldPosition<cellType::Yee, T_IncidentField>{}();
+                    auto incidentFieldPositions
+                        = picongpu::traits::FieldPosition<fields::YeeCell, T_IncidentField>{}();
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
                     functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
 
@@ -427,7 +428,7 @@ namespace picongpu
                         auto const curlCoefficient = parameters.timeIncrement * c2;
                         using UpdatedField = picongpu::FieldE;
                         using IncidentField = picongpu::FieldB;
-                        using Curl = traits::GetCurlB<Solver>::type;
+                        using Curl = picongpu::traits::GetCurlB<Solver>::type;
                         CallUpdateField<UpdatedField, IncidentField, Curl, T_FunctorIncidentB>{}(
                             parameters,
                             curlCoefficient,
@@ -459,7 +460,7 @@ namespace picongpu
                         auto const curlCoefficient = -parameters.timeIncrement;
                         using UpdatedField = picongpu::FieldB;
                         using IncidentField = picongpu::FieldE;
-                        using Curl = traits::GetCurlE<Solver>::type;
+                        using Curl = picongpu::traits::GetCurlE<Solver>::type;
                         CallUpdateField<UpdatedField, IncidentField, Curl, T_FunctorIncidentE>{}(
                             parameters,
                             curlCoefficient,
@@ -656,7 +657,7 @@ namespace picongpu
                     template<typename T_Parameters>
                     HINLINE void operator()(T_Parameters const& parameters) const
                     {
-                        using Functor = detail::FunctorIncidentB<T_Profile>;
+                        using Functor = traits::detail::FunctorIncidentB<T_Profile>;
                         using Update = typename detail::UpdateE<Functor>;
                         constexpr bool extendTransversalHuygensSurface
                             = profiles::makePeriodicTransversalHuygensSurfaceContiguous<T_Profile>;
@@ -705,7 +706,7 @@ namespace picongpu
                     template<typename T_Parameters>
                     HINLINE void operator()(T_Parameters const& parameters) const
                     {
-                        using Functor = detail::FunctorIncidentE<T_Profile>;
+                        using Functor = traits::detail::FunctorIncidentE<T_Profile>;
                         using Update = typename detail::UpdateB<Functor>;
                         constexpr bool extendTransversalHuygensSurface
                             = profiles::makePeriodicTransversalHuygensSurfaceContiguous<T_Profile>;

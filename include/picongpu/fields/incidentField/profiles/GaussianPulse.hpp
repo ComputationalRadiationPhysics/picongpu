@@ -24,7 +24,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/incidentField/Functors.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
 #include "picongpu/traits/GetMetadata.hpp"
 
@@ -387,7 +386,7 @@ namespace picongpu::fields::incidentField
 
     } // namespace profiles
 
-    namespace detail
+    namespace traits::detail
     {
         /** Get type of incident field E functor for the GaussianPulse profile type
          *
@@ -408,8 +407,8 @@ namespace picongpu::fields::incidentField
         template<typename T_Params, typename T_LongitudinalEnvelope>
         struct GetFunctorIncidentB<profiles::GaussianPulse<T_Params, T_LongitudinalEnvelope>>
         {
-            using type = detail::ApproximateIncidentB<
+            using type = incidentField::detail::ApproximateIncidentB<
                 typename GetFunctorIncidentE<profiles::GaussianPulse<T_Params, T_LongitudinalEnvelope>>::type>;
         };
-    } // namespace detail
+    } // namespace traits::detail
 } // namespace picongpu::fields::incidentField
