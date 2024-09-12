@@ -22,7 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/incidentField/Functors.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 
@@ -291,7 +290,7 @@ namespace picongpu::fields::incidentField
         };
     } // namespace profiles
 
-    namespace detail
+    namespace traits::detail
     {
         /** Get type of incident field E functor for the exponential ramp with prepulse profile type
          *
@@ -312,8 +311,8 @@ namespace picongpu::fields::incidentField
         template<typename T_Params>
         struct GetFunctorIncidentB<profiles::ExpRampWithPrepulse<T_Params>>
         {
-            using type = detail::ApproximateIncidentB<
+            using type = incidentField::detail::ApproximateIncidentB<
                 typename GetFunctorIncidentE<profiles::ExpRampWithPrepulse<T_Params>>::type>;
         };
-    } // namespace detail
+    } // namespace traits::detail
 } // namespace picongpu::fields::incidentField

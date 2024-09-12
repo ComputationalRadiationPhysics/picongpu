@@ -23,8 +23,8 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
-#include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 #include "picongpu/traits/IsFieldOutputOptional.hpp"
@@ -422,8 +422,8 @@ namespace picongpu
          * Specialize only for Yee cell type, as this is the only one supported.
          */
         template<uint32_t T_dim>
-        struct FieldPosition<fields::cellType::Yee, fields::absorber::pml::FieldE, T_dim>
-            : FieldPosition<fields::cellType::Yee, FieldE, T_dim>
+        struct FieldPosition<fields::YeeCell, fields::absorber::pml::FieldE, T_dim>
+            : FieldPosition<fields::YeeCell, FieldE, T_dim>
         {
         };
 
@@ -433,8 +433,8 @@ namespace picongpu
          * Specialize only for Yee cell type, as this is the only one supported.
          */
         template<uint32_t T_dim>
-        struct FieldPosition<fields::cellType::Yee, fields::absorber::pml::FieldB, T_dim>
-            : FieldPosition<fields::cellType::Yee, FieldB, T_dim>
+        struct FieldPosition<fields::YeeCell, fields::absorber::pml::FieldB, T_dim>
+            : FieldPosition<fields::YeeCell, FieldB, T_dim>
         {
         };
 

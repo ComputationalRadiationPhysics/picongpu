@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/MaxwellSolver/FDTD/StencilFunctor.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include <pmacc/dimensions/SuperCellDescription.hpp>
@@ -169,8 +170,8 @@ namespace picongpu
                         // Description of the area and guards where the stencil is performed.
                         using StencilCfg = pmacc::SuperCellDescription<
                             SuperCellSize,
-                            typename traits::GetLowerMargin<T_StencilFunctor>::type,
-                            typename traits::GetUpperMargin<T_StencilFunctor>::type>;
+                            typename picongpu::traits::GetLowerMargin<T_StencilFunctor>::type,
+                            typename picongpu::traits::GetUpperMargin<T_StencilFunctor>::type>;
                         /* Cache source field values of the supercell including guard cells to perform the stencil
                          * functor
                          */

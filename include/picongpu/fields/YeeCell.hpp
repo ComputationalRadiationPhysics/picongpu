@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/Fields.def"
 #include "picongpu/traits/FieldPosition.hpp"
 
@@ -31,13 +30,14 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace cellType
+        /** classical Yee cell
+         *
+         * Defines staggered a cell where the magnetic and electric field are shifted by a half cell to each other.
+         */
+        struct YeeCell
         {
-            struct Yee
-            {
-            };
+        };
 
-        } // namespace cellType
     } // namespace fields
 
     namespace traits
@@ -45,7 +45,7 @@ namespace picongpu
         /** position (float2_X) in cell for E_x, E_y, E_z
          */
         template<>
-        struct FieldPosition<fields::cellType::Yee, FieldE, DIM2>
+        struct FieldPosition<fields::YeeCell, FieldE, DIM2>
         {
             /** @tparam float2_X position of the component in the cell
              *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
@@ -67,7 +67,7 @@ namespace picongpu
         /** position (float3_X) in cell for E_x, E_y, E_z
          */
         template<>
-        struct FieldPosition<fields::cellType::Yee, FieldE, DIM3>
+        struct FieldPosition<fields::YeeCell, FieldE, DIM3>
         {
             /** @tparam float2_X position of the component in the cell
              *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
@@ -89,7 +89,7 @@ namespace picongpu
         /** position (float2_X) in cell for B_x, B_y, B_z
          */
         template<>
-        struct FieldPosition<fields::cellType::Yee, FieldB, DIM2>
+        struct FieldPosition<fields::YeeCell, FieldB, DIM2>
         {
             /** @tparam float2_X position of the component in the cell
              *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
@@ -111,7 +111,7 @@ namespace picongpu
         /** position (float3_X) in cell for B_x, B_y, B_z
          */
         template<>
-        struct FieldPosition<fields::cellType::Yee, FieldB, DIM3>
+        struct FieldPosition<fields::YeeCell, FieldB, DIM3>
         {
             /** @tparam float2_X position of the component in the cell
              *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
@@ -134,8 +134,8 @@ namespace picongpu
          *  J_x, J_y, J_z
          */
         template<uint32_t T_simDim>
-        struct FieldPosition<fields::cellType::Yee, FieldJ, T_simDim>
-            : public FieldPosition<fields::cellType::Yee, FieldE, T_simDim>
+        struct FieldPosition<fields::YeeCell, FieldJ, T_simDim>
+            : public FieldPosition<fields::YeeCell, FieldE, T_simDim>
         {
             HDINLINE FieldPosition() = default;
         };
@@ -145,7 +145,7 @@ namespace picongpu
          * scalar field FieldTmp
          */
         template<uint32_t T_simDim>
-        struct FieldPosition<fields::cellType::Yee, FieldTmp, T_simDim>
+        struct FieldPosition<fields::YeeCell, FieldTmp, T_simDim>
         {
             using FieldPos = pmacc::math::Vector<float_X, T_simDim>;
             using ReturnType = pmacc::math::Vector<FieldPos, DIM1>;

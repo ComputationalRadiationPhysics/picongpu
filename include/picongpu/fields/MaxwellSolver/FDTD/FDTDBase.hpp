@@ -32,6 +32,7 @@
 #include "picongpu/fields/absorber/pml/Pml.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
@@ -187,8 +188,8 @@ namespace picongpu
                     template<typename T_Curl>
                     using BlockDescription = pmacc::SuperCellDescription<
                         SuperCellSize,
-                        typename traits::GetLowerMargin<T_Curl>::type,
-                        typename traits::GetUpperMargin<T_Curl>::type>;
+                        typename picongpu::traits::GetLowerMargin<T_Curl>::type,
+                        typename picongpu::traits::GetUpperMargin<T_Curl>::type>;
 
                     /** Propagate B values in the given area by the first half of a timeStep
                      *

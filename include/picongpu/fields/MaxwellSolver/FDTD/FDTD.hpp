@@ -25,7 +25,7 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.hpp"
-#include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -50,7 +50,7 @@ namespace picongpu
                 using Base = fdtd::FDTDBase<T_CurlE, T_CurlB>;
 
                 //! Cell type
-                using CellType = cellType::Yee;
+                using CellType = fields::YeeCell;
 
                 /** Create FDTD solver instance
                  *

@@ -23,9 +23,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/particles/InterpolationForPusher.hpp"
 #include "picongpu/particles/MoveParticle.hpp"
 
@@ -296,8 +296,8 @@ namespace picongpu
 
             DataSpace<TVec::dim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
 
-            const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
-            const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
+            const traits::FieldPosition<fields::YeeCell, FieldE> fieldPosE;
+            const traits::FieldPosition<fields::YeeCell, FieldB> fieldPosB;
 
             auto functorEfield
                 = CreateInterpolationForPusher<Field2ParticleInterpolation>()(eBox.shift(localCell), fieldPosE());

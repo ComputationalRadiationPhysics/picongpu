@@ -21,8 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/BaseParam.hpp"
+#include "picongpu/fields/incidentField/traits/GetPhaseVelocity.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -87,30 +87,6 @@ namespace picongpu
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const;
             };
 
-            //! Helper incident field functor always returning 0
-            struct ZeroFunctor
-            {
-                /** Create a functor on the host side for the given time step
-                 *
-                 * @param currentStep current time step index, note that it is fractional
-                 * @param unitField conversion factor from SI to internal units,
-                 *                  field_internal = field_SI / unitField
-                 */
-                HINLINE ZeroFunctor(float_X const currentStep, float3_64 const unitField)
-                {
-                }
-
-                /** Return zero incident field for any given position
-                 *
-                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
-                 *        note that it is fractional
-                 * @return incident field value in internal units
-                 */
-                HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
-                {
-                    return float3_X::create(0.0_X);
-                }
-            };
             namespace detail
             {
                 /** SFINAE deduction if the user parameter define the variable FOCUS_ORIGIN_*
@@ -407,7 +383,7 @@ namespace picongpu
                      */
                     HINLINE static float_X getPhaseVelocity()
                     {
-                        static float_X phaseVelocityValue = detail::calculatePhaseVelocity<Unitless>();
+                        static float_X phaseVelocityValue = traits::detail::calculatePhaseVelocity<Unitless>();
                         return phaseVelocityValue;
                     }
 

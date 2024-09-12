@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
+/* Copyright 2020-2023 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,16 +21,23 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/traits/GetCellType.hpp"
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/Unique.hpp>
+
+#include <cstdint>
+#include <type_traits>
 
 
-namespace picongpu
+namespace picongpu::fields::incidentField
 {
-    namespace fields
-    {
-        //! Alias for a cell type used by the field solver
-        using CellType = traits::GetCellType<Solver>::type;
+    //! Typelist of all enabled profiles, can contain duplicates
+    using EnabledProfiles = pmacc::MakeSeq_t<
+        XMin,
+        XMax,
+        YMin,
+        YMax,
+        std::conditional_t<simDim == 3, pmacc::MakeSeq_t<ZMin, ZMax>, pmacc::MakeSeq_t<>>>;
 
-    } // namespace fields
-} // namespace picongpu
+    //! Typelist of all unique enabled profiles, can contain duplicates
+    using UniqueEnabledProfiles = pmacc::Unique_t<EnabledProfiles>;
+} // namespace picongpu::fields::incidentField

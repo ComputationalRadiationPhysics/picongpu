@@ -59,8 +59,7 @@ namespace picongpu
                     /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
                      * that to the total cell indices. The physical field coordinate origin is transversally
                      * centered with respect to the global simulation volume.
-                     * pmacc::math::Vector<floatD_X, numComponents> fieldPositions =
-                     *                traits::FieldPosition<fields::CellType, FieldE>(); */
+                     */
                     pmacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
 
                     pmacc::math::Vector<floatD_64, numComponents> fieldPositions_SI;

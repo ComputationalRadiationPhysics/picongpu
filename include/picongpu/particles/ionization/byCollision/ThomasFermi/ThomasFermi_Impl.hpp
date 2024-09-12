@@ -21,8 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldTmpOperations.hpp"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
@@ -247,11 +247,11 @@ namespace picongpu
                     DataSpace<SuperCellSize::dim> localCell
                         = pmacc::math::mapToND(SuperCellSize::toRT(), particleCellIdx);
                     /* interpolation of density */
-                    const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosRho;
+                    const picongpu::traits::FieldPosition<fields::YeeCell, FieldTmp> fieldPosRho;
                     ValueType_Rho densityV
                         = Field2ParticleInterpolation()(cachedRho.shift(localCell), pos, fieldPosRho());
                     /*                          and energy density field on the particle position */
-                    const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosEne;
+                    const picongpu::traits::FieldPosition<fields::YeeCell, FieldTmp> fieldPosEne;
                     ValueType_Ene kinEnergyV
                         = Field2ParticleInterpolation()(cachedEne.shift(localCell), pos, fieldPosEne());
 

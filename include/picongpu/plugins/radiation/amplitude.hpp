@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "VectorTypes.hpp"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
+#include "picongpu/plugins/radiation/utilities.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Complex.hpp>
