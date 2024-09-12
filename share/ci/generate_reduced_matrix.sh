@@ -65,6 +65,8 @@ elif [ "$PIC_INPUTS" == "pmacc_header" ] ; then
   if [ $commit_picongpu_only -ne 1 ] ; then
     # create header validation test for PMacc
     echo "pmacc_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
+  else
+    add_empty_job=1
   fi
 elif [ "$PIC_INPUTS" == "unit" ] ; then
   if [ $commit_pmacc_only -ne 1 ] ; then
