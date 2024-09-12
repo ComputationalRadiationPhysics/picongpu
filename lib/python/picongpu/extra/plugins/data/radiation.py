@@ -18,9 +18,13 @@
 #
 import numpy as np
 import openpmd_api as opmd
+import warnings
 
 
 class RadiationData:
+    # number of vector components - DO NOT CHANGE
+    N_vec_components = 3
+
     def __init__(self, filename, timestep):
         """
         Open references to an openPMD-api series or file to access radiation
@@ -118,7 +122,7 @@ class RadiationData:
 
         self.rad_series.flush()
 
-        n_vec = np.empty((len(n_x), 3))
+        n_vec = np.empty((len(n_x), RadiationData.N_vec_components))
         n_vec[:, 0] = n_x * n_x_unitSI
         n_vec[:, 1] = n_y * n_y_unitSI
         n_vec[:, 2] = n_z * n_z_unit_SI
@@ -127,3 +131,40 @@ class RadiationData:
     def get_timestep(self):
         """return PIC iteration (timestep) at which the data was produced (unit: PIC-cycles)"""
         return self.iteration
+
+    def get_distributedAmplitude(self):
+        """
+        Return a 4D complex array of all distributed amplitudes
+        Array dimensions:
+        0: index GPU/worker
+        1: direction
+        2: frequency
+        3: polarization [x, y, z]
+        returns None if no distributed amplitudes are available
+        """
+        try:
+            h_distAmp = self.iteration.meshes["Amplitude_distributed"]
+        except IndexError:
+            warnings.warn("Warning: no distributed amplitude available.")
+            return None
+
+        # get shape of distributed amplitude
+        shapeDistAmp = h_distAmp["x"].shape
+        # add 3 vector components
+        shapeDistAmp.append(RadiationData.N_vec_components)
+
+        # prepare data array (with NaN as wrongly set values)
+        distAmp = np.ones(shape=shapeDistAmp, dtype=np.complex128) * np.NaN
+
+        # load data
+        for i, direction in enumerate(["x", "y", "z"]):
+            # a temporary data buffer is required as
+            # the target array is not contiguous
+            tmp = h_distAmp[direction][:, :, :]
+            self.rad_series.flush()
+            distAmp[:, :, :, i] = tmp
+
+        # convert to SI units:
+        distAmp *= np.sqrt(self.convert_to_SI)
+
+        return distAmp
