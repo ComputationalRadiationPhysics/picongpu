@@ -30,44 +30,53 @@ namespace picongpu
     {
         struct PicUnits
         {
-            constexpr float3_X getCellSize() const
+            /** cell size width, high, depth */
+            template<typename T_Type = float_X>
+            constexpr math::Vector<T_Type, 3u> getCellSize() const
             {
-                return float3_X(si.getCellSize() / unit.length());
+                return precisionCast<T_Type>(si.getCellSize() / unit.length());
             }
 
-            constexpr float_X getDt() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getDt() const
             {
-                return float_X(si.getDt() / unit.time());
+                return static_cast<T_Type>(si.getDt() / unit.time());
             }
 
-            constexpr float_X getSpeedOfLight() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getSpeedOfLight() const
             {
-                return float_X(si.getSpeedOfLight() / unit.speed());
+                return static_cast<T_Type>(si.getSpeedOfLight() / unit.speed());
             }
 
-            constexpr float_X getBaseMass() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getBaseMass() const
             {
-                return float_X(si.getBaseMass() / unit.mass());
+                return static_cast<T_Type>(si.getBaseMass() / unit.mass());
             }
 
-            constexpr float_X getBaseCharge() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getBaseCharge() const
             {
-                return float_X(si.getBaseCharge() / unit.charge());
+                return static_cast<T_Type>(si.getBaseCharge() / unit.charge());
             }
 
-            constexpr float_X getBaseDensity() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getBaseDensity() const
             {
-                return float_X(si.getBaseDensity() * unit.length() * unit.length() * unit.length());
+                return static_cast<T_Type>(si.getBaseDensity() * unit.length() * unit.length() * unit.length());
             }
 
-            constexpr float_X getElectronMass() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getElectronMass() const
             {
-                return float_X(si.getElectronMass() / unit.mass());
+                return static_cast<T_Type>(si.getElectronMass() / unit.mass());
             }
 
-            constexpr float_X getElectronCharge() const
+            template<typename T_Type = float_X>
+            constexpr T_Type getElectronCharge() const
             {
-                return float_X(si.getElectronCharge() / unit.charge());
+                return static_cast<T_Type>(si.getElectronCharge() / unit.charge());
             }
         };
         struct SiUnits
@@ -188,7 +197,7 @@ namespace picongpu
             constexpr float_64 typicalNumParticlesPerMacroParticle() const
             {
                 return (si.getBaseDensity() * si.getCellSize().productOfComponents())
-                    / float_64(getTypicalNumParticlesPerCell());
+                    / static_cast<float_64>(getTypicalNumParticlesPerCell());
             }
         };
 
