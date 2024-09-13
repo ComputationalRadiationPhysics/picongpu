@@ -24,7 +24,9 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
+#include "picongpu/fields/incidentField/EnabledProfiles.hpp"
+#include "picongpu/fields/incidentField/profiles/profiles.hpp"
+#include "picongpu/fields/incidentField/traits/GetAmplitude.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
@@ -183,7 +185,7 @@ namespace picongpu
              */
             HDINLINE void operator()(float_X& maxAmplitude) const
             {
-                auto const amplitude = fields::incidentField::amplitude<T_Profile>;
+                auto const amplitude = fields::incidentField::traits::amplitude<T_Profile>;
                 if(amplitude > maxAmplitude)
                     maxAmplitude = amplitude;
             }

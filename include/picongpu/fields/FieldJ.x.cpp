@@ -23,6 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"

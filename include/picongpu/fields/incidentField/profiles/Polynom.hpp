@@ -22,7 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/incidentField/Functors.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
 
 #include <cstdint>
 #include <string>
@@ -140,7 +139,7 @@ namespace picongpu
                 } // namespace detail
             } // namespace profiles
 
-            namespace detail
+            namespace traits::detail
             {
                 /** Get type of incident field E functor for the polynom profile type
                  *
@@ -161,10 +160,10 @@ namespace picongpu
                 template<typename T_Params>
                 struct GetFunctorIncidentB<profiles::Polynom<T_Params>>
                 {
-                    using type = detail::ApproximateIncidentB<
+                    using type = incidentField::detail::ApproximateIncidentB<
                         typename GetFunctorIncidentE<profiles::Polynom<T_Params>>::type>;
                 };
-            } // namespace detail
+            } // namespace traits::detail
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu

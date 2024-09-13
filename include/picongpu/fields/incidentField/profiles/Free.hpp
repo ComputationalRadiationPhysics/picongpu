@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/fields/incidentField/Traits.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/incidentField/profiles/Free.def"
+#include "picongpu/fields/incidentField/traits/GetAmplitude.hpp"
+#include "picongpu/fields/incidentField/traits/GetFunctor.hpp"
 #include "picongpu/traits/GetMetadata.hpp"
 
 #include <cstdint>
@@ -71,32 +71,51 @@ namespace picongpu
                     }
                 };
             } // namespace profiles
-
-            namespace detail
+            namespace traits
             {
-                /** Get type of incident field E functor for the free profile type
-                 *
-                 * @tparam T_FunctorIncidentE functor for the incident E field
-                 * @tparam T_FunctorIncidentB functor for the incident B field
-                 */
-                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
-                struct GetFunctorIncidentE<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+                namespace detail
                 {
-                    using type = T_FunctorIncidentE;
-                };
+                    /** Get type of incident field E functor for the free profile type
+                     *
+                     * @tparam T_FunctorIncidentE functor for the incident E field
+                     * @tparam T_FunctorIncidentB functor for the incident B field
+                     */
+                    template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                    struct GetFunctorIncidentE<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+                    {
+                        using type = T_FunctorIncidentE;
+                    };
 
-                /** Get type of incident field B functor for the free profile type
-                 *
-                 * @tparam T_FunctorIncidentE functor for the incident E field
-                 * @tparam T_FunctorIncidentB functor for the incident B field
-                 */
+                    /** Get type of incident field B functor for the free profile type
+                     *
+                     * @tparam T_FunctorIncidentE functor for the incident E field
+                     * @tparam T_FunctorIncidentB functor for the incident B field
+                     */
+                    template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                    struct GetFunctorIncidentB<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+                    {
+                        using type = T_FunctorIncidentB;
+                    };
+
+                    //! Free profile has an unknown phase velocity, use c as a default value
+                    template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                    struct GetPhaseVelocity<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+                    {
+                        HINLINE float_X operator()() const
+                        {
+                            return sim.pic.getSpeedOfLight();
+                        }
+                    };
+
+                } // namespace detail
+
+                //! Specialization for Free profile which has unknown amplitude
                 template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
-                struct GetFunctorIncidentB<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
+                struct GetAmplitude<profiles::Free<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
-                    using type = T_FunctorIncidentB;
+                    static constexpr float_X value = 0.0_X;
                 };
-
-            } // namespace detail
+            } // namespace traits
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu

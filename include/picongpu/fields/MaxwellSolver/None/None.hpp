@@ -23,7 +23,7 @@
 
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
-#include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
@@ -45,7 +45,7 @@ namespace picongpu
                 using SuperCellSize = MappingDesc::SuperCellSize;
 
             public:
-                using CellType = cellType::Yee;
+                using CellType = fields::YeeCell;
 
                 None(MappingDesc)
                 {

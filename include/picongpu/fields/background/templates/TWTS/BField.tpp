@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/CellType.hpp"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/background/templates/TWTS/BField.hpp"
 #include "picongpu/fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"
 #include "picongpu/fields/background/templates/TWTS/RotateField.tpp"
@@ -270,7 +270,7 @@ namespace picongpu
             HDINLINE float3_X BField::operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
             {
                 const float_64 time_SI = float_64(currentStep) * dt - tdelay;
-                const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
+                const traits::FieldPosition<fields::YeeCell, FieldB> fieldPosB;
 
                 const pmacc::math::Vector<floatD_64, detail::numComponents> bFieldPositions_SI
                     = detail::getFieldPositions_SI(cellIdx, halfSimSize, fieldPosB(), unit_length, focus_y_SI, phi);

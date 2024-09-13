@@ -25,9 +25,12 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelationSolver.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/MaxwellSolver/traits/IsSubstepping.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
+#include "picongpu/fields/incidentField/EnabledProfiles.hpp"
 #include "picongpu/fields/incidentField/profiles/profiles.hpp"
+#include "picongpu/fields/incidentField/traits/GetAmplitude.hpp"
+#include "picongpu/fields/incidentField/traits/GetPhaseVelocity.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/SimStartInitialiser.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
@@ -209,10 +212,10 @@ namespace picongpu
             void operator()() const
             {
                 // Skip profiles that are not sufficiently parametrized to calculate phase velocity
-                auto const printInfo = (fields::incidentField::amplitude<T_Profile> > 0.0_X);
+                auto const printInfo = (fields::incidentField::traits::amplitude<T_Profile> > 0.0_X);
                 if(printInfo)
                 {
-                    auto const phaseVelocity = fields::incidentField::getPhaseVelocity<T_Profile>();
+                    auto const phaseVelocity = fields::incidentField::traits::getPhaseVelocity<T_Profile>();
                     auto const phaseVelocityC = phaseVelocity / sim.pic.getSpeedOfLight();
                     auto const message = std::string{"Incident field \""} + T_Profile::getName()
                         + "\" numerical dispersion: v_phase = %1% * c";

@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/CellType.hpp"
+#include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/background/templates/twtsfast/EField.hpp"
 #include "picongpu/fields/background/templates/twtsfast/GetInitialTimeDelay_SI.tpp"
 #include "picongpu/fields/background/templates/twtsfast/RotateField.tpp"
@@ -183,7 +183,7 @@ namespace picongpu
 
             HDINLINE float3_X EField::operator()(DataSpace<simDim> const& cellIdx, uint32_t const currentStep) const
             {
-                traits::FieldPosition<fields::CellType, FieldE> const fieldPosE;
+                traits::FieldPosition<fields::YeeCell, FieldE> const fieldPosE;
                 return getValue(precisionCast<float_X>(cellIdx), fieldPosE(), static_cast<float_X>(currentStep));
             }
 

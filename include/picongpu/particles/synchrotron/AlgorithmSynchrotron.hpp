@@ -356,10 +356,10 @@ namespace picongpu
                     /** multi-dim coordinate of the local cell inside the super cell */
                     DataSpace<TVec::dim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
                     /** interpolation of E-... */
-                    const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
+                    const picongpu::traits::FieldPosition<fields::YeeCell, FieldE> fieldPosE;
                     ValueType_E eField = Field2ParticleInterpolation()(cachedE.shift(localCell), pos, fieldPosE());
                     /**                     ...and B-field on the particle position */
-                    const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
+                    const picongpu::traits::FieldPosition<fields::YeeCell, FieldB> fieldPosB;
                     ValueType_B bField = Field2ParticleInterpolation()(cachedB.shift(localCell), pos, fieldPosB());
 
                     //! use the algorithm from the SynchrotronIdea struct
