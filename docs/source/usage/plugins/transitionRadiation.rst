@@ -53,7 +53,7 @@ The transition radiation can only be calculated for electrons at the moment.
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-There are no external dependencies.
+The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
 
 .param files
 ^^^^^^^^^^^^
@@ -135,15 +135,7 @@ Foil Position
 If one wants to virtually propagate the electron bunch to a foil in a further distance to get a rough estimate of the effect of the divergence on the electron bunch, one can include a foil position.
 A foil position which is unequal to zero, adds the electrons momentum vectors onto the electron until they reach the given y-coordinate.
 To contain the longitudinal information of the bunch, the simulation window is actually virtually moved to the foil position and not each single electron.
-
-.. code:: cpp
-
-    namespace SI
-    {
-        // y position of the foil to calculate transition radiation at
-        // leave at 0 for no virtual particle propagation
-        constexpr float_64 foilPosition = 0.0;
-    }
+This is a run time parameter which can be set with ``--<species>_transRad.foilPositionY``.
 
 .. note::
 
@@ -215,6 +207,10 @@ For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be 
 Command line option                        Description
 ========================================== ==============================================================================================================================
 ``--<species>_transRad.period``            Gives the number of time steps between which the radiation should be calculated.
+``--<species>_transRad.foilPositionY``     Absolute position in SI units to put a virtual foil for calculating the transition radiation. See above for more information. Disabled = 0.0. Default: 0.0
+``--<species>_transRad.file``              File name to stodre transition radiation in. Default: transRad
+``--<species>_transRad.ext``               Backend for openPMD output. Default: default that is used internally
+``--<species>_transRad.datOutput``         Optional text file output in numpy-readable format. Enabled = 1. Default: 0
 ========================================== ==============================================================================================================================
 
 Memory Complexity

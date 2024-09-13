@@ -19,47 +19,53 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if(ENABLE_OPENPMD == 1)
 
 // clang-format off
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/param/transitionRadiation.param"
 // clang-format on
 
-#include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
+#    include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 
-#include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/PluginRegistry.hpp"
-#include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/radiation/VectorTypes.hpp"
-#include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
-#include "picongpu/unitless/transitionRadiation.unitless"
+#    include "picongpu/particles/filter/filter.hpp"
+#    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#    include "picongpu/plugins/ILightweightPlugin.hpp"
+#    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/common/openPMDAttributes.hpp"
+#    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#    include "picongpu/plugins/common/stringHelpers.hpp"
+#    include "picongpu/plugins/misc/misc.hpp"
+#    include "picongpu/plugins/multi/multi.hpp"
+#    include "picongpu/plugins/radiation/VectorTypes.hpp"
+#    include "picongpu/plugins/transitionRadiation/executeParticleFilter.hpp"
+#    include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
+#    include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
+#    include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
+#    include "picongpu/unitless/transitionRadiation.unitless"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/lockstep/lockstep.hpp>
-#include <pmacc/mappings/simulation/Filesystem.hpp>
-#include <pmacc/math/Complex.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/lockstep/lockstep.hpp>
+#    include <pmacc/math/Complex.hpp>
+#    include <pmacc/math/operation.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#    include <pmacc/traits/HasIdentifier.hpp>
 
-#include <boost/filesystem.hpp>
+#    include <boost/filesystem.hpp>
 
-#include <chrono>
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
+#    include <chrono>
+#    include <cmath>
+#    include <cstdlib>
+#    include <ctime>
+#    include <fstream>
+#    include <iostream>
+#    include <memory>
+#    include <string>
+#    include <vector>
 
 
 namespace picongpu
@@ -85,12 +91,104 @@ namespace picongpu
              * medium. Since it is mostly used to analyze electron bunches, this plugin
              * assumes that the analyzed particles have the mass and charge of electrons.
              *
-             * @tparam T_ParticlesType particle type to compute transition radiation from
+             * @tparam ParticlesType particle type to compute transition radiation from
              */
-            template<typename T_ParticlesType>
-            class TransitionRadiation : public ILightweightPlugin
+            template<typename ParticlesType>
+            class TransitionRadiation : public plugins::multi::IInstance
             {
             private:
+                struct Help : public plugins::multi::IHelp
+                {
+                    /** creates an instance
+                     *
+                     * @param help plugin defined help
+                     * @param id index of the plugin, range: [0;help->getNumPlugins())
+                     */
+                    std::shared_ptr<IInstance> create(
+                        std::shared_ptr<IHelp>& help,
+                        size_t const id,
+                        MappingDesc* cellDescription) override
+                    {
+                        return std::shared_ptr<IInstance>(
+                            new TransitionRadiation<ParticlesType>(help, id, cellDescription));
+                    }
+
+                    //! periodicity of computing the particle energy
+                    plugins::multi::Option<std::string> notifyPeriod
+                        = {"period", "enable plugin [for each n-th step]"};
+                    plugins::multi::Option<std::string> optionFileName
+                        = {"file", "file name to store transition radiation in: ", "transRad"};
+                    plugins::multi::Option<std::string> optionFileExtention
+                        = {"ext",
+                           "openPMD filename extension. This controls the"
+                           "backend picked by the openPMD API. Available extensions: ["
+                               + openPMD::printAvailableExtensions() + "]",
+                           openPMD::getDefaultExtension().c_str()};
+                    plugins::multi::Option<bool> optionTextOutput
+                        = {"datOutput",
+                           "optional output: transition radiation as text file in readable format for the "
+                           "in picongpu provided python analysis script, 1==enabled",
+                           0};
+                    plugins::multi::Option<float_X> foilPositionYSI
+                        = {"foilPositionY",
+                           "optional parameter: absolute position (in y-direction) of the virtual foil to calculate "
+                           "the transition radiation for [in meter]. 0==disabled",
+                           0};
+
+                    ///! method used by plugin controller to get --help description
+                    void registerHelp(
+                        boost::program_options::options_description& desc,
+                        std::string const& masterPrefix = std::string{}) override
+                    {
+                        notifyPeriod.registerHelp(desc, masterPrefix + prefix);
+                        optionFileName.registerHelp(desc, masterPrefix + prefix);
+                        optionFileExtention.registerHelp(desc, masterPrefix + prefix);
+                        optionTextOutput.registerHelp(desc, masterPrefix + prefix);
+                        foilPositionYSI.registerHelp(desc, masterPrefix + prefix);
+                    }
+
+                    void expandHelp(
+                        boost::program_options::options_description& desc,
+                        std::string const& masterPrefix = std::string{}) override
+                    {
+                    }
+
+
+                    void validateOptions() override
+                    {
+                        ///@todo verify options
+                    }
+
+                    size_t getNumPlugins() const override
+                    {
+                        return notifyPeriod.size();
+                    }
+
+                    std::string getDescription() const override
+                    {
+                        return description;
+                    }
+
+                    std::string getOptionPrefix() const
+                    {
+                        return prefix;
+                    }
+
+                    std::string getName() const override
+                    {
+                        return name;
+                    }
+
+                    std::string const name = "TransitionRadiation";
+                    //! short description of the plugin
+                    std::string const description
+                        = "Calculate transition radiation of given specified particle species.";
+                    //! prefix used for command line arguments
+                    std::string const prefix = ParticlesType::FrameType::getName() + std::string("_transRad");
+                };
+
+                using SuperCellSize = MappingDesc::SuperCellSize;
+
                 using radLog = plugins::radiation::PIConGPUVerboseRadiation;
 
                 std::unique_ptr<GridBuffer<float_X, DIM1>> incTransRad;
@@ -106,31 +204,43 @@ namespace picongpu
                 std::vector<complex_X> tmpCTRperp;
                 std::vector<float_X> tmpNum;
                 std::vector<float_X> theTransRad;
-                MappingDesc* cellDescription = nullptr;
-                std::string notifyPeriod;
                 uint32_t timeStep;
 
                 std::string pluginName;
                 std::string speciesName;
                 std::string pluginPrefix;
-                std::string folderTransRad;
                 std::string filenamePrefix;
+                std::string fileExtension;
 
                 bool isMaster = false;
                 uint32_t currentStep = 0;
 
                 mpi::MPIReduce reduce;
 
+                MappingDesc* m_cellDescription = nullptr;
+                std::shared_ptr<Help> m_help;
+                size_t m_id;
+
+                bool textOutput;
+                float_X foilPositionYSI;
+
             public:
                 //! Constructor
-                TransitionRadiation()
-                    : pluginName("TransitionRadiation: calculate transition radiation of species")
-                    , speciesName(T_ParticlesType::FrameType::getName())
-                    , pluginPrefix(speciesName + std::string("_transRad"))
-                    , folderTransRad("transRad")
-                    , filenamePrefix(pluginPrefix)
+                TransitionRadiation(
+                    std::shared_ptr<plugins::multi::IHelp>& help,
+                    size_t const id,
+                    MappingDesc* cellDescription)
+                    : m_cellDescription(cellDescription)
+                    , m_help(std::static_pointer_cast<Help>(help))
+                    , m_id(id)
                 {
-                    Environment<>::get().PluginConnector().registerPlugin(this);
+                    filenamePrefix = ParticlesType::FrameType::getName() + "_" + m_help->optionFileName.get(m_id);
+                    fileExtension = m_help->optionFileExtention.get(m_id);
+
+                    foilPositionYSI = m_help->foilPositionYSI.get(m_id);
+                    textOutput = m_help->optionTextOutput.get(m_id);
+
+                    init();
                 }
 
                 ~TransitionRadiation() override = default;
@@ -151,7 +261,6 @@ namespace picongpu
 
                     resetBuffers();
                     this->currentStep = currentStep;
-
                     calculateTransitionRadiation(currentStep);
 
                     log<radLog::SIMULATION_STATE>("Transition Radition (%1%): finished time step %2% ") % speciesName
@@ -164,34 +273,11 @@ namespace picongpu
                         % currentStep;
                 }
 
-                /** Implementation of base class function. Registers plugin options.
-                 *
-                 * @param desc boost::program_options description
-                 */
-                void pluginRegisterHelp(po::options_description& desc) override
-                {
-                    desc.add_options()(
-                        (pluginPrefix + ".period").c_str(),
-                        po::value<std::string>(&notifyPeriod),
-                        "enable plugin [for each n-th step]");
-                }
 
-                /** Implementation of base class function.
-                 *
-                 * @return name of plugin
-                 */
-                std::string pluginGetName() const override
+                //! must be implemented by the user
+                static std::shared_ptr<plugins::multi::IHelp> getHelp()
                 {
-                    return pluginName;
-                }
-
-                /** Implementation of base class function. Sets mapping description.
-                 *
-                 * @param cellDescription
-                 */
-                void setMappingDescription(MappingDesc* cellDescription) override
-                {
-                    this->cellDescription = cellDescription;
+                    return std::shared_ptr<plugins::multi::IHelp>(new Help{});
                 }
 
             private:
@@ -225,43 +311,36 @@ namespace picongpu
                  * transition radiation calculation and create a folder for transition
                  * radiation storage.
                  */
-                void pluginLoad() override
+                void init()
                 {
-                    if(!notifyPeriod.empty())
+                    tmpITR.resize(elementsTransitionRadiation());
+                    tmpCTRpara.resize(elementsTransitionRadiation());
+                    tmpCTRperp.resize(elementsTransitionRadiation());
+                    tmpNum.resize(elementsTransitionRadiation());
+
+                    /*only rank 0 create a file*/
+                    isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
+
+                    Environment<>::get().PluginConnector().setNotificationPeriod(this, m_help->notifyPeriod.get(m_id));
+
+                    incTransRad
+                        = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(elementsTransitionRadiation()));
+                    cohTransRadPara = std::make_unique<GridBuffer<complex_X, DIM1>>(
+                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    cohTransRadPerp = std::make_unique<GridBuffer<complex_X, DIM1>>(
+                        DataSpace<DIM1>(elementsTransitionRadiation()));
+                    numParticles
+                        = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(elementsTransitionRadiation()));
+
+                    freqInit.Init(listFrequencies::listLocation);
+                    freqFkt = freqInit.getFunctor();
+
+                    if(isMaster)
                     {
-                        tmpITR.resize(elementsTransitionRadiation());
-                        tmpCTRpara.resize(elementsTransitionRadiation());
-                        tmpCTRperp.resize(elementsTransitionRadiation());
-                        tmpNum.resize(elementsTransitionRadiation());
-
-                        /*only rank 0 create a file*/
-                        isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
-                        auto& fs = pmacc::Filesystem::get();
-
-                        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-
-                        incTransRad = std::make_unique<GridBuffer<float_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-                        cohTransRadPara = std::make_unique<GridBuffer<complex_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-                        cohTransRadPerp = std::make_unique<GridBuffer<complex_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-                        numParticles = std::make_unique<GridBuffer<float_X, DIM1>>(
-                            DataSpace<DIM1>(elementsTransitionRadiation()));
-
-                        freqInit.Init(listFrequencies::listLocation);
-                        freqFkt = freqInit.getFunctor();
-
-                        if(isMaster)
+                        theTransRad.resize(elementsTransitionRadiation());
+                        for(unsigned int i = 0; i < elementsTransitionRadiation(); ++i)
                         {
-                            theTransRad.resize(elementsTransitionRadiation());
-                            for(unsigned int i = 0; i < elementsTransitionRadiation(); ++i)
-                            {
-                                theTransRad[i] = 0;
-                            }
-
-                            fs.createDirectory(folderTransRad);
-                            fs.setDirectoryPermissions(folderTransRad);
+                            theTransRad[i] = 0;
                         }
                     }
                 }
@@ -335,9 +414,11 @@ namespace picongpu
                         o_step << currentStep;
 
                         // write totalRad data to txt
-                        writeFile(
-                            theTransRad.data(),
-                            folderTransRad + "/" + filenamePrefix + "_" + o_step.str() + ".dat");
+                        if(textOutput)
+                        {
+                            writeFile(theTransRad.data(), filenamePrefix + "_" + o_step.str() + ".dat");
+                        }
+                        writeOpenPMDFile(currentStep);
                     }
                 }
 
@@ -456,6 +537,181 @@ namespace picongpu
                     }
                 }
 
+                void writeOpenPMDFile(uint32_t currentStep)
+                {
+                    std::stringstream filename;
+                    filename << filenamePrefix << "_%T." << fileExtension;
+
+                    ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
+
+                    ::openPMD::Extent extent
+                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
+                           static_cast<unsigned long int>(parameters::nPhi),
+                           static_cast<unsigned long int>(parameters::nTheta)};
+                    ::openPMD::Offset offset = {0, 0, 0};
+                    ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset dataset{datatype, extent};
+
+                    auto iteration = series.writeIterations()[currentStep];
+                    auto mesh = iteration.meshes["transitionradiation"];
+
+                    mesh.setAxisLabels(std::vector<std::string>{"omega index", "phi index", "theta index"});
+                    mesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    mesh.setGridUnitSI(1);
+                    mesh.setGridSpacing(std::vector<double>{1, 1, 1});
+                    mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    mesh.setAttribute<float_X>("foilPositionY", foilPositionYSI);
+
+                    mesh.setUnitDimension(std::map<::openPMD::UnitDimension, double>{
+                        {::openPMD::UnitDimension::L, 2.0},
+                        {::openPMD::UnitDimension::M, 1.0},
+                        {::openPMD::UnitDimension::T, -1.0}});
+
+                    auto transitionRadiation = mesh[::openPMD::RecordComponent::SCALAR];
+                    transitionRadiation.resetDataset(dataset);
+
+                    transitionRadiation.setUnitSI(
+                        sim.si.getElectronCharge() * sim.si.getElectronCharge()
+                        * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * sim.si.getSpeedOfLight())));
+
+                    auto span = transitionRadiation.storeChunk<float_X>(offset, extent);
+                    auto spanBuffer = span.currentBuffer();
+
+                    for(unsigned int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver;
+                        ++index_direction)
+                    {
+                        // theta
+                        const int i = index_direction / parameters::nPhi;
+                        // phi
+                        const int j = index_direction % parameters::nPhi;
+
+                        for(unsigned int k = 0; k < transitionRadiation::frequencies::nOmega; ++k)
+                        {
+                            const int index = (k * parameters::nPhi + j) * parameters::nTheta + i;
+                            spanBuffer[index] = static_cast<float_X>(
+                                theTransRad[index_direction * transitionRadiation::frequencies::nOmega + k]);
+                        }
+                    }
+
+                    // Omega axis
+                    ::openPMD::Extent extentOmega
+                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega), 1, 1};
+                    ::openPMD::Offset offsetOmega = {0, 0, 0};
+                    ::openPMD::Datatype datatypeOmega = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset datasetOmega{datatypeOmega, extentOmega};
+
+                    auto meshOmega = iteration.meshes["detector omega"];
+
+                    meshOmega.setAxisLabels(std::vector<std::string>{"omega", "", ""});
+                    meshOmega.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshOmega.setGridUnitSI(1);
+                    meshOmega.setGridSpacing(std::vector<double>{1, 1, 1});
+                    meshOmega.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    meshOmega.setUnitDimension(
+                        std::map<::openPMD::UnitDimension, double>{{::openPMD::UnitDimension::T, -1.0}});
+
+                    auto omega = meshOmega[::openPMD::RecordComponent::SCALAR];
+                    omega.resetDataset(datasetOmega);
+
+                    omega.setUnitSI(1.0);
+
+                    auto spanOmega = omega.storeChunk<float_X>(offsetOmega, extentOmega);
+                    auto spanBufferOmega = spanOmega.currentBuffer();
+
+                    for(unsigned int i = 0; i < transitionRadiation::frequencies::nOmega; ++i)
+                    {
+                        spanBufferOmega[i] = static_cast<float_X>(freqFkt(i));
+                    }
+
+                    // Phi axis
+                    ::openPMD::Extent extentPhi
+                        = {1, static_cast<unsigned long int>(transitionRadiation::parameters::nPhi), 1};
+                    ::openPMD::Offset offsetPhi = {0, 0, 0};
+                    ::openPMD::Datatype datatypePhi = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset datasetPhi{datatypePhi, extentPhi};
+
+                    auto meshPhi = iteration.meshes["detector phi"];
+
+                    meshPhi.setAxisLabels(std::vector<std::string>{"", "phi", ""});
+                    meshPhi.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshPhi.setGridUnitSI(1);
+                    meshPhi.setGridSpacing(std::vector<double>{1, 1, 1});
+                    meshPhi.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    meshPhi.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
+
+                    auto phi = meshPhi[::openPMD::RecordComponent::SCALAR];
+                    phi.resetDataset(datasetPhi);
+
+                    phi.setUnitSI(1.0);
+
+                    auto spanPhi = phi.storeChunk<float_X>(offsetPhi, extentPhi);
+                    auto spanBufferPhi = spanPhi.currentBuffer();
+
+                    if(transitionRadiation::parameters::nPhi > 1)
+                    {
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::nPhi; ++i)
+                        {
+                            spanBufferPhi[i] = parameters::phiMin
+                                + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
+                        }
+                    }
+                    else
+                    {
+                        spanBufferPhi[0] = parameters::phiMin;
+                    }
+
+                    // Theta axis
+                    ::openPMD::Extent extentTheta = {1, 1, transitionRadiation::parameters::nTheta};
+                    ::openPMD::Offset offsetTheta = {0, 0, 0};
+                    ::openPMD::Datatype datatypeTheta = ::openPMD::determineDatatype<float_X>();
+                    ::openPMD::Dataset datasetTheta{datatypeTheta, extentTheta};
+
+                    auto meshTheta = iteration.meshes["detector theta"];
+
+                    meshTheta.setAxisLabels(std::vector<std::string>{"", "", "theta"});
+                    meshTheta.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    meshTheta.setGridUnitSI(1);
+                    meshTheta.setGridSpacing(std::vector<double>{1, 1, 1});
+                    meshTheta.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+
+                    meshTheta.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
+
+                    auto theta = meshTheta[::openPMD::RecordComponent::SCALAR];
+                    theta.resetDataset(datasetTheta);
+
+                    theta.setUnitSI(1.0);
+
+                    auto spanTheta = theta.storeChunk<float_X>(offsetTheta, extentTheta);
+                    auto spanBufferTheta = spanTheta.currentBuffer();
+
+                    if(transitionRadiation::parameters::nTheta > 1)
+                    {
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::nTheta; ++i)
+                        {
+                            spanBufferTheta[i] = parameters::thetaMin
+                                + i * (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0);
+                        }
+                    }
+                    else
+                    {
+                        spanBufferTheta[0] = parameters::thetaMin;
+                    }
+
+                    series.iterations[currentStep].close();
+                }
+
+
+                void restart(uint32_t restartStep, std::string const& restartDirectory) override
+                {
+                }
+
+                void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) override
+                {
+                }
+
+
                 /** Kernel call
                  *
                  * Executes the particle filter and calls the transition radiation kernel
@@ -466,7 +722,7 @@ namespace picongpu
                 void calculateTransitionRadiation(uint32_t currentStep)
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
-                    auto particles = dc.get<T_ParticlesType>(T_ParticlesType::FrameType::getName());
+                    auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName());
 
                     /* execute the particle filter */
                     transitionRadiation::executeParticleFilter(particles, currentStep);
@@ -483,7 +739,7 @@ namespace picongpu
 
                     // Some funny things that make it possible for the kernel to calculate
                     // the absolute position of the particles
-                    DataSpace<simDim> localSize(cellDescription->getGridLayout().sizeWithoutGuardND());
+                    DataSpace<simDim> localSize(m_cellDescription->getGridLayout().sizeWithoutGuardND());
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
@@ -494,15 +750,17 @@ namespace picongpu
                         .config(gridDim_rad, *particles)(
                             /*Pointer to particles memory on the device*/
                             particles->getDeviceParticlesBox(),
+
                             /*Pointer to memory of radiated amplitude on the device*/
                             incTransRad->getDeviceBuffer().getDataBox(),
                             cohTransRadPara->getDeviceBuffer().getDataBox(),
                             cohTransRadPerp->getDeviceBuffer().getDataBox(),
                             numParticles->getDeviceBuffer().getDataBox(),
                             globalOffset,
-                            *cellDescription,
+                            *m_cellDescription,
                             freqFkt,
-                            subGrid.getGlobalDomain().size);
+                            subGrid.getGlobalDomain().size,
+                            foilPositionYSI / sim.unit.length());
                 }
             };
 
@@ -541,4 +799,6 @@ namespace picongpu
     } // namespace particles
 } // namespace picongpu
 
-PIC_REGISTER_SPECIES_PLUGIN(picongpu::plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>);
+PIC_REGISTER_SPECIES_PLUGIN(
+    picongpu::plugins::multi::Master<picongpu::plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>>);
+#endif
