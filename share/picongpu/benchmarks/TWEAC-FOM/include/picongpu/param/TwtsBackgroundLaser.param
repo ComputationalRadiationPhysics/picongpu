@@ -1,0 +1,119 @@
+/* Copyright 2021-2024 Klaus Steiniger, Alexander Debus
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file TwtsBackgroundLaser.param
+ *
+ * Common definitions of the TWTS Laser
+ */
+
+#pragma once
+
+/** Define common parameters of the TWEAC laser pulses
+ */
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace background
+        {
+            namespace twtsParam
+            {
+                /** unit: meter */
+                constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                /* const double UNITCONV_Intens_to_A0 = sim.si.getElectronCharge()
+                 * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+                 * sim.si.getElectronMass() * sim.si.getElectronMass() * sim.si.getSpeedOfLight()
+                 * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
+                 * sim.si.getSpeedOfLight() * SI::EPS0_SI); */
+                constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
+                    * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
+
+                /** unit: W / m^2 */
+                /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
+                /** unit: none */
+
+                /** unit: none */
+#ifndef PARAM_A0
+#    define PARAM_A0 3.25
+#endif
+                constexpr float_64 _A0 = PARAM_A0 * 0.01; // reduced for FOM benchmark
+
+                /** unit: Volt / meter */
+                constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                // constexpr float_64 AMPLITUDE_SI = <Or give meaningful value here>;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *
+                 *  unit: seconds (1 sigma) */
+                constexpr float_64 PULSE_LENGTH_SI = 10.e-15 / 2.354820045;
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *
+                 *  unit: meter */
+#ifndef PARAM_W0_SI
+#    define PARAM_W0_SI 1.2e-6
+#endif
+                constexpr float_64 W0_SI = PARAM_W0_SI;
+
+                /** the distance to the laser focus in y-direction [m]
+                 *
+                 * unit: meter */
+                constexpr float_64 FOCUS_Y_SI = 30.0e-6;
+
+                /** interaction angle between TWTS laser propagation vector and
+                 *  the y-axis [default = 90.*(PI/180.)]
+                 * unit: rad */
+#ifndef PARAM_PHI
+#    define PARAM_PHI 3.5
+#endif
+                constexpr float_64 PHI = PARAM_PHI * (PI / 180.);
+
+
+                /** propagation speed of overlap normalized to
+                 *  the speed of light [default = 1.0]
+                 * unit: none */
+                constexpr float_64 BETA_0 = 1.0;
+
+                /** manual time delay if auto_tdelay is false
+                 *
+                 * unit: s */
+                constexpr float_64 TDELAY = 50.0e-6 / sim.si.getSpeedOfLight();
+
+                /** calculate the time delay such that the TWTS pulse is not
+                 *  inside the simulation volume at simulation start timestep = 0 [default = true]
+                 * unit: none */
+                constexpr bool AUTO_TDELAY = false;
+
+                constexpr float_X Polarization = 45.0 * (PI / 180.);
+            } // namespace twtsParam
+        } // namespace background
+    } // namespace fields
+} // namespace picongpu

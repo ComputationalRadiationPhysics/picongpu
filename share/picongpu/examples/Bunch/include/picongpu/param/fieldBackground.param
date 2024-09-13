@@ -20,8 +20,8 @@
 #pragma once
 
 /** Load pre-defined templates */
-#if PARAM_TWTSFAST == 1
-#    include "picongpu/fields/background/templates/twtsfast/twtsfast.hpp"
+#if PARAM_TWTSTIGHT == 1
+#    include "picongpu/fields/background/templates/twtstight/twtstight.hpp"
 #else
 #    include "picongpu/fields/background/templates/TWTS/TWTS.hpp"
 #endif
@@ -48,8 +48,8 @@ namespace picongpu
          *  Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
          *        roughly float_64 the number of registers in the corresponding kernel on the device.
          */
-#if PARAM_TWTSFAST == 1
-        const templates::twtsfast::EField twtsFieldE;
+#if PARAM_TWTSTIGHT == 1
+        const templates::twtstight::EField twtsFieldE;
 #else
         const templates::twts::EField twtsFieldE;
 #endif
@@ -135,8 +135,8 @@ namespace picongpu
          *  Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
          *        roughly float_64 the number of registers in the corresponding kernel on the device.
          */
-#if PARAM_TWTSFAST == 1
-        const templates::twtsfast::BField twtsFieldB;
+#if PARAM_TWTSTIGHT == 1
+        const templates::twtstight::BField twtsFieldB;
 #else
         const templates::twts::BField twtsFieldB;
 #endif
@@ -150,7 +150,7 @@ namespace picongpu
                   0.8e-6,
                   /* pulselength [s], sigma of std. gauss for intensity (E^2) */
                   10.0e-15 / 2.3548200450309493820231386529194,
-#if PARAM_TWTSFAST == 0
+#if PARAM_TWTSTIGHT == 0
                   /* w_x [m], cylindrically focused spot size */
                   5.0e-6,
 #endif

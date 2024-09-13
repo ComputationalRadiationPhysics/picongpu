@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2023 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2024 Axel Huebl, Rene Widera, Richard Pausch, Alexander Debus
 #
 # This file is part of PIConGPU.
 #
@@ -33,8 +33,8 @@ flags[0]=""
 
 # limit examles if we run CI tests
 if [ -z  "$PIC_CI_MAINLINE" ] ; then
-  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_INCLUDE_FIELDBACKGROUND=true;-DPARAM_TWTSFAST=1'"
-  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_INCLUDE_FIELDBACKGROUND=true;-DPARAM_TWTSFAST=1;-DPARAM_DIMENSION=DIM2'"
+  flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_INCLUDE_FIELDBACKGROUND=true;-DPARAM_TWTSTIGHT=1'"
+  flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_INCLUDE_FIELDBACKGROUND=true;-DPARAM_TWTSTIGHT=1;-DPARAM_DIMENSION=DIM2'"
   flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_SINGLE_PARTICLE=true;-DPARAM_RADFORMFACTOR=radFormFactor_coherent'"
   flags[4]="-DPARAM_OVERWRITES:LIST='-DPARAM_FILTER_GAMMA=1;-DPARAM_RADFORMFACTOR=radFormFactor_incoherent'"
   flags[5]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADWINDOW=radWindowFunctionTriangle;-DPARAM_RADFORMFACTOR=radFormFactor_CIC_3D'"

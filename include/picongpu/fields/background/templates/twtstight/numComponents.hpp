@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Alexander Debus, Axel Huebl
+/* Copyright 2014-2024 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,13 +24,13 @@ namespace picongpu
 {
     namespace templates
     {
-        namespace twtsfast
+        namespace twtstight
         {
             namespace detail
             {
                 /** Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
                 uint32_t const numComponents = 3;
             } /* namespace detail */
-        } /* namespace twtsfast*/
+        } /* namespace twtstight*/
     } /* namespace templates */
 } /* namespace picongpu */

@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Alexander Debus
+/* Copyright 2014-2024 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -28,7 +28,7 @@ namespace picongpu
 {
     namespace templates
     {
-        namespace twtsfast
+        namespace twtstight
         {
             /* Auxiliary functions for calculating the TWTS field */
             namespace detail
@@ -87,11 +87,11 @@ namespace picongpu
                         float_64 const m = 3.;
                         /* Approximate cross section of laser pulse through y-axis,
                          * scaled with "fudge factor" m. */
-                        float_64 const y2 = m * (pulselength_SI * picongpu::sim.si.getSpeedOfLight()) / math::cos(eta);
+                        float_64 const y2 = m * (pulselength_SI * picongpu::SI::SPEED_OF_LIGHT_SI) / math::cos(eta);
                         /* y-position of laser coordinate system origin within simulation. */
                         float_64 const y3 = focus_y_SI;
                         /* Programmatically obtained time-delay */
-                        float_64 const tdelay = (y1 + y2 + y3) / (picongpu::sim.si.getSpeedOfLight() * beta_0);
+                        float_64 const tdelay = (y1 + y2 + y3) / (picongpu::SI::SPEED_OF_LIGHT_SI * beta_0);
 
                         return tdelay;
                     }
@@ -117,18 +117,18 @@ namespace picongpu
                         /* halfSimSize[0] --> Half-depth of simulation volume (in x); By geometric
                          * projection we calculate the y-distance walkoff of the TWTS-pulse.
                          * The abs( )-function is for correct offset for -phi<-90Deg and +phi>+90Deg. */
-                        float_64 const y1 = float_64(halfSimSize[0] * picongpu::sim.si.getCellSize().x())
-                            * math::abs(math::cos(eta));
+                        float_64 const y1
+                            = float_64(halfSimSize[0] * picongpu::SI::CELL_WIDTH_SI) * math::abs(math::cos(eta));
                         /* Fudge parameter to make sure, that TWTS pulse starts to impact simulation volume
                          * at low intensity values. */
                         float_64 const m = 3.;
                         /* Approximate cross section of laser pulse through y-axis,
                          * scaled with "fudge factor" m. */
-                        float_64 const y2 = m * (pulselength_SI * picongpu::sim.si.getSpeedOfLight()) / math::cos(eta);
+                        float_64 const y2 = m * (pulselength_SI * picongpu::SI::SPEED_OF_LIGHT_SI) / math::cos(eta);
                         /* y-position of laser coordinate system origin within simulation. */
                         float_64 const y3 = focus_y_SI;
                         /* Programmatically obtained time-delay */
-                        float_64 const tdelay = (y1 + y2 + y3) / (picongpu::sim.si.getSpeedOfLight() * beta_0);
+                        float_64 const tdelay = (y1 + y2 + y3) / (picongpu::SI::SPEED_OF_LIGHT_SI * beta_0);
 
                         return tdelay;
                     }
@@ -157,6 +157,6 @@ namespace picongpu
                 }
 
             } /* namespace detail */
-        } /* namespace twtsfast */
+        } /* namespace twtstight */
     } /* namespace templates */
 } /* namespace picongpu */
