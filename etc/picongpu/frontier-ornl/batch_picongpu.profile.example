@@ -31,7 +31,7 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 
 module load PrgEnv-cray/8.5.0 # Compiling with cray compiler wrapper CC
 module load craype-accel-amd-gfx940
-module load rocm/5.7.1
+module load rocm/6.2.0
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 module load cray-mpich/8.1.28
