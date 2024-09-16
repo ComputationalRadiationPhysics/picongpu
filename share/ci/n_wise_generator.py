@@ -114,11 +114,13 @@ def is_valid_combination(row):
         # hipcc is only valid in one combination
         if is_hip:
             if is_hipcc and is_clang:
-                if 5.0 <= v_hip <= 5.2 and v_compiler == 14:
-                    return True
                 if 5.3 <= v_hip <= 5.4 and v_compiler == 15:
                     return True
-                if v_hip == 5.5 and v_compiler == 16:
+                if 5.5 <= v_hip <= 5.6 and v_compiler == 16:
+                    return True
+                if 5.7 <= v_hip <= 6.1 and v_compiler == 17:
+                    return True
+                if v_hip == 6.2 and v_compiler == 18:
                     return True
             return False
 
@@ -126,10 +128,8 @@ def is_valid_combination(row):
         if is_hipcc:
             return False
         else:
-            # clang 16 is currently only supported via hipcc.
-            # CI container version 3.1 do not provide apt sources for
-            # clang 16.
-            if is_clang and v_compiler == 16:
+            # install/clang.sh is currently only providing apt sources up to clang 18
+            if is_clang and v_compiler >= 19:
                 return False
 
         # CUDA compiler requires backed `cuda`
@@ -148,21 +148,23 @@ def is_valid_combination(row):
             # code with clang
             if v_compiler < 14:
                 return False
-            if 11.0 <= v_cuda < 12.0 and v_compiler == 14:
+            if 11.0 <= v_cuda <= 11.5 and 14 <= v_compiler <= 15:
                 return True
-            # currently not supported due to an error
-            # __clang_cuda_texture_intrinsics.h:696:13:
-            # error: no template named 'texture'
-            #    texture<__DataT, __TexT,
-            #      cudaReadModeNormalizedFloat> __handle,
-            if v_cuda >= 12.0:
-                return False
-
+            if 11.0 <= v_cuda <= 11.8 and v_compiler == 17:
+                return True
+            if 11.0 <= v_cuda <= 12.3 and v_compiler == 18:
+                return True
             return False
 
         # nvcc compatibility
         if is_cuda and is_nvcc:
             if is_gnu:
+                # disabled due to a bug in CUDA 12.4 with gcc 13
+                #   /usr/include/x86_64-linux-gnu/bits/floatn-common.h(214):
+                #   error: invalid combination of type specifiers
+                #     typedef float _Float32;
+                if 12.4 == v_cuda and v_compiler == 13:
+                    return False
                 # official g++ 9 and CUDA is supported but due to many
                 # compile issue we do not support this combination anymore
                 if v_compiler <= 9:
@@ -179,7 +181,9 @@ def is_valid_combination(row):
                     return False
                 if 11.4 <= v_cuda <= 11.8 and v_compiler <= 11:
                     return True
-                if 12.0 <= v_cuda <= 12.2 and v_compiler <= 12:
+                if 12.0 <= v_cuda <= 12.3 and v_compiler <= 12:
+                    return True
+                if 12.4 <= v_cuda <= 12.5 and v_compiler <= 13:
                     return True
 
             if is_clang:
@@ -207,8 +211,10 @@ clang_compiers = [
     ("clang++", 14),
     ("clang++", 15),
     ("clang++", 16),
+    ("clang++", 17),
+    ("clang++", 18),
 ]
-gnu_compilers = [("g++", 9), ("g++", 10), ("g++", 11)]
+gnu_compilers = [("g++", 9), ("g++", 10), ("g++", 11), ("g++", 13)]
 compilers = [clang_compiers, gnu_compilers]
 
 # generate clang cuda compiler list
@@ -238,6 +244,10 @@ compilers.append(hip_clang_compilers)
 backends = [
     ("hip", 5.4),
     ("hip", 5.5),
+    ("hip", 5.6),
+    ("hip", 5.7),
+    ("hip", 6.0),
+    ("hip", 6.1),
     ("cuda", 11.3),
     ("cuda", 11.4),
     ("cuda", 11.5),
@@ -246,11 +256,28 @@ backends = [
     ("cuda", 11.8),
     ("cuda", 12.0),
     ("cuda", 12.1),
+    ("cuda", 12.2),
+    ("cuda", 12.3),
+    ("cuda", 12.4),
+    ("cuda", 12.5),
     ("omp2b",),
     ("serial",),
 ]
 
-boost_libs_all = ["1.74.0", "1.75.0", "1.76.0", "1.77.0", "1.78.0"]
+boost_libs_all = [
+    "1.74.0",
+    "1.75.0",
+    "1.76.0",
+    "1.77.0",
+    "1.78.0",
+    "1.79.0",
+    "1.80.0",
+    "1.81.0",
+    "1.82.0",
+    "1.83.0",
+    "1.84.0",
+    "1.85.0",
+]
 
 operating_system = [("ubuntu", 20.04)]
 
