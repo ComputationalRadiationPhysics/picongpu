@@ -297,7 +297,7 @@ namespace picongpu::particles::atomicPhysics::stateRepresentation
          *      n_i being the occupation number of the i-th shell and k being the highest occupied shell
          * the atomicConfigNumber corresponding to n_PI = (n_1, ..., n_k - 1, 0, ...)
          */
-        HDINLINE static DataType getDirectPressureIonizationState(DataType const configNumber)
+        HDINLINE static DataType getDirectIPDIonizationState(DataType const configNumber)
         {
             pmacc::math::Vector<uint8_t, numberLevels> levelVector = getLevelVector(configNumber);
 

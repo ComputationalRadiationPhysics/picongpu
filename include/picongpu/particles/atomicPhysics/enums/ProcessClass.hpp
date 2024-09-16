@@ -39,7 +39,7 @@ namespace picongpu::particles::atomicPhysics
             electronicIonization = 4u,
             autonomousIonization = 5u,
             fieldIonization = 6u,
-            pressureIonization = 7u,
+            ipdIonization = 7u,
         };
     } // namespace enums
 
@@ -60,8 +60,8 @@ namespace picongpu::particles::atomicPhysics
             return "autonomousIonization";
         if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::fieldIonization))
             return "fieldIonization";
-        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::pressureIonization))
-            return "pressureIonization";
+        if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::ipdIonization))
+            return "ipdIonization";
         return "unknown";
     }
 } // namespace picongpu::particles::atomicPhysics
