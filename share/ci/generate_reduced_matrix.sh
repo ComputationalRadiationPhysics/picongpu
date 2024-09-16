@@ -47,7 +47,7 @@ if [ -n "$QUICK_CI_TESTS" ] ; then
   # If a PR is merged to the `dev` branch a non-reduced test will be executed.
   is_pr=$(echo "$CI_COMMIT_REF_NAME" | grep -q "^pr-" && echo 1 || echo 0)
   if [ $is_pr -eq 1 ] && [ $commit_full_compile -ne 1 ] ; then
-      ADDITIONAL_GENRATOR_FLAGS="$ADDITIONAL_GENRATOR_FLAGS --quick"
+      ADDITIONAL_GENERATOR_FLAGS="$ADDITIONAL_GENERATOR_FLAGS --quick"
   fi
 fi
 
@@ -57,28 +57,28 @@ folders=()
 if [ "$PIC_INPUTS" == "pmacc" ] ; then
   if [ $commit_picongpu_only -ne 1 ] ; then
     # create unit tests for PMacc
-    echo "pmacc" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
+    echo "pmacc" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENERATOR_FLAGS
   else
     add_empty_job=1
   fi
 elif [ "$PIC_INPUTS" == "pmacc_header" ] ; then
   if [ $commit_picongpu_only -ne 1 ] ; then
     # create header validation test for PMacc
-    echo "pmacc_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
+    echo "pmacc_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENERATOR_FLAGS
   else
     add_empty_job=1
   fi
 elif [ "$PIC_INPUTS" == "picongpu_header" ] ; then
   if [ $commit_pmacc_only -ne 1 ] ; then
     # create unit tests for PIConGPU
-    echo "picongpu_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
+    echo "picongpu_header" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENERATOR_FLAGS
   else
     add_empty_job=1
   fi
 elif [ "$PIC_INPUTS" == "unit" ] ; then
   if [ $commit_pmacc_only -ne 1 ] ; then
     # create unit tests for PIConGPU
-    echo "unit" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENRATOR_FLAGS
+    echo "unit" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version $ADDITIONAL_GENERATOR_FLAGS
   else
     add_empty_job=1
   fi
@@ -96,7 +96,7 @@ else
       done
     done
 
-    echo "${folders[@]}" | tr " " "\n" | n_wise_generator.py $@ $ADDITIONAL_GENRATOR_FLAGS
+    echo "${folders[@]}" | tr " " "\n" | n_wise_generator.py $@ $ADDITIONAL_GENERATOR_FLAGS
   else
       add_empty_job=1
   fi
