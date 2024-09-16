@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
@@ -31,7 +32,10 @@ namespace picongpu::particles::atomicPhysics::kernel
 {
     /** search for mismatch between atomic state charge state and boundElectrons and fix them by setting the
      *  atomic state to the ground state of the charge state if mismatched.
+     *
+     * @param T_IonSpecies resolved type of the Ion Species
      */
+    template<typename T_IonSpecies>
     struct FixAtomicStateKernel
     {
         /** call operator
@@ -65,21 +69,32 @@ namespace picongpu::particles::atomicPhysics::kernel
                 [&chargeStateOrgaBox, &atomicStateDataBox](T_Worker const& worker, auto& ion)
                 {
                     using ConfigNumber = typename T_AtomicStateDataDataBox::ConfigNumber;
-
                     uint8_t const boundElectrons = u8(ion[boundElectrons_]);
-                    typename ConfigNumber::DataType const configNumber
-                        = atomicStateDataBox.configNumber(ion[atomicStateCollectionIndex_]);
+                    uint8_t const targetChargeState = ConfigNumber::atomicNumber - boundElectrons;
 
-                    uint8_t const atomicPhysicsBoundElectrons = ConfigNumber::getBoundElectrons(configNumber);
+                    constexpr uint32_t numberAtomicStates
+                        = u32(picongpu::traits::GetNumberAtomicStates<T_IonSpecies>::value);
+                    uint32_t const collectionIndex = ion[atomicStateCollectionIndex_];
 
-                    if(boundElectrons != atomicPhysicsBoundElectrons)
+                    // check for default and out of range values
+                    if(collectionIndex >= numberAtomicStates)
                     {
-                        // set atomic state to ground state
-                        uint8_t const targetChargeState = ConfigNumber::atomicNumber - boundElectrons;
-
                         ion[atomicStateCollectionIndex_] = atomicStateDataBox.findGroundState(
                             chargeStateOrgaBox.numberAtomicStates(targetChargeState),
                             chargeStateOrgaBox.startIndexBlockAtomicStates(targetChargeState));
+                    }
+                    else
+                    {
+                        typename ConfigNumber::DataType const configNumber
+                            = atomicStateDataBox.configNumber(collectionIndex);
+                        uint8_t const atomicPhysicsBoundElectrons = ConfigNumber::getBoundElectrons(configNumber);
+
+                        if(boundElectrons != atomicPhysicsBoundElectrons)
+                        {
+                            ion[atomicStateCollectionIndex_] = atomicStateDataBox.findGroundState(
+                                chargeStateOrgaBox.numberAtomicStates(targetChargeState),
+                                chargeStateOrgaBox.startIndexBlockAtomicStates(targetChargeState));
+                        }
                     }
                 });
         }

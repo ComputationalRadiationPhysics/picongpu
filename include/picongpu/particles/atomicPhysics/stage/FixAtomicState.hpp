@@ -77,7 +77,7 @@ namespace picongpu::particles::atomicPhysics::stage
 
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
-            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics::kernel::FixAtomicStateKernel())
+            PMACC_LOCKSTEP_KERNEL(picongpu::particles::atomicPhysics::kernel::FixAtomicStateKernel<IonSpecies>())
                 .config(mapper.getGridDim(), ions)(
                     mapper,
                     ions.getDeviceParticlesBox(),
