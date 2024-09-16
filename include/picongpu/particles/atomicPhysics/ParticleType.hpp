@@ -47,7 +47,7 @@ namespace picongpu::particles::atomicPhysics
      *          static constexpr char const* boundFreeTransitionsFileName = "./BoundFreeTransitions_Ar.txt";
      *          static constexpr char const* autonomousTransitionsFileName = "./AutonomousTransitions_Ar.txt";
      *
-     *          static constexpr char const* pressureIonizationStatesFileName = "";
+     *          static constexpr char const* ipdIonizationStatesFileName = "";
      *
      *          //! configuration of atomic data storage and active processes in atomicPhysics
      *          using AtomicDataType = atomicPhysics::AtomicData_Ar;

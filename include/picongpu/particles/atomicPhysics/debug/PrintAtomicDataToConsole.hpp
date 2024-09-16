@@ -91,7 +91,7 @@ namespace picongpu::particles::atomicPhysics::debug
 
         // AtomicState data
         auto atomicStateDataBox = atomicData->template getAtomicStateDataDataBox<true>(); // true: get hostDataBox
-        auto pressureIonizationStateDataBox = atomicData->template getPressureIonizationStateDataBox<true>();
+        auto ipdIonizationStateDataBox = atomicData->template getIPDIonizationStateDataBox<true>();
 
         auto boundBoundStartIndexBox = atomicData->template getBoundBoundStartIndexBlockDataBox<true>();
         auto boundFreeStartIndexBox = atomicData->template getBoundFreeStartIndexBlockDataBox<true>();
@@ -106,7 +106,7 @@ namespace picongpu::particles::atomicPhysics::debug
 
         // state data
         std::cout << "AtomicState Data" << std::endl;
-        std::cout << "index : [ConfigNumber, chargeState, levelVector]: E_overGround, PressureIonizationState[index, "
+        std::cout << "index : [ConfigNumber, chargeState, levelVector]: E_overGround, IPDIonizationState[index, "
                      "chargeState, configNumber]"
                   << std::endl;
         std::cout << "\t b/f/a: [#TransitionsUp/]#TransitionsDown, [startIndexUp/]startIndexDown" << std::endl;
@@ -115,20 +115,20 @@ namespace picongpu::particles::atomicPhysics::debug
             uint64_t const stateConfigNumber
                 = static_cast<uint64_t>(atomicStateDataBox.configNumber(stateCollectionIndex));
             auto const stateLevelVector = S_ConfigNumber::getLevelVector(stateConfigNumber);
-            auto const pressureIonizationStateCollectionIndex
-                = pressureIonizationStateDataBox.pressureIonizationState(stateCollectionIndex);
-            auto const levelVectorPressureIonizationState = S_ConfigNumber::getLevelVector(
-                atomicStateDataBox.configNumber(pressureIonizationStateCollectionIndex));
-            auto const chargeStatePressureIonizationVector = S_ConfigNumber::getChargeState(
-                atomicStateDataBox.configNumber(pressureIonizationStateCollectionIndex));
+            auto const ipdIonizationStateCollectionIndex
+                = ipdIonizationStateDataBox.ipdIonizationState(stateCollectionIndex);
+            auto const levelVectorIPDIonizationState
+                = S_ConfigNumber::getLevelVector(atomicStateDataBox.configNumber(ipdIonizationStateCollectionIndex));
+            auto const chargeStateIPDIonizationVector
+                = S_ConfigNumber::getChargeState(atomicStateDataBox.configNumber(ipdIonizationStateCollectionIndex));
 
             std::cout << "\t" << stateCollectionIndex << " : [" << stateConfigNumber << ", "
                       << static_cast<uint16_t>(S_ConfigNumber::getChargeState(stateConfigNumber)) << ", "
                       << precisionCast<uint16_t>(stateLevelVector).toString(",", "()")
                       << "]: " << atomicStateDataBox.energy(stateCollectionIndex) << ",\t"
-                      << "[" << pressureIonizationStateCollectionIndex << ", "
-                      << static_cast<uint16_t>(chargeStatePressureIonizationVector) << ", "
-                      << precisionCast<uint16_t>(levelVectorPressureIonizationState).toString(",", "()") << "]"
+                      << "[" << ipdIonizationStateCollectionIndex << ", "
+                      << static_cast<uint16_t>(chargeStateIPDIonizationVector) << ", "
+                      << precisionCast<uint16_t>(levelVectorIPDIonizationState).toString(",", "()") << "]"
                       << std::endl;
             std::cout << "\t\t b: " << boundBoundNumberTransitionsBox.numberOfTransitionsUp(stateCollectionIndex)
                       << "/" << boundBoundNumberTransitionsBox.numberOfTransitionsDown(stateCollectionIndex) << ", "

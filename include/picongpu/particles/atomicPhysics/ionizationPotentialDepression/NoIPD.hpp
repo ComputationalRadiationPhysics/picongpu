@@ -41,7 +41,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
 
         //! no IPD, means no pressure ionization
         template<typename T_AtomicPhysicsIonSpeciesList>
-        HINLINE static void applyPressureIonization(picongpu::MappingDesc const, uint32_t const)
+        HINLINE static void applyIPDIonization(picongpu::MappingDesc const, uint32_t const)
         {
         }
 

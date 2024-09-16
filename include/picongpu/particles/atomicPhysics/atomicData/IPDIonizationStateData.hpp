@@ -37,7 +37,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
      * @tparam T_CollectionIndexType dataType used for atomicState collectionIndex
      */
     template<typename T_CollectionIndexType>
-    struct PressureIonizationStateDataBox
+    struct IPDIonizationStateDataBox
     {
         using CollectionIdx = T_CollectionIndexType;
         using BoxCollectionIndex = pmacc::DataBox<pmacc::PitchedBox<T_CollectionIndexType, 1u>>;
@@ -53,7 +53,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
          * @param boxCollectionIndex dataBox of pressure ionization state collection index
          * @param numberAtomicStates number of atomic states
          */
-        PressureIonizationStateDataBox(BoxCollectionIndex boxCollectionIndex, uint32_t numberAtomicStates)
+        IPDIonizationStateDataBox(BoxCollectionIndex boxCollectionIndex, uint32_t numberAtomicStates)
             : m_boxCollectionIndex(boxCollectionIndex)
             , m_numberAtomicStates(numberAtomicStates)
         {
@@ -66,23 +66,23 @@ namespace picongpu::particles::atomicPhysics::atomicData
          * @attention no range check invalid memory access if collectionIndex >= numberAtomicStates
          *
          * @param state collectionIndex of an atomic state
-         * @param pressureIonizationState collectionIndex of it's pressure pressureIonizationState
+         * @param IPDIonizationState collectionIndex of it's pressure IPDIonizationState
          */
-        HINLINE void store(CollectionIdx const state, CollectionIdx const pressureIonizationState)
+        HINLINE void store(CollectionIdx const state, CollectionIdx const ipdIonizationState)
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_QUERIES)
                 if(state >= m_numberAtomicStates)
                 {
-                    printf("atomicPhysics ERROR: out of bounds in store() call on PressureIonizationData\n");
+                    printf("atomicPhysics ERROR: out of bounds in store() call on IPDIonizationData\n");
                 }
-            m_boxCollectionIndex[state] = pressureIonizationState;
+            m_boxCollectionIndex[state] = ipdIonizationState;
         }
 
         /** get collectionIndex of pressure ionization state for state
          *
          * @param state collectionIndex of an atomic state
          */
-        HDINLINE CollectionIdx pressureIonizationState(CollectionIdx const state) const
+        HDINLINE CollectionIdx ipdIonizationState(CollectionIdx const state) const
         {
             if constexpr(picongpu::atomicPhysics::debug::atomicData::RANGE_CHECKS_IN_DATA_QUERIES)
                 if(state >= m_numberAtomicStates)
@@ -99,7 +99,7 @@ namespace picongpu::particles::atomicPhysics::atomicData
      * @tparam T_CollectionIndexType dataType used for atomicState collectionIndex
      */
     template<typename T_CollectionIndexType>
-    struct PressureIonizationStateDataBuffer
+    struct IPDIonizationStateDataBuffer
     {
         using CollectionIdx = T_CollectionIndexType;
         using BufferCollectionIndex = pmacc::HostDeviceBuffer<CollectionIdx, 1u>;
@@ -109,24 +109,23 @@ namespace picongpu::particles::atomicPhysics::atomicData
         uint32_t m_numberAtomicStates;
 
     public:
-        HINLINE PressureIonizationStateDataBuffer(uint32_t numberAtomicStates)
-            : m_numberAtomicStates(numberAtomicStates)
+        HINLINE IPDIonizationStateDataBuffer(uint32_t numberAtomicStates) : m_numberAtomicStates(numberAtomicStates)
         {
             auto const guardSize = pmacc::DataSpace<1>::create(0);
             auto const layoutAtomicStates = pmacc::GridLayout<1>(numberAtomicStates, guardSize).sizeWithoutGuardND();
             bufferCollectionIndex.reset(new BufferCollectionIndex(layoutAtomicStates, false));
         }
 
-        HINLINE PressureIonizationStateDataBox<CollectionIdx> getHostDataBox()
+        HINLINE IPDIonizationStateDataBox<CollectionIdx> getHostDataBox()
         {
-            return PressureIonizationStateDataBox<CollectionIdx>(
+            return IPDIonizationStateDataBox<CollectionIdx>(
                 bufferCollectionIndex->getHostBuffer().getDataBox(),
                 m_numberAtomicStates);
         }
 
-        HINLINE PressureIonizationStateDataBox<CollectionIdx> getDeviceDataBox()
+        HINLINE IPDIonizationStateDataBox<CollectionIdx> getDeviceDataBox()
         {
-            return PressureIonizationStateDataBox<CollectionIdx>(
+            return IPDIonizationStateDataBox<CollectionIdx>(
                 bufferCollectionIndex->getDeviceBuffer().getDataBox(),
                 m_numberAtomicStates);
         }

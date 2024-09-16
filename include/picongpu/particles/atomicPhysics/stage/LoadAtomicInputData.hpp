@@ -67,8 +67,8 @@ namespace picongpu::particles::atomicPhysics::stage
 
             constexpr char const* chargeStatesFileName = SpeciesAtomicPhysicsConfigType::chargeStatesFileName;
             constexpr char const* atomicStatesFileName = SpeciesAtomicPhysicsConfigType::atomicStatesFileName;
-            constexpr char const* pressureIonizationStatesFileName
-                = SpeciesAtomicPhysicsConfigType::pressureIonizationStatesFileName;
+            constexpr char const* ipdIonizationStatesFileName
+                = SpeciesAtomicPhysicsConfigType::ipdIonizationStatesFileName;
 
             constexpr char const* boundBoundFileName = SpeciesAtomicPhysicsConfigType::boundBoundTransitionsFileName;
             constexpr char const* boundFreeFileName = SpeciesAtomicPhysicsConfigType::boundFreeTransitionsFileName;
@@ -93,7 +93,7 @@ namespace picongpu::particles::atomicPhysics::stage
             auto atomicData = std::make_unique<AtomicDataType>(
                 std::string(chargeStatesFileName),
                 std::string(atomicStatesFileName),
-                std::string(pressureIonizationStatesFileName),
+                std::string(ipdIonizationStatesFileName),
                 std::string(boundBoundFileName),
                 std::string(boundFreeFileName),
                 std::string(autonomousFileName),

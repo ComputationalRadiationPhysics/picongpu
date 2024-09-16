@@ -95,7 +95,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
                     localFoundUnboundIonField.getDeviceDataBox(),
                     atomicData.template getChargeStateDataDataBox</*on device*/ false>(),
                     atomicData.template getAtomicStateDataDataBox</*on device*/ false>(),
-                    atomicData.template getPressureIonizationStateDataBox</*on device*/ false>(),
+                    atomicData.template getIPDIonizationStateDataBox</*on device*/ false>(),
                     localDebyeLengthField.getDeviceDataBox(),
                     localTemperatureEnergyField.getDeviceDataBox(),
                     localZStarField.getDeviceDataBox());

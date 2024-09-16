@@ -392,7 +392,7 @@ namespace picongpu::simulation::stage
             }
 
             template<typename T_DeviceReduce>
-            void doPressureIonization(
+            void doIPDIonization(
                 picongpu::MappingDesc const& mappingDesc,
                 uint32_t const currentStep,
                 T_DeviceReduce& deviceReduce) const
@@ -536,7 +536,7 @@ namespace picongpu::simulation::stage
 
                     recordChanges(mappingDesc);
                     updateElectrons(mappingDesc, currentStep);
-                    doPressureIonization(mappingDesc, currentStep, deviceLocalReduce);
+                    doIPDIonization(mappingDesc, currentStep, deviceLocalReduce);
                     updateTimeRemaining(mappingDesc);
                     isSubSteppingComplete = isSubSteppingFinished(mappingDesc, deviceLocalReduce);
                 } // end atomicPhysics sub-stepping loop
