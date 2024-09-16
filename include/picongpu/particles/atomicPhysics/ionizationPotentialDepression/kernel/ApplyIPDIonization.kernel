@@ -146,7 +146,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
 
     //! predict number pressure ionization electrons for one pressure ionization step and update ion atomic state
     template<typename T_Number, typename T_IPDModel>
-    struct PressureIonizationPredictor : public s_interfaces::PredictorFunctor<T_Number, T_IPDModel>
+    struct IPDIonizationPredictor : public s_interfaces::PredictorFunctor<T_Number, T_IPDModel>
     {
         template<
             typename T_Worker,
@@ -283,12 +283,11 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         SuperCellFieldIndexFunctor,
         WriteFoundUnboundToSuperCellField>;
 
-    //! actual definition of ApplyIonizationPotentialDepressionIonizationKernel
+    //! actual definition of ApplyIPDIonizationKernel
     template<typename T_IPDModel>
-    using ApplyIonizationPotentialDepressionIonizationKernel
-        = picongpu::particles::creation::SpawnFromSourceSpeciesKernelFramework<
-            // T_TypeNumber
-            uint8_t,
-            ApplyIPDIonizationModulConfig,
-            T_IPDModel>;
+    using ApplyIPDIonizationKernel = picongpu::particles::creation::SpawnFromSourceSpeciesKernelFramework<
+        // T_TypeNumber
+        uint8_t,
+        ApplyIPDIonizationModulConfig,
+        T_IPDModel>;
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::kernel
