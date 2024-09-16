@@ -170,11 +170,11 @@ namespace picongpu::particles::atomicPhysics::kernel
                         }
                     }
 
-                    // noChange transition as last resort transition, never stored in RateCache
                     /// @todo test for no change first, since with default setting ~90% will take this branch anyway
-                    if(r >= cumSum) // and <= 1 by definition of timeStep
+                    // noChange transition as last resort transition, never stored in RateCache
+                    // definition of time step guarantees that cumSum is always <= 1
+                    if(r >= cumSum)
                     {
-                        // printf("ID: %lu, %i\n", ion[particleId_], u32(s_enums::ProcessClass::noChange));
                         ion[processClass_] = u8(s_enums::ProcessClass::noChange);
                         // no need to set ion[transitionIndex_] since already uniquely known by processClass = noChange
                         //  and accepted_ = true prevents it being worked on by ChooseTransitionKernels
