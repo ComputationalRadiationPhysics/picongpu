@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <cstdint>
-
+#include "picongpu/defines.hpp"
 
 namespace picongpu
 {

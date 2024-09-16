@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 // pmacc
 #include <pmacc/dimensions/DataSpace.hpp>

@@ -20,6 +20,8 @@
 #pragma once
 
 #include <pmacc/attribute/unroll.hpp>
+#include <pmacc/memory/Array.hpp>
+#include <pmacc/traits/GetStringProperties.hpp>
 #include <pmacc/types.hpp>
 
 #include <type_traits>

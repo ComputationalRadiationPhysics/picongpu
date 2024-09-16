@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/traits/Unit.hpp"
 #include "picongpu/traits/UnitDimension.hpp"

@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.def"
+#include "picongpu/fields/differentiation/Derivative.hpp"
 #include "picongpu/fields/differentiation/Traits.hpp"
 
 #include <pmacc/math/Vector.hpp>
