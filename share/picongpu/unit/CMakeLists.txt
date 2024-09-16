@@ -17,7 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 3.25.0)
+cmake_minimum_required(VERSION 3.22.0)
 project("UnitTest")
 
 ###############################################################################
