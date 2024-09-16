@@ -176,13 +176,13 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @attention collective over all ion species
          */
         template<typename T_AtomicPhysicsIonSpeciesList>
-        HINLINE static void applyPressureIonization(picongpu::MappingDesc const mappingDesc, uint32_t const)
+        HINLINE static void applyIPDIonization(picongpu::MappingDesc const mappingDesc, uint32_t const)
         {
-            using ForEachIonSpeciesApplyPressureIonization = pmacc::meta::ForEach<
+            using ForEachIonSpeciesApplyIPDIonization = pmacc::meta::ForEach<
                 T_AtomicPhysicsIonSpeciesList,
-                s_IPD::stage::ApplyPressureIonization<boost::mpl::_1, StewartPyattIPD<T_TemperatureFunctor>>>;
+                s_IPD::stage::ApplyIPDIonization<boost::mpl::_1, StewartPyattIPD<T_TemperatureFunctor>>>;
 
-            ForEachIonSpeciesApplyPressureIonization{}(mappingDesc);
+            ForEachIonSpeciesApplyIPDIonization{}(mappingDesc);
         };
 
         /** calculate ionization potential depression

@@ -59,9 +59,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
          * @attention collective over all ion species
          */
         template<typename T_AtomicPhysicsIonSpeciesList>
-        HINLINE static void applyPressureIonization(
-            picongpu::MappingDesc const mappingDesc,
-            uint32_t const currentStep);
+        HINLINE static void applyIPDIonization(picongpu::MappingDesc const mappingDesc, uint32_t const currentStep);
 
         /** calculate ionization potential depression
          *

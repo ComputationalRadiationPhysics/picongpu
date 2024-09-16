@@ -423,7 +423,7 @@ namespace picongpu::simulation::stage
                         template calculateIPDInput<T_numberAtomicPhysicsIonSpecies, IPDIonSpecies, IPDElectronSpecies>(
                             mappingDesc,
                             currentStep);
-                    picongpu::atomicPhysics::IPDModel::template applyPressureIonization<AtomicPhysicsIonSpecies>(
+                    picongpu::atomicPhysics::IPDModel::template applyIPDIonization<AtomicPhysicsIonSpecies>(
                         mappingDesc,
                         currentStep);
 
