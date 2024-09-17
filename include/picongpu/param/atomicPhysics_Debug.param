@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Brian Marre
+/* Copyright 2022-2024 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -42,7 +42,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace electronHistogram
     {
-        //! @attention activation only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant, uncaught error will lead to invalid memory access
@@ -69,7 +69,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace rateCache
     {
-        //! @attention only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
@@ -81,7 +81,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace rejectionProbabilityCache
     {
-        //! @attention only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
@@ -91,14 +91,14 @@ namespace picongpu::atomicPhysics::debug
 
     namespace timeRemaining
     {
-        //! @attention only useful if using cpu backend
+        //! @attention no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeRemaining
 
 
     namespace timeStep
     {
-        //! @attention only useful if using cpu backend
+        //! @attention no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeStep
 
@@ -111,7 +111,7 @@ namespace picongpu::atomicPhysics::debug
 
     namespace scFlyComparison
     {
-        /** @attention resamples electron momentum every atomicPhysics steps creating unphysical currents,
+        /** @attention resamples electron momentum every atomicPhysics step creating unphysical currents,
          *  **do not use outside debug!** */
         constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = false;
 
@@ -140,12 +140,13 @@ namespace picongpu::atomicPhysics::debug
 
     namespace kernel::rollForOverSubscription
     {
-        //! @attention only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::rollForOverSubscription
 
     namespace kernel::recordChanges
     {
+        //! @attention performance relevant
         constexpr bool CHECK_FOR_ACCEPTANCE = false;
     } // namespace kernel::recordChanges
 
