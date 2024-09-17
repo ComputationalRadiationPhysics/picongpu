@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger
+/* Copyright 2014-2024 Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -48,11 +48,10 @@ namespace picongpu
      */
     using UsedParticleShape = particles::shapes::TSC;
 
-    /** select interpolation method to be used for interpolation of grid-based field values to particle positions
-     */
+    //! select interpolation method to be used for interpolation of grid-based field values to particle positions
     using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-    /*! select current solver method
+    /** select current solver method
      * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
      * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
      * - currentSolver::EZ< SHAPE, STRATEGY >        : same as EmZ (just an alias to match the currently used naming)
