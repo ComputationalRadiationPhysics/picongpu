@@ -46,8 +46,6 @@ namespace picongpu::particles::atomicPhysics::stage
      *
      * @attention assumes RecordChanges atomicPhysics sub-stage to have been executed previously
      *
-     * @todo iterate this kernel call until all deltaEnergy is accounted for, Brian Marre, 2023
-     *
      * @tparam T_ElectronSpecies species for which to call the functor
      */
     template<typename T_ElectronSpecies>

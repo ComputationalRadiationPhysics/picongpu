@@ -93,9 +93,8 @@ namespace picongpu::particles::atomicPhysics::stage
                         atomicData.template getAtomicStateDataDataBox<false>(),
                         atomicData
                             .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>());
-
-                /// @todo field ionization, Brian Marre, 2023
             }
+
             //      autonomous based transitions
             if constexpr(AtomicDataType::switchAutonomousIonization)
             {

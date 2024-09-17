@@ -28,6 +28,7 @@
 #include "picongpu/particles/atomicPhysics/LinearApproximationProbability.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LogSpaceHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
 #include <cstdint>
@@ -99,5 +100,6 @@ namespace picongpu::atomicPhysics
         true, // T_spontaneousDeexcitation
         true, // T_electronicIonization
         true, // T_autonomousIonization
-        false>; // T_fieldIonization
+        true, // T_fieldIonization
+        picongpu::particles::atomicPhysics::enums::ADKLaserPolarization::linearPolarization>;
 } // namespace picongpu::atomicPhysics

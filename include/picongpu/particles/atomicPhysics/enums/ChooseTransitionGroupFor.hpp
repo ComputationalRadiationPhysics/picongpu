@@ -1,4 +1,4 @@
-/* Copyright 2023 Brian Marre
+/* Copyright 2023-2024 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! @file get ChooseTransitionGroup from TransitionDirection and TransitionType
+/** @file get ChooseTransitionGroup token from TransitionDirection token and TransitionType token
+ *
+ * File contains one specialisation of ChooseTransitionGroupFor for every combination of TransitionType and
+ *  TransitionDirection, giving access to the corresponding ChooseTransitionGroup,
+ *
+ * @attention no ChooseTransitionGroupFor specialization exists for **bound-free(upward)**, since the
+ *  ChooseTransitionGroup for bound-free(upward) may be either collisionalBoundFreeUpward or fieldBoundFreeUpward and
+ *  therefore no single ChooseTransitionGroup may be defined.
+ */
 
 #pragma once
 
@@ -43,13 +51,6 @@ namespace picongpu::particles::atomicPhysics::enums
     struct ChooseTransitionGroupFor<TransitionType::boundBound, TransitionDirection::downward>
     {
         static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundBoundDownward;
-    };
-
-    //! bound-free(upward)
-    template<>
-    struct ChooseTransitionGroupFor<TransitionType::boundFree, TransitionDirection::upward>
-    {
-        static constexpr ChooseTransitionGroup chooseTransitionGroup = ChooseTransitionGroup::boundFreeUpward;
     };
 
     //! autonomous(downward)

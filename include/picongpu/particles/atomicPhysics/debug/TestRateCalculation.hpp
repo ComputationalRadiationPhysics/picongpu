@@ -35,7 +35,7 @@
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundBoundTransitionRates.hpp"
-#include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeTransitionRates.hpp"
+#include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeCollisionalTransitionRates.hpp"
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
 #include <pmacc/algorithms/math.hpp>
@@ -278,8 +278,8 @@ namespace picongpu::particles::atomicPhysics::debug
         ALPAKA_FN_HOST bool testCollisionalIonizationCrossSection()
         {
             float_X const correctCrossSection = 8.051678880120e-01; // 1e6b
-            float_X const crossSection
-                = rateCalculation::BoundFreeTransitionRates<T_n_max, true>::collisionalIonizationCrossSection(
+            float_X const crossSection = rateCalculation::BoundFreeCollisionalTransitionRates<T_n_max, true>::
+                collisionalIonizationCrossSection(
                     // eV
                     energyElectron,
                     // ionization potential depression, eV
@@ -359,16 +359,18 @@ namespace picongpu::particles::atomicPhysics::debug
             float_64 const correctRate = 1.507910098065e+14; // 1/s
             float_64 const rate
                 = static_cast<float_64>(
-                      rateCalculation::BoundFreeTransitionRates<T_n_max, true>::rateCollisionalIonizationTransition(
-                          energyElectron,
-                          energyElectronBinWidth,
-                          static_cast<float_X>(densityElectrons * pmacc::math::cPow(picongpu::sim.unit.length(), 3u)),
-                          // ionization potential depression
-                          0._X,
-                          0u,
-                          chargeStateBuffer->getHostDataBox(),
-                          atomicStateBuffer->getHostDataBox(),
-                          boundFreeBuffer->getHostDataBox()))
+                      rateCalculation::BoundFreeCollisionalTransitionRates<T_n_max, true>::
+                          rateCollisionalIonizationTransition(
+                              energyElectron,
+                              energyElectronBinWidth,
+                              static_cast<float_X>(
+                                  densityElectrons * pmacc::math::cPow(picongpu::sim.unit.length(), 3u)),
+                              // ionization potential depression
+                              0._X,
+                              0u,
+                              chargeStateBuffer->getHostDataBox(),
+                              atomicStateBuffer->getHostDataBox(),
+                              boundFreeBuffer->getHostDataBox()))
                 * 1. / sim.unit.time(); // 1/s
 
             return testRelativeError(

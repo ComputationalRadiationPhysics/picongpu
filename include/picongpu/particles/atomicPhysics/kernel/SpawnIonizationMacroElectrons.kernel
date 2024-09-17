@@ -95,7 +95,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_TransitionDataBox transitionBox,
             T_RNGFactoryAndChargeStateDataBoxAndIPDInput... rngFactoryAndChargeStateBoxAndIPDInput) const
         {
-            namespace enums = picongpu::particles::atomicPhysics::enums;
+            namespace s_enums = picongpu::particles::atomicPhysics::enums;
 
             using ElectronFramePtr = typename T_IonizationElectronBox::FramePtr;
             using IonFramePtr = typename T_IonBox::FramePtr;
@@ -139,7 +139,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto numberIonizationElectronsCtxArr = lockstep::makeVar<uint8_t>(forEachFrameSlot, u8(0u));
 
             [[maybe_unused]] float_X ionizationPotentialDepression = 0._X;
-            if constexpr(T_ProcessClassGroup == enums::ProcessClassGroup::autonomousBased)
+            if constexpr(T_ProcessClassGroup == s_enums::ProcessClassGroup::autonomousBased)
                 ionizationPotentialDepression
                     = ionizationPotentialDepression::PassIPDInputs::template calculateIPD_RngFactory<T_IPDModel>(
                         superCellFieldIdx,
@@ -181,7 +181,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                             // slot is not occupied
                             !static_cast<bool>(ion[multiMask_])
                             // no bound-free based ionizing process
-                            || !(enums::IsProcess<T_ProcessClassGroup>::check(ion[processClass_])))
+                            || !(s_enums::IsProcess<T_ProcessClassGroup>::check(ion[processClass_])))
                         {
                             numberIonizationElectrons = u8(0u);
                             return;
@@ -203,14 +203,14 @@ namespace picongpu::particles::atomicPhysics::kernel
                             = T_AtomicStateDataBox::ConfigNumber::getChargeState(upperStateConfigNumber);
 
                         // set context array value
-                        if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::autonomousBased))
+                        if constexpr(u8(T_ProcessClassGroup) == u8(s_enums::ProcessClassGroup::autonomousBased))
                         {
                             // for autonomous transitions allows initialState == upperState
                             numberIonizationElectrons = lowerChargeState - upperChargeState;
                         }
                         else
                         {
-                            if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased))
+                            if constexpr(u8(T_ProcessClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased))
                             {
                                 numberIonizationElectrons = upperChargeState - lowerChargeState;
                             }
@@ -309,23 +309,33 @@ namespace picongpu::particles::atomicPhysics::kernel
                             electron[multiMask_] = 1u;
 
                             // init new electron attributes
-                            if constexpr(T_ProcessClassGroup == enums::ProcessClassGroup::boundFreeBased)
+                            if constexpr(T_ProcessClassGroup == s_enums::ProcessClassGroup::boundFreeBased)
                             {
-                                // does not need chargeStateBox since we init electron as co-moving currently
+                                uint8_t const processClass = ion[processClass_];
 
-                                initElectrons::InitIonizationElectron<enums::ProcessClass::electronicIonization>{}(
-                                    worker,
-                                    ion,
-                                    electron,
-                                    idGen);
+                                /// @note do not need chargeStateBox since we init electron as co-moving currently
+                                if(processClass == u8(s_enums::ProcessClass::electronicIonization))
+                                {
+                                    initElectrons::InitIonizationElectron<
+                                        s_enums::ProcessClass::electronicIonization>{}(worker, ion, electron, idGen);
+                                }
+                                else
+                                {
+                                    // field ionization
+                                    initElectrons::InitIonizationElectron<s_enums::ProcessClass::fieldIonization>{}(
+                                        worker,
+                                        ion,
+                                        electron,
+                                        idGen);
+                                }
 
                                 /// @todo implement field ionization, Brian Marre, 2023
                             }
-                            else if constexpr(T_ProcessClassGroup == enums::ProcessClassGroup::autonomousBased)
+                            else if constexpr(T_ProcessClassGroup == s_enums::ProcessClassGroup::autonomousBased)
                             {
                                 auto const superCellLocalOffset = superCellIdx - areaMapping.getGuardingSuperCells();
 
-                                initElectrons::InitIonizationElectron<enums::ProcessClass::autonomousIonization>{}(
+                                initElectrons::InitIonizationElectron<s_enums::ProcessClass::autonomousIonization>{}(
                                     worker,
                                     ionizationPotentialDepression,
                                     ion,

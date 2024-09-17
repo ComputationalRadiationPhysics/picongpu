@@ -45,22 +45,23 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
     {
     public:
         static constexpr uint32_t numberAtomicStates = T_numberAtomicStates;
-        // we do not store noChange since noChange is always reminder to 1
+        /// @note -1 since we never store noChange, since noChange is always reminder to 1
         static constexpr uint32_t numberStoredDataSets
             = particles::atomicPhysics::enums::numberChooseTransitionGroups - 1u;
 
     private:
         // partial sums of rates for each atomic state, one for each ChooseTransitionGroup except noChange
         // 1/sim.unit.time()
-        float_X rateEntries[T_numberAtomicStates * numberStoredDataSets] = {0};
-        uint32_t m_present[T_numberAtomicStates] = {static_cast<uint32_t>(false)}; // unitless
+        float_X rateEntries[numberAtomicStates * numberStoredDataSets] = {0._X};
+        // unitless
+        uint32_t m_present[numberAtomicStates] = {static_cast<uint32_t>(false)};
 
         /** get linear storage index
          *
          * @param collectionIndex atomic state collection index of an atomic state
          * @param dataSetIndex index of data set
          */
-        HDINLINE static constexpr uint32_t linearIndex(uint32_t const collectionIndex, uint32_t const dataSetIndex)
+        static constexpr uint32_t linearIndex(uint32_t const collectionIndex, uint32_t const dataSetIndex)
         {
             if constexpr(picongpu::atomicPhysics::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
             {
@@ -72,6 +73,19 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
             }
             return numberStoredDataSets * collectionIndex + dataSetIndex;
         }
+
+        template<particles::atomicPhysics::enums::ChooseTransitionGroup T_ChooseTransitionGroup>
+        static constexpr bool checkIsStoredChooseTransitionGroup()
+        {
+            PMACC_CASSERT_MSG(
+                noChange_not_allowed_as_T_ChooseTransitionGroup,
+                u32(T_ChooseTransitionGroup) != u32(atomicPhysics::enums::ChooseTransitionGroup::noChange));
+            PMACC_CASSERT_MSG(
+                not_a_by_state_choose_transition_group,
+                u32(T_ChooseTransitionGroup) < u32(atomicPhysics::enums::ChooseTransitionGroup::FINAL_NUMBER_ENTRIES));
+
+            return true;
+        };
 
     public:
         /** add to cache entry, using atomics
@@ -85,12 +99,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
         template<typename T_Worker, particles::atomicPhysics::enums::ChooseTransitionGroup T_ChooseTransitionGroup>
         HDINLINE void add(T_Worker const& worker, uint32_t const collectionIndex, float_X rate)
         {
-            PMACC_CASSERT_MSG(
-                noChange_not_allowed_as_T_ChooseTransitionGroup,
-                u32(T_ChooseTransitionGroup) != u32(particles::atomicPhysics::enums::ChooseTransitionGroup::noChange));
-            PMACC_CASSERT_MSG(
-                unknown_T_ChooseTransitionGroup,
-                u32(T_ChooseTransitionGroup) < particles::atomicPhysics::enums::numberChooseTransitionGroups);
+            PMACC_CASSERT(checkIsStoredChooseTransitionGroup<T_ChooseTransitionGroup>());
 
             if constexpr(picongpu::atomicPhysics::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
@@ -119,12 +128,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
         template<particles::atomicPhysics::enums::ChooseTransitionGroup T_ChooseTransitionGroup>
         HDINLINE void add(uint32_t const collectionIndex, float_X rate)
         {
-            PMACC_CASSERT_MSG(
-                noChange_not_allowed_as_T_ChooseTransitionGroup,
-                u32(T_ChooseTransitionGroup) != u32(particles::atomicPhysics::enums::ChooseTransitionGroup::noChange));
-            PMACC_CASSERT_MSG(
-                unknown_T_ChooseTransitionGroup,
-                u32(T_ChooseTransitionGroup) < particles::atomicPhysics::enums::numberChooseTransitionGroups);
+            PMACC_CASSERT(checkIsStoredChooseTransitionGroup<T_ChooseTransitionGroup>());
 
             if constexpr(picongpu::atomicPhysics::debug::rateCache::COLLECTION_INDEX_RANGE_CHECKS)
                 if(collectionIndex >= numberAtomicStates)
@@ -171,13 +175,13 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
             if constexpr(picongpu::atomicPhysics::debug::rateCache::TRANSITION_DATA_SET_INDEX_RANGE_CHECKS)
             {
                 if(chooseTransitionGroupIndex
-                   == u8(picongpu::particles::atomicPhysics::enums::ChooseTransitionGroup::noChange))
+                   == u32(picongpu::particles::atomicPhysics::enums::ChooseTransitionGroup::noChange))
                 {
                     printf("atomicPhysics ERROR: noChange not allowed as chooseTransitionGroup in rate() call\n");
                     return 0._X;
                 }
                 if(chooseTransitionGroupIndex
-                   >= u8(picongpu::particles::atomicPhysics::enums::numberChooseTransitionGroups))
+                   >= picongpu::particles::atomicPhysics::enums::numberChooseTransitionGroups)
                 {
                     printf("atomicPhysics ERROR: unknown chooseTransitionGroup index in rate() call\n");
                     return 0._X;
@@ -187,7 +191,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
             return rateEntries[linearIndex(collectionIndex, chooseTransitionGroupIndex)];
         }
 
-        /** get cached total loss rate for an atomic state
+        /** get upper limit total loss rates for an atomic state
          *
          * @param collectionIndex collection Index of atomic state
          * @return rate of transition, [1/sim.unit.time()], by convention >0
@@ -215,7 +219,7 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
 
         /** get presence status for an atomic state
          *
-         * @param collectionIndex collection Index of atomic state
+         * @param collectionIndex collection index of atomic state
          * @return if state is present in superCell
          *
          * @attention no range checks outside a debug compile, invalid memory access on failure
@@ -243,8 +247,8 @@ namespace picongpu::particles::atomicPhysics::localHelperFields
             -> std::enable_if_t<std::is_same_v<alpaka::Dev<T_Acc>, alpaka::DevCpu>>
         {
             std::cout << "rateCache" << superCellFieldIdx.toString(",", "[]")
-                      << " atomicStateCollectionIndex [bb(up), bb(down), bf(up), a(down)]" << std::endl;
-            for(uint16_t collectionIndex = 0u; collectionIndex < numberAtomicStates; ++collectionIndex)
+                      << " atomicStateCollectionIndex [bb(up), bb(down), col.bf(up), a(down), f.bf(up)]" << std::endl;
+            for(uint32_t collectionIndex = 0u; collectionIndex < numberAtomicStates; ++collectionIndex)
             {
                 if(this->present(collectionIndex))
                 {

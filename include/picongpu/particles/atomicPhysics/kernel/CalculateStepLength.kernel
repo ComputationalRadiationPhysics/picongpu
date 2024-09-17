@@ -80,6 +80,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
             auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
 
+            /// @todo switch to shared memory reduce, Brian Marre, 2024
             forEachAtomicState(
                 [&](uint32_t const atomicStateCollectionIndex)
                 {
