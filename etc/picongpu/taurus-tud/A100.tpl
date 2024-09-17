@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2023 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
+# Copyright 2013-2024 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -19,7 +19,7 @@
 #
 
 
-# PIConGPU batch script for taurus' SLURM batch system
+# PIConGPU batch script for alpha centauri's SLURM batch system
 
 #SBATCH --partition=!TBG_queue
 #SBATCH --time=!TBG_wallTime
@@ -54,16 +54,11 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
-# 6 gpus per node
-# Taurus does not have enough node memory to hold data of all GPUs in node memory during ADIOS output.
-# If you experience crashes with memory allocation errors or get killed by the batch system's
-# resource watch dog, reduce the number of GPUs used per node to four here for debugging.
-# That is, replace in the following line the two appearances of 8 with 4.
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt 8 ] ; then echo 8; else echo $TBG_tasks; fi`
-
 # number of CPU cores to block per GPU
 # we got 6 CPU cores per GPU (48cores/8gpus ~ 6cores)
 .TBG_coresPerGPU=6
+.TBG_numHostedGPUPerNode=8
+.TBG_gpusPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi)
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
