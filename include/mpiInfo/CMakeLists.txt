@@ -42,7 +42,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 # Last add generic system path to the end (as last fallback)
-list(APPEND "/usr/lib/x86_64-linux-gnu/")
+list(APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/")
 
 
 ################################################################################
