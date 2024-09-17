@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2023 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov, Klaus Steinger
+# Copyright 2013-2024 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov, Klaus Steinger, Alexander Debus
 #
 # This file is part of PIConGPU.
 #
@@ -28,7 +28,6 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes_adjusted
 #SBATCH --ntasks=!TBG_tasks_adjusted
-#SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem-per-gpu=!TBG_memPerDevice
 #SBATCH --ntasks-per-gpu=1
 #SBATCH --gpu-bind=closest

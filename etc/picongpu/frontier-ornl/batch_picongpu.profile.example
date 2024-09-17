@@ -29,14 +29,14 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 # such as mpi, libfabric and others.
 # The following modules just add to these.
 
-module load PrgEnv-cray/8.3.3 # Compiling with cray compiler wrapper CC
-module load craype-accel-amd-gfx90a
-module load rocm/5.4.3
+module load PrgEnv-cray/8.5.0 # Compiling with cray compiler wrapper CC
+module load craype-accel-amd-gfx940
+module load rocm/6.2.0
 
 export MPICH_GPU_SUPPORT_ENABLED=1
-module load cray-mpich/8.1.23
+module load cray-mpich/8.1.28
 
-module load boost/1.79.0-cxx17
+module load boost/1.79.0
 
 module load cmake/3.23.2
 module load git

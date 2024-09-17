@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2023 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov, Klaus Steinger, Franz Poeschel
+# Copyright 2013-2024 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov, Klaus Steinger, Franz Poeschel, Alexander Debus
 #
 # This file is part of PIConGPU.
 #
@@ -62,14 +62,6 @@
 
 # number of available/hosted devices per node in the system
 .TBG_numHostedDevicesPerNode=8
-
-# number of CPU cores to block per GPU
-# we have 8 CPU cores per GPU (64cores/8gpus ~ 8cores)
-# If we take only seven of them, we have 8 leftover CPUs for one further
-# CPU-only task
-#
-.TBG_coresPerGPU=7
-.TBG_coresPerPipeInstance=7
 
 # Keep data transport MPI for now.
 # "fabric" works as well with the latest ADIOS2 master, but there might still be issues.
@@ -311,7 +303,6 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       $exclude_nodes                              \
       --ntasks-per-node=1                         \
       --gpus-per-node=0                           \
-      --cpus-per-task=!TBG_coresPerPipeInstance   \
       --cpu-bind=verbose,mask_cpu:$mask           \
       --network=single_node_vni,job_vni           \
       /mnt/bb/$USER/sync_bins/launch.sh           \
@@ -339,7 +330,6 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
       $exclude_nodes                        \
       --ntasks-per-node=!TBG_devicesPerNode \
       --gpus-per-node=!TBG_devicesPerNode   \
-      --cpus-per-task=!TBG_coresPerGPU      \
       --cpu-bind=verbose,mask_cpu:$mask     \
       --network=single_node_vni,job_vni     \
       -K1                                   \
