@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2023 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
+# Copyright 2013-2024 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -19,7 +19,7 @@
 #
 
 
-# PIConGPU batch script for taurus' SLURM batch system
+# PIConGPU batch script for alpha centauri's SLURM batch system
 # This tpl for automated restarts is older than the actual
 # V100.tpl.
 # It uses a machine file for parallel job execution,
@@ -64,12 +64,11 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
-# 8 gpus per node
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt 8 ] ; then echo 8; else echo $TBG_tasks; fi`
-
 # number of CPU cores to block per GPU
 # we got 6 CPU cores per GPU (48cores/8gpus ~ 6cores)
 .TBG_coresPerGPU=6
+.TBG_numHostedGPUPerNode=8
+.TBG_gpusPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi)
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"

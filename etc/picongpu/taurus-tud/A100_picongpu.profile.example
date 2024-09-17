@@ -15,22 +15,15 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Modules #####################################################################
 #
-module switch modenv/hiera
-
-# load GCC/10.3.0, zlib 1.2.11, OpenMPI/4.1.1 and others
-module load foss/2021a
-module load CUDA/11.6.0
-module load HDF5/1.10.7
-module load CMake
+# load GCC/11.3.0, zlib 1.2.12, OpenMPI/4.1.4 and others
+module load release/23.04
+module load foss/2022a
+module load CUDA/12.0.0
+module load HDF5/1.13.2
+module load CMake/3.24.3
 module load libpng/1.6.37
-module load freetype/2.10.4
-
-printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
-printf "@ Note: You need to compile picongpu on a node. @\n"
-printf "@       Likewise for building the libraries.    @\n"
-printf "@       Get a node with the getNode command.    @\n"
-printf "@       Then source %s again.@\n" "$(basename $PIC_PROFILE)"
-printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+module load freetype/2.12.1
+module load git/2.36.0-nodocs
 
 # Self-Build Software #########################################################
 #
@@ -39,21 +32,11 @@ printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 # https://gist.github.com/BeyondEspresso/c8f9e07224e2844db299b664a32ceab7#file-taurus-a100-build-picongpu-dependencies-sh
 #
 export PIC_LIBS=$HOME/lib/alpha
-export BOOST_ROOT=$PIC_LIBS/boost-1.68.0
-export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
-export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.0
-export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1
-export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.14.3
-
-export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
-
-export PATH=$ADIOS2_ROOT/bin:$PATH
-
+export CMAKE_PREFIX_PATH=$PIC_LIBS/boost:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PIC_LIBS/pngwriter:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PIC_LIBS/c-blosc2:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PIC_LIBS/adios2:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PIC_LIBS/openPMD-api:$CMAKE_PREFIX_PATH
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
@@ -88,7 +71,7 @@ function getNode() {
         numNodes=$1
     fi
     export OMP_NUM_THREADS=6
-    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((8 * $numNodes)) --ntasks-per-node=8 --cpus-per-task=6 --mem=0 --exclusive --gres=gpu:8 -p alpha-interactive --pty bash
+    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((8 * $numNodes)) --ntasks-per-node=8 --cpus-per-task=6 --mem=0 --exclusive --gres=gpu:8 -p alpha --pty bash
 }
 
 # allocate an interactive shell for two hours
@@ -105,7 +88,7 @@ function getDevice() {
         fi
     fi
     export OMP_NUM_THREADS=6
-    srun --time=2:00:00 --nodes=1 --ntasks=$numDevices --ntasks-per-node=$(($numDevices)) --cpus-per-task=6 --mem=$((990000 / $numDevices)) --gres=gpu:$numDevices -p alpha-interactive --pty bash
+    srun --time=2:00:00 --nodes=1 --ntasks=$numDevices --ntasks-per-node=$(($numDevices)) --cpus-per-task=6 --mem=$((990000 / $numDevices)) --gres=gpu:$numDevices -p alpha --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
