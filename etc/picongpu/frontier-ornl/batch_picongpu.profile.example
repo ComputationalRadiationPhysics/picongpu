@@ -38,6 +38,7 @@ module load cray-mpich/8.1.28
 
 module load boost/1.79.0
 
+module load cmake/3.23.2
 module load git
 
 ## set environment variables required for compiling and linking
@@ -63,11 +64,6 @@ module load freetype/2.11.1
 # ORNL is only providing outdated modules.
 #
 # module load openpmd-api/0.15.X
-
-# Please install cmake on your own and put it in your PATH.
-# ORNL is only providing outdated modules.
-#
-# export PATH=$HOME/cmake-3.30.3-linux-x86_64/bin:$PATH
 
 # Self-Build Software #########################################################
 # Optional, not required.
