@@ -516,7 +516,7 @@ namespace picongpu
                                 // and write to file.
                                 constexpr float_X transRadUnit = sim.si.getElectronCharge()
                                     * sim.si.getElectronCharge()
-                                    * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * sim.si.getSpeedOfLight()));
+                                    * (1.0 / (4 * PI * sim.si.getEps0() * PI * PI * sim.si.getSpeedOfLight()));
                                 outFile
                                     << values[index_direction * transitionRadiation::frequencies::nOmega + index_omega]
                                         * transRadUnit
@@ -572,7 +572,7 @@ namespace picongpu
 
                     transitionRadiation.setUnitSI(
                         sim.si.getElectronCharge() * sim.si.getElectronCharge()
-                        * (1.0 / (4 * PI * SI::EPS0_SI * PI * PI * sim.si.getSpeedOfLight())));
+                        * (1.0 / (4 * PI * sim.si.getEps0() * PI * PI * sim.si.getSpeedOfLight())));
 
                     auto span = transitionRadiation.storeChunk<float_X>(offset, extent);
                     auto spanBuffer = span.currentBuffer();

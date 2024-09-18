@@ -714,7 +714,7 @@ namespace picongpu
                                     complex_64 const Bx = BxOmegaPropagated[i][j][o] * exponential;
                                     complex_64 const By = ByOmegaPropagated[i][j][o] * exponential;
                                     shadowgram[i][j] += (dt
-                                                         / (SI::MUE0_SI * pluginNumT * pluginNumT * pluginNumX
+                                                         / (sim.si.getMue0() * pluginNumT * pluginNumT * pluginNumX
                                                             * pluginNumX * pluginNumY * pluginNumY))
                                         * (Ex * By - Ey * Bx + ExTmpSum[i][j] * By + Ex * ByTmpSum[i][j]
                                            - EyTmpSum[i][j] * Bx - Ey * BxTmpSum[i][j])

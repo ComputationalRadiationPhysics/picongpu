@@ -373,7 +373,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             constexpr float_64 e_SI = picongpu::sim.si.getElectronCharge();
 
             // C/(Vm)
-            constexpr float_64 mue0_SI = picongpu::SI::MUE0_SI;
+            constexpr float_64 mue0_SI = picongpu::sim.si.getMue0();
             // unitless
             constexpr float_64 pi = picongpu::PI;
             // Js

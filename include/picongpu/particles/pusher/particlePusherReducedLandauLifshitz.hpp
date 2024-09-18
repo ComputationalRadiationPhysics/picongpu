@@ -200,7 +200,8 @@ namespace picongpu
                     const float_X c2 = c * c;
                     const float_X charge2 = charge * charge;
 
-                    const float_X prefactorRR = 2. / 3. * charge2 * charge2 / (4. * PI * EPS0 * mass * mass * c2 * c2);
+                    const float_X prefactorRR
+                        = 2. / 3. * charge2 * charge2 / (4. * PI * sim.pic.getEps0() * mass * mass * c2 * c2);
                     const float3_X lorentz = fieldE + conversionMomentum2Beta * c * pmacc::math::cross(mom, fieldB);
                     const float_X fieldETimesBeta = pmacc::math::dot(fieldE, mom) * conversionMomentum2Beta;
                     const float3_X radReactionVec = c

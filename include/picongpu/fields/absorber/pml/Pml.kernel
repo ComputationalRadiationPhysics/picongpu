@@ -459,7 +459,7 @@ namespace picongpu
                              * artificial PML absorbing medium. We do not have any
                              * real material, so in (7.107a,b) we have to use
                              * sigma(i + 1/2, j, k) = 0 (it is another sigma,
-                             * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
+                             * unrelated to PML), eps(i + 1/2, j, k) = sim.pic.getEps0(). Also,
                              * same as the FDTD scheme in PIC, adjusted to use B,
                              * not H, on the right-hand side.
                              */
@@ -565,7 +565,7 @@ namespace picongpu
                              * artificial PML absorbing medium. We do not have any
                              * real material, so in (7.109a,b) we have to use
                              * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
-                             * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
+                             * unrelated to PML), mue(i + 1/2, j, k) = sim.pic.getMue0(). Also,
                              * same as the FDTD scheme in PIC, adjusted to use B,
                              * not H, on the left-hand side.
                              */

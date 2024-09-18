@@ -43,7 +43,7 @@ namespace picongpu
                             const float_COLL factor1 = math::abs((v.charge0 * v.charge1))
                                 / (4._COLL * pmacc::math::Pi<float_COLL>::value
                                    * static_cast<float_COLL>(
-                                       EPS0 * sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight()));
+                                       sim.pic.getEps0() * sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight()));
                             const float_COLL factor2 = v.gammaComs / (v.mass0 * v.gamma0 + v.mass1 * v.gamma1);
                             const float_COLL factor3
                                 = (v.coeff0 * v.coeff1 / v.comsMomentum0Norm2

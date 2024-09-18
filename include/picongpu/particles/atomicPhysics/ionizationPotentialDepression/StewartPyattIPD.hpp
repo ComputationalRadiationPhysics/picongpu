@@ -221,7 +221,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             // eV * sim.unit.length()
             constexpr float_X constFactor = eV * static_cast<float_X>(T_atomicNumber)
                 * pmacc::math::cPow(picongpu::sim.pic.getElectronCharge(), 2u)
-                / (4._X * static_cast<float_X>(picongpu::PI) * picongpu::EPS0);
+                / (4._X * static_cast<float_X>(picongpu::PI) * picongpu::sim.pic.getEps0());
 
             // eV, not weighted
             float_X const temperatureTimesk_Boltzman = localTemperatureEnergyBox(superCellFieldIdx);

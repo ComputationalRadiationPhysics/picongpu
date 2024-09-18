@@ -226,8 +226,8 @@ namespace picongpu
                     auto div = picongpu::detail::Div<simDim, typename FieldTmp::ValueType>{};
 
                     /* rho := | div E * eps_0 - rho | */
-                    rohBox(globalCellIdx).x()
-                        = pmacc::math::l2norm(div(fieldEBox.shift(globalCellIdx)) * EPS0 - rohBox(globalCellIdx).x());
+                    rohBox(globalCellIdx).x() = pmacc::math::l2norm(
+                        div(fieldEBox.shift(globalCellIdx)) * sim.pic.getEps0() - rohBox(globalCellIdx).x());
                 });
         };
 
