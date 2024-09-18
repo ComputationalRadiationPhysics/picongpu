@@ -1,0 +1,6 @@
+*~
+etc/
+.build/
+bin/
+__pycache__/
+binningOpenPMD/

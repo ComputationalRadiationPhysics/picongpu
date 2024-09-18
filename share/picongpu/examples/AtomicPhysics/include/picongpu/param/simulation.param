@@ -1,0 +1,83 @@
+/* Copyright 2013-2022 Axel Huebl, Rene Widera, Benjamin Worpitz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+// changed absorber size to 0 in all 3 dimensions
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Duration of one timestep
+         *
+         *  Non-LTE steady state or LTE respectively should be reached
+         *  within 1 ps. We discretize the time in 1'000 equal steps.
+         *
+         *  unit: seconds */
+        constexpr float_64 DELTA_T_SI = 3.3e-17;
+
+        /** epsilon to be >= 1 per mill close to CFL */
+        constexpr float_64 EPS_CFL = 1.001;
+        constexpr float_64 SQRT_OF_3 = 1.73205 * EPS_CFL;
+
+        /** equals X
+         *
+         *  note: formulated to automatically fulfill the 3D-CFL criteria for Yee
+         *
+         *  unit: meter */
+        constexpr float_64 CELL_WIDTH_SI = DELTA_T_SI * SPEED_OF_LIGHT_SI * SQRT_OF_3;
+        /** equals Y - the laser & moving window propagation direction
+         *  unit: meter */
+        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
+        /** equals Z
+         *  unit: meter
+         *
+         * @attention if SIMDIM = DIM2, CELL_DEPTH_SI must be set to system size integrated over in projection!
+         * @note on units in reduced dimensions
+         *
+         * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
+         * is still used for normalization of densities, etc.
+         *
+         * A 2D3V simulation in a cartesian PIC simulation such as
+         * ours only changes the degrees of freedom in motion for
+         * (macro) particles and all (field) information in z
+         * travels instantaneous, making the 2D3V simulation
+         * behave like the interaction of infinite "wire particles"
+         * in fields with perfect symmetry in Z.
+         */
+        constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
+
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+        constexpr float_64 BASE_DENSITY_SI = 2e28;
+    } // namespace SI
+
+    /** During unit normalization, we assume this is a typical
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 30u;
+} // namespace picongpu

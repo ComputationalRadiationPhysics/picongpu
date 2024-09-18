@@ -1,0 +1,164 @@
+/* Copyright 2022-2024 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ * configurations for compile time debug options of atomicPhysics
+ *
+ * @details needs to be a separate file to avoid circular imports in "picongpu/particles/atomicPhysics/atomicData/"
+ */
+
+#pragma once
+
+namespace picongpu::atomicPhysics::debug
+{
+    namespace atomicData
+    {
+        constexpr bool PRINT_TO_CONSOLE = false;
+
+        //! @attention performance relevant, uncaught error will lead to invalid memory access
+        constexpr bool RANGE_CHECKS_IN_DATA_QUERIES = false;
+        //! range check in store calls to individual data boxes, only once upon initial loading of atomic input data
+        constexpr bool RANGE_CHECKS_IN_DATA_LOAD = false;
+        //! @attention will not catch members missing from hostToDevice() method,
+        constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = false;
+    } // namespace  atomicData
+
+
+    namespace electronHistogram
+    {
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
+
+        //! @attention performance relevant, uncaught error will lead to invalid memory access
+        constexpr bool RANGE_CHECKS_BIN_INDEX = false;
+        //! @attention performance relevant, uncaught error will lead to invalid memory access
+        constexpr bool RANGE_CHECKS_ENERGY = false;
+    } // namespace electronHistogram
+
+
+    namespace rateCalculation
+    {
+        //! @attention performance relevant
+        constexpr bool DEBUG_CHECKS = false;
+        constexpr bool RUN_UNIT_TESTS = false;
+    } // namespace rateCalculation
+
+
+    namespace deltaEnergyTransition
+    {
+        //! @attention performance relevant
+        constexpr bool IONIZATION_ENERGY_INVERSION_CHECK = false;
+    } // namespace deltaEnergyTransition
+
+
+    namespace rateCache
+    {
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
+
+        //! @attention performance relevant
+        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = false;
+        //! @attention performance relevant
+        constexpr bool TRANSITION_DATA_SET_INDEX_RANGE_CHECKS = false;
+    } // namespace rateCache
+
+
+    namespace rejectionProbabilityCache
+    {
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
+
+        //! @attention performance relevant
+        constexpr bool BIN_INDEX_RANGE_CHECK = false;
+    } // namespace rejectionProbabilityCache
+
+
+    namespace timeRemaining
+    {
+        //! @attention no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
+    } // namespace timeRemaining
+
+
+    namespace timeStep
+    {
+        //! @attention no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
+    } // namespace timeStep
+
+
+    namespace initIonizationElectrons
+    {
+        //! @attention performance relevant
+        constexpr bool CHECK_DELTA_ENERGY_INIT_FROM_COMOVING_POSITIVE = false;
+    } // namespace initIonizationElectrons
+
+    namespace scFlyComparison
+    {
+        /** @attention resamples electron momentum every atomicPhysics step creating unphysical currents,
+         *  **do not use outside debug!** */
+        constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = true;
+
+        //! fixed temperature setting
+        struct TemperatureParam
+        {
+            //! Initial temperature, [keV]
+            static constexpr float_64 temperature = 1.;
+        };
+    } // namespace scFlyComparison
+
+
+    namespace kernel::calculateTimeStep
+    {
+        //! @attention performance relevant
+        constexpr bool CHECK_TOTAL_LOSS_RATE_POSITIVE = false;
+    } // namespace kernel::calculateTimeStep
+
+    namespace kernel::chooseTransition
+    {
+        //! @attention performance relevant
+        constexpr bool CHECK_FOR_INVALID_TRANSITION_TYPE = false;
+        //! @attention performance relevant
+        constexpr bool CHECK_FOR_OVERFLOWS_IN_ACCUMULATON = false;
+    } // namespace kernel::chooseTransition
+
+    namespace kernel::rollForOverSubscription
+    {
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
+        constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
+    } // namespace kernel::rollForOverSubscription
+
+    namespace kernel::recordChanges
+    {
+        //! @attention performance relevant
+        constexpr bool CHECK_FOR_ACCEPTANCE = false;
+    } // namespace kernel::recordChanges
+
+    namespace kernel::spawnIonizationElectrons
+    {
+        //! @attention performance relevant
+        constexpr bool ELECTRON_PARTICLE_BOX_FILL_GAPS = false;
+    } // namespace kernel::spawnIonizationElectrons
+
+    namespace kernel::applyPressureIonization
+    {
+        //! @attention performance relevant
+        constexpr bool ELECTRON_PARTICLE_BOX_FILL_GAPS = false;
+    } // namespace kernel::applyPressureIonization
+} // namespace picongpu::atomicPhysics::debug

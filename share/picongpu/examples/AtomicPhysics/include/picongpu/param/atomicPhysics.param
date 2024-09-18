@@ -1,0 +1,117 @@
+/* Copyright 2022-2024 Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file configuration file for atomicPhysics, also see speciesDefinition.param for further
+ *  necessary settings to enable atomicPhysics.
+ */
+
+#pragma once
+
+#include "picongpu/particles/atomicPhysics/ExponentialApproximationProbability.hpp"
+#include "picongpu/particles/atomicPhysics/LinearApproximationProbability.hpp"
+#include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
+#include "picongpu/particles/atomicPhysics/electronDistribution/LogSpaceHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
+
+#include <cstdint>
+
+
+namespace picongpu::atomicPhysics
+{
+    // configuration of electron ElectronHistogram
+    //{
+    struct MaxEnergyParam
+    {
+        // eV
+        static constexpr float_X maxEnergy = float_X(1.5e5);
+    };
+    using ElectronHistogram = particles::atomicPhysics::electronDistribution::LogSpaceHistogram<
+        100u, // T_numberBins
+        MaxEnergyParam>;
+    //}
+
+    // atomicPhysics rate solver settings
+
+    struct RateSolverParam
+    {
+        //      atomicPhysics timeStepLength sub-stepping of numerical limit
+        static constexpr float_X timeStepAlpha = 0.1_X;
+
+        //      which probability approximation to use for the acceptance step
+        using ProbabilityApproximationFunctor
+            = picongpu::particles::atomicPhysics::ExponentialApproximationProbability;
+    };
+
+    /** atomicConfigNumber definition for argon ions
+     *
+     * @details describes analytic bidirectional indexation of atomic states, i.e. conversion of configNumber to/from
+     *  occupation number vector
+     *
+     * define one type-instance for every physical ion species, i.e. Ar, Cu, ...
+     *
+     * See piconpgu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp for further information.
+     */
+    using ConfigNumber_Copper = particles::atomicPhysics::stateRepresentation::ConfigNumber<
+        /** data type to use for configNumber representation
+         * @attention must be able to hold all configNumbers in atomic data input files! */
+        uint64_t,
+        /** maximum(inclusive) principial quantum number n_max to include in modelling
+         *
+         * corresponds to number of atomic shells to include in indexing of atomic states.
+         *
+         * @attention must be <= to number of shells used in atomic data input
+         * @attention only influences analytic indexation, actually tracked atomic states are specified via atomic
+         *  input data files of each atomicPhyscis ion species, @note see speciesDefinition.param
+         */
+        10u,
+        //! atomic number of element, @attention must be < 256!
+        29u>;
+
+    /** atomicData dataBase type
+     *
+     * define one type-instance for every physical ion species, i.e. Ar, Cu, ...
+     *
+     * see picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp for further information.
+     */
+    using AtomicData_Cu = particles::atomicPhysics::atomicData::AtomicData<
+        // T_Number
+        uint32_t,
+        // T_Value
+        float_X,
+        // T_CollectionIndex
+        uint32_t,
+        // T_ConfigNumber, type used for analytic indexation
+        ConfigNumber_Copper,
+        // T_Multiplicities, data type used for storage
+        float_64,
+        // T_electronicExcitation
+        true,
+        // T_electronicDeexcitation
+        true,
+        // T_spontaneousDeexcitation
+        true,
+        // T_electronicIonization
+        true,
+        // T_autonomousIonization
+        true,
+        // T_fieldIonization
+        true,
+        picongpu::particles::atomicPhysics::enums::ADKLaserPolarization::linearPolarization>;
+} // namespace picongpu::atomicPhysics
