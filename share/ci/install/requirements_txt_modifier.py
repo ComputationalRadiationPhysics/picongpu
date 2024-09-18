@@ -1,25 +1,21 @@
-import os
-import sys
-
 """
 This file is part of PIConGPU.
 Copyright 2023-2023 PIConGPU contributors
 Authors: Simeon Ehrig
 License: GPLv3+
-"""
 
-"""@file Fix package version in requirement.txt to a specific version.
+@file Fix package version in requirement.txt to a specific version.
 
 Reads an existing requirements.txt file, sets one or more of the packages to a
 fixed version and creates a new requirements.txt file from the modified
 hard set packages and fills up with the remaining packages.
 
-@param First application argument: Path to the original requirements.txt
-@param Second application argument: Path to the mew requirements.txt
-
-@attention Versions of the packages are set via environment variables. The
-variables need to have the shape of: PYPIC_DEP_VERSION_<package_name>=<version>
+Run `python requirements_txt_modifier.py --help` to check the usage.
 """
+
+import os
+import sys
+import argparse
 
 
 def cs(text: str, color: str):
@@ -52,35 +48,63 @@ def cs(text: str, color: str):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Set path to requirements.txt as first argument and output path as" " second argument.")
-        exit(1)
+    parser = argparse.ArgumentParser(
+        "requirements_txt_modifier",
+        description="Reads an existing requirements.txt file, sets one or more of the packages to a"
+        "fixed version and creates a new requirements.txt file from the modified"
+        "hard set packages and fills up with the remaining packages.\n"
+        "Versions of the packages are set via environment variables. The"
+        "variables need to have the shape of: PYPIC_DEP_VERSION_<package_name>=<version>",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    parser.add_argument(
+        "-i",
+        type=str,
+        required=True,
+        help="Set the path of the input requirements.txt",
+    )
+    parser.add_argument(
+        "-o",
+        type=str,
+        required=True,
+        help="Set the path of the output requirements.txt",
+    )
+    parser.add_argument(
+        "--ignore_env_args",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Ignore these environment variables, which are set to modify the requirements.txt. The environment variables starts with `PYPIC_DEP_VERSION_`.",
+    )
+    args = parser.parse_args()
 
     # parse environment variables
     packages = {}
     for envvar in os.environ:
-        if envvar.startswith("PYPIC_DEP_VERSION_"):
-            packages[envvar.split("_")[-1]] = os.environ[envvar]
+        if envvar not in args.ignore_env_args:
+            if envvar.startswith("PYPIC_DEP_VERSION_"):
+                packages[envvar.split("_")[-1]] = os.environ[envvar]
 
     print("Try to set following package to a fix version")
     for pkg_name, pkg_version in packages.items():
         print(f"  {pkg_name} -> {pkg_version}")
 
-    with open(sys.argv[1], "r", encoding="utf-8") as input:
-        with open(sys.argv[2], "w", encoding="utf-8") as output:
-            for line in input.readlines():
+    with open(args.i, "r", encoding="utf-8") as input_file:
+        with open(args.o, "w", encoding="utf-8") as output_file:
+            for line in input_file.readlines():
                 input_pkg_name = line.split(" ")[0]
                 if input_pkg_name in packages:
-                    output.write(f"{input_pkg_name} == {packages[input_pkg_name]}\n")
+                    output_file.write(f"{input_pkg_name} == {packages[input_pkg_name]}\n")
                     packages.pop(input_pkg_name)
                 else:
-                    output.write(line)
+                    output_file.write(line)
 
     # debug messages
     for pkg_name in packages.keys():
         print(
             cs(
-                f"WARNING: could not find {pkg_name} in requirements.txt",
-                "Yellow",
+                f"ERROR: could not find {pkg_name} in requirements.txt",
+                "Red",
             )
         )
+        sys.exit(1)

@@ -43,8 +43,17 @@ micromamba activate pypicongpu
 python3 --version
 MODIFIED_REQUIREMENT_TXT_PICMI=$CI_PROJECT_DIR/lib/python/picongpu/picmi/modified_requirements.txt
 MODIFIED_REQUIREMENT_TXT_PYPICONGPU=$CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/modified_requirements.txt
-python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $MODIFIED_REQUIREMENT_TXT_PICMI
-python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py $CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/requirements.txt $MODIFIED_REQUIREMENT_TXT_PYPICONGPU
+# The environment variables for changing the version of a dependency package are set globally.
+# Therefore, all calls of the requirements_txt_modfifier.py script are affected.
+# To avoid unexpected changes to dependencies, the list of ignored environment variables.
+python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py \
+    -i $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt \
+    -o $MODIFIED_REQUIREMENT_TXT_PICMI \
+    --ignore_env_args PYPIC_DEP_VERSION_referencing PYPIC_DEP_VERSION_jsonschema
+python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py \
+    -i $CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/requirements.txt \
+    -o $MODIFIED_REQUIREMENT_TXT_PYPICONGPU \
+    --ignore_env_args PYPIC_DEP_VERSION_pydantic PYPIC_DEP_VERSION_picmistandard
 
 echo "modified_requirements.txt: "
 cat $MODIFIED_REQUIREMENT_TXT_PICMI
