@@ -23,6 +23,8 @@
 
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
+#include <cstdint>
+
 
 namespace pmacc
 {
