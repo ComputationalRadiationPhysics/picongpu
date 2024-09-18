@@ -49,6 +49,7 @@
 
 #include <algorithm>
 #include <type_traits> // std::remove_reference_t
+#include <vector>
 
 namespace picongpu
 {
@@ -399,7 +400,7 @@ namespace picongpu
                         % (particleIoChunkInfo.largestChunk * particleSizeInByte);
 
                     myNumParticles = particleIoChunkInfo.totalNumParticles;
-                    uint64_t allNumParticles[mpiSize];
+                    std::vector<uint64_t> allNumParticles(mpiSize);
 
                     // avoid deadlock between not finished pmacc tasks and mpi blocking
                     // collectives
@@ -408,7 +409,7 @@ namespace picongpu
                         &myNumParticles,
                         1,
                         MPI_UNSIGNED_LONG_LONG,
-                        allNumParticles,
+                        allNumParticles.data(),
                         1,
                         MPI_UNSIGNED_LONG_LONG,
                         gc.getCommunicator().getMPIComm()));
