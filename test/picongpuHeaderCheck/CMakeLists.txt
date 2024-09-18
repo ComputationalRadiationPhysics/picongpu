@@ -9,7 +9,7 @@
 #
 
 cmake_minimum_required(VERSION 3.22)
-project(PMaccHeaderTest)
+project(PIConGPUHeaderTest)
 
 # Add common functions from alpaka.
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/alpaka/cmake/common.cmake)
@@ -115,7 +115,6 @@ alpaka_add_executable(
         ${_FILES_SOURCE})
 
 target_link_libraries(${_TARGET_NAME} PUBLIC Catch2 Catch2WithMain)
-target_compile_definitions(${_TARGET_NAME} PRIVATE "PMACC_NO_TPP_INCLUDE")
 target_link_libraries(${_TARGET_NAME} PRIVATE pmacc::pmacc)
 target_include_directories(
         ${_TARGET_NAME}
