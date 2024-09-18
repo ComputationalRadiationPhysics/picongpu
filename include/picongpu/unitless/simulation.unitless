@@ -183,7 +183,7 @@ namespace picongpu
             /** Unit of EField: V/m */
             constexpr float_64 eField() const
             {
-                return 1.0 / (time() * time() / mass() / length() * length());
+                return 1.0 / (time() * time() / mass() / length() * charge());
             }
 
             /** Unit of BField: Tesla [T] = Vs/m^2 */
