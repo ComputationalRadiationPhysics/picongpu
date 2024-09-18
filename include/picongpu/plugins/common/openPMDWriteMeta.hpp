@@ -237,8 +237,8 @@ namespace picongpu
 
 
                 /* write physical constants */
-                iteration.setAttribute("mue0", MUE0);
-                iteration.setAttribute("eps0", EPS0);
+                iteration.setAttribute("mue0", sim.pic.getMue0());
+                iteration.setAttribute("eps0", sim.pic.getEps0());
 
                 if(writeToLog)
                     log<picLog::INPUT_OUTPUT>("openPMD: ( end ) wite meta attributes.");

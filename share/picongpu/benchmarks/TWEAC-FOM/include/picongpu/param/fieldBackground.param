@@ -149,7 +149,7 @@ namespace picongpu
              * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
              * sim.si.getElectronMass() * sim.si.getElectronMass() * sim.si.getSpeedOfLight()
              * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
-             * sim.si.getSpeedOfLight() * SI::EPS0_SI); */
+             * sim.si.getSpeedOfLight() * sim.si.getEps0()); */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
                 * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 
@@ -294,7 +294,7 @@ namespace picongpu
              * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
              * sim.si.getElectronMass() * sim.si.getElectronMass() * sim.si.getSpeedOfLight()
              * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
-             * sim.si.getSpeedOfLight() * SI::EPS0_SI); */
+             * sim.si.getSpeedOfLight() * sim.si.getEps0()); */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
                 * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
 

@@ -215,7 +215,8 @@ namespace picongpu
                     auto const kT = (momentumVariance[0] + momentumVariance[1] + momentumVariance[2]) / (3.0 * mass);
                     auto const temperatureKeV = kT * sim.unit.energy() / UNITCONV_keV_to_Joule;
                     auto const electronCharge = picongpu::traits::frame::getCharge<Frame>();
-                    auto const debyeLength = sqrt(EPS0 * kT / (electronDensity * electronCharge * electronCharge));
+                    auto const debyeLength
+                        = sqrt(sim.pic.getEps0() * kT / (electronDensity * electronCharge * electronCharge));
                     auto maxCellSize = sim.pic.getCellSize()[0];
                     // For 2D do not use grid size along z, as it is always resolved
                     for(uint32_t d = 1; d < simDim; d++)

@@ -194,7 +194,7 @@ namespace picongpu
                      */
 
                     // Base coefficient in front of J in Ampere's law
-                    constexpr float_X baseCoeff = -(1.0_X / EPS0) * getTimeStep();
+                    constexpr float_X baseCoeff = -(1.0_X / sim.pic.getEps0()) * getTimeStep();
                     auto const alpha = static_cast<float_X>((subStep + 0.5) / this->numSubsteps);
                     auto const prevCoeff = (0.5_X - alpha) * baseCoeff;
                     auto const currentCoeff = (0.5_X + alpha) * baseCoeff;

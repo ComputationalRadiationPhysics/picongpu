@@ -65,8 +65,8 @@ namespace picongpu
                     }
                     else
                         // T = 2/3 average_energy
-                        chargeDensity
-                            = (3.0_X / 2.0_X) * (1.0_X / EPS0) * chargeDensity * chargeDensity / energyDensity;
+                        chargeDensity = (3.0_X / 2.0_X) * (1.0_X / sim.pic.getEps0()) * chargeDensity * chargeDensity
+                            / energyDensity;
                 }
 
 

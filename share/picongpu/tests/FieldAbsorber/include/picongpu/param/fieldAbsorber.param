@@ -103,9 +103,9 @@ namespace picongpu
 
                 // [Taflove, Hagness], eq. (7.66). Not required, defined for convenience
                 constexpr float_64 SIGMA_OPT_SI[3]
-                    = {0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * sim.si.getCellSize().x()),
-                       0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * sim.si.getCellSize().y()),
-                       0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * sim.si.getCellSize().z())};
+                    = {0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (sim.si.getZ0() * sim.si.getCellSize().x()),
+                       0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (sim.si.getZ0() * sim.si.getCellSize().y()),
+                       0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (sim.si.getZ0() * sim.si.getCellSize().z())};
 
                 // Muptiplier to express SIGMA_MAX_SI with SIGMA_OPT_SI. Not required, defined for convenience
                 constexpr float_64 SIGMA_OPT_MULTIPLIER = 1.0;

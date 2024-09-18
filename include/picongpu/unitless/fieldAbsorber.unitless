@@ -70,7 +70,9 @@ namespace picongpu
                  * unit: 1 / s
                  */
                 constexpr float_64 NORMALIZED_SIGMA_MAX_SI[3]
-                    = {SIGMA_MAX_SI[0] / SI::EPS0_SI, SIGMA_MAX_SI[1] / SI::EPS0_SI, SIGMA_MAX_SI[2] / SI::EPS0_SI};
+                    = {SIGMA_MAX_SI[0] / sim.si.getEps0(),
+                       SIGMA_MAX_SI[1] / sim.si.getEps0(),
+                       SIGMA_MAX_SI[2] / sim.si.getEps0()};
 
                 /** Max value of normalized conductivity in PIC units
                  *
@@ -87,7 +89,9 @@ namespace picongpu
                  * unit: 1 / s
                  */
                 constexpr float_64 NORMALIZED_ALPHA_MAX_SI[3]
-                    = {ALPHA_MAX_SI[0] / SI::EPS0_SI, ALPHA_MAX_SI[1] / SI::EPS0_SI, ALPHA_MAX_SI[2] / SI::EPS0_SI};
+                    = {ALPHA_MAX_SI[0] / sim.si.getEps0(),
+                       ALPHA_MAX_SI[1] / sim.si.getEps0(),
+                       ALPHA_MAX_SI[2] / sim.si.getEps0()};
 
                 /** Max value of normalized complex frequency shift in PIC units
                  *

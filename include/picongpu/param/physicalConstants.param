@@ -40,10 +40,6 @@ namespace picongpu
         /** unit: C / (V m) */
         constexpr float_64 EPS0_SI = 1.0 / MUE0_SI / SPEED_OF_LIGHT_SI / SPEED_OF_LIGHT_SI;
 
-        /** impedance of free space
-         * unit: ohm */
-        constexpr float_64 Z0_SI = MUE0_SI * SPEED_OF_LIGHT_SI;
-
         /** reduced Planck constant
          *
          * unit: J * s

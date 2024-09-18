@@ -212,9 +212,11 @@ namespace picongpu
             for(int d = 0; d < FieldB::numComponents; ++d)
             {
                 /* B field convert */
-                globalFieldEnergy[0][d] *= float_64(0.5 / MUE0 * sim.pic.getCellSize().productOfComponents());
+                globalFieldEnergy[0][d]
+                    *= float_64(0.5 / sim.pic.getMue0() * sim.pic.getCellSize().productOfComponents());
                 /* E field convert */
-                globalFieldEnergy[1][d] *= float_64(EPS0 * sim.pic.getCellSize().productOfComponents() * 0.5);
+                globalFieldEnergy[1][d]
+                    *= float_64(sim.pic.getEps0() * sim.pic.getCellSize().productOfComponents() * 0.5);
 
                 /* add all to one */
                 energyFieldBReduced += globalFieldEnergy[0][d];
