@@ -76,25 +76,28 @@ namespace picongpu::particles::atomicPhysics::kernel
                         = u32(picongpu::traits::GetNumberAtomicStates<T_IonSpecies>::value);
                     uint32_t const collectionIndex = ion[atomicStateCollectionIndex_];
 
-                    // check for default and out of range values
-                    if(collectionIndex >= numberAtomicStates)
-                    {
-                        ion[atomicStateCollectionIndex_] = atomicStateDataBox.findGroundState(
-                            chargeStateOrgaBox.numberAtomicStates(targetChargeState),
-                            chargeStateOrgaBox.startIndexBlockAtomicStates(targetChargeState));
-                    }
-                    else
+                    /* Check if index is in valid range, can be invalid because value is equal to value_identifier's
+                     * default.
+                     */
+                    bool isValidCollectionIdx = collectionIndex < numberAtomicStates;
+                    // update state if collection index is invalid
+                    bool updateStateCollectionIdx = !isValidCollectionIdx;
+
+                    if(isValidCollectionIdx)
                     {
                         typename ConfigNumber::DataType const configNumber
                             = atomicStateDataBox.configNumber(collectionIndex);
                         uint8_t const atomicPhysicsBoundElectrons = ConfigNumber::getBoundElectrons(configNumber);
 
                         if(boundElectrons != atomicPhysicsBoundElectrons)
-                        {
-                            ion[atomicStateCollectionIndex_] = atomicStateDataBox.findGroundState(
-                                chargeStateOrgaBox.numberAtomicStates(targetChargeState),
-                                chargeStateOrgaBox.startIndexBlockAtomicStates(targetChargeState));
-                        }
+                            updateStateCollectionIdx = true;
+                    }
+
+                    if(updateStateCollectionIdx)
+                    {
+                        ion[atomicStateCollectionIndex_] = atomicStateDataBox.findGroundState(
+                            chargeStateOrgaBox.numberAtomicStates(targetChargeState),
+                            chargeStateOrgaBox.startIndexBlockAtomicStates(targetChargeState));
                     }
                 });
         }
