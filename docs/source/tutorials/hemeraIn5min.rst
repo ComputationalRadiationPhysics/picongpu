@@ -144,7 +144,7 @@ If this fails, read the manual or ask a colleague.
 
 After a successfull build, run (still on the compute node, still inside your scenario directory)::
 
-  tbg -s bash -t $PICSRC/etc/picongpu/bash/mpiexec.tpl -c /etc/picongpu/1.cfg $SCRATCH/tinkering/try01/run01
+  tbg -s bash -t $PICSRC/etc/picongpu/bash/mpiexec.tpl -c etc/picongpu/1.cfg $SCRATCH/tinkering/try01/run01
 
 - :command:`tbg`: tool provided by PIConGPU
 - ``bash``: the “submit system”, e.g. use ``sbatch`` for slurm
