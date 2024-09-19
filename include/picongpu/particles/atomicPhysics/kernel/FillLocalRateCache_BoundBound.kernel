@@ -67,6 +67,31 @@ namespace picongpu::particles::atomicPhysics::kernel
         s_enums::TransitionOrdering T_TransitionOrdering>
     struct FillLocalRateCacheKernel_BoundBound
     {
+        template<
+            typename T_AtomicStateStartIndexBox,
+            typename T_AtomicStateNumberTransitionsBox,
+            typename T_BoundBoundTransitionDataBox>
+        static constexpr bool checkAtomicDataBoxes()
+        {
+            PMACC_CASSERT_MSG(
+                number_transitions_dataBox_not_bound_bound_based,
+                u8(T_AtomicStateNumberTransitionsBox::processClassGroup)
+                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
+            PMACC_CASSERT_MSG(
+                startIndex_dataBox_not_bound_free_based,
+                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundBoundBased));
+            PMACC_CASSERT_MSG(
+                transition_dataBox_not_boud_bound_based,
+                u8(T_BoundBoundTransitionDataBox::processClassGroup)
+                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
+            // check ordering of transition dataBox
+            PMACC_CASSERT_MSG(
+                wrong_ordering_of_DataBox,
+                u8(T_BoundBoundTransitionDataBox::transitionOrdering) == u8(T_TransitionOrdering));
+
+            return true;
+        }
+
         /** call operator
          *
          * called by FillLocalRateCache atomic physics sub-stage
@@ -108,21 +133,10 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_BoundBoundTransitionDataBox const boundBoundTransitionDataBox) const
         {
             // check that correct databoxes are given
-            PMACC_CASSERT_MSG(
-                number_transitions_dataBox_not_bound_bound_based,
-                u8(T_AtomicStateNumberTransitionsBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
-            PMACC_CASSERT_MSG(
-                startIndex_dataBox_not_bound_free_based,
-                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundBoundBased));
-            PMACC_CASSERT_MSG(
-                transition_dataBox_not_boud_bound_based,
-                u8(T_BoundBoundTransitionDataBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundBoundBased));
-            // check ordering of transition dataBox
-            PMACC_CASSERT_MSG(
-                wrong_ordering_of_DataBox,
-                u8(T_BoundBoundTransitionDataBox::transitionOrdering) == u8(T_TransitionOrdering));
+            PMACC_CASSERT(checkAtomicDataBoxes<
+                          T_AtomicStateStartIndexBox,
+                          T_AtomicStateNumberTransitionsBox,
+                          T_BoundBoundTransitionDataBox>());
 
             constexpr bool isUpward = (u8(T_TransitionOrdering) == u8(s_enums::TransitionOrdering::byLowerState));
 
