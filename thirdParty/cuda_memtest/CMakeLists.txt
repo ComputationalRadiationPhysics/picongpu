@@ -142,7 +142,6 @@ if(CUDA_MEMTEST_BACKEND STREQUAL "cuda")
 
     if(NOT CUDA_MEMTEST_RELEASE)
         set(CMAKE_BUILD_TYPE Debug)
-        target_compile_options(cuda_memtest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-g>)
     endif()
 else()
     target_link_libraries(cuda_memtest PRIVATE hip::host)
