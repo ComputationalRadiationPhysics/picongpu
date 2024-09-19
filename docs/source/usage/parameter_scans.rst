@@ -157,7 +157,8 @@ Here is an example of what this might look like for a Python script called ``pos
             "post_processing.py"
 
 The parameters set with the ``params`` keyword, can be accessed in your python script via `snakemake.params[i]` or `snakemake.params.name_of_param`. 
-Accordingly one can use ``snakemake.input`` or ``snakemake.output``.
+Accordingly one can use ``snakemake.input`` or ``snakemake.output``. Please note that they are list/dictionary-like Snakemake-specific types.
+More details can be found in `Snakemake's documentation <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#python>`_.
 
 To perform this evaluation on the cluster, add the required resource to the "config.yaml". For example, like this:
 
