@@ -415,7 +415,7 @@ namespace picongpu
                      */
                     auto targetPhotonClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(childPhoton);
 
-                    targetPhotonClone.copyAndInit(worker, idGen, partOp::deselect<particleId>(parentElectron));
+                    targetPhotonClone.derive(worker, idGen, parentElectron);
 
                     childPhoton[momentum_] = m_PhotonMomentum;
 

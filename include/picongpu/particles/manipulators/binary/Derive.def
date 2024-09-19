@@ -35,11 +35,11 @@ namespace picongpu
                 namespace acc
                 {
                     //! assign attributes of one particle to another
-                    struct Assign
+                    struct Derive
                     {
                         IdGenerator m_idGen;
 
-                        Assign(uint32_t, IdGenerator idGenerator) : m_idGen(idGenerator)
+                        Derive(uint32_t, IdGenerator idGenerator) : m_idGen(idGenerator)
                         {
                         }
 
@@ -58,21 +58,20 @@ namespace picongpu
                             T_DestParticle& particleDest,
                             T_SrcParticle& particleSrc)
                         {
-                            particleDest.copyAndInit(worker, m_idGen, particleSrc);
+                            particleDest.derive(worker, m_idGen, particleSrc);
                         }
                     };
                 } // namespace acc
 
-                /** assign attributes of one particle to another
+                /** derive attributes of one particle to another
                  *
-                 * Can be used as binary and higher order operator but only the first two
-                 * particles are used for the assign operation.
-                 *
-                 * Assign all matching attributes of a source particle to the destination
-                 * particle. Attributes that only exist in the destination species are initialized
-                 * with the default value. Attributes that only exists in the source particle will be ignored.
+                 * Compared to Copy, this functor can be called on species with different attribute lists.
+                 * Typically common attributes are copied and unique attributes only existing in the destination
+                 * particle will set to the initial default value. Please check the definition of all the particle
+                 * attributes in speciesAttributes.param. Attributes are allowed to changes the behaviour for the
+                 * derive operation.
                  */
-                using Assign = generic::Free<acc::Assign>;
+                using Derive = generic::Free<acc::Derive>;
 
             } // namespace binary
         } // namespace manipulators

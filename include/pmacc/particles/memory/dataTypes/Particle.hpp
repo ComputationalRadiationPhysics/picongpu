@@ -28,9 +28,10 @@
 #include "pmacc/meta/errorHandlerPolicies/ReturnValue.hpp"
 #include "pmacc/particles/boostExtension/InheritLinearly.hpp"
 #include "pmacc/particles/operations/Assign.hpp"
-#include "pmacc/particles/operations/CopyIdentifier.hpp"
+#include "pmacc/particles/operations/CopyValueIdentifier.hpp"
+#include "pmacc/particles/operations/DeriveValueIdentifier.hpp"
 #include "pmacc/particles/operations/Deselect.hpp"
-#include "pmacc/particles/operations/SetAttributeToDefault.hpp"
+#include "pmacc/particles/operations/InitValueIdentifier.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/traits/GetFlagType.hpp"
 #include "pmacc/traits/HasFlag.hpp"
@@ -167,45 +168,29 @@ namespace pmacc
         HDINLINE
         Particle& operator=(const Particle& other) = default;
 
-        /** Assign common attributes of one particle to another
+        /** Derive attributes
          *
          * The common subset of the attribute lists from both particles is
          * used to set the attributes in this particle with the corresponding ones from source particle.
          * The remaining attributes that only exist in this particle is simply set to their default values.
          */
         template<typename T_Worker, typename T_OtherFrameType, typename T_OtherValueTypeSeq>
-        HDINLINE void copyAndInit(
+        HDINLINE void derive(
             T_Worker const& worker,
             IdGenerator& idGen,
             pmacc::Particle<T_OtherFrameType, T_OtherValueTypeSeq> const& srcParticle)
         {
-            using Src = pmacc::Particle<T_OtherFrameType, T_OtherValueTypeSeq>;
-
             using DestTypeSeq = typename Particle::ValueTypeSeq;
-            using SrcTypeSeq = typename Src::ValueTypeSeq;
-
-            /* create sequences with disjunctive attributes from `DestTypeSeq` */
-            using UniqueInDestTypeSeq = mp_set_difference<DestTypeSeq, SrcTypeSeq>;
-
-            /* create attribute list with a subset of common attributes in two sequences
-             * mp_contains has lower complexity than traits::HasIdentifier
-             * and was used for this reason
-             */
-            using CommonTypeSeq = mp_set_difference<DestTypeSeq, UniqueInDestTypeSeq>;
 
             using pmacc::meta::ForEach;
-            /* assign attributes */
-            ForEach<CommonTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
-            copy(*this, srcParticle);
-
-            /* set all attributes which are not in src to their default value*/
-            ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<boost::mpl::_1>> setAttributeToDefault;
-            setAttributeToDefault(worker, idGen, *this, srcParticle);
+            /* derive attributes */
+            ForEach<DestTypeSeq, DeriveValueIdentifier<boost::mpl::_1>> derive;
+            derive(worker, idGen, *this, srcParticle);
         }
 
         /** Assign common attributes of one particle to another
          *
-         *  The source article must have at least the attributes this particle has.
+         *  The source particle must have at least the attributes this particle has.
          */
         template<typename T_OtherFrameType, typename T_OtherValueTypeSeq>
         HDINLINE Particle& operator=(pmacc::Particle<T_OtherFrameType, T_OtherValueTypeSeq> const& other)
@@ -218,8 +203,8 @@ namespace pmacc
                 "Source particle is not providing all attributes required to update the destination particle.");
 
             using pmacc::meta::ForEach;
-            /* assign attributes */
-            ForEach<ValueTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
+            /* derive attributes */
+            ForEach<ValueTypeSeq, CopyValueIdentifier<boost::mpl::_1>> copy;
             copy(*this, other);
             return *this;
         }

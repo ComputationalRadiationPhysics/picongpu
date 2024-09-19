@@ -1,0 +1,65 @@
+/* Copyright 2015-2023 Rene Widera, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/manipulators/generic/Free.def"
+
+#include <pmacc/particles/operations/Assign.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            namespace binary
+            {
+                namespace acc
+                {
+                    //! assign attributes of one particle to another
+                    struct Copy
+                    {
+                        /** Copy all attributes defined in the source particle.
+                         *
+                         * @param particleDest destination particle
+                         * @param particleSrc source particle
+                         */
+                        template<typename T_Worker, typename T_DestParticle, typename T_SrcParticle>
+                        HDINLINE void operator()(
+                            T_Worker const&,
+                            T_DestParticle& particleDest,
+                            T_SrcParticle& particleSrc)
+                        {
+                            particleDest = particleSrc;
+                        }
+                    };
+                } // namespace acc
+
+                /** copy attributes of one particle to another
+                 *
+                 * The source particle must have at least the attributes the destination requires.
+                 */
+                using Copy = generic::Free<acc::Copy>;
+
+            } // namespace binary
+        } // namespace manipulators
+    } // namespace particles
+} // namespace picongpu
