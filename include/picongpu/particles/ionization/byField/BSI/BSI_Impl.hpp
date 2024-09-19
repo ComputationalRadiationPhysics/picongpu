@@ -225,7 +225,7 @@ namespace picongpu
                      */
                     auto targetElectronClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(childElectron);
 
-                    targetElectronClone.copyAndInit(worker, idGen, partOp::deselect<particleId>(parentIon));
+                    targetElectronClone.derive(worker, idGen, parentIon);
 
                     const float_X massIon = attribute::getMass(weighting, parentIon);
                     const float_X massElectron = attribute::getMass(weighting, childElectron);

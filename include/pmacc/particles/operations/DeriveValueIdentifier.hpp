@@ -32,38 +32,21 @@ namespace pmacc
      * @tparam  T_Attribute value_identifier or alias which is a value_identifier
      */
     template<typename T_Attribute>
-    struct SetAttributeToDefault
+    struct DeriveValueIdentifier
     {
         using Attribute = T_Attribute;
-
-        /** set an attribute to their default value
-         *
-         * Check value_identifier and value_identifier_func for special behaviours on how defaults get derived.
-         *
-         * @tparam T_DestParticleType particle type
-         *
-         * @{
-         */
-        template<typename T_Worker, typename T_DestParticleType>
-        HDINLINE void operator()(T_Worker const& worker, IdGenerator idGen, T_DestParticleType& destParticle)
-        {
-            using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
-            /* set attribute to its user defined default value */
-            destParticle[Attribute()] = ResolvedAttr::getValue(worker, idGen, T_DestParticleType{});
-        }
 
         template<typename T_Worker, typename T_DestParticleType, typename T_SrcParticleType>
         HDINLINE void operator()(
             T_Worker const& worker,
             IdGenerator idGen,
             T_DestParticleType& destParticle,
-            T_SrcParticleType const& srcParticle)
+            T_SrcParticleType const& srcParticle) const
         {
             using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
             /* set attribute to its user defined default value */
-            destParticle[Attribute()] = ResolvedAttr::getValue(worker, idGen, srcParticle);
+            destParticle[Attribute{}] = ResolvedAttr{}.deriveValue(worker, idGen, T_Attribute{}, srcParticle);
         }
-        /** @} */
     };
 
 

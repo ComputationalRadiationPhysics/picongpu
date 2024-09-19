@@ -60,7 +60,12 @@ namespace picongpu
     value_identifier_func(
         uint64_t,
         particleId,
-        [] ALPAKA_FN_ACC(auto const& worker, IdGenerator& idGen, auto const&) { return idGen.fetchInc(worker); });
+        /* called when particle is created */
+        ([](auto const& worker, IdGenerator& idGen) constexpr { return idGen.fetchInc(worker); }),
+        /* called when particle is copied */
+        (pmacc::particles::identifier::CallCopy{}),
+        /* called when particle is derived from other particle */
+        (pmacc::particles::identifier::CallInitValue{}));
 
     //! specialization for the relative in-cell position
     value_identifier(floatD_X, position_pic, floatD_X::create(0.));

@@ -48,7 +48,7 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             auto targetElectronClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(electron);
 
             // otherwise this deselect will create incomplete type compile error
-            targetElectronClone.copyAndInit(worker, idGen, partOp::deselect<particleId>(ion));
+            targetElectronClone.derive(worker, idGen, ion);
         }
     };
 } // namespace picongpu::particles::atomicPhysics::initElectrons

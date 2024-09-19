@@ -80,3 +80,14 @@
                        ? 4                                                                                            \
                        : ((value) <= 8 ? 8                                                                            \
                                        : ((value) <= 16 ? 16 : ((value) <= 32 ? 32 : ((value) <= 64 ? 64 : 128)))))))
+
+/** Removes brackets from an macro function parameter
+ *
+ *  @code{.cpp}
+ *  PMACC_REMOVE_BRACKETS (foo)
+ *
+ *  // will be transformed to:
+ *  //   foo
+ *  @endcode
+ */
+#define PMACC_REMOVE_BRACKETS(...) __VA_ARGS__

@@ -24,8 +24,9 @@
 
 #include "picongpu/particles/manipulators/IBinary.def"
 #include "picongpu/particles/manipulators/IUnary.def"
-#include "picongpu/particles/manipulators/binary/Assign.def"
+#include "picongpu/particles/manipulators/binary/Copy.def"
 #include "picongpu/particles/manipulators/binary/DensityWeighting.def"
+#include "picongpu/particles/manipulators/binary/Derive.def"
 #include "picongpu/particles/manipulators/binary/ProtonTimesWeighting.def"
 #include "picongpu/particles/manipulators/binary/UnboundElectronsTimesWeighting.def"
 #include "picongpu/particles/manipulators/generic/Free.def"

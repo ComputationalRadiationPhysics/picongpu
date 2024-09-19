@@ -267,7 +267,7 @@ namespace picongpu
                                     using ParticleCleanedAttrList =
                                         typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
 
-                                    meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<boost::mpl::_1>>
+                                    meta::ForEach<ParticleCleanedAttrList, InitValueIdentifier<boost::mpl::_1>>
                                         setToDefault;
 
                                     setToDefault(worker, idGen, particle);
