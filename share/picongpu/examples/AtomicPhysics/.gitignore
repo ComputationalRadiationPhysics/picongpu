@@ -1,5 +1,4 @@
 *~
-etc/
 .build/
 bin/
 __pycache__/
