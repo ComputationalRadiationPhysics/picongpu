@@ -110,14 +110,15 @@ namespace picongpu::particles::atomicPhysics::kernel
 
                     bool const processUsesElectronHistogramWeight
                         = enums::IsProcess<enums::ProcessClassGroup::electronicCollisional>::check(processClass);
+                    bool usesNotOverSubcribedBin = false;
 
-                    bool const usesNotOverSubcribedBin
-                        = (rejectionProbabilityCache.rejectionProbability(binIndex) <= 0._X);
+                    if(processUsesElectronHistogramWeight)
+                        usesNotOverSubcribedBin = (rejectionProbabilityCache.rejectionProbability(binIndex) <= 0._X);
 
                     if constexpr(picongpu::atomicPhysics::debug::kernel::rollForOverSubscription::
                                      PRINT_DEBUG_TO_CONSOLE)
                     {
-                        if(!usesNotOverSubcribedBin && processUsesElectronHistogramWeight && ion[accepted_])
+                        if(ion[accepted_] && processUsesElectronHistogramWeight && !usesNotOverSubcribedBin)
                         {
                             picongpu::particles::atomicPhysics::debug::PrintAtomicPhysicsIonToConsole{}(
                                 worker.getAcc(),
