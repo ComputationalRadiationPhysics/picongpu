@@ -181,7 +181,7 @@ namespace picongpu
                      */
                     float_X numericFactor = sim.pic.getDt() * sim.pic.getElectronCharge() / HBAR
                         * sim.pic.getElectronCharge() / HBAR * sim.pic.getElectronMass() * sim.pic.getSpeedOfLight()
-                        / (EPS0 * 4._X * PI);
+                        / (sim.pic.getEps0() * 4._X * PI);
 
                     if constexpr(params::supressRequirementWarning == false)
                     {

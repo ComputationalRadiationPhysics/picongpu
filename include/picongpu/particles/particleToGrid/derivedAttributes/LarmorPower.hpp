@@ -67,7 +67,8 @@ namespace picongpu
 
                     const float3_X mom_dt = (mom - mom_mt1) / float_X(sim.pic.getDt());
                     const float_X el_factor = charge * charge
-                        / (float_X(6.0) * PI * EPS0 * c2 * sim.pic.getSpeedOfLight() * mass * mass) * gamma2 * gamma2;
+                        / (float_X(6.0) * PI * sim.pic.getEps0() * c2 * sim.pic.getSpeedOfLight() * mass * mass)
+                        * gamma2 * gamma2;
                     const float_X momentumToBetaConvert = float_X(1.0) / (mass * sim.pic.getSpeedOfLight() * gamma);
                     const float_X larmorPower = el_factor
                         * (pmacc::math::l2norm2(mom_dt)

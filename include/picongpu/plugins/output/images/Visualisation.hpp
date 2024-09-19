@@ -107,10 +107,10 @@ namespace picongpu
 #else
             constexpr auto baseCharge = sim.pic.getBaseCharge();
             const float_X lambda_pl = pmacc::math::Pi<float_X>::doubleValue * sim.pic.getSpeedOfLight()
-                * sqrt(sim.pic.getBaseMass() * EPS0 / BASE_DENSITY / baseCharge / baseCharge);
-            const float_X tyEField = lambda_pl * BASE_DENSITY / 3.0f / EPS0;
-            const float_X tyBField = tyEField * MUE0_EPS0;
-            const float_X tyCurrent = tyBField / MUE0;
+                * sqrt(sim.pic.getBaseMass() * sim.pic.getEps0() / BASE_DENSITY / baseCharge / baseCharge);
+            const float_X tyEField = lambda_pl * BASE_DENSITY / 3.0f / sim.pic.getEps0();
+            const float_X tyBField = tyEField * sim.pic.getMue0Eps0();
+            const float_X tyCurrent = tyBField / sim.pic.getMue0();
 
             return float3_X(tyBField, tyEField, tyCurrent);
 #endif
@@ -156,7 +156,7 @@ namespace picongpu
                 * static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle()) * math::abs(baseCharge)
                 / sim.pic.getDt();
             const float_X tyEField = getAmplitude() + FLT_MIN;
-            const float_X tyBField = tyEField * MUE0_EPS0;
+            const float_X tyBField = tyEField * sim.pic.getMue0Eps0();
             return float3_X(tyBField, tyEField, tyCurrent);
 #endif
         }

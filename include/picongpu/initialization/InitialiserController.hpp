@@ -115,7 +115,7 @@ namespace picongpu
                 const float_32 mass = frame::getMass<FrameType>();
                 const auto densityRatio = traits::GetDensityRatio<T_Species>::type::getValue();
                 const auto density = BASE_DENSITY * densityRatio;
-                const auto omegaP_dt = sqrt(density * charge / mass * charge / EPS0) * sim.pic.getDt();
+                const auto omegaP_dt = sqrt(density * charge / mass * charge / sim.pic.getEps0()) * sim.pic.getDt();
                 log<picLog::PHYSICS>("species %2%: omega_p * dt <= 0.1 ? (omega_p * dt = %1%)") % omegaP_dt
                     % FrameType::getName();
             }

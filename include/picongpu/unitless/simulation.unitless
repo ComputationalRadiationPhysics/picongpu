@@ -78,6 +78,31 @@ namespace picongpu
             {
                 return static_cast<T_Type>(si.getElectronCharge() / unit.charge());
             }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getMue0() const
+            {
+                return static_cast<T_Type>(si.getMue0() / unit.length() / unit.mass() * unit.charge() * unit.charge());
+            }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getEps0() const
+            {
+                return static_cast<T_Type>(
+                    1. / pic.getMue0<T_Type>() / pic.getSpeedOfLight<T_Type>() / pic.getSpeedOfLight<T_Type>());
+            }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getMue0Eps0() const
+            {
+                return static_cast<T_Type>(1. / pic.getSpeedOfLight<T_Type>() / pic.getSpeedOfLight<T_Type>());
+            }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getZ0() const
+            {
+                return static_cast<T_Type>(pic.getMue0<T_Type>() * pic.getSpeedOfLight<T_Type>());
+            }
         };
         struct SiUnits
         {
@@ -146,6 +171,36 @@ namespace picongpu
             constexpr float_64 getElectronCharge() const
             {
                 return SI::ELECTRON_CHARGE_SI;
+            }
+
+            /** vacuum magnetic permability
+             *
+             * unit: N / A^2
+             *
+             * 2022 CODATA Value, https://physics.nist.gov/cgi-bin/cuu/Value?mu0
+             */
+            constexpr float_64 getMue0() const
+            {
+                return SI::MUE0_SI;
+            }
+
+            /** unit: C / (V m) */
+            constexpr float_64 getEps0() const
+            {
+                return 1.0 / getMue0() / getSpeedOfLight() / getSpeedOfLight();
+            }
+
+            /** = 1/c^2 */
+            constexpr float_64 getMue0Eps0() const
+            {
+                return 1.0 / getSpeedOfLight() / getSpeedOfLight();
+            }
+
+            /** impedance of free space
+             * unit: ohm */
+            constexpr float_64 getZ0() const
+            {
+                return getMue0() * getSpeedOfLight();
             }
         };
         struct Units

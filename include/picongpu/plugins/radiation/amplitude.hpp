@@ -157,7 +157,7 @@ namespace picongpu
                 {
                     // const SI factor radiation
                     const picongpu::float_64 factor = 1.0
-                        / (16. * util::cube(pmacc::math::Pi<picongpu::float_64>::value) * picongpu::EPS0
+                        / (16. * util::cube(pmacc::math::Pi<picongpu::float_64>::value) * picongpu::sim.pic.getEps0()
                            * picongpu::sim.pic.getSpeedOfLight());
 
                     return factor * (pmacc::math::norm(amp_x) + pmacc::math::norm(amp_y) + pmacc::math::norm(amp_z));
