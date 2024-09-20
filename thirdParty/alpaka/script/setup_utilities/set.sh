@@ -11,4 +11,12 @@
 # -u: treat unset variables as an error
 # -v: Print shell input lines as they are read
 # -x: Print command traces before executing command
-set -eouvx pipefail
+
+# exit by default if the command does not return 0
+# can be deactivated by setting the environment variable alpaka_DISABLE_EXIT_FAILURE
+# for example for local debugging in a Docker container
+if [ -z ${alpaka_DISABLE_EXIT_FAILURE+x} ]; then
+    set -e
+fi
+
+set -ouvx pipefail

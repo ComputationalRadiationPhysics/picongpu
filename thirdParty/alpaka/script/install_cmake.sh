@@ -8,14 +8,18 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: install_cmake>"
+
 : "${ALPAKA_CI_CMAKE_DIR?'ALPAKA_CI_CMAKE_DIR must be specified'}"
 : "${ALPAKA_CI_CMAKE_VER?'ALPAKA_CI_CMAKE_VER must be specified'}"
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     if agc-manager -e cmake@${ALPAKA_CI_CMAKE_VER} ; then
+        echo_green "<USE: preinstalled CMake ${ALPAKA_CI_CMAKE_VER}>"
         export ALPAKA_CI_CMAKE_DIR=$(agc-manager -b cmake@${ALPAKA_CI_CMAKE_VER})
     else
+        echo_yellow "<INSTALL: CMake ${ALPAKA_CI_CMAKE_VER}>"
         if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
         then
             # Download the selected version.

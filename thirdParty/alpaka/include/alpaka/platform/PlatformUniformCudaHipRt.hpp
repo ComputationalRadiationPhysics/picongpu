@@ -234,7 +234,7 @@ namespace alpaka
                     std::cout << "clockInstructionRate: " << devProp.clockInstructionRate << "kHz" << std::endl;
                     std::cout << "maxSharedMemoryPerMultiProcessor: " << devProp.maxSharedMemoryPerMultiProcessor / KiB
                               << " KiB" << std::endl;
-                    std::cout << "gcnArch: " << devProp.gcnArch << std::endl;
+                    std::cout << "gcnArchName: " << devProp.gcnArchName << std::endl;
                     std::cout << "arch: " << std::endl;
                     std::cout << "    hasGlobalInt32Atomics: " << devProp.arch.hasGlobalInt32Atomics << std::endl;
                     std::cout << "    hasGlobalFloatAtomicExch: " << devProp.arch.hasGlobalFloatAtomicExch
