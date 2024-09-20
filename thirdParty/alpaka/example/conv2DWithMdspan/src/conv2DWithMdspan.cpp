@@ -147,15 +147,15 @@ auto example(TAccTag const&) -> int
     //  Construct kernel object
     ConvolutionKernelMdspan2D convolutionKernel2D;
 
-    // Make a bundle
-    auto const& bundeledKernel = alpaka::KernelBundle(
+    //   Let alpaka calculate good block and grid sizes given our full problem extent.
+    alpaka::KernelCfg<DevAcc> const kernelCfg = {extent, Vec::ones()};
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
         convolutionKernel2D,
         alpaka::experimental::getMdSpan(bufInputAcc),
         alpaka::experimental::getMdSpan(outputDeviceMemory),
         alpaka::experimental::getMdSpan(bufFilterAcc));
-
-    //   Let alpaka calculate good block and grid sizes given our full problem extent.
-    auto const workDiv = alpaka::getValidWorkDivForKernel<DevAcc>(devAcc, bundeledKernel, extent, Vec::ones());
 
 
     // Run the kernel, pass 3 arrays as 2D mdspans

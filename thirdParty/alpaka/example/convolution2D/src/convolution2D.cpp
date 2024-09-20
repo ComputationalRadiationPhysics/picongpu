@@ -265,7 +265,7 @@ auto example(TAccTag const&) -> int
     alpaka::wait(queueAcc);
 
     // Calculate the allocated width, due to padding it might be larger then the matrix width
-    auto const intputWidthAllocated = [&]() -> const Idx
+    auto const intputWidthAllocated = [&]() -> Idx const
     {
         // Calculate pitch: The size of one line in bytes including padding.
         auto const rowPitchInput{alpaka::getPitchesInBytes(bufInputAcc)[0]};
@@ -294,7 +294,7 @@ auto example(TAccTag const&) -> int
     alpaka::wait(queueAcc);
 
     // Calculate the allocated width, due to padding it might be larger then the matrix width
-    auto const filterWidthAllocated = [&]() -> const Idx
+    auto const filterWidthAllocated = [&]() -> Idx const
     {
         // Calculate pitch: The size of one line in bytes including padding.
         auto const rowPitchFilter{alpaka::getPitchesInBytes(bufFilterAcc)[0]};
@@ -305,19 +305,21 @@ auto example(TAccTag const&) -> int
     //  ConvolutionKernel2DSharedMemory
     ConvolutionKernel2DSharedMemory convolutionKernel2D;
 
-    auto const& bundeledKernel = alpaka::KernelBundle(
+    alpaka::KernelCfg<DevAcc> kernelCfg = {extent, Vec::ones()};
+
+    //   Let alpaka calculate good block and grid sizes given our full problem extent.
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
         convolutionKernel2D,
-        alpaka::getPtrNative(bufInputAcc),
-        alpaka::getPtrNative(outputDeviceMemory),
+        std::data(bufInputAcc),
+        std::data(outputDeviceMemory),
         matrixWidth,
         matrixHeight,
-        alpaka::getPtrNative(bufFilterAcc),
+        std::data(bufFilterAcc),
         filterWidth,
         intputWidthAllocated,
         filterWidthAllocated);
-
-    //   Let alpaka calculate good block and grid sizes given our full problem extent.
-    auto const workDiv = alpaka::getValidWorkDivForKernel<DevAcc>(devAcc, bundeledKernel, extent, Vec::ones());
 
     // Run the kernel
     alpaka::exec<DevAcc>(

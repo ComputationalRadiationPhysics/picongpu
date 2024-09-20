@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Bernhard Manfred Gruber, Luca Ferragina, Aurora Perego, Andrea Bocci
+/* Copyright 2024 Jan Stephan, Bernhard Manfred Gruber, Luca Ferragina, Aurora Perego, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -195,8 +195,8 @@ namespace alpaka::detail
 namespace alpaka::trait
 {
     //! The SYCL host-to-device memory copy trait specialization.
-    template<typename TPlatform, typename TDim>
-    struct CreateTaskMemcpy<TDim, DevGenericSycl<TPlatform>, DevCpu>
+    template<typename TTag, typename TDim>
+    struct CreateTaskMemcpy<TDim, DevGenericSycl<TTag>, DevCpu>
     {
         template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
         static auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
@@ -209,8 +209,8 @@ namespace alpaka::trait
     };
 
     //! The SYCL device-to-host memory copy trait specialization.
-    template<typename TPlatform, typename TDim>
-    struct CreateTaskMemcpy<TDim, DevCpu, DevGenericSycl<TPlatform>>
+    template<typename TTag, typename TDim>
+    struct CreateTaskMemcpy<TDim, DevCpu, DevGenericSycl<TTag>>
     {
         template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
         static auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)
@@ -223,8 +223,8 @@ namespace alpaka::trait
     };
 
     //! The SYCL device-to-device memory copy trait specialization.
-    template<typename TPlatformDst, typename TPlatformSrc, typename TDim>
-    struct CreateTaskMemcpy<TDim, DevGenericSycl<TPlatformDst>, DevGenericSycl<TPlatformSrc>>
+    template<typename TTagDst, typename TTagSrc, typename TDim>
+    struct CreateTaskMemcpy<TDim, DevGenericSycl<TTagDst>, DevGenericSycl<TTagSrc>>
     {
         template<typename TExtent, typename TViewSrc, typename TViewDstFwd>
         static auto createTaskMemcpy(TViewDstFwd&& viewDst, TViewSrc const& viewSrc, TExtent const& extent)

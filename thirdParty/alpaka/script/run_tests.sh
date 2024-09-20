@@ -8,6 +8,8 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: run_tests>"
+
 : "${alpaka_ACC_GPU_CUDA_ENABLE?'alpaka_ACC_GPU_CUDA_ENABLE must be specified'}"
 : "${alpaka_ACC_GPU_HIP_ENABLE?'alpaka_ACC_GPU_HIP_ENABLE must be specified'}"
 

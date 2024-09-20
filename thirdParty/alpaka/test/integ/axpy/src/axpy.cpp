@@ -147,16 +147,18 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 #endif
 
 
-    auto const& bundeledKernel
-        = alpaka::KernelBundle(kernel, numElements, alpha, std::data(memBufAccX), std::data(memBufAccY));
+    alpaka::KernelCfg<Acc> const kernelCfg
+        = {extent, static_cast<Idx>(3u), false, alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
         devAcc,
-        bundeledKernel,
-        extent,
-        static_cast<Idx>(3u),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+        kernel,
+        numElements,
+        alpha,
+        std::data(memBufAccX),
+        std::data(memBufAccY));
 
     std::cout << "AxpyKernel("
               << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()

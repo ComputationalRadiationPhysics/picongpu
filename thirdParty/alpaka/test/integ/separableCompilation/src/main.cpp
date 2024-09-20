@@ -111,10 +111,16 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
     alpaka::memcpy(queueAcc, memBufAccA, memBufHostA);
     alpaka::memcpy(queueAcc, memBufAccB, memBufHostB);
 
-    auto const& bundeledKernel
-        = alpaka::KernelBundle(kernel, memBufAccA.data(), memBufAccB.data(), memBufAccC.data(), numElements);
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, extent, static_cast<Idx>(3u));
+    alpaka::KernelCfg<Acc> const kernelCfg = {extent, static_cast<Idx>(3u)};
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
+        kernel,
+        memBufAccA.data(),
+        memBufAccB.data(),
+        memBufAccC.data(),
+        numElements);
 
     std::cout << alpaka::core::demangled<decltype(kernel)> << "("
               << "accelerator: " << alpaka::getAccName<Acc>() << ", workDiv: " << workDiv

@@ -112,14 +112,11 @@ auto example(TAccTag const&) -> int
     bufHost[0] = 0.0f;
     alpaka::memcpy(queue, bufAcc, bufHost);
 
+    alpaka::KernelCfg<Acc> const kernelCfg = {Vec(numThreads), Vec(numAlpakaElementsPerThread)};
     Kernel kernel;
-    auto const& bundeledKernel = alpaka::KernelBundle(kernel, numPoints, ptrBufAcc, Function{});
+
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
-        devAcc,
-        bundeledKernel,
-        Vec(numThreads),
-        Vec(numAlpakaElementsPerThread));
+    auto const workDiv = alpaka::getValidWorkDiv(kernelCfg, devAcc, kernel, numPoints, ptrBufAcc, Function{});
 
     alpaka::exec<Acc>(queue, workDiv, kernel, numPoints, ptrBufAcc, Function{});
     alpaka::memcpy(queue, bufHost, bufAcc);

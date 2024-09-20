@@ -307,7 +307,13 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
     auto const [rowPitch, _] = alpaka::getPitchesInBytes(bufColorAcc);
     CHECK(rowPitch % sizeof(Val) == 0);
 
-    auto const& bundeledKernel = alpaka::KernelBundle(
+    alpaka::KernelCfg<Acc> const kernelCfg
+        = {extent, alpaka::Vec<Dim, Idx>::ones(), false, alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
         kernel,
         std::data(bufColorAcc),
         numRows,
@@ -318,15 +324,6 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
         fMinI,
         fMaxI,
         maxIterations);
-    // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(
-        devAcc,
-        bundeledKernel,
-        extent,
-        alpaka::Vec<Dim, Idx>::ones(),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
-
 
     std::cout << "MandelbrotKernel("
               << " numRows:" << numRows << ", numCols:" << numCols << ", maxIterations:" << maxIterations

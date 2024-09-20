@@ -17,7 +17,6 @@
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/dim/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
-#include "alpaka/kernel/KernelBundle.hpp"
 #include "alpaka/kernel/KernelFunctionAttributes.hpp"
 #include "alpaka/kernel/Traits.hpp"
 #include "alpaka/platform/Traits.hpp"
@@ -222,7 +221,7 @@ namespace alpaka
 #        if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                 // This checks for a valid work division that is also compliant with the hardware maxima of the
                 // accelerator.
-                if(!isValidWorkDiv<TAcc>(getDev(queue), task))
+                if(!isValidWorkDiv<TAcc>(task, getDev(queue)))
                 {
                     throw std::runtime_error(
                         "The given work division is not valid or not supported by the device of type "
@@ -305,17 +304,17 @@ namespace alpaka
         //! \tparam TKernelFn Kernel function object type.
         //! \tparam TArgs Kernel function object argument types as a parameter pack.
         template<typename TApi, typename TDev, typename TDim, typename TIdx, typename TKernelFn, typename... TArgs>
-        struct FunctionAttributes<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>, TDev, KernelBundle<TKernelFn, TArgs...>>
+        struct FunctionAttributes<AccGpuUniformCudaHipRt<TApi, TDim, TIdx>, TDev, TKernelFn, TArgs...>
         {
-            //! \param kernelBundle Kernel bundeled with it's arguments. The function attributes of this kernel will be
-            //! determined. Max threads per block is one of the attributes.
-            //! \return KernelFunctionAttributes instance. For GPU backend, all values are set by calling the
-            //! corresponding API functions. The default version always returns an instance with zero fields. For CPU,
-            //! the field of max threads allowed by kernel function for the block is 1.
+            //! \param dev The device instance
+            //! \param kernelFn The kernel function object which should be executed.
+            //! \param args The kernel invocation arguments.
+            //! \return KernelFunctionAttributes instance. The default version always returns an instance with zero
+            //! fields. For CPU, the field of max threads allowed by kernel function for the block is 1.
             ALPAKA_FN_HOST static auto getFunctionAttributes(
-                TDev const&,
-                [[maybe_unused]] KernelBundle<TKernelFn, TArgs...> const& kernelBundle)
-                -> alpaka::KernelFunctionAttributes
+                [[maybe_unused]] TDev const& dev,
+                [[maybe_unused]] TKernelFn const& kernelFn,
+                [[maybe_unused]] TArgs&&... args) -> alpaka::KernelFunctionAttributes
             {
                 auto kernelName = alpaka::detail::gpuKernel<
                     TKernelFn,

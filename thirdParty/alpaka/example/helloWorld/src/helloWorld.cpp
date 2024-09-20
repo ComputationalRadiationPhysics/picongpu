@@ -126,7 +126,7 @@ auto example(TAccTag const&) -> int
     // vector processing unit.
     using Vec = alpaka::Vec<Dim, Idx>;
     auto const elementsPerThread = Vec::all(static_cast<Idx>(1));
-    auto const threadsPerGrid = Vec{4, 2, 4};
+    auto const elementsPerGrid = Vec{4, 2, 4};
 
     // Instantiate the kernel function object
     //
@@ -135,10 +135,10 @@ auto example(TAccTag const&) -> int
     // argument. So a kernel can be a class or struct, a lambda, etc.
     HelloWorldKernel helloWorldKernel;
 
-    auto const& bundeledKernel = alpaka::KernelBundle(helloWorldKernel);
+    alpaka::KernelCfg<Acc> const kernelCfg = {elementsPerGrid, elementsPerThread};
+
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv
-        = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, threadsPerGrid, elementsPerThread);
+    auto const workDiv = alpaka::getValidWorkDiv(kernelCfg, devAcc, helloWorldKernel);
 
     // Run the kernel
     //

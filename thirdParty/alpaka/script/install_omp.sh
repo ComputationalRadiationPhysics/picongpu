@@ -7,6 +7,8 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: install_omp>"
+
 if [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
     # workaround to avoid link issues from python 2 to 3 during libomp dependency installation

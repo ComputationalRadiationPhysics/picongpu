@@ -15,7 +15,6 @@
 #include "alpaka/acc/AccCpuSerial.hpp"
 #include "alpaka/core/Decay.hpp"
 #include "alpaka/dev/DevCpu.hpp"
-#include "alpaka/kernel/KernelBundle.hpp"
 #include "alpaka/kernel/KernelFunctionAttributes.hpp"
 #include "alpaka/kernel/Traits.hpp"
 #include "alpaka/meta/NdLoop.hpp"
@@ -148,17 +147,17 @@ namespace alpaka
         //! \tparam TKernelFn Kernel function object type.
         //! \tparam TArgs Kernel function object argument types as a parameter pack.
         template<typename TDev, typename TDim, typename TIdx, typename TKernelFn, typename... TArgs>
-        struct FunctionAttributes<AccCpuSerial<TDim, TIdx>, TDev, KernelBundle<TKernelFn, TArgs...>>
+        struct FunctionAttributes<AccCpuSerial<TDim, TIdx>, TDev, TKernelFn, TArgs...>
         {
             //! \param dev The device instance
-            //! \param kernelBundle Kernel bundeled with it's arguments. The function attributes of this kernel will be
-            //! determined. Max threads per block is one of the attributes.
+            //! \param kernelFn The kernel function object which should be executed.
+            //! \param args The kernel invocation arguments.
             //! \return KernelFunctionAttributes instance. The default version always returns an instance with zero
             //! fields. For CPU, the field of max threads allowed by kernel function for the block is 1.
             ALPAKA_FN_HOST static auto getFunctionAttributes(
                 TDev const& dev,
-                [[maybe_unused]] KernelBundle<TKernelFn, TArgs...> const& kernelBundle)
-                -> alpaka::KernelFunctionAttributes
+                [[maybe_unused]] TKernelFn const& kernelFn,
+                [[maybe_unused]] TArgs&&... args) -> alpaka::KernelFunctionAttributes
             {
                 alpaka::KernelFunctionAttributes kernelFunctionAttributes;
 

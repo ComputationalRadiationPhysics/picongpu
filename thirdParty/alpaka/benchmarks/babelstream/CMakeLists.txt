@@ -19,9 +19,31 @@ if(NOT TARGET alpaka::alpaka)
     endif()
 endif()
 
-alpaka_add_executable(${PROJECT_NAME} src/main.cpp src/Stream.h src/AlpakaStream.cpp src/AlpakaStream.h)
-target_compile_definitions(${PROJECT_NAME} PUBLIC ALPAKA)
-target_link_libraries(${PROJECT_NAME} PUBLIC alpaka::alpaka)
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER benchmarks)
 
-# add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})
+set(_TARGET_NAME "babelstream")
+append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
+
+alpaka_add_executable(
+    ${_TARGET_NAME}
+    ${_FILES_SOURCE})
+
+target_include_directories(
+ ${_TARGET_NAME}
+ PRIVATE "src")
+
+target_link_libraries(
+    ${_TARGET_NAME}
+    PRIVATE common)
+
+set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER benchmarks/babelstream)
+
+#Run as a ctest
+if(alpaka_CI)
+    # Only run for release builds since this is a benchmark
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+       add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})
+    endif()
+else()
+    # For a normal benchmark test, number of samples should be equal to the default value.
+    add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})
+endif()
