@@ -70,7 +70,8 @@ namespace picongpu
                                  * For the macroweighted momentums we store as particle[ momentum_ ],
                                  * the same relation holds, just m and E are also macroweighted
                                  */
-                                float_X const energy = (temperatureKeV * UNITCONV_keV_to_Joule) / sim.unit.energy();
+                                float_X const energy
+                                    = (temperatureKeV * sim.si.conv.ev2Joule(1.0e3)) / sim.unit.energy();
                                 float_X const macroWeighting = particle[weighting_];
                                 float_X const macroEnergy = macroWeighting * energy;
                                 float_X const macroMass = attribute::getMass(macroWeighting, particle);

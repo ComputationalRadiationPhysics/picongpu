@@ -115,7 +115,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     float_X const mcSquaredElectron = static_cast<float_X>(
                         static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Electron::FrameType>())
                         * sim.unit.mass() * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u)
-                        * UNITCONV_Joule_to_keV * 1.e3);
+                        * sim.si.conv.joule2ev(1.0));
                     // eV, not weighted
 
                     // distribute energy change as mean by weight on all electrons in bin
@@ -134,7 +134,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // usually ~1, internal units
 
                     constexpr float_X conversionEnergy
-                        = static_cast<float_X>(UNITCONV_eV_to_Joule * 1. / sim.unit.energy());
+                        = static_cast<float_X>(sim.si.conv.ev2Joule(1.0) / sim.unit.energy());
                     // J/(eV) * sim.unit.energy()/J  = J/J * sim.unit.energy()/(eV)
 
                     constexpr float_X scalingFactor = 1._X / c_internal * conversionEnergy;
