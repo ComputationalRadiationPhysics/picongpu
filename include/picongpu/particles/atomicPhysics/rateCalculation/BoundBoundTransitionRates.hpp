@@ -246,11 +246,11 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
 
             // (unitless * m)^2 / (unitless * m^2/1e6b) = m^2 / m^2 * 1e6b = 1e6b
             constexpr float_X scalingConstant = static_cast<float_X>(
-                8. * pmacc::math::cPow(picongpu::PI * picongpu::SI::BOHR_RADIUS, u8(2u))
+                8. * pmacc::math::cPow(picongpu::PI * sim.si.getBohrRadius(), u8(2u))
                 / (1.e-22)); // [1e6b], ~ 2211,01 * 1e6b
             // 1e6b
             constexpr float_X constantPart
-                = scalingConstant * static_cast<float_X>(pmacc::math::cPow(picongpu::SI::RYDBERG_ENERGY, u8(2u)));
+                = scalingConstant * static_cast<float_X>(pmacc::math::cPow(sim.si.getRydbergEnergy(), u8(2u)));
             // [1e6b * (eV)^2]
 
             // 1e6b*(eV)^2 / (eV)^2 * unitless * (eV)/(eV) * unitless = 1e6b
@@ -377,7 +377,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             // unitless
             constexpr float_64 pi = picongpu::PI;
             // Js
-            constexpr float_64 hbar_SI = picongpu::SI::HBAR_SI;
+            constexpr float_64 hbar_SI = sim.si.getHbar();
 
             uint32_t const upperStateClctIdx
                 = boundBoundTransitionDataBox.upperStateCollectionIndex(transitionCollectionIndex);
@@ -389,8 +389,8 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 atomicStateDataBox.energy(upperStateClctIdx) - atomicStateDataBox.energy(lowerStateClctIdx));
 
             // J/(eV) / (Js) * s/sim.unit.time() = J/J * s/s * 1/(eV * sim.unit.time())
-            constexpr float_X scalingConstantPhotonFrequency = static_cast<float_X>(
-                picongpu::UNITCONV_eV_to_Joule / (2 * pi * hbar_SI) * picongpu::sim.unit.time());
+            constexpr float_X scalingConstantPhotonFrequency
+                = static_cast<float_X>(sim.si.conv.ev2Joule(1.0) / (2 * pi * hbar_SI) * picongpu::sim.unit.time());
 
             /// @attention actual SI frequency, NOT angular frequency
             // 1/sim.unit.time()

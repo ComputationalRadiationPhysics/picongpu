@@ -60,7 +60,7 @@ namespace picongpu
 
                             // formula in line above eq. (22) in [Perez2012]:
                             const float_COLL minImpactParam = math::max(
-                                static_cast<float_COLL>(HBAR) * pmacc::math::Pi<float_COLL>::doubleValue
+                                sim.pic.getHbar<float_COLL>() * pmacc::math::Pi<float_COLL>::doubleValue
                                     / (2._COLL * math::sqrt(v.comsMomentum0Norm2) / precision::WEIGHT_NORM_COLL),
                                 twoRadImpactParam);
 

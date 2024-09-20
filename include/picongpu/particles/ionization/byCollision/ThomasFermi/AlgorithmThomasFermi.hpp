@@ -161,13 +161,12 @@ namespace picongpu
                     /** convert kinetic energy in J to "temperature" in eV by assuming an ideal electron gas
                      * E_kin = 3/2 k*T
                      */
-                    constexpr float_64 convKinEnergyToTemperature
-                        = UNITCONV_Joule_to_keV * float_64(1.e3) * float_64(2. / 3.);
+                    constexpr float_64 convKinEnergyToTemperature = sim.si.conv.joule2ev(1.0) * float_64(2. / 3.);
                     /** electron "temperature" in electron volts */
                     float_64 const temperature = avgKinEnergy * convKinEnergyToTemperature;
 
                     /* conversion factors from number density to mass density */
-                    constexpr float_64 nAvogadro = SI::N_AVOGADRO;
+                    constexpr float_64 nAvogadro = sim.si.getNAvogadro();
                     constexpr float_64 convM3ToCM3 = 1.e6;
 
                     /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
