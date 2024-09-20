@@ -51,7 +51,7 @@ namespace alpaka::trait
     {
         static auto mem_fence(MemFenceGenericSycl const&, TMemScope const&)
         {
-            static constexpr auto scope = detail::SyclFenceProps<TMemScope>::scope;
+            static constexpr auto scope = alpaka::detail::SyclFenceProps<TMemScope>::scope;
             sycl::atomic_fence(sycl::memory_order::acq_rel, scope);
         }
     };

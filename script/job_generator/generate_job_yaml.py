@@ -296,22 +296,19 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
     append_backend_variables(variables, job)
 
     if job[DEVICE_COMPILER][NAME] == GCC:
-        variables["CC"] = "gcc"
-        variables["CXX"] = "g++"
+        variables["ALPAKA_CI_CXX"] = "g++"
         variables["ALPAKA_CI_GCC_VER"] = job[DEVICE_COMPILER][VERSION]
         if ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER:
             variables["ALPAKA_CI_TBB_VERSION"] = "2021.10.0"
 
     if job[DEVICE_COMPILER][NAME] == CLANG:
-        variables["CC"] = "clang"
-        variables["CXX"] = "clang++"
+        variables["ALPAKA_CI_CXX"] = "clang++"
         variables["ALPAKA_CI_CLANG_VER"] = job[DEVICE_COMPILER][VERSION]
         if ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER:
             variables["ALPAKA_CI_TBB_VERSION"] = "2021.10.0"
 
     if job[DEVICE_COMPILER][NAME] == HIPCC:
-        variables["CC"] = "clang"
-        variables["CXX"] = "clang++"
+        variables["ALPAKA_CI_CXX"] = "clang++"
         variables["CMAKE_HIP_COMPILER"] = "clang++"
         variables["CMAKE_HIP_ARCHITECTURES"] = "${CI_GPU_ARCH}"
         # TODO(SimeonEhrig) check, if we can remove this variable:
@@ -331,9 +328,13 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
             variables["ALPAKA_CI_CLANG_VER"] = "17"
         elif job[DEVICE_COMPILER][VERSION] == "6.0":
             variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "6.1":
+            variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "6.2":
+            variables["ALPAKA_CI_CLANG_VER"] = "18"
         else:
             raise RuntimeError(
-                "generate_job_yaml.job_variables(): unknown hip version: " f"{job[DEVICE_COMPILER][VERSION]}"
+                "generate_job_yaml.job_variables(): unknown ROCm version: " f"{job[DEVICE_COMPILER][VERSION]}"
             )
         variables["ALPAKA_CI_HIP_VERSION"] = job[DEVICE_COMPILER][VERSION]
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
@@ -347,17 +348,15 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
 
     if job[DEVICE_COMPILER][NAME] == NVCC:
         # general configuration, if nvcc is the CUDA compiler
-        variables["CMAKE_CUDA_COMPILER"] = "nvcc"
+        variables["ALPAKA_CI_CUDA_COMPILER"] = "nvcc"
 
         # configuration, if GCC is the CUDA host compiler
         if job[HOST_COMPILER][NAME] == GCC:
-            variables["CC"] = "gcc"
-            variables["CXX"] = "g++"
+            variables["ALPAKA_CI_CXX"] = "g++"
             variables["ALPAKA_CI_GCC_VER"] = job[HOST_COMPILER][VERSION]
         # configuration, if Clang is the CUDA host compiler
         elif job[HOST_COMPILER][NAME] == CLANG:
-            variables["CC"] = "clang"
-            variables["CXX"] = "clang++"
+            variables["ALPAKA_CI_CXX"] = "clang++"
             variables["ALPAKA_CI_CLANG_VER"] = job[HOST_COMPILER][VERSION]
         else:
             raise RuntimeError(
@@ -365,17 +364,19 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
             )
 
     if job[DEVICE_COMPILER][NAME] == CLANG_CUDA:
-        variables["CC"] = "clang"
-        variables["CXX"] = "clang++"
+        variables["ALPAKA_CI_CXX"] = "clang++"
         variables["ALPAKA_CI_CLANG_VER"] = job[DEVICE_COMPILER][VERSION]
-        variables["CMAKE_CUDA_COMPILER"] = "clang++"
+        variables["ALPAKA_CI_CUDA_COMPILER"] = "clang++"
 
     # oneAPI configuration
     if job[DEVICE_COMPILER][NAME] == ICPX:
-        variables["CC"] = "icx"
-        variables["CXX"] = "icpx"
+        variables["ALPAKA_CI_CXX"] = "icpx"
         if job[DEVICE_COMPILER][VERSION] == "2024.0":
             variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "2024.1":
+            variables["ALPAKA_CI_CLANG_VER"] = "18"
+        elif job[DEVICE_COMPILER][VERSION] == "2024.2":
+            variables["ALPAKA_CI_CLANG_VER"] = "19"
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
         variables["ALPAKA_CI_ONEAPI_VERSION"] = job[DEVICE_COMPILER][VERSION]
         variables["alpaka_SYCL_ONEAPI_CPU"] = "ON"

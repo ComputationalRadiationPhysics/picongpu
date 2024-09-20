@@ -8,14 +8,19 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: install_hip>"
+
 : "${ALPAKA_CI_HIP_ROOT_DIR?'ALPAKA_CI_HIP_ROOT_DIR must be specified'}"
 : "${ALPAKA_CI_HIP_VERSION?'ALPAKA_CI_HIP_VERSION must be specified'}"
 
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 if agc-manager -e rocm@${ALPAKA_CI_HIP_VERSION} ; then
+    echo_green "<USE: preinstalled ROCm ${ALPAKA_CI_HIP_VERSION}>"
     export ROCM_PATH=$(agc-manager -b rocm@${ALPAKA_CI_HIP_VERSION})
 else
+    echo_yellow "<INSTALL: ROCm ${ALPAKA_CI_HIP_VERSION}>"
+
     travis_retry apt-get -y --quiet update
     travis_retry apt-get -y --quiet install wget gnupg2
     # AMD container keys are outdated and must be updated
@@ -96,3 +101,6 @@ hipconfig
 rocm-smi
 # print newline as previous command does not do this
 echo
+
+# use the clang++ of the HIP SDK as C++ compiler
+export CMAKE_CXX_COMPILER=$(which clang++)

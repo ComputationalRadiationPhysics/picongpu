@@ -18,13 +18,12 @@
   image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
-    CC: gcc
-    CXX: g++
+    ALPAKA_CI_CXX: g++
     alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
     alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
     alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "OFF"
     alpaka_ACC_GPU_CUDA_ENABLE: "ON"
-    CMAKE_CUDA_COMPILER: nvcc
+    ALPAKA_CI_CUDA_COMPILER: nvcc
     ALPAKA_CI_STDLIB: libstdc++
     # CI contains a Quadro P5000 (sm_61)
     CMAKE_CUDA_ARCHITECTURES: "61"
@@ -51,13 +50,12 @@
   image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
   variables:
     ALPAKA_CI_UBUNTU_VER: "20.04"
-    CC: clang
-    CXX: clang++
+    ALPAKA_CI_CXX: clang++
     alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
     alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
     alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "OFF"
     alpaka_ACC_GPU_CUDA_ENABLE: "ON"
-    CMAKE_CUDA_COMPILER: clang++
+    ALPAKA_CI_CUDA_COMPILER: clang++
     ALPAKA_CI_STDLIB: libstdc++
     # CI contains a Quadro P5000 (sm_61)
     CMAKE_CUDA_ARCHITECTURES: "61"
@@ -87,8 +85,7 @@
   image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
   variables:
     ALPAKA_CI_UBUNTU_VER: "22.04"
-    CC: clang
-    CXX: clang++
+    ALPAKA_CI_CXX: clang++
     ALPAKA_CI_SANITIZERS: ""
     ALPAKA_CI_ANALYSIS: "OFF"
     ALPAKA_CI_TBB_VERSION: 2021.4.0

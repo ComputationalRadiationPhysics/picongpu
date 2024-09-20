@@ -69,19 +69,16 @@ namespace alpaka::test
             memset(m_queue, bufAccResult, static_cast<std::uint8_t>(true));
 
 
-            auto bundeledKernel = alpaka::KernelBundle<TKernelFnObj, decltype(getPtrNative(bufAccResult)), TArgs...>(
-                kernelFnObj,
-                getPtrNative(bufAccResult),
-                std::forward<TArgs>(args)...);
-
+            alpaka::KernelCfg<Acc> const kernelCfg = {m_extent, Vec<Dim, Idx>::ones()};
 
             // set workdiv if it is not before
             if(m_workDiv == WorkDiv{Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0)})
-                m_workDiv = alpaka::getValidWorkDivForKernel<Acc, Dev<Acc>>(
+                m_workDiv = alpaka::getValidWorkDiv(
+                    kernelCfg,
                     m_device,
-                    bundeledKernel,
-                    m_extent,
-                    Vec<Dim, Idx>::ones());
+                    kernelFnObj,
+                    getPtrNative(bufAccResult),
+                    std::forward<TArgs>(args)...);
 
             exec<Acc>(m_queue, m_workDiv, kernelFnObj, getPtrNative(bufAccResult), std::forward<TArgs>(args)...);
 

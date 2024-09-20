@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-if(BUILD_TESTING)
+if(BUILD_TESTING OR alpaka_BUILD_BENCHMARKS)
     if(alpaka_USE_INTERNAL_CATCH2)
         message(STATUS "Catch2: Using INTERNAL version 3.5.2")
         # Force Catch2's CMake to pick up the variables we set below

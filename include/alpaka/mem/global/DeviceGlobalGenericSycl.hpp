@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "alpaka/elem/Traits.hpp"
 #include "alpaka/mem/global/Traits.hpp"
 #include "alpaka/queue/sycl/QueueGenericSyclBase.hpp"
 

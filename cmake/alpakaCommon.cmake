@@ -584,7 +584,7 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         find_package(hip REQUIRED)
 
         set(_alpaka_HIP_MIN_VER 5.1)
-        set(_alpaka_HIP_MAX_VER 6.0)
+        set(_alpaka_HIP_MAX_VER 6.2)
 
         # construct hip version only with major and minor level
         # cannot use hip_VERSION because of the patch level
@@ -596,6 +596,8 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
             message(WARNING "HIP ${_hip_MAJOR_MINOR_VERSION} is not official supported by alpaka. Supported versions: ${_alpaka_HIP_MIN_VER} - ${_alpaka_HIP_MAX_VER}")
         endif()
 
+        # let the compiler find the HIP headers also when building host-only code
+        target_include_directories(alpaka SYSTEM INTERFACE ${hip_INCLUDE_DIR})
 
         target_link_libraries(alpaka INTERFACE "$<$<LINK_LANGUAGE:CXX>:hip::host>")
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_AMD__>")
@@ -757,7 +759,7 @@ if(alpaka_ACC_SYCL_ENABLE)
             target_link_options(alpaka INTERFACE "-fno-sycl-rdc")
         endif()
     else()
-        message(FATAL_ERROR "alpaka currently does not support SYCL implementations other than oneAPI.")
+        message(FATAL_ERROR "alpaka currently does not support SYCL implementations other than oneAPI: ${CMAKE_CXX_COMPILER_ID}.")
     endif()
 
     if(NOT alpaka_DISABLE_VENDOR_RNG)

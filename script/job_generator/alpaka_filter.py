@@ -75,7 +75,16 @@ def alpaka_post_filter(row: List) -> bool:
     ):
         return False
 
-    # g++-12 is not available on the Ubuntu 20.04 ppa's
+    # Debug builds with HIP/ROCm 6.2 produce compiler errors
+    if (
+        is_in_row(row, BUILD_TYPE)
+        and row[param_map[BUILD_TYPE]][VERSION] == CMAKE_DEBUG
+        and row_check_name(row, DEVICE_COMPILER, "==", HIPCC)
+        and row_check_version(row, DEVICE_COMPILER, "==", "6.2")
+    ):
+        return False
+
+     # g++-12 is not available on the Ubuntu 20.04 ppa's
     if (
         row_check_name(row, HOST_COMPILER, "==", GCC)
         and row_check_version(row, HOST_COMPILER, "==", "12")

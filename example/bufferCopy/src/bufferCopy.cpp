@@ -1,5 +1,5 @@
-/* Copyright 2023 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner, Bernhard Manfred Gruber,
- *                Jan Stephan
+/* Copyright 2024 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner, Bernhard Manfred Gruber,
+ *                Jan Stephan, Andrea Bocci
  * SPDX-License-Identifier: ISC
  */
 
@@ -15,13 +15,12 @@ struct PrintBufferKernel
     template<typename TAcc, typename MdSpan>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, MdSpan data) const -> void
     {
-        auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        for(size_t z = idx[0]; z < data.extent(0); z += gridSize[0])
-            for(size_t y = idx[1]; y < data.extent(1); y += gridSize[1])
-                for(size_t x = idx[2]; x < data.extent(2); x += gridSize[2])
-                    printf("%zu,%zu,%zu:%u ", z, y, x, static_cast<uint32_t>(data(z, y, x)));
+        // Use three nested loops along the dimensions 0, 1 and 2
+        for(size_t z : alpaka::uniformElementsAlong<0>(acc, data.extent(0)))
+            for(size_t y : alpaka::uniformElementsAlong<1>(acc, data.extent(1)))
+                for(size_t x : alpaka::uniformElementsAlong<2>(acc, data.extent(2)))
+                    // %zu prints garbage in some cases, while %lu seems to be working correctly
+                    printf("%lu,%lu,%lu: %u\t", z, y, x, static_cast<uint32_t>(data(z, y, x)));
     }
 };
 
@@ -31,17 +30,15 @@ struct TestBufferKernel
     template<typename TAcc, typename MdSpan>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, MdSpan data) const -> void
     {
-        using Vec = alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>>;
-
-        auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        for(size_t z = idx[0]; z < data.extent(0); z += gridSize[0])
-            for(size_t y = idx[1]; y < data.extent(1); y += gridSize[1])
-                for(size_t x = idx[2]; x < data.extent(2); x += gridSize[2])
+        // Use three nested loops along the dimensions z, y and x
+        for(size_t z : alpaka::uniformElementsAlongZ(acc, data.extent(0)))
+            for(size_t y : alpaka::uniformElementsAlongY(acc, data.extent(1)))
+                for(size_t x : alpaka::uniformElementsAlongX(acc, data.extent(2)))
                     ALPAKA_ASSERT_ACC(
                         data(z, y, x)
-                        == alpaka::mapIdx<1u>(Vec{z, y, x}, Vec{data.extent(0), data.extent(1), data.extent(2)})[0]);
+                        == alpaka::mapIdx<1u>(
+                            alpaka::Vec{z, y, x},
+                            alpaka::Vec{data.extent(0), data.extent(1), data.extent(2)})[0]);
     }
 };
 
@@ -51,16 +48,10 @@ struct FillBufferKernel
     template<typename TAcc, typename MdSpan>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, MdSpan data) const -> void
     {
-        using Vec = alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>>;
-
-        auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        for(size_t z = idx[0]; z < data.extent(0); z += gridSize[0])
-            for(size_t y = idx[1]; y < data.extent(1); y += gridSize[1])
-                for(size_t x = idx[2]; x < data.extent(2); x += gridSize[2])
-                    data(z, y, x)
-                        = alpaka::mapIdx<1u>(Vec{z, y, x}, Vec{data.extent(0), data.extent(1), data.extent(2)})[0];
+        // Use a single 3-dimensional loop
+        for(auto idx : alpaka::uniformElementsND(acc, alpaka::Vec{data.extent(0), data.extent(1), data.extent(2)}))
+            data(idx.z(), idx.y(), idx.x()) // equivalent to data(idx[0], idx[1], idx[2])
+                = alpaka::mapIdx<1u>(idx, alpaka::Vec{data.extent(0), data.extent(1), data.extent(2)})[0];
     }
 };
 
@@ -78,15 +69,15 @@ auto example(TAccTag const&) -> int
     // Define the device accelerator
     using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
-    // Defines the synchronization behavior of a queue
+    // Defines the synchronization behavior of the device queue
     //
     // choose between Blocking and NonBlocking
     using AccQueueProperty = alpaka::Blocking;
     using DevQueue = alpaka::Queue<Acc, AccQueueProperty>;
 
-    // Define the device accelerator
+    // Define the host accelerator
     using Host = alpaka::AccCpuSerial<Dim, Idx>;
-    // Defines the synchronization behavior of a queue
+    // Defines the synchronization behavior of the host queue
     //
     // choose between Blocking and NonBlocking
     using HostQueueProperty = alpaka::Blocking;
@@ -104,8 +95,8 @@ auto example(TAccTag const&) -> int
 
     // Define the work division for kernels to be run on devAcc and devHost
     using Vec = alpaka::Vec<Dim, Idx>;
-    Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
-    Vec const threadsPerGrid(Vec::all(static_cast<Idx>(10)));
+    Vec const elementsPerThread(Vec::all(static_cast<Idx>(3)));
+    Vec const elementsPerGrid(Vec::all(static_cast<Idx>(10)));
 
     // Create host and device buffers
     //
@@ -118,14 +109,14 @@ auto example(TAccTag const&) -> int
     using Data = std::uint32_t;
     constexpr Idx nElementsPerDim = 2;
 
-    const Vec extents(Vec::all(static_cast<Idx>(nElementsPerDim)));
+    Vec const extents = Vec::all(nElementsPerDim);
 
     // Allocate host memory buffers
     //
     // The `alloc` method returns a reference counted buffer handle.
     // When the last such handle is destroyed, the memory is freed automatically.
     using BufHost = alpaka::Buf<Host, Data, Dim, Idx>;
-    BufHost hostBuffer(alpaka::allocBuf<Data, Idx>(devHost, extents));
+    BufHost hostBuffer = alpaka::allocBuf<Data, Idx>(devHost, extents);
     // You can also use already allocated memory and wrap it within a view (irrespective of the device type).
     // The view does not own the underlying memory. So you have to make sure that
     // the view does not outlive its underlying memory.
@@ -136,8 +127,8 @@ auto example(TAccTag const&) -> int
     //
     // The interface to allocate a buffer is the same on the host and on the device.
     using BufAcc = alpaka::Buf<Acc, Data, Dim, Idx>;
-    BufAcc deviceBuffer1(alpaka::allocBuf<Data, Idx>(devAcc, extents));
-    BufAcc deviceBuffer2(alpaka::allocBuf<Data, Idx>(devAcc, extents));
+    BufAcc deviceBuffer1 = alpaka::allocBuf<Data, Idx>(devAcc, extents);
+    BufAcc deviceBuffer2 = alpaka::allocBuf<Data, Idx>(devAcc, extents);
 
 
     // Init host buffer
@@ -152,9 +143,9 @@ auto example(TAccTag const&) -> int
     // some values into the buffer memory.
     // Mind, that only a host can write on host memory.
     // The same holds true for device memory.
-    for(Idx z(0); z < extents[0]; ++z)
-        for(Idx y(0); y < extents[1]; ++y)
-            for(Idx x(0); x < extents[2]; ++x)
+    for(Idx z = 0; z < extents[0]; ++z)
+        for(Idx y = 0; y < extents[1]; ++y)
+            for(Idx x = 0; x < extents[2]; ++x)
                 hostBufferMdSpan(z, y, x) = static_cast<Data>(z * extents[1] * extents[2] + y * extents[2] + x);
 
     // Memory views and buffers can also be initialized by executing a kernel.
@@ -164,9 +155,8 @@ auto example(TAccTag const&) -> int
 
     FillBufferKernel fillBufferKernel;
 
-    auto const& bundeledFillBufferKernel = alpaka::KernelBundle(fillBufferKernel, hostViewPlainPtrMdSpan);
-    auto const hostWorkDiv
-        = alpaka::getValidWorkDivForKernel<Host>(devHost, bundeledFillBufferKernel, threadsPerGrid, elementsPerThread);
+    alpaka::KernelCfg<Host> const hostKernelCfg = {elementsPerGrid, elementsPerThread};
+    auto const hostWorkDiv = alpaka::getValidWorkDiv(hostKernelCfg, devHost, fillBufferKernel, hostViewPlainPtrMdSpan);
 
     alpaka::exec<Host>(hostQueue, hostWorkDiv, fillBufferKernel,
                        hostViewPlainPtrMdSpan); // 1st kernel argument
@@ -203,11 +193,10 @@ auto example(TAccTag const&) -> int
     auto deviceBufferMdSpan2 = alpaka::experimental::getMdSpan(deviceBuffer2);
 
     TestBufferKernel testBufferKernel;
-    auto const& bundeledTestBufferKernel = alpaka::KernelBundle(testBufferKernel, deviceBufferMdSpan1);
 
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const devWorkDiv
-        = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledTestBufferKernel, threadsPerGrid, elementsPerThread);
+    alpaka::KernelCfg<Acc> const devKernelCfg = {elementsPerGrid, elementsPerThread};
+    auto const devWorkDiv = alpaka::getValidWorkDiv(devKernelCfg, devAcc, testBufferKernel, deviceBufferMdSpan1);
 
     alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, deviceBufferMdSpan1);
     alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, deviceBufferMdSpan2);
@@ -223,19 +212,25 @@ auto example(TAccTag const&) -> int
     // completely distorted.
 
     PrintBufferKernel printBufferKernel;
-    alpaka::exec<Acc>(devQueue, devWorkDiv, printBufferKernel, deviceBufferMdSpan1);
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const hostPrintWorkDiv
+        = alpaka::getValidWorkDiv(hostKernelCfg, devHost, printBufferKernel, hostViewPlainPtrMdSpan);
+    auto const devPrintWorkDiv = alpaka::getValidWorkDiv(devKernelCfg, devAcc, printBufferKernel, deviceBufferMdSpan1);
+
+    alpaka::exec<Acc>(devQueue, devPrintWorkDiv, printBufferKernel, deviceBufferMdSpan1);
     alpaka::wait(devQueue);
     std::cout << std::endl;
 
-    alpaka::exec<Acc>(devQueue, devWorkDiv, printBufferKernel, deviceBufferMdSpan2);
+    alpaka::exec<Acc>(devQueue, devPrintWorkDiv, printBufferKernel, deviceBufferMdSpan2);
     alpaka::wait(devQueue);
     std::cout << std::endl;
 
-    alpaka::exec<Host>(hostQueue, hostWorkDiv, printBufferKernel, hostBufferMdSpan);
+    alpaka::exec<Host>(hostQueue, hostPrintWorkDiv, printBufferKernel, hostBufferMdSpan);
     alpaka::wait(hostQueue);
     std::cout << std::endl;
 
-    alpaka::exec<Host>(hostQueue, hostWorkDiv, printBufferKernel, hostViewPlainPtrMdSpan);
+    alpaka::exec<Host>(hostQueue, hostPrintWorkDiv, printBufferKernel, hostViewPlainPtrMdSpan);
     alpaka::wait(hostQueue);
     std::cout << std::endl;
 

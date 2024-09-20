@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Luca Ferragina
+/* Copyright 2024 Jan Stephan, Luca Ferragina, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -6,6 +6,7 @@
 
 #include "alpaka/dev/DevGpuSyclIntel.hpp"
 #include "alpaka/mem/buf/BufGenericSycl.hpp"
+#include "alpaka/platform/PlatformGpuSyclIntel.hpp"
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_ONEAPI_GPU)
 

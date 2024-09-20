@@ -72,18 +72,20 @@ namespace alpaka
 
         //! \brief The structure template to access to the functions attributes of a kernel function object.
         //! \tparam TAcc The accelerator type
-        //! \tparam TKernelBundle The kernel object type, which includes the kernel function object and it's invocation
-        //! arguments.
-        template<typename TAcc, typename TDev, typename TKernelBundle>
+        //! \tparam TKernelFnObj Kernel function object type.
+        //! \tparam TArgs Kernel function object argument types as a parameter pack.
+        template<typename TAcc, typename TDev, typename TKernelFnObj, typename... TArgs>
         struct FunctionAttributes
         {
-            //! \param kernelBundle The kernel object instance, which includes the kernel function object and it's
-            //! invocation arguments.
+            //! \param dev The device instance
+            //! \param kernelFn The kernel function object which should be executed.
+            //! \param args The kernel invocation arguments.
             //! \return KernelFunctionAttributes data structure instance. The default version always returns the
             //! instance with fields which are set to zero.
             ALPAKA_FN_HOST static auto getFunctionAttributes(
-                TDev const&,
-                [[maybe_unused]] TKernelBundle const& kernelBundle) -> alpaka::KernelFunctionAttributes
+                [[maybe_unused]] TDev const& dev,
+                [[maybe_unused]] TKernelFnObj const& kernelFn,
+                [[maybe_unused]] TArgs&&... args) -> alpaka::KernelFunctionAttributes
             {
                 std::string const str
                     = std::string(__func__) + " function is not specialised for the given arguments.\n";
@@ -164,13 +166,13 @@ namespace alpaka
 #    pragma clang diagnostic ignored                                                                                  \
         "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
 #endif
-    //! \tparam TAcc The accelerator type.
-    //! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
-    //! \param blockThreadExtent The block thread extent.
-    //! \param threadElemExtent The thread element extent.
-    //! \param args,... The kernel invocation arguments.
-    //! \return The size of the shared memory allocated for a block in bytes.
-    //! The default implementation always returns zero.
+//! \tparam TAcc The accelerator type.
+//! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
+//! \param blockThreadExtent The block thread extent.
+//! \param threadElemExtent The thread element extent.
+//! \param args,... The kernel invocation arguments.
+//! \return The size of the shared memory allocated for a block in bytes.
+//! The default implementation always returns zero.
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -191,20 +193,21 @@ namespace alpaka
 
     //! \tparam TAcc The accelerator type.
     //! \tparam TDev The device type.
-    //! \tparam TKernelBundle The kernel object type, which includes the kernel function object and it's invocation
-    //! arguments.
     //! \param dev The device instance
-    //! \param kernelBundle The kernel object, which includes the kernel function object and it's invocation
-    //! arguments.
+    //! \param kernelFnObj The kernel function object which should be executed.
+    //! \param args The kernel invocation arguments.
     //! \return KernelFunctionAttributes instance. Instance is filled with values returned by the accelerator API
     //! depending on the specific kernel. The default version always returns the instance with fields which are set to
     //! zero.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TDev, typename TKernelBundle>
-    ALPAKA_FN_HOST auto getFunctionAttributes(TDev const& dev, TKernelBundle const& kernelBundle)
+    template<typename TAcc, typename TDev, typename TKernelFnObj, typename... TArgs>
+    ALPAKA_FN_HOST auto getFunctionAttributes(TDev const& dev, TKernelFnObj const& kernelFnObj, TArgs&&... args)
         -> alpaka::KernelFunctionAttributes
     {
-        return trait::FunctionAttributes<TAcc, TDev, TKernelBundle>::getFunctionAttributes(dev, kernelBundle);
+        return trait::FunctionAttributes<TAcc, TDev, TKernelFnObj, TArgs...>::getFunctionAttributes(
+            dev,
+            kernelFnObj,
+            std::forward<TArgs>(args)...);
     }
 
 #if BOOST_COMP_CLANG
@@ -212,13 +215,13 @@ namespace alpaka
 #    pragma clang diagnostic ignored                                                                                  \
         "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
 #endif
-    //! \tparam TAcc The accelerator type.
-    //! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
-    //! \param blockThreadExtent The block thread extent.
-    //! \param threadElemExtent The thread element extent.
-    //! \param args,... The kernel invocation arguments.
-    //! \return The OpenMP schedule information as an alpaka::omp::Schedule object if the kernel specialized the
-    //!         OmpSchedule trait, an object of another type if the kernel didn't specialize the trait.
+//! \tparam TAcc The accelerator type.
+//! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
+//! \param blockThreadExtent The block thread extent.
+//! \param threadElemExtent The thread element extent.
+//! \param args,... The kernel invocation arguments.
+//! \return The OpenMP schedule information as an alpaka::omp::Schedule object if the kernel specialized the
+//!         OmpSchedule trait, an object of another type if the kernel didn't specialize the trait.
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -313,7 +316,7 @@ namespace alpaka
     template<typename T>
     inline constexpr bool isKernelTriviallyCopyable = IsKernelTriviallyCopyable<T>::value;
 
-    //! @}
+//! @}
 
 //! Creates a kernel execution task.
 //!

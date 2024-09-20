@@ -6,7 +6,7 @@ if ! command -v sudo &>/dev/null; then
     if [ "$ALPAKA_CI_OS_NAME" == "Linux" ]; then
         # display message only one time not everytime the script is sourced
         if [ -z ${PRINT_INSTALL_SUDO+x} ]; then
-            echo "install sudo"
+            echo_yellow "install sudo"
             export PRINT_INSTALL_SUDO=true
         fi
 

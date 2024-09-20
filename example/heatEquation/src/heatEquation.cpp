@@ -134,9 +134,11 @@ auto example(TAccTag const&) -> int
 
     HeatEquationKernel heatEqKernel;
 
-    auto const& bundeledKernel = alpaka::KernelBundle(heatEqKernel, pCurrAcc, pNextAcc, numNodesX, dx, dt);
+    alpaka::KernelCfg<Acc> const kernelCfg = {extent, elemPerThread};
+
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, extent, elemPerThread);
+    auto const workDiv
+        = alpaka::getValidWorkDiv(kernelCfg, devAcc, heatEqKernel, pCurrAcc, pNextAcc, numNodesX, dx, dt);
 
     // Copy host -> device
     alpaka::memcpy(queue, uCurrBufAcc, uCurrBufHost);
