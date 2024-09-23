@@ -147,15 +147,15 @@ auto example(TAccTag const&) -> int
     BufAcc bufAcc(alpaka::allocBuf<Data, Idx>(devAcc, extent));
 
     CounterBasedRngKernel counterBasedRngKernel;
-    auto const& bundeledKernel
-        = alpaka::KernelBundle(counterBasedRngKernel, alpaka::experimental::getMdSpan(bufAcc), key);
-    auto const& bundeledKernel2
-        = alpaka::KernelBundle(counterBasedRngKernel, alpaka::experimental::getMdSpan(bufHost), key);
 
     // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDivAcc = alpaka::getValidWorkDivForKernel<Acc>(devAcc, bundeledKernel, extent, elementsPerThread);
-    auto const workDivHost
-        = alpaka::getValidWorkDivForKernel<AccHost>(devHost, bundeledKernel2, extent, elementsPerThreadHost);
+    alpaka::KernelCfg<Acc> kernerlCfgAccDev = {extent, elementsPerThread};
+    auto const workDivAcc = alpaka::getValidWorkDiv(
+        kernerlCfgAccDev,
+        devAcc,
+        counterBasedRngKernel,
+        alpaka::experimental::getMdSpan(bufAcc),
+        key);
 
     // Create the kernel execution task.
     auto const taskKernelAcc = alpaka::createTaskKernel<Acc>(
@@ -163,6 +163,15 @@ auto example(TAccTag const&) -> int
         CounterBasedRngKernel(),
         alpaka::experimental::getMdSpan(bufAcc),
         key);
+
+    alpaka::KernelCfg<AccHost> kernerlCfgAccHost = {extent, elementsPerThreadHost};
+    auto const workDivHost = alpaka::getValidWorkDiv(
+        kernerlCfgAccHost,
+        devHost,
+        counterBasedRngKernel,
+        alpaka::experimental::getMdSpan(bufHost),
+        key);
+
     auto const taskKernelHost = alpaka::createTaskKernel<AccHost>(
         workDivHost,
         CounterBasedRngKernel(),

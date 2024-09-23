@@ -8,6 +8,8 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: run_install>"
+
 ALPAKA_CI_CMAKE_EXECUTABLE=cmake
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then

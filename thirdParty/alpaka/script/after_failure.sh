@@ -8,6 +8,8 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: after_failure>"
+
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
   sudo smem

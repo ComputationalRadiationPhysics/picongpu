@@ -1,4 +1,4 @@
-/* Copyright 2023 Benjamin Worpitz, Matthias Werner, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber,
+/* Copyright 2024 Benjamin Worpitz, Matthias Werner, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber,
  *                Jan Stephan, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
@@ -154,22 +154,21 @@ namespace alpaka
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED)
         //! The SYCL device CreateViewPlainPtr trait specialization.
-        template<typename TPlatform>
-        struct CreateViewPlainPtr<DevGenericSycl<TPlatform>>
+        template<typename TTag>
+        struct CreateViewPlainPtr<DevGenericSycl<TTag>>
         {
             template<typename TElem, typename TExtent, typename TPitch>
             static auto createViewPlainPtr(
-                DevGenericSycl<TPlatform> const& dev,
+                DevGenericSycl<TTag> const& dev,
                 TElem* pMem,
                 TExtent const& extent,
                 TPitch pitch)
             {
-                return alpaka::
-                    ViewPlainPtr<DevGenericSycl<TPlatform>, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
-                        pMem,
-                        dev,
-                        extent,
-                        pitch);
+                return alpaka::ViewPlainPtr<DevGenericSycl<TTag>, TElem, alpaka::Dim<TExtent>, alpaka::Idx<TExtent>>(
+                    pMem,
+                    dev,
+                    extent,
+                    pitch);
             }
         };
 #endif

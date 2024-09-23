@@ -592,7 +592,8 @@ namespace alpaka
     };
 
     template<typename TFirstIndex, typename... TRestIndices>
-    Vec(TFirstIndex&&, TRestIndices&&...) -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
+    ALPAKA_FN_HOST_ACC Vec(TFirstIndex&&, TRestIndices&&...)
+        -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
 
     template<typename T>
     inline constexpr bool isVec = false;

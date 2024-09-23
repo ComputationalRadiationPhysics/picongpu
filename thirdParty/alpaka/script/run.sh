@@ -8,6 +8,8 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: run>"
+
 : "${ALPAKA_CI_CMAKE_DIR?'ALPAKA_CI_CMAKE_DIR must be specified'}"
 echo "ALPAKA_CI_CMAKE_DIR: ${ALPAKA_CI_CMAKE_DIR}"
 : "${ALPAKA_CI_ANALYSIS?'ALPAKA_CI_ANALYSIS must be specified'}"
@@ -19,8 +21,8 @@ then
     : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
     echo "ALPAKA_CI_STDLIB: ${ALPAKA_CI_STDLIB}"
 fi
-: "${CXX?'CXX must be specified'}"
-echo "CXX: ${CXX}"
+: "${ALPAKA_CI_CXX?'ALPAKA_CI_CXX must be specified'}"
+echo "ALPAKA_CI_CXX: ${ALPAKA_CI_CXX}"
 
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
@@ -29,7 +31,7 @@ then
     then
         LD_LIBRARY_PATH=
     fi
-    if [[ "${CXX}" = "clang++"* ]]
+    if [[ "${ALPAKA_CI_CXX}" = "clang++"* ]]
     then
         if [ "${ALPAKA_CI_CLANG_VER}" -ge "10" ]
         then
@@ -64,7 +66,7 @@ then
         # We have to explicitly add the stub libcuda.so to CUDA_LIB_PATH because the real one would be installed by the driver (which we can not install).
         export CUDA_LIB_PATH=/usr/local/cuda/lib64/stubs/
 
-        if [ "${CMAKE_CUDA_COMPILER}" == "nvcc" ]
+        if [ "${ALPAKA_CI_CUDA_COMPILER}" == "nvcc" ]
         then
             which nvcc
             nvcc -V
@@ -91,21 +93,28 @@ then
             export CMAKE_CXX_FLAGS=
         fi
 
-        if [[ "${CXX}" == "clang++"* ]]
+        if [[ "${ALPAKA_CI_CXX}" == "clang++"* ]]
         then
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -stdlib=libc++"
         fi
     fi
 
-    if [ "${CXX}" == "icpc" ]
+    if [ "${ALPAKA_CI_CXX}" == "icpc" ]
     then
         set +eu
-        which ${CXX} || source /opt/intel/oneapi/setvars.sh
-        set -eu
+        which ${ALPAKA_CI_CXX} || source /opt/intel/oneapi/setvars.sh
+
+        # exit by default if the command does not return 0
+        # can be deactivated by setting the environment variable alpaka_DISABLE_EXIT_FAILURE
+        # for example for local debugging in a Docker container
+        if [ -z ${alpaka_DISABLE_EXIT_FAILURE+x} ]; then
+            set -e
+        fi
+        set -u
     fi
 
-    which "${CXX}"
-    ${CXX} --version
+    which "${CMAKE_CXX_COMPILER}"
+    ${CMAKE_CXX_COMPILER} --version
 fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]

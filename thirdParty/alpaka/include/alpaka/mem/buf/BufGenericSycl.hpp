@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Luca Ferragina, Aurora Perego, Andrea Bocci
+/* Copyright 2024 Jan Stephan, Luca Ferragina, Aurora Perego, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -24,8 +24,8 @@
 namespace alpaka
 {
     //! The SYCL memory buffer.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    class BufGenericSycl : public internal::ViewAccessOps<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    class BufGenericSycl : public internal::ViewAccessOps<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
     public:
         static_assert(
@@ -36,7 +36,7 @@ namespace alpaka
 
         //! Constructor
         template<typename TExtent, typename Deleter>
-        BufGenericSycl(DevGenericSycl<TPlatform> const& dev, TElem* const pMem, Deleter deleter, TExtent const& extent)
+        BufGenericSycl(DevGenericSycl<TTag> const& dev, TElem* const pMem, Deleter deleter, TExtent const& extent)
             : m_dev{dev}
             , m_extentElements{getExtentVecEnd<TDim>(extent)}
             , m_spMem(pMem, std::move(deleter))
@@ -53,7 +53,7 @@ namespace alpaka
                 "The idx type of TExtent and the TIdx template parameter have to be identical!");
         }
 
-        DevGenericSycl<TPlatform> m_dev;
+        DevGenericSycl<TTag> m_dev;
         Vec<TDim, TIdx> m_extentElements;
         std::shared_ptr<TElem> m_spMem;
     };
@@ -62,68 +62,67 @@ namespace alpaka
 namespace alpaka::trait
 {
     //! The BufGenericSycl device type trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct DevType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct DevType<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
-        using type = DevGenericSycl<TPlatform>;
+        using type = DevGenericSycl<TTag>;
     };
 
     //! The BufGenericSycl device get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct GetDev<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct GetDev<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
-        static auto getDev(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf)
+        static auto getDev(BufGenericSycl<TElem, TDim, TIdx, TTag> const& buf)
         {
             return buf.m_dev;
         }
     };
 
     //! The BufGenericSycl dimension getter trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct DimType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct DimType<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
         using type = TDim;
     };
 
     //! The BufGenericSycl memory element type get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct ElemType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct ElemType<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
         using type = TElem;
     };
 
     //! The BufGenericSycl extent get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct GetExtents<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct GetExtents<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
-        auto operator()(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf) const
+        auto operator()(BufGenericSycl<TElem, TDim, TIdx, TTag> const& buf) const
         {
             return buf.m_extentElements;
         }
     };
 
     //! The BufGenericSycl native pointer get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct GetPtrNative<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct GetPtrNative<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
-        static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf) -> TElem const*
+        static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TTag> const& buf) -> TElem const*
         {
             return buf.m_spMem.get();
         }
 
-        static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TPlatform>& buf) -> TElem*
+        static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TTag>& buf) -> TElem*
         {
             return buf.m_spMem.get();
         }
     };
 
     //! The BufGenericSycl pointer on device get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct GetPtrDev<BufGenericSycl<TElem, TDim, TIdx, TPlatform>, DevGenericSycl<TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct GetPtrDev<BufGenericSycl<TElem, TDim, TIdx, TTag>, DevGenericSycl<TTag>>
     {
-        static auto getPtrDev(
-            BufGenericSycl<TElem, TDim, TIdx, TPlatform> const& buf,
-            DevGenericSycl<TPlatform> const& dev) -> TElem const*
+        static auto getPtrDev(BufGenericSycl<TElem, TDim, TIdx, TTag> const& buf, DevGenericSycl<TTag> const& dev)
+            -> TElem const*
         {
             if(dev == getDev(buf))
             {
@@ -135,8 +134,7 @@ namespace alpaka::trait
             }
         }
 
-        static auto getPtrDev(BufGenericSycl<TElem, TDim, TIdx, TPlatform>& buf, DevGenericSycl<TPlatform> const& dev)
-            -> TElem*
+        static auto getPtrDev(BufGenericSycl<TElem, TDim, TIdx, TTag>& buf, DevGenericSycl<TTag> const& dev) -> TElem*
         {
             if(dev == getDev(buf))
             {
@@ -150,12 +148,12 @@ namespace alpaka::trait
     };
 
     //! The SYCL memory allocation trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct BufAlloc<TElem, TDim, TIdx, DevGenericSycl<TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct BufAlloc<TElem, TDim, TIdx, DevGenericSycl<TTag>>
     {
         template<typename TExtent>
-        static auto allocBuf(DevGenericSycl<TPlatform> const& dev, TExtent const& extent)
-            -> BufGenericSycl<TElem, TDim, TIdx, TPlatform>
+        static auto allocBuf(DevGenericSycl<TTag> const& dev, TExtent const& extent)
+            -> BufGenericSycl<TElem, TDim, TIdx, TTag>
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -197,38 +195,40 @@ namespace alpaka::trait
                 nativeContext);
             auto deleter = [ctx = nativeContext](TElem* ptr) { sycl::free(ptr, ctx); };
 
-            return BufGenericSycl<TElem, TDim, TIdx, TPlatform>(dev, memPtr, std::move(deleter), extent);
+            return BufGenericSycl<TElem, TDim, TIdx, TTag>(dev, memPtr, std::move(deleter), extent);
         }
     };
 
     //! The BufGenericSycl stream-ordered memory allocation capability trait specialization.
-    template<typename TDim, typename TPlatform>
-    struct HasAsyncBufSupport<TDim, DevGenericSycl<TPlatform>> : std::false_type
+    template<typename TDim, typename TTag>
+    struct HasAsyncBufSupport<TDim, DevGenericSycl<TTag>> : std::false_type
     {
     };
 
     //! The BufGenericSycl offset get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct GetOffsets<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct GetOffsets<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
-        auto operator()(BufGenericSycl<TElem, TDim, TIdx, TPlatform> const&) const -> Vec<TDim, TIdx>
+        auto operator()(BufGenericSycl<TElem, TDim, TIdx, TTag> const&) const -> Vec<TDim, TIdx>
         {
             return Vec<TDim, TIdx>::zeros();
         }
     };
 
     //! The pinned/mapped memory allocation trait specialization for the SYCL devices.
-    template<typename TPlatform, typename TElem, typename TDim, typename TIdx>
-    struct BufAllocMapped
+    template<typename TTag, typename TElem, typename TDim, typename TIdx>
+    struct BufAllocMapped<PlatformGenericSycl<TTag>, TElem, TDim, TIdx>
     {
         template<typename TExtent>
-        static auto allocMappedBuf(DevCpu const& host, TPlatform const& platform, TExtent const& extent)
-            -> BufCpu<TElem, TDim, TIdx>
+        static auto allocMappedBuf(
+            DevCpu const& host,
+            PlatformGenericSycl<TTag> const& platform,
+            TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-            // Allocate SYCL page-locked memory on the host, mapped into the TPlatform address space and
-            // accessible to all devices in the TPlatform.
+            // Allocate SYCL page-locked memory on the host, mapped into the SYCL platform's address space and
+            // accessible to all devices in the SYCL platform.
             auto ctx = platform.syclContext();
             TElem* memPtr = sycl::malloc_host<TElem>(static_cast<std::size_t>(getExtentProduct(extent)), ctx);
             auto deleter = [ctx](TElem* ptr) { sycl::free(ptr, ctx); };
@@ -237,23 +237,29 @@ namespace alpaka::trait
         }
     };
 
+    //! The pinned/mapped memory allocation capability trait specialization.
+    template<typename TTag>
+    struct HasMappedBufSupport<PlatformGenericSycl<TTag>> : public std::true_type
+    {
+    };
+
     //! The BufGenericSycl idx type trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct IdxType<BufGenericSycl<TElem, TDim, TIdx, TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct IdxType<BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
         using type = TIdx;
     };
 
     //! The BufCpu pointer on SYCL device get trait specialization.
-    template<typename TElem, typename TDim, typename TIdx, typename TPlatform>
-    struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevGenericSycl<TPlatform>>
+    template<typename TElem, typename TDim, typename TIdx, typename TTag>
+    struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevGenericSycl<TTag>>
     {
-        static auto getPtrDev(BufCpu<TElem, TDim, TIdx> const& buf, DevGenericSycl<TPlatform> const&) -> TElem const*
+        static auto getPtrDev(BufCpu<TElem, TDim, TIdx> const& buf, DevGenericSycl<TTag> const&) -> TElem const*
         {
             return getPtrNative(buf);
         }
 
-        static auto getPtrDev(BufCpu<TElem, TDim, TIdx>& buf, DevGenericSycl<TPlatform> const&) -> TElem*
+        static auto getPtrDev(BufCpu<TElem, TDim, TIdx>& buf, DevGenericSycl<TTag> const&) -> TElem*
         {
             return getPtrNative(buf);
         }

@@ -8,4 +8,6 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: install_doxygen>"
+
 travis_retry sudo apt-get -y --quiet install --no-install-recommends doxygen graphviz

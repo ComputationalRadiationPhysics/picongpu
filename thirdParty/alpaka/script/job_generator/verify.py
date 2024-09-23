@@ -27,7 +27,7 @@ def verify_parameters(parameters: Dict[str, Union[List[Tuple[str, str]], List[Li
             for backend in param_value:
                 for name, version in backend:
                     if not is_supported_version(name=name, version=version):
-                        print_warn(f"{name}-{version} is not officially supported by " "the alpaka-job-library.")
+                        print_warn(f"{name}-{version} is not officially supported by the alpaka-job-library.")
         elif param_name not in [BUILD_TYPE, JOB_EXECUTION_TYPE, MDSPAN]:
             for name, version in param_value:
                 # if we compare a minor.major.patch version with a minor.major
@@ -40,7 +40,7 @@ def verify_parameters(parameters: Dict[str, Union[List[Tuple[str, str]], List[Li
                 else:
                     mod_version = version
                 if not is_supported_version(name=name, version=mod_version):
-                    print_warn(f"{name}-{mod_version} is not officially supported by " "the alpaka-job-library.")
+                    print_warn(f"{name}-{mod_version} is not officially supported by the alpaka-job-library.")
 
 
 class Combination:

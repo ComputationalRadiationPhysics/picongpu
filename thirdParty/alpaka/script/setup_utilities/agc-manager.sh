@@ -8,7 +8,7 @@
 if [ "$ALPAKA_CI_OS_NAME" != "Linux" ] || [ ! -f "/usr/bin/agc-manager" ]; then
     # display message only one time not everytime the script is sourced
     if [ -z ${PRINT_INSTALL_AGC_MANAGER+x} ]; then
-        echo "install fake agc-manager"
+        echo_yellow "install fake agc-manager"
         export PRINT_INSTALL_AGC_MANAGER=true
     fi
 
@@ -25,14 +25,14 @@ if [ "$ALPAKA_CI_OS_NAME" != "Linux" ] || [ ! -f "/usr/bin/agc-manager" ]; then
         sudo chmod +x agc-manager
         sudo mv agc-manager /usr/local/bin
     else
-        echo "installing agc-manager: " \
+        echo_red "installing agc-manager: " \
         "unknown operation system: ${ALPAKA_CI_OS_NAME}"
         exit 1
     fi
 else
     # display message only one time not everytime the script is sourced
     if [ -z ${PRINT_INSTALL_AGC_MANAGER+x} ]; then
-        echo "found agc-manager"
+        echo_green "found agc-manager"
         export PRINT_INSTALL_AGC_MANAGER=true
     fi
 fi

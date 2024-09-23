@@ -1,5 +1,5 @@
-/* Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan, Jeffrey Kelling, Andrea Bocci,
- *                Bernhard Manfred Gruber
+/* Copyright 2024 Benjamin Worpitz, Matthias Werner, Jan Stephan, Jeffrey Kelling, Andrea Bocci,
+ *                Bernhard Manfred Gruber, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -712,11 +712,11 @@ namespace alpaka
 {
     namespace test
     {
-        template<typename TPlatform>
+        template<typename TTag>
         class EventHostManualTriggerSycl
         {
         public:
-            EventHostManualTriggerSycl(DevGenericSycl<TPlatform> const&)
+            EventHostManualTriggerSycl(DevGenericSycl<TTag> const&)
             {
             }
 
@@ -727,16 +727,16 @@ namespace alpaka
 
         namespace trait
         {
-            template<typename TPlatform>
-            struct EventHostManualTriggerType<DevGenericSycl<TPlatform>>
+            template<typename TTag>
+            struct EventHostManualTriggerType<DevGenericSycl<TTag>>
             {
-                using type = alpaka::test::EventHostManualTriggerSycl<TPlatform>;
+                using type = alpaka::test::EventHostManualTriggerSycl<TTag>;
             };
 
-            template<typename TPlatform>
-            struct IsEventHostManualTriggerSupported<DevGenericSycl<TPlatform>>
+            template<typename TTag>
+            struct IsEventHostManualTriggerSupported<DevGenericSycl<TTag>>
             {
-                ALPAKA_FN_HOST static auto isSupported(DevGenericSycl<TPlatform> const&) -> bool
+                ALPAKA_FN_HOST static auto isSupported(DevGenericSycl<TTag> const&) -> bool
                 {
                     return false;
                 }
@@ -746,35 +746,30 @@ namespace alpaka
 
     namespace trait
     {
-        template<typename TPlatform>
-        struct Enqueue<
-            QueueGenericSyclBlocking<DevGenericSycl<TPlatform>>,
-            test::EventHostManualTriggerSycl<TPlatform>>
+        template<typename TTag>
+        struct Enqueue<QueueGenericSyclBlocking<TTag>, test::EventHostManualTriggerSycl<TTag>>
         {
             ALPAKA_FN_HOST static auto enqueue(
-                QueueGenericSyclBlocking<DevGenericSycl<TPlatform>>& /* queue */,
-                test::EventHostManualTriggerSycl<TPlatform>& /* event */) -> void
+                QueueGenericSyclBlocking<TTag>& /* queue */,
+                test::EventHostManualTriggerSycl<TTag>& /* event */) -> void
             {
             }
         };
 
-        template<typename TPlatform>
-        struct Enqueue<
-            QueueGenericSyclNonBlocking<DevGenericSycl<TPlatform>>,
-            test::EventHostManualTriggerSycl<TPlatform>>
+        template<typename TTag>
+        struct Enqueue<QueueGenericSyclNonBlocking<TTag>, test::EventHostManualTriggerSycl<TTag>>
         {
             ALPAKA_FN_HOST static auto enqueue(
-                QueueGenericSyclNonBlocking<DevGenericSycl<TPlatform>>& /* queue */,
-                test::EventHostManualTriggerSycl<TPlatform>& /* event */) -> void
+                QueueGenericSyclNonBlocking<TTag>& /* queue */,
+                test::EventHostManualTriggerSycl<TTag>& /* event */) -> void
             {
             }
         };
 
-        template<typename TPlatform>
-        struct IsComplete<test::EventHostManualTriggerSycl<TPlatform>>
+        template<typename TTag>
+        struct IsComplete<test::EventHostManualTriggerSycl<TTag>>
         {
-            ALPAKA_FN_HOST static auto isComplete(test::EventHostManualTriggerSycl<TPlatform> const& /* event */)
-                -> bool
+            ALPAKA_FN_HOST static auto isComplete(test::EventHostManualTriggerSycl<TTag> const& /* event */) -> bool
             {
                 return true;
             }

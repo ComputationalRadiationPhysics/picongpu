@@ -8,10 +8,16 @@
 set +xv
 source ./script/setup_utilities.sh
 
+echo_green "<SCRIPT: install_tbb>"
+
 : "${ALPAKA_CI_TBB_VERSION?'ALPAKA_CI_TBB_VERSION must be specified'}"
 
-if ! agc-manager -e tbb@${ALPAKA_CI_TBB_VERSION}
+if agc-manager -e tbb@${ALPAKA_CI_TBB_VERSION}
 then
+    echo_green "<USE: preinstalled Intel TBB ${ALPAKA_CI_TBB_VERSION}>"
+else
+    echo_yellow "<INSTALL: Intel TBB ${ALPAKA_CI_TBB_VERSION}>"
+
     # Install TBB
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
     then

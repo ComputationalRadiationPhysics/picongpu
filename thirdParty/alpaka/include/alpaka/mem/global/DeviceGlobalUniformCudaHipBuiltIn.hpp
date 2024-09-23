@@ -11,6 +11,14 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+#        include "alpaka/core/ApiCudaRt.hpp"
+#    endif
+
+#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+#        include "alpaka/core/ApiHipRt.hpp"
+#    endif
+
 namespace alpaka
 {
 

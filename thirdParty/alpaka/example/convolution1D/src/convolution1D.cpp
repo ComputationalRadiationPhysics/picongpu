@@ -37,8 +37,8 @@ struct ConvolutionKernel
         TElem const* const input,
         TElem const* const filter,
         TElem* const output,
-        const std::size_t inputSize,
-        const std::size_t filterSize) const -> void
+        std::size_t const inputSize,
+        std::size_t const filterSize) const -> void
     {
         auto const globalThreadIdxX = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
 
@@ -130,7 +130,7 @@ auto example(TAccTag const&) -> int
 
     auto const elementsPerThread = Vec::all(static_cast<Idx>(1));
     // Grid size
-    auto const threadsPerGrid = inputSize;
+    auto const elementsPerGrid = inputSize;
 
     // Instantiate the kernel (gpu code) function-object
     ConvolutionKernel convolutionKernel;
@@ -140,7 +140,12 @@ auto example(TAccTag const&) -> int
     DataType* nativeInputDeviceMemory = std::data(inputDeviceMemory);
     DataType* nativeOutputDeviceMemory = std::data(outputDeviceMemory);
 
-    auto const& bundeledKernel = alpaka::KernelBundle(
+    alpaka::KernelCfg<DevAcc> const kernelCfg = {elementsPerGrid, elementsPerThread};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
         convolutionKernel,
         nativeInputDeviceMemory,
         nativeFilterDeviceMemory,
@@ -148,9 +153,6 @@ auto example(TAccTag const&) -> int
         inputSize,
         filterSize);
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent
-    auto const workDiv
-        = alpaka::getValidWorkDivForKernel<DevAcc>(devAcc, bundeledKernel, threadsPerGrid, elementsPerThread);
     // Run the kernel
     alpaka::exec<DevAcc>(
         queue,
