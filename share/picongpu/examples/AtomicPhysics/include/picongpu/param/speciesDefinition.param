@@ -92,6 +92,11 @@ namespace picongpu
 
     struct CopperAtomicPhysicsCfg
     {
+        /** paths to atomic physics input data files
+         * - must follow PIConGPU specific formatting
+         * - files are not shipped with PIConGPU, see documentation for creation and sources
+         * - all paths must be either relative to the simOutput folder, or absolute
+         */
         static constexpr char const* chargeStatesFileName = "./atomicInputData/ChargeStates_Cu.txt";
         static constexpr char const* atomicStatesFileName = "./atomicInputData/AtomicStates_Cu.txt";
 
@@ -99,11 +104,42 @@ namespace picongpu
         static constexpr char const* boundFreeTransitionsFileName = "./atomicInputData/BoundFreeTransitions_Cu.txt";
         static constexpr char const* autonomousTransitionsFileName = "./atomicInputData/AutonomousTransitions_Cu.txt";
 
-        static constexpr char const* pressureIonizationStatesFileName = "";
+        /** path to file containing pressure ionization states
+         *
+         * @note optional, set to empty string if not provided
+         *
+         * if no file with pressure ionization input data provided, atomicPhysics will use one of the following options
+         *  to find a pressure ionization path for each atomic state, descending in priority:
+         *      1.) direct pressure ionization state, if present in atomic state input data.
+         *          i.e. for the state with the shell occupation number vector n_0 = (n_1, n_2, ..., n_k, 0, ...),
+         *           with k the index of the last occupied shell, and n_k the occupation number of the k-th shell
+         *           the corresponding pressure ionization state is n_PI  = (n_1, n_2, ..., n_k - 1, 0, ...).
+         *      2.) closest in energy final state of upward bound-free transition(ionizing transition) from the state,
+         *       if at least one upward bound free transition exists.
+         *          i.e. the final state reachable by a defined upward bound-free transition from the current state
+         *           with energy closest to the initial state.
+         *      3.) disable pressure ionization for this state.
+         *
+         * @details: setting an atomic states the pressure ionization state equal to the state disables pressure
+         *   ionization for this states
+         */
+        static constexpr char const* ipdIonizationStatesFileName = "";
 
-        //! @attention only channels activated in both data and solver are actually possible
+        /** specifies atomic data type to use for this species
+         *
+         * The atomic data type specifies data types used in storage and active atomic physics process paths
+         *
+         * @attention process paths must be both present in the input data and activated in the atomicData object
+         *  to be realised in the simulation
+         *
+         * @details see atomicPhysics.param for definition
+         */
         using AtomicDataType = atomicPhysics::AtomicData_Cu;
 
+        /** number of atomic states in the atomic state input data
+         *
+         * @attention must be equal to the number of states in the atomic state input file
+         */
         static constexpr uint16_t numberAtomicStates = 869u;
 
         using IonizationElectronSpecies = BulkElectrons;
