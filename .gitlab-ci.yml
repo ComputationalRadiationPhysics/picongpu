@@ -8,6 +8,7 @@ stages:
 
 variables:
   CONTAINER_TAG: "3.2"
+  PIC_CI_MAINLINE: "TRUE"
 
 .base_generate-reduced-matrix:
   stage: generate

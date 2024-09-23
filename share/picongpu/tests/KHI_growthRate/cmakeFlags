@@ -33,7 +33,7 @@
 flags[0]=""
 
 # limit examles if we run CI tests
-if [ -z  "$CI_PROJECT_DIR" ] ; then
+if [ -z  "$PIC_CI_MAINLINE" ] ; then
   flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_PARTICLESHAPE=TSC'"
   flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=PQS'"
 fi
