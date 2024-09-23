@@ -15,7 +15,7 @@
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/hiprand/lib/"
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/lib/"
     # rocm 4.2+ container is missing a binary/symlink named `clang++-XX`
-    - export DETECTED_CLANG_VERSION=$(ls -w 1 /opt/rocm/llvm/bin/clang-* | grep clang-[0-9][0-9] | cut -d"-" -f2)
+    - export DETECTED_CLANG_VERSION=$(ls -w 1 /opt/rocm/llvm/bin/clang-* | grep clang-[0-9][0-9]$ | cut -d"-" -f2)
     - ln -s /opt/rocm/llvm/bin/clang++ /opt/rocm/llvm/bin/clang++-${DETECTED_CLANG_VERSION}
     - rocm-smi
     - hipcc --version
