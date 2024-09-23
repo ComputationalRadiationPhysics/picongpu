@@ -113,7 +113,10 @@ namespace picongpu::atomicPhysics::debug
     {
         /** @attention resamples electron momentum every atomicPhysics step creating unphysical currents,
          *  **do not use outside debug!** */
-        constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = true;
+#ifndef PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE
+#    define PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE false
+#endif
+        constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE;
 
         //! fixed temperature setting
         struct TemperatureParam
