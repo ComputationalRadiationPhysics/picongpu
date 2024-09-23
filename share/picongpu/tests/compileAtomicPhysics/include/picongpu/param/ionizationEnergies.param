@@ -39,7 +39,7 @@ namespace picongpu
          * Please follow these rules for defining ionization energies of atomic species,
          * unless your chosen ionization model requires a different unit system than `AU::`
          *     - input of values in either atomic units or converting eV or Joule to them
-         *     -> use either sim.si.conv.ev2auEnergy() or sim.si.conv.joule2auEnergy() for that purpose
+         *     -> use either sim.si.conv().ev2auEnergy() or sim.si.conv().joule2auEnergy() for that purpose
          *     - use `float_X` as the preferred data type
          *
          * example:
@@ -76,24 +76,24 @@ namespace picongpu
                     float_X,
                     18,
                     Argon,
-                    sim.si.conv.ev2auEnergy(15.7596119),
-                    sim.si.conv.ev2auEnergy(27.62967),
-                    sim.si.conv.ev2auEnergy(40.735),
-                    sim.si.conv.ev2auEnergy(59.58),
-                    sim.si.conv.ev2auEnergy(74.84),
-                    sim.si.conv.ev2auEnergy(91.290),
-                    sim.si.conv.ev2auEnergy(124.41),
-                    sim.si.conv.ev2auEnergy(143.4567),
-                    sim.si.conv.ev2auEnergy(422.60),
-                    sim.si.conv.ev2auEnergy(479.76),
-                    sim.si.conv.ev2auEnergy(540.4),
-                    sim.si.conv.ev2auEnergy(619.0),
-                    sim.si.conv.ev2auEnergy(685.5),
-                    sim.si.conv.ev2auEnergy(755.13),
-                    sim.si.conv.ev2auEnergy(855.5),
-                    sim.si.conv.ev2auEnergy(918.375),
-                    sim.si.conv.ev2auEnergy(4120.6657),
-                    sim.si.conv.ev2auEnergy(4426.2229));
+                    sim.si.conv().ev2auEnergy(15.7596119),
+                    sim.si.conv().ev2auEnergy(27.62967),
+                    sim.si.conv().ev2auEnergy(40.735),
+                    sim.si.conv().ev2auEnergy(59.58),
+                    sim.si.conv().ev2auEnergy(74.84),
+                    sim.si.conv().ev2auEnergy(91.290),
+                    sim.si.conv().ev2auEnergy(124.41),
+                    sim.si.conv().ev2auEnergy(143.4567),
+                    sim.si.conv().ev2auEnergy(422.60),
+                    sim.si.conv().ev2auEnergy(479.76),
+                    sim.si.conv().ev2auEnergy(540.4),
+                    sim.si.conv().ev2auEnergy(619.0),
+                    sim.si.conv().ev2auEnergy(685.5),
+                    sim.si.conv().ev2auEnergy(755.13),
+                    sim.si.conv().ev2auEnergy(855.5),
+                    sim.si.conv().ev2auEnergy(918.375),
+                    sim.si.conv().ev2auEnergy(4120.6657),
+                    sim.si.conv().ev2auEnergy(4426.2229));
 
             } // namespace AU
         } // namespace energies

@@ -161,7 +161,7 @@ namespace picongpu
                     /** convert kinetic energy in J to "temperature" in eV by assuming an ideal electron gas
                      * E_kin = 3/2 k*T
                      */
-                    constexpr float_64 convKinEnergyToTemperature = sim.si.conv.joule2ev(1.0) * float_64(2. / 3.);
+                    constexpr float_64 convKinEnergyToTemperature = sim.si.conv().joule2ev(1.0) * float_64(2. / 3.);
                     /** electron "temperature" in electron volts */
                     float_64 const temperature = avgKinEnergy * convKinEnergyToTemperature;
 

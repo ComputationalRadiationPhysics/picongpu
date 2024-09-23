@@ -119,8 +119,8 @@ namespace picongpu
             {
                 const float_64 minEnergy_SI = this->minEnergy * sim.unit.energy();
                 const float_64 maxEnergy_SI = this->maxEnergy * sim.unit.energy();
-                const float_64 minEnergy_keV = minEnergy_SI * sim.si.conv.joule2ev(1.0e-3);
-                const float_64 maxEnergy_keV = maxEnergy_SI * sim.si.conv.joule2ev(1.0e-3);
+                const float_64 minEnergy_keV = minEnergy_SI * sim.si.conv().joule2ev(1.0e-3);
+                const float_64 maxEnergy_keV = maxEnergy_SI * sim.si.conv().joule2ev(1.0e-3);
 
                 dataset.setAttribute<float_64>("minEnergy[keV]", minEnergy_keV);
                 dataset.setAttribute<float_64>("maxEnergy[keV]", maxEnergy_keV);
@@ -301,8 +301,8 @@ namespace picongpu
             this->maxYaw_deg = float_X(0.5) * this->openingYaw_deg;
             this->maxPitch_deg = float_X(0.5) * this->openingPitch_deg;
             /* convert units */
-            const float_64 minEnergy_SI = this->minEnergy * sim.si.conv.ev2Joule(1.0e3);
-            const float_64 maxEnergy_SI = this->maxEnergy * sim.si.conv.ev2Joule(1.0e3);
+            const float_64 minEnergy_SI = this->minEnergy * sim.si.conv().ev2Joule(1.0e3);
+            const float_64 maxEnergy_SI = this->maxEnergy * sim.si.conv().ev2Joule(1.0e3);
             this->minEnergy = minEnergy_SI / sim.unit.energy();
             this->maxEnergy = maxEnergy_SI / sim.unit.energy();
 

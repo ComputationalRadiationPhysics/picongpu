@@ -92,7 +92,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 chargeStateDataBox);
             // unitless
             float_X const effectivePrincipalQuantumNumber
-                = screenedCharge / math::sqrt(2._X * ionizationEnergy * sim.si.conv.ev2auEnergy(1.0));
+                = screenedCharge / math::sqrt(2._X * ionizationEnergy * sim.si.conv().ev2auEnergy(1.0));
             float_X const eFieldNorm_AU = sim.pic.conv().eField2auEField(eFieldNorm);
             float_X const screenedChargeCubed = pmacc::math::cPow(screenedCharge, 3u);
             float_X const dBase = 4.0_X * math::exp(1._X) * screenedChargeCubed
