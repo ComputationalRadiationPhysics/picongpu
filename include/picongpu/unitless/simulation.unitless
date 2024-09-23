@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/param/precision.param"
+
 #include <pmacc/math/ConstVector.hpp>
 #include <pmacc/math/Vector.hpp>
 
@@ -133,25 +135,25 @@ namespace picongpu
                 template<typename T_Type = float_X>
                 constexpr T_Type eField2auEField(T_Type eField = 1.0) const
                 {
-                    return static_cast<T_Type>(si.conv.eField2auEField(eField * unit.eField()));
+                    return static_cast<T_Type>(si.conv().eField2auEField(eField * unit.eField()));
                 }
 
                 template<typename T_Type = float_X>
                 constexpr T_Type auEnergy2Joule(T_Type auEnergy = 1.0) const
                 {
-                    return static_cast<T_Type>(si.conv.auEnergy2Joule(auEnergy) / unit.energy());
+                    return static_cast<T_Type>(si.conv().auEnergy2Joule(auEnergy) / unit.energy());
                 }
 
                 template<typename T_Type = float_X>
                 constexpr T_Type auTime2Time(T_Type auTime = 1.0) const
                 {
-                    return static_cast<T_Type>(si.conv.auTime2Time(auTime) / unit.time());
+                    return static_cast<T_Type>(si.conv().auTime2Time(auTime) / unit.time());
                 }
 
                 template<typename T_Type = float_X>
                 constexpr T_Type time2auTime(T_Type time = 1.0) const
                 {
-                    return static_cast<T_Type>(si.conv.time2auTime(time * unit.time()));
+                    return static_cast<T_Type>(si.conv().time2auTime(time * unit.time()));
                 }
             };
 
@@ -278,7 +280,7 @@ namespace picongpu
             constexpr float_64 getRydbergEnergy() const
             {
                 // convert from  unit eV to Joule
-                return conv.ev2Joule(13.605693122990);
+                return conv().ev2Joule(13.605693122990);
             }
 
             /** bohr radius, unit: m
@@ -373,7 +375,11 @@ namespace picongpu
                 }
             };
 
-            static constexpr Convert conv{};
+            /** get conversion functions */
+            static constexpr Convert conv()
+            {
+                return Convert{};
+            }
         };
 
         /** units to convert from SI into PIConGPU's SI unit system */

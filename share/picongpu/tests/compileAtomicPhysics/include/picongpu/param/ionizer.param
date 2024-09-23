@@ -193,7 +193,7 @@ namespace picongpu
                  */
                 constexpr float_X CUTOFF_MAX_ENERGY_KEV = 50.0;
                 /** cutoff energy for electron "temperature" calculation in SI units*/
-                constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * sim.si.conv.ev2Joule(1.0e3);
+                constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * sim.si.conv().ev2Joule(1.0e3);
 
                 /** lower ion density cutoff
                  *
