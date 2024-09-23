@@ -22,9 +22,6 @@
 
 namespace picongpu
 {
-    //! reduced Planck constant
-    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / sim.unit.energy() / sim.unit.time());
-
     /* Atomic unit of electric field in PIC Efield units */
     constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / sim.unit.eField());
 

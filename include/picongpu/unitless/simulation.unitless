@@ -103,6 +103,30 @@ namespace picongpu
             {
                 return static_cast<T_Type>(pic.getMue0<T_Type>() * pic.getSpeedOfLight<T_Type>());
             }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getHbar() const
+            {
+                return static_cast<T_Type>(si.getHbar() / unit.energy() / unit.time());
+            }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getRydbergEnergy() const
+            {
+                return static_cast<T_Type>(si.getRydbergEnergy() / unit.energy());
+            }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getBohrRadius() const
+            {
+                return static_cast<T_Type>(si.getBohrRadius() / unit.length());
+            }
+
+            template<typename T_Type = float_X>
+            constexpr T_Type getClassicalElectronRadius() const
+            {
+                return static_cast<T_Type>(si.getClassicalElectronRadius() / unit.length());
+            }
         };
         struct SiUnits
         {
@@ -202,7 +226,75 @@ namespace picongpu
             {
                 return getMue0() * getSpeedOfLight();
             }
+
+            /** reduced Planck constant
+             *
+             * unit: J * s
+             *
+             * 2022 CODATA value, https://physics.nist.gov/cgi-bin/cuu/Value?hbar
+             */
+            constexpr float_64 getHbar() const
+            {
+                return 1.054571817e-34;
+            }
+
+            /** Rydberg energy, unit: J
+             *
+             * 2022 CODATA value, https://physics.nist.gov/cgi-bin/cuu/Value?rydhcev
+             */
+            constexpr float_64 getRydbergEnergy() const
+            {
+                // convert from  unit eV to Joule
+                return conv.ev2Joule(13.605693122990);
+            }
+
+            /** bohr radius, unit: m
+             *
+             * 2022 CODATA value, https://physics.nist.gov/cgi-bin/cuu/Value?bohrrada0
+             */
+            constexpr float_64 getBohrRadius() const
+            {
+                return 5.29177210544e-11;
+            }
+
+            /** Avogadro number
+             * unit: mol^-1
+             *
+             * Y. Azuma et al. Improved measurement results for the Avogadro
+             * constant using a 28-Si-enriched crystal, Metrologie 52, 2015, 360-375
+             * doi:10.1088/0026-1394/52/2/360
+             */
+            constexpr float_64 getNAvogadro() const
+            {
+                return 6.02214076e23;
+            }
+
+            /** Classical electron radius, unit: m */
+            constexpr float_64 getClassicalElectronRadius() const
+            {
+                return getElectronCharge() * getElectronCharge()
+                    / (4.0 * PI * getEps0() * getElectronMass() * getSpeedOfLight() * getSpeedOfLight());
+            }
+
+            struct Convert
+            {
+                /** convert from eV into joule */
+                constexpr float_64 ev2Joule(float_64 eV = 1.0) const
+                {
+                    return eV * 1.602176634e-19;
+                }
+
+                /** convert from joule into eV */
+                constexpr float_64 joule2ev(float_64 joule = 1.0) const
+                {
+                    return joule / ev2Joule(1.0);
+                }
+            };
+
+            static constexpr Convert conv{};
         };
+
+        /** units to convert from SI into PIConGPU's SI unit system */
         struct Units
         {
             constexpr float_64 length() const

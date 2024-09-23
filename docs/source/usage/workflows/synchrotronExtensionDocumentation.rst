@@ -49,7 +49,7 @@ Param: ``minEnergy``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~	 
 - **Type:** `float_64`
 - **Unit:** PIC units 
-- **Default:** `HBAR / sim.pic.getDt()`
+- **Default:** `sim.pic.getHbar() / sim.pic.getDt()`
 - **Description:** Sets the minimum energy threshold for photons to be considered in the simulation. This parameter helps in filtering out low-energy photons that may be already accounted for by the PIC fields. The default value is an approximation for the maximum photon energy that can be resolved by the field grid. This parameter is dependent on the internal unit system used in PIConGPU (Please use variables defined in `/picongpu/include/picongpu/unitless/*.unitless`).
 
 Precomputation Parameters

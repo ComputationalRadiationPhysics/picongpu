@@ -156,8 +156,8 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             if(energyDifference <= energyElectron)
             {
                 constexpr float_64 C = 2.3; // a fitting factor well suited for Z >= 2, unitless
-                constexpr float_64 a0 = picongpu::SI::BOHR_RADIUS; // m
-                constexpr float_64 E_R = picongpu::SI::RYDBERG_ENERGY; // eV
+                constexpr float_64 a0 = sim.si.getBohrRadius(); // m
+                constexpr float_64 E_R = sim.si.getRydbergEnergy(); // eV
                 constexpr float_64 scalingConstant
                     = C * picongpu::PI * pmacc::math::cPow(a0, 2u) / 1e-22 * pmacc::math::cPow(E_R, 2u);
                 // 10^6*b * eV^2
