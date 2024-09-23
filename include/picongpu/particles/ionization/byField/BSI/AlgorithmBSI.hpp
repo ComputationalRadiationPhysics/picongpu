@@ -77,7 +77,7 @@ namespace picongpu
                         /* critical field strength in atomic units */
                         float_X const critField = iEnergy * iEnergy / (float_X(4.0) * effectiveCharge);
                         /* ionization condition */
-                        if(pmacc::math::l2norm(eField) / ATOMIC_UNIT_EFIELD >= critField)
+                        if(sim.pic.conv().eField2auEField(pmacc::math::l2norm(eField)) >= critField)
                         {
                             /* return ionization energy and number of macro electrons to produce */
                             return IonizerReturn{iEnergy, 1u};

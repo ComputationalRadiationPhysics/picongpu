@@ -92,8 +92,8 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 chargeStateDataBox);
             // unitless
             float_X const effectivePrincipalQuantumNumber
-                = screenedCharge / math::sqrt(2._X * ionizationEnergy * picongpu::UNITCONV_eV_to_AU);
-            float_X const eFieldNorm_AU = eFieldNorm / ATOMIC_UNIT_EFIELD;
+                = screenedCharge / math::sqrt(2._X * ionizationEnergy * sim.si.conv.ev2auEnergy(1.0));
+            float_X const eFieldNorm_AU = sim.pic.conv().eField2auEField(eFieldNorm);
             float_X const screenedChargeCubed = pmacc::math::cPow(screenedCharge, 3u);
             float_X const dBase = 4.0_X * math::exp(1._X) * screenedChargeCubed
                 / (eFieldNorm_AU * pmacc::math::cPow(effectivePrincipalQuantumNumber, 4u));
@@ -103,7 +103,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             constexpr float_X pi = pmacc::math::Pi<float_X>::value;
             float_X const nEffCubed = pmacc::math::cPow(effectivePrincipalQuantumNumber, 3u);
 
-            // 1/ATOMIC_UNIT_TIME
+            // 1/atomicTime
             float_X rateADK_AU = eFieldNorm_AU * pmacc::math::cPow(dFromADK, 2u) / (8._X * pi * screenedCharge)
                 * math::exp(-2._X * screenedChargeCubed / (3._X * nEffCubed * eFieldNorm_AU));
 
@@ -112,7 +112,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 u32(T_ADKLaserPolarization) == u32(atomicPhysics::enums::ADKLaserPolarization::linearPolarization))
                 rateADK_AU *= math::sqrt(3._X * nEffCubed * eFieldNorm_AU / (pi * screenedChargeCubed));
 
-            return rateADK_AU / ATOMIC_UNIT_TIME;
+            return rateADK_AU / sim.pic.conv().auTime2Time(1.0);
         }
     };
 } // namespace picongpu::particles::atomicPhysics::rateCalculation
