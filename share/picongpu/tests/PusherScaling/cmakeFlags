@@ -36,7 +36,7 @@
 flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_DT_SI=0.825e-12/160'"
 
 # limit examles if we run CI tests
-if [ -z  "$CI_PROJECT_DIR" ] ; then
+if [ -z  "$PIC_CI_MAINLINE" ] ; then
   flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DT_SI=0.825e-12/80'"
   flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_DT_SI=0.825e-12/40'"
   flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_DT_SI=0.825e-12/20'"
