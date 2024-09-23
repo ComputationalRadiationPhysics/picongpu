@@ -142,7 +142,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // sqrt(E' * (E' + 2* m*c^2)) / c
                     float_X const newElectronMomentum
                         = math::sqrt(newEnergyElectron * (newEnergyElectron + 2 * mcSquaredElectron)) * scalingFactor;
-                    // AU = ATOMIC_UNIT_ENERGY
+                    // AU = sim.si.conv.auEnergy2Joule()
                     // sqrt(eV * (eV + eV))/(sim.unit.length()/sim.unit.time()) * (sim.unit.energy()/eV)
                     //  = sqrt((eV)^2)/(eV) * sim.unit.time()/sim.unit.length() * sim.unit.energy()
                     //  = sim.unit.mass() * sim.unit.length()^2/sim.unit.time()^2 * sim.unit.time()/sim.unit.length()

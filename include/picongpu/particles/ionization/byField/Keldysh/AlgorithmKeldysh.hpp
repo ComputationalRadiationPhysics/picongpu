@@ -76,7 +76,7 @@ namespace picongpu
 
                         constexpr float_X pi = pmacc::math::Pi<float_X>::value;
                         /* electric field in atomic units - only absolute value */
-                        float_X eInAU = pmacc::math::l2norm(eField) / ATOMIC_UNIT_EFIELD;
+                        float_X eInAU = sim.pic.conv().eField2auEField(pmacc::math::l2norm(eField));
 
                         /* factor two avoid calculation math::pow(2,5./4.); */
                         const float_X twoToFiveQuarters = 2.3784142300054;
@@ -89,7 +89,7 @@ namespace picongpu
                             * math::sqrt(float_X(1.) / charExpArg) * math::exp(-float_X(2. / 3.) * charExpArg);
 
                         /* simulation time step in atomic units */
-                        const auto timeStepAU = float_X(sim.pic.getDt() / ATOMIC_UNIT_TIME);
+                        const auto timeStepAU = sim.pic.conv().time2auTime(sim.pic.getDt());
                         /* ionization probability
                          *
                          * probability = rate * time step

@@ -127,6 +127,39 @@ namespace picongpu
             {
                 return static_cast<T_Type>(si.getClassicalElectronRadius() / unit.length());
             }
+
+            struct Convert
+            {
+                template<typename T_Type = float_X>
+                constexpr T_Type eField2auEField(T_Type eField = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv.eField2auEField(eField * unit.eField()));
+                }
+
+                template<typename T_Type = float_X>
+                constexpr T_Type auEnergy2Joule(T_Type auEnergy = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv.auEnergy2Joule(auEnergy) / unit.energy());
+                }
+
+                template<typename T_Type = float_X>
+                constexpr T_Type auTime2Time(T_Type auTime = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv.auTime2Time(auTime) / unit.time());
+                }
+
+                template<typename T_Type = float_X>
+                constexpr T_Type time2auTime(T_Type time = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv.time2auTime(time * unit.time()));
+                }
+            };
+
+            /** get conversion functions */
+            static constexpr Convert conv()
+            {
+                return Convert{};
+            }
         };
         struct SiUnits
         {
@@ -288,6 +321,55 @@ namespace picongpu
                 constexpr float_64 joule2ev(float_64 joule = 1.0) const
                 {
                     return joule / ev2Joule(1.0);
+                }
+
+                /* atomic unit for energy:
+                 * 2 Rydberg = 27.21 eV --> converted to Joule
+                 */
+                constexpr float_64 auEnergy2Joule(float_64 auEnergy = 1.0) const
+                {
+                    return auEnergy * 2.0 * si.getRydbergEnergy();
+                }
+
+                constexpr float_64 joule2auEnergy(float_64 joule = 1.0) const
+                {
+                    return joule / auEnergy2Joule(1.0);
+                }
+
+                constexpr float_64 auEnergy2ev(float_64 auEnergy = 1.0) const
+                {
+                    return joule2ev(auEnergy2Joule(auEnergy));
+                }
+
+                constexpr float_64 ev2auEnergy(float_64 ev = 1.0) const
+                {
+                    return ev / auEnergy2ev(1.0);
+                }
+
+                /* atomic unit for electric field in V/m:
+                 * field strength between electron and core in ground state hydrogen
+                 */
+                constexpr float_64 auEField2EField(float_64 auEField = 1.0) const
+                {
+                    return auEField * 5.14e11;
+                }
+
+                constexpr float_64 eField2auEField(float_64 eField = 1.0) const
+                {
+                    return eField / auEField2EField();
+                }
+
+                /* atomic unit for time in s:
+                 * 150 attoseconds (classical electron orbit time in hydrogen) / 2 PI
+                 */
+                constexpr float_64 auTime2Time(float_64 auTime = 1.0) const
+                {
+                    return auTime * 2.4189e-17;
+                }
+
+                constexpr float_64 time2auTime(float_64 time = 1.0) const
+                {
+                    return time / auTime2Time(1.0);
                 }
             };
 

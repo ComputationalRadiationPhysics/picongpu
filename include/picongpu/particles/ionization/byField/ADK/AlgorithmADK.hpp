@@ -84,7 +84,7 @@ namespace picongpu
 
                         constexpr float_X pi = pmacc::math::Pi<float_X>::value;
                         /* electric field in atomic units - only absolute value */
-                        float_X const eInAU = pmacc::math::l2norm(eField) / ATOMIC_UNIT_EFIELD;
+                        float_X const eInAU = sim.pic.conv().eField2auEField(pmacc::math::l2norm(eField));
 
                         /* the charge that attracts the electron that is to be ionized:
                          * equals `protonNumber - #allInnerElectrons`
@@ -113,7 +113,7 @@ namespace picongpu
                         }
 
                         /* simulation time step in atomic units */
-                        auto const timeStepAU = float_X(sim.pic.getDt() / ATOMIC_UNIT_TIME);
+                        auto const timeStepAU = sim.pic.conv().time2auTime(sim.pic.getDt());
                         /* ionization probability
                          *
                          * probability = rate * time step
