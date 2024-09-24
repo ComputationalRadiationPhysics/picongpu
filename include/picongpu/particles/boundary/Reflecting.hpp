@@ -98,6 +98,8 @@ namespace picongpu
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     auto const axis = pmacc::boundary::getAxis(exchangeType);
+                    if(axis >= simDim)
+                        throw std::runtime_error("The used exchange results into an invalid selected axis.");
                     ReflectParticleIfOutside::parameters().axis = axis;
                     ReflectParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal[axis];
                     ReflectParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal[axis];
