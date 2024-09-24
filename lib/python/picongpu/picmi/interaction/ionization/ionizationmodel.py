@@ -50,7 +50,7 @@ class IonizationModel(pydantic.BaseModel):
         assert isinstance(self.ion_species, Species), "ion_species must be an instance of the species object"
         assert isinstance(
             self.ionization_electron_species, Species
-        ), "ionization_electron_species must be an instance of species object"
+        ), "ionization_electron_species must be an instance of the species object"
 
     def get_constants(self) -> list[pypicongpu.species.constant.Constant]:
         raise NotImplementedError("abstract base class only!")

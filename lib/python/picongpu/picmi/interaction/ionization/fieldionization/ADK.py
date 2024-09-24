@@ -14,7 +14,6 @@ from .....pypicongpu.species.constant.ionizationmodel import (
     IonizationModel,
 )
 
-from ..... import pypicongpu
 
 import enum
 import typeguard
@@ -28,12 +27,12 @@ class ADKVariant(enum.Enum):
 
 @typeguard.typechecked
 class ADK(FieldIonization):
-    """Barrier Suppression Ioniztion model"""
+    """ADK Tunneling Ionization model"""
 
     MODEL_NAME: str = "ADK"
 
     ADK_variant: ADKVariant
-    """extension to the BSI model"""
+    """ADK model variant specification"""
 
     def get_as_pypicongpu(self) -> IonizationModel:
         self.check()
@@ -43,5 +42,5 @@ class ADK(FieldIonization):
         if self.ADK_variant is ADKVariant.CircularPolarization:
             return ADKCircularPolarization(ionization_current=None_())
 
-        # unknown/unsupported ADK variant
-        pypicongpu.util.unsupported(f"ADKVariant {self.ADK_variant}")
+        # unknown ADK variant
+        raise ValueError(f"ADKVariant {self.ADK_variant} is not supported.")

@@ -334,9 +334,7 @@ class Runner:
         runArgs(
             "PIConGPU",
             (
-                ("tbg -s bash -c etc/picongpu/N.cfg -t " + environ["PIC_SYSTEM_TEMPLATE_PATH"] + "/mpiexec.tpl").split(
-                    " "
-                )
+                ("tbg -s bash -c etc/picongpu/N.cfg -t " + environ["PIC_SYSTEM_TEMPLATE_PATH"] + "/mpiexec.tpl").split()
                 + [self.run_dir]
             ),
         )

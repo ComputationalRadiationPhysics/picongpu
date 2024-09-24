@@ -19,13 +19,12 @@ import typeguard
 class BSIExtension(enum.Enum):
     StarkShift = 0
     EffectiveZ = 1
-    # consider_excitation = 2
-    # add additional features here
+    # add additional extensions here
 
 
 @typeguard.typechecked
 class BSI(FieldIonization):
-    """Barrier Suppression Ioniztion model"""
+    """Barrier Suppression Ionization model"""
 
     MODEL_NAME: str = "BSI"
 
@@ -45,4 +44,4 @@ class BSI(FieldIonization):
             return ionizationmodel.BSIStarkShifted(ionization_current=None_())
         if self.BSI_extensions[0] is BSIExtension.EffectiveZ:
             return ionizationmodel.BSIEffectiveZ(ionization_current=None_())
-        raise ValueError(f"unknown BSI_extension {self.BSI_extensions[0]}")
+        raise ValueError(f"unknown BSI_extension {self.BSI_extensions[0]}.")

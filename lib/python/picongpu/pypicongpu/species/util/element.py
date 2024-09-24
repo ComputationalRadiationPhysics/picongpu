@@ -36,7 +36,7 @@ class Element(RenderedObject, pydantic.BaseModel):
     @staticmethod
     def parse_openpmd_isotopes(openpmd_name: str) -> tuple[int | None, str]:
         if openpmd_name == "":
-            raise ValueError(f"{openpmd_name} is not a valid openPMD particle type")
+            raise ValueError("Empty string is not a valid openPMD particle type")
         if openpmd_name[0] != "#" and re.match(r"[A-Z][a-z]?$|n$", openpmd_name):
             return None, openpmd_name
 

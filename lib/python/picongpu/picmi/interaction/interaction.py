@@ -54,7 +54,7 @@ class Interaction(pydantic.BaseModel):
 
                     if constant != constant_new:
                         # same type of constant but conflicting values
-                        raise ValueError(f"Constants {constant} and {constant_new} conflict with each other")
+                        raise ValueError(f"Constants {constant} and {constant_new} conflict with each other.")
 
             if not exists_already:
                 new_constant_list.append(constant_new)
@@ -103,8 +103,9 @@ class Interaction(pydantic.BaseModel):
         """
         add ionization models to pypicongpu species
 
-        in PICMI ioniaztion is defined as a list ionization models owned by the simulation, with each ionization model
-        storing its PICMI ion and PICMI ionization electron species.
+        In PICMI ionization is defined as a list ionization models owned by an interaction object which in turn is a
+        member of the simulation, with each ionization model storing its PICMI ion and PICMI ionization electron
+        species.
 
         In contrast in PyPIConGPU each ion PyPIConGPU species owns a list of ionization models, each storing its
         PyPIConGPU ionization electron species.
@@ -115,7 +116,7 @@ class Interaction(pydantic.BaseModel):
         Therefore we leave the ionization electron unspecified upon species creation and fill it in from the PICMI
         simulation ionization model list later.
 
-        (An because python uses pointers, this will be applied to the existing species objects passed in
+        (And because python uses pointers, this will be applied to the existing species objects passed in
             pypicongpu_by_picmi_species)
         """
 
@@ -129,9 +130,9 @@ class Interaction(pydantic.BaseModel):
                         ]
                     except KeyError:
                         raise ValueError(
-                            f"Ionization electron species of {picmi_ionization_model} not known to simulation."
+                            f"Ionization electron species of {picmi_ionization_model} not known to simulation.\n"
                             + f"Please add species {picmi_ionization_model.ionization_electron_species.name} to"
-                            + "the simulation"
+                            + " the simulation."
                         )
                     pypicongpu_ionization_model.ionization_electron_species = pypicongpu_ionization_electron_species
 
