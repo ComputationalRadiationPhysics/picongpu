@@ -84,6 +84,8 @@ namespace picongpu
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     auto const axis = pmacc::boundary::getAxis(exchangeType);
+                    if(axis >= simDim)
+                        throw std::runtime_error("The used exchange results into an invalid selected axis.");
                     AbsorbParticleIfOutside::parameters().axis = axis;
                     AbsorbParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal[axis];
                     AbsorbParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal[axis];
@@ -192,6 +194,8 @@ namespace picongpu
 
                     // Our active area is between particle boundary offset and inner PML boundary
                     auto const axis = pmacc::boundary::getAxis(exchangeType);
+                    if(axis >= simDim)
+                        throw std::runtime_error("The used exchange results into an invalid selected axis.");
                     auto const offsetCells = getOffsetCells(species, exchangeType);
                     auto const isMinSide = pmacc::boundary::isMinSide(exchangeType);
                     auto const& pmlImpl = absorberImpl.asPmlImpl();
