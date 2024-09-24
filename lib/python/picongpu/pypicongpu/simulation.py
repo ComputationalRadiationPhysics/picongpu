@@ -99,7 +99,14 @@ class Simulation(RenderedObject):
             + "\t WARNING: custom templates are required if using custom user input.\n"
         )
 
+    def check(self):
+        """check validity of self"""
+        if self.typical_ppc < 1:
+            raise ValueError("typical_ppc must be >= 1")
+
     def _get_serialized(self) -> dict:
+        self.check()
+
         serialized = {
             "delta_t_si": self.delta_t_si,
             "time_steps": self.time_steps,
