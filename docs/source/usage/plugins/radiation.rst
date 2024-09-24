@@ -532,16 +532,17 @@ This currently assumes adios output but any openPMD output, such as hdf5, will w
 There are various methods besides ``get_Spectra()`` that are provided by the python module.
 If a method exists for ``_x`` (or ``_X``) it also exists for ``_y`` and ``_z`` (``_Y`` and ``_Z``) accordingly.
 
-============================ ==============================================================================================================
-Method                       Description
-============================ ==============================================================================================================
-``.get_omega()``             get frequency :math:`\omega` of virtual detector bin in units of :math:`\mathrm{[1/s]}`
-``.get_vector_n()``          get observation direction :math:`\vec{n}`
-``.get_Spectra()``           get spectrum :math:`\mathrm{d}^2 I / \mathrm{d} \omega \mathrm{d} \Omega` in units of :math:`\mathrm{[Js]}`
-``.get_Polarization_X()``    get spectrum but only for polarization in x-direction
-``.get_Amplitude_x()``       get x-component of complex amplitude (unit: :math:`\mathrm{[\sqrt{Js}]}`)
-``.get_timestep()``          the iteration (timestep) at which the data was produced (unit: PIC-cycles)
-============================ ==============================================================================================================
+================================= ==============================================================================================================
+Method                            Description
+================================= ==============================================================================================================
+``.get_omega()``                  get frequency :math:`\omega` of virtual detector bin in units of :math:`\mathrm{[1/s]}`
+``.get_vector_n()``               get observation direction :math:`\vec{n}`
+``.get_Spectra()``                get spectrum :math:`\mathrm{d}^2 I / \mathrm{d} \omega \mathrm{d} \Omega` in units of :math:`\mathrm{[Js]}`
+``.get_Polarization_X()``         get spectrum but only for polarization in x-direction
+``.get_Amplitude_x()``            get x-component of complex amplitude (unit: :math:`\mathrm{[\sqrt{Js}]}`)
+``.get_timestep()``               the iteration (timestep) at which the data was produced (unit: PIC-cycles)
+``.get_distributedAmplitude()``   get 4D complex array of distributed amplitudes (shape: (N_gpus, N_observer, N_frequency, N_polarization))
+================================= ==============================================================================================================
 
 .. note::
 
