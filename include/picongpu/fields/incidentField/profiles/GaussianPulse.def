@@ -79,16 +79,16 @@ namespace picongpu::fields::incidentField::profiles
                 // Adding units to Gaussian-specific parameters
                 gaussianMetadata["W0"] = {{"value", My::W0_SI}, {"unit", "m"}};
                 gaussianMetadata["PULSE_INIT"] = {{"value", My::PULSE_INIT}, {"unit", "none"}};
-                gaussianMetadata["Mode number"] = {{"value", My::MODENUMBER}, {"unit", "none"}};
+                gaussianMetadata["Mode number"] = {{"value", My::numModes}, {"unit", "none"}};
 
                 // Adding Laguerre modes and phases
                 nlohmann::json laguerreModesJson = nlohmann::json::array();
                 nlohmann::json laguerrePhasesJson = nlohmann::json::array();
 
-                for(uint32_t i = 0; i <= MODENUMBER; ++i)
+                for(uint32_t i = 0; i <= numModes; ++i)
                 {
-                    laguerreModesJson.push_back(LAGUERREMODES_t{}[i]);
-                    laguerrePhasesJson.push_back(LAGUERREPHASES_t{}[i]);
+                    laguerreModesJson.push_back(laguerreModes[i]);
+                    laguerrePhasesJson.push_back(laguerrePhases[i]);
                 }
 
                 gaussianMetadata["Laguerre modes"] = {{"value", laguerreModesJson}, {"unit", "none"}};
