@@ -198,8 +198,8 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             // sim.unit.mass()/sim.unit.mass() = unitless
             float_64 const mE_mI = static_cast<float_64>(massElectron / massIon);
             // kg * m^2/s^2 * keV/J * 1e3 = J/J * eV = eV
-            float_64 const mc2_Ion = static_cast<float_64>(massIon) * sim.unit.mass()
-                * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u) * sim.si.conv().joule2ev(1.0);
+            float_64 const mc2_Ion = static_cast<float_64>(massIon)
+                * sim.si.conv().joule2eV(sim.unit.mass() * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u));
 
             //  eV / eV + sim.unit.mass() / sim.unit.mass() = unitless
             float_64 const A_E = deltaEnergy / mc2_Ion + mE_mI;
@@ -247,8 +247,8 @@ namespace picongpu::particles::atomicPhysics::initElectrons
             // sim.unit.mass()/sim.unit.mass() = unitless
             float_64 const mI_mE = static_cast<float_64>(massIon / massElectron);
             // kg * m^2/s^2 * keV/J * 1e3 = J/J * eV = eV
-            float_64 const mc2_Electron = static_cast<float_64>(massElectron) * sim.unit.mass()
-                * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u) * sim.si.conv().joule2ev(1.0);
+            float_64 const mc2_Electron = static_cast<float_64>(massElectron)
+                * sim.si.conv().joule2eV(sim.unit.mass() * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u));
 
             float_64 const A_I = deltaEnergy / mc2_Electron + mI_mE;
             float_64 const gammaStarIon_IonSystem = (A_I * (A_I + 2.) + (mI_mE * mI_mE)) / ((A_I + 1.) * 2. * mI_mE);

@@ -68,8 +68,10 @@ namespace picongpu
                 /** Initial temperature
                  *  unit: keV
                  */
-                static constexpr float_64 temperature = sim.si.getElectronMass() * sim.si.getSpeedOfLight()
-                    * sim.si.getSpeedOfLight() * sim.si.conv().joule2ev(1.0e-3) * 0.0002;
+                static constexpr float_64 temperature
+                    = sim.si.conv().joule2eV(
+                          sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight())
+                    * 0.2;
             };
             /** Definition of manipulator assigning a temperature
              *  using parameters from struct TemperatureParamElectrons.
@@ -82,8 +84,10 @@ namespace picongpu
                 /** Initial temperature
                  *  unit: keV
                  */
-                static constexpr float_64 temperature = sim.si.getElectronMass() * sim.si.getSpeedOfLight()
-                    * sim.si.getSpeedOfLight() * sim.si.conv().joule2ev(1.0e-3) * 0.00018;
+                static constexpr float_64 temperature
+                    = sim.si.conv().joule2eV(
+                          sim.si.getElectronMass() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight())
+                    * 0.18;
             };
             /** Definition of manipulator assigning a temperature
              *  using parameters from struct TemperatureParamIons.

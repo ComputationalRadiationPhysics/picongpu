@@ -69,13 +69,13 @@ To include charge-state-only simulations in your simulations you must:
                 float_X,
                 7, // number charge states
                 Nitrogen, // name you may reference this by later, remember to prepend the namespace and append _t!
-                sim.si.conv().ev2auEnergy(14.53413),
-                sim.si.conv().ev2auEnergy(29.60125),
-                sim.si.conv().ev2auEnergy(47.4453),
-                sim.si.conv().ev2auEnergy(77.4735),
-                sim.si.conv().ev2auEnergy(97.89013),
-                sim.si.conv().ev2auEnergy(552.06731),
-                sim.si.conv().ev2auEnergy(667.04609));
+                sim.si.conv().eV2auEnergy(14.53413),
+                sim.si.conv().eV2auEnergy(29.60125),
+                sim.si.conv().eV2auEnergy(47.4453),
+                sim.si.conv().eV2auEnergy(77.4735),
+                sim.si.conv().eV2auEnergy(97.89013),
+                sim.si.conv().eV2auEnergy(552.06731),
+                sim.si.conv().eV2auEnergy(667.04609));
         }; // namespace picongpu::ionization::energies::AU
 
     .. note::
