@@ -114,8 +114,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                     //  = Nm/J * eV = J/J * eV = eV, ~ 511e3 eV
                     float_X const mcSquaredElectron = static_cast<float_X>(
                         static_cast<float_64>(picongpu::traits::frame::getMass<typename T_Electron::FrameType>())
-                        * sim.unit.mass() * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u)
-                        * sim.si.conv().joule2ev(1.0));
+                        * sim.si.conv().joule2eV(
+                            sim.unit.mass() * pmacc::math::cPow(picongpu::sim.si.getSpeedOfLight(), 2u)));
                     // eV, not weighted
 
                     // distribute energy change as mean by weight on all electrons in bin
@@ -134,7 +134,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // usually ~1, internal units
 
                     constexpr float_X conversionEnergy
-                        = static_cast<float_X>(sim.si.conv().ev2Joule(1.0) / sim.unit.energy());
+                        = static_cast<float_X>(sim.si.conv().eV2Joule(1.0) / sim.unit.energy());
                     // J/(eV) * sim.unit.energy()/J  = J/J * sim.unit.energy()/(eV)
 
                     constexpr float_X scalingFactor = 1._X / c_internal * conversionEnergy;
@@ -142,7 +142,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                     // sqrt(E' * (E' + 2* m*c^2)) / c
                     float_X const newElectronMomentum
                         = math::sqrt(newEnergyElectron * (newEnergyElectron + 2 * mcSquaredElectron)) * scalingFactor;
-                    // AU = sim.si.conv().auEnergy2Joule()
+                    // AU = sim.atomicUnit.energy()
                     // sqrt(eV * (eV + eV))/(sim.unit.length()/sim.unit.time()) * (sim.unit.energy()/eV)
                     //  = sqrt((eV)^2)/(eV) * sim.unit.time()/sim.unit.length() * sim.unit.energy()
                     //  = sim.unit.mass() * sim.unit.length()^2/sim.unit.time()^2 * sim.unit.time()/sim.unit.length()
