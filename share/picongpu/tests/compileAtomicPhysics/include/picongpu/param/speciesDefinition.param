@@ -129,7 +129,7 @@ namespace picongpu
          * @details: setting an atomic states the pressure ionization state equal to the state disables pressure
          *   ionization for this states
          */
-        static constexpr char const* pressureIonizationStatesFileName = "";
+        static constexpr char const* ipdIonizationStatesFileName = "";
         //}
 
         /** specifies atomic data type to use for this species

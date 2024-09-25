@@ -154,9 +154,9 @@ namespace picongpu::atomicPhysics::debug
         constexpr bool ELECTRON_PARTICLE_BOX_FILL_GAPS = false;
     } // namespace kernel::spawnIonizationElectrons
 
-    namespace kernel::applyPressureIonization
+    namespace kernel::applyIPDIonization
     {
         //! @attention performance relevant
         constexpr bool ELECTRON_PARTICLE_BOX_FILL_GAPS = false;
-    } // namespace kernel::applyPressureIonization
+    } // namespace kernel::applyIPDIonization
 } // namespace picongpu::atomicPhysics::debug

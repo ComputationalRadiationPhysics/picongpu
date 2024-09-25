@@ -17,11 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file definition of ApplyPressure Ionization Kernel using the SpawnParticlesFromSourceSpecies kernel framework
+/** @file implements the ApplyIPDIonization kernel using the SpawnParticlesFromSourceSpecies kernel framework
+ *
+ * This kernel implements the ionization of ions due to ionization potential depression(IPD) causing atomic states to
+ * become unbound.
  *
  * see:
- *  include/picongpu/particles/creation/SpawnFromSourceSpecies.kernel/.stage for the kernel/stage implementation and
- *  include/picongpu/particles/creation/moduleInterfaces/ for interface definitions of the modules of the base kernel
+ *  include/picongpu/particles/creation/SpawnFromSourceSpecies.kernel for the kernel implementation and
+ *  include/picongpu/particles/creation/moduleInterfaces/ for interface definitions of the modules of the kernel
+ *      framework
  */
 
 
@@ -40,9 +44,9 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
     namespace s_enums = picongpu::particles::atomicPhysics::enums;
     namespace s_interfaces = picongpu::particles::creation::moduleInterfaces;
 
-    //! sanity checks for apply ApplyPressureIonizationKernel
+    //! sanity checks for apply ApplyIPDIonizationKernel
     template<typename T_IonBox, typename T_IonizationElectronBox, typename T_IPDModel>
-    struct ApplyPressureIonizationSanityCheckInputs
+    struct ApplyIPDIonizationSanityCheckInputs
         : public s_interfaces::SanityCheckInputs<T_IonBox, T_IonizationElectronBox, T_IPDModel>
     {
         template<
@@ -52,7 +56,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             typename T_LocalFoundUnboundIonBox,
             typename T_ChargeStateDataBox,
             typename T_AtomicStateDataBox,
-            typename T_PressureIonizationStateDataBox,
+            typename T_IPDIonizationStateDataBox,
             typename... T_IPDInputBoxes
             //@}
             >
@@ -63,7 +67,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             T_LocalFoundUnboundIonBox const,
             T_ChargeStateDataBox const,
             T_AtomicStateDataBox const,
-            T_PressureIonizationStateDataBox const,
+            T_IPDIonizationStateDataBox const,
             T_IPDInputBoxes const...)
         {
             PMACC_CASSERT_MSG(
@@ -118,7 +122,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             typename T_LocalFoundUnboundIonBox,
             typename T_ChargeStateDataBox,
             typename T_AtomicStateDataBox,
-            typename T_PressureIonizationStateDataBox,
+            typename T_IPDIonizationStateDataBox,
             typename... T_IPDInputBoxes>
         HDINLINE static void init(
             pmacc::DataSpace<picongpu::simDim> const,
@@ -128,7 +132,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             T_LocalFoundUnboundIonBox const,
             T_ChargeStateDataBox const,
             T_AtomicStateDataBox const,
-            T_PressureIonizationStateDataBox const,
+            T_IPDIonizationStateDataBox const,
             T_IPDInputBoxes const... ipdInputBoxes)
         {
             // eV
@@ -142,7 +146,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
 
     //! predict number pressure ionization electrons for one pressure ionization step and update ion atomic state
     template<typename T_Number, typename T_IPDModel>
-    struct PressureIonizationPredictor : public s_interfaces::PredictorFunctor<T_Number, T_IPDModel>
+    struct IPDIonizationPredictor : public s_interfaces::PredictorFunctor<T_Number, T_IPDModel>
     {
         template<
             typename T_Worker,
@@ -151,7 +155,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             typename T_LocalFoundUnboundIonBox,
             typename T_AtomicStateDataBox,
             typename T_ChargeStateDataBox,
-            typename T_PressureIonizationStateDataBox,
+            typename T_IPDIonizationStateDataBox,
             typename... T_IPDInputBoxes>
         HDINLINE static T_Number getNumberNewParticles(
             T_Worker const& worker,
@@ -162,17 +166,16 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             T_LocalFoundUnboundIonBox const,
             T_ChargeStateDataBox const chargeStateBox,
             T_AtomicStateDataBox const atomicStateBox,
-            T_PressureIonizationStateDataBox const pressureIonizationStateBox,
+            T_IPDIonizationStateDataBox const ipdIonizationStateBox,
             T_IPDInputBoxes const...)
         {
             auto const currentAtomicStateClctIdx = ion[atomicStateCollectionIndex_];
-            auto const pressureIonizationStateClctIdx
-                = pressureIonizationStateBox.pressureIonizationState(currentAtomicStateClctIdx);
+            auto const ipdIonizationStateClctIdx = ipdIonizationStateBox.ipdIonizationState(currentAtomicStateClctIdx);
 
             T_Number numberIonizationElectrons = static_cast<T_Number>(0u);
 
-            bool const noPressureIonizationPath = (pressureIonizationStateClctIdx == currentAtomicStateClctIdx);
-            if(noPressureIonizationPath)
+            bool const noIPDIonizationPath = (ipdIonizationStateClctIdx == currentAtomicStateClctIdx);
+            if(noIPDIonizationPath)
                 return numberIonizationElectrons;
 
             // do prediction
@@ -181,8 +184,8 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             // fully ionized state has no pressure ionization state --> currentChargeState < T_atomicNumber
             uint8_t const currentChargeState
                 = T_AtomicStateDataBox::ConfigNumber::getChargeState(currentAtomicStateConfigNumber);
-            uint8_t const pressureIonizationStateChargeState = T_AtomicStateDataBox::ConfigNumber::getChargeState(
-                atomicStateBox.configNumber(pressureIonizationStateClctIdx));
+            uint8_t const ipdIonizationStateChargeState = T_AtomicStateDataBox::ConfigNumber::getChargeState(
+                atomicStateBox.configNumber(ipdIonizationStateClctIdx));
 
             // eV
             float_X const ionizationEnergyGroundState = chargeStateBox.ionizationEnergy(currentChargeState);
@@ -195,11 +198,11 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                 // update ion
                 SetAtomicState::hard(
                     ion,
-                    T_ChargeStateDataBox::atomicNumber - pressureIonizationStateChargeState,
-                    pressureIonizationStateClctIdx);
+                    T_ChargeStateDataBox::atomicNumber - ipdIonizationStateChargeState,
+                    ipdIonizationStateClctIdx);
 
                 // get number of electrons to spawn
-                numberIonizationElectrons = pressureIonizationStateChargeState - currentChargeState;
+                numberIonizationElectrons = ipdIonizationStateChargeState - currentChargeState;
 
                 // set flag that at least one ions was in unbound state
                 alpaka::atomicExch(
@@ -251,7 +254,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             typename T_LocalFoundUnboundIonBox,
             typename T_ChargeStateDataBox,
             typename T_AtomicStateDataBox,
-            typename T_PressureIonizationStateDataBox,
+            typename T_IPDIonizationStateDataBox,
             typename... T_IPDInputBoxes>
         HDINLINE static void postProcess(
             pmacc::DataSpace<picongpu::simDim> const,
@@ -261,7 +264,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
             T_LocalFoundUnboundIonBox localFoundUnboundIonBox,
             T_ChargeStateDataBox const,
             T_AtomicStateDataBox const,
-            T_PressureIonizationStateDataBox const,
+            T_IPDIonizationStateDataBox const,
             T_IPDInputBoxes const...)
         {
             uint32_t& foundUnbound = localFoundUnboundIonBox(superCellFieldIndex);
@@ -269,22 +272,22 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         }
     };
 
-    //! moduleConfig of the ApplyPressureIonizationKernel
-    using ApplyPressureIonizationModulConfig = particles::creation::ModuleConfig<
-        ApplyPressureIonizationSanityCheckInputs,
+    //! moduleConfig of the ApplyIPDIonizationKernel
+    using ApplyIPDIonizationModulConfig = particles::creation::ModuleConfig<
+        ApplyIPDIonizationSanityCheckInputs,
         SkipFinishedSuperCellsAtomicPhysics,
-        PressureIonizationPredictor,
+        IPDIonizationPredictor,
         InitAsCoMoving,
         KernelState,
         CalculateIPDValue,
         SuperCellFieldIndexFunctor,
         WriteFoundUnboundToSuperCellField>;
 
-    //! definition of ApplyPressureIonizationKernel
+    //! actual definition of ApplyIPDIonizationKernel
     template<typename T_IPDModel>
-    using ApplyPressureIonizationKernel = picongpu::particles::creation::SpawnFromSourceSpeciesKernelFramework<
+    using ApplyIPDIonizationKernel = picongpu::particles::creation::SpawnFromSourceSpeciesKernelFramework<
         // T_TypeNumber
         uint8_t,
-        ApplyPressureIonizationModulConfig,
+        ApplyIPDIonizationModulConfig,
         T_IPDModel>;
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::kernel
