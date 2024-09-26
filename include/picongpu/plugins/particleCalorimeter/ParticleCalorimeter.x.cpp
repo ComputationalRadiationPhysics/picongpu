@@ -119,8 +119,9 @@ namespace picongpu
             {
                 const float_64 minEnergy_SI = this->minEnergy * sim.unit.energy();
                 const float_64 maxEnergy_SI = this->maxEnergy * sim.unit.energy();
-                const float_64 minEnergy_keV = sim.pic.conv().eV2Joule(minEnergy_SI * 1.0e-3);
-                const float_64 maxEnergy_keV = sim.pic.conv().eV2Joule(maxEnergy_SI * 1.0e-3);
+                // convert to keV
+                const float_64 minEnergy_keV = 1.0e-3 * sim.si.conv().joule2eV(minEnergy_SI);
+                const float_64 maxEnergy_keV = 1.0e-3 * sim.si.conv().joule2eV(maxEnergy_SI);
 
                 dataset.setAttribute<float_64>("minEnergy[keV]", minEnergy_keV);
                 dataset.setAttribute<float_64>("maxEnergy[keV]", maxEnergy_keV);
@@ -300,9 +301,10 @@ namespace picongpu
 
             this->maxYaw_deg = float_X(0.5) * this->openingYaw_deg;
             this->maxPitch_deg = float_X(0.5) * this->openingPitch_deg;
-            /* convert units */
-            const float_64 minEnergy_SI = this->minEnergy * sim.si.conv().eV2Joule(1.0e3);
-            const float_64 maxEnergy_SI = this->maxEnergy * sim.si.conv().eV2Joule(1.0e3);
+            /* convert keV to joule */
+            const float_64 minEnergy_SI = sim.si.conv().eV2Joule(this->minEnergy * 1.0e3);
+            const float_64 maxEnergy_SI = sim.si.conv().eV2Joule(this->maxEnergy * 1.0e3);
+            /* convert into PIConGPU units */
             this->minEnergy = minEnergy_SI / sim.unit.energy();
             this->maxEnergy = maxEnergy_SI / sim.unit.energy();
 
@@ -671,6 +673,8 @@ namespace picongpu
         uint32_t numBinsYaw;
         uint32_t numBinsPitch;
         uint32_t numBinsEnergy;
+        /** @attention: This variable is used very dirty. IN the beginning the value is stored in SI units and later
+         * it is overwritten with the coresponding value in PIConGPU units. */
         float_X minEnergy;
         float_X maxEnergy;
         bool logScale;

@@ -390,7 +390,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
 
             // J/(eV) / (Js) * s/sim.unit.time() = J/J * s/s * 1/(eV * sim.unit.time())
             constexpr float_X scalingConstantPhotonFrequency
-                = static_cast<float_X>(sim.si.conv().eV2Joule(1.0) / (2 * pi * hbar_SI) * picongpu::sim.unit.time());
+                = static_cast<float_X>(picongpu::sim.si.get_eV() / (2 * pi * hbar_SI) * picongpu::sim.unit.time());
 
             /// @attention actual SI frequency, NOT angular frequency
             // 1/sim.unit.time()

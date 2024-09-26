@@ -150,8 +150,8 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                     localZStar = localSumChargeNumberSquared / localSumChargeNumber;
 
                     // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2)
-                    constexpr float_X eV = static_cast<float_X>(sim.si.conv().joule2eV(
-                        picongpu::sim.unit.mass() * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)));
+                    constexpr float_X eV
+                        = static_cast<float_X>(picongpu::sim.si.conv().joule2eV(picongpu::sim.unit.energy()));
 
                     // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2) * sim.unit.mass() *
                     // sim.unit.length()^2 / sim.unit.time()^2
