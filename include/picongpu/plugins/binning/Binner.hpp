@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/plugins/binning/BinningData.hpp"
 #include "picongpu/plugins/binning/BinningFunctors.hpp"
 #include "picongpu/plugins/binning/WriteHist.hpp"

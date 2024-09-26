@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/simulation/control/MovingWindow.hpp"

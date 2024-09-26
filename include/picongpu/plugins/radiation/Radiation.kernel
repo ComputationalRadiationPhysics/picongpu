@@ -22,8 +22,7 @@
 #pragma once
 
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/amplitude.hpp"
 #include "picongpu/plugins/radiation/calc_amplitude.hpp"
@@ -33,6 +32,7 @@
 #include "picongpu/plugins/radiation/particle.hpp"
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "picongpu/plugins/radiation/windowFunctions.hpp"
+#include "picongpu/traits/frame/GetCharge.hpp"
 #include "sys/stat.h"
 
 #include <pmacc/kernel/atomic.hpp>
@@ -280,7 +280,8 @@ namespace picongpu
                                                 radWeighting_s[saveParticleAt] = weighting;
 
                                                 // mass of macro-particle
-                                                float_X const particle_mass = attribute::getMass(weighting, par);
+                                                float_X const particle_mass
+                                                    = picongpu::traits::attribute::getMass(weighting, par);
 
                                                 /****************************************************
                                                  **** Here happens the true physical calculation ****
@@ -301,7 +302,7 @@ namespace picongpu
                                                 CalcAmplitudeNSim1 const amplitude3(particle, sim.pic.getDt(), t);
 
                                                 // get charge of single electron ! (weighting=1.0f)
-                                                float_X const particle_charge = frame::getCharge<FrameType>();
+                                                float_X const particle_charge = traits::frame::getCharge<FrameType>();
 
                                                 /* compute real amplitude of macro-particle with a charge of
                                                  * a single electron

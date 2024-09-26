@@ -20,9 +20,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/fields/Fields.def"
+#include "picongpu/defines.hpp"
+#include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
@@ -346,13 +345,13 @@ namespace picongpu
                      *  thermodynamic temperature theta, amount of substance N,
                      *  luminous intensity J)
                      */
-                    HINLINE static std::vector<float_64> getUnitDimension()
+                    static std::vector<float_64> getUnitDimension()
                     {
                         return picongpu::FieldE::getUnitDimension();
                     }
 
                     //! Get text name
-                    HINLINE static std::string getName()
+                    static std::string getName()
                     {
                         return "Convolutional PML E";
                     }
@@ -386,7 +385,7 @@ namespace picongpu
                     }
 
                     //! Get units of field components
-                    HDINLINE static UnitValueType getUnit()
+                    static UnitValueType getUnit()
                     {
                         return UnitValueType::create(sim.unit.bField());
                     }
@@ -398,13 +397,13 @@ namespace picongpu
                      *  thermodynamic temperature theta, amount of substance N,
                      *  luminous intensity J)
                      */
-                    HINLINE static std::vector<float_64> getUnitDimension()
+                    static std::vector<float_64> getUnitDimension()
                     {
                         return picongpu::FieldB::getUnitDimension();
                     }
 
                     //! Get text name
-                    HINLINE static std::string getName()
+                    static std::string getName()
                     {
                         return "Convolutional PML B";
                     }

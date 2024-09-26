@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>

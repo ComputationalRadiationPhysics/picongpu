@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/fields/incidentField/param.hpp"
 #include "picongpu/fields/incidentField/profiles/BaseParam.hpp"
 #include "picongpu/fields/incidentField/traits/GetPhaseVelocity.hpp"
 

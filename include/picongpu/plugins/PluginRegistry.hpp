@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 

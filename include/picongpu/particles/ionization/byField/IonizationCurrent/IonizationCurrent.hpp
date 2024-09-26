@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"

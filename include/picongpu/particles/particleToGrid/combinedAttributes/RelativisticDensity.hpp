@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/combinedAttributes/AverageAttribute.def"
 #include "picongpu/particles/particleToGrid/combinedAttributes/RelativisticDensity.def"
+#include "picongpu/traits/frame/GetMass.hpp"
 
 #include <limits>
 #include <string>
@@ -57,7 +57,8 @@ namespace picongpu
                         if(densityPICUnits > std::numeric_limits<float_X>::min())
                         {
                             const float_X averageEnergy = energyDensity[0] / densityPICUnits;
-                            const float_X particleMass = frame::getMass<typename T_Species::FrameType>();
+                            const float_X particleMass
+                                = picongpu::traits::frame::getMass<typename T_Species::FrameType>();
                             const float_X averageGamma = averageEnergy
                                     / (particleMass * sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight())
                                 + 1.0_X;

@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/CheckForInvalidChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
@@ -159,7 +158,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             // FLYonPIC superCells must be independent therefore we need to use a support 1 particle shape
             using Field2Particle
                 = FieldToParticleInterpolation<particles::shapes::CIC, AssignedTrilinearInterpolation>;
-            using Margin = GetMargin<Field2Particle>;
+            using Margin = picongpu::traits::GetMargin<Field2Particle>;
             using BlockArea
                 = SuperCellDescription<typename picongpu::SuperCellSize, Margin::LowerMargin, Margin::UpperMargin>;
 

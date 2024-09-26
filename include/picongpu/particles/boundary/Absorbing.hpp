@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/Velocity.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber.hpp"
 #include "picongpu/fields/absorber/pml/Pml.kernel"
 #include "picongpu/particles/Manipulate.hpp"
@@ -142,8 +141,9 @@ namespace picongpu
                         auto const axis = m_parameters.axis;
                         // Velocity half time step back relative to the current position
                         auto velocity = Velocity{};
-                        auto const vel
-                            = velocity(particle[momentum_], attribute::getMass(particle[weighting_], particle))[axis];
+                        auto const vel = velocity(
+                            particle[momentum_],
+                            picongpu::traits::attribute::getMass(particle[weighting_], particle))[axis];
 
                         // Positions in local domain, in units of cells, without guards
                         auto const localCellIdx = offsetToTotalOrigin - m_parameters.localToTotalDomainOffset;
@@ -162,7 +162,10 @@ namespace picongpu
 
                         // Adjust weighting according to [Lehe2022]
                         auto const weightingMultiplier = math::exp(-timeStepIntegral);
-                        attribute::dampWeighting(particle, weightingMultiplier);
+                        picongpu::traits::attribute::dampWeighting(
+                            particle,
+                            particles::MIN_WEIGHTING,
+                            weightingMultiplier);
                     }
                 };
 

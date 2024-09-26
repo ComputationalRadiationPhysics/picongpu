@@ -19,13 +19,17 @@
 
 #include "picongpu/simulation/stage/ParticleInit.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+// clang-format off
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
+#include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/param/particleFilters.param"
 #include "picongpu/param/speciesInitialization.param"
+// clang-format on
+
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/manipulators/manipulators.hpp"
 
 #include <pmacc/functor/Call.hpp>
 #include <pmacc/meta/ForEach.hpp>

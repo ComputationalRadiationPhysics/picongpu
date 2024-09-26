@@ -22,8 +22,7 @@
 #pragma once
 
 // need picongpu::atomicPhysics::ElectronHistogram from atomicPhysics.param
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/ResetDeltaWeightElectronHistogram.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"

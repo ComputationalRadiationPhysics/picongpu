@@ -19,15 +19,16 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
+#include "picongpu/fields/background/param.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>

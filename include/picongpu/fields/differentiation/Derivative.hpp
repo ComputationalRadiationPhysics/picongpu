@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/differentiation/BackwardDerivative.hpp"
 #include "picongpu/fields/differentiation/Derivative.def"
 #include "picongpu/fields/differentiation/ForwardDerivative.hpp"

@@ -36,8 +36,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/FixAtomicState.kernel"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 

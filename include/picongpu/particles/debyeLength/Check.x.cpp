@@ -19,14 +19,15 @@
 
 #include "picongpu/particles/debyeLength/Check.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/debyeLength/Estimate.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/plugins/output/ConstSpeciesAttributes.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/traits/GetCTName.hpp>
 
 #include <algorithm>

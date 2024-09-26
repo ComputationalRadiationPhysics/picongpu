@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/debug/PrintAtomicPhysicsIonToConsole.hpp"
 #include "picongpu/particles/atomicPhysics/enums/IsProcess.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"

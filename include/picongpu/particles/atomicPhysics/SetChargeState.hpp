@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
@@ -40,7 +39,7 @@ namespace picongpu::particles::atomicPhysics
         {
             PMACC_DEVICE_ASSERT_MSG(numberBoundElectrons >= 0._X, "Number of bound electrons must be >= 0");
             PMACC_DEVICE_ASSERT_MSG(
-                numberBoundElectrons <= GetAtomicNumbers<T_Ion>::type::numberOfProtons,
+                numberBoundElectrons <= picongpu::traits::GetAtomicNumbers<T_Ion>::type::numberOfProtons,
                 "Number of bound electrons must be <= numberOfProtons species");
 
             ion[boundElectrons_] = numberBoundElectrons;

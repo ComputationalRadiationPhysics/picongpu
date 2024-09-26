@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/Velocity.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Momentum.def"
 

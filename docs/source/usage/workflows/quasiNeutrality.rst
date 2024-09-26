@@ -58,7 +58,7 @@ First, define a functor that manipulates the number of bound electrons in :ref:`
            )
            {
                constexpr float_X protonNumber =
-                   GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+                   picongpu::traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
                particle[ boundElectrons_ ] = protonNumber - float_X( 2. );
            }
        };

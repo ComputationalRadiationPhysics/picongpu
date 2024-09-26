@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Rene Widera
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,13 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* this file must be empty
- *
- * this file is used to load extensions in own test cases.
- * Write in an include to load extension.
- */
-
-
 #pragma once
 
-#include "picongpu/param/fileOutput.param"
+#include "picongpu/defines.hpp"
+
+// clang-format off
+
+#include "picongpu/param/pngColorScales.param"
+#include "picongpu/param/png.param"
+
+#include "picongpu/unitless/png.unitless"
+// clang-format on

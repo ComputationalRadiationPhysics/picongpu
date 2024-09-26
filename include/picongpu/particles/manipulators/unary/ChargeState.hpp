@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 // safe to import in .param files since does not import a .param itself
 #include "picongpu/particles/atomicPhysics/SetChargeState.hpp"

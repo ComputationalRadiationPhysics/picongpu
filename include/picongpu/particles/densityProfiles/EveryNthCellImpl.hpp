@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/densityProfiles/EveryNthCellImpl.def"
 
 #include <pmacc/math/Vector.hpp>

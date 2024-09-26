@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/logging.hpp"
+
 #include <pmacc/filesystem.hpp>
 
 #include <fstream>
@@ -41,7 +43,7 @@ namespace picongpu
      *
      * @return operation was successful or not
      */
-    HINLINE bool restoreTxtFile(
+    inline bool restoreTxtFile(
         std::ofstream& outFile,
         std::string filename,
         uint32_t restartStep,
@@ -91,7 +93,7 @@ namespace picongpu
      * @param currentStep the current time step
      * @param checkpointDirectory path to the checkpoint directory
      */
-    HINLINE void checkpointTxtFile(
+    inline void checkpointTxtFile(
         std::ofstream& outFile,
         std::string filename,
         uint32_t currentStep,

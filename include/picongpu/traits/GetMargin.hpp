@@ -55,7 +55,7 @@ namespace picongpu
         template<typename T_Solver, typename T_Parameter = void>
         struct GetLowerMargin
         {
-            using type = typename GetMargin<T_Solver, T_Parameter>::LowerMargin;
+            using type = typename picongpu::traits::GetMargin<T_Solver, T_Parameter>::LowerMargin;
         };
 
         /** Trait to get an upper margin of a solver type
@@ -71,7 +71,7 @@ namespace picongpu
         template<typename T_Solver, typename T_Parameter = void>
         struct GetUpperMargin
         {
-            using type = typename GetMargin<T_Solver, T_Parameter>::UpperMargin;
+            using type = typename picongpu::traits::GetMargin<T_Solver, T_Parameter>::UpperMargin;
         };
 
     } // namespace traits

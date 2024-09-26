@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
 

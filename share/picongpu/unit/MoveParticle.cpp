@@ -19,10 +19,6 @@
 
 #include <pmacc/boost_workaround.hpp>
 
-#include <picongpu/simulation_defines.hpp>
-
-#include "picongpu/particles/filter/filter.hpp"
-
 #include <algorithm>
 #include <functional>
 #include <numeric>
@@ -31,7 +27,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
+#include <picongpu/defines.hpp>
+#include <picongpu/particles/MoveParticle.hpp>
 #include <picongpu/particles/Particles.hpp>
+#include <picongpu/particles/filter/filter.hpp>
 
 using ::picongpu::floatD_X;
 using ::pmacc::localCellIdx;

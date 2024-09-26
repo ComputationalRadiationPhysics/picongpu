@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/particles/filter/All.hpp"
+
 #include <pmacc/meta/Pair.hpp>
 
 namespace picongpu

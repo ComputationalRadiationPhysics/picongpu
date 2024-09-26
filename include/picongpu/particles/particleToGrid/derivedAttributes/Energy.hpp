@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Energy.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 
@@ -47,7 +46,7 @@ namespace picongpu
                     /* read existing attributes */
                     const float_X weighting = particle[weighting_];
                     const float3_X mom = particle[momentum_];
-                    const float_X mass = attribute::getMass(weighting, particle);
+                    const float_X mass = picongpu::traits::attribute::getMass(weighting, particle);
 
                     return KinEnergy<>()(mom, mass);
                 }

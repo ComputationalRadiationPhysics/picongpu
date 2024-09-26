@@ -1,4 +1,5 @@
-/* Copyright 2013-2023 Rene Widera
+/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Marco Garten, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,13 +18,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* this file must be empty
- *
- * this file is used to load extensions in own test cases.
- * Write in an include to load extension.
- */
-
-
 #pragma once
 
-#include "picongpu/unitless/fileOutput.unitless"
+#include "picongpu/defines.hpp"
+
+namespace picongpu
+{
+    using namespace pmacc;
+
+#if(!BOOST_LANG_CUDA && !BOOST_COMP_HIP)
+    /* dummy because we are not using mallocMC with CPU backends
+     * DeviceHeap is defined in `mallocMC.param`
+     */
+    struct DeviceHeap
+    {
+        using AllocatorHandle = int;
+
+        int getAllocatorHandle()
+        {
+            return 0;
+        }
+    };
+#endif
+} // namespace picongpu

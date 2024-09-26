@@ -20,8 +20,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/traits/MacroWeighted.hpp"
+#include "picongpu/particles/traits/WeightingPower.hpp"
 #include "picongpu/plugins/openPMD/GetComponentsType.hpp"
 #include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
@@ -59,19 +60,19 @@ namespace picongpu
                 const uint32_t components = GetNComponents<ValueType>::value;
                 using ComponentType = typename GetComponentsType<ValueType>::type;
 
-                OpenPMDName<T_Identifier> openPMDName;
+                picongpu::traits::OpenPMDName<T_Identifier> openPMDName;
                 ::openPMD::Record record = particleSpecies[openPMDName()];
                 std::string baseName = basepath + "/" + openPMDName();
                 ::openPMD::Datatype openPMDType = ::openPMD::determineDatatype<ComponentType>();
 
                 // get the SI scaling, dimensionality and weighting of the attribute
-                OpenPMDUnit<T_Identifier> openPMDUnit;
+                picongpu::traits::OpenPMDUnit<T_Identifier> openPMDUnit;
                 std::vector<float_64> unit = openPMDUnit();
-                OpenPMDUnitDimension<T_Identifier> openPMDUnitDimension;
+                traits::OpenPMDUnitDimension<T_Identifier> openPMDUnitDimension;
                 std::vector<float_64> unitDimension = openPMDUnitDimension();
-                const bool macroWeightedBool = MacroWeighted<T_Identifier>::get();
+                const bool macroWeightedBool = traits::MacroWeighted<T_Identifier>::get();
                 const uint32_t macroWeighted = (macroWeightedBool ? 1 : 0);
-                const float_64 weightingPower = WeightingPower<T_Identifier>::get();
+                const float_64 weightingPower = traits::WeightingPower<T_Identifier>::get();
 
                 PMACC_ASSERT(unit.size() == components); // unitSI for each component
                 PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
@@ -135,7 +136,7 @@ namespace picongpu
                 using ComponentType = typename GetComponentsType<ValueType>::type;
 
                 const uint32_t components = GetNComponents<ValueType>::value;
-                OpenPMDName<T_Identifier> openPMDName;
+                picongpu::traits::OpenPMDName<T_Identifier> openPMDName;
                 ::openPMD::Record record = particleSpecies[openPMDName()];
 
                 /*

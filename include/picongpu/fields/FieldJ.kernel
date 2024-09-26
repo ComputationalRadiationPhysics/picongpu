@@ -20,13 +20,14 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/Velocity.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/currentDeposition/Cache.hpp"
 #include "picongpu/fields/currentDeposition/Strategy.def"
 #include "picongpu/traits/attribute/DampedWeighting.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
@@ -120,8 +121,8 @@ namespace picongpu
                 /* Use (potentially) damped weighting for charge calculation.
                  * @see particles::boundary::DampWeightsInPml for details.
                  */
-                const auto dampedWeighting = attribute::getDampedWeighting(particle);
-                const float_X charge = attribute::getCharge(dampedWeighting, particle);
+                const auto dampedWeighting = picongpu::traits::attribute::getDampedWeighting(particle);
+                const float_X charge = picongpu::traits::attribute::getCharge(dampedWeighting, particle);
                 const floatD_X pos = particle[position_];
                 const int particleCellIdx = particle[localCellIdx_];
                 const DataSpace<simDim> localCell = pmacc::math::mapToND(TVec::toRT(), particleCellIdx);
@@ -129,7 +130,8 @@ namespace picongpu
                 // The rest uses normal weighting
                 const float_X weighting = particle[weighting_];
                 Velocity velocity;
-                const float3_X vel = velocity(particle[momentum_], attribute::getMass(weighting, particle));
+                const float3_X vel
+                    = velocity(particle[momentum_], picongpu::traits::attribute::getMass(weighting, particle));
                 auto fieldJShiftToParticle = jBox.shift(localCell);
                 ParticleAlgo perParticle;
                 perParticle(worker, fieldJShiftToParticle, pos, vel, charge, m_deltaTime);

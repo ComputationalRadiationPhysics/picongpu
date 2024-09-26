@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/Manipulate.def"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/conversion/ToSeq.hpp>
@@ -92,47 +93,8 @@ namespace picongpu
         {
         };
 
-        /** Apply a manipulation for each particle of a species or a sequence of species
-         *
-         * This function provides a high-level interface to particle manipulation
-         * from simulation stages and plugins, but not .param files. The common
-         * workflow is as follows:
-         * - select the species to manipulate, often by filtering VectorAllSpecies
-         * - define a manipulator type; in case the manipulator has a species type
-         * as a template parameter, use the boost::mpl::_1 placeholder instead
-         * - define a filter type when necessary
-         * - call manipulate()
-         *
-         * This is a function-style wrapper around creating a Manipulate object and
-         * calling its operator(). Unlike Manipulate, it supports both single
-         * species and sequences of species.
-         *
-         * Has a version for a fixed area, and for a user-provided mapper factory.
-         * They differ only in how the area is defined.
-         *
-         * @tparam T_Manipulator unary lambda functor accepting one particle
-         *                       species, @see picongpu::particles::manipulators
-         * @tparam T_Species a single species or a sequence of species; in both
-         *                   cases each species is defined by a type or a name
-         * @tparam T_Filter picongpu::particles::filter, particle filter type to
-         *                  select particles in `T_Species` to manipulate via
-         *                  `T_DestSpeciesType`
-         *
-         * @param currentStep index of the current time iteration
-         *
-         * @{
-         */
-
-        /** Version for a fixed area
-         *
-         * @tparam T_area area to process particles in
-         */
-        template<
-            typename T_Manipulator,
-            typename T_Species,
-            typename T_Filter = filter::All,
-            uint32_t T_area = CORE + BORDER>
-        inline void manipulate(uint32_t const currentStep)
+        template<typename T_Manipulator, typename T_Species, typename T_Filter, uint32_t T_area>
+        void manipulate(uint32_t const currentStep)
         {
             using SpeciesSeq = pmacc::ToSeq<T_Species>;
             using Functor
@@ -141,19 +103,8 @@ namespace picongpu
             forEach(currentStep);
         }
 
-        /** Version for a custom area mapper factory
-         *
-         * @tparam T_AreaMapperFactory factory type to construct an area mapper that defines the area to process,
-         *                             adheres to the AreaMapperFactory concept
-         * @param areaMapperFactory factory to construct an area mapper,
-         *                          the area is defined by the constructed mapper object
-         */
-        template<
-            typename T_Manipulator,
-            typename T_Species,
-            typename T_AreaMapperFactory,
-            typename T_Filter = filter::All>
-        inline void manipulate(uint32_t const currentStep, T_AreaMapperFactory const& areaMapperFactory)
+        template<typename T_Manipulator, typename T_Species, typename T_AreaMapperFactory, typename T_Filter>
+        void manipulate(uint32_t const currentStep, T_AreaMapperFactory const& areaMapperFactory)
         {
             using SpeciesSeq = pmacc::ToSeq<T_Species>;
             using Functor = Manipulate<T_Manipulator, boost::mpl::_1, T_Filter>;

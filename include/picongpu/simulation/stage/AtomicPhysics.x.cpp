@@ -19,10 +19,10 @@
 
 #include "picongpu/simulation/stage/AtomicPhysics.hpp"
 
-#include "picongpu/simulation_defines.hpp"
 // need picongpu::simDim from picongpu/param/dimension.param
 //  and picongpu/param/atomicPhysics_debug.param
-
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysicsSuperCellFields.hpp"
 #include "picongpu/particles/atomicPhysics/IPDModel.param" /// @todo move to atomicPhysics.param, Brian Marre, 2024
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"

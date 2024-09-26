@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 

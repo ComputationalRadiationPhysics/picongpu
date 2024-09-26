@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/output/header/NodeHeader.hpp"
 #include "picongpu/plugins/output/header/SimHeader.hpp"
 #include "picongpu/plugins/output/header/WindowHeader.hpp"

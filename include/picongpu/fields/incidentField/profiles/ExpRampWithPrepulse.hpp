@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>

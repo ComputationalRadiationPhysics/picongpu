@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/traits/HasIdentifier.hpp>
 
@@ -64,7 +64,7 @@ namespace picongpu
              * @param multiplier weighting multiplier, values of < 1 result in damping, > 1 result in boosting
              */
             template<typename T_Particle>
-            HDINLINE void dampWeighting(T_Particle& particle, float_X const multiplier)
+            HDINLINE void dampWeighting(T_Particle& particle, float_X minWeighting, float_X const multiplier)
             {
                 using HasWeightingDampingFactor =
                     typename pmacc::traits::HasIdentifier<T_Particle, weightingDampingFactor>::type;
@@ -75,7 +75,6 @@ namespace picongpu
                     auto const oldWeighting = particle[weighting_];
                     auto const attemptedWeighting = oldWeighting * multiplier;
                     // Cap at MIN_WEIGHTING, copy it to avoid taking address of constexpr in max()
-                    auto const minWeighting = particles::MIN_WEIGHTING;
                     auto const dampedWeighting = math::max(attemptedWeighting, minWeighting);
                     particle[weighting_] = dampedWeighting;
                     /* Here we have to update values of all weighted attributes.

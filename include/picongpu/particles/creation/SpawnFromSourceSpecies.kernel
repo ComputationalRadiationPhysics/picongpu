@@ -27,8 +27,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/creation/ModuleConfig.hpp"
 

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>
@@ -48,7 +48,8 @@ namespace picongpu
             /* Extract vector of effective atomic numbers */
             using type = typename pmacc::traits::Resolve<FoundEffectiveNuclearChargeAlias>::type;
 
-            static constexpr int protonNumber = static_cast<int>(GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
+            static constexpr int protonNumber
+                = static_cast<int>(picongpu::traits::GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
             /* length of the ionization energy vector */
             static constexpr int vecLength = type::dim;
             /* assert that the number of arguments in the vector equal the proton number */

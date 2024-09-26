@@ -21,8 +21,7 @@
 #pragma once
 
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/openPMD/GetComponentsType.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/traits/PICToOpenPMD.hpp"
@@ -70,7 +69,7 @@ namespace picongpu
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
                 const uint32_t components = GetNComponents<ValueType>::value;
                 using ComponentType = typename GetComponentsType<ValueType>::type;
-                OpenPMDName<Identifier> openPMDName;
+                picongpu::traits::OpenPMDName<Identifier> openPMDName;
 
                 log<picLog::INPUT_OUTPUT>("openPMD: ( begin ) load species attribute: %1%") % openPMDName();
 

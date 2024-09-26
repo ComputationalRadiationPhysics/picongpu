@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 #include "picongpu/particles/ionization/utilities.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
@@ -65,14 +64,16 @@ namespace picongpu
                 HDINLINE IonizerReturn
                 operator()(const BType bField, const EType eField, ParticleType& parentIon, float_X randNr)
                 {
-                    const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-                    float_X chargeState = attribute::getChargeState(parentIon);
+                    const float_X protonNumber
+                        = picongpu::traits::GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+                    float_X chargeState = picongpu::traits::attribute::getChargeState(parentIon);
 
                     /* verify that ion is not completely ionized */
                     if(chargeState < protonNumber)
                     {
                         uint32_t const cs = pmacc::math::float2int_rd(chargeState);
-                        const float_X iEnergy = typename GetIonizationEnergies<ParticleType>::type{}[cs];
+                        const float_X iEnergy =
+                            typename picongpu::traits::GetIonizationEnergies<ParticleType>::type{}[cs];
 
                         constexpr float_X pi = pmacc::math::Pi<float_X>::value;
                         /* electric field in atomic units - only absolute value */

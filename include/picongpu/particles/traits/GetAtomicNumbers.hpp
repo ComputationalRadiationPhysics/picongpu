@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/static_assert.hpp>

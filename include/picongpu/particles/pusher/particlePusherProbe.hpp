@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/math/operation.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>

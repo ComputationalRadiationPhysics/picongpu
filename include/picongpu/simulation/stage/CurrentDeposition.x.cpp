@@ -22,12 +22,12 @@
 
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldJ.kernel"
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -80,8 +80,8 @@ namespace picongpu
 
                         using BlockArea = SuperCellDescription<
                             typename MappingDesc::SuperCellSize,
-                            typename GetMargin<ParticleCurrentSolver>::LowerMargin,
-                            typename GetMargin<ParticleCurrentSolver>::UpperMargin>;
+                            typename picongpu::traits::GetMargin<ParticleCurrentSolver>::LowerMargin,
+                            typename picongpu::traits::GetMargin<ParticleCurrentSolver>::UpperMargin>;
 
                         using Strategy = currentSolver::traits::GetStrategy_t<FrameSolver>;
 

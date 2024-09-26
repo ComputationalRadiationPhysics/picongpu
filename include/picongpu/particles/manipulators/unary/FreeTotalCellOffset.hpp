@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/functor/misc/TotalCellOffset.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
 

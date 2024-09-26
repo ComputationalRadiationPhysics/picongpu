@@ -20,13 +20,12 @@
 
 #include "picongpu/fields/FieldTmp.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldTmp.kernel"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/param/fileOutput.param"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
+#include "picongpu/plugins/output/param.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -49,16 +48,16 @@ namespace picongpu
     using namespace pmacc;
 
     template<typename A, typename B>
-    using SpeciesLowerMarginOp =
-        typename pmacc::math::CT::max<A, typename GetLowerMargin<typename GetInterpolation<B>::type>::type>::type;
+    using SpeciesLowerMarginOp = typename pmacc::math::CT::
+        max<A, typename traits::GetLowerMargin<typename traits::GetInterpolation<B>::type>::type>::type;
     template<typename A, typename B>
-    using SpeciesUpperMarginOp =
-        typename pmacc::math::CT::max<A, typename GetUpperMargin<typename GetInterpolation<B>::type>::type>::type;
+    using SpeciesUpperMarginOp = typename pmacc::math::CT::
+        max<A, typename traits::GetUpperMargin<typename traits::GetInterpolation<B>::type>::type>::type;
 
     template<typename A, typename B>
-    using FieldTmpLowerMarginOp = typename pmacc::math::CT::max<A, typename GetLowerMargin<B>::type>::type;
+    using FieldTmpLowerMarginOp = typename pmacc::math::CT::max<A, typename traits::GetLowerMargin<B>::type>::type;
     template<typename A, typename B>
-    using FieldTmpUpperMarginOp = typename pmacc::math::CT::max<A, typename GetUpperMargin<B>::type>::type;
+    using FieldTmpUpperMarginOp = typename pmacc::math::CT::max<A, typename traits::GetUpperMargin<B>::type>::type;
 
     FieldTmp::FieldTmp(MappingDesc const& cellDescription, uint32_t slotId)
         : SimulationFieldHelper<MappingDesc>(cellDescription)
@@ -100,7 +99,7 @@ namespace picongpu
 
         using SpeciesFieldTmpLowerMargin = pmacc::math::CT::max<SpeciesLowerMargin, FieldTmpLowerMargin>::type;
 
-        using FieldSolverLowerMargin = GetLowerMargin<fields::Solver>::type;
+        using FieldSolverLowerMargin = picongpu::traits::GetLowerMargin<fields::Solver>::type;
 
         using LowerMargin = pmacc::math::CT::max<SpeciesFieldTmpLowerMargin, FieldSolverLowerMargin>::type;
 
@@ -117,7 +116,7 @@ namespace picongpu
 
         using SpeciesFieldTmpUpperMargin = pmacc::math::CT::max<SpeciesUpperMargin, FieldTmpUpperMargin>::type;
 
-        using FieldSolverUpperMargin = GetUpperMargin<fields::Solver>::type;
+        using FieldSolverUpperMargin = picongpu::traits::GetUpperMargin<fields::Solver>::type;
 
         using UpperMargin = pmacc::math::CT::max<SpeciesFieldTmpUpperMargin, FieldSolverUpperMargin>::type;
 

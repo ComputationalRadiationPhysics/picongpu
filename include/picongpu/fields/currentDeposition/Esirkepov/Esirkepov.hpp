@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/TrajectoryAssignmentShapeFunction.hpp"

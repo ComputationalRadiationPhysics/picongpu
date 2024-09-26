@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/MaxwellSolver/Substepping/Substepping.def"
+#include "picongpu/param/fieldSolver.param"
 
 
 namespace picongpu

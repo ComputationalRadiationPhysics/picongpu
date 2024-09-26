@@ -21,7 +21,8 @@
 
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>

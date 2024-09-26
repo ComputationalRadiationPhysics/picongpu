@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTDBase.hpp"
@@ -173,8 +172,8 @@ namespace picongpu
                 typename GetLowerMargin<Solver, FieldB>::type,
                 typename GetLowerMargin<Solver, FieldE>::type>::type;
             using UpperMargin = typename pmacc::math::CT::max<
-                typename GetUpperMargin<Solver, FieldB>::type,
-                typename GetUpperMargin<Solver, FieldE>::type>::type;
+                typename traits::GetUpperMargin<Solver, FieldB>::type,
+                typename traits::GetUpperMargin<Solver, FieldE>::type>::type;
         };
 
 

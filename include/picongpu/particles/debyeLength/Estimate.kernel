@@ -19,11 +19,12 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/traits/frame/GetCharge.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 
 #include <pmacc/lockstep.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <cstdint>

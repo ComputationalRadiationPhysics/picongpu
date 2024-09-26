@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <cstdint>
 #include <string>
@@ -89,8 +89,9 @@ namespace picongpu
             using LowerMargin = typename pmacc::math::CT::max<
                 typename traits::GetLowerMargin<FirstPusher>::type,
                 typename traits::GetLowerMargin<SecondPusher>::type>::type;
-            using UpperMargin = typename pmacc::math::CT::
-                max<typename GetUpperMargin<FirstPusher>::type, typename GetUpperMargin<SecondPusher>::type>::type;
+            using UpperMargin = typename pmacc::math::CT::max<
+                typename traits::GetUpperMargin<FirstPusher>::type,
+                typename traits::GetUpperMargin<SecondPusher>::type>::type;
 
             /** Get active pusher 1-based index
              *

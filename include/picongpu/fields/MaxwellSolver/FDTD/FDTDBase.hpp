@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"

@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldTmpOperations.hpp"
 #include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
@@ -32,6 +31,7 @@
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/memory/boxes/SharedBox.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/random/RNGProvider.hpp>
@@ -71,8 +71,8 @@ namespace picongpu
                     typename pmacc::traits::GetFlagType<FrameType, interpolation<>>::type>::type;
 
                 /* margins around the supercell for the interpolation of the field on the cells */
-                using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;
-                using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
+                using LowerMargin = typename picongpu::traits::GetMargin<Field2ParticleInterpolation>::LowerMargin;
+                using UpperMargin = typename picongpu::traits::GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
                 /* relevant area of a block */
                 using BlockArea = SuperCellDescription<typename MappingDesc::SuperCellSize, LowerMargin, UpperMargin>;
@@ -105,8 +105,12 @@ namespace picongpu
                 PMACC_ALIGN(eneBox, FieldTmp::DataBoxType);
 
                 /* shared memory EM-field device databoxes */
-                PMACC_ALIGN(cachedRho, DataBox<SharedBox<ValueType_Rho, typename BlockArea::FullSuperCellSize, 0>>);
-                PMACC_ALIGN(cachedEne, DataBox<SharedBox<ValueType_Ene, typename BlockArea::FullSuperCellSize, 1>>);
+                PMACC_ALIGN(
+                    cachedRho,
+                    pmacc::DataBox<pmacc::SharedBox<ValueType_Rho, typename BlockArea::FullSuperCellSize, 0>>);
+                PMACC_ALIGN(
+                    cachedEne,
+                    pmacc::DataBox<pmacc::SharedBox<ValueType_Ene, typename BlockArea::FullSuperCellSize, 1>>);
 
             public:
                 /* host constructor initializing member : random number generator */
@@ -302,8 +306,8 @@ namespace picongpu
 
                     targetElectronClone.derive(worker, idGen, parentIon);
 
-                    const float_X massIon = attribute::getMass(weighting, parentIon);
-                    const float_X massElectron = attribute::getMass(weighting, childElectron);
+                    const float_X massIon = picongpu::traits::attribute::getMass(weighting, parentIon);
+                    const float_X massElectron = picongpu::traits::attribute::getMass(weighting, childElectron);
 
                     const float3_X electronMomentum(parentIon[momentum_] * (massElectron / massIon));
 

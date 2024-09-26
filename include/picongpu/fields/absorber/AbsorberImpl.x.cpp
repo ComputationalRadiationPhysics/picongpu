@@ -19,8 +19,9 @@
 
 #include "picongpu/fields/absorber/AbsorberImpl.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/fields/absorber/exponential/Exponential.hpp"
+#include "picongpu/fields/absorber/none/None.hpp"
+#include "picongpu/fields/absorber/pml/Pml.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>

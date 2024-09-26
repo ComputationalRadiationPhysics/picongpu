@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 
@@ -46,7 +45,7 @@ namespace picongpu
                 {
                     /* read existing attributes */
                     const float_X weighting = particle[weighting_];
-                    const float_X charge = attribute::getCharge(weighting, particle);
+                    const float_X charge = picongpu::traits::attribute::getCharge(weighting, particle);
 
                     /* calculate new attribute */
                     const float_X particleChargeDensity = charge / sim.pic.getCellSize().productOfComponents();

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need unit.param
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"

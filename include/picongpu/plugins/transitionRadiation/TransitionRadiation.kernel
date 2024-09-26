@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/param/transitionRadiation.param"
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "picongpu/plugins/transitionRadiation/Calculator.hpp"
@@ -31,6 +30,7 @@
 #include "picongpu/unitless/transitionRadiation.unitless"
 
 #include <pmacc/kernel/atomic.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 
 #include <cstdlib>
 #include <fstream>
@@ -254,7 +254,8 @@ namespace picongpu
                                                 radWeighting_s[saveParticleAt] = weighting;
 
                                                 // mass of macro-particle
-                                                float_X const particleMass = attribute::getMass(weighting, par);
+                                                float_X const particleMass
+                                                    = picongpu::traits::attribute::getMass(weighting, par);
 
                                                 // using transition radiation particle class
                                                 transitionRadiation::Particle particle(

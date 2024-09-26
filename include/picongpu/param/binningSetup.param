@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/binning/binnerPlugin.hpp"
 
 namespace picongpu
@@ -129,7 +128,7 @@ namespace picongpu
                  */
                 auto getParticleChargeDensity = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
                 {
-                    const float_X charge = attribute::getCharge(particle[weighting_], particle);
+                    const float_X charge = picongpu::traits::attribute::getCharge(particle[weighting_], particle);
                     const float_X particleChargeDensity
                         = precisionCast<float_X>(charge / sim.pic.getCellSize().productOfComponents());
                     return particleChargeDensity;
