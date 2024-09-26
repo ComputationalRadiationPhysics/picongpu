@@ -249,8 +249,8 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 8. * pmacc::math::cPow(picongpu::PI * sim.si.getBohrRadius(), u8(2u))
                 / (1.e-22)); // [1e6b], ~ 2211,01 * 1e6b
             // 1e6b
-            constexpr float_X constantPart
-                = scalingConstant * static_cast<float_X>(pmacc::math::cPow(sim.si.getRydbergEnergy(), u8(2u)));
+            constexpr float_X constantPart = scalingConstant
+                * static_cast<float_X>(pmacc::math::cPow(sim.si.conv().joule2eV(sim.si.getRydbergEnergy()), u8(2u)));
             // [1e6b * (eV)^2]
 
             // 1e6b*(eV)^2 / (eV)^2 * unitless * (eV)/(eV) * unitless = 1e6b
