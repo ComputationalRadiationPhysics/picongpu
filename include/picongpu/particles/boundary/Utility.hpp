@@ -65,6 +65,8 @@ namespace picongpu
             HINLINE uint32_t getOffsetCells(T_Species const& species, uint32_t exchangeType)
             {
                 uint32_t axis = pmacc::boundary::getAxis(exchangeType);
+                if(axis >= simDim)
+                    throw std::runtime_error("The used exchange results into an invalid selected axis.");
                 return species.boundaryDescription()[axis].offset;
             }
 
@@ -79,6 +81,8 @@ namespace picongpu
             HINLINE float_X getTemperature(T_Species const& species, uint32_t exchangeType)
             {
                 uint32_t axis = pmacc::boundary::getAxis(exchangeType);
+                if(axis >= simDim)
+                    throw std::runtime_error("The used exchange results into an invalid selected axis.");
                 return species.boundaryDescription()[axis].temperature;
             }
 
@@ -105,6 +109,8 @@ namespace picongpu
                 pmacc::DataSpace<simDim>* end)
             {
                 auto axis = pmacc::boundary::getAxis(exchangeType);
+                if(axis >= simDim)
+                    throw std::runtime_error("The used exchange results into an invalid selected axis.");
                 auto offsetCells = getOffsetCells(species, exchangeType);
                 SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
                 // For non-axis directions, we take all cells including the guards
@@ -142,6 +148,8 @@ namespace picongpu
                 pmacc::DataSpace<simDim>* end)
             {
                 auto axis = pmacc::boundary::getAxis(exchangeType);
+                if(axis >= simDim)
+                    throw std::runtime_error("The used exchange results into an invalid selected axis.");
                 auto offsetCells = getOffsetCells(species, exchangeType);
                 SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
                 // For non-axis directions, we take all cells including the guards
@@ -179,6 +187,8 @@ namespace picongpu
                 for(auto exchangeType : getAllAxisAlignedExchanges())
                 {
                     auto axis = pmacc::boundary::getAxis(exchangeType);
+                    if(axis >= simDim)
+                        throw std::runtime_error("The used exchange results into an invalid selected axis.");
                     auto offsetCells = getOffsetCells(species, exchangeType);
                     if(pmacc::boundary::isMinSide(exchangeType))
                         (*begin)[axis] += offsetCells;
@@ -211,6 +221,8 @@ namespace picongpu
 
                 // Change to a single supercell along the active axis
                 uint32_t const axis = pmacc::boundary::getAxis(exchangeType);
+                if(axis >= simDim)
+                    throw std::runtime_error("The used exchange results into an invalid selected axis.");
                 numSupercells[axis] = 1;
                 auto const offsetCells = getOffsetCells(species, exchangeType);
                 auto const offsetSupercells

@@ -93,6 +93,8 @@ namespace picongpu
 
                     // Call boundary condition implementation
                     auto axis = pmacc::boundary::getAxis(exchange);
+                    if(axis >= simDim)
+                        throw std::runtime_error("The used exchange results into an invalid selected axis.");
                     auto boundaryDescription = species.boundaryDescription()[axis];
                     switch(boundaryDescription.kind)
                     {

@@ -189,6 +189,8 @@ namespace picongpu
             for(auto exchange : particles::boundary::getAllAxisAlignedExchanges())
             {
                 auto const axis = pmacc::boundary::getAxis(exchange);
+                if(axis >= simDim)
+                    throw std::runtime_error("The used exchange results into an invalid selected axis.");
                 auto const temperature = boundaryDescription()[axis].temperature;
 
                 const std::string directionName = ExchangeTypeNames()[exchange];
