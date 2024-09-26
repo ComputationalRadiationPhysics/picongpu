@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ParticleTags.hpp"
 
 #include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 
 #include <cstdint>
@@ -139,7 +139,7 @@ namespace picongpu::particles::atomicPhysics
         struct GetParticleType
         {
             using type = typename pmacc::traits::Resolve<
-                typename GetFlagType<T_FrameType, atomicPhysicsParticle<>>::type>::type;
+                typename pmacc::traits::GetFlagType<T_FrameType, atomicPhysicsParticle<>>::type>::type;
         };
 
         template<typename T_FrameType>

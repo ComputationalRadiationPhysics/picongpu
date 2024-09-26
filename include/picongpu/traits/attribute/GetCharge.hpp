@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
 
@@ -56,14 +55,14 @@ namespace picongpu
                         Having_boundElectrons_particle_attribute_requires_atomicNumbers_flag,
                         T_Particle,
                         HasAtomicNumbers::value);
-                    const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+                    const float_X protonNumber = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
 
                     /* note: sim.pic.getElectronCharge() is negative and the second term is also negative
                      */
                     return sim.pic.getElectronCharge() * (particle[boundElectrons_] - protonNumber) * weighting;
                 }
 
-                return frame::getCharge<typename T_Particle::FrameType>() * weighting;
+                return traits::frame::getCharge<typename T_Particle::FrameType>() * weighting;
             }
 
         } // namespace attribute

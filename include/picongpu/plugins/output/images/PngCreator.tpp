@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
+#include "picongpu/plugins/output/images/param.hpp"
 
 #include <pmacc/mappings/simulation/Filesystem.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>

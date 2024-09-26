@@ -20,11 +20,11 @@
 
 #include "picongpu/simulation/stage/Collision.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/collision/collision.hpp"
 #include "picongpu/particles/collision/fieldSlots.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/particles/particleToGrid/FoldDeriveFields.hpp"
 #include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"

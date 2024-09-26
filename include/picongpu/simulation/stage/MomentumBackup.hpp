@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "picongpu/particles/Manipulate.hpp"
-
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
 
 #include <cstdint>

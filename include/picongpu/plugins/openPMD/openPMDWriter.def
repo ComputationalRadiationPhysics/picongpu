@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/common/DumpTimes.hpp"
 #include "picongpu/plugins/openPMD/Json.hpp"
 #include "picongpu/plugins/openPMD/Parameters.hpp"

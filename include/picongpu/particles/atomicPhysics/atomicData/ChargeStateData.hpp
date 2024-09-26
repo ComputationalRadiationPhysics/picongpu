@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need: picongpu/param/atomicPhysics_Debug.param and picongpu/param/atomicPhysics.param
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"

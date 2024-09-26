@@ -20,10 +20,10 @@
 
 #include "picongpu/simulation/stage/IterationStart.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/param/iterationStart.param"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/functor/Call.hpp>
 

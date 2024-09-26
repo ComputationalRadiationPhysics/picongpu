@@ -18,9 +18,8 @@
  */
 
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "common/txtFileHandling.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"

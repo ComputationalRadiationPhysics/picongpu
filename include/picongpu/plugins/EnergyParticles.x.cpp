@@ -19,9 +19,8 @@
  */
 
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
@@ -114,7 +113,7 @@ namespace picongpu
                         // compute square of absolute momentum of the particle
                         float_X const mom2 = pmacc::math::l2norm2(mom);
                         float_X const weighting = particle[weighting_];
-                        float_X const mass = attribute::getMass(weighting, particle);
+                        float_X const mass = picongpu::traits::attribute::getMass(weighting, particle);
                         float_X const c2 = sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight();
 
                         // calculate kinetic energy of the macro particle

@@ -19,8 +19,7 @@
 
 #if(ENABLE_OPENPMD == 1)
 
-#    include "picongpu/simulation_defines.hpp"
-
+#    include "picongpu/defines.hpp"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/plugins/ILightweightPlugin.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"

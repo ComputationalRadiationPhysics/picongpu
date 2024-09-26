@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
@@ -29,6 +28,7 @@
 #include "picongpu/fields/incidentField/traits/GetAmplitude.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/images/param.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/algorithms/GlobalReduce.hpp>

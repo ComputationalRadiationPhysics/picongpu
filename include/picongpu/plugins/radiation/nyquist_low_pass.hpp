@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/calc_amplitude.hpp"
 #include "picongpu/plugins/radiation/particle.hpp"

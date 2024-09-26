@@ -19,16 +19,19 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/particles/collision/detail/CollisionContext.hpp"
 #include "picongpu/particles/collision/detail/ListEntry.hpp"
 #include "picongpu/particles/collision/detail/cellDensity.hpp"
 #include "picongpu/particles/collision/fieldSlots.hpp"
+#include "picongpu/particles/filter/IUnary.def"
 
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>

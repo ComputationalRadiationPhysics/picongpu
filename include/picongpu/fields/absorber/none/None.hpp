@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/AbsorberImpl.hpp"
 
 #include <pmacc/Environment.hpp>

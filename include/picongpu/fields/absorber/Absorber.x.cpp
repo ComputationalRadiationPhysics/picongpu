@@ -20,8 +20,8 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/fields/absorber/AbsorberImpl.hpp"
+#include "picongpu/fields/absorber/param.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -56,7 +56,7 @@ namespace picongpu
                 // Read thickness from absorber.param
                 for(uint32_t axis = 0u; axis < simDim; axis++)
                     for(uint32_t direction = 0u; direction < 2u; direction++)
-                        numCells[axis][direction] = NUM_CELLS[axis][direction];
+                        numCells[axis][direction] = absorber::NUM_CELLS[axis][direction];
             }
 
             Absorber& Absorber::get()

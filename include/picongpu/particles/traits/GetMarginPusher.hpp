@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/particles/traits/GetPusher.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -38,16 +37,16 @@ namespace picongpu
          */
         template<
             typename T_Species,
-            typename T_GetLowerMargin = GetLowerMargin<GetPusher<boost::mpl::_1>>,
-            typename T_GetUpperMargin = GetUpperMargin<GetPusher<boost::mpl::_1>>>
+            typename T_GetLowerMargin = traits::GetLowerMargin<traits::GetPusher<boost::mpl::_1>>,
+            typename T_GetUpperMargin = traits::GetUpperMargin<traits::GetPusher<boost::mpl::_1>>>
         struct GetMarginPusher
         {
-            using AddLowerMargins
-                = pmacc::math::CT::add<GetLowerMargin<GetInterpolation<boost::mpl::_1>>, T_GetLowerMargin>;
+            using AddLowerMargins = pmacc::math::CT::
+                add<traits::GetLowerMargin<traits::GetInterpolation<boost::mpl::_1>>, T_GetLowerMargin>;
             using LowerMargin = typename boost::mpl::apply<AddLowerMargins, T_Species>::type;
 
             using AddUpperMargins
-                = pmacc::math::CT::add<GetUpperMargin<GetInterpolation<boost::mpl::_1>>, T_GetUpperMargin>;
+                = pmacc::math::CT::add<GetUpperMargin<traits::GetInterpolation<boost::mpl::_1>>, T_GetUpperMargin>;
             using UpperMargin = typename boost::mpl::apply<AddUpperMargins, T_Species>::type;
         };
 
@@ -74,8 +73,8 @@ namespace picongpu
         {
             using type = typename traits::GetMarginPusher<
                 T_Species,
-                typename GetLowerMargin<T_Pusher>::type,
-                typename GetUpperMargin<T_Pusher>::type>::LowerMargin;
+                typename traits::GetLowerMargin<T_Pusher>::type,
+                typename traits::GetUpperMargin<T_Pusher>::type>::LowerMargin;
         };
 
         /** Get upper margin of a pusher for species
@@ -102,7 +101,7 @@ namespace picongpu
             using type = typename traits::GetMarginPusher<
                 T_Species,
                 typename GetLowerMargin<T_Pusher>::type,
-                typename GetUpperMargin<T_Pusher>::type>::UpperMargin;
+                typename traits::GetUpperMargin<T_Pusher>::type>::UpperMargin;
         };
 
     } // namespace traits

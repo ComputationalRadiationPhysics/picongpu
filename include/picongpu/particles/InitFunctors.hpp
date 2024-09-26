@@ -19,16 +19,17 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/Fields.def"
-#include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/Manipulate.def"
+#include "picongpu/particles/ParticlesInit.kernel"
 #include "picongpu/particles/densityProfiles/IProfile.def"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
+#include <pmacc/particles/IdProvider.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/HasFlag.hpp>
@@ -108,7 +109,26 @@ namespace picongpu
 
                 DensityFunctor densityFunctor(currentStep, idProvider->getDeviceGenerator());
                 PositionFunctor positionFunctor(currentStep, idProvider->getDeviceGenerator());
-                speciesPtr->initDensityProfile(densityFunctor, positionFunctor, currentStep);
+
+                log<picLog::SIMULATION_STATE>("initialize density profile for species %1%") % FrameType::getName();
+
+                uint32_t const numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+                SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                DataSpace<simDim> localCells = subGrid.getLocalDomain().size;
+                DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain().offset;
+                totalGpuCellOffset.y() += numSlides * localCells.y();
+
+                auto const mapper = makeAreaMapper<CORE + BORDER>(speciesPtr->getCellDescription());
+                PMACC_LOCKSTEP_KERNEL(KernelFillGridWithParticles<std::decay_t<decltype(*speciesPtr)>>{})
+                    .config(mapper.getGridDim(), SuperCellSize{})(
+                        densityFunctor,
+                        positionFunctor,
+                        totalGpuCellOffset,
+                        speciesPtr->getParticlesBuffer().getDeviceParticleBox(),
+                        idProvider->getDeviceGenerator(),
+                        mapper);
+
+                speciesPtr->fillAllGaps();
             }
         };
 

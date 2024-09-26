@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 
@@ -43,7 +43,7 @@ namespace picongpu
                 template<typename T_Defer = float_X>
                 typename std::enable_if<hasChargeRatio, T_Defer>::type operator()() const
                 {
-                    return frame::getCharge<T_FrameType>();
+                    return traits::frame::getCharge<T_FrameType>();
                 }
 
                 template<typename T_Defer = float_X>
@@ -71,7 +71,7 @@ namespace picongpu
                 template<typename T_Defer = float_X>
                 typename std::enable_if<hasMassRatio, T_Defer>::type operator()() const
                 {
-                    return frame::getMass<T_FrameType>();
+                    return picongpu::traits::frame::getMass<T_FrameType>();
                 }
 
                 template<typename T_Defer = float_X>

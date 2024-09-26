@@ -32,8 +32,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/Particles.hpp"
 
 #include <pmacc/identifier/value_identifier.hpp>

@@ -19,14 +19,18 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/Set.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/plugins/PhaseSpace/Pair.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
 
+#include <pmacc/dimensions/SuperCellDescription.hpp>
+#include <pmacc/kernel/operation/Atomic.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <utility>
@@ -75,7 +79,7 @@ namespace picongpu
 
             const uint32_t r_bin = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
-            const float_X charge = attribute::getCharge(weighting, particle);
+            const float_X charge = picongpu::traits::attribute::getCharge(weighting, particle);
             const float_PS particleChargeDensity
                 = precisionCast<float_PS>(charge / sim.pic.getCellSize().productOfComponents());
 
@@ -161,7 +165,7 @@ namespace picongpu
             /* create shared mem */
             constexpr int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
             using SharedMemSize = SuperCellDescription<pmacc::math::CT::Int<num_pbins, blockCellsInDir>>;
-            auto sharedMemHist = CachedBox::create<0u, float_PS>(worker, SharedMemSize{});
+            auto sharedMemHist = pmacc::CachedBox::create<0u, float_PS>(worker, SharedMemSize{});
 
             Set<float_PS> set(float_PS{0.0});
             auto collectiveOnSharedHistogram = makeThreadCollective<SharedMemSize>();

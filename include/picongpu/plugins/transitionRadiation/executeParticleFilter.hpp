@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/param/transitionRadiation.param"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/plugins/transitionRadiation/GammaMask.hpp"
 
@@ -47,6 +47,6 @@ namespace picongpu::plugins::transitionRadiation
             = pmacc::traits::HasIdentifier<typename T_Species::FrameType, transitionRadiationMask>::type::value;
 
         if constexpr(hasTransitionRadiationFilter)
-            particles::Manipulate<picongpu::plugins::transitionRadiation::GammaFilter, T_Species>{}(currentStep);
+            particles::manipulate<picongpu::plugins::transitionRadiation::GammaFilter, T_Species>(currentStep);
     }
 } // namespace picongpu::plugins::transitionRadiation

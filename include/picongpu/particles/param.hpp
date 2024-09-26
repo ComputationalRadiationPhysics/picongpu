@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten, Finn-Ole Carstens, Pawel Ordyna
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,27 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- *
- * only PIConGPU programmers should change this file
- *
- * for examples use extensionParam.loader
- *
- * @attention order of includes matters here since some .param files depend on others
- * .param files themselves usually do not include other .param files, instead relying on correct order of includes here
- *
- * @todo create overview of dependencies, Brian Marre, 2023
- */
 #pragma once
-
-// clang-format off
 
 #include "picongpu/defines.hpp"
 
-#include "picongpu/param/speciesAttributes.param"
+// clang-format off
+
 #include "picongpu/param/pusher.param"
-#include "picongpu/param/fieldAbsorber.param"
-#include "picongpu/param/incidentField.param"
 #include "picongpu/param/ionizer.param"
 #include "picongpu/param/ionizationEnergies.param"
 #include "picongpu/param/density.param"
@@ -49,8 +35,13 @@
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/collision.param"
 #include "picongpu/param/fieldSolver.param"
-#include "picongpu/param/fieldBackground.param"
-#include "picongpu/param/pngColorScales.param"
-#include "picongpu/param/png.param"
-#include "picongpu/param/particleCalorimeter.param"
+
+#include "picongpu/unitless/density.unitless"
+#include "picongpu/unitless/particle.unitless"
+#include "picongpu/unitless/pusher.unitless"
+#include "picongpu/unitless/ionizer.unitless"
+#include "picongpu/unitless/speciesAttributes.unitless"
+#include "picongpu/unitless/speciesDefinition.unitless"
+#include "picongpu/unitless/collision.unitless"
+
 // clang-format on

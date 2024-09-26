@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/startPosition/generic/FreeRng.def"
 
 #include <pmacc/random/distributions/Uniform.hpp>

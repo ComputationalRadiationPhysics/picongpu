@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 

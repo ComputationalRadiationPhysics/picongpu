@@ -18,7 +18,7 @@
  */
 
 // required for SIMDIM definition
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 

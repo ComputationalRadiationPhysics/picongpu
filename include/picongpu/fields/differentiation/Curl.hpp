@@ -55,16 +55,16 @@ namespace picongpu
                 //! Lower margin: max of the derivative lower margins
                 using LowerMargin = typename pmacc::math::CT::max<
                     typename pmacc::math::CT::max<
-                        typename GetLowerMargin<XDerivativeFunctor>::type,
-                        typename GetLowerMargin<YDerivativeFunctor>::type>::type,
-                    typename GetLowerMargin<ZDerivativeFunctor>::type>::type;
+                        typename picongpu::traits::GetLowerMargin<XDerivativeFunctor>::type,
+                        typename picongpu::traits::GetLowerMargin<YDerivativeFunctor>::type>::type,
+                    typename picongpu::traits::GetLowerMargin<ZDerivativeFunctor>::type>::type;
 
                 //! Upper margin: max of the derivative upper margins
                 using UpperMargin = typename pmacc::math::CT::max<
                     typename pmacc::math::CT::max<
-                        typename GetUpperMargin<XDerivativeFunctor>::type,
-                        typename GetUpperMargin<YDerivativeFunctor>::type>::type,
-                    typename GetUpperMargin<ZDerivativeFunctor>::type>::type;
+                        typename picongpu::traits::GetUpperMargin<XDerivativeFunctor>::type,
+                        typename picongpu::traits::GetUpperMargin<YDerivativeFunctor>::type>::type,
+                    typename picongpu::traits::GetUpperMargin<ZDerivativeFunctor>::type>::type;
 
                 //! Create curl functor
                 HDINLINE Curl()

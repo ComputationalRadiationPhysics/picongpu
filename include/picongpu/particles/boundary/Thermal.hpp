@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 #include "picongpu/particles/boundary/Parameters.hpp"
@@ -111,7 +110,7 @@ namespace picongpu
                     {
                         // Save velocity before thermalization
                         float_X const macroWeighting = particle[weighting_];
-                        float_X const mass = attribute::getMass(macroWeighting, particle);
+                        float_X const mass = picongpu::traits::attribute::getMass(macroWeighting, particle);
                         float3_X mom = particle[momentum_];
                         auto velocity = Velocity{};
                         auto velBeforeThermal = velocity(mom, mass);
@@ -122,7 +121,7 @@ namespace picongpu
                          * For 2d do not thermalize in z.
                          */
                         float_X const macroEnergy = energy * macroWeighting;
-                        float_X const macroMass = attribute::getMass(macroWeighting, particle);
+                        float_X const macroMass = picongpu::traits::attribute::getMass(macroWeighting, particle);
                         float_X const standardDeviation
                             = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
                         for(uint32_t d = 0; d < simDim; d++)

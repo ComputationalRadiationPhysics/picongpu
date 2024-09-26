@@ -20,10 +20,10 @@
 
 #include "picongpu/simulation/stage/ParticleBoundaries.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/meta/ForEach.hpp>

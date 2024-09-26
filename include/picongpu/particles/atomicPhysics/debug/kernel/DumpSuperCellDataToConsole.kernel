@@ -22,7 +22,7 @@
 #pragma once
 
 // need atomicPhysics_Debug.param
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>

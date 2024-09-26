@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/generic/Free.def"
 #include "picongpu/particles/functor/User.hpp"
 

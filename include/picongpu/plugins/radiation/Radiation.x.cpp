@@ -21,7 +21,7 @@
 #if(ENABLE_OPENPMD == 1)
 
 // clang-format off
-#    include "picongpu/simulation_defines.hpp"
+#    include "picongpu/defines.hpp"
 #    include "picongpu/param/radiation.param"
 #    include "picongpu/param/radiationObserver.param"
 // clang-format on

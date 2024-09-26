@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 #include "picongpu/particles/densityProfiles/FromOpenPMDImpl.hpp"

@@ -22,9 +22,7 @@
 
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/param/fileOutput.param"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/ionization/byCollision/ionizers.hpp"

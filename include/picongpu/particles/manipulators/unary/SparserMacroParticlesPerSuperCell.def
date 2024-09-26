@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
 
 namespace picongpu::particles::manipulators::unary

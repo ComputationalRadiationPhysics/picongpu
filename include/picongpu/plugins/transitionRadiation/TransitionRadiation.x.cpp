@@ -22,13 +22,14 @@
 #if(ENABLE_OPENPMD == 1)
 
 // clang-format off
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/param/transitionRadiation.param"
 // clang-format on
 
 #    include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 
 #    include "picongpu/particles/filter/filter.hpp"
+#    include "picongpu/particles/param.hpp"
 #    include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #    include "picongpu/plugins/ILightweightPlugin.hpp"
 #    include "picongpu/plugins/ISimulationPlugin.hpp"

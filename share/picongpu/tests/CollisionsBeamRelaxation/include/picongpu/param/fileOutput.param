@@ -81,6 +81,26 @@ namespace picongpu
                     DINLINE float_X operator()(T_Particle& particle) const;
                 };
 
+                HDINLINE float1_64 WeightedTransverseVelocitySquared::getUnit() const
+                {
+                    return sim.unit.speed() * sim.unit.speed();
+                }
+
+                template<typename T_Particle>
+                DINLINE float_X WeightedTransverseVelocitySquared::operator()(T_Particle& particle) const
+                {
+                    const float_X weighting = particle[weighting_];
+                    const float_X mass = picongpu::traits::attribute::getMass(weighting, particle);
+                    const float3_X velocity = picongpu::Velocity{}(particle[momentum_], mass);
+                    return weighting * (velocity[1] * velocity[1] + velocity[2] * velocity[2]);
+                }
+
+                //! This quantity is weighted and so it can be used to calculate an average value
+                template<>
+                struct IsWeighted<WeightedTransverseVelocitySquared> : std::true_type
+                {
+                };
+
             } // namespace derivedAttributes
         } // namespace particleToGrid
     } // namespace particles

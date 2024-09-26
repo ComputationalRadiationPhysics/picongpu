@@ -20,7 +20,6 @@
 #pragma once
 
 #include "picongpu/param/collision.param"
-#include "picongpu/unitless/precision.unitless"
 
 #include <pmacc/math/Vector.hpp>
 

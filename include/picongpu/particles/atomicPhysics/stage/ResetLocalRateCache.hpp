@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/RateCache.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"

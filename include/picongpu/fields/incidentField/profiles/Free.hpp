@@ -58,13 +58,17 @@ namespace picongpu
                     }
 
                 private:
-                    template<typename Functor, std::enable_if_t<providesMetadataAtCT<Functor>, bool> = true>
+                    template<
+                        typename Functor,
+                        std::enable_if_t<picongpu::traits::providesMetadataAtCT<Functor>, bool> = true>
                     static auto functorMetadata()
                     {
                         return Functor::metadata();
                     }
 
-                    template<typename Functor, std::enable_if_t<!providesMetadataAtCT<Functor>, bool> = true>
+                    template<
+                        typename Functor,
+                        std::enable_if_t<!picongpu::traits::providesMetadataAtCT<Functor>, bool> = true>
                     static nlohmann::json functorMetadata()
                     {
                         return "no metadata available";

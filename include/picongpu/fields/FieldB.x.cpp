@@ -21,8 +21,7 @@
 
 #include "picongpu/fields/FieldB.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/EMFieldBase.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/filter/filter.hpp"

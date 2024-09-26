@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/MaxwellSolver/AddCurrentDensity.kernel"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"

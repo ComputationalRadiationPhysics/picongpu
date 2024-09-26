@@ -20,17 +20,16 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/Particles.kernel"
-#include "picongpu/particles/ParticlesInit.kernel"
 #include "picongpu/particles/boundary/Apply.hpp"
 #include "picongpu/particles/pusher/Traits.hpp"
 #include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
+#include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -130,7 +129,7 @@ namespace picongpu
         if(ex == 0u)
             return 0u;
 
-        using ExchangeMemCfg = GetExchangeMemCfg_t<Particles>;
+        using ExchangeMemCfg = traits::GetExchangeMemCfg_t<Particles>;
         // scaling factors, base and local cell sizes for each direction
         auto orthoScalingFactor = ::picongpu::detail::DirScalingFactor<ExchangeMemCfg>::getOrtho();
         auto paraScalingFactor = ::picongpu::detail::DirScalingFactor<ExchangeMemCfg>::getPara();
@@ -159,7 +158,7 @@ namespace picongpu
 
         size_t exchangeBytes = 0;
 
-        using ExchangeMemCfg = GetExchangeMemCfg_t<Particles>;
+        using ExchangeMemCfg = traits::GetExchangeMemCfg_t<Particles>;
 
         // it is a exachange
         if(relDirType == 1u)
@@ -203,7 +202,8 @@ namespace picongpu
         constexpr bool particleHasShape = pmacc::traits::HasIdentifier<FrameType, shape<>>::type::value;
         if constexpr(particleHasShape)
         {
-            constexpr auto particleAssignmentShapeSupport = GetShape<Particles>::type::ChargeAssignment::support;
+            constexpr auto particleAssignmentShapeSupport
+                = picongpu::traits::GetShape<Particles>::type::ChargeAssignment::support;
             static_assert(
                 particleAssignmentShapeSupport > 0,
                 "A particle shape must have a support larger than zero. Please use a higher order shape. If you "
@@ -346,8 +346,8 @@ namespace picongpu
         /* Adjust interpolation area in particle pusher to allow sub-stepping pushes.
          * Here were provide an actual pusher and use its actual margins
          */
-        using LowerMargin = typename GetLowerMarginForPusher<Particles, T_Pusher>::type;
-        using UpperMargin = typename GetUpperMarginForPusher<Particles, T_Pusher>::type;
+        using LowerMargin = typename traits::GetLowerMarginForPusher<Particles, T_Pusher>::type;
+        using UpperMargin = typename traits::GetUpperMarginForPusher<Particles, T_Pusher>::type;
 
         using BlockArea = SuperCellDescription<typename MappingDesc::SuperCellSize, LowerMargin, UpperMargin>;
 
@@ -374,37 +374,6 @@ namespace picongpu
         bool const onlyProcessMustShiftSupercells)
     {
         ParticlesBaseType::template shiftParticles(mapperFactory, onlyProcessMustShiftSupercells);
-    }
-
-    template<typename T_Name, typename T_Flags, typename T_Attributes>
-    template<typename T_DensityFunctor, typename T_PositionFunctor>
-    void Particles<T_Name, T_Flags, T_Attributes>::initDensityProfile(
-        T_DensityFunctor& densityFunctor,
-        T_PositionFunctor& positionFunctor,
-        const uint32_t currentStep)
-    {
-        log<picLog::SIMULATION_STATE>("initialize density profile for species %1%") % FrameType::getName();
-
-        uint32_t const numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-        SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-        DataSpace<simDim> localCells = subGrid.getLocalDomain().size;
-        DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain().offset;
-        totalGpuCellOffset.y() += numSlides * localCells.y();
-
-        DataConnector& dc = Environment<>::get().DataConnector();
-        auto idProvider = dc.get<IdProvider>("globalId");
-
-        auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
-        PMACC_LOCKSTEP_KERNEL(KernelFillGridWithParticles<Particles>{})
-            .config(mapper.getGridDim(), SuperCellSize{})(
-                densityFunctor,
-                positionFunctor,
-                totalGpuCellOffset,
-                this->particlesBuffer->getDeviceParticleBox(),
-                idProvider->getDeviceGenerator(),
-                mapper);
-
-        this->fillAllGaps();
     }
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>

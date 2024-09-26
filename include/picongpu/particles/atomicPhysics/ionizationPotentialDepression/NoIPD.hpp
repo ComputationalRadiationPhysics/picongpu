@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/IPDInterface.hpp"
 
 namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression

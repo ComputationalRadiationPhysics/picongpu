@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/CombinedDerivedAttribute.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"

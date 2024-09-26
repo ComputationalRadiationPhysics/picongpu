@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,21 +19,12 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
-#include "picongpu/debug/PIConGPUVerbose.hpp"
+// clang-format off
 
-#include <pmacc/Environment.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/types.hpp>
+#include "picongpu/param/pngColorScales.param"
+#include "picongpu/param/png.param"
 
-
-namespace picongpu
-{
-    using namespace pmacc;
-
-    // short name for access verbose types of picongpu
-    using picLog = PIConGPUVerbose;
-
-} // namespace picongpu
+#include "picongpu/unitless/png.unitless"
+// clang-format on

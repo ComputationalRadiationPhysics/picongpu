@@ -21,10 +21,10 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
@@ -36,6 +36,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
@@ -51,11 +52,11 @@ namespace picongpu
     using namespace pmacc;
 
     template<typename A, typename B>
-    using LowerMarginShapesOp =
-        typename pmacc::math::CT::max<A, typename GetLowerMargin<typename GetCurrentSolver<B>::type>::type>::type;
+    using LowerMarginShapesOp = typename pmacc::math::CT::
+        max<A, typename traits::GetLowerMargin<typename traits::GetCurrentSolver<B>::type>::type>::type;
     template<typename A, typename B>
-    using UpperMarginShapesOp =
-        typename pmacc::math::CT::max<A, typename GetUpperMargin<typename GetCurrentSolver<B>::type>::type>::type;
+    using UpperMarginShapesOp = typename pmacc::math::CT::
+        max<A, typename traits::GetUpperMargin<typename traits::GetCurrentSolver<B>::type>::type>::type;
 
     FieldJ::FieldJ(MappingDesc const& cellDescription)
         : SimulationFieldHelper<MappingDesc>(cellDescription)

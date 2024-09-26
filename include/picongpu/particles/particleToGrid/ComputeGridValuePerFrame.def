@@ -31,12 +31,12 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/particleToGrid/FilteredDerivedAttribute.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+#include "picongpu/particles/shapes.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
@@ -111,7 +111,7 @@ namespace picongpu
                 template<typename T_Species, typename T_DerivedAttribute>
                 struct GetAttributeShape
                 {
-                    using type = typename GetShape<T_Species>::type;
+                    using type = typename picongpu::traits::GetShape<T_Species>::type;
                 };
 
                 template<typename T_Species>

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need timeStepAlpha factor from atomicPhysics.param
 // need access to sim.pic.getDt() from simulation.unitless
 
