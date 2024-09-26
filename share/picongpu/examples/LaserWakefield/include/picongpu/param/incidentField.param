@@ -209,14 +209,6 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Y = 0.0;
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
                 /** @} */
-
-                template<typename My = LwfaGaussianPulseBaseParams>
-                static auto metadata()
-                {
-                    // static member functions do not bind to the derived type when inherited, so we have to refer to
-                    // our type explicitly
-                    return profiles::BaseParam::metadata<My>();
-                };
             };
 
             /** Special structure for parameters of Gaussian laser pulses.
@@ -250,6 +242,14 @@ namespace picongpu
                 static constexpr auto laguerreModes = floatN_X<numModes + 1>(1.0);
                 static constexpr auto laguerrePhases = floatN_X<numModes + 1>(0.0);
                 /** @} */
+
+                template<typename My = GaussianPulseParam>
+                static auto metadata()
+                {
+                    // static member functions do not bind to the derived type when inherited, so we have to refer to
+                    // our type explicitly
+                    return profiles::defaults::GaussianPulseParam::metadata<My>();
+                };
             };
 
 

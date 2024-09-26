@@ -11,6 +11,32 @@
     ],
     "YMin": [
       {
+        "Gaussian parameters": {
+          "Laguerre modes": {
+            "unit": "none",
+            "value": [
+              1.0
+            ]
+          },
+          "Laguerre phases": {
+            "unit": "none",
+            "value": [
+              0.0
+            ]
+          },
+          "Mode number": {
+            "unit": "none",
+            "value": 0
+          },
+          "PULSE_INIT": {
+            "unit": "none",
+            "value": 15.0
+          },
+          "W0": {
+            "unit": "m",
+            "value": 4.246609082647506e-06
+          }
+        },
         "amplitude": {
           "unit": "V/m",
           "value": 32107010989706.094
