@@ -138,6 +138,13 @@ namespace picongpu
                 static constexpr float_X numberOfNeutrons = 14.0;
             };
 
+            /** Ar-40 ~99,6% NA */
+            struct Argon_t
+            {
+                static constexpr float_X numberOfProtons = 18.0;
+                static constexpr float_X numberOfNeutrons = 22.0;
+            };
+
             /** Cu-63 69.15% NA */
             struct Copper_t
             {
@@ -299,6 +306,34 @@ namespace picongpu
                 13.575,
                 13.575);
 
+            /* Example: argon */
+            PMACC_CONST_VECTOR(
+                float_X,
+                18,
+                Argon,
+                /* 3p^6 */
+                6.764,
+                6.764,
+                6.764,
+                6.764,
+                6.764,
+                6.764,
+                /* 3s^2 */
+                7.757,
+                7.757,
+                /* 2p^6 */
+                14.008,
+                14.008,
+                14.008,
+                14.008,
+                14.008,
+                14.008,
+                /* 2s^2 */
+                12.230,
+                12.230,
+                /* 1s^2 */
+                17.508,
+                17.508);
 
             /* Example: copper
              * Note: Copper is one of the few exceptions to the Madelung energy ordering
