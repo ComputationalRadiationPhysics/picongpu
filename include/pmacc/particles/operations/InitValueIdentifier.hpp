@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Rene Widera
+/* Copyright 2014-2023 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,18 +21,29 @@
 
 #pragma once
 
-#include "pmacc/attribute/FunctionSpecifier.hpp"
+#include "pmacc/identifier/value_identifier.hpp"
+#include "pmacc/traits/Resolve.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    template<typename T_Key>
-    struct CopyIdentifier
+    /** set an attribute of a particle to its default value
+     *
+     * @tparam  T_Attribute value_identifier or alias which is a value_identifier
+     */
+    template<typename T_Attribute>
+    struct InitValueIdentifier
     {
-        template<typename T_T1, typename T_T2>
-        HDINLINE void operator()(T_T1& dest, const T_T2& src)
+        using Attribute = T_Attribute;
+
+        template<typename T_Worker, typename T_DestParticleType>
+        HDINLINE void operator()(T_Worker const& worker, IdGenerator idGen, T_DestParticleType& destParticle) const
         {
-            dest[T_Key()] = src[T_Key()];
+            using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
+            /* set attribute to its user defined default value */
+            destParticle[Attribute{}] = ResolvedAttr{}.initValue(worker, idGen);
         }
     };
+
 
 } // namespace pmacc

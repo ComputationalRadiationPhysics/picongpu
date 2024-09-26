@@ -133,7 +133,7 @@ namespace picongpu
 
                         if(accSrcFilter(worker, parSrc))
                         {
-                            parDest.copyAndInit(worker, idGen, deselect<particleId>(parSrc));
+                            parDest.derive(worker, idGen, parSrc);
 
                             accManipulator(worker, parDest, parSrc);
                         }
