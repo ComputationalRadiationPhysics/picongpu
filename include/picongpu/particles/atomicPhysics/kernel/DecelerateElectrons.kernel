@@ -133,8 +133,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                         picongpu::sim.si.getSpeedOfLight() * sim.unit.time() / sim.unit.length());
                     // usually ~1, internal units
 
-                    constexpr float_X conversionEnergy
-                        = static_cast<float_X>(sim.si.conv().eV2Joule(1.0) / sim.unit.energy());
+                    constexpr float_X conversionEnergy = static_cast<float_X>(picongpu::sim.pic.get_eV());
                     // J/(eV) * sim.unit.energy()/J  = J/J * sim.unit.energy()/(eV)
 
                     constexpr float_X scalingFactor = 1._X / c_internal * conversionEnergy;

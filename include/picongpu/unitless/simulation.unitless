@@ -345,7 +345,7 @@ namespace picongpu
                 /** convert from joule into eV */
                 constexpr float_64 joule2eV(float_64 joule = 1.0) const
                 {
-                    return joule / eV2Joule(1.0);
+                    return joule / si.get_eV();
                 }
 
                 constexpr float_64 auEnergy2Joule(float_64 auEnergy = 1.0) const
