@@ -61,8 +61,7 @@ namespace picongpu
                      * ionization current. */
                     if(retValue.ionizationEnergy != 0.0_X)
                     {
-                        auto ionizationEnergy = weighting * retValue.ionizationEnergy * SI::ATOMIC_UNIT_ENERGY
-                            / sim.unit.energy(); // convert to PIConGPU units
+                        auto ionizationEnergy = sim.pic.conv().auEnergy2Joule(weighting * retValue.ionizationEnergy);
                         /* calculate ionization current at particle position */
                         float3_X jIonizationPar = JIonizationCalc{}(ionizationEnergy, eField);
                         /* assign ionization current to grid points */

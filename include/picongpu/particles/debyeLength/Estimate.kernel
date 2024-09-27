@@ -213,7 +213,7 @@ namespace picongpu
                     using Frame = typename T_ElectronBox::FrameType;
                     auto const mass = static_cast<double>(picongpu::traits::frame::getMass<Frame>());
                     auto const kT = (momentumVariance[0] + momentumVariance[1] + momentumVariance[2]) / (3.0 * mass);
-                    auto const temperatureKeV = kT * sim.unit.energy() / sim.si.conv.ev2Joule(1.0e3);
+                    auto const temperatureKeV = kT * sim.unit.energy() / sim.si.conv().eV2Joule(1.0e3);
                     auto const electronCharge = picongpu::traits::frame::getCharge<Frame>();
                     auto const debyeLength
                         = sqrt(sim.pic.getEps0() * kT / (electronDensity * electronCharge * electronCharge));

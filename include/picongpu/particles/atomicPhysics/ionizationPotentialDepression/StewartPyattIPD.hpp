@@ -209,9 +209,7 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
             T_LocalZStarBox const localZStarBox)
         {
             // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2)
-            constexpr float_X eV = static_cast<float_X>(
-                picongpu::sim.unit.mass() * pmacc::math::cPow(picongpu::sim.unit.length(), 2u)
-                / pmacc::math::cPow(picongpu::sim.unit.time(), 2u) * sim.si.conv.joule2ev(1.0));
+            constexpr float_X eV = sim.pic.get_eV();
 
             // eV/(sim.unit.mass() * sim.unit.length()^2 / sim.unit.time()^2) * unitless * sim.unit.charge()^2
             //  / ( unitless * sim.unit.charge()^2 * sim.unit.time()^2 / (sim.unit.length()^3 * sim.unit.mass()))

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/param/precision.param"
+
 #include <pmacc/math/ConstVector.hpp>
 #include <pmacc/math/Vector.hpp>
 
@@ -117,6 +119,12 @@ namespace picongpu
             }
 
             template<typename T_Type = float_X>
+            constexpr T_Type get_eV() const
+            {
+                return static_cast<T_Type>(si.get_eV() / unit.energy());
+            }
+
+            template<typename T_Type = float_X>
             constexpr T_Type getBohrRadius() const
             {
                 return static_cast<T_Type>(si.getBohrRadius() / unit.length());
@@ -126,6 +134,50 @@ namespace picongpu
             constexpr T_Type getClassicalElectronRadius() const
             {
                 return static_cast<T_Type>(si.getClassicalElectronRadius() / unit.length());
+            }
+
+            struct Convert
+            {
+                /** convert int the pic unit system
+                 *
+                 * @{
+                 */
+                template<typename T_Type = float_X>
+                constexpr T_Type eV2Joule(T_Type eV = 1.0) const
+                {
+                    return eV * static_cast<T_Type>(pic.get_eV());
+                }
+
+                template<typename T_Type = float_X>
+                constexpr T_Type auEnergy2Joule(T_Type auEnergy = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv().auEnergy2Joule(auEnergy) / unit.energy());
+                }
+
+                template<typename T_Type = float_X>
+                constexpr T_Type auTime2Time(T_Type auTime = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv().auTime2Time(auTime) / unit.time());
+                }
+                /** @} */
+
+                template<typename T_Type = float_X>
+                constexpr T_Type eField2auEField(T_Type eField = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv().eField2auEField(eField * unit.eField()));
+                }
+
+                template<typename T_Type = float_X>
+                constexpr T_Type time2auTime(T_Type time = 1.0) const
+                {
+                    return static_cast<T_Type>(si.conv().time2auTime(time * unit.time()));
+                }
+            };
+
+            /** get conversion functions */
+            static constexpr Convert conv()
+            {
+                return Convert{};
             }
         };
         struct SiUnits
@@ -245,7 +297,13 @@ namespace picongpu
             constexpr float_64 getRydbergEnergy() const
             {
                 // convert from  unit eV to Joule
-                return conv.ev2Joule(13.605693122990);
+                return conv().eV2Joule(13.605693122990);
+            }
+
+            //! get 1eV in J
+            constexpr float_64 get_eV() const
+            {
+                return 1.602176634e-19;
             }
 
             /** bohr radius, unit: m
@@ -279,22 +337,94 @@ namespace picongpu
             struct Convert
             {
                 /** convert from eV into joule */
-                constexpr float_64 ev2Joule(float_64 eV = 1.0) const
+                constexpr float_64 eV2Joule(float_64 eV = 1.0) const
                 {
-                    return eV * 1.602176634e-19;
+                    return eV * si.get_eV();
                 }
 
                 /** convert from joule into eV */
-                constexpr float_64 joule2ev(float_64 joule = 1.0) const
+                constexpr float_64 joule2eV(float_64 joule = 1.0) const
                 {
-                    return joule / ev2Joule(1.0);
+                    return joule / si.get_eV();
+                }
+
+                constexpr float_64 auEnergy2Joule(float_64 auEnergy = 1.0) const
+                {
+                    return auEnergy * atomicUnit.energy();
+                }
+
+                constexpr float_64 joule2auEnergy(float_64 joule = 1.0) const
+                {
+                    return joule / atomicUnit.energy();
+                }
+
+                constexpr float_64 auEnergy2eV(float_64 auEnergy = 1.0) const
+                {
+                    return joule2eV(auEnergy2Joule(auEnergy));
+                }
+
+                constexpr float_64 eV2auEnergy(float_64 ev = 1.0) const
+                {
+                    return ev / auEnergy2eV(1.0);
+                }
+
+                constexpr float_64 auEField2EField(float_64 auEField = 1.0) const
+                {
+                    return auEField * atomicUnit.eField();
+                }
+
+                constexpr float_64 eField2auEField(float_64 eField = 1.0) const
+                {
+                    return eField / atomicUnit.eField();
+                }
+
+                constexpr float_64 auTime2Time(float_64 auTime = 1.0) const
+                {
+                    return auTime * atomicUnit.time();
+                }
+
+                constexpr float_64 time2auTime(float_64 time = 1.0) const
+                {
+                    return time / atomicUnit.time();
                 }
             };
 
-            static constexpr Convert conv{};
+            /** get conversion functions */
+            static constexpr Convert conv()
+            {
+                return Convert{};
+            }
         };
 
-        /** units to convert from SI into PIConGPU's SI unit system */
+        /** units of the atomic in SI unit system */
+        struct AtomicUnits
+        {
+            /* atomic unit for energy:
+             * 2 Rydberg = 27.21 eV --> converted to Joule
+             */
+            constexpr float_64 energy() const
+            {
+                return 2.0 * si.getRydbergEnergy();
+            }
+
+            /* atomic unit for electric field in V/m:
+             * field strength between electron and core in ground state hydrogen
+             */
+            constexpr float_64 eField() const
+            {
+                return 5.14e11;
+            }
+
+            /* atomic unit for time in s:
+             * 150 attoseconds (classical electron orbit time in hydrogen) / 2 PI
+             */
+            constexpr float_64 time() const
+            {
+                return 2.4189e-17;
+            }
+        };
+
+        /** units of the PIConGPU's in SI unit system */
         struct Units
         {
             constexpr float_64 length() const
@@ -364,6 +494,7 @@ namespace picongpu
         static constexpr PicUnits pic{};
         static constexpr SiUnits si{};
         static constexpr Units unit{};
+        static constexpr AtomicUnits atomicUnit{};
     };
 
     constexpr auto sim = Sim{};

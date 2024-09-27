@@ -67,9 +67,8 @@ namespace picongpu::particles::atomicPhysics
             //}
 
             // unit conversion factor for eV
-            constexpr float_X eV = static_cast<float_X>(
-                picongpu::sim.unit.mass() * picongpu::sim.si.getSpeedOfLight() * picongpu::sim.si.getSpeedOfLight()
-                * sim.si.conv.joule2ev(1.0));
+            constexpr float_X eV = static_cast<float_X>(sim.si.conv().joule2eV(
+                picongpu::sim.unit.mass() * picongpu::sim.si.getSpeedOfLight() * picongpu::sim.si.getSpeedOfLight()));
 
             // eV
             return energy * eV;

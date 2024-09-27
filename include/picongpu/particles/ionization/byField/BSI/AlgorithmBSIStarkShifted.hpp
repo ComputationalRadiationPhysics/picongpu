@@ -75,7 +75,7 @@ namespace picongpu
                             = (math::sqrt(float_X(2.)) - float_X(1.)) * math::pow(iEnergy, float_X(3. / 2.));
 
                         /* ionization condition */
-                        if(pmacc::math::l2norm(eField) / ATOMIC_UNIT_EFIELD >= critField)
+                        if(sim.pic.conv().eField2auEField(pmacc::math::l2norm(eField)) >= critField)
                         {
                             /* return ionization energy number of electrons to produce */
                             return IonizerReturn{iEnergy, 1u};
