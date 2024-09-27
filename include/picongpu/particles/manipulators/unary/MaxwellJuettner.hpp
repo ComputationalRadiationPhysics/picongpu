@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/functor/User.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 namespace picongpu::particles::manipulators::unary::acc
 {
@@ -58,10 +58,10 @@ namespace picongpu::particles::manipulators::unary::acc
                 T_Particle& particle,
                 T_MaxwellJuettner temperatureKeV) const
             {
-                float_X const energy = (temperatureKeV * sim.si.conv.ev2Joule(1.0e3)) / sim.unit.energy();
+                float_X const energy = (temperatureKeV * sim.si.conv().eV2Joule(1.0e3)) / sim.unit.energy();
 
                 float_X const macroWeighting = particle[weighting_];
-                float_X const macroMass = attribute::getMass(macroWeighting, particle);
+                float_X const macroMass = picongpu::traits::attribute::getMass(macroWeighting, particle);
                 float_X const mass = macroMass / macroWeighting;
                 float_X const theta = energy / (mass * sim.pic.getSpeedOfLight() * sim.pic.getSpeedOfLight());
 
