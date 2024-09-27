@@ -243,12 +243,12 @@ namespace picongpu
                 static constexpr auto laguerrePhases = floatN_X<numModes + 1>(0.0);
                 /** @} */
 
-                template<typename My = GaussianPulseParam>
+                template<typename T_Self = GaussianPulseParam>
                 static auto metadata()
                 {
                     // static member functions do not bind to the derived type when inherited, so we have to refer to
                     // our type explicitly
-                    return profiles::defaults::GaussianPulseParam::metadata<My>();
+                    return profiles::defaults::GaussianPulseParam::metadata<T_Self>();
                 };
             };
 
