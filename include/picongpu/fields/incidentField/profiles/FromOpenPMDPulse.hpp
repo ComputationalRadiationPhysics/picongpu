@@ -649,30 +649,49 @@ namespace picongpu
                 };
             } // namespace profiles
 
-            namespace detail
+            namespace traits
             {
-                /** Get type of incident field E functor for the experimental laser profile type
-                 *
-                 * @tparam T_Params parameters
-                 */
-                template<typename T_Params>
-                struct GetFunctorIncidentE<profiles::FromOpenPMDPulse<T_Params>>
+                namespace detail
                 {
-                    using type = profiles::detail::FromOpenPMDPulseFunctorIncidentE<T_Params>;
-                };
+                    /** Get type of incident field E functor for the experimental laser profile type
+                     *
+                     * @tparam T_Params parameters
+                     */
+                    template<typename T_Params>
+                    struct GetFunctorIncidentE<profiles::FromOpenPMDPulse<T_Params>>
+                    {
+                        using type = profiles::detail::FromOpenPMDPulseFunctorIncidentE<T_Params>;
+                    };
 
-                /** Get type of incident field B functor for the experimental laser profile type
-                 *
-                 * @tparam T_Params parameters
-                 */
+                    /** Get type of incident field B functor for the experimental laser profile type
+                     *
+                     * @tparam T_Params parameters
+                     */
+                    template<typename T_Params>
+                    struct GetFunctorIncidentB<profiles::FromOpenPMDPulse<T_Params>>
+                    {
+                        using type = detail::ApproximateIncidentB<
+                            typename GetFunctorIncidentE<profiles::FromOpenPMDPulse<T_Params>>::type>;
+                    };
+
+                    //! FromOpenPMDPulse profile has an unknown phase velocity, use c as a default value
+                    template<typename T_Params>
+                    struct GetPhaseVelocity<profiles::FromOpenPMDPulse<T_Params>>
+                    {
+                        HINLINE float_X operator()() const
+                        {
+                            return SPEED_OF_LIGHT;
+                        }
+                    };
+                } // namespace detail
+
+                //! Specialization for FromOpenPMDPulse profile which has unknown amplitude
                 template<typename T_Params>
-                struct GetFunctorIncidentB<profiles::FromOpenPMDPulse<T_Params>>
+                struct GetAmplitude<profiles::FromOpenPMDPulse<T_Params>>
                 {
-                    using type = detail::ApproximateIncidentB<
-                        typename GetFunctorIncidentE<profiles::FromOpenPMDPulse<T_Params>>::type>;
+                    static constexpr float_X value = 0.0_X;
                 };
-
-            } // namespace detail
+            } // namespace traits
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
