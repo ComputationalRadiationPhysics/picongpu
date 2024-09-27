@@ -18,8 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/PluginRegistry.hpp"

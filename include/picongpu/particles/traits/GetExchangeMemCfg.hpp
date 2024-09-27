@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/HasFlag.hpp>
@@ -52,7 +52,7 @@ namespace picongpu
 
         //! short hand traits for GetExchangeMemCfg
         template<typename T_Species>
-        using GetExchangeMemCfg_t = typename traits::GetExchangeMemCfg<T_Species>::type;
+        using GetExchangeMemCfg_t = typename GetExchangeMemCfg<T_Species>::type;
 
     } // namespace traits
 } // namespace picongpu

@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+
 namespace picongpu
 {
     namespace particleCalorimeter

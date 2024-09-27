@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/static_assert.hpp>

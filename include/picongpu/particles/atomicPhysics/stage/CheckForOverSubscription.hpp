@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need picongpu::atomicPhysics::ElectronHistogram from atomicPhysics.param
 
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"

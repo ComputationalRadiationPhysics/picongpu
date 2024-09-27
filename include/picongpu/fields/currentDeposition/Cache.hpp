@@ -22,6 +22,7 @@
 #include "picongpu/algorithms/Set.hpp"
 
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/types.hpp>
 
 
@@ -49,7 +50,7 @@ namespace picongpu
                 template<typename T_BlockDescription, typename T_Worker, typename T_FieldBox>
                 DINLINE static auto create(T_Worker const& worker, T_FieldBox const& fieldBox)
 #if(!BOOST_COMP_CLANG)
-                    -> decltype(CachedBox::create<0u, typename T_FieldBox::ValueType>(
+                    -> decltype(pmacc::CachedBox::create<0u, typename T_FieldBox::ValueType>(
                         worker,
                         std::declval<T_BlockDescription>()))
 #endif

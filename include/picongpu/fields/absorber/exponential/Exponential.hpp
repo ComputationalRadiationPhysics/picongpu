@@ -22,9 +22,11 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/AbsorberImpl.hpp"
 #include "picongpu/fields/absorber/exponential/Exponential.kernel"
+#include "picongpu/fields/absorber/param.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/lockstep/lockstep.hpp>
+#include <pmacc/mappings/kernel/ExchangeMapping.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
 

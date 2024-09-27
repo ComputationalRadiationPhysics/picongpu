@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
@@ -258,7 +258,7 @@ namespace picongpu
                 AbstractJsonMatcher& matcher,
                 std::string const& basename)
             {
-                const float_64 particleShape(GetShape<ThisSpecies>::type::assignmentFunctionOrder);
+                const float_64 particleShape(picongpu::traits::GetShape<ThisSpecies>::type::assignmentFunctionOrder);
                 record.setAttribute("particleShape", particleShape);
 
                 traits::GetSpeciesFlagName<ThisSpecies, current<>> currentDepositionName;

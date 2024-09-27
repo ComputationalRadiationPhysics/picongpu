@@ -19,9 +19,11 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/defines.hpp"
+#include "picongpu/plugins/particleCalorimeter/ParticleCalorimeterFunctors.hpp"
+#include "picongpu/plugins/particleCalorimeter/param.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/lockstep.hpp>
@@ -125,7 +127,7 @@ namespace picongpu
                 const float_X weighting = particle[weighting_];
                 const float_X normedWeighting
                     = weighting / static_cast<float_X>(sim.unit.typicalNumParticlesPerMacroParticle());
-                const float_X mass = attribute::getMass(weighting, particle);
+                const float_X mass = picongpu::traits::attribute::getMass(weighting, particle);
                 const float_X energy = KinEnergy<>()(mom, mass) / weighting;
 
                 int32_t energyBin = 0;

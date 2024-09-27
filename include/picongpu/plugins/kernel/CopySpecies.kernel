@@ -21,7 +21,7 @@
 #pragma once
 
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>

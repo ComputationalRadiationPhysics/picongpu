@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/meta/accessors/Type.hpp>
 #include <pmacc/meta/conversion/OperateOnSeq.hpp>

@@ -21,6 +21,7 @@
 
 #    include "picongpu/param/binningSetup.param"
 #    include "picongpu/particles/filter/filter.hpp"
+#    include "picongpu/particles/param.hpp"
 #    include "picongpu/plugins/ISimulationPlugin.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"
 #    include "picongpu/plugins/binning/BinningCreator.hpp"

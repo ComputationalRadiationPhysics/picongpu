@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
@@ -111,8 +110,8 @@ namespace picongpu
                  * but not necessarily for derived ones.
                  */
                 using FrameType = typename T_Species::FrameType;
-                const float_32 charge = frame::getCharge<FrameType>();
-                const float_32 mass = frame::getMass<FrameType>();
+                const float_32 charge = traits::frame::getCharge<FrameType>();
+                const float_32 mass = traits::frame::getMass<FrameType>();
                 const auto densityRatio = traits::GetDensityRatio<T_Species>::type::getValue();
                 const auto density = BASE_DENSITY * densityRatio;
                 const auto omegaP_dt = sqrt(density * charge / mass * charge / sim.pic.getEps0()) * sim.pic.getDt();

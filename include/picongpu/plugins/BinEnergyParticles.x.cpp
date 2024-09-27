@@ -18,11 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "common/txtFileHandling.hpp"
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
@@ -134,7 +133,7 @@ namespace picongpu
                          */
                         float3_X const mom = particle[momentum_];
                         float_X const weighting = particle[weighting_];
-                        float_X const mass = attribute::getMass(weighting, particle);
+                        float_X const mass = picongpu::traits::attribute::getMass(weighting, particle);
 
                         // calculate kinetic energy of the macro particle
                         float_X localEnergy = KinEnergy<>()(mom, mass);

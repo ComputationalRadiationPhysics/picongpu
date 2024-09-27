@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
@@ -38,6 +37,7 @@
 #include <pmacc/lockstep/lockstep.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/memory/boxes/SharedBox.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/traits/Resolve.hpp>
@@ -74,8 +74,8 @@ namespace picongpu
                     typename pmacc::traits::GetFlagType<FrameType, interpolation<>>::type>::type;
 
                 /* margins around the supercell for the interpolation of the field on the cells */
-                using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;
-                using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
+                using LowerMargin = typename picongpu::traits::GetMargin<Field2ParticleInterpolation>::LowerMargin;
+                using UpperMargin = typename picongpu::traits::GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
                 /* relevant area of a block */
                 using BlockArea = SuperCellDescription<typename MappingDesc::SuperCellSize, LowerMargin, UpperMargin>;
@@ -93,7 +93,9 @@ namespace picongpu
                 FieldE::DataBoxType eBox;
                 FieldJ::DataBoxType jBox;
                 /* shared memory EM-field device databoxes */
-                PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize, 1>>);
+                PMACC_ALIGN(
+                    cachedE,
+                    pmacc::DataBox<pmacc::SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize, 1>>);
 
             public:
                 /* host constructor */
@@ -227,8 +229,8 @@ namespace picongpu
 
                     targetElectronClone.derive(worker, idGen, parentIon);
 
-                    const float_X massIon = attribute::getMass(weighting, parentIon);
-                    const float_X massElectron = attribute::getMass(weighting, childElectron);
+                    const float_X massIon = picongpu::traits::attribute::getMass(weighting, parentIon);
+                    const float_X massElectron = picongpu::traits::attribute::getMass(weighting, childElectron);
 
                     const float3_X electronMomentum(parentIon[momentum_] * (massElectron / massIon));
 

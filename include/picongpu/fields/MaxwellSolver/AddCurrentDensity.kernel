@@ -20,11 +20,12 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/math/operation/Assign.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 
 #include <cstdint>

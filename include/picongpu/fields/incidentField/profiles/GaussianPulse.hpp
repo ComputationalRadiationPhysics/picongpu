@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
 #include "picongpu/traits/GetMetadata.hpp"
@@ -369,14 +368,14 @@ namespace picongpu::fields::incidentField
                 return name;
             }
 
-            template<typename T = T_Params, std::enable_if_t<providesMetadataAtCT<T>, bool> = true>
+            template<typename T = T_Params, std::enable_if_t<picongpu::traits::providesMetadataAtCT<T>, bool> = true>
             static nlohmann::json metadata()
             {
                 // if T_Params happens to provide us with some tailored metadata, we gladly take it
                 return T_Params::template metadata<T_Params>();
             }
 
-            template<typename T = T_Params, std::enable_if_t<!providesMetadataAtCT<T>, bool> = true>
+            template<typename T = T_Params, std::enable_if_t<!picongpu::traits::providesMetadataAtCT<T>, bool> = true>
             static nlohmann::json metadata()
             {
                 // alternatively, we assume that we can at least squeeze the BaseParams out of it

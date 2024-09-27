@@ -76,7 +76,7 @@ namespace picongpu
                      */
                     using LowerMargin = typename pmacc::math::CT::add<
                         typename pmacc::math::CT::make_Int<simDim, 1>::type,
-                        typename GetLowerMargin<InternalDerivativeFunctor>::type>::type;
+                        typename picongpu::traits::GetLowerMargin<InternalDerivativeFunctor>::type>::type;
 
                     /** Upper margin: we move by 1 along each direction and
                      *  effectively apply InternalDerivativeFunctor (for T_direction not
@@ -84,7 +84,7 @@ namespace picongpu
                      */
                     using UpperMargin = typename pmacc::math::CT::add<
                         typename pmacc::math::CT::make_Int<simDim, 1>::type,
-                        typename GetUpperMargin<InternalDerivativeFunctor>::type>::type;
+                        typename picongpu::traits::GetUpperMargin<InternalDerivativeFunctor>::type>::type;
 
                     //! Create a functor
                     HDINLINE DerivativeFunctor()
@@ -192,14 +192,14 @@ namespace picongpu
                      */
                     using LowerMargin = typename pmacc::math::CT::add<
                         typename pmacc::math::CT::make_BasisVector<simDim, T_cherenkovFreeDirection, int>::type,
-                        typename GetLowerMargin<InternalDerivativeFunctor>::type>::type;
+                        typename picongpu::traits::GetLowerMargin<InternalDerivativeFunctor>::type>::type;
 
                     /** Upper margin: we move by 1 along T_cherenkovFreeDirection and
                      *  apply InternalDerivativeFunctor, add those up
                      */
                     using UpperMargin = typename pmacc::math::CT::add<
                         typename pmacc::math::CT::make_BasisVector<simDim, T_cherenkovFreeDirection, int>::type,
-                        typename GetUpperMargin<InternalDerivativeFunctor>::type>::type;
+                        typename picongpu::traits::GetUpperMargin<InternalDerivativeFunctor>::type>::type;
 
                     /** Return derivative value at the given point
                      *

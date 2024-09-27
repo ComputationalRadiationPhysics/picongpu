@@ -1,5 +1,4 @@
-/* Copyright 2013-2023 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Marco Garten, Finn-Ole Carstens
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,26 +17,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- *
- * only PIConGPU programmers should change this file
- *
- * for examples use extensionUnitless.loader
- */
 #pragma once
 
-// clang-format off
-
-#include "picongpu/unitless/density.unitless"
-#include "picongpu/unitless/particle.unitless"
+#include "picongpu/defines.hpp"
+#include "picongpu/param/fieldAbsorber.param"
 #include "picongpu/unitless/fieldAbsorber.unitless"
-#include "picongpu/unitless/pusher.unitless"
-#include "picongpu/unitless/ionizer.unitless"
-#include "picongpu/unitless/speciesAttributes.unitless"
-#include "picongpu/unitless/speciesDefinition.unitless"
-#include "picongpu/unitless/fieldBackground.unitless"
-#include "picongpu/unitless/collision.unitless"
-#include "picongpu/unitless/png.unitless"
-
-
-// clang-format on

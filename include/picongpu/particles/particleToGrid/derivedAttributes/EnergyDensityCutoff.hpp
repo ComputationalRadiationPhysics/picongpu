@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 
@@ -45,7 +44,7 @@ namespace picongpu
                     /* read existing attributes */
                     float_X const weighting = particle[weighting_];
                     float3_X const mom = particle[momentum_];
-                    float_X const mass = attribute::getMass(weighting, particle);
+                    float_X const mass = picongpu::traits::attribute::getMass(weighting, particle);
 
                     constexpr float_X invCellVolume = float_X(1.0) / sim.pic.getCellSize().productOfComponents();
 

@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 namespace picongpu
 {

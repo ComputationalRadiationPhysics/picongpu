@@ -22,11 +22,11 @@
 
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/param/synchrotron.param"
 #include "picongpu/particles/creation/creation.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/synchrotron/AlgorithmSynchrotron.hpp"
 
 #include <pmacc/meta/ForEach.hpp>

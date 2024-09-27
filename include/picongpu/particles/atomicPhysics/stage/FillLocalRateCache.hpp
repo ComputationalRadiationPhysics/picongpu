@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need atomicPhysics.param, type of histogram
 
 #include "picongpu/fields/FieldB.hpp"

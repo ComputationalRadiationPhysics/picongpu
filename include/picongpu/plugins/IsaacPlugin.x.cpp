@@ -23,12 +23,12 @@
 
 #if(ENABLE_ISAAC == 1) && (SIMDIM == DIM3)
 
-#    include "picongpu/param/fileOutput.param"
 #    include "picongpu/param/isaac.param"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #    include "picongpu/plugins/ILightweightPlugin.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"
+#    include "picongpu/plugins/output/param.hpp"
 
 #    include <pmacc/alpakaHelper/acc.hpp>
 #    include <pmacc/dataManagement/DataConnector.hpp>

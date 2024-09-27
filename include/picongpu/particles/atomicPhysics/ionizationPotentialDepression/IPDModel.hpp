@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 

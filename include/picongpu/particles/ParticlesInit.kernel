@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/Particles.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
 
 #include <pmacc/kernel/atomic.hpp>

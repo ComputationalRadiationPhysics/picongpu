@@ -20,8 +20,7 @@
 
 #include "picongpu/fields/EMFieldBase.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
@@ -46,15 +45,15 @@ namespace picongpu
     namespace fields
     {
         template<typename A, typename B>
-        using LowerMarginInterpolationOp =
-            typename pmacc::math::CT::max<A, typename GetLowerMargin<typename GetInterpolation<B>::type>::type>::type;
+        using LowerMarginInterpolationOp = typename pmacc::math::CT::
+            max<A, typename traits::GetLowerMargin<typename traits::GetInterpolation<B>::type>::type>::type;
         template<typename A, typename B>
-        using UpperMarginInterpolationOp =
-            typename pmacc::math::CT::max<A, typename GetUpperMargin<typename GetInterpolation<B>::type>::type>::type;
+        using UpperMarginInterpolationOp = typename pmacc::math::CT::
+            max<A, typename traits::GetUpperMargin<typename traits::GetInterpolation<B>::type>::type>::type;
         template<typename A, typename B>
-        using LowerMarginOp = typename pmacc::math::CT::max<A, typename GetLowerMarginPusher<B>::type>::type;
+        using LowerMarginOp = typename pmacc::math::CT::max<A, typename traits::GetLowerMarginPusher<B>::type>::type;
         template<typename A, typename B>
-        using UpperMarginOp = typename pmacc::math::CT::max<A, typename GetUpperMarginPusher<B>::type>::type;
+        using UpperMarginOp = typename pmacc::math::CT::max<A, typename traits::GetUpperMarginPusher<B>::type>::type;
 
         EMFieldBase::EMFieldBase(
             MappingDesc const& cellDescription,

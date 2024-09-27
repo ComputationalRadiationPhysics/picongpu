@@ -19,7 +19,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 //! used in struct SynchrotronIdea
 #include "picongpu/algorithms/KinEnergy.hpp"
@@ -114,7 +116,8 @@ namespace picongpu
                     float_X const delta = r1r1 * randNr1;
 
                     //! calculate Heff
-                    float_X const mass = attribute::getMass(parentElectron[weighting_], parentElectron);
+                    float_X const mass
+                        = picongpu::traits::attribute::getMass(parentElectron[weighting_], parentElectron);
                     float3_X const vel = Velocity()(parentElectron[momentum_], mass);
 
                     float_X const Vmag = pmacc::math::l2norm(vel);
@@ -237,8 +240,8 @@ namespace picongpu
                     typename pmacc::traits::GetFlagType<FrameType, interpolation<>>::type>::type;
 
                 /** margins around the supercell for the interpolation of the field on the cells */
-                using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;
-                using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
+                using LowerMargin = typename picongpu::traits::GetMargin<Field2ParticleInterpolation>::LowerMargin;
+                using UpperMargin = typename picongpu::traits::GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
                 /** relevant area of a block */
                 using BlockArea = SuperCellDescription<typename MappingDesc::SuperCellSize, LowerMargin, UpperMargin>;

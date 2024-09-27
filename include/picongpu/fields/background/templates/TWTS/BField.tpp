@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/background/templates/TWTS/BField.hpp"
 #include "picongpu/fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"

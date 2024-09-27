@@ -18,9 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "common/txtFileHandling.hpp"
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"

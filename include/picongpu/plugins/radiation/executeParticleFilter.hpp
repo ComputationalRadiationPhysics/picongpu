@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
+#include "picongpu/param/radiation.param"
 #include "picongpu/particles/Manipulate.hpp"
 
 #include <pmacc/traits/HasIdentifier.hpp>
@@ -48,8 +48,7 @@ namespace picongpu::plugins::radiation
         if constexpr(hasRadiationFilter)
         {
             auto executeFilter
-                = particles::Manipulate<picongpu::plugins::radiation::RadiationParticleFilter, T_Species>{};
-            executeFilter(currentStep);
+                = particles::manipulate<picongpu::plugins::radiation::RadiationParticleFilter, T_Species>(currentStep);
         }
     }
 } // namespace picongpu::plugins::radiation

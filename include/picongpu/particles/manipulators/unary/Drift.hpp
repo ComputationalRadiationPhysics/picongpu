@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 
 
 namespace picongpu
@@ -56,7 +56,7 @@ namespace picongpu
                             using ValueFunctor = T_ValueFunctor;
 
                             float_X const macroWeighting = particle[weighting_];
-                            float_X const macroMass = attribute::getMass(macroWeighting, particle);
+                            float_X const macroMass = picongpu::traits::attribute::getMass(macroWeighting, particle);
 
                             float_64 const myGamma = ParamClass::gamma;
 

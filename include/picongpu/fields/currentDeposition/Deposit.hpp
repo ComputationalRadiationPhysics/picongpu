@@ -68,8 +68,8 @@ namespace picongpu
                  * The round up sum of margins is the number of supercells to skip.
                  */
                 using MarginPerDim = typename pmacc::math::CT::add<
-                    typename GetMargin<typename T_FrameSolver::ParticleAlgo>::LowerMargin,
-                    typename GetMargin<typename T_FrameSolver::ParticleAlgo>::UpperMargin>::type;
+                    typename picongpu::traits::GetMargin<typename T_FrameSolver::ParticleAlgo>::LowerMargin,
+                    typename picongpu::traits::GetMargin<typename T_FrameSolver::ParticleAlgo>::UpperMargin>::type;
                 using MaxMargin = typename pmacc::math::CT::max<MarginPerDim>::type;
                 using SuperCellMinSize = typename pmacc::math::CT::min<SuperCellSize>::type;
 

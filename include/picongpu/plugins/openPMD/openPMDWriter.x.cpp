@@ -23,13 +23,11 @@
 
 #    include "picongpu/plugins/openPMD/openPMDWriter.def"
 
-#    include "picongpu/simulation_defines.hpp"
-
+#    include "picongpu/defines.hpp"
 #    include "picongpu/fields/FieldB.hpp"
 #    include "picongpu/fields/FieldE.hpp"
 #    include "picongpu/fields/FieldJ.hpp"
 #    include "picongpu/fields/FieldTmp.hpp"
-#    include "picongpu/param/fileOutput.param"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
@@ -54,6 +52,7 @@
 #    include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
 #    include "picongpu/plugins/openPMD/toml.hpp"
 #    include "picongpu/plugins/output/IIOBackend.hpp"
+#    include "picongpu/plugins/output/param.hpp"
 #    include "picongpu/simulation/control/MovingWindow.hpp"
 #    include "picongpu/traits/IsFieldDomainBound.hpp"
 #    include "picongpu/traits/IsFieldOutputOptional.hpp"

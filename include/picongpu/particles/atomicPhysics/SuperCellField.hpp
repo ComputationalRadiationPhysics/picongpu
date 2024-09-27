@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need simDim from picongpu/param/dimension.param
 
 #include <pmacc/dataManagement/ISimulationData.hpp>

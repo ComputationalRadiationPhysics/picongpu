@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/algorithms/TypeCast.hpp>
@@ -53,7 +52,7 @@ namespace picongpu::traits::attribute
             Having_boundElectrons_particle_attribute_requires_atomicNumbers_flag,
             T_Particle,
             HasAtomicNumbers::value);
-        const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+        const float_X protonNumber = picongpu::traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
         return protonNumber - particle[boundElectrons_];
     }
 } // namespace picongpu::traits::attribute

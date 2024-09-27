@@ -22,8 +22,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
-
+#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/HistogramInterface.hpp"
 

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 
 #include <cstdint>

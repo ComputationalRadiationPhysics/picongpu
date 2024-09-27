@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.def"
 
@@ -48,10 +47,10 @@ namespace picongpu
                 {
                     /* read existing attributes */
                     const float_X weighting = particle[weighting_];
-                    const float_X charge = attribute::getCharge(weighting, particle);
+                    const float_X charge = picongpu::traits::attribute::getCharge(weighting, particle);
                     const float3_X mom = particle[momentum_];
                     const float_X momCom = mom[T_direction];
-                    const float_X mass = attribute::getMass(weighting, particle);
+                    const float_X mass = picongpu::traits::attribute::getMass(weighting, particle);
 
                     /* calculate new attribute */
                     Gamma<float_X> calcGamma;

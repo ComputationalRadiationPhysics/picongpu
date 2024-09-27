@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 /* need the following .param files
  *  - atomicPhysics_Debug.param      debug check switches
  *  - physicalConstants.param         physical constants, namespace picongpu::SI

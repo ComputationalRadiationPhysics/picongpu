@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 
 
@@ -41,7 +40,7 @@ namespace picongpu
             HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)
             {
                 using ParticleType = T_Particle;
-                return frame::getMass<typename ParticleType::FrameType>() * weighting;
+                return picongpu::traits::frame::getMass<typename ParticleType::FrameType>() * weighting;
             }
 
         } // namespace attribute

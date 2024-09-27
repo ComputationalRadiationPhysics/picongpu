@@ -23,27 +23,24 @@
 
 namespace picongpu
 {
-    namespace traits
+    /* openPMD uses the powers of the 7 SI base measures to describe
+     * the unit of a record
+     * @see http://git.io/vROmP */
+    constexpr uint32_t NUnitDimension = 7;
+
+    // pre-C++11 "scoped enumerator" work-around
+    namespace SIBaseUnits
     {
-        /* openPMD uses the powers of the 7 SI base measures to describe
-         * the unit of a record
-         * @see http://git.io/vROmP */
-        constexpr uint32_t NUnitDimension = 7;
-
-        // pre-C++11 "scoped enumerator" work-around
-        namespace SIBaseUnits
+        enum SIBaseUnits_t
         {
-            enum SIBaseUnits_t
-            {
-                length = 0, // L
-                mass = 1, // M
-                time = 2, // T
-                electricCurrent = 3, // I
-                thermodynamicTemperature = 4, // theta
-                amountOfSubstance = 5, // N
-                luminousIntensity = 6, // J
-            };
-        } // namespace SIBaseUnits
+            length = 0, // L
+            mass = 1, // M
+            time = 2, // T
+            electricCurrent = 3, // I
+            thermodynamicTemperature = 4, // theta
+            amountOfSubstance = 5, // N
+            luminousIntensity = 6, // J
+        };
+    } // namespace SIBaseUnits
 
-    } // namespace traits
 } // namespace picongpu

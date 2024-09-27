@@ -28,8 +28,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/CombinedDerive.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
@@ -80,8 +79,10 @@ namespace picongpu
                     ParticleType& parentIon)
                 {
                     /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
-                    constexpr float_64 protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-                    constexpr float_64 neutronNumber = GetAtomicNumbers<ParticleType>::type::numberOfNeutrons;
+                    constexpr float_64 protonNumber
+                        = picongpu::traits::GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+                    constexpr float_64 neutronNumber
+                        = picongpu::traits::GetAtomicNumbers<ParticleType>::type::numberOfNeutrons;
 
                     /* atomic mass number (usually A) A = N + Z */
                     constexpr float_64 massNumber = neutronNumber + protonNumber;
@@ -170,8 +171,10 @@ namespace picongpu
                     constexpr float_64 convM3ToCM3 = 1.e6;
 
                     /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
-                    constexpr float_64 protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-                    constexpr float_64 neutronNumber = GetAtomicNumbers<ParticleType>::type::numberOfNeutrons;
+                    constexpr float_64 protonNumber
+                        = picongpu::traits::GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+                    constexpr float_64 neutronNumber
+                        = picongpu::traits::GetAtomicNumbers<ParticleType>::type::numberOfNeutrons;
 
                     /* atomic mass number (usually A) A = N + Z */
                     constexpr float_64 massNumber = neutronNumber + protonNumber;
@@ -198,10 +201,11 @@ namespace picongpu
 
                     if(density * densityUnit >= lowerDensityCutoff && temperature >= lowerTemperatureCutoff)
                     {
-                        float_64 const chargeState = attribute::getChargeState(parentIon);
+                        float_64 const chargeState = picongpu::traits::attribute::getChargeState(parentIon);
                         /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU
                          * units */
-                        constexpr float_64 protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+                        constexpr float_64 protonNumber
+                            = picongpu::traits::GetAtomicNumbers<ParticleType>::type::numberOfProtons;
 
                         /* only ionize not-fully ionized ions */
                         if(chargeState < protonNumber)

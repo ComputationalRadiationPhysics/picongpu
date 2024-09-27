@@ -22,6 +22,7 @@
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
+#include "picongpu/particles/DeviceHeap.hpp"
 #include "picongpu/particles/boundary/Description.hpp"
 #include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
@@ -49,21 +50,6 @@
 namespace picongpu
 {
     using namespace pmacc;
-
-#if(!BOOST_LANG_CUDA && !BOOST_COMP_HIP)
-    /* dummy because we are not using mallocMC with CPU backends
-     * DeviceHeap is defined in `mallocMC.param`
-     */
-    struct DeviceHeap
-    {
-        using AllocatorHandle = int;
-
-        int getAllocatorHandle()
-        {
-            return 0;
-        }
-    };
-#endif
 
     /** particle species
      *
@@ -139,12 +125,6 @@ namespace picongpu
 
         //! Apply all boundary conditions
         void applyBoundary(uint32_t const currentStep);
-
-        template<typename T_DensityFunctor, typename T_PositionFunctor>
-        void initDensityProfile(
-            T_DensityFunctor& densityFunctor,
-            T_PositionFunctor& positionFunctor,
-            const uint32_t currentStep);
 
         template<
             typename T_SrcName,

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need atomicPhysics_Debug.param
 
 #include "picongpu/particles/manipulators/manipulators.def"

@@ -23,6 +23,8 @@
 #include <pmacc/dimensions/Definition.hpp>
 #include <pmacc/types.hpp>
 
+#include <picongpu/logging.hpp>
+
 namespace picongpu
 {
     using namespace pmacc;
@@ -40,4 +42,5 @@ namespace picongpu
 #include "picongpu/param/speciesConstants.param"
 #include "picongpu/param/simulation.param"
 #include "picongpu/unitless/simulation.unitless"
+#include "picongpu/param/speciesAttributes.param"
 // clang-format on

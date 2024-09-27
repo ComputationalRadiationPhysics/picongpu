@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>

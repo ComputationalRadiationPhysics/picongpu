@@ -19,8 +19,10 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/collision/param.hpp"
 
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/verify.hpp>
 

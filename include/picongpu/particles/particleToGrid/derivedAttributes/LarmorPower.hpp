@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
@@ -56,8 +55,8 @@ namespace picongpu
                     const float3_X mom = particle[momentum_];
                     const float3_X mom_mt1 = particle[momentumPrev1_];
                     const float_X weighting = particle[weighting_];
-                    const float_X charge = attribute::getCharge(weighting, particle);
-                    const float_X mass = attribute::getMass(weighting, particle);
+                    const float_X charge = picongpu::traits::attribute::getCharge(weighting, particle);
+                    const float_X mass = picongpu::traits::attribute::getMass(weighting, particle);
 
                     /* calculate new attribute */
                     Gamma<float_X> calcGamma;

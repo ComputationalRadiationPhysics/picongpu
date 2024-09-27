@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/defines.hpp"
 // need physicalConstants.param
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"

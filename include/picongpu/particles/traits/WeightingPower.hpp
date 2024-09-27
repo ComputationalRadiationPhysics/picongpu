@@ -19,7 +19,6 @@
 
 #pragma once
 
-// include "simulation_defines.hpp"
 #include <pmacc/types.hpp>
 
 namespace picongpu

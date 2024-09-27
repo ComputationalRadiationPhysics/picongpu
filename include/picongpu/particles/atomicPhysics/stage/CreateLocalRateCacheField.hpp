@@ -21,6 +21,8 @@
 
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
 
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+
 #include <memory>
 #include <stdexcept>
 

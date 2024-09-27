@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/traits/attribute/GetCharge.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
@@ -62,8 +61,8 @@ namespace picongpu
                 using UnitlessParam = ::picongpu::particlePusherAcceleration::UnitlessParam;
 
                 float_X const weighting = particle[weighting_];
-                float_X const mass = attribute::getMass(weighting, particle);
-                float_X const charge = attribute::getCharge(weighting, particle);
+                float_X const mass = traits::attribute::getMass(weighting, particle);
+                float_X const charge = traits::attribute::getCharge(weighting, particle);
 
                 using MomType = momentum::type;
                 MomType new_mom = particle[momentum_];

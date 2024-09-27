@@ -21,8 +21,7 @@
 
 #include "picongpu/fields/FieldE.hpp"
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/EMFieldBase.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/filter/filter.hpp"
@@ -41,8 +40,8 @@ namespace picongpu
         : fields::EMFieldBase(
             cellDescription,
             getName(),
-            GetLowerMargin<fields::Solver, FieldE>::type::toRT(),
-            GetUpperMargin<fields::Solver, FieldE>::type::toRT())
+            picongpu::traits::GetLowerMargin<fields::Solver, FieldE>::type::toRT(),
+            picongpu::traits::GetUpperMargin<fields::Solver, FieldE>::type::toRT())
     {
     }
 

@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/defines.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <pmacc/traits/HasIdentifier.hpp>
@@ -48,7 +47,7 @@ namespace picongpu
                 const uint32_t)
             {
                 float_X const weighting = particle[weighting_];
-                float_X const mass = attribute::getMass(weighting, particle);
+                float_X const mass = picongpu::traits::attribute::getMass(weighting, particle);
 
                 using MomType = momentum::type;
                 MomType const mom = particle[momentum_];

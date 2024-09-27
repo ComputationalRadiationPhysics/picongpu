@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
-
+#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/atomicPhysics/debug/PrintAtomicDataToConsole.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
