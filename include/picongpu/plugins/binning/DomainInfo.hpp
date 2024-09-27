@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
@@ -29,6 +31,8 @@ namespace picongpu
     {
         /**
          * @brief Provides knowledge of the simulation domain to the user
+         * Names and concept are described at
+         * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
          */
         class DomainInfo
         {
@@ -57,5 +61,36 @@ namespace picongpu
                 blockCellOffset = physicalSuperCellIdx * SuperCellSize::toRT();
             }
         };
+
+        enum class DomainOrigin
+        {
+            // absolute origin of the simulation, inlcudes areas that are not in the current global volume,
+            // i.e. areas that have gone out due to the sliding window
+            TOTAL,
+            // origin of the current sliding window, i.e. the currently simulated volume over all GPUs, no guards
+            GLOBAL,
+            // origin of the current ("my") GPU, no guards
+            LOCAL
+        };
+
+        template<DomainOrigin T_Origin, typename T_Particle>
+        ALPAKA_FN_ACC auto getParticlePosition(DomainInfo domainInfo, T_Particle particle) -> pmacc::DataSpace<simDim>
+        {
+            int const linearCellIdx = particle[localCellIdx_];
+            DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
+            auto relative_cellpos = domainInfo.blockCellOffset;
+
+            if constexpr(T_Origin == DomainOrigin::GLOBAL)
+            {
+                relative_cellpos = relative_cellpos + domainInfo.localOffset;
+            }
+            if constexpr(T_Origin == DomainOrigin::TOTAL)
+            {
+                relative_cellpos = relative_cellpos + domainInfo.globalOffset;
+            }
+
+            auto posBin = cellIdx + relative_cellpos;
+            return posBin;
+        }
     } // namespace plugins::binning
 } // namespace picongpu
