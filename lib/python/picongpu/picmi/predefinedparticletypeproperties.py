@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 import collections
-import pdg
+import particle
 
 from scipy import constants as consts
 
@@ -15,69 +15,73 @@ _PropertyTuple: collections.namedtuple = collections.namedtuple("_PropertyTuple"
 # based on 2024 Particle data Group values, @todo read automatically from somewhere, BrianMarre
 _quarks = {
     "up": _PropertyTuple(
-        mass=2.16e6 * consts.elementary_charge / consts.speed_of_light**2, charge=2.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("u")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("u")[0].charge * consts.elementary_charge,
     ),
     "charm": _PropertyTuple(
-        mass=1.2730e9 * consts.elementary_charge / consts.speed_of_light**2, charge=2.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("c")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("c")[0].charge * consts.elementary_charge,
     ),
     "top": _PropertyTuple(
-        mass=172.57e9 * consts.elementary_charge / consts.speed_of_light**2, charge=2.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("t")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("t")[0].charge * consts.elementary_charge,
     ),
     "down": _PropertyTuple(
-        mass=4.70e6 * consts.elementary_charge / consts.speed_of_light**2, charge=-1.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("d")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("d")[0].charge * consts.elementary_charge,
     ),
     "strange": _PropertyTuple(
-        mass=93.5 * consts.elementary_charge / consts.speed_of_light**2, charge=-1.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("s")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("s")[0].charge * consts.elementary_charge,
     ),
     "bottom": _PropertyTuple(
-        mass=4.138 * consts.elementary_charge / consts.speed_of_light**2, charge=-1.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("b")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("b")[0].charge * consts.elementary_charge,
     ),
     "anti-up": _PropertyTuple(
-        mass=2.16e6 * consts.elementary_charge / consts.speed_of_light**2, charge=-2.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("u~")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("u~")[0].charge * consts.elementary_charge,
     ),
     "anti-charm": _PropertyTuple(
-        mass=1.2730e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=-2.0 / 3.0 * consts.elementary_charge,
+        mass=particle.Particle.findall("c~")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("c~")[0].charge * consts.elementary_charge,
     ),
     "anti-top": _PropertyTuple(
-        mass=172.57e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=-2.0 / 3.0 * consts.elementary_charge,
+        mass=particle.Particle.findall("t~")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("t~")[0].charge * consts.elementary_charge,
     ),
     "anti-down": _PropertyTuple(
-        mass=4.70e6 * consts.elementary_charge / consts.speed_of_light**2, charge=1.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("d~")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("d~")[0].charge * consts.elementary_charge,
     ),
     "anti-strange": _PropertyTuple(
-        mass=93.5 * consts.elementary_charge / consts.speed_of_light**2, charge=1.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("s~")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("s~")[0].charge * consts.elementary_charge,
     ),
     "anti-bottom": _PropertyTuple(
-        mass=4.138 * consts.elementary_charge / consts.speed_of_light**2, charge=1.0 / 3.0 * consts.elementary_charge
+        mass=particle.Particle.findall("b~")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("b~")[0].charge * consts.elementary_charge,
     ),
 }
 
 _leptons = {
     "electron": _PropertyTuple(mass=consts.electron_mass, charge=-consts.elementary_charge),
     "muon": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("mu-").mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("mu-").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("mu-")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("mu-")[0].charge * consts.elementary_charge,
     ),
     "tau": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("tau-").mass
-        * 1e9
-        * consts.elementary_charge
-        / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("tau-").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("tau-")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("tau-")[0].charge * consts.elementary_charge,
     ),
     "positron": _PropertyTuple(mass=consts.electron_mass, charge=consts.elementary_charge),
     "anti-muon": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("mu+").mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("mu+").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("mu+")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("mu+")[0].charge * consts.elementary_charge,
     ),
     "anti-tau": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("tau+").mass
-        * 1e9
-        * consts.elementary_charge
-        / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("tau+").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("tau+")[0].mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("tau+")[0].charge * consts.elementary_charge,
     ),
 }
 
@@ -101,20 +105,20 @@ _gauge_bosons = {
     "photon": _PropertyTuple(mass=None, charge=0.0),
     "gluon": _PropertyTuple(mass=None, charge=0.0),
     "w-plus-boson": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("W+").mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("W+").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("W+")[0].mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("W+")[0].charge * consts.elementary_charge,
     ),
     "w-minus-boson": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("W-").mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("W-").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("W-")[0].mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("W-")[0].charge * consts.elementary_charge,
     ),
     "z-boson": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("Z").mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("Z").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("Z")[0].mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("Z")[0].charge * consts.elementary_charge,
     ),
     "higgs": _PropertyTuple(
-        mass=pdg.connect().get_particle_by_name("H").mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
-        charge=pdg.connect().get_particle_by_name("H").charge * consts.elementary_charge,
+        mass=particle.Particle.findall("H")[0].mass * 1e9 * consts.elementary_charge / consts.speed_of_light**2,
+        charge=particle.Particle.findall("H")[0].charge * consts.elementary_charge,
     ),
 }
 
