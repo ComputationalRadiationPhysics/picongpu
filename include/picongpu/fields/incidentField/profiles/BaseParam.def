@@ -53,6 +53,24 @@ namespace picongpu
                 Center
             };
 
+            /** SFINAE deduction if the user parameter define the variable TIME_DELAY_SI
+             *
+             * This allows that time delay can be an optional variable a user must only define if needed.
+             * The default if it is not defined is 0.
+             * @{
+             */
+            template<typename T, typename = void>
+            struct GetTimeDelay
+            {
+                static constexpr float_X value = 0.0;
+            };
+
+            template<typename T>
+            struct GetTimeDelay<T, decltype((void) T::TIME_DELAY_SI, void())>
+            {
+                static constexpr float_X value = T::TIME_DELAY_SI;
+            };
+
             namespace profiles
             {
                 /** Base structure for parameters of all lasers
@@ -220,10 +238,11 @@ namespace picongpu
                         result["focus_origin"]
                             = {{"type",
                                 vector<std::string>{
+
                                     originToString(My::FOCUS_ORIGIN_X),
                                     originToString(My::FOCUS_ORIGIN_Y),
                                     originToString(My::FOCUS_ORIGIN_Z)}}};
-                        result["time_delay"] = {{"value", My::TIME_DELAY_SI}, {"unit", "s"}};
+                        result["time_delay"] = {{"value", GetTimeDelay<My>::value}, {"unit", "s"}};
                         result["polarisation"]
                             = {{"direction",
                                 vector<float_64>{
