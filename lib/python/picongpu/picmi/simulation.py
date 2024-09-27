@@ -486,7 +486,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         util.unsupported("verbose", self.verbose)
         util.unsupported("particle shape", self.particle_shape, "linear")
-        util.unsupported("gamma boost", self.gamma_boost)
+        util.unsupported("gamma boost, use picongpu_moving_window_move_point instead", self.gamma_boost)
 
         try:
             s.grid = self.solver.grid.get_as_pypicongpu()
