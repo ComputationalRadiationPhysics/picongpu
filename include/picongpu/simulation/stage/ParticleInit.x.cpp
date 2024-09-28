@@ -19,7 +19,6 @@
 
 #include "picongpu/simulation/stage/ParticleInit.hpp"
 
-<<<<<<< HEAD
 // clang-format off
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/param.hpp"
@@ -31,14 +30,6 @@
 
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/filter/filter.hpp"
-=======
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/param/particleFilters.param"
-#include "picongpu/param/speciesInitialization.param"
-#include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/manipulators/manipulators.hpp"
->>>>>>> 8f6920fcc (compile unit: stage refactoring)
 
 #include <pmacc/functor/Call.hpp>
 #include <pmacc/meta/ForEach.hpp>
@@ -47,7 +38,6 @@
 
 namespace picongpu::simulation::stage
 {
-<<<<<<< HEAD
     namespace particles
     {
         /** Remove all particles of the species that are outside the respective boundaries
@@ -90,12 +80,6 @@ namespace picongpu::simulation::stage
     void ParticleInit::operator()(uint32_t const step) const
     {
         meta::ForEach<picongpu::particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
-=======
-    //! Initialize particles
-    void ParticleInit::operator()(uint32_t const step) const
-    {
-        meta::ForEach<particles::InitPipeline, pmacc::functor::Call<boost::mpl::_1>> initSpecies;
->>>>>>> 8f6920fcc (compile unit: stage refactoring)
         initSpecies(step);
         /* Remove all particles that are outside the respective boundaries
          * (this can happen if density functor didn't account for it).

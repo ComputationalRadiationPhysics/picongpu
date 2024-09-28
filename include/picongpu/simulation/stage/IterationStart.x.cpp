@@ -20,17 +20,10 @@
 
 #include "picongpu/simulation/stage/IterationStart.hpp"
 
-<<<<<<< HEAD
 #include "picongpu/defines.hpp"
 #include "picongpu/param/iterationStart.param"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/param.hpp"
-=======
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/param/iterationStart.param"
-#include "picongpu/particles/filter/filter.hpp"
->>>>>>> 8f6920fcc (compile unit: stage refactoring)
 
 #include <pmacc/functor/Call.hpp>
 
