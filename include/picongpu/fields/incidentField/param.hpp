@@ -19,24 +19,5 @@
 
 #pragma once
 
-< < < < < < < < HEAD : include / picongpu / fields / incidentField / param.hpp
 #include "picongpu/defines.hpp"
 #include "picongpu/param/incidentField.param"
-    == == == ==
-#include <cstdint>
-
-
-    namespace picongpu{
-        namespace simulation{namespace stage{//! Initialize particles
-                                             struct ParticleInit{/** Initialize particles dependent of the given step
-                                                                  *
-                                                                  * @param step index of time iteration
-                                                                  */
-                                                                 void
-                                                                 operator()(uint32_t const step) const;
-}
-;
-} // namespace stage
-} // namespace simulation
-} // namespace picongpu
->>>>>>>> 8f6920fcc(compile unit : stage refactoring) : include / picongpu / simulation / stage / ParticleInit.hpp
