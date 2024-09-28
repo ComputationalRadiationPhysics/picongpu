@@ -2,7 +2,6 @@
 
 namespace alpaka
 {
-
     /* ElementIndex
      *
      * An aggregate that containes the `.global` and `.local` indices of an element along a given dimension.

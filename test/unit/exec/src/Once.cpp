@@ -10,10 +10,10 @@
 #include "alpaka/test/KernelExecutionFixture.hpp"
 #include "alpaka/test/acc/TestAccs.hpp"
 
+#include <type_traits>
+
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
-
-#include <type_traits>
 
 class KernelOncePerGrid
 {

@@ -62,9 +62,7 @@ def config_validator(conf: Dict[str, Dict[str, str]]) -> bool:
                 print_red(f"[ERROR]: {compiler_name} misses entry {expected_entry}")
                 return False
             if "state" not in compiler_conf[expected_entry]:
-                print_red(
-                    f"[ERROR]: {compiler_name}/{expected_entry} misses state entry"
-                )
+                print_red(f"[ERROR]: {compiler_name}/{expected_entry} misses state entry")
                 return False
             if compiler_conf[expected_entry]["state"] not in get_known_state_names():
                 print_red(

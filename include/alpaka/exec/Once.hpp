@@ -15,7 +15,6 @@
 
 namespace alpaka
 {
-
     /* oncePerGrid
      *
      * `oncePerGrid(acc)` returns true for a single thread within the kernel execution grid.

@@ -19,11 +19,11 @@
 #include "alpaka/test/acc/TestAccs.hpp"
 #include "alpaka/wait/Traits.hpp"
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/catch_test_macros.hpp>
-
 #include <random>
 #include <type_traits>
+
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #if BOOST_COMP_MSVC
 // MSVC uses __restrict instead of __restrict__.
@@ -284,7 +284,7 @@ namespace alpaka::trait
         {
 #if defined(__GNUC__)
             // Silence a potential warning about
-            // warning: conversion to ‘long unsigned int’ from ‘long int’ may change the sign of the result
+            // warning: conversion to 'long unsigned int' from 'long int' may change the sign of the result
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif

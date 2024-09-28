@@ -82,8 +82,8 @@ struct StencilKernel
             auto elem = getElementPtr(uNextBuf, bufIdx, pitchNext);
 
             *elem = sdata[localIdx1D] * (1.0 - 2.0 * rX - 2.0 * rY) + sdata[localIdx1D - 1] * rX
-                    + sdata[localIdx1D + 1] * rX + sdata[localIdx1D - chunkSize[1] - halo[1]] * rY
-                    + sdata[localIdx1D + chunkSize[1] + halo[1]] * rY;
+                + sdata[localIdx1D + 1] * rX + sdata[localIdx1D - chunkSize[1] - halo[1]] * rY
+                + sdata[localIdx1D + chunkSize[1] + halo[1]] * rY;
         }
     }
 };

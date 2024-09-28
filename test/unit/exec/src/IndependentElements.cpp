@@ -17,11 +17,11 @@
 #include "alpaka/test/acc/TestAccs.hpp"
 #include "alpaka/wait/Traits.hpp"
 
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/catch_test_macros.hpp>
-
 #include <random>
 #include <type_traits>
+
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #if BOOST_COMP_MSVC
 // MSVC uses __restrict instead of __restrict__.

@@ -12,10 +12,8 @@
 
 namespace alpaka
 {
-
     namespace detail
     {
-
         /* UniformElementsAlong
          *
          * `UniformElementsAlong<TAcc, Dim>(acc [, first], extent)` returns a one-dimensional iteratable range that
@@ -320,7 +318,6 @@ namespace alpaka
 
     namespace detail
     {
-
         /* UniformElementsND
          *
          * `UniformElementsND(acc, extent)` returns an N-dimensional iteratable range that spans the element indices
@@ -609,7 +606,6 @@ namespace alpaka
 
     namespace detail
     {
-
         /* UniformGroupsAlong
          *
          * `UniformGroupsAlong<Dim>(acc, elements)` returns a one-dimensional iteratable range than spans the group
@@ -877,7 +873,6 @@ namespace alpaka
 
     namespace detail
     {
-
         /* UniformGroupElementsAlong
          *
          * `UniformGroupElementsAlong<TAcc, Dim>(acc, group, elements)` returns a one-dimensional iteratable range that

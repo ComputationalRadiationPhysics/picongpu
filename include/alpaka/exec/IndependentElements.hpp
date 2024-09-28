@@ -10,10 +10,8 @@
 
 namespace alpaka
 {
-
     namespace detail
     {
-
         /* IndependentGroupsAlong
          *
          * `IndependentGroupsAlong<TAcc, Dim>(acc, groups)` returns a one-dimensional iteratable range than spans the
@@ -252,7 +250,6 @@ namespace alpaka
 
     namespace detail
     {
-
         /* IndependentGroupElementsAlong
          *
          * `independentGroupElementsAlong<Dim>(acc, ...)` is a shorthand for `IndependentGroupElementsAlong<TAcc,

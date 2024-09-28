@@ -6,12 +6,12 @@
 
 #include <alpaka/extent/Traits.hpp>
 
-#include <pngwriter.h>
-
 #include <cmath>
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
+
+#include <pngwriter.h>
 
 //! Writes the buffer to a png file
 //!
