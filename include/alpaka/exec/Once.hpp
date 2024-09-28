@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "alpaka/acc/Tag.hpp"
-#include "alpaka/acc/Traits.hpp"
-#include "alpaka/dim/DimIntegralConst.hpp"
-#include "alpaka/idx/Accessors.hpp"
-#include "alpaka/idx/Traits.hpp"
-#include "alpaka/vec/Vec.hpp"
+#include <alpaka/acc/Tag.hpp>
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/idx/Accessors.hpp>
+#include <alpaka/idx/Traits.hpp>
+#include <alpaka/vec/Vec.hpp>
 
 #include <type_traits>
 

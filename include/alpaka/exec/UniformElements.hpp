@@ -1,9 +1,9 @@
 #pragma once
 
-#include "alpaka/acc/Traits.hpp"
-#include "alpaka/core/Utility.hpp"
-#include "alpaka/exec/ElementIndex.hpp"
-#include "alpaka/idx/Accessors.hpp"
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/core/Utility.hpp>
+#include <alpaka/exec/ElementIndex.hpp>
+#include <alpaka/idx/Accessors.hpp>
 
 #include <algorithm>
 #include <ciso646> // workaround for MSVC in c++17 mode - TODO: remove once we move to c++20
