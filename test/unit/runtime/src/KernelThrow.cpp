@@ -1,4 +1,4 @@
-/* Copyright 2022  René Widera, Mehmet Yusufoglu, Andrea Bocci
+/* Copyright 2022  Rene Widera, Mehmet Yusufoglu, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
