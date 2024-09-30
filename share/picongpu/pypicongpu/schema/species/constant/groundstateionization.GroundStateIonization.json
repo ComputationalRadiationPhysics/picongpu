@@ -1,0 +1,14 @@
+{
+    "$id":"https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.groundstateionization.GroundStateIonization",
+    "required":["ionization_model_list"],
+    "unevaluatedProperties":false,
+    "properties": {
+        "ionization_model_list": {
+            "type": "array",
+            "description": "list of ionization models for species",
+            "items": {
+                "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizationmodel.ionizationmodel.IonizationModel"
+            }
+        }
+    }
+}

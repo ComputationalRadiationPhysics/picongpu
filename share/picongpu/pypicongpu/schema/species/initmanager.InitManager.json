@@ -35,10 +35,10 @@
                         "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.simplemomentum.SimpleMomentum"
                     }
                 },
-                "set_bound_electrons": {
+                "set_charge_state": {
                     "type": "array",
                     "items": {
-                        "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.setboundelectrons.SetBoundElectrons"
+                        "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.setchargestate.SetChargeState"
                     }
                 }
             }

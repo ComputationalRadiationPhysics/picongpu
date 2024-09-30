@@ -61,8 +61,8 @@ class GaussianDistribution(Distribution):
         util.unsupported("fill in not active", self.fill_in, True)
 
         # @todo support bounds, Brian Marre, 2024
-        util.unsupported("lower bound", self.lower_bound, [None, None, None])
-        util.unsupported("upper bound", self.upper_bound, [None, None, None])
+        util.unsupported("lower bound", self.lower_bound, (None, None, None))
+        util.unsupported("upper bound", self.upper_bound, (None, None, None))
 
         gaussian_profile = species.operation.densityprofile.Gaussian()
 

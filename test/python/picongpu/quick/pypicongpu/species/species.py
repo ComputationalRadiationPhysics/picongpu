@@ -12,13 +12,15 @@ from picongpu.pypicongpu.species.constant import (
     Mass,
     Charge,
     DensityRatio,
-    Ionizers,
     ElementProperties,
+    Constant,
+    GroundStateIonization,
 )
+from picongpu.pypicongpu.species.constant.ionizationcurrent import None_
+from picongpu.pypicongpu.species.constant.ionizationmodel import BSI
 from picongpu.pypicongpu.species.util import Element
 
 from .attribute import DummyAttribute
-from .constant import DummyConstant
 
 import itertools
 import unittest
@@ -39,18 +41,19 @@ class TestSpecies(unittest.TestCase):
         self.electron.attributes = [Position(), Momentum()]
         self.electron.constants = []
 
-        self.const = DummyConstant()
+        self.const = Constant()
         self.const_charge = Charge()
         self.const_charge.charge_si = 1
         self.const_mass = Mass()
         self.const_mass.mass_si = 2
         self.const_density_ratio = DensityRatio()
         self.const_density_ratio.ratio = 4.2
-        self.const_ionizers = Ionizers()
-        self.const_ionizers.electron_species = self.electron
+        self.const_ground_state_ionization = GroundStateIonization(
+            ionization_model_list=[BSI(ionization_electron_species=self.electron, ionization_current=None_())]
+        )
 
         self.const_element_properties = ElementProperties()
-        self.const_element_properties.element = Element.H
+        self.const_element_properties.element = Element("H")
 
     def test_basic(self):
         """setup provides working species"""
@@ -79,12 +82,12 @@ class TestSpecies(unittest.TestCase):
             with self.assertRaises(typeguard.TypeCheckError):
                 species.name = invalid_name
 
-        invalid_attr_lists = [None, {}, set(), [DummyConstant()], DummyAttribute()]
+        invalid_attr_lists = [None, {}, set(), [Constant()], DummyAttribute()]
         for invalid_attr_list in invalid_attr_lists:
             with self.assertRaises(typeguard.TypeCheckError):
                 species.attributes = invalid_attr_list
 
-        invalid_const_lists = [None, {}, set(), [DummyAttribute()], DummyConstant()]
+        invalid_const_lists = [None, {}, set(), [DummyAttribute()], Constant()]
         for invalid_const_list in invalid_const_lists:
             with self.assertRaises(typeguard.TypeCheckError):
                 species.constants = invalid_const_list
@@ -135,7 +138,8 @@ class TestSpecies(unittest.TestCase):
         const1.charge_si = 17
         const2 = Charge()
         const2.charge_si = 18
-        other_const = DummyConstant()
+        other_const = Mass()
+        other_const.mass_si = 19
 
         species.constants = [const1, const2, other_const]
 
@@ -151,7 +155,7 @@ class TestSpecies(unittest.TestCase):
     def test_check_constant_passthhru(self):
         """species check also calls constants check"""
 
-        class ConstantFail(DummyConstant):
+        class ConstantFail(Constant):
             ERROR_STR: str = "IDSTRING_XKCD_927_BEST"
 
             def check(self):
@@ -205,7 +209,7 @@ class TestSpecies(unittest.TestCase):
 
         species.constants = [self.const, self.const_mass, self.const_charge]
         # note: check for *identity* with is (instead of pure equality)
-        self.assertTrue(self.const is species.get_constant_by_type(DummyConstant))
+        self.assertTrue(self.const is species.get_constant_by_type(Constant))
         self.assertTrue(self.const_charge is species.get_constant_by_type(Charge))
         self.assertTrue(self.const_mass is species.get_constant_by_type(Mass))
 
@@ -275,7 +279,7 @@ class TestSpecies(unittest.TestCase):
             "density_ratio": self.const_density_ratio,
             "charge": self.const_charge,
             "mass": self.const_mass,
-            "ionizers": self.const_ionizers,
+            "ground_state_ionization": self.const_ground_state_ionization,
             "element_properties": self.const_element_properties,
         }
 

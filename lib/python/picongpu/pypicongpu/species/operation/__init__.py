@@ -4,7 +4,7 @@ from .simpledensity import SimpleDensity
 from .notplaced import NotPlaced
 from .simplemomentum import SimpleMomentum
 from .noboundelectrons import NoBoundElectrons
-from .setboundelectrons import SetBoundElectrons
+from .setchargestate import SetChargeState
 
 from . import densityprofile
 from . import momentum
@@ -16,7 +16,7 @@ __all__ = [
     "NotPlaced",
     "SimpleMomentum",
     "NoBoundElectrons",
-    "SetBoundElectrons",
+    "SetChargeState",
     "densityprofile",
     "momentum",
 ]

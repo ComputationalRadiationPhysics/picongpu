@@ -1,4 +1,13 @@
+"""
+This file is part of PIConGPU.
+Copyright 2021-2024 PIConGPU contributors
+Authors: Hannes Troepgen
+License: GPLv3+
+"""
+
 from picongpu import picmi
+
+OUTPUT_DIRECTORY_PATH = "warm_plasma"
 
 boundary_conditions = ["periodic", "periodic", "periodic"]
 grid = picmi.Cartesian3DGrid(
@@ -36,4 +45,5 @@ sim = picmi.Simulation(
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=25)
 sim.add_species(electron, layout)
 
-sim.write_input_file("generated_input")
+if __name__ == "__main__":
+    sim.write_input_file(OUTPUT_DIRECTORY_PATH)

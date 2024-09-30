@@ -1,4 +1,6 @@
 chevron >= 0.13.1
 jsonschema >= 4.23.0
 typeguard >= 4.2.1
-referencing >=0.35.1
+referencing >= 0.35.1
+pydantic >= 2.6.4
+periodictable >= 1.7.1

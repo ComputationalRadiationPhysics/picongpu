@@ -22,6 +22,9 @@ export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH
 export PATH=$ADIOS2_ROOT/bin:$PATH
 export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib:$LD_LIBRARY_PATH
 
+# set environment variable for path to tpls for PyPIConGPU runner
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}
+
 if [ -z "$DISABLE_ISAAC" ] ; then
   export ICET_ROOT=/opt/icet/2.9.0
   export CMAKE_PREFIX_PATH=$ICET_ROOT/lib:$CMAKE_PREFIX_PATH

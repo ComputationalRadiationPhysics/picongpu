@@ -9,6 +9,7 @@ from ...pypicongpu import species
 
 import typing
 import pydantic
+import typeguard
 
 """
 note on rms_velocity:
@@ -32,6 +33,7 @@ this method returns None.
 """
 
 
+@typeguard.typechecked
 class Distribution(pydantic.BaseModel):
     rms_velocity: typing.Tuple[float, float, float] = (0, 0, 0)
     """thermal velocity spread [m/s]"""

@@ -62,16 +62,23 @@ namespace picongpu
                     densityRatio<DensityRatio_{{{typename}}}>,
                 {{/density_ratio}}
 
-                {{#ionizers}}
+                {{#ground_state_ionization}}
                     ionizers<MakeSeq_t<
-                        particles::ionization::BSI<{{{electron_species.typename}}}, particles::ionization::current::None>,
-                        particles::ionization::ADKCircPol<{{{electron_species.typename}}}, particles::ionization::current::None>,
-                        particles::ionization::ThomasFermi<{{{electron_species.typename}}}>>>,
-                {{/ionizers}}
+                      {{#ionization_model_list}}
+                        particles::ionization::{{{ionizer_picongpu_name}}}<
+                            {{{ionization_electron_species.typename}}}
+                          {{#ionization_current}}
+                            , particles::ionization::current::{{{picongpu_name}}}
+                          {{/ionization_current}}
+                        >{{^_last}},{{/_last}}
+                      {{/ionization_model_list}}
+                    >>,
+                {{/ground_state_ionization}}
 
                 {{#element_properties}}
                     atomicNumbers<ionization::atomicNumbers::{{{element.picongpu_name}}}_t>,
                     ionizationEnergies<ionization::energies::AU::{{{element.picongpu_name}}}_t>,
+                    effectiveNuclearCharge<ionization::effectiveNuclearCharge::{{{element.picongpu_name}}}_t>,
                 {{/element_properties}}
             {{/constants}}
 

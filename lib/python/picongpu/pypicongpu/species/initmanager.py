@@ -14,7 +14,7 @@ from .operation import (
     DensityOperation,
     SimpleDensity,
     SimpleMomentum,
-    SetBoundElectrons,
+    SetChargeState,
 )
 from .attribute import Attribute
 from .constant import Constant
@@ -67,6 +67,10 @@ class InitManager(RenderedObject):
         self.all_species = []
         self.all_operations = []
         self.__baked = False
+
+    def __hash__(self) -> int:
+        # every simulation may only ever have one InitManager
+        return hash(type(self))
 
     def __get_all_attributes(self):
         """
@@ -496,7 +500,7 @@ class InitManager(RenderedObject):
         operation_types_by_name = {
             "simple_density": SimpleDensity,
             "simple_momentum": SimpleMomentum,
-            "set_bound_electrons": SetBoundElectrons,
+            "set_charge_state": SetChargeState,
             # note: NotPlaced is not rendered (as it provides no data & does
             # nothing anyways) -> it is not in this list
             # same as NoBoundElectrons

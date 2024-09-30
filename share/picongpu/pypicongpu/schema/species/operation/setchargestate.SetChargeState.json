@@ -1,18 +1,18 @@
 {
-    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.setboundelectrons.SetBoundElectrons",
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.setchargestate.SetChargeState",
     "description": "set bound electrons attribute to given value",
     "type": "object",
     "unevaluatedProperties": false,
-    "required": ["species", "bound_electrons"],
+    "required": ["species", "charge_state"],
     "properties": {
         "species": {
             "description": "species to set bound electrons for",
             "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
         },
-        "bound_electrons": {
-            "description": "number of bound electrons to set",
+        "charge_state": {
+            "description": "charge state to set boundElectrons attribute for",
             "type": "integer",
-            "minimum": 1
+            "minimum": 0
         }
     }
 }

@@ -1,7 +1,6 @@
 """
 PICMI for PIConGPU
 """
-
 from .simulation import Simulation
 from .grid import Cartesian3DGrid
 from .solver import ElectromagneticSolver
@@ -10,9 +9,10 @@ from .species import Species
 from .layout import PseudoRandomLayout
 from . import constants
 
-from .distribution import FoilDistribution
-from .distribution import UniformDistribution
-from .distribution import GaussianDistribution
+from .distribution import FoilDistribution, UniformDistribution, GaussianDistribution
+from .interaction import Interaction
+from .interaction.ionization.fieldionization import ADK, ADKVariant, BSI, BSIExtension, Keldysh
+from .interaction.ionization.electroniccollisionalequilibrium import ThomasFermi
 
 import picmistandard
 
@@ -27,11 +27,19 @@ __all__ = [
     "GaussianLaser",
     "Species",
     "PseudoRandomLayout",
+    "constants",
     "FoilDistribution",
     "UniformDistribution",
     "GaussianDistribution",
-    "constants",
+    "ADK",
+    "ADKVariant",
+    "BSI",
+    "BSIExtension",
+    "Keldysh",
+    "ThomasFermi",
+    "Interaction",
 ]
+
 
 codename = "picongpu"
 """

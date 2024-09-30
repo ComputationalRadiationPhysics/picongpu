@@ -24,7 +24,7 @@
         },
         "attributes": {
             "type": "array",
-            "description": "names of attributes of each macroparticle",
+            "description": "names of attributes of each macro particle of this species",
             "items": {
                 "type": "object",
                 "unevaluatedProperties": false,
@@ -45,7 +45,8 @@
             "required": [
                 "mass",
                 "charge",
-                "density_ratio"
+                "density_ratio",
+                "ground_state_ionization"
             ],
             "properties": {
                 "mass": {
@@ -66,10 +67,10 @@
                         {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.densityratio.DensityRatio"}
                     ]
                 },
-                "ionizers": {
-                    "anyOf": [
+                "ground_state_ionization": {
+                    "anyOf":  [
                         {"type": "null"},
-                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizers.Ionizers"}
+                        {"$ref":"https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.groundstateionization.GroundStateIonization"}
                     ]
                 },
                 "element_properties": {

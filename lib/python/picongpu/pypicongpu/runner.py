@@ -248,7 +248,7 @@ class Runner:
             # try to retrieve from environment var
             if self.SCRATCH_ENV_NAME in environ:
                 logging.info(
-                    "loading scratch directory (implicitly) " "from environment var ${}".format(self.SCRATCH_ENV_NAME)
+                    "loading scratch directory (implicitly) from environment var ${}".format(self.SCRATCH_ENV_NAME)
                 )
                 self.scratch_dir = path.abspath(environ[self.SCRATCH_ENV_NAME])
             else:
@@ -333,7 +333,10 @@ class Runner:
         chdir(self.setup_dir)
         runArgs(
             "PIConGPU",
-            "tbg -s bash -c etc/picongpu/N.cfg -t " "etc/picongpu/bash/mpiexec.tpl".split(" ") + [self.run_dir],
+            (
+                ("tbg -s bash -c etc/picongpu/N.cfg -t " + environ["PIC_SYSTEM_TEMPLATE_PATH"] + "/mpiexec.tpl").split()
+                + [self.run_dir]
+            ),
         )
 
     def generate(self, printDirToConsole=False):

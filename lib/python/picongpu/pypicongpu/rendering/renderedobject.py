@@ -53,6 +53,20 @@ class RenderedObject:
     which is used for identification purposes.
     """
 
+    def __hash__(self):
+        """custom hash function for indexing in dicts"""
+        hash_value = hash(type(self))
+
+        for value in self.__dict__.values():
+            try:
+                if value is not None:
+                    hash_value += hash(value)
+            except TypeError:
+                print(self)
+                print(type(self))
+                raise TypeError
+        return hash_value
+
     @staticmethod
     def _maybe_fill_schema_store() -> None:
         """
@@ -160,7 +174,8 @@ class RenderedObject:
         if type(schema) is dict:
             if "unevaluatedProperties" not in schema:
                 logging.warning("schema does not explicitly forbid " "unevaluated properties: {}".format(fqn))
-            elif schema["unevaluatedProperties"]:
+            # special exemption for custom user input which is never evaluated
+            elif schema["unevaluatedProperties"] and fqn != "picongpu.pypicongpu.customuserinput.CustomUserInput":
                 logging.warning("schema supports unevaluated properties: {}".format(fqn))
         else:
             logging.warning("schema is not dict: {}".format(fqn))
@@ -180,7 +195,7 @@ class RenderedObject:
 
         delegates work to _get_serialized and invokes checks performed by
         check_context_for_type().
-        :raise ValidationError: on schema violiation
+        :raise ValidationError: on schema violation
         :raise RuntimeError: on schema not found
         :return: self as rendering context
         """

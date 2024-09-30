@@ -7,7 +7,7 @@ License: GPLv3+
 
 from ..rendering import RenderedObject
 from .attribute import Attribute, Position, Momentum
-from .constant import Constant, Charge, Mass, DensityRatio, Ionizers, ElementProperties
+from .constant import Constant, Charge, Mass, DensityRatio, GroundStateIonization, ElementProperties
 from .. import util
 
 import typeguard
@@ -25,7 +25,7 @@ class Species(RenderedObject):
     - A set of species constants (mass, charge, etc.),
     - a set of species attributes (position, number of bound electrons), and
     - a set of operations which collectively initialize these attributes,
-      where one attribute is initializated by exactly one operation.
+      where one attribute is initialized by exactly one operation.
     - (and a name)
 
     Note that some of the species attributes or constants are considered
@@ -41,6 +41,22 @@ class Species(RenderedObject):
     name = util.build_typesafe_property(str)
     """name of the species"""
 
+    def __str__(self) -> str:
+        try:
+            return (
+                self.name
+                + " : \n\t constants: "
+                + str(self.constants)
+                + "\n\t attributes: "
+                + str(self.attributes)
+                + "\n"
+            )
+        except Exception:
+            try:
+                return self.name + " : \n\t constants: " + str(self.constants) + "\n"
+            except Exception:
+                return self.name
+
     def get_cxx_typename(self) -> str:
         """
         get (standalone) C++ name for this species
@@ -49,6 +65,10 @@ class Species(RenderedObject):
         self.check()
 
         return "species_" + self.name
+
+    def __hash__(self):
+        # species must be uniquely defined by name
+        return hash(self.name)
 
     def check(self) -> None:
         """
@@ -75,7 +95,7 @@ class Species(RenderedObject):
         # position
         if Position not in [type(a) for a in self.attributes]:
             raise ValueError("Each species must have the position attribute!")
-        # momentum
+        # momentum, @todo really necessary?, Brian Marre, 2024
         if Momentum not in [type(a) for a in self.attributes]:
             raise ValueError("Each species must have the momentum attribute!")
 
@@ -125,7 +145,7 @@ class Species(RenderedObject):
         """
         lookup if constant of given type is present
 
-        Searches through constants of this species and returns true iff a
+        Searches through constants of this species and returns true if a
         constant of the given type is present.
 
         :param needle_type: constant type to look for
@@ -148,7 +168,7 @@ class Species(RenderedObject):
         # a typo in the variable name in prints a warning (still continues
         # though -- to be compliant to the rendering standard).
         #
-        # To accomodate this behavior, we always define all keys for constant,
+        # To accommodate this behavior, we always define all keys for constant,
         # but maybe set them to null. For this below there is a list of *all
         # known constants*. When adding a constant do not forget to add it in
         # the JSON schema too.
@@ -160,8 +180,8 @@ class Species(RenderedObject):
             "mass": Mass,
             "charge": Charge,
             "density_ratio": DensityRatio,
-            "ionizers": Ionizers,
             "element_properties": ElementProperties,
+            "ground_state_ionization": GroundStateIonization,
         }
 
         constants_context = {}

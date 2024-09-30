@@ -45,8 +45,9 @@ class Constant(RenderedObject):
           constant)
     """
 
-    def __init__(self):
-        raise NotImplementedError()
+    def __eq__(self, other) -> bool:
+        """two constants are equal if they have the same attributes values"""
+        return set(self.__dict__.items()) == set(other.__dict__.items())
 
     def check(self) -> None:
         """

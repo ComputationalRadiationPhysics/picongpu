@@ -8,7 +8,7 @@ License: GPLv3+
 from .operation import Operation
 from ..species import Species
 from ..attribute import BoundElectrons
-from ..constant import Ionizers
+from ..constant import GroundStateIonization
 from ... import util
 
 import typeguard
@@ -25,13 +25,13 @@ class NoBoundElectrons(Operation):
     """
 
     species = util.build_typesafe_property(Species)
-    """species which will have boundElectorns set to 0"""
+    """species which will have BoundElectrons set to 0"""
 
     def __init__(self):
         pass
 
     def check_preconditions(self) -> None:
-        assert self.species.has_constant_of_type(Ionizers), "BoundElectrons requires Ionizers"
+        assert self.species.has_constant_of_type(GroundStateIonization), "BoundElectrons requires GroundStateIonization"
 
     def prebook_species_attributes(self) -> None:
         self.attributes_by_species = {

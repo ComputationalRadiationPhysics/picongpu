@@ -17,7 +17,7 @@ class TestElementProperties(unittest.TestCase):
     def test_basic(self):
         """basic operation"""
         ep = ElementProperties()
-        ep.element = Element.H
+        ep.element = Element("H")
 
         ep.check()
 
@@ -29,7 +29,7 @@ class TestElementProperties(unittest.TestCase):
     def test_rendering(self):
         """members are exposed"""
         ep = ElementProperties()
-        ep.element = Element.N
+        ep.element = Element("N")
 
         context = ep.get_rendering_context()
 
@@ -42,7 +42,7 @@ class TestElementProperties(unittest.TestCase):
         with self.assertRaises(Exception):
             ep.check()
 
-        ep.element = Element.H
+        ep.element = Element("H")
 
         # now passes
         ep.check()
@@ -51,6 +51,6 @@ class TestElementProperties(unittest.TestCase):
         """typesafety is ensured"""
         ep = ElementProperties()
 
-        for invalid in [None, "H", 1, [], {}]:
+        for invalid in [None, 1, "H", [], {}]:
             with self.assertRaises(typeguard.TypeCheckError):
                 ep.element = invalid
