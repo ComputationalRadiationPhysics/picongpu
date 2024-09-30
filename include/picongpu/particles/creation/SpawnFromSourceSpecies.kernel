@@ -32,6 +32,7 @@
 #include "picongpu/particles/creation/ModuleConfig.hpp"
 
 #include <pmacc/lockstep/ForEach.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
 

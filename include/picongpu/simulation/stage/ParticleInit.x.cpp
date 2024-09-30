@@ -30,6 +30,7 @@
 
 #include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
 
 #include <pmacc/functor/Call.hpp>
 #include <pmacc/meta/ForEach.hpp>

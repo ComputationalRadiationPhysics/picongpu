@@ -23,6 +23,8 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Momentum.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/WeightedVelocity.def"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <type_traits>
 
@@ -35,12 +37,6 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                template<size_t T_direction>
-                HDINLINE float1_64 WeightedVelocity<T_direction>::getUnit() const
-                {
-                    return sim.unit.speed();
-                }
-
                 template<size_t T_direction>
                 template<typename T_Particle>
                 DINLINE float_X WeightedVelocity<T_direction>::operator()(T_Particle& particle) const

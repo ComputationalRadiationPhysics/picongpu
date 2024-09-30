@@ -22,6 +22,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelationSolver.hpp"
 #include "picongpu/fields/incidentField/traits/GetFunctor.hpp"
+#include "picongpu/fields/incidentField/traits/GetPhaseVelocity.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>

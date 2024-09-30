@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/param.hpp"
 
 namespace picongpu::particles::atomicPhysics::rateCalculation
 {

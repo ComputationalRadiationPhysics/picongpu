@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
 namespace picongpu::particles::atomicPhysics
 {
     //! exponential approximation acceptance probability functor

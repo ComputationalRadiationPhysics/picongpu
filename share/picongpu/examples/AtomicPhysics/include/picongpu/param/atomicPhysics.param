@@ -25,7 +25,7 @@
 
 #include "picongpu/particles/atomicPhysics/ExponentialApproximationProbability.hpp"
 #include "picongpu/particles/atomicPhysics/LinearApproximationProbability.hpp"
-#include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
+#include "picongpu/particles/atomicPhysics/atomicData/AtomicData.def"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LogSpaceHistogram.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
@@ -88,7 +88,7 @@ namespace picongpu::atomicPhysics
      *
      * define one type-instance for every physical ion species, i.e. Ar, Cu, ...
      *
-     * see picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp for further information.
+     * see picongpu/particles/atomicPhysics/atomicData/AtomicData.def for further information.
      */
     using AtomicData_Cu = particles::atomicPhysics::atomicData::AtomicData<
         // T_Number

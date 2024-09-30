@@ -20,6 +20,8 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/localHelperFields/RejectionProbabilityCache.hpp"
 
 #include <pmacc/lockstep/ForEach.hpp>
 

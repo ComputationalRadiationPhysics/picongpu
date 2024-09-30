@@ -29,9 +29,11 @@
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/DecelerateElectrons.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>

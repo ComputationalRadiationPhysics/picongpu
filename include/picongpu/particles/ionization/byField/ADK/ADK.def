@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/particles/ionization/byField/IonizationCurrent/IonizationCurrent.def"
+#include "picongpu/particles/ionization/byField/fieldIonizationCalc.def"
 
 #include <pmacc/types.hpp>
 

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/param.hpp"
 
 #include <cstdint>
 

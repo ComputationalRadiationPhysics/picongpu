@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/algorithms/Set.hpp"
+#include "picongpu/defines.hpp"
 
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>

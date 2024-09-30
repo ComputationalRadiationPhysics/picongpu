@@ -27,6 +27,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
 
 #include <pmacc/particles/algorithm/ForEach.hpp>
 

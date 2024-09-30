@@ -22,7 +22,7 @@
 #include "picongpu/defines.hpp"
 
 // clang-format off
-
+#include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.hpp"
 #include "picongpu/particles/param.hpp"
 #include "picongpu/param/fileOutput.param"
 

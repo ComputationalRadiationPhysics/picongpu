@@ -21,7 +21,8 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-#include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
+#include "picongpu/particles/param.hpp"
+#include "picongpu/particles/startPosition/detail/WeightMacroParticles.def"
 #include "picongpu/particles/startPosition/generic/FreeRng.def"
 
 #include <boost/mpl/integral_c.hpp>

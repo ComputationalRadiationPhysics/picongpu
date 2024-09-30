@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-#include "picongpu/particles/particleToGrid/CombinedDerive.def"
+
 namespace picongpu
 {
     namespace particles

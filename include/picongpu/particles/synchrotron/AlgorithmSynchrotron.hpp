@@ -25,7 +25,12 @@
 
 //! used in struct SynchrotronIdea
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/algorithms/Velocity.hpp"
 #include "picongpu/param/synchrotron.param"
+#include "picongpu/particles/param.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
 /** @file AlgorithmSynchrotron.hpp
  *

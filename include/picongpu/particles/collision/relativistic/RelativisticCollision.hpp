@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/collision/param.hpp"
 
 #include <pmacc/random/distributions/Uniform.hpp>
 

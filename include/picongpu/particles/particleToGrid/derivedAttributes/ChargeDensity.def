@@ -48,7 +48,11 @@ namespace picongpu
                  */
                 struct ChargeDensity
                 {
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        const float_64 unitVolume = (sim.unit.length() * sim.unit.length() * sim.unit.length());
+                        return sim.unit.charge() / unitVolume;
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

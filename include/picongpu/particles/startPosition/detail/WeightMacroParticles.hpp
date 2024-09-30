@@ -21,54 +21,23 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
+#include "picongpu/particles/startPosition/detail/WeightMacroParticles.def"
 
-
-namespace picongpu
+namespace picongpu::particles::startPosition::detail
 {
-    namespace particles
+    HDINLINE uint32_t WeightMacroParticles::operator()(
+        float_X const realParticlesPerCell,
+        uint32_t numMacroParticles,
+        float_X& weighting) const
     {
-        namespace startPosition
-        {
-            namespace detail
-            {
-                /** Calculate the weighting per macro-particle in a cell
-                 *
-                 * Note: In the density regions where the weighting of macro particles would
-                 * violate the user-specified MIN_WEIGHTING, we reduce the number of
-                 * macro particles per cell to still initialize particles
-                 * (see particle.param).
-                 *
-                 * This calculates the number of macro particles and the weighting per macro
-                 * particle with respect to MIN_WEIGHTING.
-                 */
-                struct WeightMacroParticles
-                {
-                    /** get number of and the weighting per macro particle(s)
-                     *
-                     * @param realParticlesPerCell number of real particles per cell
-                     * @param macroParticlesPerCell maximum number of macro particles per cell
-                     * @param[out] weighting weighting per macro particle
-                     * @return number of macro particles per cell with respect to
-                     *         MIN_WEIGHTING, range: [0;macroParticlesPerCell]
-                     */
-                    HDINLINE uint32_t operator()(
-                        float_X const realParticlesPerCell,
-                        uint32_t numMacroParticles,
-                        float_X& weighting) const
-                    {
-                        PMACC_CASSERT_MSG(__MIN_WEIGHTING_must_be_greater_than_zero, MIN_WEIGHTING > float_X(0.0));
-                        weighting = float_X(0.0);
-                        float_X const maxParPerCell = realParticlesPerCell / MIN_WEIGHTING;
-                        numMacroParticles
-                            = pmacc::math::float2int_rd(math::min(float_X(numMacroParticles), maxParPerCell));
-                        if(numMacroParticles > 0u)
-                            weighting = realParticlesPerCell / float_X(numMacroParticles);
+        PMACC_CASSERT_MSG(__MIN_WEIGHTING_must_be_greater_than_zero, MIN_WEIGHTING > float_X(0.0));
+        weighting = float_X(0.0);
+        float_X const maxParPerCell = realParticlesPerCell / MIN_WEIGHTING;
+        numMacroParticles = pmacc::math::float2int_rd(math::min(float_X(numMacroParticles), maxParPerCell));
+        if(numMacroParticles > 0u)
+            weighting = realParticlesPerCell / float_X(numMacroParticles);
 
-                        return numMacroParticles;
-                    }
-                };
-
-            } // namespace detail
-        } // namespace startPosition
-    } // namespace particles
-} // namespace picongpu
+        return numMacroParticles;
+    }
+} // namespace picongpu::particles::startPosition::detail

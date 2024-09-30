@@ -23,6 +23,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/initElectrons/CloneAdditionalAttributes.hpp"
+#include "picongpu/traits/frame/GetMass.hpp"
 
 namespace picongpu::particles::atomicPhysics::initElectrons
 {

@@ -25,6 +25,8 @@
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeStepField.hpp"
 
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+
 #include <string>
 
 namespace picongpu::particles::atomicPhysics::stage

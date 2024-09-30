@@ -35,13 +35,6 @@ namespace picongpu
             namespace derivedAttributes
             {
                 template<size_t T_direction>
-                HDINLINE float1_64 MomentumDensity<T_direction>::getUnit() const
-                {
-                    constexpr float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
-                    return sim.unit.mass() * sim.unit.speed() / UNIT_VOLUME;
-                }
-
-                template<size_t T_direction>
                 template<typename T_Particle>
                 DINLINE float_X MomentumDensity<T_direction>::operator()(T_Particle& particle) const
                 {

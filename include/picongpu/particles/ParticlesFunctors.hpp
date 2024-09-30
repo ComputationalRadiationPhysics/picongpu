@@ -22,6 +22,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>

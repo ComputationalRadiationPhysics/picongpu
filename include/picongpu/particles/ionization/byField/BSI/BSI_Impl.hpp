@@ -30,6 +30,7 @@
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "picongpu/particles/ionization/byField/BSI/BSI.def"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/IonizationCurrent.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 

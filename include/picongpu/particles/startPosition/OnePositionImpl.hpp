@@ -21,7 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/startPosition/OnePositionImpl.def"
-#include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
+#include "picongpu/particles/startPosition/detail/WeightMacroParticles.def"
 
 #include <pmacc/traits/HasIdentifier.hpp>
 

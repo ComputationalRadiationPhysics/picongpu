@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
+#include "picongpu/defines.hpp"
 
 #include <cstdint>
 #include <stdexcept>

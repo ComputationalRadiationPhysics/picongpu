@@ -186,21 +186,21 @@ TEST_CASE("unit::shape", "[shape test]")
 
     // check on support assignment shape
     using OnSupportShapes = pmacc::MakeSeq_t<
-        particles::shapes::NGP::ChargeAssignmentOnSupport,
-        particles::shapes::CIC::ChargeAssignmentOnSupport,
-        particles::shapes::TSC::ChargeAssignmentOnSupport,
-        particles::shapes::PQS::ChargeAssignmentOnSupport,
-        particles::shapes::PCS::ChargeAssignmentOnSupport>;
+        picongpu::particles::shapes::NGP::ChargeAssignmentOnSupport,
+        picongpu::particles::shapes::CIC::ChargeAssignmentOnSupport,
+        picongpu::particles::shapes::TSC::ChargeAssignmentOnSupport,
+        picongpu::particles::shapes::PQS::ChargeAssignmentOnSupport,
+        picongpu::particles::shapes::PCS::ChargeAssignmentOnSupport>;
 
     meta::ForEach<OnSupportShapes, TestShape<>>{}(inCellPositionBuffer, PositionShift{});
 
     // check assignment shape outside of the support
     using NotOnSupportShapes = pmacc::MakeSeq_t<
-        particles::shapes::NGP::ChargeAssignment,
-        particles::shapes::CIC::ChargeAssignment,
-        particles::shapes::TSC::ChargeAssignment,
-        particles::shapes::PQS::ChargeAssignment,
-        particles::shapes::PCS::ChargeAssignment>;
+        picongpu::particles::shapes::NGP::ChargeAssignment,
+        picongpu::particles::shapes::CIC::ChargeAssignment,
+        picongpu::particles::shapes::TSC::ChargeAssignment,
+        picongpu::particles::shapes::PQS::ChargeAssignment,
+        picongpu::particles::shapes::PCS::ChargeAssignment>;
 
     meta::ForEach<NotOnSupportShapes, TestShape<>>{}(inCellPositionBuffer, NoPositionShift{});
 }

@@ -45,7 +45,7 @@ namespace picongpu::particles::atomicPhysics
     } // namespace enums
 
     template<enums::TransitionType T_TransitionType>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(u8(T_TransitionType) == u8(enums::TransitionType::boundBound))
             return "bound-bound";

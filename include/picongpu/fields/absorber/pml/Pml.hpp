@@ -21,9 +21,11 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/AbsorberImpl.hpp"
+#include "picongpu/fields/absorber/param.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/fields/absorber/pml/Pml.kernel"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <cstdint>
 #include <string>
@@ -200,5 +202,3 @@ namespace picongpu
         } // namespace absorber
     } // namespace fields
 } // namespace picongpu
-
-#include "picongpu/fields/absorber/pml/Field.tpp"

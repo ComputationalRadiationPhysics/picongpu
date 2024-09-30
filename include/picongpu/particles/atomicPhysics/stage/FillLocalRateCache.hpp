@@ -29,8 +29,6 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need atomicPhysics.param, type of histogram
-
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
@@ -40,11 +38,13 @@
 #include "picongpu/particles/atomicPhysics/kernel/FillLocalRateCache_BoundFree.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/lockstep/ForEach.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <cstdint>
 #include <string>

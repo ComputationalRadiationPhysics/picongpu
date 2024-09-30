@@ -38,7 +38,7 @@ namespace picongpu::particles::atomicPhysics
     } // namespace enums
 
     template<enums::TransitionDirection T_TransitionDirection>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(u8(T_TransitionDirection) == u8(enums::TransitionDirection::upward))
             return "upward";

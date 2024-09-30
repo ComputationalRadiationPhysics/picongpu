@@ -65,6 +65,12 @@ namespace picongpu
                 }
             };
 
+            template<Kind T_kind, typename T_Species>
+            inline void applyImpl(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
+            {
+                ApplyImpl<T_kind>{}(species, exchangeType, currentStep);
+            }
+
         } // namespace boundary
     } // namespace particles
 } // namespace picongpu

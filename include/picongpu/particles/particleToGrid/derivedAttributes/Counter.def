@@ -50,7 +50,10 @@ namespace picongpu
                  */
                 struct Counter
                 {
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        return sim.unit.typicalNumParticlesPerMacroParticle();
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

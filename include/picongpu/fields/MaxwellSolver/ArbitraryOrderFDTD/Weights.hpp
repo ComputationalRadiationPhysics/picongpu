@@ -19,7 +19,9 @@
 
 #pragma once
 
-#include "picongpu/plugins/radiation/utilities.hpp"
+#include "picongpu/defines.hpp"
+
+#include <pmacc/algorithms/math.hpp>
 
 #include <cmath>
 #include <cstdint>

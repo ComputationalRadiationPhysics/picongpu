@@ -26,6 +26,8 @@
  * to a more appropriate place in a more generic pmacc-y way
  */
 
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+
 namespace picongpu
 {
     namespace particles

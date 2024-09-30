@@ -47,7 +47,10 @@ namespace picongpu
                  */
                 struct MacroCounter
                 {
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        return 1.0;
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

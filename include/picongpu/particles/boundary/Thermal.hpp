@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include "picongpu/algorithms/Velocity.hpp"
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/Manipulate.def"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 #include "picongpu/particles/boundary/Parameters.hpp"
@@ -29,6 +31,7 @@
 #include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <pmacc/boundary/Utility.hpp>
+#include <pmacc/random/distributions/distributions.hpp>
 
 #include <cmath>
 #include <cstdint>

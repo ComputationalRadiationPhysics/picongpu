@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 

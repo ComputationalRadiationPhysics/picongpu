@@ -19,10 +19,9 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
-
-#include <pmacc/dataManagement/ISimulationData.hpp>
-#include <pmacc/static_assert.hpp>
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
+#include "picongpu/particles/atomicPhysics/atomicData/AtomicData.def"
 
 // charge state data
 #include "picongpu/particles/atomicPhysics/atomicData/ChargeStateData.hpp"
@@ -58,6 +57,9 @@
 // debug only
 #include "picongpu/particles/atomicPhysics/debug/PrintTransitionTupleToConsole.hpp"
 
+#include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/static_assert.hpp>
+
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -67,85 +69,8 @@
 #include <string>
 #include <tuple>
 
-//! @file gathers atomic data storage implementations and implements filling them on runtime
-
 namespace picongpu::particles::atomicPhysics::atomicData
 {
-    namespace detail
-    {
-        enum struct StorageDirectionSwitch : uint8_t
-        {
-            none,
-            upward,
-            downward,
-        };
-    } // namespace detail
-
-    namespace s_enums = picongpu::particles::atomicPhysics::enums;
-    using ProcClassGroup = picongpu::particles::atomicPhysics::enums::ProcessClassGroup;
-
-    /** gathering of all atomicPhysics input data
-     *
-     * @tparam T_Number dataType used for number storage, typically uint32_t
-     * @tparam T_Value dataType used for value storage, typically float_X
-     * @tparam T_CollectionIndex dataType used for collection index, typically uint32_t
-     * @tparam T_ConfigNumber type holding definition of atomicConfigNumber for species
-     *  see picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp
-     * @tparam T_Multiplicities dataType used for storage of stae multiplicities, typically float64
-     *
-     * @tparam T_electronicExcitation is channel active?
-     * @tparam T_electronicDeexcitation is channel active?
-     * @tparam T_spontaneousDeexcitation is channel active?
-     * @tparam T_autonomousIonization is channel active?
-     * @tparam T_electronicIonization is channel active?
-     * @tparam T_fieldIonization is channel active?
-     *
-     * The atomicPhysics step relies on a model of atomic states and transitions for each
-     * atomicPhysics ion species.
-     * These model's parameters are provided by the user in .txt files of specified format
-     * (see atomicPhysics model documentation) at runtime.
-     *
-     *  PIConGPU itself only includes charge state data, for ADK-, Thomas-Fermi- and BSI-ionization.
-     *  All other atomic state data is kept separate from PIConGPU itself, due to licensing requirements.
-     *
-     * These files are read at the start of the simulation and stored distributed over the following:
-     *  - charge state property data [ChargeStateData.hpp]
-     *      * ionization energy
-     *      * screened charge
-     *  - charge state orga data [ChargeStateOrgaData.hpp]
-     *      * number of atomic states for each charge state
-     *      * start index block for charge state in list of atomic states
-     * - atomic state property data [AtomicStateData.hpp]
-     *      * configNumber
-     *      * state energy, above ground state of charge state
-     * - atomic state orga data
-     *      [AtomicStateNumberOfTransitionsData_Down.hpp, AtomicStateNumberOfTransitionsData_UpDown.hpp]
-     *       * number of transitions (up-/)down for each atomic state,
-     *          by type of transition(bound-bound/bound-free/autonomous)
-     *      [AtomicStateStartIndexBlockData_Down.hpp, AtomicStateStartIndexBlockData_UpDown.hpp]
-     *       * start index of atomic state's block of transitions in transition collection,
-     *          by type of transition(bound-bound/bound-free/autonomous)
-     * - pressure ionization data [IPDIonizationData.hpp]
-     *      * pressure ionization state collectionIndex
-     * - transition property data[BoundBoundTransitionData.hpp, BoundFreeTransitionData.hpp,
-     *      AutonomousTransitionData.hpp]
-     *      * parameters for cross section calculation for each modelled transition
-     *
-     * @note orga data describes the structure of the property data for faster lookups, lookups are always possible
-     *       without it, but are possibly non performant
-     *
-     * For each of data subsets exists a dataBox class, a container class holding pmacc::dataBox'es, and a dataBuffer
-     *  class, a container class holding pmacc::buffers in turn allowing access to the pmacc::dataBox'es.
-     *
-     * Each dataBuffer will create on demand a host- or device-side dataBox objects which in turn gives access to the
-     *  data.
-     *
-     * Assumptions about input data are described in CheckTransitionTuple.hpp, ordering requirements of transitions in
-     *  CompareTransitionTuple.hpp and all other requirements in the checkChargeStateList(), checkAtomicStateList() and
-     *  checkTransitionsForEnergyInversion() methods.
-     *
-     * @todo add photonic channels, Brian Marre, 2022
-     */
     template<
         typename T_Number,
         typename T_Value,

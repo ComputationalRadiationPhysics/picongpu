@@ -20,7 +20,9 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/Manipulate.def"
 #include "picongpu/particles/boundary/Utility.hpp"
+#include "picongpu/particles/functor/misc/Parametrized.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 
 #include <cstdint>

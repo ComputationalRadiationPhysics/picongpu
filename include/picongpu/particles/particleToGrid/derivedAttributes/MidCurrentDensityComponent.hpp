@@ -19,9 +19,12 @@
 
 #pragma once
 
+#include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.def"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <type_traits>
 
@@ -34,13 +37,6 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                template<size_t T_direction>
-                HDINLINE float1_64 MidCurrentDensityComponent<T_direction>::getUnit() const
-                {
-                    const float_64 UNIT_AREA = sim.unit.length() * sim.unit.length();
-                    return sim.unit.charge() / (sim.unit.time() * UNIT_AREA);
-                }
-
                 template<size_t T_direction>
                 template<class T_Particle>
                 DINLINE float_X MidCurrentDensityComponent<T_direction>::operator()(T_Particle& particle) const

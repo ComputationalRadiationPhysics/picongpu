@@ -43,7 +43,7 @@ namespace picongpu::particles::atomicPhysics
     } // namespace enums
 
     template<enums::ProcessClassGroup T_ProcessClassGroup>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(u8(T_ProcessClassGroup) == u8(enums::ProcessClassGroup::boundBoundBased))
             return "boundBound";

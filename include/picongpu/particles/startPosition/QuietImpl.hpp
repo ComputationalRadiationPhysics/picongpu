@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/startPosition/generic/Free.def"
 
 namespace picongpu

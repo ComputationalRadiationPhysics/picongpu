@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 

@@ -19,17 +19,15 @@
 
 #include "picongpu/simulation/stage/AtomicPhysics.hpp"
 
-// need picongpu::simDim from picongpu/param/dimension.param
-//  and picongpu/param/atomicPhysics_debug.param
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysicsSuperCellFields.hpp"
-#include "picongpu/particles/atomicPhysics/IPDModel.param" /// @todo move to atomicPhysics.param, Brian Marre, 2024
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/atomicPhysics/SetTemperature.hpp"
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpAllIonsToConsole.hpp"
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpRateCacheToConsole.hpp"
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpSuperCellDataToConsole.hpp"
+#include "picongpu/particles/atomicPhysics/param.hpp"
 #include "picongpu/particles/atomicPhysics/stage/BinElectrons.hpp"
 #include "picongpu/particles/atomicPhysics/stage/CalculateStepLength.hpp"
 #include "picongpu/particles/atomicPhysics/stage/CheckForOverSubscription.hpp"

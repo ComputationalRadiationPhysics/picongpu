@@ -23,6 +23,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <type_traits>
 
@@ -35,12 +36,6 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                HDINLINE float1_64 EnergyDensity::getUnit() const
-                {
-                    constexpr float_64 UNIT_VOLUME = (sim.unit.length() * sim.unit.length() * sim.unit.length());
-                    return sim.unit.energy() / UNIT_VOLUME;
-                }
-
                 template<class T_Particle>
                 DINLINE float_X EnergyDensity::operator()(T_Particle& particle) const
                 {

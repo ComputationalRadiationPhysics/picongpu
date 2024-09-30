@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/types.hpp>
 
@@ -60,8 +61,10 @@ namespace picongpu
              * @return component of the dataBox ValueType
              */
             template<uint32_t T_component>
-            HDINLINE decltype(auto) get(DataSpace<DIM2> const& idx)
+            HDINLINE decltype(auto) get(pmacc::DataSpace<DIM2> const& idx)
             {
+                using namespace pmacc;
+
                 constexpr uint32_t dim = T_DataBox::Dim;
                 static_assert(dim == DIM2);
 
@@ -79,7 +82,7 @@ namespace picongpu
             }
 
             template<uint32_t T_component>
-            HDINLINE decltype(auto) get(DataSpace<DIM3> const& idx)
+            HDINLINE decltype(auto) get(pmacc::DataSpace<DIM3> const& idx)
             {
                 constexpr uint32_t dim = T_DataBox::Dim;
                 static_assert(dim == DIM3);
@@ -95,7 +98,7 @@ namespace picongpu
                  * - for x component, search for the index (i0) where 0 is in T_PermutationVector
                  * - assign the value of permutatedIdx[0] = idx[i0], permutatedIdx.[1] = idx[i1], ...
                  */
-                DataSpace<DIM3> permutatedIdx;
+                pmacc::DataSpace<DIM3> permutatedIdx;
                 permutatedIdx[x] = idx.x();
                 permutatedIdx[y] = idx.y();
                 permutatedIdx[z] = idx.z();
@@ -105,13 +108,13 @@ namespace picongpu
             template<uint32_t T_component>
             HDINLINE decltype(auto) get(int x, int y)
             {
-                return get<T_component>(DataSpace<DIM2>(x, y));
+                return get<T_component>(pmacc::DataSpace<DIM2>(x, y));
             }
 
             template<uint32_t T_component>
             HDINLINE decltype(auto) get(int x, int y, int z)
             {
-                return get<T_component>(DataSpace<DIM3>(x, y, z));
+                return get<T_component>(pmacc::DataSpace<DIM3>(x, y, z));
             }
             /** @} */
         };
