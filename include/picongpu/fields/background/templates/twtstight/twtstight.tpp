@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Alexander Debus
+/* Copyright 2014-2024 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -20,5 +20,5 @@
 
 #pragma once
 
-#include "picongpu/fields/background/templates/twtsfast/BField.tpp"
-#include "picongpu/fields/background/templates/twtsfast/EField.tpp"
+#include "picongpu/fields/background/templates/twtstight/BField.tpp"
+#include "picongpu/fields/background/templates/twtstight/EField.tpp"

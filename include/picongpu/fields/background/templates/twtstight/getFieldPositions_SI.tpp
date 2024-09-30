@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "picongpu/fields/background/templates/twtsfast/numComponents.hpp"
+#include "picongpu/fields/background/templates/twtstight/numComponents.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -30,7 +30,7 @@ namespace picongpu
 {
     namespace templates
     {
-        namespace twtsfast
+        namespace twtstight
         {
             /** Auxiliary functions for calculating the TWTS field */
             namespace detail
@@ -68,14 +68,12 @@ namespace picongpu
                     {
                         fieldPositions[i] += (cellIdx - laserOrigin);
                         fieldPositions_SI[i] = precisionCast<float_64>(fieldPositions[i]) * cellDimensions;
-
-                        fieldPositions_SI[i] = rotateField(fieldPositions_SI[i], phi);
                     }
 
                     return fieldPositions_SI;
                 }
 
             } /* namespace detail */
-        } /* namespace twtsfast */
+        } /* namespace twtstight */
     } /* namespace templates */
 } /* namespace picongpu */

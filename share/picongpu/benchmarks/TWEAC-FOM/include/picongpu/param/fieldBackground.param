@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Axel Huebl, Alexander Debus, Richard Pausch
+/* Copyright 2014-2024 Axel Huebl, Alexander Debus, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -24,12 +24,16 @@
 
 #pragma once
 
-#include "picongpu/fields/background/templates/twtsfast/twtsfast.hpp"
+#include "picongpu/fields/background/templates/twtstight/twtstight.hpp"
 
+/** Load parameters of the TWTS background laser field */
+#include "TwtsBackgroundLaser.param"
 
 #ifndef PARAM_FIELD_BACKGROUND
 #    define PARAM_FIELD_BACKGROUND 1
 #endif
+
+namespace Params = ::picongpu::fields::background::twtsParam;
 
 namespace picongpu
 {
@@ -44,95 +48,35 @@ namespace picongpu
 
         /* TWTS E-fields need to be initialized on host,
          *  so they can look up global grid dimensions. */
-        // PMACC_ALIGN(twtsFieldE, const templates::twtsfast::EField);
-        const templates::twtsfast::EField twtsFieldE1;
-        const templates::twtsfast::EField twtsFieldE2;
-        const templates::twtsfast::EField twtsFieldE3;
-        const templates::twtsfast::EField twtsFieldE4;
+        templates::twtstight::EField const twtsFieldEPos;
+        templates::twtstight::EField const twtsFieldENeg;
 
-        HDINLINE FieldBackgroundE(const FieldBackgroundE&) = default;
-
-        /* Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE(const float3_64 unitField)
             : m_unitField(unitField)
-            , twtsFieldE1(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::EField::LINEAR_X)
-            , twtsFieldE2(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  -3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::EField::LINEAR_X)
-            , twtsFieldE3(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::EField::LINEAR_YZ)
-            , twtsFieldE4(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  -3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::EField::LINEAR_YZ)
+            , twtsFieldEPos(
+                  Params::FOCUS_Y_SI,
+                  Params::WAVE_LENGTH_SI,
+                  Params::PULSE_LENGTH_SI,
+                  Params::W0_SI,
+                  Params::PHI,
+                  Params::BETA_0,
+                  Params::TDELAY,
+                  Params::AUTO_TDELAY,
+                  Params::Polarization)
+            , twtsFieldENeg(
+                  Params::FOCUS_Y_SI,
+                  Params::WAVE_LENGTH_SI,
+                  Params::PULSE_LENGTH_SI,
+                  Params::W0_SI,
+                  -Params::PHI,
+                  Params::BETA_0,
+                  Params::TDELAY,
+                  Params::AUTO_TDELAY,
+                  -Params::Polarization)
         {
         }
+
+        HDINLINE FieldBackgroundE(const FieldBackgroundE&) = default;
 
         /** Specify your background field E(r,t) here
          *
@@ -140,43 +84,16 @@ namespace picongpu
          * @param currentStep The current time step */
         HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
-            /* example 1: TWTS background pulse */
-            /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-            /** UNITCONV */
-            /* const double UNITCONV_Intens_to_A0 = sim.si.getElectronCharge()
-             * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
-             * sim.si.getElectronMass() * sim.si.getElectronMass() * sim.si.getSpeedOfLight()
-             * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
-             * sim.si.getSpeedOfLight() * sim.si.getEps0()); */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
-                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
-
-            /** unit: W / m^2 */
-            /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
-            /** unit: none */
-            /* constexpr float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0; */
-
-            /** unit: none */
-            const float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
-
             /** unit: Volt /meter */
-            /*@todo #738 implement math::vector, native type operations */
-            const float3_64 invUnitField = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+            float3_64 const invUnitField = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
 
-            /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
+            /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldE(...) */
-            const float3_X amplitude
-                = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+            float3_X const amplitude = precisionCast<float_X>(Params::AMPLITUDE_SI * invUnitField);
 
-            /* Note: twtsFieldE(...) is normalized, such that peak amplitude equals unity. */
-            return float3_X::create(0.7057829460593135) * amplitude * twtsFieldE1(cellIdx, currentStep)
-                - float3_X::create(0.7057829460593135) * amplitude * twtsFieldE2(cellIdx, currentStep)
-                + float3_X::create(0.7084281424758874) * amplitude * twtsFieldE3(cellIdx, currentStep)
-                + float3_X::create(0.7084281424758874) * amplitude * twtsFieldE4(cellIdx, currentStep);
+            return (amplitude * twtsFieldEPos(cellIdx, currentStep) + amplitude * twtsFieldENeg(cellIdx, currentStep));
         }
     };
 
@@ -190,95 +107,36 @@ namespace picongpu
         PMACC_ALIGN(m_unitField, const float3_64);
 
         /* TWTS B-fields need to be initialized on host,
-         * so they can look up global grid dimensions. */
-        // PMACC_ALIGN(twtsFieldB, const templates::twtsfast::BField);
-        templates::twtsfast::BField twtsFieldB1;
-        templates::twtsfast::BField twtsFieldB2;
-        templates::twtsfast::BField twtsFieldB3;
-        templates::twtsfast::BField twtsFieldB4;
-
-        HDINLINE FieldBackgroundB(const FieldBackgroundB&) = default;
+         *  so they can look up global grid dimensions. */
+        templates::twtstight::BField const twtsFieldBPos;
+        templates::twtstight::BField const twtsFieldBNeg;
 
         HINLINE FieldBackgroundB(const float3_64 unitField)
             : m_unitField(unitField)
-            , twtsFieldB1(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::BField::LINEAR_X)
-            , twtsFieldB2(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  -3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::BField::LINEAR_X)
-            , twtsFieldB3(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::BField::LINEAR_YZ)
-            , twtsFieldB4(
-                  /* focus_y [m], the distance to the laser focus in y-direction */
-                  30.0e-6,
-                  /* wavelength [m] */
-                  0.8e-6,
-                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                  10.0e-15 / 2.3548200450309493820231386529194,
-                  /* w_x [m], cylindrically focused spot size */
-                  1.2e-6,
-                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                  -3.5 * (PI / 180.),
-                  /* propagation speed of overlap [speed of light]. */
-                  1.0,
-                  /* manual time delay [s] if auto_tdelay is false */
-                  50.0e-6 / sim.si.getSpeedOfLight(),
-                  /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
-                  false,
-                  /* Polarization of TWTS laser field */
-                  templates::twtsfast::BField::LINEAR_YZ)
+            , twtsFieldBPos(
+                  Params::FOCUS_Y_SI,
+                  Params::WAVE_LENGTH_SI,
+                  Params::PULSE_LENGTH_SI,
+                  Params::W0_SI,
+                  Params::PHI,
+                  Params::BETA_0,
+                  Params::TDELAY,
+                  Params::AUTO_TDELAY,
+                  Params::Polarization)
+            , twtsFieldBNeg(
+                  Params::FOCUS_Y_SI,
+                  Params::WAVE_LENGTH_SI,
+                  Params::PULSE_LENGTH_SI,
+                  Params::W0_SI,
+                  -Params::PHI,
+                  Params::BETA_0,
+                  Params::TDELAY,
+                  Params::AUTO_TDELAY,
+                  -Params::Polarization)
         {
         }
+
+        HDINLINE FieldBackgroundB(const FieldBackgroundB&) = default;
 
         /** Specify your background field B(r,t) here
          *
@@ -286,41 +144,16 @@ namespace picongpu
          * @param currentStep The current time step */
         HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
-            /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-            /** UNITCONV */
-            /* constexpr float_64 UNITCONV_Intens_to_A0 = sim.si.getElectronCharge()
-             * sim.si.getElectronCharge() * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
-             * sim.si.getElectronMass() * sim.si.getElectronMass() * sim.si.getSpeedOfLight()
-             * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight()
-             * sim.si.getSpeedOfLight() * sim.si.getEps0()); */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * sim.si.getElectronMass()
-                * sim.si.getSpeedOfLight() * sim.si.getSpeedOfLight() / sim.si.getElectronCharge();
-
-            /** unit: W / m^2 */
-            /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
-            /** unit: none */
-            /* constexpr float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0; */
-
-            /** unit: none */
-            constexpr float_64 _A0 = 3.25 * 0.01; // reduced for FOM benchmark
-
             /** unit: Volt /meter */
-            const float3_64 invUnitField = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
+            float3_64 const invUnitField = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
 
             /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldB(...) */
-            const float3_X amplitude
-                = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
+            float3_X const amplitude = precisionCast<float_X>(Params::AMPLITUDE_SI * invUnitField);
 
-            /* Note: twtsFieldB(...) is normalized, such that peak amplitude equals unity. */
-            return float3_X::create(0.7057829460593135) * amplitude * twtsFieldB1(cellIdx, currentStep)
-                - float3_X::create(0.7057829460593135) * amplitude * twtsFieldB2(cellIdx, currentStep)
-                + float3_X::create(0.7084281424758874) * amplitude * twtsFieldB3(cellIdx, currentStep)
-                + float3_X::create(0.7084281424758874) * amplitude * twtsFieldB4(cellIdx, currentStep);
+            return (amplitude * twtsFieldBPos(cellIdx, currentStep) + amplitude * twtsFieldBNeg(cellIdx, currentStep));
         }
     };
 
