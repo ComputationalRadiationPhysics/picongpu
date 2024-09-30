@@ -139,7 +139,11 @@ Using the example ``Snakefile`` and ``params.csv``, the resulting DAG looks like
 Python post-processing
 """"""""""""""""""""""
 
-automatically post-process all your simulations, you can do this by adding new rules to the ``Snakefile``. 
+~~~~~~~~~~~~~~~~~~~~~~
+The script directive
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can automatically post-process your results by adding new rules to the ``Snakefile``. 
 Here is an example of what this might look like for a Python script called ``post_processing.py``:
 
 .. code-block:: python
@@ -156,9 +160,88 @@ Here is an example of what this might look like for a Python script called ``pos
         script:
             "post_processing.py"
 
-The parameters set with the ``params`` keyword, can be accessed in your python script via `snakemake.params[i]` or `snakemake.params.name_of_param`. 
-Accordingly one can use ``snakemake.input`` or ``snakemake.output``. Please note that they are list/dictionary-like Snakemake-specific types.
+The given script will be run by Snakemake in a special way that puts a `snakemake` object into the global namespace (of this script).
+This object contains useful context information for the running script.
+For example, the parameter set of the rule in the `Snakefile` is stored in the ``params`` member
+and can be accessed in your python script via a list- or dictionary-like interface.
+So, accessing the `sim_dir` parameter could be done via
+`snakemake.params[0]`, `snakemake.params['sim_dir']` or `snakemake.params.sim_dir`. 
+One can use ``snakemake.input`` or ``snakemake.output`` accordingly.
 More details can be found in `Snakemake's documentation <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#python>`_.
+
+To run your new rule you can either specify the desired output explicitly via commandline, e.g., `snakemake "results/post_processing_<...>.png" ...`
+or alter the `default rule <https://snakemake.readthedocs.io/en/stable/tutorial/basics.html#step-7-adding-a-target-rule>`_:
+
+.. code-block:: python
+
+    rule all:
+        input: expand("results/post_processing_{params}.png", params=paramspace.instance_patterns)
+
+Of course you can have as many rules as you want after the simulation, just make sure that Snakemake can build a rule graph by going from the output of one rule to the input of the next rule, ending at the input of the target rule ``all``.
+
+.. note::
+
+    Note the ``expand()`` function in the ``all`` rule. This can be used to declare that all instances of the parameter space are meant. Further information can be found `here <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#the-expand-function>`_.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Recommendations on how to structure scripts for Snakemake
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For effective use with Snakemake, your scripts should parametrise aspects of the execution that Snakemake is supposed to organise.
+Most importantly, these are the input and output filenames but could also be other parameters as seen above.
+This can be facilitated by putting all your functional code into a `def main(input_filename, output_filename, **further_parameters)` function.
+The only "free" code in your script should handle the parameter extraction from the `snakemake` object and call `main(...)` with the pertinent values.
+
+.. code-block:: python
+   
+    import sys
+
+    def main(input_filename, output_filename, **further_parameters):
+        # Put your post-processing here.
+        # Take the data from the input_filename(s).
+        # Save the results to output_filename(s).
+        # Free free to define further functions and use them in here.
+        pass
+
+    if __name__ == "__main__":
+        
+        # Handle parameter extraction.
+        try:
+            # If we're running from within Snakemake,
+            # there is a `snakemake` object in the global namespace
+            # that we can get our parameters from.
+
+            input_filename = snakemake.input[0]
+            # ...
+
+        except NameError:
+            # If we got this error,
+            # likely there was no `snakemake` object in the namespace.
+            # We need to do something else to get our parameters:
+
+            input_filename = sys.argv[1]  # use commandline arguments
+            # ...
+
+            # or something more elaborate like argparse, etc.
+
+        # Start the post-processing independent of how we extracted the parameters.
+        main(input_filename, output_filename, **further_parameters)
+    
+The above code snippet defines a `main()` function where you can put your post-processing code.
+The free code of the script is guarded by an `if __name__ == "__main__"` clause
+(see `here <https://docs.python.org/3/library/__main__.html>`_ for an explanation).
+It consists of two parts extracting the parameters and calling the `main(...)` function.
+
+The snippet uses a `try: ... except: ...` clause to guard against the case
+where we are *not* actually running from within Snakemake.
+The suggested alternative takes arguments from the commandline
+but other things like raising an `Exception` or using defaults would work.
+Having this fallback mechanism comes in handy for debugging and manual testing
+because we don't need to fire up Snakemake whenever we want to test something.
+
+~~~~~~~~~~~~~~~~~~~~~~
+Cluster execution
+~~~~~~~~~~~~~~~~~~~~~~
 
 To perform this evaluation on the cluster, add the required resource to the "config.yaml". For example, like this:
 
@@ -172,19 +255,6 @@ To perform this evaluation on the cluster, add the required resource to the "con
         ntasks: 1
         mem_mb: 5000 
 
-
-Then you only need to alter the input of the target rule ``all``:
-
-.. code-block:: python
-
-    rule all:
-        input: expand("results/post_processing_{params}.png", params=paramspace.instance_patterns)
-
-Of course you can have as many rules as you want after the simulation, just make sure that Snakemake can build a rule graph by going from the output of one rule to the input of the next rule, ending at the input of the target rule ``all``.
-
-.. note::
-
-    Note the ``expand()`` function in the ``all`` rule. This can be used to declare that all instances of the parameter space are meant. Further information can be found `here <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#the-expand-function>`_.
 
 """"""""""""""""""""""""""""
 Running on a generic cluster
