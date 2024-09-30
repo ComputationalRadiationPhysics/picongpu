@@ -27,6 +27,7 @@
  */
 
 #pragma once
+
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/math/Vector.hpp>
 

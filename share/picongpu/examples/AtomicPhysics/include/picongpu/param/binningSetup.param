@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/plugins/binning/binnerPlugin.hpp"
 
 #include <cstdint>

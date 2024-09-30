@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 // changed absorber size to 0 in all 3 dimensions
 namespace picongpu
 {
