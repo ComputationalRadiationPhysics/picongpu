@@ -20,20 +20,21 @@
 
 #pragma once
 
+#if(ENABLE_OPENPMD == 1)
 
-#include "picongpu/defines.hpp"
-#include "picongpu/plugins/openPMD/GetComponentsType.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/traits/PICToOpenPMD.hpp"
+#    include "picongpu/defines.hpp"
+#    include "picongpu/plugins/openPMD/GetComponentsType.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/traits/PICToOpenPMD.hpp"
 
-#include <pmacc/assert.hpp>
-#include <pmacc/traits/GetComponentsType.hpp>
-#include <pmacc/traits/GetNComponents.hpp>
-#include <pmacc/traits/Resolve.hpp>
+#    include <pmacc/assert.hpp>
+#    include <pmacc/traits/GetComponentsType.hpp>
+#    include <pmacc/traits/GetNComponents.hpp>
+#    include <pmacc/traits/Resolve.hpp>
 
-#include <memory>
+#    include <memory>
 
-#include <openPMD/openPMD.hpp>
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -119,7 +120,7 @@ namespace picongpu
                         % elements % globalNumElements % openPMDName();
 
 /* copy component from temporary array to array of structs */
-#pragma omp parallel for simd
+#    pragma omp parallel for simd
                     for(size_t i = 0; i < elements; ++i)
                     {
                         ComponentType* ref = &reinterpret_cast<ComponentType*>(dataPtr)[i * components + n];
@@ -133,3 +134,5 @@ namespace picongpu
 
     } /* namespace openPMD */
 } /* namespace picongpu */
+
+#endif

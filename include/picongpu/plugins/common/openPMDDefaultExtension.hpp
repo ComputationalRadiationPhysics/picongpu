@@ -19,9 +19,11 @@
 
 #pragma once
 
-#include <string>
+#if(ENABLE_OPENPMD == 1)
 
-#include <openPMD/openPMD.hpp>
+#    include <string>
+
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -59,19 +61,19 @@ namespace picongpu
                  * The reason for requiring ADIOS2 >= v2.9.2 before enabling BP5 is this bug, fixed in version v2.9.2:
                  * https://github.com/ornladios/ADIOS2/issues/3504
                  */
-#if openPMD_HAVE_ADIOS2
-#    if ADIOS2_VERSION_MAJOR * 10000 + ADIOS2_VERSION_MINOR * 100 + ADIOS2_VERSION_PATCH >= 21000
+#    if openPMD_HAVE_ADIOS2
+#        if ADIOS2_VERSION_MAJOR * 10000 + ADIOS2_VERSION_MINOR * 100 + ADIOS2_VERSION_PATCH >= 21000
                 /*
                  * ADIOS2 v2.10 removes the macro ADIOS2_HAVE_BP5 since BP5 is always there and cannot be switched off.
                  * Some versions of the openPMD-api get confused when the macro is missing and think that BP5 is not
                  * there, so this has to be checked separately.
                  */
-#        if OPENPMDAPI_VERSION_GE(0, 15, 0)
+#            if OPENPMDAPI_VERSION_GE(0, 15, 0)
                 return "bp5";
-#        else
+#            else
                 return "bp4";
-#        endif
-#    elif ADIOS2_VERSION_MAJOR * 10000 + ADIOS2_VERSION_MINOR * 100 + ADIOS2_VERSION_PATCH >= 20902
+#            endif
+#        elif ADIOS2_VERSION_MAJOR * 10000 + ADIOS2_VERSION_MINOR * 100 + ADIOS2_VERSION_PATCH >= 20902
                 /*
                  * ADIOS2 v2.9 can be built with or without BP5. We can ask the openPMD-api if it is there.
                  */
@@ -86,17 +88,17 @@ namespace picongpu
                 {
                     return "bp4";
                 }
-#    else
+#        else
                 /*
                  * Engine available and supported in all supported versions of ADIOS2 and openPMD-api
                  */
                 return "bp4";
-#    endif
-#else
+#        endif
+#    else
                 return "ADIOS2_NOT_AVAILABLE";
-#endif
+#    endif
             };
-#if openPMD_HAVE_ADIOS2 && openPMD_HAVE_HDF5
+#    if openPMD_HAVE_ADIOS2 && openPMD_HAVE_HDF5
             switch(ep)
             {
             case EP::ADIOS:
@@ -108,16 +110,18 @@ namespace picongpu
              * This silences compiler warnings
              */
             return "[openPMD::getDefaultExtension()] Unreachable!";
-#elif openPMD_HAVE_ADIOS2
+#    elif openPMD_HAVE_ADIOS2
             return getADIOSExtension();
-#elif openPMD_HAVE_HDF5
+#    elif openPMD_HAVE_HDF5
             return "h5";
-#else
+#    else
             // Neither ADIOS2 nor HDF5 is not allowed when openPMD is enabled (we can only be here in this case)
             static_assert(
                 false,
                 "Error: openPMD API dependency is enabled but has neither ADIOS2 nor HDF5 backend available.");
-#endif
+#    endif
         }
     } // namespace openPMD
 } // namespace picongpu
+
+#endif

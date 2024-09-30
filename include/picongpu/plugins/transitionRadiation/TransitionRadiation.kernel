@@ -27,6 +27,9 @@
 #include "picongpu/plugins/transitionRadiation/Calculator.hpp"
 #include "picongpu/plugins/transitionRadiation/GammaMask.hpp"
 #include "picongpu/plugins/transitionRadiation/Particle.hpp"
+#include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
+#include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
+#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
 #include "picongpu/unitless/transitionRadiation.unitless"
 
 #include <pmacc/kernel/atomic.hpp>

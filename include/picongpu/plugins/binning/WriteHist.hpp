@@ -17,21 +17,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !ENABLE_OPENPMD
-#    error The activated Binning plugin requires openPMD-api.
-#endif
+#if(ENABLE_OPENPMD == 1)
 
-#pragma once
+#    pragma once
 
-#include "picongpu/plugins/binning/UnitConversion.hpp"
-#include "picongpu/plugins/binning/utility.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/common/stringHelpers.hpp"
+#    include "picongpu/plugins/binning/UnitConversion.hpp"
+#    include "picongpu/plugins/binning/utility.hpp"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/stringHelpers.hpp"
 
-#include <memory>
-#include <optional>
+#    include <memory>
+#    include <optional>
 
-#include <openPMD/openPMD.hpp>
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -209,3 +207,5 @@ namespace picongpu
         };
     } // namespace plugins::binning
 } // namespace picongpu
+
+#endif

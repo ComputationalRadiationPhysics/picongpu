@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <pmacc/attribute/FunctionSpecifier.hpp>
 #include <pmacc/memory/STLTuple.hpp>
 
 #include <tuple>

@@ -20,6 +20,9 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/logging.hpp"
+#include "picongpu/plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
+#include "picongpu/plugins/radiation/param.hpp"
 
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 

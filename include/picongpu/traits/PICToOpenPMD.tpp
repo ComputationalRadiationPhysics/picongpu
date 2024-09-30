@@ -22,6 +22,8 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/param/speciesAttributes.param"
 #include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/traits/Unit.hpp"
+#include "picongpu/traits/UnitDimension.hpp"
 
 #include <string>
 #include <vector>

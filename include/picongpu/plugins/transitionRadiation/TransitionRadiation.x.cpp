@@ -21,11 +21,6 @@
 
 #if(ENABLE_OPENPMD == 1)
 
-// clang-format off
-#include "picongpu/defines.hpp"
-#include "picongpu/param/transitionRadiation.param"
-// clang-format on
-
 #    include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 
 #    include "picongpu/particles/filter/filter.hpp"
@@ -46,7 +41,7 @@
 #    include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
 #    include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
 #    include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
-#    include "picongpu/unitless/transitionRadiation.unitless"
+#    include "picongpu/plugins/transitionRadiation/param.hpp"
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/lockstep/lockstep.hpp>

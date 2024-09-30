@@ -19,22 +19,26 @@
 
 #pragma once
 
+// required for SIMDIM definition
 #include "picongpu/defines.hpp"
-#include "picongpu/simulation/control/Window.hpp"
 
-#include <pmacc/algorithms/math/defines/pi.hpp>
-#include <pmacc/assert.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/memory/buffers/Buffer.hpp>
+#if(SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
 
-#include <chrono>
-#include <cmath> // what
-#include <complex>
-#include <iostream>
+#    include "picongpu/simulation/control/Window.hpp"
 
-#include <fftw3.h>
-#include <stdio.h>
+#    include <pmacc/algorithms/math/defines/pi.hpp>
+#    include <pmacc/assert.hpp>
+#    include <pmacc/mappings/simulation/GridController.hpp>
+#    include <pmacc/math/Vector.hpp>
+#    include <pmacc/memory/buffers/Buffer.hpp>
+
+#    include <chrono>
+#    include <cmath> // what
+#    include <complex>
+#    include <iostream>
+
+#    include <fftw3.h>
+#    include <stdio.h>
 
 namespace picongpu
 {
@@ -780,3 +784,5 @@ namespace picongpu
         } // namespace shadowgraphy
     } // namespace plugins
 } // namespace picongpu
+
+#endif

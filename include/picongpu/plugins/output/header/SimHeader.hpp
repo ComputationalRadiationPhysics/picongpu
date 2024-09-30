@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/types.hpp>
 

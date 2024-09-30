@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/plugins/transitionRadiation/param.hpp"
 
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 

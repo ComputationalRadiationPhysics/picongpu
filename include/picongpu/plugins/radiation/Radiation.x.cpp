@@ -20,12 +20,6 @@
 
 #if(ENABLE_OPENPMD == 1)
 
-// clang-format off
-#    include "picongpu/defines.hpp"
-#    include "picongpu/param/radiation.param"
-#    include "picongpu/param/radiationObserver.param"
-// clang-format on
-
 #    include "picongpu/plugins/radiation/Radiation.kernel"
 
 #    include "picongpu/particles/filter/filter.hpp"
@@ -36,7 +30,10 @@
 #    include "picongpu/plugins/common/openPMDVersion.def"
 #    include "picongpu/plugins/common/stringHelpers.hpp"
 #    include "picongpu/plugins/radiation/executeParticleFilter.hpp"
-#    include "picongpu/unitless/radiation.unitless"
+#    include "picongpu/plugins/radiation/frequencies/radiation_lin_freq.hpp"
+#    include "picongpu/plugins/radiation/frequencies/radiation_list_freq.hpp"
+#    include "picongpu/plugins/radiation/frequencies/radiation_log_freq.hpp"
+#    include "picongpu/plugins/radiation/param.hpp"
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
 #    include <pmacc/filesystem.hpp>

@@ -21,8 +21,7 @@
 #pragma once
 
 #include "VectorTypes.hpp"
-#include "picongpu/param/radiation.param"
-#include "picongpu/unitless/radiation.unitless"
+#include "picongpu/plugins/radiation/param.hpp"
 
 #include <iostream>
 

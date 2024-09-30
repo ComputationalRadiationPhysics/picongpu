@@ -39,7 +39,6 @@
 #include "picongpu/algorithms/Gamma.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
-#include "picongpu/plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
 namespace picongpu

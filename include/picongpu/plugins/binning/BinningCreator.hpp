@@ -19,10 +19,15 @@
 
 #pragma once
 
-#include "picongpu/plugins/binning/Binner.hpp"
-#include "picongpu/plugins/binning/BinningData.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <memory>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/plugins/binning/Binner.hpp"
+#    include "picongpu/plugins/binning/BinningData.hpp"
+
+#    include <memory>
+
+#    include <openPMD/Series.hpp>
 
 namespace picongpu
 {
@@ -84,3 +89,5 @@ namespace picongpu
         };
     } // namespace plugins::binning
 } // namespace picongpu
+
+#endif

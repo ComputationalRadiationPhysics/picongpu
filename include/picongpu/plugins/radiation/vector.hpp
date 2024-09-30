@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <pmacc/math/math.hpp>
 #include <pmacc/types.hpp>
 
 #include <iostream>
@@ -135,7 +136,7 @@ namespace picongpu
 
                 HDINLINE T magnitude(void) const
                 {
-                    return picongpu::math::sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z());
+                    return pmacc::math::sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z());
                 }
 
                 // unit vector in the direction of the vector

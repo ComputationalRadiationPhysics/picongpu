@@ -22,6 +22,8 @@
 #include "picongpu/defines.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/meta/Pair.hpp>
+#include <pmacc/particles/memory/boxes/TileDataBox.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 namespace picongpu

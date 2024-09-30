@@ -23,6 +23,7 @@
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 #include "picongpu/particles/densityProfiles/FromOpenPMDImpl.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/meta/ForEach.hpp>

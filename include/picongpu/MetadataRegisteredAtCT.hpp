@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/fields/incidentField/param.hpp"
 #include "picongpu/traits/GetMetadata.hpp"
 
 #include <pmacc/meta/String.hpp>

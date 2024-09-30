@@ -25,6 +25,8 @@
 #include <pmacc/eventSystem/events/kernelEvents.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/RangeMapping.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/particles/operations/ConcatListOfFrames.hpp>
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>

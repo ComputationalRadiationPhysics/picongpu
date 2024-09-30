@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/plugins/binning/UnitConversion.hpp"
+
 #include <array>
 #include <string>
 
@@ -69,7 +71,7 @@ namespace picongpu
          * @returns FunctorDescription object
          */
         template<typename QuantityType, typename FunctorType>
-        HINLINE auto createFunctorDescription(
+        inline auto createFunctorDescription(
             FunctorType functor,
             std::string name,
             std::array<double, numUnits> units = std::array<double, numUnits>({0., 0., 0., 0., 0., 0., 0.}))
