@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Marco Garten, Axel Huebl
+/* Copyright 2014-2024 Marco Garten, Axel Huebl, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -162,6 +162,30 @@ namespace picongpu
                     sim.si.conv().eV2auEnergy(523.415),
                     sim.si.conv().eV2auEnergy(2437.65804),
                     sim.si.conv().eV2auEnergy(2673.1774));
+
+                /* ionization energy for argon in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    18,
+                    Argon,
+                    sim.si.conv().eV2auEnergy(15.7596119),
+                    sim.si.conv().eV2auEnergy(27.62967),
+                    sim.si.conv().eV2auEnergy(40.735),
+                    sim.si.conv().eV2auEnergy(59.58),
+                    sim.si.conv().eV2auEnergy(74.84),
+                    sim.si.conv().eV2auEnergy(91.290),
+                    sim.si.conv().eV2auEnergy(124.41),
+                    sim.si.conv().eV2auEnergy(143.4567),
+                    sim.si.conv().eV2auEnergy(422.60),
+                    sim.si.conv().eV2auEnergy(479.76),
+                    sim.si.conv().eV2auEnergy(540.4),
+                    sim.si.conv().eV2auEnergy(619.0),
+                    sim.si.conv().eV2auEnergy(685.5),
+                    sim.si.conv().eV2auEnergy(755.13),
+                    sim.si.conv().eV2auEnergy(855.5),
+                    sim.si.conv().eV2auEnergy(918.375),
+                    sim.si.conv().eV2auEnergy(4120.6657),
+                    sim.si.conv().eV2auEnergy(4426.2229));
 
                 /* ionization energy for copper in atomic units */
                 PMACC_CONST_VECTOR(
