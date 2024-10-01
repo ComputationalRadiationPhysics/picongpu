@@ -42,6 +42,8 @@ module load MPI-settings/CUDA
 module load Python/3.11.3
 module load HDF5
 module load Boost/1.82.0
+module load git
+module load JUBE
 
 # necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
 module load SciPy-bundle/2023.07
@@ -102,7 +104,7 @@ function getNode() {
         return 1
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=460G -A $account -p all bash
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=115G -A $account -p all bash
 }
 
 # allocate an interactive shell for one hour
@@ -119,7 +121,7 @@ function getDevice() {
         fi
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=460G -A $account -p all --pty bash
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=115G -A $account -p all --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
