@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Rene Widera, Axel Huebl, Brian Marre
+/* Copyright 2015-2023 Rene Widera, Axel Huebl, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -32,22 +32,17 @@
 
 
 // init of particles with
-namespace picongpu
+namespace picongpu::particles
 {
-    namespace particles
-    {
-        /** InitPipeline define in which order species are initialized
-         *
-         * the functors are called in order (from first to last functor)
-         */
-        using InitPipeline = pmacc::mp_list<
-            CreateDensity<densityProfiles::Homogenous, startPosition::Random10ppc, ArgonIons>,
-            ManipulateDerive<manipulators::binary::DensityWeighting, ArgonIons, BulkElectrons>,
-            // set ions to atomic ground state
-            Manipulate<manipulators::SetIonization, ArgonIons>,
-            // Set initial temperature of bulk electrons
-            // assign drift
-            Manipulate<manipulators::Assign200keVDrift, BulkElectrons>>;
-
-    } // namespace particles
-} // namespace picongpu
+    /** InitPipeline define in which order species are initialized
+     *
+     * the functors are called in order (from first to last functor)
+     */
+    using InitPipeline = boost::mp11::mp_list<
+        CreateDensity<densityProfiles::Homogenous, startPosition::Random, CopperIons>,
+        ManipulateDerive<manipulators::binary::DensityWeighting, CopperIons, BulkElectrons>,
+        // set ions to atomic ground state for charge state 2
+        Manipulate<manipulators::SetChargeState, CopperIons>,
+        // Set initial temperature of bulk electrons
+        Manipulate<manipulators::AddTemperature, BulkElectrons>>;
+} // namespace picongpu::particles

@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz, Heiko Burau, Brian Marre
+/* Copyright 2013-2024 Rene Widera, Benjamin Worpitz, Heiko Burau, Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -32,7 +32,6 @@
 
 #pragma once
 
-
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 
@@ -44,7 +43,7 @@
 
 #include <cstdint>
 
-// argon + thermal electrons
+// copper + thermal electrons
 namespace picongpu
 {
     /*########################### define default attributes ######################*/
@@ -58,15 +57,14 @@ namespace picongpu
 
     /*--------------------------- electrons --------------------------------------*/
     /* thermal bulk electrons: */
-
-    /* ratio relative to base charge and base mass */
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
     value_identifier(float_X, MassRatioElectrons, 1.0);
     value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
     /* ratio relative to BASE_DENSITY
-     * thermal "bulk": 1x ionized n_Cu
+     * thermal "bulk": 2x ionized n_Cu
      */
-    value_identifier(float_X, DensityRatioBulkElectrons, 16);
+    value_identifier(float_X, DensityRatioBulkElectrons, 2._X);
 
     using ParticleFlagsElectrons = MakeSeq_t<
         particlePusher<UsedParticlePusher>,
@@ -83,31 +81,26 @@ namespace picongpu
 
     /*--------------------------- ions Argon ------------------------------------*/
 
-    /* ratio relative to base charge and base mass */
-    value_identifier(float_X, MassRatioArgon, 40 * 1836.152672);
-    value_identifier(float_X, ChargeRatioArgon, -18.0);
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioCopper, 63 * 1836.152672);
+    value_identifier(float_X, ChargeRatioCopper, -29.0);
 
     /* ratio relative to BASE_DENSITY */
-    value_identifier(float_X, DensityRatioArgon, 1.0);
+    value_identifier(float_X, DensityRatioCopper, 1.0_X);
 
-#ifndef PARAM_IONIZATIONCURRENT
-#    define PARAM_IONIZATIONCURRENT None
-#endif
-
-    struct ArgonAtomicPhysicsCfg
+    struct CopperAtomicPhysicsCfg
     {
         /** paths to atomic physics input data files
          * - must follow PIConGPU specific formatting
          * - files are not shipped with PIConGPU, see documentation for creation and sources
          * - all paths must be either relative to the simOutput folder, or absolute
          */
-        //{
-        static constexpr char const* chargeStatesFileName = "./ChargeStates_Ar.txt";
-        static constexpr char const* atomicStatesFileName = "./AtomicStates_Ar.txt";
+        static constexpr char const* chargeStatesFileName = "./atomicInputData/ChargeStates_Cu.txt";
+        static constexpr char const* atomicStatesFileName = "./atomicInputData/AtomicStates_Cu.txt";
 
-        static constexpr char const* boundBoundTransitionsFileName = "./BoundBoundTransitions_Ar.txt";
-        static constexpr char const* boundFreeTransitionsFileName = "./BoundFreeTransitions_Ar.txt";
-        static constexpr char const* autonomousTransitionsFileName = "./AutonomousTransitions_Ar.txt";
+        static constexpr char const* boundBoundTransitionsFileName = "./atomicInputData/BoundBoundTransitions_Cu.txt";
+        static constexpr char const* boundFreeTransitionsFileName = "./atomicInputData/BoundFreeTransitions_Cu.txt";
+        static constexpr char const* autonomousTransitionsFileName = "./atomicInputData/AutonomousTransitions_Cu.txt";
 
         /** path to file containing pressure ionization states
          *
@@ -129,7 +122,6 @@ namespace picongpu
          *   ionization for this states
          */
         static constexpr char const* ipdIonizationStatesFileName = "";
-        //}
 
         /** specifies atomic data type to use for this species
          *
@@ -140,36 +132,36 @@ namespace picongpu
          *
          * @details see atomicPhysics.param for definition
          */
-        using AtomicDataType = atomicPhysics::AtomicData_Ar;
+        using AtomicDataType = atomicPhysics::AtomicData_Cu;
 
         /** number of atomic states in the atomic state input data
          *
          * @attention must be equal to the number of states in the atomic state input file
          */
-        static constexpr uint16_t numberAtomicStates = 470u;
+        static constexpr uint16_t numberAtomicStates = 869u;
 
-        //! electron species to spawn upon atomicPhysics ionization
         using IonizationElectronSpecies = BulkElectrons;
     };
 
-    using ParticleFlagsArgon = MakeSeq_t<
+    using ParticleFlagsCopper = MakeSeq_t<
         particlePusher<UsedParticlePusher>,
         shape<UsedParticleShape>,
         interpolation<UsedField2Particle>,
         current<UsedParticleCurrentSolver>,
-        massRatio<MassRatioArgon>,
-        chargeRatio<ChargeRatioArgon>,
-        densityRatio<DensityRatioArgon>,
-        atomicNumbers<ionization::atomicNumbers::Argon_t>,
-        atomicPhysicsParticle<particles::atomicPhysics::Ion<ArgonAtomicPhysicsCfg>>>;
+        massRatio<MassRatioCopper>,
+        chargeRatio<ChargeRatioCopper>,
+        densityRatio<DensityRatioCopper>,
+        atomicNumbers<ionization::atomicNumbers::Copper_t>,
+        atomicPhysicsParticle<particles::atomicPhysics::Ion<CopperAtomicPhysicsCfg>>>;
 
-    using ArgonAttributes = MakeSeq_t<
+    using CopperAttributes = MakeSeq_t<
         DefaultParticleAttributes,
         // see definition in speciesAttributes.param
         atomicPhysicsIonParticleAttributes>;
 
+
     /* define species ions */
-    using ArgonIons = Particles<PMACC_CSTRING("Ar"), ParticleFlagsArgon, ArgonAttributes>;
+    using CopperIons = Particles<PMACC_CSTRING("Cu"), ParticleFlagsCopper, CopperAttributes>;
 
     /*########################### end species ####################################*/
 
@@ -178,6 +170,6 @@ namespace picongpu
      * List all defined particle species from above in this list
      * to make them available to the PIC algorithm.
      */
-    using VectorAllSpecies = MakeSeq_t<BulkElectrons, ArgonIons>;
+    using VectorAllSpecies = MakeSeq_t<BulkElectrons, CopperIons>;
 
 } // namespace picongpu

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/startPosition/functors.def"
 
@@ -28,38 +29,41 @@
 
 #include <cstdint>
 
-// particles randomly distributed, 10 macro particle per cell, 200keV initial drift
+// particles randomly distributed, 60 macro particle per cell, 200keV initial drift
 namespace picongpu::particles
 {
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none
      */
-    constexpr float_X MIN_WEIGHTING = 1.0;
+    constexpr float_X MIN_WEIGHTING = 1._X;
 
     namespace startPosition
     {
-        struct RandomParameter10ppc
+        struct RandomParameter
         {
             /** Count of particles per cell at initial state
              *  unit: none
              */
-            static constexpr uint32_t numParticlesPerCell = 10u;
+            static constexpr uint32_t numParticlesPerCell = picongpu::TYPICAL_PARTICLES_PER_CELL;
         };
-        using Random10ppc = RandomImpl<RandomParameter10ppc>;
+        using Random = RandomImpl<RandomParameter>;
+
     } // namespace startPosition
 
     namespace manipulators
     {
-        // define a drift in X equal to 200 keV for electrons
-        struct Drift200keVParam
+        struct TemperatureParam
         {
-            static constexpr float_64 gamma = 1.39139;
-            static constexpr auto driftDirection = float3_X(1.0, 0.0, 0.0);
+            /** Initial temperature
+             *  unit: keV
+             */
+            static constexpr float_64 temperature = 1.;
         };
-        using Assign200keVDrift = unary::Drift<Drift200keVParam, pmacc::math::operation::Assign>;
+        using AddTemperature = unary::Temperature<TemperatureParam>;
 
         // definition of set initial ionization
-        using SetIonization = unary::ChargeState<16u>;
+        using SetChargeState = unary::ChargeState<2u>;
+
     } // namespace manipulators
 } // namespace picongpu::particles

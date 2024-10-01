@@ -1,0 +1,92 @@
+/* Copyright 2023-2024 Tapish Narwal, Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/plugins/binning/binnerPlugin.hpp"
+
+#include <cstdint>
+
+namespace picongpu::plugins::binning
+{
+    inline void getBinning(BinningCreator& binningCreator)
+    {
+        constexpr uint32_t numberAtomicStates = 869u;
+        // include the 0th step in the count!
+        constexpr uint32_t numberTimeSteps = 26u;
+
+        /// Axis 1 - Atomic State collection index
+        // Define Functor for Particle to Axis Value
+        auto getAtomicState
+            = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
+        { return particle[atomicStateCollectionIndex_]; };
+
+        // create Functor Description
+        auto atomicStateDescription = createFunctorDescription<uint32_t>(getAtomicState, "Atomic State");
+
+        // create Axis Splitting
+        auto rangeAtomicStates = axis::Range<uint32_t>{0, numberAtomicStates};
+        auto atomicStates_splitting = axis::AxisSplitting(rangeAtomicStates, numberAtomicStates, false);
+
+        // create Axis
+        auto axAtomicStates = axis::createLinear(atomicStates_splitting, atomicStateDescription);
+
+        /// Axis 2 - Time
+        // Define Functor
+        auto getTimeStep
+            = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
+        { return domainInfo.currentStep; };
+
+        // Create Functor Description
+        auto timeStepDescription = createFunctorDescription<uint32_t>(getTimeStep, "time_axis");
+
+        // Create Axis
+        auto axTimeStep = axis::createLinear(
+            axis::AxisSplitting(axis::Range<uint32_t>{0, numberTimeSteps}, numberTimeSteps, false),
+            timeStepDescription);
+
+        /// Bring the axes together in a tuple
+        auto axisTuple = createTuple(axAtomicStates, axTimeStep);
+
+        /**
+         * Define the species to do binning over
+         * create object from type
+         */
+        auto ions = PMACC_CSTRING("Cu"){};
+
+        /// Bring the species together in a tuple
+        auto speciesTuple = createTuple(ions);
+
+        //! Define deposited quantity
+        auto getParticleWeighting = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_64
+        {
+            return static_cast<float_64>(
+                static_cast<float_64>(particle[weighting_])
+                / picongpu::sim.unit.typicalNumParticlesPerMacroParticle());
+        };
+
+        auto weightingData = createFunctorDescription<float_64>(getParticleWeighting, "Particle Weighting");
+
+        binningCreator.addBinner("atomicStateBinning", axisTuple, speciesTuple, weightingData)
+            .setDumpPeriod(numberTimeSteps)
+            .setOpenPMDExtension("bp")
+            .setNormalizeByBinVolume(false)
+            .setTimeAveraging(false);
+    }
+} // namespace picongpu::plugins::binning

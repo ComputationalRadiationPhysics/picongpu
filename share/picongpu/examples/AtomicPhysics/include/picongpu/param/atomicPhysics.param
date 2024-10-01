@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Brian Marre
+/* Copyright 2022-2024 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -17,8 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- * configuration file for atomicPhysics, also see speciesDefinition.param for further
+/** @file configuration file for atomicPhysics, also see speciesDefinition.param for further
  *  necessary settings to enable atomicPhysics.
  */
 
@@ -33,6 +32,7 @@
 
 #include <cstdint>
 
+
 namespace picongpu::atomicPhysics
 {
     // configuration of electron ElectronHistogram
@@ -40,20 +40,21 @@ namespace picongpu::atomicPhysics
     struct MaxEnergyParam
     {
         // eV
-        static constexpr float_X maxEnergy = float_X(1e7);
+        static constexpr float_X maxEnergy = float_X(1.5e5);
     };
     using ElectronHistogram = particles::atomicPhysics::electronDistribution::LogSpaceHistogram<
         100u, // T_numberBins
         MaxEnergyParam>;
     //}
 
-    //! atomicPhysics rate solver settings
+    // atomicPhysics rate solver settings
+
     struct RateSolverParam
     {
-        // atomicPhysics timeStepLength sub-stepping of numerical limit
-        static constexpr float_X timeStepAlpha = 0.3_X;
+        //      atomicPhysics timeStepLength sub-stepping of numerical limit
+        static constexpr float_X timeStepAlpha = 0.1_X;
 
-        // which probability approximation to use for the acceptance step
+        //      which probability approximation to use for the acceptance step
         using ProbabilityApproximationFunctor
             = picongpu::particles::atomicPhysics::ExponentialApproximationProbability;
     };
@@ -67,7 +68,7 @@ namespace picongpu::atomicPhysics
      *
      * See piconpgu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp for further information.
      */
-    using ConfigNumber_Argon = particles::atomicPhysics::stateRepresentation::ConfigNumber<
+    using ConfigNumber_Copper = particles::atomicPhysics::stateRepresentation::ConfigNumber<
         /** data type to use for configNumber representation
          * @attention must be able to hold all configNumbers in atomic data input files! */
         uint64_t,
@@ -81,7 +82,7 @@ namespace picongpu::atomicPhysics
          */
         10u,
         //! atomic number of element, @attention must be < 256!
-        18u>;
+        29u>;
 
     /** atomicData dataBase type
      *
@@ -89,17 +90,28 @@ namespace picongpu::atomicPhysics
      *
      * see picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp for further information.
      */
-    using AtomicData_Ar = particles::atomicPhysics::atomicData::AtomicData<
-        uint32_t, // T_Number
-        float_X, // T_Value
-        uint32_t, // T_CollectionIndex
-        ConfigNumber_Argon, // T_ConfigNumber, data type used for storage
-        float_64, // T_Multiplicities, data type used for storage
-        true, // T_electronicExcitation
-        true, // T_electronicDeexcitation
-        true, // T_spontaneousDeexcitation
-        true, // T_electronicIonization
-        true, // T_autonomousIonization
-        true, // T_fieldIonization
+    using AtomicData_Cu = particles::atomicPhysics::atomicData::AtomicData<
+        // T_Number
+        uint32_t,
+        // T_Value
+        float_X,
+        // T_CollectionIndex
+        uint32_t,
+        // T_ConfigNumber, type used for analytic indexation
+        ConfigNumber_Copper,
+        // T_Multiplicities, data type used for storage
+        float_64,
+        // T_electronicExcitation
+        true,
+        // T_electronicDeexcitation
+        true,
+        // T_spontaneousDeexcitation
+        true,
+        // T_electronicIonization
+        true,
+        // T_autonomousIonization
+        true,
+        // T_fieldIonization
+        true,
         picongpu::particles::atomicPhysics::enums::ADKLaserPolarization::linearPolarization>;
 } // namespace picongpu::atomicPhysics

@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Brian Marre
+/* Copyright 2022-2024 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -29,12 +29,12 @@ namespace picongpu::atomicPhysics::debug
 {
     namespace atomicData
     {
-        constexpr bool PRINT_TO_CONSOLE = true;
+        constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant, uncaught error will lead to invalid memory access
-        constexpr bool RANGE_CHECKS_IN_DATA_QUERIES = true;
+        constexpr bool RANGE_CHECKS_IN_DATA_QUERIES = false;
         //! range check in store calls to individual data boxes, only once upon initial loading of atomic input data
-        constexpr bool RANGE_CHECKS_IN_DATA_LOAD = true;
+        constexpr bool RANGE_CHECKS_IN_DATA_LOAD = false;
         //! @attention will not catch members missing from hostToDevice() method,
         constexpr bool DEBUG_SYNC_BUFFERS_TO_HOST = false;
     } // namespace  atomicData
@@ -42,78 +42,81 @@ namespace picongpu::atomicPhysics::debug
 
     namespace electronHistogram
     {
-        //! @attention activation only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant, uncaught error will lead to invalid memory access
-        constexpr bool RANGE_CHECKS_BIN_INDEX = true;
+        constexpr bool RANGE_CHECKS_BIN_INDEX = false;
         //! @attention performance relevant, uncaught error will lead to invalid memory access
-        constexpr bool RANGE_CHECKS_ENERGY = true;
+        constexpr bool RANGE_CHECKS_ENERGY = false;
     } // namespace electronHistogram
 
 
     namespace rateCalculation
     {
         //! @attention performance relevant
-        constexpr bool DEBUG_CHECKS = true;
-        constexpr bool RUN_UNIT_TESTS = true;
+        constexpr bool DEBUG_CHECKS = false;
+        constexpr bool RUN_UNIT_TESTS = false;
     } // namespace rateCalculation
 
 
     namespace deltaEnergyTransition
     {
         //! @attention performance relevant
-        constexpr bool IONIZATION_ENERGY_INVERSION_CHECK = true;
+        constexpr bool IONIZATION_ENERGY_INVERSION_CHECK = false;
     } // namespace deltaEnergyTransition
 
 
     namespace rateCache
     {
-        //! @attention activation only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
-        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = true;
+        constexpr bool COLLECTION_INDEX_RANGE_CHECKS = false;
         //! @attention performance relevant
-        constexpr bool TRANSITION_DATA_SET_INDEX_RANGE_CHECKS = true;
+        constexpr bool TRANSITION_DATA_SET_INDEX_RANGE_CHECKS = false;
     } // namespace rateCache
 
 
     namespace rejectionProbabilityCache
     {
-        //! @attention activation only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_TO_CONSOLE = false;
 
         //! @attention performance relevant
-        constexpr bool BIN_INDEX_RANGE_CHECK = true;
+        constexpr bool BIN_INDEX_RANGE_CHECK = false;
     } // namespace rejectionProbabilityCache
 
 
     namespace timeRemaining
     {
-        //! @attention activation only useful if using serial backend
-        constexpr bool PRINT_TO_CONSOLE = true;
+        //! @attention no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeRemaining
 
 
     namespace timeStep
     {
-        //! @attention activation only useful if using serial backend
-        constexpr bool PRINT_TO_CONSOLE = true;
+        //! @attention no output unless compiling for cpu backend
+        constexpr bool PRINT_TO_CONSOLE = false;
     } // namespace timeStep
 
 
     namespace initIonizationElectrons
     {
         //! @attention performance relevant
-        constexpr bool CHECK_DELTA_ENERGY_INIT_FROM_COMOVING_POSITIVE = true;
+        constexpr bool CHECK_DELTA_ENERGY_INIT_FROM_COMOVING_POSITIVE = false;
     } // namespace initIonizationElectrons
 
     namespace scFlyComparison
     {
-        /** @attention resamples electron momentum every atomicPhysics steps creating unphysical currents,
+        /** @attention resamples electron momentum every atomicPhysics step creating unphysical currents,
          *  **do not use outside debug!** */
-        constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = false;
+#ifndef PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE
+#    define PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE false
+#endif
+        constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE;
 
         //! fixed temperature setting
         struct TemperatureParam
@@ -123,29 +126,31 @@ namespace picongpu::atomicPhysics::debug
         };
     } // namespace scFlyComparison
 
+
     namespace kernel::calculateTimeStep
     {
         //! @attention performance relevant
-        constexpr bool CHECK_TOTAL_LOSS_RATE_POSITIVE = true;
+        constexpr bool CHECK_TOTAL_LOSS_RATE_POSITIVE = false;
     } // namespace kernel::calculateTimeStep
 
     namespace kernel::chooseTransition
     {
         //! @attention performance relevant
-        constexpr bool CHECK_FOR_INVALID_TRANSITION_TYPE = true;
+        constexpr bool CHECK_FOR_INVALID_TRANSITION_TYPE = false;
         //! @attention performance relevant
-        constexpr bool CHECK_FOR_OVERFLOWS_IN_ACCUMULATON = true;
+        constexpr bool CHECK_FOR_OVERFLOWS_IN_ACCUMULATON = false;
     } // namespace kernel::chooseTransition
 
     namespace kernel::rollForOverSubscription
     {
-        //! @attention activation only useful if using serial backend
+        //! @attention only useful if using serial backend, no output unless compiling for cpu backend
         constexpr bool PRINT_DEBUG_TO_CONSOLE = false;
     } // namespace kernel::rollForOverSubscription
 
     namespace kernel::recordChanges
     {
-        constexpr bool CHECK_FOR_ACCEPTANCE = true;
+        //! @attention performance relevant
+        constexpr bool CHECK_FOR_ACCEPTANCE = false;
     } // namespace kernel::recordChanges
 
     namespace kernel::spawnIonizationElectrons
