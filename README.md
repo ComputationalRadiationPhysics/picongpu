@@ -15,18 +15,18 @@ The **alpaka** library is a header-only C++17 abstraction library for accelerato
 
 Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.
 
-It is platform independent and supports the concurrent and cooperative use of multiple devices such as the hosts CPU as well as attached accelerators as for instance CUDA GPUs and Xeon Phis (currently native execution only).
-A multitude of accelerator back-end variants using CUDA, OpenMP (2.0/5.0), std::thread and also serial execution is provided and can be selected depending on the device.
+It is platform independent and supports the concurrent and cooperative use of multiple devices such as the hosts CPU (x86, ARM, RISC-V and Power 8+) and  GPU accelerators from different vendors (NVIDIA, AMD and Intel).
+A multitude of accelerator back-end variants using NVIDIA CUDA, AMD HIP, SYCL, OpenMP 2.0+, std::thread and also serial execution is provided and can be selected depending on the device.
 Only one implementation of the user kernel is required by representing them as function objects with a special interface.
-There is no need to write special CUDA, OpenMP or custom threading code.
-Accelerator back-ends can be mixed within a device queue.
+There is no need to write special CUDA, HIP, OpenMP or custom threading code.
+Accelerator back-ends can be mixed and synchronized via compute device queue.
 The decision which accelerator back-end executes which kernel can be made at runtime.
 
-The abstraction used is very similar to the CUDA grid-blocks-threads division strategy.
+The abstraction used is very similar to the CUDA grid-blocks-threads domain decomposition strategy.
 Algorithms that should be parallelized have to be divided into a multi-dimensional grid consisting of small uniform work items.
 These functions are called kernels and are executed in parallel threads.
 The threads in the grid are organized in blocks.
-All threads in a block are executed in parallel and can interact via fast shared memory.
+All threads in a block are executed in parallel and can interact via fast shared memory and low level synchronization methods.
 Blocks are executed independently and can not interact in any way.
 The block execution order is unspecified and depends on the accelerator in use.
 By using this abstraction the execution can be optimally adapted to the available hardware.
