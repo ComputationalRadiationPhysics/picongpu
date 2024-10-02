@@ -183,6 +183,13 @@ namespace alpaka
                 TKernelFnObj const& kernelFnObj,
                 TArgs&&... args)
             {
+                if(workDiv.m_blockThreadExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error(
+                        "The given work division is not valid for a single thread Acc: "
+                        + getAccName<AccCpuTbbBlocks<TDim, TIdx>>() + ". Threads per block should be 1!");
+                }
+
                 return TaskKernelCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>(
                     workDiv,
                     kernelFnObj,

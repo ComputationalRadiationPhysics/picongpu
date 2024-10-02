@@ -83,11 +83,6 @@ namespace alpaka
             // The number of blocks in the grid.
             TIdx const numBlocksInGrid = gridBlockExtent.prod();
 
-            if(blockThreadExtent.prod() != static_cast<TIdx>(1u))
-            {
-                throw std::runtime_error("A block for the TBB accelerator can only ever have one single thread!");
-            }
-
             tbb::this_task_arena::isolate(
                 [&]
                 {

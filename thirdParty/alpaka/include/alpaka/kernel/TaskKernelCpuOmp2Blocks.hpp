@@ -831,10 +831,6 @@ namespace alpaka
 
             // The number of blocks in the grid.
             TIdx const numBlocksInGrid(gridBlockExtent.prod());
-            if(blockThreadExtent.prod() != static_cast<TIdx>(1u))
-            {
-                throw std::runtime_error("Only one thread per block allowed in the OpenMP 2.0 block accelerator!");
-            }
 
             // Get the OpenMP schedule information for the given kernel and parameter types
             auto const schedule = std::apply(
