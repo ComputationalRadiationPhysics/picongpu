@@ -186,8 +186,8 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             typename T_AtomicStateDataBox,
             typename T_BoundFreeTransitionDataBox>
         HDINLINE static float_X maximumRateADKFieldIonization(
-            T_EFieldType const maxEFieldNorm,
             T_EFieldType const minEFieldNorm,
+            T_EFieldType const maxEFieldNorm,
             float_X const ionizationPotentialDepression,
             uint32_t const transitionCollectionIndex,
             T_ChargeStateDataBox const chargeStateDataBox,

@@ -26,6 +26,7 @@
 #include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics/kernel/EFieldNormExtrema.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeCollisionalTransitionRates.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeFieldTransitionRates.hpp"
 
@@ -212,47 +213,11 @@ namespace picongpu::particles::atomicPhysics::kernel
             float_X const ionizationPotentialDepression)
         {
             // sim.unit.eField()
-            PMACC_SMEM(worker, maxEFieldSuperCell, typename T_EFieldDataBox::ValueType::type);
-            // sim.unit.eField()
             PMACC_SMEM(worker, minEFieldSuperCell, typename T_EFieldDataBox::ValueType::type);
+            // sim.unit.eField()
+            PMACC_SMEM(worker, maxEFieldSuperCell, typename T_EFieldDataBox::ValueType::type);
 
-            auto onlyMaster = lockstep::makeMaster(worker);
-            onlyMaster(
-                [&maxEFieldSuperCell, &minEFieldSuperCell]()
-                {
-                    maxEFieldSuperCell = 0._X;
-                    minEFieldSuperCell = std::numeric_limits<float_X>::max();
-                });
-            worker.sync();
-
-            constexpr auto numberCellsInSuperCell
-                = pmacc::math::CT::volume<typename picongpu::SuperCellSize>::type::value;
-            DataSpace<picongpu::simDim> const superCellCellOffset = superCellIdx * picongpu::SuperCellSize::toRT();
-            auto forEachCell = pmacc::lockstep::makeForEach<numberCellsInSuperCell, T_Worker>(worker);
-
-            /// @todo switch to shared memory reduce, Brian Marre, 2024
-            forEachCell(
-                [&worker, &superCellCellOffset, &maxEFieldSuperCell, &minEFieldSuperCell, &eFieldBox](
-                    uint32_t const linearIdx)
-                {
-                    DataSpace<picongpu::simDim> const localCellIndex
-                        = pmacc::math::mapToND(picongpu::SuperCellSize::toRT(), static_cast<int>(linearIdx));
-                    DataSpace<picongpu::simDim> const cellIndex = localCellIndex + superCellCellOffset;
-
-                    auto const eFieldNorm = pmacc::math::l2norm(eFieldBox(cellIndex));
-
-                    alpaka::atomicMax(
-                        worker.getAcc(),
-                        // sim.unit.eField()
-                        &maxEFieldSuperCell,
-                        eFieldNorm);
-
-                    alpaka::atomicMin(
-                        worker.getAcc(),
-                        // sim.unit.eField()
-                        &minEFieldSuperCell,
-                        eFieldNorm);
-                });
+            EFieldNormExtrema::find(worker, superCellIdx, eFieldBox, minEFieldSuperCell, maxEFieldSuperCell);
             worker.sync();
 
             // calculate ADK field ionization rate, for each atomic state and maximum field value
@@ -286,8 +251,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                         sumRateTransitions
                             += atomicPhysics::rateCalculation::BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::
                                 template maximumRateADKFieldIonization(
-                                    maxEFieldSuperCell,
                                     minEFieldSuperCell,
+                                    maxEFieldSuperCell,
                                     ionizationPotentialDepression,
                                     transitionCollectionIndex,
                                     chargeStateDataDataBox,

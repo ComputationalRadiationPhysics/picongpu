@@ -176,7 +176,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             DataBox<SharedBox<typename T_EField::ValueType, typename BlockArea::FullSuperCellSize, 0u>> eFieldCache
                 = CachedBox::create<0u, typename T_EField::ValueType>(worker, BlockArea());
 
-            // init E-Field cache
+            //      init
             auto const superCellSize = picongpu::SuperCellSize::toRT();
             DataSpace<picongpu::simDim> const superCellCellOffset = superCellIdx * superCellSize;
             auto fieldEBlockToCache = eFieldBox.shift(superCellCellOffset);
@@ -184,7 +184,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             auto collective = makeThreadCollective<BlockArea>();
             collective(worker, assign, eFieldCache, fieldEBlockToCache);
 
-            // wait for init to finish
+            //      wait for init to finish
             worker.sync();
 
             float_X const ionizationPotentialDepression

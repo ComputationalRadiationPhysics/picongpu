@@ -51,12 +51,15 @@ namespace picongpu::atomicPhysics
 
     struct RateSolverParam
     {
-        //      atomicPhysics timeStepLength sub-stepping of numerical limit
+        // atomicPhysics timeStepLength sub-stepping of numerical limit
         static constexpr float_X timeStepAlpha = 0.1_X;
 
-        //      which probability approximation to use for the acceptance step
+        // which probability approximation to use for the acceptance step
         using ProbabilityApproximationFunctor
             = picongpu::particles::atomicPhysics::ExponentialApproximationProbability;
+
+        // maximum number of atomicPhysics sub-steps per PIC time step for fieldIonization
+        static constexpr uint32_t maximumNumberSubStepsFieldIonization = 2000;
     };
 
     /** atomicConfigNumber definition for argon ions
