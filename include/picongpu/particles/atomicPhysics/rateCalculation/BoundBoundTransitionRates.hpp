@@ -201,11 +201,6 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
         {
             using S_ConfigNumber = typename T_AtomicStateDataBox::ConfigNumber;
 
-            uint32_t const upperStateClctIdx
-                = boundBoundTransitionDataBox.upperStateCollectionIndex(transitionCollectionIndex);
-            uint32_t const lowerStateClctIdx
-                = boundBoundTransitionDataBox.lowerStateCollectionIndex(transitionCollectionIndex);
-
             // eV
             float_X const energyDifference = picongpu::particles::atomicPhysics::DeltaEnergyTransition ::
                 get<T_AtomicStateDataBox, T_BoundBoundTransitionDataBox>(
@@ -271,6 +266,11 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 float_X ratio = 1._X;
                 if constexpr(!T_excitation)
                 {
+                    uint32_t const upperStateClctIdx
+                        = boundBoundTransitionDataBox.upperStateCollectionIndex(transitionCollectionIndex);
+                    uint32_t const lowerStateClctIdx
+                        = boundBoundTransitionDataBox.lowerStateCollectionIndex(transitionCollectionIndex);
+
                     // deexcitation
                     //      different multiplicityConfigNumber for deexcitation
                     // unitless

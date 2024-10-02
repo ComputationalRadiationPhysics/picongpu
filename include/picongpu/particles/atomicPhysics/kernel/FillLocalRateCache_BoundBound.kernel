@@ -154,7 +154,6 @@ namespace picongpu::particles::atomicPhysics::kernel
 
             auto forEachAtomicStateAndBin
                 = pmacc::lockstep::makeForEach<T_numberAtomicStates * T_numberBins, T_Worker>(worker);
-            auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
 
             auto& rateCache = localRateCacheBox(superCellFieldIdx);
             auto& histogram = localElectronHistogramDataBox(superCellFieldIdx);
@@ -253,6 +252,7 @@ namespace picongpu::particles::atomicPhysics::kernel
             // spontaneous radiative deexcitation
             if constexpr((!isUpward) and T_spontaneousDeexcitation)
             {
+                auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
                 forEachAtomicState(
                     [&worker,
                      &rateCache,

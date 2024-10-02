@@ -20,4 +20,5 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/fields/background/param.hpp"
 #include "picongpu/param/incidentField.param"
