@@ -44,7 +44,7 @@ using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
 struct ScatterConfig
 {
     static constexpr auto pagesize = 4096;
-    static constexpr auto accessblocksize = 2u * 1024u * 1024u * 1024u;
+    static constexpr auto accessblocksize = 512u * 1024u * 1024u;
     static constexpr auto regionsize = 16;
     static constexpr auto wastefactor = 2;
     static constexpr auto resetfreedpages = false;
