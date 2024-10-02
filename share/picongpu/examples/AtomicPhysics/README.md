@@ -54,8 +54,7 @@ Run Locally
 ___________
 
 From the root directory
-1.) run picongpu by hand using `./bin/picongpu -g 1 1 1 -d 1 1 1 -s 25 --periodic 1 1 1`
-2.) run `./validate/validateLocally.sh` to validate the simulation results
+Run `./validate/validateLocally.sh` to run and validate the simulation results
 
 Run Using TBG
 _____________
