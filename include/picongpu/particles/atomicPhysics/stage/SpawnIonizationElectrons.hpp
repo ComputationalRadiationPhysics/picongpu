@@ -28,9 +28,13 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
+#include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/SpawnIonizationMacroElectrons.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetIonizationElectronSpecies.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <cstdint>
 

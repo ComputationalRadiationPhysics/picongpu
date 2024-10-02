@@ -20,10 +20,8 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need: picongpu/param/atomicPhysics_Debug.param,
-//       picongpu/param/atomicPhysics.param
-
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/enums/IsProcess.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
@@ -31,6 +29,7 @@
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/PassIPDInputs.hpp"
 
 #include <pmacc/lockstep/ForEach.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
 

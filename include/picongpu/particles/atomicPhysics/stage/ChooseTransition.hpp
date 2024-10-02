@@ -23,13 +23,19 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_Autonomous.kernel"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_BoundBound.kernel"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_CollisionalBoundFree.kernel"
 #include "picongpu/particles/atomicPhysics/kernel/ChooseTransition_FieldBoundFree.kernel"
+#include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeStepField.hpp"
+#include "picongpu/particles/param.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 namespace picongpu::particles::atomicPhysics::stage
 {

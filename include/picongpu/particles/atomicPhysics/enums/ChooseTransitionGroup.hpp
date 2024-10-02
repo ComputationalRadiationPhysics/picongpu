@@ -62,7 +62,7 @@ namespace picongpu::particles::atomicPhysics::enums
 namespace picongpu::particles::atomicPhysics
 {
     template<enums::ChooseTransitionGroup T_ChooseTransitionGroup>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(u32(T_ChooseTransitionGroup) == u32(enums::ChooseTransitionGroup::boundBoundUpward))
             return "bound-bound(upward)";

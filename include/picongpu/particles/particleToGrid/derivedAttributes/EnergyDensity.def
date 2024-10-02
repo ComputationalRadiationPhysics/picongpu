@@ -49,7 +49,11 @@ namespace picongpu
                  */
                 struct EnergyDensity
                 {
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        constexpr float_64 unitVolume = (sim.unit.length() * sim.unit.length() * sim.unit.length());
+                        return sim.unit.energy() / unitVolume;
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

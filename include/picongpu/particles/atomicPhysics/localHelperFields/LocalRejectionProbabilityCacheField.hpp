@@ -24,10 +24,9 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need: picongpu::atomicPhysics::ElectronHistogram from picongpu/param/atomicPhysics.param
-
 #include "picongpu/particles/atomicPhysics/SuperCellField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/RejectionProbabilityCache.hpp"
+#include "picongpu/particles/atomicPhysics/param.hpp"
 
 #include <cstdint>
 

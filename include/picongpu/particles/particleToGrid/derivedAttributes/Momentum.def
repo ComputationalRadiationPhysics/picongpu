@@ -55,7 +55,10 @@ namespace picongpu
                         (T_direction >= 0) && (T_direction < 3));
 
                     //! Get unit
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        return sim.unit.mass() * sim.unit.speed();
+                    }
 
                     //! Get unit dimension
                     HINLINE std::vector<float_64> getUnitDimension() const

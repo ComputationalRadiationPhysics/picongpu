@@ -18,9 +18,10 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics/atomicData/TransitionData.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/Multiplicities.hpp"

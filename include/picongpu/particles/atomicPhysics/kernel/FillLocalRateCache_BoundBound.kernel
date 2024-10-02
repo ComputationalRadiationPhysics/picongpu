@@ -30,6 +30,7 @@
 
 #include <pmacc/algorithms/math/PowerFunction.hpp>
 #include <pmacc/lockstep/ForEach.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/static_assert.hpp>
 
 #include <cstdint>

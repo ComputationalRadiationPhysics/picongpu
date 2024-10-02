@@ -22,8 +22,6 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/Absorber.hpp"
 
-#include <pmacc/traits/GetStringProperties.hpp>
-
 #include <cstdint>
 #include <memory>
 #include <string>

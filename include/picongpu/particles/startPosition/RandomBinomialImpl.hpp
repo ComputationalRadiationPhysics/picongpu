@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/startPosition/RandomImpl.hpp"
 #include "picongpu/particles/startPosition/generic/FreeRng.def"
 

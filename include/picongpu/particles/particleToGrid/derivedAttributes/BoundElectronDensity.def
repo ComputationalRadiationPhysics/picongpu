@@ -45,7 +45,11 @@ namespace picongpu
                  */
                 struct BoundElectronDensity
                 {
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        constexpr float_64 UNIT_VOLUME = sim.unit.length() * sim.unit.length() * sim.unit.length();
+                        return sim.unit.typicalNumParticlesPerMacroParticle() / UNIT_VOLUME;
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

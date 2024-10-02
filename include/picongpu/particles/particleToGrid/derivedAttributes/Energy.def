@@ -48,7 +48,10 @@ namespace picongpu
                  */
                 struct Energy
                 {
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        return sim.unit.energy();
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

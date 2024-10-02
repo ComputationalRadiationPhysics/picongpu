@@ -24,6 +24,9 @@
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalElectronHistogramOverSubscribedField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalRejectionProbabilityCacheField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <cstdint>
 

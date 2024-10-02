@@ -44,7 +44,7 @@ namespace picongpu::particles::atomicPhysics
     } // namespace enums
 
     template<enums::ProcessClass T_ProcessClass>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(u8(T_ProcessClass) == u8(enums::ProcessClass::noChange))
             return "noChange";

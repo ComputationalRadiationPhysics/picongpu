@@ -60,7 +60,11 @@ namespace picongpu
                         Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param,
                         ((T_direction) < 3));
 
-                    HDINLINE float1_64 getUnit() const;
+                    HDINLINE float1_64 getUnit() const
+                    {
+                        const float_64 unitArea = sim.unit.length() * sim.unit.length();
+                        return sim.unit.charge() / (sim.unit.time() * unitArea);
+                    }
 
                     HINLINE std::vector<float_64> getUnitDimension() const
                     {

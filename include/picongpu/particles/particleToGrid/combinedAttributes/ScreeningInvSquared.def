@@ -21,6 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/CombinedDerivedAttribute.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 
 namespace picongpu

@@ -22,88 +22,81 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/LocalIPDInputFields.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/kernel/ApplyIPDIonization.kernel"
+#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/ApplyIPDIonization.def"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalFoundUnboundIonField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetIonizationElectronSpecies.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::stage
 {
     //! short hand for IPD namespace
     namespace s_IPD = picongpu::particles::atomicPhysics::ionizationPotentialDepression;
 
-    /** IPD sub-stage for performing ApplyIPDIonization kernel call for one Ion Species for an ionization potential
-     *  depression(IPD) model
-     *
-     * @todo implement version for non atomicPhysics data species
-     *
-     * @tparam ion species with atomic data
-     */
     template<typename T_IonSpecies, typename T_IPDModel>
-    struct ApplyIPDIonization
+    HINLINE void ApplyIPDIonization<T_IonSpecies, T_IPDModel>::operator()(
+        picongpu::MappingDesc const mappingDesc) const
     {
         // might be alias, from here on out no more
         //! resolved type of alias T_ParticleSpecies
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_IonSpecies>;
+        //! resolved type of electron species to spawn upon ionization
+        using IonizationElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
+            VectorAllSpecies,
+            typename picongpu::traits::GetIonizationElectronSpecies<T_IonSpecies>::type>;
 
-        //! call of kernel for every superCell
-        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
-        {
-            //! resolved type of electron species to spawn upon ionization
-            using IonizationElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
-                VectorAllSpecies,
-                typename picongpu::traits::GetIonizationElectronSpecies<T_IonSpecies>::type>;
+        using AtomicDataType = typename picongpu::traits::GetAtomicDataType<T_IonSpecies>::type;
 
-            using AtomicDataType = typename picongpu::traits::GetAtomicDataType<T_IonSpecies>::type;
+        // full local domain, no guards
+        pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
+        pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
 
-            // full local domain, no guards
-            pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
-            pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
+        auto& localTimeRemainingField
+            = *dc.get<atomicPhysics::localHelperFields::LocalTimeRemainingField<picongpu::MappingDesc>>(
+                "LocalTimeRemainingField");
+        auto& localFoundUnboundIonField
+            = *dc.get<atomicPhysics::localHelperFields::LocalFoundUnboundIonField<picongpu::MappingDesc>>(
+                "LocalFoundUnboundIonField");
 
-            auto& localTimeRemainingField
-                = *dc.get<atomicPhysics::localHelperFields::LocalTimeRemainingField<picongpu::MappingDesc>>(
-                    "LocalTimeRemainingField");
-            auto& localFoundUnboundIonField
-                = *dc.get<atomicPhysics::localHelperFields::LocalFoundUnboundIonField<picongpu::MappingDesc>>(
-                    "LocalFoundUnboundIonField");
+        auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
+        auto& electrons = *dc.get<IonizationElectronSpecies>(IonizationElectronSpecies::FrameType::getName());
 
-            auto& ions = *dc.get<IonSpecies>(IonSpecies::FrameType::getName());
-            auto& electrons = *dc.get<IonizationElectronSpecies>(IonizationElectronSpecies::FrameType::getName());
+        auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
-            auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
+        // ipd input fields
+        auto& localDebyeLengthField
+            = *dc.get<s_IPD::localHelperFields::LocalDebyeLengthField<picongpu::MappingDesc>>("LocalDebyeLengthField");
+        auto& localTemperatureEnergyField
+            = *dc.get<s_IPD::localHelperFields::LocalTemperatureEnergyField<picongpu::MappingDesc>>(
+                "LocalTemperatureEnergyField");
+        auto& localZStarField
+            = *dc.get<s_IPD::localHelperFields::LocalZStarField<picongpu::MappingDesc>>("LocalZStarField");
+        auto idProvider = dc.get<IdProvider>("globalId");
 
-            // ipd input fields
-            auto& localDebyeLengthField
-                = *dc.get<s_IPD::localHelperFields::LocalDebyeLengthField<picongpu::MappingDesc>>(
-                    "LocalDebyeLengthField");
-            auto& localTemperatureEnergyField
-                = *dc.get<s_IPD::localHelperFields::LocalTemperatureEnergyField<picongpu::MappingDesc>>(
-                    "LocalTemperatureEnergyField");
-            auto& localZStarField
-                = *dc.get<s_IPD::localHelperFields::LocalZStarField<picongpu::MappingDesc>>("LocalZStarField");
-            auto idProvider = dc.get<IdProvider>("globalId");
+        // macro for call of kernel on every superCell, see pull request #4321
+        PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::ApplyIPDIonizationKernel<T_IPDModel>())
+            .config(mapper.getGridDim(), ions)(
+                mapper,
+                idProvider->getDeviceGenerator(),
+                ions.getDeviceParticlesBox(),
+                electrons.getDeviceParticlesBox(),
+                localTimeRemainingField.getDeviceDataBox(),
+                localFoundUnboundIonField.getDeviceDataBox(),
+                atomicData.template getChargeStateDataDataBox</*on device*/ false>(),
+                atomicData.template getAtomicStateDataDataBox</*on device*/ false>(),
+                atomicData.template getIPDIonizationStateDataBox</*on device*/ false>(),
+                localDebyeLengthField.getDeviceDataBox(),
+                localTemperatureEnergyField.getDeviceDataBox(),
+                localZStarField.getDeviceDataBox());
 
-            // macro for call of kernel on every superCell, see pull request #4321
-            PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::ApplyIPDIonizationKernel<T_IPDModel>())
-                .config(mapper.getGridDim(), ions)(
-                    mapper,
-                    idProvider->getDeviceGenerator(),
-                    ions.getDeviceParticlesBox(),
-                    electrons.getDeviceParticlesBox(),
-                    localTimeRemainingField.getDeviceDataBox(),
-                    localFoundUnboundIonField.getDeviceDataBox(),
-                    atomicData.template getChargeStateDataDataBox</*on device*/ false>(),
-                    atomicData.template getAtomicStateDataDataBox</*on device*/ false>(),
-                    atomicData.template getIPDIonizationStateDataBox</*on device*/ false>(),
-                    localDebyeLengthField.getDeviceDataBox(),
-                    localTemperatureEnergyField.getDeviceDataBox(),
-                    localZStarField.getDeviceDataBox());
+        // no need to call fillAllGaps, since we do not leave any gaps
 
-            // no need to call fillAllGaps, since we do not leave any gaps
+        // debug call
+        if constexpr(picongpu::atomicPhysics::debug::kernel::applyIPDIonization::ELECTRON_PARTICLE_BOX_FILL_GAPS)
+            electrons.fillAllGaps();
+    }
 
-            // debug call
-            if constexpr(picongpu::atomicPhysics::debug::kernel::applyIPDIonization::ELECTRON_PARTICLE_BOX_FILL_GAPS)
-                electrons.fillAllGaps();
-        }
-    };
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::stage

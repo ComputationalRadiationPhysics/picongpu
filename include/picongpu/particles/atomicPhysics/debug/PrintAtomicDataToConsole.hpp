@@ -20,7 +20,9 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
 #include <cstdint>
 #include <iostream>

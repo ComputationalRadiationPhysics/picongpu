@@ -22,6 +22,7 @@
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/boundary/Apply.hpp"
 #include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>

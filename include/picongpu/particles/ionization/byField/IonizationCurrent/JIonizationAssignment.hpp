@@ -21,6 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/particles/traits/GetShape.hpp"
 
 namespace picongpu
 {

@@ -23,6 +23,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/YeeCell.hpp"
+#include "picongpu/fields/absorber/Thickness.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
@@ -492,3 +493,5 @@ namespace pmacc
 
     } // namespace traits
 } // namespace pmacc
+
+#include "picongpu/fields/absorber/pml/Field.tpp"

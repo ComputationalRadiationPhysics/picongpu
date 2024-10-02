@@ -29,6 +29,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/ionization/param.hpp"
 #include "picongpu/particles/particleToGrid/CombinedDerive.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"

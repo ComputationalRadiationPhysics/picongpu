@@ -22,8 +22,8 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need timeStepAlpha factor from atomicPhysics.param
-// need access to sim.pic.getDt() from simulation.unitless
+#include "picongpu/particles/atomicPhysics/localHelperFields/RejectionProbabilityCache.hpp"
+#include "picongpu/particles/atomicPhysics/param.hpp"
 
 #include <pmacc/lockstep/ForEach.hpp>
 

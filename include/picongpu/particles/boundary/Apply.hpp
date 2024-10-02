@@ -21,7 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/boundary/Absorbing.hpp"
-#include "picongpu/particles/boundary/ApplyImpl.hpp"
+#include "picongpu/particles/boundary/Apply.def"
 #include "picongpu/particles/boundary/Description.hpp"
 #include "picongpu/particles/boundary/Reflecting.hpp"
 #include "picongpu/particles/boundary/Thermal.hpp"
@@ -98,16 +98,16 @@ namespace picongpu
                     switch(boundaryDescription.kind)
                     {
                     case Kind::Periodic:
-                        ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);
+                        applyImpl<Kind::Periodic>(species, exchange, currentStep);
                         break;
                     case Kind::Absorbing:
-                        ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
+                        applyImpl<Kind::Absorbing>(species, exchange, currentStep);
                         break;
                     case Kind::Reflecting:
-                        ApplyImpl<Kind::Reflecting>{}(species, exchange, currentStep);
+                        applyImpl<Kind::Reflecting>(species, exchange, currentStep);
                         break;
                     case Kind::Thermal:
-                        ApplyImpl<Kind::Thermal>{}(species, exchange, currentStep);
+                        applyImpl<Kind::Thermal>(species, exchange, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");

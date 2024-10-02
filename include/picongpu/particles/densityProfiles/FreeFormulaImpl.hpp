@@ -21,6 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/densityProfiles/IProfile.hpp"
+#include "picongpu/particles/functor/User.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 

@@ -20,9 +20,8 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need: picongpu/param/atomicPhysics_Debug.param
-
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionType.hpp"

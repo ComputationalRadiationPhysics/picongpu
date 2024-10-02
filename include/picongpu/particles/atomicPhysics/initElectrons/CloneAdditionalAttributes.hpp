@@ -24,6 +24,8 @@
 
 #include "picongpu/defines.hpp"
 
+#include <pmacc/particles/operations/Deselect.hpp>
+
 namespace picongpu::particles::atomicPhysics::initElectrons
 {
     struct CloneAdditionalAttributes

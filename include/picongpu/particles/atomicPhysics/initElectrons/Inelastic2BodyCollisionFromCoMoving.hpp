@@ -22,10 +22,10 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need physicalConstants.param
-
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/initElectrons/CloneAdditionalAttributes.hpp"
+#include "picongpu/traits/frame/GetMass.hpp"
 
 #include <pmacc/algorithms/math/PowerFunction.hpp>
 #include <pmacc/math/Matrix.hpp>

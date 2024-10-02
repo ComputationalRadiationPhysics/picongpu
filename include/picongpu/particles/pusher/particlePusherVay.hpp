@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/param/pusher.param"
 #include "picongpu/traits/attribute/GetCharge.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 

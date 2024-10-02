@@ -27,9 +27,11 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/RateCache.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
 
 #include <pmacc/Environment.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 #include <string>

@@ -27,7 +27,12 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics/kernel/CalculateStepLength.kernel"
+#include "picongpu/particles/atomicPhysics/localHelperFields/LocalRateCacheField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeStepField.hpp"
+#include "picongpu/particles/param.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <string>
 

@@ -19,8 +19,8 @@
 
 #pragma once
 
-// need: picongpu/param/atomicPhysics_Debug.param
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 

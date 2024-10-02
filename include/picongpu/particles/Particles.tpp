@@ -25,7 +25,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/Particles.kernel"
-#include "picongpu/particles/boundary/Apply.hpp"
+#include "picongpu/particles/boundary/Apply.def"
 #include "picongpu/particles/pusher/Traits.hpp"
 #include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"

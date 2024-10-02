@@ -23,6 +23,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/DispersionRelation.hpp"
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 

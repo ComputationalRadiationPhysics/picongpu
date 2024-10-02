@@ -33,7 +33,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<ProcessClassGroup group>
     struct IsProcess
     {
-        HDINLINE static constexpr bool check(uint8_t processClass);
+        static constexpr bool check(uint8_t processClass);
     };
 
     /** processClasses which are based on bound-bound transition data sets,
@@ -41,7 +41,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::boundBoundBased>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             if((processClass == u8(ProcessClass::electronicExcitation))
                || (processClass == u8(ProcessClass::electronicDeexcitation))
@@ -56,7 +56,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::boundFreeBased>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             ///@todo implement recombination, Brian Marre, 2023
             if((processClass == u8(ProcessClass::electronicIonization))
@@ -71,7 +71,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::autonomousBased>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             if(processClass == u8(ProcessClass::autonomousIonization))
                 return true;
@@ -83,7 +83,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::ionizing>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             if((processClass == u8(ProcessClass::electronicIonization))
                || (processClass == u8(ProcessClass::autonomousIonization))
@@ -97,7 +97,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::electronicCollisional>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             if((processClass == u8(ProcessClass::electronicExcitation))
                || (processClass == u8(ProcessClass::electronicDeexcitation))
@@ -111,7 +111,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::upward>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             if((processClass == u8(ProcessClass::electronicExcitation))
                || (processClass == u8(ProcessClass::electronicIonization))
@@ -125,7 +125,7 @@ namespace picongpu::particles::atomicPhysics::enums
     template<>
     struct IsProcess<ProcessClassGroup::downward>
     {
-        HDINLINE static constexpr bool check(uint8_t processClass)
+        static constexpr bool check(uint8_t processClass)
         {
             if((processClass == u8(ProcessClass::electronicDeexcitation))
                || (processClass == u8(ProcessClass::spontaneousDeexcitation))

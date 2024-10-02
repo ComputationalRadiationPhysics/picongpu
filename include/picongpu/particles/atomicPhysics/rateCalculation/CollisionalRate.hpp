@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
 #include <cstdint>
 
 namespace picongpu::particles2::atomicPhysics::rateCalculation

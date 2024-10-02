@@ -21,6 +21,10 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+
 namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression
 {
     struct PassIPDInputs

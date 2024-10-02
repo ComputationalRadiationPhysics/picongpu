@@ -23,6 +23,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <type_traits>
 

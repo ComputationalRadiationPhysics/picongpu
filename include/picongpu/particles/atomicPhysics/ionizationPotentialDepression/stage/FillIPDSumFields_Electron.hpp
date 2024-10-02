@@ -26,7 +26,11 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/kernel/FillIPDSumFields_Electron.kernel"
+#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/stage/FillIPDSumFields_Electron.def"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <string>
 
@@ -35,57 +39,50 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::sta
     //! short hand for IPD namespace
     namespace s_IPD = picongpu::particles::atomicPhysics::ionizationPotentialDepression;
 
-    /** IPD sub-stage for filling the sum fields required for calculating the IPD inputs for an ion species
-     *
-     * @tparam T_ElectronSpecies electron species to fill into sum fields
-     * @tparam T_TemperatureFunctional functional to use for temperature calculation
-     */
+    //! call of kernel for every superCell
     template<typename T_ElectronSpecies, typename T_TemperatureFunctional>
-    struct FillIPDSumFields_Electron
+    HINLINE void FillIPDSumFields_Electron<T_ElectronSpecies, T_TemperatureFunctional>::operator()(
+        picongpu::MappingDesc const mappingDesc) const
     {
         // might be alias, from here on out no more
         //! resolved type of alias T_ParticleSpecies
         using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_ElectronSpecies>;
 
-        //! call of kernel for every superCell
-        HINLINE void operator()(picongpu::MappingDesc const mappingDesc) const
-        {
-            static_assert(
-                pmacc::traits::HasIdentifiers<typename ElectronSpecies::FrameType, MakeSeq_t<weighting, momentum>>::
-                    type::value,
-                "atomic physics: species is missing one of the following attributes: weighting, momentum");
+        static_assert(
+            pmacc::traits::HasIdentifiers<typename ElectronSpecies::FrameType, MakeSeq_t<weighting, momentum>>::type::
+                value,
+            "atomic physics: species is missing one of the following attributes: weighting, momentum");
 
-            // full local domain, no guards
-            pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
-            pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
+        // full local domain, no guards
+        pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(mappingDesc);
+        pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
 
-            auto& localTimeRemainingField = *dc.get<
-                picongpu::particles::atomicPhysics::localHelperFields::LocalTimeRemainingField<picongpu::MappingDesc>>(
-                "LocalTimeRemainingField");
+        auto& localTimeRemainingField = *dc.get<
+            picongpu::particles::atomicPhysics::localHelperFields::LocalTimeRemainingField<picongpu::MappingDesc>>(
+            "LocalTimeRemainingField");
 
-            // pointer to memory, we will only work on device, no sync required
-            // init pointer to particles and localSumFields
-            auto& electrons = *dc.get<ElectronSpecies>(ElectronSpecies::FrameType::getName());
+        // pointer to memory, we will only work on device, no sync required
+        // init pointer to particles and localSumFields
+        auto& electrons = *dc.get<ElectronSpecies>(ElectronSpecies::FrameType::getName());
 
-            auto& localSumWeightAllField
-                = *dc.get<s_IPD::localHelperFields::SumWeightAllField<picongpu::MappingDesc>>("SumWeightAllField");
-            auto& localSumTemperatureFunctionalField
-                = *dc.get<s_IPD::localHelperFields::SumTemperatureFunctionalField<picongpu::MappingDesc>>(
-                    "SumTemperatureFunctionalField");
+        auto& localSumWeightAllField
+            = *dc.get<s_IPD::localHelperFields::SumWeightAllField<picongpu::MappingDesc>>("SumWeightAllField");
+        auto& localSumTemperatureFunctionalField
+            = *dc.get<s_IPD::localHelperFields::SumTemperatureFunctionalField<picongpu::MappingDesc>>(
+                "SumTemperatureFunctionalField");
 
-            auto& localSumWeightElectronField
-                = *dc.get<s_IPD::localHelperFields::SumWeightElectronsField<picongpu::MappingDesc>>(
-                    "SumWeightElectronsField");
+        auto& localSumWeightElectronField
+            = *dc.get<s_IPD::localHelperFields::SumWeightElectronsField<picongpu::MappingDesc>>(
+                "SumWeightElectronsField");
 
-            // macro for call of kernel on every superCell, see pull request #4321
-            PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::FillIPDSumFieldsKernel_Electron<T_TemperatureFunctional>())
-                .config(mapper.getGridDim(), electrons)(
-                    mapper,
-                    localTimeRemainingField.getDeviceDataBox(),
-                    electrons.getDeviceParticlesBox(),
-                    localSumWeightAllField.getDeviceDataBox(),
-                    localSumTemperatureFunctionalField.getDeviceDataBox(),
-                    localSumWeightElectronField.getDeviceDataBox());
-        }
-    };
+        // macro for call of kernel on every superCell, see pull request #4321
+        PMACC_LOCKSTEP_KERNEL(s_IPD::kernel::FillIPDSumFieldsKernel_Electron<T_TemperatureFunctional>())
+            .config(mapper.getGridDim(), electrons)(
+                mapper,
+                localTimeRemainingField.getDeviceDataBox(),
+                electrons.getDeviceParticlesBox(),
+                localSumWeightAllField.getDeviceDataBox(),
+                localSumTemperatureFunctionalField.getDeviceDataBox(),
+                localSumWeightElectronField.getDeviceDataBox());
+    }
 } // namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::stage

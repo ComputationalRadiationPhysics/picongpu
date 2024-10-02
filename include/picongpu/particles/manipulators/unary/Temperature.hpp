@@ -22,6 +22,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/functor/User.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 namespace picongpu
 {

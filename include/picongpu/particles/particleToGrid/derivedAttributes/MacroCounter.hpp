@@ -34,11 +34,6 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                HDINLINE float1_64 MacroCounter::getUnit() const
-                {
-                    return 1.0;
-                }
-
                 template<class T_Particle>
                 DINLINE float_X MacroCounter::operator()(T_Particle& particle) const
                 {

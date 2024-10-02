@@ -28,6 +28,7 @@
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
 #include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
 #include "picongpu/particles/ionization/byField/Keldysh/Keldysh.def"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 

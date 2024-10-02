@@ -19,13 +19,15 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ParticleType.hpp"
 #include "picongpu/particles/atomicPhysics/debug/PrintAtomicDataToConsole.hpp"
+#include "picongpu/particles/param.hpp"
 #include "picongpu/particles/traits/GetAtomicDataType.hpp"
 #include "picongpu/particles/traits/GetNumberAtomicStates.hpp"
 
 #include <pmacc/particles/memory/frames/Frame.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>

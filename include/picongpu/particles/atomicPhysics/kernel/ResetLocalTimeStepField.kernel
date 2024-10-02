@@ -21,6 +21,8 @@
 
 #include "picongpu/defines.hpp"
 
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+
 #include <cstdint>
 
 namespace picongpu::particles::atomicPhysics::kernel

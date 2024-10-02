@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/Manipulate.def"
 #include "picongpu/particles/MoveParticle.hpp"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"

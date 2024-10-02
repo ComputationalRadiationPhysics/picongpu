@@ -24,9 +24,11 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/debug/kernel/DumpAllIonsToConsole.kernel"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>

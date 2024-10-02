@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // needs ?
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"

@@ -20,12 +20,11 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-// need: picongpu/param/atomicPhysics_Debug.param and picongpu/param/atomicPhysics.param
-
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicTuples.def"
 #include "picongpu/particles/atomicPhysics/atomicData/DataBox.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/DataBuffer.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 
 #include <cstdint>
 #include <memory>

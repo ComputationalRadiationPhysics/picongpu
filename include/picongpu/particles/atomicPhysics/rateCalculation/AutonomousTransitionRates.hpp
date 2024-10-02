@@ -36,6 +36,8 @@
  *  Springer, Berlin, 1995, pp.120-124
  */
 
+#include "picongpu/defines.hpp"
+
 namespace picongpu::particles::atomicPhysics::rateCalculation
 {
     struct AutonomousTransitionRates

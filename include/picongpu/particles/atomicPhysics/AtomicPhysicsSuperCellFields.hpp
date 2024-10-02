@@ -28,6 +28,7 @@
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeStepField.hpp"
 #include "picongpu/particles/atomicPhysics/stage/CreateLocalRateCacheField.hpp"
+#include "picongpu/particles/param.hpp"
 
 #include <pmacc/meta/ForEach.hpp>
 

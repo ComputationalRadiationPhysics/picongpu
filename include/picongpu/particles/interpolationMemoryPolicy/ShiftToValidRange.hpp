@@ -17,6 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "picongpu/defines.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+#include <pmacc/math/math.hpp>
+
 
 namespace picongpu
 {
@@ -34,19 +41,18 @@ namespace picongpu
                 template<typename T_MemoryType, typename T_PosType>
                 HDINLINE T_MemoryType memory(const T_MemoryType& mem, const T_PosType& pos) const
                 {
-                    const T_PosType pos_floor = math::floor(pos);
+                    const T_PosType pos_floor = pmacc::math::floor(pos);
                     return mem.shift(precisionCast<int>(pos_floor));
                 }
 
                 template<typename T_PosType>
                 HDINLINE T_PosType position(const T_PosType& pos) const
                 {
-                    const T_PosType pos_floor = math::floor(pos);
+                    const T_PosType pos_floor = pmacc::math::floor(pos);
                     return pos - pos_floor;
                 }
             };
 
         } // namespace interpolationMemoryPolicy
-
     } // namespace particles
 } // namespace picongpu

@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/BoundElectronDensity.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 
@@ -34,12 +35,6 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                HDINLINE float1_64 BoundElectronDensity::getUnit() const
-                {
-                    constexpr float_64 UNIT_VOLUME = sim.unit.length() * sim.unit.length() * sim.unit.length();
-                    return sim.unit.typicalNumParticlesPerMacroParticle() / UNIT_VOLUME;
-                }
-
                 template<class T_Particle>
                 DINLINE float_X BoundElectronDensity::operator()(T_Particle& particle) const
                 {

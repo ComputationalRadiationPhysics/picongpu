@@ -20,6 +20,11 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+#include <pmacc/memory/Align.hpp>
+
 namespace picongpu
 {
     /** functor for particle field interpolator

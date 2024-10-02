@@ -39,7 +39,7 @@ namespace picongpu::particles::atomicPhysics
     } // namespace enums
 
     template<enums::TransitionOrdering T_TransitionOrdering>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(u8(T_TransitionOrdering) == u8(enums::TransitionOrdering::byLowerState))
             return "byLowerState";

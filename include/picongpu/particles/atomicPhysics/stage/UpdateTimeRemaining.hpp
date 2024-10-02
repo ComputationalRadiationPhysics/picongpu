@@ -23,6 +23,10 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/kernel/UpdateTimeRemaining.kernel"
+#include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeStepField.hpp"
+
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <string>
 

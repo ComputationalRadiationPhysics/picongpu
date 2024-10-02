@@ -24,6 +24,7 @@
 // need atomicPhysics_Debug.param
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 
 #include <pmacc/static_assert.hpp>

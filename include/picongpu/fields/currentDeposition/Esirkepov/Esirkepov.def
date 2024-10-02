@@ -21,6 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/currentDeposition/Strategy.def"
+#include "picongpu/traits/GetMargin.hpp"
 
 
 namespace picongpu

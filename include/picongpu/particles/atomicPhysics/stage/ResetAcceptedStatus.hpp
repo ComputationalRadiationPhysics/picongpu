@@ -23,6 +23,9 @@
 
 #include "picongpu/particles/atomicPhysics/kernel/ResetAcceptedStatus.kernel"
 #include "picongpu/particles/atomicPhysics/localHelperFields/LocalTimeRemainingField.hpp"
+#include "picongpu/particles/param.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 namespace picongpu::particles::atomicPhysics::stage
 {

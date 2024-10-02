@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
 #include "picongpu/fields/background/templates/TWTS/numComponents.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>

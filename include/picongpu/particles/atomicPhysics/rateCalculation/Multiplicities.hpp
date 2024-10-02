@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp" // need: picongpu/param/atomicPhysics_Debug.param
+#include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BinomialCoefficient.hpp"
 
 #include <pmacc/algorithms/math.hpp>

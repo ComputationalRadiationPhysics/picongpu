@@ -21,6 +21,7 @@
 
 #include "picongpu/fields/differentiation/Curl.def"
 #include "picongpu/fields/differentiation/Derivative.def"
+#include "picongpu/traits/GetCurl.hpp"
 
 #include <pmacc/math/Vector.hpp>
 

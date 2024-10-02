@@ -21,6 +21,7 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/generic/FreeTotalCellOffset.def"
+#include "picongpu/particles/functor/User.hpp"
 #include "picongpu/particles/functor/misc/TotalCellOffset.hpp"
 
 #include <string>

@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
 #include <pmacc/attribute/FunctionSpecifier.hpp>
 #include <pmacc/memory/Array.hpp>
 

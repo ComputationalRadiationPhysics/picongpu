@@ -19,9 +19,12 @@
 
 #pragma once
 
+#include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/IsWeighted.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include <pmacc/static_assert.hpp>
 
@@ -36,11 +39,6 @@ namespace picongpu
         {
             namespace derivedAttributes
             {
-                HDINLINE float1_64 LarmorPower::getUnit() const
-                {
-                    return sim.unit.energy();
-                }
-
                 template<class T_Particle>
                 DINLINE float_X LarmorPower::operator()(T_Particle& particle) const
                 {

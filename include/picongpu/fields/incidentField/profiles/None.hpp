@@ -23,6 +23,7 @@
 #include "picongpu/fields/incidentField/profiles/None.def"
 #include "picongpu/fields/incidentField/traits/GetAmplitude.hpp"
 #include "picongpu/fields/incidentField/traits/GetFunctor.hpp"
+#include "picongpu/fields/incidentField/traits/GetPhaseVelocity.hpp"
 
 #include <cstdint>
 #include <string>

@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 
 namespace picongpu

@@ -80,6 +80,8 @@ append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/algorithms" "hpp" "PIC_FILES
 append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/debug" "hpp" "PIC_FILES_HEADER")
 append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/random" "hpp" "PIC_FILES_HEADER")
 append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/traits" "hpp" "PIC_FILES_HEADER")
+append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/fields" "hpp" "PIC_FILES_HEADER")
+append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/particles" "hpp" "PIC_FILES_HEADER")
 
 # remove traits which where include dependencies can not be solved easily
 file(GLOB_RECURSE PIC_ATTRIBUTE_TRAITS "${PIC_SUFFIXED_INCLUDE_DIR}/traits/attribute/*.hpp")

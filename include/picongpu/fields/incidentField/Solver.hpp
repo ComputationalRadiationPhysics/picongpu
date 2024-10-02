@@ -29,6 +29,7 @@
 #include "picongpu/fields/incidentField/Functors.hpp"
 #include "picongpu/fields/incidentField/Solver.kernel"
 #include "picongpu/fields/incidentField/profiles/profiles.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/GetCurl.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>

@@ -35,12 +35,6 @@ namespace picongpu
             namespace derivedAttributes
             {
                 template<size_t T_direction>
-                HDINLINE float1_64 Momentum<T_direction>::getUnit() const
-                {
-                    return sim.unit.mass() * sim.unit.speed();
-                }
-
-                template<size_t T_direction>
                 template<typename T_Particle>
                 DINLINE float_X Momentum<T_direction>::operator()(T_Particle& particle) const
                 {

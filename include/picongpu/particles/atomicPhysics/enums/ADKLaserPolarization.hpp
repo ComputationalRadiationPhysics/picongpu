@@ -22,6 +22,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace picongpu::particles::atomicPhysics::enums
 {
@@ -35,7 +36,7 @@ namespace picongpu::particles::atomicPhysics::enums
 namespace picongpu::particles::atomicPhysics
 {
     template<enums::ADKLaserPolarization T_ADKLaserPolarization>
-    ALPAKA_FN_HOST std::string enumToString()
+    std::string enumToString()
     {
         if constexpr(
             static_cast<uint8_t>(T_ADKLaserPolarization)
