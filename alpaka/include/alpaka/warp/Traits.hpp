@@ -1,4 +1,4 @@
-/* Copyright 2022 Sergei Bastrakov, David M. Rogers, Bernhard Manfred Gruber
+/* Copyright 2022 Sergei Bastrakov, David M. Rogers, Bernhard Manfred Gruber, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -38,6 +38,18 @@ namespace alpaka::warp
         //! The shfl warp swizzling trait.
         template<typename TWarp, typename TSfinae = void>
         struct Shfl;
+
+        //! The shfl up warp swizzling trait.
+        template<typename TWarp, typename TSfinae = void>
+        struct ShflUp;
+
+        //! The shfl down warp swizzling trait.
+        template<typename TWarp, typename TSfinae = void>
+        struct ShflDown;
+
+        //! The shfl xor warp swizzling trait.
+        template<typename TWarp, typename TSfinae = void>
+        struct ShflXor;
 
         //! The active mask trait.
         template<typename TWarp, typename TSfinae = void>
@@ -162,7 +174,7 @@ namespace alpaka::warp
     //!     __shared__ int32_t values[warpsize];
     //!     values[threadIdx.x] = value;
     //!     __syncthreads();
-    //!     return values[(srcLane + width*floor(threadIdx.x/width))%width];
+    //!     return values[width*(threadIdx.x/width) + srcLane%width];
     //!
     //! However, it does not use shared memory.
     //!
@@ -182,19 +194,124 @@ namespace alpaka::warp
     //! \param  width   number of threads receiving a single value
     //! \return val from the thread index srcLane.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TWarp>
-    ALPAKA_FN_ACC auto shfl(TWarp const& warp, std::int32_t value, std::int32_t srcLane, std::int32_t width = 0)
+    template<typename TWarp, typename T>
+    ALPAKA_FN_ACC auto shfl(TWarp const& warp, T value, std::int32_t srcLane, std::int32_t width = 0)
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
         return trait::Shfl<ImplementationBase>::shfl(warp, value, srcLane, width ? width : getSize(warp));
     }
 
-    //! shfl for float vals
+    //! Exchange data between threads within a warp.
+    //! It copies from a lane with lower ID relative to caller.
+    //! The lane ID is calculated by subtracting delta from the caller’s lane ID.
+    //!
+    //! Effectively executes:
+    //!
+    //!     __shared__ int32_t values[warpsize];
+    //!     values[threadIdx.x] = value;
+    //!     __syncthreads();
+    //!     return (threadIdx.x % width >= delta) ? values[threadIdx.x - delta] : values[threadIdx.x];
+    //!
+    //! However, it does not use shared memory.
+    //!
+    //! Notes:
+    //! * The programmer must ensure that all threads calling this
+    //!   function (and the srcLane) are executing the same line of code.
+    //!   In particular it is not portable to write if(a) {shfl} else {shfl}.
+    //!
+    //! * Commonly used with width = warpsize (the default), (returns values[threadIdx.x - delta] if threadIdx.x >=
+    //! delta)
+    //!
+    //! * Width must be a power of 2.
+    //!
+    //! \tparam TWarp   warp implementation type
+    //! \tparam T       value type
+    //! \param  warp    warp implementation
+    //! \param  value   value to broadcast
+    //! \param  offset  corresponds to the delta used to compute the lane ID
+    //! \param  width   size of the group participating in the shuffle operation
+    //! \return val from the thread index lane ID.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TWarp>
-    ALPAKA_FN_ACC auto shfl(TWarp const& warp, float value, std::int32_t srcLane, std::int32_t width = 0)
+    template<typename TWarp, typename T>
+    ALPAKA_FN_ACC auto shfl_up(TWarp const& warp, T value, std::uint32_t offset, std::int32_t width = 0)
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
-        return trait::Shfl<ImplementationBase>::shfl(warp, value, srcLane, width ? width : getSize(warp));
+        return trait::ShflUp<ImplementationBase>::shfl_up(warp, value, offset, width ? width : getSize(warp));
+    }
+
+    //! Exchange data between threads within a warp.
+    //! It copies from a lane with higher ID relative to caller.
+    //! The lane ID is calculated by adding delta to the caller’s lane ID.
+    //!
+    //! Effectively executes:
+    //!
+    //!     __shared__ int32_t values[warpsize];
+    //!     values[threadIdx.x] = value;
+    //!     __syncthreads();
+    //!     return (threadIdx.x % width + delta < width) ? values[threadIdx.x + delta] : values[threadIdx.x];
+    //!
+    //! However, it does not use shared memory.
+    //!
+    //! Notes:
+    //! * The programmer must ensure that all threads calling this
+    //!   function (and the srcLane) are executing the same line of code.
+    //!   In particular it is not portable to write if(a) {shfl} else {shfl}.
+    //!
+    //! * Commonly used with width = warpsize (the default), (returns values[threadIdx.x+delta] if threadIdx.x+delta <
+    //! warpsize)
+    //!
+    //! * Width must be a power of 2.
+    //!
+    //! \tparam TWarp   warp implementation type
+    //! \tparam T       value type
+    //! \param  warp    warp implementation
+    //! \param  value   value to broadcast
+    //! \param  offset  corresponds to the delta used to compute the lane ID
+    //! \param  width   size of the group participating in the shuffle operation
+    //! \return val from the thread index lane ID.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TWarp, typename T>
+    ALPAKA_FN_ACC auto shfl_down(TWarp const& warp, T value, std::uint32_t offset, std::int32_t width = 0)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
+        return trait::ShflDown<ImplementationBase>::shfl_down(warp, value, offset, width ? width : getSize(warp));
+    }
+
+    //! Exchange data between threads within a warp.
+    //! It copies from a lane based on bitwise XOR of own lane ID.
+    //! The lane ID is calculated by performing a bitwise XOR of the caller’s lane ID with mask
+    //!
+    //! Effectively executes:
+    //!
+    //!     __shared__ int32_t values[warpsize];
+    //!     values[threadIdx.x] = value;
+    //!     __syncthreads();
+    //!     int lane = threadIdx.x ^ mask;
+    //!     return values[lane / width > threadIdx.x / width ? threadIdx.x : lane];
+    //!
+    //! However, it does not use shared memory.
+    //!
+    //! Notes:
+    //! * The programmer must ensure that all threads calling this
+    //!   function (and the srcLane) are executing the same line of code.
+    //!   In particular it is not portable to write if(a) {shfl} else {shfl}.
+    //!
+    //! * Commonly used with width = warpsize (the default), (returns values[threadIdx.x^mask])
+    //!
+    //! * Width must be a power of 2.
+    //!
+    //! \tparam TWarp   warp implementation type
+    //! \tparam T       value type
+    //! \param  warp    warp implementation
+    //! \param  value   value to broadcast
+    //! \param  mask    corresponds to the mask used to compute the lane ID
+    //! \param  width   size of the group participating in the shuffle operation
+    //! \return val from the thread index lane ID.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TWarp, typename T>
+    ALPAKA_FN_ACC auto shfl_xor(TWarp const& warp, T value, std::int32_t mask, std::int32_t width = 0)
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
+        return trait::ShflXor<ImplementationBase>::shfl_xor(warp, value, mask, width ? width : getSize(warp));
     }
 } // namespace alpaka::warp

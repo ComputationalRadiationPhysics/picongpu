@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
+include(CheckLanguage) # check for CUDA/HIP language support
 include(CMakePrintHelpers) # for easier printing of variables and properties
 include(CMakeDependentOption) # Make options depend on other options
 
@@ -139,6 +140,12 @@ if(alpaka_DISABLE_VENDOR_RNG)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_DISABLE_VENDOR_RNG")
 endif()
 
+# Device side assert
+option(alpaka_ASSERT_ACC_ENABLE "Enable device side asserts. In case  value is OFF device side asserts will be disabled even if NDEBUG is not defined." ON)
+if(!alpaka_ASSERT_ACC_ENABLE)
+    target_compile_definitions(alpaka INTERFACE "ALPAKA_DISABLE_ASSERT_ACC")
+endif()
+
 #-------------------------------------------------------------------------------
 # Debug output of common variables.
 if(${alpaka_DEBUG} GREATER 1)
@@ -165,7 +172,7 @@ endif()
 if(MSVC)
     # warning C4505: '__cudaUnregisterBinaryUtil': unreferenced local function has been removed
     if(alpaka_ACC_GPU_CUDA_ONLY_MODE)
-        target_compile_options(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4505>)
+        target_compile_options(alpaka INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler /wd4505>")
     endif()
 else()
     # For std::future we need to pass the correct pthread flag for the compiler and the linker:
@@ -189,13 +196,13 @@ else()
 
     # Add debug optimization levels. CMake doesn't do this by default.
     # Note that -Og is the recommended gcc optimization level for debug mode but is equivalent to -O1 for clang (and its derivates).
-    alpaka_set_compiler_options(HOST_DEVICE target alpaka $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-Og>
-                                                          $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CUDA>>:-Xcompiler -Og>
-                                                          $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:-O0>
-                                                          $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Od>)
+    alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:SHELL:-Og>"
+                                                          "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-Xcompiler -Og>"
+                                                          "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>"
+                                                          "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:SHELL:/Od>")
     
-    target_link_options(alpaka INTERFACE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-Og>
-                                         $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:-O0>) 
+    target_link_options(alpaka INTERFACE "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:SHELL:-Og>"
+                                         "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>")
 endif()
 
 #-------------------------------------------------------------------------------
@@ -351,7 +358,7 @@ endif()
 if(alpaka_ACC_GPU_CUDA_ENABLE)
     # Save the user-defined host compiler (if any)
     set(_alpaka_CUDA_HOST_COMPILER ${CMAKE_CUDA_HOST_COMPILER})
-    include(CheckLanguage)
+    
     check_language(CUDA)
 
     if(CMAKE_CUDA_COMPILER)
@@ -389,31 +396,31 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
                 message(FATAL_ERROR "Clang as a CUDA compiler does not support OpenMP 2!")
             endif()
 
-            target_compile_options(alpaka INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-unknown-cuda-version>)
+            target_compile_options(alpaka INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Wno-unknown-cuda-version>")
 
             # This flag silences the warning produced by the Dummy.cpp files:
             # clang: warning: argument unused during compilation: '--cuda-gpu-arch=sm_XX'
             # This seems to be a false positive as all flags are 'unused' for an empty file.
-            alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Qunused-arguments>)
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Qunused-arguments>")
 
             # Silences warnings that are produced by boost because clang is not correctly identified.
-            alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Wno-unused-local-typedef>)
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Wno-unused-local-typedef>")
 
             if(alpaka_FAST_MATH STREQUAL ON)
                 # -ffp-contract=fast enables the usage of FMA
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-ffast-math -ffp-contract=fast>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-ffast-math -ffp-contract=fast>")
             endif()
 
             if(alpaka_FTZ STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-fcuda-flush-denormals-to-zero>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-fcuda-flush-denormals-to-zero>")
             endif()
 
             if(alpaka_CUDA_SHOW_REGISTER STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcuda-ptxas=-v>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcuda-ptxas=-v>")
             endif()
 
             if(alpaka_CUDA_KEEP_FILES STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-save-temps>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-save-temps>")
             endif()
 
         elseif(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
@@ -423,67 +430,65 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             # nvidia bug id: 2448610
             if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
                 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le")
-                    alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Dlinux>)
+                    alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Dlinux>")
                 endif()
             endif()
 
             if(alpaka_CUDA_EXPT_EXTENDED_LAMBDA STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--extended-lambda>")
             endif()
             # This is mandatory because with C++17 many standard library functions we rely on are constexpr (std::min, std::multiplies, ...)
-            alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--expt-relaxed-constexpr>")
 
             # CMake automatically sets '-g' in debug mode
-            alpaka_set_compiler_options(DEVICE target alpaka $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CUDA>>:-G> # -G overrides -lineinfo
-                                                             $<$<AND:$<CONFIG:RelWithDebInfo>,$<COMPILE_LANGUAGE:CUDA>>:-g -lineinfo>)
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-G>" # -G overrides -lineinfo
+                                                             "$<$<AND:$<CONFIG:RelWithDebInfo>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-g -lineinfo>")
 
             if(alpaka_FAST_MATH STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--use_fast_math>")
             endif()
 
             if(alpaka_FTZ STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--ftz=true>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--ftz=true>")
             elseif(alpaka_FTZ STREQUAL OFF)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--ftz=false>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--ftz=false>")
             endif()
 
             if(alpaka_CUDA_SHOW_REGISTER STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas=-v>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xptxas -v>")
             endif()
 
             if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
                 if(NOT MSVC)
-                    alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp>)
+                    alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -fopenmp>")
 
                     # See https://github.com/alpaka-group/alpaka/issues/1755
                     if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") AND
                        (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 13))
                        message(STATUS "clang >= 13 detected. Force-setting OpenMP to version 4.5.")
-                       alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp-version=45>)
+                       alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -fopenmp-version=45>")
                     endif()
                 else()
-                    alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/openmp>)
+                    alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler /openmp>")
                 endif()
             endif()
 
             # Always add warning/error numbers which can be used for suppressions
-            alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--display_error_number>)
-
-            # avoids warnings on host-device signatured, default constructors/destructors
-            alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
+            set(ALPAKA_CUDA_DISPLAY_ERROR_NUM "$<IF:$<VERSION_LESS:$<CUDA_COMPILER_VERSION>,11.2.0>,-Xcudafe=--display_error_number,--display-error-number>")
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:${ALPAKA_CUDA_DISPLAY_ERROR_NUM}>")
 
             if(alpaka_CUDA_KEEP_FILES STREQUAL ON)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--keep>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--keep>")
             endif()
 
             option(alpaka_CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck. If alpaka_CUDA_KEEP_FILES is enabled source code will be inlined in ptx." OFF)
             if(alpaka_CUDA_SHOW_CODELINES)
-                alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:--source-in-ptx -lineinfo>)
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--source-in-ptx -lineinfo>")
 
                 # This is shaky - We currently don't have a way of checking for the host compiler ID.
                 # See https://gitlab.kitware.com/cmake/cmake/-/issues/20901
                 if(NOT MSVC)
-                    alpaka_set_compiler_options(DEVICE target alpaka $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-rdynamic>)
+                    alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -rdynamic>")
                 endif()
                 set(alpaka_CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
             endif()
@@ -502,36 +507,51 @@ endif()
 # Find HIP.
 if(alpaka_ACC_GPU_HIP_ENABLE)
 
-    # supported HIP version range
-    set(_alpaka_HIP_MIN_VER 5.0)
-    set(_alpaka_HIP_MAX_VER 5.5)
-    find_package(hip "${_alpaka_HIP_MAX_VER}")
-    if(NOT TARGET hip)
-        message(STATUS "Could not find HIP v${_alpaka_HIP_MAX_VER}. Now searching for HIP v${_alpaka_HIP_MIN_VER}")
-        find_package(hip "${_alpaka_HIP_MIN_VER}")
-    endif()
+    check_language(HIP)
 
-    if(NOT TARGET hip)
-        message(FATAL_ERROR "Optional alpaka dependency HIP could not be found!")
-    else()
-        target_link_libraries(alpaka INTERFACE hip::host hip::device)
+    if(CMAKE_HIP_COMPILER)
+        enable_language(HIP)
+        find_package(hip REQUIRED)
+
+        set(_alpaka_HIP_MIN_VER 5.1)
+        set(_alpaka_HIP_MAX_VER 6.0)
+
+        # construct hip version only with major and minor level
+        # cannot use hip_VERSION because of the patch level
+        # 6.0 is smaller than 6.0.1234, so _alpaka_HIP_MAX_VER would have to be defined with a large patch level or
+        # the next minor level, e.g. 6.1, would have to be used.
+        set(_hip_MAJOR_MINOR_VERSION "${hip_VERSION_MAJOR}.${hip_VERSION_MINOR}")
+
+        if(${_hip_MAJOR_MINOR_VERSION} VERSION_LESS ${_alpaka_HIP_MIN_VER} OR ${_hip_MAJOR_MINOR_VERSION} VERSION_GREATER ${_alpaka_HIP_MAX_VER})
+            message(WARNING "HIP ${_hip_MAJOR_MINOR_VERSION} is not official supported by alpaka. Supported versions: ${_alpaka_HIP_MIN_VER} - ${_alpaka_HIP_MAX_VER}")
+        endif()
+
+
+        target_link_libraries(alpaka INTERFACE "$<$<LINK_LANGUAGE:CXX>:hip::host>")
+        alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_AMD__>")
+        if(${_hip_MAJOR_MINOR_VERSION} VERSION_EQUAL "5.1")
+            alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_HCC__>")
+        endif()
 
         alpaka_compiler_option(HIP_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps 'CMakeFiles/<targetname>.dir'" OFF)
+        if(alpaka_HIP_KEEP_FILES)
+            alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-save-temps>")
+        endif()
 
         if(alpaka_FAST_MATH STREQUAL ON)
-            alpaka_set_compiler_options(DEVICE target alpaka "-ffast-math")
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-ffast-math>")
         endif()
 
         if(NOT alpaka_DISABLE_VENDOR_RNG)
             # hiprand requires ROCm implementation of random numbers by rocrand
             # hip::hiprand is currently not expressing this dependency
             find_package(rocrand REQUIRED CONFIG
-                    HINTS "${HIP_ROOT_DIR}/rocrand"
+                    HINTS "${ROCM_ROOT_DIR}/rocrand"
                     HINTS "/opt/rocm/rocrand")
             if(rocrand_FOUND)
                 target_link_libraries(alpaka INTERFACE roc::rocrand)
             else()
-                MESSAGE(FATAL_ERROR "Could not find rocRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/rocrand).")
+                MESSAGE(FATAL_ERROR "Could not find rocRAND (also searched in: ROCM_ROOT_DIR=${ROCM_ROOT_DIR}/rocrand).")
             endif()
 
             # HIP random numbers
@@ -546,17 +566,13 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         endif()
 
         if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
-            alpaka_set_compiler_options(DEVICE target alpaka "-fgpu-rdc")
-            target_link_options(alpaka INTERFACE "-fgpu-rdc" "--hip-link")
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL-fgpu-rdc>")
+            target_link_options(alpaka INTERFACE "$<$<LINK_LANGUAGE:HIP>:SHELL:-fgpu-rdc --hip-link>")
         elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
-            alpaka_set_compiler_options(DEVICE target alpaka "-fno-gpu-rdc")
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-fno-gpu-rdc>")
         endif()
-
-        alpaka_set_compiler_options(HOST_DEVICE target alpaka -std=c++${alpaka_CXX_STANDARD})
-
-        if(alpaka_HIP_KEEP_FILES STREQUAL ON)
-            alpaka_set_compiler_options(HOST_DEVICE target alpaka -save-temps)
-        endif()
+    else()
+        message(FATAL_ERROR "Optional alpaka dependency HIP could not be found!")
     endif()
 endif() # HIP
 
@@ -616,7 +632,6 @@ if(alpaka_ACC_SYCL_ENABLE)
 
         if(alpaka_SYCL_ONEAPI_FPGA)
             target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_FPGA")
-            alpaka_set_compiler_options(DEVICE target alpaka "-fintelfpga")
 
             if(alpaka_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
                 target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
@@ -733,16 +748,8 @@ if(alpaka_ACC_SYCL_ENABLE)
 endif()
 
 target_compile_definitions(alpaka INTERFACE "ALPAKA_DEBUG=${alpaka_DEBUG}")
-if(alpaka_DEBUG_OFFLOAD_ASSUME_HOST)
-   target_compile_definitions(alpaka INTERFACE "ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST")
-endif()
-target_compile_definitions(alpaka INTERFACE "ALPAKA_OFFLOAD_MAX_BLOCK_SIZE=${alpaka_OFFLOAD_MAX_BLOCK_SIZE}")
+
 target_compile_definitions(alpaka INTERFACE "ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB=${alpaka_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB}")
-if(alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM STREQUAL "DYN_FIXED")
-    target_compile_definitions(alpaka INTERFACE ALPAKA_OFFLOAD_BUILTIN_SHARED_MEM_FIXED)
-elseif(alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM STREQUAL "DYN_ALLOC")
-    target_compile_definitions(alpaka INTERFACE ALPAKA_OFFLOAD_BUILTIN_SHARED_MEM_ALLOC)
-endif()
 
 if(alpaka_CI)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_CI")

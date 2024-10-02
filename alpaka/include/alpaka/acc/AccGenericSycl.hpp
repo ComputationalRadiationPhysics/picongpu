@@ -81,16 +81,10 @@ namespace alpaka
             : WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item}
             , gb::IdxGbGenericSycl<TDim, TIdx>{work_item}
             , bt::IdxBtGenericSycl<TDim, TIdx>{work_item}
-            , AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{}
-            , math::MathGenericSycl{}
             , BlockSharedMemDynGenericSycl{dyn_shared_acc}
             , BlockSharedMemStGenericSycl{st_shared_acc}
             , BlockSyncGenericSycl<TDim>{work_item}
-            , IntrinsicGenericSycl{}
-            , MemFenceGenericSycl{}
-#    ifdef ALPAKA_DISABLE_VENDOR_RNG
-            , rand::RandDefault{}
-#    else
+#    ifndef ALPAKA_DISABLE_VENDOR_RNG
             , rand::RandGenericSycl<TDim>{work_item}
 #    endif
             , warp::WarpGenericSycl<TDim>{work_item}

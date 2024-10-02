@@ -12,13 +12,14 @@
 #include <iostream>
 
 // This example generates NUM_ROLLS of random events for each of NUM_POINTS points.
-unsigned constexpr NUM_POINTS = 2000; ///< Number of "points". Each will be  processed by a single thread.
-unsigned constexpr NUM_ROLLS = 2000; ///< Amount of random number "dice rolls" performed for each "point".
+constexpr unsigned NUM_POINTS = 2000; ///< Number of "points". Each will be  processed by a single thread.
+constexpr unsigned NUM_ROLLS = 2000; ///< Amount of random number "dice rolls" performed for each "point".
 
 /// Selected PRNG engine
 // Comment the current "using" line, and uncomment a different one to change the PRNG engine
 template<typename TAcc>
 using RandomEngine = alpaka::rand::Philox4x32x10<TAcc>;
+
 // using RandomEngine = alpaka::rand::engine::cpu::MersenneTwister;
 // using RandomEngine = alpaka::rand::engine::cpu::TinyMersenneTwister;
 // using RandomEngine = alpaka::rand::engine::uniform_cuda_hip::Xor;
@@ -159,7 +160,6 @@ struct InitRandomKernel<Strategy::offset>
     }
 };
 
-
 /// Fill the result buffer with random "dice rolls"
 struct FillKernel
 {
@@ -217,7 +217,7 @@ struct Writer;
 template<>
 struct Writer<Strategy::seed>
 {
-    void static save(float const* buffer, Box const& box)
+    static void save(float const* buffer, Box const& box)
     {
         saveDataAndShowAverage("out_seed.csv", buffer, box);
     }
@@ -226,7 +226,7 @@ struct Writer<Strategy::seed>
 template<>
 struct Writer<Strategy::subsequence>
 {
-    void static save(float const* buffer, Box const& box)
+    static void save(float const* buffer, Box const& box)
     {
         saveDataAndShowAverage("out_subsequence.csv", buffer, box);
     }
@@ -235,7 +235,7 @@ struct Writer<Strategy::subsequence>
 template<>
 struct Writer<Strategy::offset>
 {
-    void static save(float const* buffer, Box const& box)
+    static void save(float const* buffer, Box const& box)
     {
         saveDataAndShowAverage("out_offset.csv", buffer, box);
     }

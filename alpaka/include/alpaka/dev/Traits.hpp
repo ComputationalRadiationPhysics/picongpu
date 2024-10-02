@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2024 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -7,6 +7,8 @@
 #include "alpaka/core/Common.hpp"
 #include "alpaka/core/Concepts.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -40,6 +42,10 @@ namespace alpaka
         template<typename T, typename TSfinae = void>
         struct GetWarpSizes;
 
+        //! The device preferred warp size get trait.
+        template<typename T, typename TSfinae = void>
+        struct GetPreferredWarpSize;
+
         //! The device reset trait.
         template<typename T, typename TSfinae = void>
         struct Reset;
@@ -65,11 +71,22 @@ namespace alpaka
         return trait::GetDev<ImplementationBase>::getDev(t);
     }
 
-    //! \return The device name.
+    namespace detail
+    {
+        inline auto trim(std::string s) -> std::string
+        {
+            auto const pred = [](char c) { return !std::isspace(c); };
+            s.erase(std::find_if(rbegin(s), rend(s), pred).base(), end(s));
+            s.erase(begin(s), std::find_if(begin(s), end(s), pred));
+            return s;
+        }
+    } // namespace detail
+
+    //! \return The device name with leading/trailing space characters trimmed off.
     template<typename TDev>
     ALPAKA_FN_HOST auto getName(TDev const& dev) -> std::string
     {
-        return trait::GetName<TDev>::getName(dev);
+        return detail::trim(trait::GetName<TDev>::getName(dev));
     }
 
     //! \return The memory on the device in Bytes. Returns 0 if querying memory
@@ -94,6 +111,13 @@ namespace alpaka
     ALPAKA_FN_HOST auto getWarpSizes(TDev const& dev) -> std::vector<std::size_t>
     {
         return trait::GetWarpSizes<TDev>::getWarpSizes(dev);
+    }
+
+    //! \return The preferred warp size on the device in number of threads.
+    template<typename TDev>
+    ALPAKA_FN_HOST constexpr auto getPreferredWarpSize(TDev const& dev) -> std::size_t
+    {
+        return trait::GetPreferredWarpSize<TDev>::getPreferredWarpSize(dev);
     }
 
     //! Resets the device.

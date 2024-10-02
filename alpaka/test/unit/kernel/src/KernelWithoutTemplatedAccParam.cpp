@@ -38,8 +38,7 @@ using AccGpu = alpaka::AccGpuCudaRt<Dim, Idx>;
 #if defined(ALPAKA_ACC_CPU_SERIAL_ENABLED)
 struct KernelNoTemplateCpu
 {
-    ALPAKA_FN_ACC
-    auto operator()(AccCpu const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(AccCpu const& acc, bool* success) const -> void
     {
         ALPAKA_CHECK(
             *success,

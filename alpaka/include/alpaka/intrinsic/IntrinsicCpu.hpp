@@ -1,16 +1,20 @@
-/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber
+/* Copyright 2023 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
 #include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Unreachable.hpp"
 #include "alpaka/intrinsic/IntrinsicFallback.hpp"
 #include "alpaka/intrinsic/Traits.hpp"
 
 #include <bitset>
 #include <climits>
-#if __has_include(<bit>)
+#if __has_include(<version>) // Not part of the C++17 standard but all major standard libraries include this
+#    include <version>
+#endif
+#ifdef __cpp_lib_bitops
 #    include <bit>
 #endif
 
@@ -49,6 +53,7 @@ namespace alpaka
                 // Fallback to standard library
                 return static_cast<std::int32_t>(std::bitset<sizeof(UnsignedIntegral) * CHAR_BIT>(value).count());
 #endif
+                ALPAKA_UNREACHABLE(0);
             }
         };
 
@@ -76,6 +81,7 @@ namespace alpaka
 #else
                 return alpaka::detail::ffsFallback(value);
 #endif
+                ALPAKA_UNREACHABLE(0);
             }
         };
     } // namespace trait

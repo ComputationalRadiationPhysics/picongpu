@@ -45,7 +45,7 @@ namespace mallocMC
                 return alpaka::getPtrNative(*poolBuffer);
             }
 
-            void resetMemPool(void* p)
+            void resetMemPool()
             {
                 poolBuffer = {};
             }

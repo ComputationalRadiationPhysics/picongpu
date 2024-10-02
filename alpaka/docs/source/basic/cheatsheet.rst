@@ -40,9 +40,12 @@ Define accelerator type (CUDA, OpenMP,etc.)
      .. code-block:: c++
 
 	AccGpuCudaRt,
+	AccGpuHipRt,
+	AccCpuSycl,
+	AccFpgaSyclIntel,
+	AccGpuSyclIntel,
 	AccCpuOmp2Blocks,
 	AccCpuOmp2Threads,
-	AccCpuOmp4,
 	AccCpuTbbBlocks,
 	AccCpuThreads,
 	AccCpuSerial
@@ -126,9 +129,9 @@ Create a view to host memory represented by a pointer
   .. code-block:: c++
 
      using Dim = alpaka::DimInt<1u>;
-     Vec<Dim, Idx> extent = value;
-     DataType* date = new DataType[extent[0]];
-     auto hostView = createView(devHost, data, extent);
+     Vec<Dim, Idx> extent = size;
+     DataType* ptr = ...;
+     auto hostView = createView(devHost, ptr, extent);
 
 Create a view to host std::vector
    .. code-block:: c++
@@ -139,7 +142,7 @@ Create a view to host std::vector
 Create a view to host std::array
    .. code-block:: c++
 
-     std::vector<DataType, 2> array = {42u, 23};
+     std::array<DataType, 2> array = {42u, 23};
      auto hostView = createView(devHost, array);
 
 Get a raw pointer to a buffer or view initialization, etc.
@@ -147,11 +150,6 @@ Get a raw pointer to a buffer or view initialization, etc.
 
      DataType* raw = view::getPtrNative(bufHost);
      DataType* rawViewPtr = view::getPtrNative(hostView);
-
-Get an accessor to a buffer and the accessor's type (experimental)
-  .. code-block:: c++
-
-     experimental::BufferAccessor<Acc, Elem, N, AccessTag> a = experimental::access(buffer);
 
 Allocate a buffer in device memory
   .. code-block:: c++
@@ -230,21 +228,14 @@ Access multi-dimensional indices and extents of blocks, threads, and elements
 
      auto idx = getIdx<Origin, Unit>(acc);
      auto extent = getWorkDiv<Origin, Unit>(acc);
+     // Origin: Grid, Block, Thread
+     // Unit: Blocks, Threads, Elems
 
-  Origin:
-     .. code-block:: c++
-
-	Grid, Block, Thread
-
-  Unit:
-     .. code-block:: c++
-
-	Blocks, Threads, Elems
-
-Access components of multi-dimensional indices and extents
+Access components of and destructuremulti-dimensional indices and extents
   .. code-block:: c++
 
      auto idxX = idx[0];
+     auto [z, y, x] = extent3D;
 
 Linearize multi-dimensional vectors
   .. code-block:: c++
@@ -258,7 +249,8 @@ Linearize multi-dimensional vectors
 Allocate static shared memory variable
   .. code-block:: c++
 
-     Type & var = declareSharedVar<Type, __COUNTER__>(acc);
+     Type& var = declareSharedVar<Type, __COUNTER__>(acc);       // scalar
+     auto& arr = declareSharedVar<float[256], __COUNTER__>(acc); // array
 
 Get dynamic shared memory pool, requires the kernel to specialize
   .. code-block:: c++
@@ -275,12 +267,10 @@ Atomic operations
   .. code-block:: c++
 
      auto result = atomicOp<Operation>(acc, arguments);
-
-  Operations:
-     .. code-block:: c++
-
-         AtomicAdd, AtomicSub, AtomicMin, AtomicMax, AtomicExch,
-         AtomicInc, AtomicDec, AtomicAnd, AtomicOr, AtomicXor, AtomicCas
+     // Operation: AtomicAdd, AtomicSub, AtomicMin, AtomicMax, AtomicExch,
+     //            AtomicInc, AtomicDec, AtomicAnd, AtomicOr, AtomicXor, AtomicCas
+     // Also dedicated functions available, e.g.:
+     auto old = atomicAdd(acc, ptr, 1);
 
 Memory fences on block-, grid- or device level (guarantees LoadLoad and StoreStore ordering)
   .. code-block:: c++

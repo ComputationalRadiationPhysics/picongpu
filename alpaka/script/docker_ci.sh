@@ -78,14 +78,6 @@ if [ ! -z "${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE}")
 fi
-if [ ! -z "${alpaka_OFFLOAD_MAX_BLOCK_SIZE+x}" ]
-then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_OFFLOAD_MAX_BLOCK_SIZE=${alpaka_OFFLOAD_MAX_BLOCK_SIZE}")
-fi
-if [ ! -z "${alpaka_DEBUG_OFFLOAD_ASSUME_HOST+x}" ]
-then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_DEBUG_OFFLOAD_ASSUME_HOST=${alpaka_DEBUG_OFFLOAD_ASSUME_HOST}")
-fi
 if [ ! -z "${alpaka_ACC_GPU_CUDA_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "alpaka_ACC_GPU_CUDA_ENABLE=${alpaka_ACC_GPU_CUDA_ENABLE}")
@@ -124,6 +116,18 @@ ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_HIP=${ALPAKA_CI_INSTALL_HIP}
 if [ "${ALPAKA_CI_INSTALL_HIP}" == "ON" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_HIP_ROOT_DIR=${ALPAKA_CI_HIP_ROOT_DIR}")
+    if [ ! -z "${CMAKE_HIP_COMPILER+x}" ]
+    then
+        ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_HIP_COMPILER=${CMAKE_HIP_COMPILER})")
+    fi
+    if [ ! -z "${CMAKE_HIP_ARCHITECTURES+x}" ]
+    then
+        ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_HIP_ARCHITECTURES=${CMAKE_HIP_ARCHITECTURES})")
+    fi
+    if [! -z "${CMAKE_HIP_FLAGS+x}" ]
+    then
+        ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_HIP_FLAGS=${CMAKE_HIP_FLAGS}")
+    fi
 fi
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_TBB=${ALPAKA_CI_INSTALL_TBB}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_OMP=${ALPAKA_CI_INSTALL_OMP}")

@@ -90,22 +90,8 @@ namespace alpaka
         ALPAKA_FN_HOST AccCpuSerial(TWorkDiv const& workDiv, size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
-            , bt::IdxBtZero<TDim, TIdx>()
-            , AtomicHierarchy<
-                  AtomicCpu, // atomics between grids
-                  AtomicNoOp, // atomics between blocks
-                  AtomicNoOp // atomics between threads
-                  >()
-            , math::MathStdLib()
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
             , BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity())
-            , BlockSyncNoOp()
-            , MemFenceCpuSerial()
-#    ifdef ALPAKA_DISABLE_VENDOR_RNG
-            , rand::RandDefault()
-#    else
-            , rand::RandStdLib()
-#    endif
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -123,6 +109,7 @@ namespace alpaka
         {
             using type = AccCpuSerial<TDim, TIdx>;
         };
+
         //! The CPU serial accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuSerial<TDim, TIdx>>
@@ -147,6 +134,7 @@ namespace alpaka
                         static_cast<size_t>(AccCpuSerial<TDim, TIdx>::staticAllocBytes())};
             }
         };
+
         //! The CPU serial accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuSerial<TDim, TIdx>>

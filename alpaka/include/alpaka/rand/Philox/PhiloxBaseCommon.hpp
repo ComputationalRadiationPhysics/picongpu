@@ -8,7 +8,6 @@
 
 #include <utility>
 
-
 namespace alpaka::rand::engine
 {
     /** Common class for Philox family engines

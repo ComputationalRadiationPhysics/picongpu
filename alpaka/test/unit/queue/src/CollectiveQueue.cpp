@@ -56,7 +56,7 @@ TEST_CASE("queueCollective", "[queue]")
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     WorkDiv const workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
 
-#    pragma omp parallel num_threads(static_cast <int>(results.size()))
+#    pragma omp parallel num_threads(static_cast<int>(results.size()))
     {
         // The kernel will be performed collectively.
         // OpenMP will distribute the work between the threads from the parallel region
@@ -96,7 +96,7 @@ TEST_CASE("TestCollectiveMemcpy", "[queue]")
     using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     WorkDiv const workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
 
-#    pragma omp parallel num_threads(static_cast <int>(results.size()))
+#    pragma omp parallel num_threads(static_cast<int>(results.size()))
     {
         int threadId = omp_get_thread_num();
 

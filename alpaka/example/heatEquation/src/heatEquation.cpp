@@ -10,7 +10,6 @@
 #include <iostream>
 #include <utility>
 
-
 //! alpaka version of explicit finite-difference 1d heat equation solver
 //!
 //! Solving equation u_t(x, t) = u_xx(x, t) using a simple explicit scheme with
@@ -45,7 +44,6 @@ struct HeatEquationKernel
     }
 };
 
-
 //! Exact solution to the test problem
 //! u_t(x, t) = u_xx(x, t), x in [0, 1], t in [0, T]
 //! u(0, t) = u(1, t) = 0
@@ -58,7 +56,6 @@ auto exactSolution(double const x, double const t) -> double
     constexpr double pi = 3.14159265358979323846;
     return std::exp(-pi * pi * t) * std::sin(pi * x);
 }
-
 
 //! Each kernel computes the next step for one point.
 //! Therefore the number of threads should be equal to numNodesX.

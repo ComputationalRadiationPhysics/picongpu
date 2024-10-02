@@ -50,6 +50,10 @@ namespace alpaka
 {
     namespace detail
     {
+#        if BOOST_COMP_CLANG
+#            pragma clang diagnostic push
+#            pragma clang diagnostic ignored "-Wunused-template"
+#        endif
         //! The GPU CUDA/HIP kernel entry point.
         // \NOTE: 'A __global__ function or function template cannot have a trailing return type.'
         // We have put the function into a shallow namespace and gave it a short name, so the mangled name in the
@@ -74,6 +78,9 @@ namespace alpaka
 #        endif
             kernelFnObj(const_cast<TAcc const&>(acc), args...);
         }
+#        if BOOST_COMP_CLANG
+#            pragma clang diagnostic pop
+#        endif
     } // namespace detail
 
     namespace uniform_cuda_hip
@@ -219,7 +226,7 @@ namespace alpaka
 
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes = std::apply(
-                    [&](remove_restrict_t<ALPAKA_DECAY_T(TArgs)> const&... args) {
+                    [&](remove_restrict_t<std::decay_t<TArgs>> const&... args) {
                         return getBlockSharedMemDynSizeBytes<TAcc>(
                             task.m_kernelFnObj,
                             blockThreadExtent,
@@ -257,7 +264,7 @@ namespace alpaka
                 // (MSVC). If not given by value, the kernel launch code does not copy the value but the pointer to the
                 // value location.
                 std::apply(
-                    [&](remove_restrict_t<ALPAKA_DECAY_T(TArgs)> const&... args)
+                    [&](remove_restrict_t<std::decay_t<TArgs>> const&... args)
                     {
                         kernelName<<<
                             gridDim,
@@ -327,7 +334,7 @@ namespace alpaka
 
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes = std::apply(
-                    [&](remove_restrict_t<ALPAKA_DECAY_T(TArgs)> const&... args) {
+                    [&](remove_restrict_t<std::decay_t<TArgs>> const&... args) {
                         return getBlockSharedMemDynSizeBytes<TAcc>(
                             task.m_kernelFnObj,
                             blockThreadExtent,
@@ -361,7 +368,7 @@ namespace alpaka
 
                 // Enqueue the kernel execution.
                 std::apply(
-                    [&](remove_restrict_t<ALPAKA_DECAY_T(TArgs)> const&... args)
+                    [&](remove_restrict_t<std::decay_t<TArgs>> const&... args)
                     {
                         kernelName<<<
                             gridDim,

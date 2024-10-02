@@ -1,5 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber, Antonio Di
- * Pilato
+/* Copyright 2023 Benjamin Worpitz, Sergei Bastrakov, René Widera, Bernhard Manfred Gruber, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -50,24 +49,15 @@ namespace alpaka::test
                 "The element type of the view has to be equal to the specified one.");
         }
 
-        // trait::GetExtent
+        // trait::GetExtents
         {
-            REQUIRE(extent == getExtentVec(view));
+            REQUIRE(extent == getExtents(view));
         }
 
         // trait::GetPitchBytes
         {
-            // The pitches have to be at least as large as the values we calculate here.
-            auto pitchMinimum = Vec<DimInt<TDim::value + 1u>, TIdx>::ones();
-            // Initialize the pitch between two elements of the X dimension ...
-            pitchMinimum[TDim::value] = sizeof(TElem);
-            // ... and fill all the other dimensions.
-            for(TIdx i = TDim::value; i > static_cast<TIdx>(0u); --i)
-            {
-                pitchMinimum[i - 1] = extent[i - 1] * pitchMinimum[i];
-            }
-
-            auto const pitchView = getPitchBytesVec(view);
+            auto const pitchMinimum = alpaka::detail::calculatePitchesFromExtents<TElem>(extent);
+            auto const pitchView = getPitchesInBytes(view);
 
             for(TIdx i = TDim::value; i > static_cast<TIdx>(0u); --i)
             {
@@ -97,9 +87,9 @@ namespace alpaka::test
             }
         }
 
-        // trait::GetOffset
+        // trait::GetOffsets
         {
-            REQUIRE(offset == getOffsetVec(view));
+            REQUIRE(offset == getOffsets(view));
         }
 
         // trait::IdxType
@@ -122,18 +112,23 @@ namespace alpaka::test
             TIter const& end,
             std::uint8_t const& byte) const
         {
-            constexpr auto elemSizeInByte = sizeof(decltype(*begin));
+            constexpr auto elemSizeInByte = static_cast<unsigned>(sizeof(decltype(*begin)));
             for(auto it = begin; it != end; ++it)
             {
                 auto const& elem = *it;
                 auto const pBytes = reinterpret_cast<std::uint8_t const*>(&elem);
-                for(std::size_t i = 0u; i < elemSizeInByte; ++i)
+                for(unsigned i = 0; i < elemSizeInByte; ++i)
                 {
-                    ALPAKA_CHECK(*success, pBytes[i] == byte);
+                    if(pBytes[i] != byte)
+                    {
+                        printf("Byte at offset %u is different: %u != %u\n", i, unsigned{pBytes[i]}, unsigned{byte});
+                        *success = false;
+                    }
                 }
             }
         }
     };
+
     template<typename TAcc, typename TView>
     ALPAKA_FN_HOST auto verifyBytesSet(TView const& view, std::uint8_t const& byte) -> void
     {
@@ -206,7 +201,7 @@ namespace alpaka::test
         auto const platformHost = alpaka::PlatformCpu{};
         auto const devHost = alpaka::getDevByIdx(platformHost, 0);
 
-        auto const extent = getExtentVec(view);
+        auto const extent = getExtents(view);
 
         // Init buf with increasing values
         std::vector<Elem> v(static_cast<std::size_t>(extent.prod()), static_cast<Elem>(0));
@@ -246,7 +241,7 @@ namespace alpaka::test
             using Idx = Idx<TView>;
 
             auto const devAcc = getDev(view);
-            auto const extent = getExtentVec(view);
+            auto const extent = getExtents(view);
 
             // copy into given view
             {

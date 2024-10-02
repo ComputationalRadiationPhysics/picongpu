@@ -45,7 +45,7 @@ namespace alpaka
             static auto getIdx(bt::IdxBtOmp<TDim, TIdx> const& /* idx */, TWorkDiv const& workDiv) -> Vec<TDim, TIdx>
             {
                 // We assume that the thread id is positive.
-                ALPAKA_ASSERT_OFFLOAD(::omp_get_thread_num() >= 0);
+                ALPAKA_ASSERT_ACC(::omp_get_thread_num() >= 0);
                 // \TODO: Would it be faster to precompute the index and cache it inside an array?
                 return mapIdx<TDim::value>(
                     Vec<DimInt<1u>, TIdx>(static_cast<TIdx>(::omp_get_thread_num())),

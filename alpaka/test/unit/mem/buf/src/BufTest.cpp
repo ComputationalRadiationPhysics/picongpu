@@ -72,11 +72,7 @@ TEMPLATE_LIST_TEST_CASE("memBufBasicTest", "[memBuf]", alpaka::test::TestAccs)
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
-
-    auto const extent
-        = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-
-    testBufferMutable<Acc>(extent);
+    testBufferMutable<Acc>(alpaka::test::extentBuf<Dim, Idx>);
 }
 
 TEMPLATE_LIST_TEST_CASE("memBufZeroSizeTest", "[memBuf]", alpaka::test::TestAccs)
@@ -98,9 +94,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncBasicTest", "[memBuf]", alpaka::test::TestAc
 
     if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<Acc>, Dim>)
     {
-        auto const extent
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-        testAsyncBufferMutable<Acc>(extent);
+        testAsyncBufferMutable<Acc>(alpaka::test::extentBuf<Dim, Idx>);
     }
     else
     {
@@ -147,11 +141,7 @@ TEMPLATE_LIST_TEST_CASE("memBufConstTest", "[memBuf]", alpaka::test::TestAccs)
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
-
-    auto const extent
-        = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-
-    testBufferImmutable<Acc>(extent);
+    testBufferImmutable<Acc>(alpaka::test::extentBuf<Dim, Idx>);
 }
 
 template<typename TAcc>
@@ -199,9 +189,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAsyncConstTest", "[memBuf]", alpaka::test::TestAc
 
     if constexpr(alpaka::hasAsyncBufSupport<alpaka::Dev<Acc>, Dim>)
     {
-        auto const extent
-            = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-        testAsyncBufferImmutable<Acc>(extent);
+        testAsyncBufferImmutable<Acc>(alpaka::test::extentBuf<Dim, Idx>);
     }
     else
     {
@@ -224,32 +212,16 @@ static auto testBufferAccessorAdaptor(
     auto const platformAcc = alpaka::Platform<TAcc>{};
     auto const dev = alpaka::getDevByIdx(platformAcc, 0);
 
-    // alpaka::malloc
     auto buf = alpaka::allocBuf<Elem, Idx>(dev, extent);
 
     // check that the array subscript operator access the correct element
-    auto const& pitch = alpaka::getPitchBytesVec(buf);
+    auto const& pitch = alpaka::getPitchesInBytes(buf);
     INFO("buffer extent: " << extent << " elements");
     INFO("buffer pitch: " << pitch << " bytes");
-    CHECK((index < extent).foldrAll(std::logical_and<bool>(), true));
+    CHECK((index < extent).all());
 
-    auto base = reinterpret_cast<uintptr_t>(std::data(buf));
-    uintptr_t expected = base;
-    if constexpr(Dim::value > 1)
-    {
-        expected += static_cast<uintptr_t>(pitch[1] * index[0]);
-    }
-    if constexpr(Dim::value > 2)
-    {
-        expected += static_cast<uintptr_t>(pitch[2] * index[1]);
-    }
-    if constexpr(Dim::value > 3)
-    {
-        expected += static_cast<uintptr_t>(pitch[3] * index[2]);
-    }
-    if constexpr(Dim::value > 0)
-        expected += sizeof(Elem) * static_cast<std::size_t>(index[Dim::value - 1]);
-
+    auto const base = reinterpret_cast<uintptr_t>(std::data(buf));
+    auto const expected = base + static_cast<uintptr_t>((pitch * index).sum());
     INFO("element " << index << " expected at offset " << expected - base);
     INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base);
     CHECK(reinterpret_cast<Elem*>(expected) == &buf[index]);
@@ -264,11 +236,7 @@ TEMPLATE_LIST_TEST_CASE("memBufAccessorAdaptorTest", "[memBuf]", alpaka::test::T
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
-
-    auto extent = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
-    auto index = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>();
-
-    testBufferAccessorAdaptor<Acc>(extent, index);
+    testBufferAccessorAdaptor<Acc>(alpaka::test::extentBuf<Dim, Idx>, alpaka::test::offset<Dim, Idx>);
 }
 
 TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)

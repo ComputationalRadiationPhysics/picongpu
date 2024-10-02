@@ -12,6 +12,7 @@ namespace alpaka
     struct ConceptIdxBt
     {
     };
+
     struct ConceptIdxGb
     {
     };

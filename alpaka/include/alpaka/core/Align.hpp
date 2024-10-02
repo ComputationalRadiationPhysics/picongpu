@@ -24,6 +24,7 @@ namespace alpaka::core
         struct RoundUpToPowerOfTwoHelper : std::integral_constant<std::size_t, N>
         {
         };
+
         //! Case for N not being a power of two.
         // We could just use NextVal = N+1, but this converges faster.  N|(N-1) sets
         // the right-most zero bits to one all at once, e.g. 0b0011000 -> 0b0011111.
@@ -33,6 +34,7 @@ namespace alpaka::core
         {
         };
     } // namespace detail
+
     template<std::size_t N>
     struct RoundUpToPowerOfTwo
         : std::integral_constant<std::size_t, detail::RoundUpToPowerOfTwoHelper<N, (N & (N - 1)) == 0>::value>

@@ -71,7 +71,7 @@ inline namespace alpakaGlobal
             decltype(atomicCAS(alpaka::core::declval<T*>(), alpaka::core::declval<T>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T compare, T value)
+        static __device__ T atomic(T* add, T compare, T value)
         {
             return atomicCAS(add, compare, value);
         }
@@ -88,7 +88,7 @@ inline namespace alpakaGlobal
             alpaka::core::declval<T>(),
             alpaka::core::declval<T>()))>> : std::true_type
     {
-        __device__ static T atomic(T* add, T compare, T value)
+        static __device__ T atomic(T* add, T compare, T value)
         {
             return atomicCAS_block(add, compare, value);
         }
@@ -105,7 +105,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicAdd(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicAdd(add, value);
         }
@@ -121,7 +121,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicAdd_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicAdd_block(add, value);
         }
@@ -156,7 +156,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicSub(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicSub(add, value);
         }
@@ -171,7 +171,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicSub_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicSub_block(add, value);
         }
@@ -187,7 +187,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicMin(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicMin(add, value);
         }
@@ -202,7 +202,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicMin_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicMin_block(add, value);
         }
@@ -254,7 +254,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicMax(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicMax(add, value);
         }
@@ -269,7 +269,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicMax_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicMax_block(add, value);
         }
@@ -322,7 +322,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicExch(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicExch(add, value);
         }
@@ -337,7 +337,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicExch_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicExch_block(add, value);
         }
@@ -354,7 +354,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicInc(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicInc(add, value);
         }
@@ -369,7 +369,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicInc_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicInc_block(add, value);
         }
@@ -386,7 +386,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicDec(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicDec(add, value);
         }
@@ -401,7 +401,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicDec_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicDec_block(add, value);
         }
@@ -418,7 +418,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicAnd(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicAnd(add, value);
         }
@@ -433,7 +433,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicAnd_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicAnd_block(add, value);
         }
@@ -450,7 +450,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicOr(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicOr(add, value);
         }
@@ -465,7 +465,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicOr_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicOr_block(add, value);
         }
@@ -482,7 +482,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicXor(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicXor(add, value);
         }
@@ -497,7 +497,7 @@ inline namespace alpakaGlobal
         typename std::void_t<decltype(atomicXor_block(alpaka::core::declval<T*>(), alpaka::core::declval<T>()))>>
         : std::true_type
     {
-        __device__ static T atomic(T* add, T value)
+        static __device__ T atomic(T* add, T value)
         {
             return atomicXor_block(add, value);
         }

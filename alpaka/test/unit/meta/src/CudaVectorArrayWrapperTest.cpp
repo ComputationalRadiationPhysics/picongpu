@@ -109,7 +109,6 @@ TEMPLATE_LIST_TEST_CASE("cudaVectorArrayWrapperDevice", "[meta]", alpaka::test::
     REQUIRE(fixture(kernelDouble));
 }
 
-
 TEST_CASE("cudaVectorArrayWrapperHost", "[meta]")
 {
     // TODO: It would be nice to check all possible type vs. size combinations.

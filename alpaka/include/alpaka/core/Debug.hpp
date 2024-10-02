@@ -32,10 +32,12 @@ namespace alpaka::core::detail
         {
             std::cout << "[+] " << m_sScope << std::endl;
         }
+
         ScopeLogStdOut(ScopeLogStdOut const&) = delete;
         ScopeLogStdOut(ScopeLogStdOut&&) = delete;
         auto operator=(ScopeLogStdOut const&) -> ScopeLogStdOut& = delete;
         auto operator=(ScopeLogStdOut&&) -> ScopeLogStdOut& = delete;
+
         ~ScopeLogStdOut()
         {
             std::cout << "[-] " << m_sScope << std::endl;
@@ -68,7 +70,7 @@ namespace alpaka::core::detail
 #        define ALPAKA_DEBUG_BREAK ::__debugbreak()
 #    else
 #        define ALPAKA_DEBUG_BREAK
-  //#error debug-break for current compiler not implemented!
+  // #error debug-break for current compiler not implemented!
 #    endif
 #else
 #    define ALPAKA_DEBUG_BREAK

@@ -1,4 +1,5 @@
-/* Copyright 2023 Benjamin Worpitz, Matthias Werner, Jan Stephan
+/* Copyright 2023 Benjamin Worpitz, Matthias Werner, René Widera, Sergei Bastrakov, Jeffrey Kelling,
+ *                Bernhard Manfred Gruber, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,18 +13,16 @@
 #endif
 
 //---------------------------------------HIP-----------------------------------
-// __HIPCC__ is defined by hipcc (if either __CUDACC__ is defined)
+// __HIP__ is defined by both hip-clang and vanilla clang in HIP mode.
 // https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#compiler-defines-summary
 #if !defined(BOOST_LANG_HIP)
-#    if defined(__HIPCC__) && (defined(__CUDACC__) || defined(__HIP__))
-#        include <hip/hip_runtime.h>
-// HIP defines "abort()" as "{asm("trap;");}", which breaks some kernels
-#        undef abort
+#    if defined(__HIP__)
+/* BOOST_LANG_CUDA is enabled when either __CUDACC__ (nvcc) or __CUDA__ (clang) are defined. This occurs when
+   nvcc / clang encounter a CUDA source file. Since there are no HIP source files we treat every source file
+   as HIP when we are using a HIP-capable compiler. */
+#        include <hip/hip_version.h>
+// HIP doesn't give us a patch level for the last entry, just a gitdate
 #        define BOOST_LANG_HIP BOOST_VERSION_NUMBER(HIP_VERSION_MAJOR, HIP_VERSION_MINOR, 0)
-#        if defined(BOOST_LANG_CUDA) && BOOST_LANG_CUDA
-#            undef BOOST_LANG_CUDA
-#            define BOOST_LANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
-#        endif
 #    else
 #        define BOOST_LANG_HIP BOOST_VERSION_NUMBER_NOT_AVAILABLE
 #    endif
@@ -40,10 +39,12 @@
 #    endif
 #endif
 
-// hip compiler detection
+// HIP compiler detection
 #if !defined(BOOST_COMP_HIP)
-#    if defined(__HIP__)
-#        define BOOST_COMP_HIP BOOST_VERSION_NUMBER_AVAILABLE
+#    if defined(__HIP__) // Defined by hip-clang and vanilla clang in HIP mode.
+#        include <hip/hip_version.h>
+// HIP doesn't give us a patch level for the last entry, just a gitdate
+#        define BOOST_COMP_HIP BOOST_VERSION_NUMBER(HIP_VERSION_MAJOR, HIP_VERSION_MINOR, 0)
 #    else
 #        define BOOST_COMP_HIP BOOST_VERSION_NUMBER_NOT_AVAILABLE
 #    endif

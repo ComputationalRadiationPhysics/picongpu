@@ -81,23 +81,6 @@ namespace alpaka
 
         ALPAKA_FN_HOST_ACC AccGpuUniformCudaHipRt(Vec<TDim, TIdx> const& threadElemExtent)
             : WorkDivUniformCudaHipBuiltIn<TDim, TIdx>(threadElemExtent)
-            , gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>()
-            , bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>()
-            , AtomicHierarchy<
-                  AtomicUniformCudaHipBuiltIn, // atomics between grids
-                  AtomicUniformCudaHipBuiltIn, // atomics between blocks
-                  AtomicUniformCudaHipBuiltIn // atomics between threads
-                  >()
-            , math::MathUniformCudaHipBuiltIn()
-            , BlockSharedMemDynUniformCudaHipBuiltIn()
-            , BlockSharedMemStUniformCudaHipBuiltIn()
-            , BlockSyncUniformCudaHipBuiltIn()
-            , MemFenceUniformCudaHipBuiltIn()
-#    ifdef ALPAKA_DISABLE_VENDOR_RNG
-            , rand::RandDefault()
-#    else
-            , rand::RandUniformCudaHipRand<TApi>()
-#    endif
         {
         }
     };

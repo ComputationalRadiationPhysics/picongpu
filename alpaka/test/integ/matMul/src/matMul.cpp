@@ -83,7 +83,7 @@ public:
         for(TIndex k2(0u); k2 < blockMulCount; ++k2)
         {
             // Copy the current blocks of A and B into shared memory in parallel.
-            // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
+            // If the element of the current thread is outside the matrix, zero is written into the shared memory.
             // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
             auto const AIdxX = k2 * blockThreadExtentX + blockThreadIdxX;
             auto const AIdx1d = gridThreadIdxY * lda + AIdxX;
@@ -162,8 +162,6 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
 
     using Val = std::uint32_t;
     using Vec2 = alpaka::Vec<Dim, Idx>;
-    using DevAcc = alpaka::Dev<Acc>;
-    using PlatformAcc = alpaka::Platform<DevAcc>;
     using QueueAcc = alpaka::test::DefaultQueue<alpaka::Dev<Acc>>;
     using QueueHost = alpaka::QueueCpuNonBlocking;
 
@@ -217,7 +215,7 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     auto bufBHost = alpaka::createView(devHost, bufBHost1d.data(), extentB);
 
     // Allocate C and set it to zero.
-    auto bufCHost = alpaka::allocMappedBufIfSupported<PlatformAcc, Val, Idx>(devHost, platformAcc, extentC);
+    auto bufCHost = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extentC);
     alpaka::memset(queueHost, bufCHost, 0u);
 
     // Allocate the buffers on the accelerator.
@@ -240,16 +238,22 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
               << alpaka::test::integ::measureRunTimeMs([&] { alpaka::memcpy(queueAcc, bufCAcc, bufCHost); }) << " ms"
               << std::endl;
 
-    alpaka::memcpy(queueAcc, bufCAcc, bufCHost);
+    auto const rowPitchA = alpaka::getPitchesInBytes(bufAAcc)[0];
+    auto const rowPitchB = alpaka::getPitchesInBytes(bufBAcc)[0];
+    auto const rowPitchC = alpaka::getPitchesInBytes(bufCAcc)[0];
 
-    auto const pitchA = alpaka::getPitchBytes<1u>(bufAAcc);
-    auto const pitchB = alpaka::getPitchBytes<1u>(bufBAcc);
-    auto const pitchC = alpaka::getPitchBytes<1u>(bufCAcc);
+    // We assume that the row pitches are divisible by the element size
+    REQUIRE(rowPitchA % sizeof(Val) == 0);
+    REQUIRE(rowPitchB % sizeof(Val) == 0);
+    REQUIRE(rowPitchC % sizeof(Val) == 0);
 
-    // Assumptions we make
-    REQUIRE(pitchA % sizeof(Val) == 0);
-    REQUIRE(pitchB % sizeof(Val) == 0);
-    REQUIRE(pitchC % sizeof(Val) == 0);
+    auto const lda = static_cast<Idx>(rowPitchA / sizeof(Val));
+    auto const ldb = static_cast<Idx>(rowPitchB / sizeof(Val));
+    auto const ldc = static_cast<Idx>(rowPitchC / sizeof(Val));
+
+    std::cout << "pitchesA " << alpaka::getPitchesInBytes(bufAAcc) << " lda: " << lda << "\n";
+    std::cout << "pitchesB " << alpaka::getPitchesInBytes(bufBAcc) << " ldb: " << ldb << "\n";
+    std::cout << "pitchesC " << alpaka::getPitchesInBytes(bufCAcc) << " ldc: " << ldc << "\n";
 
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
@@ -260,12 +264,12 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
         k,
         static_cast<Val>(1),
         alpaka::getPtrNative(bufAAcc),
-        static_cast<Idx>(pitchA / sizeof(Val)),
+        lda,
         alpaka::getPtrNative(bufBAcc),
-        static_cast<Idx>(pitchB / sizeof(Val)),
+        ldb,
         static_cast<Val>(1),
         alpaka::getPtrNative(bufCAcc),
-        static_cast<Idx>(pitchC / sizeof(Val)));
+        ldc);
 
     // Profile the kernel execution.
     std::cout << "Execution time:   " << alpaka::test::integ::measureTaskRunTimeMs(queueAcc, taskKernel) << " ms"

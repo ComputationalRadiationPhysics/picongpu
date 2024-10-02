@@ -11,6 +11,7 @@
 struct ConceptExample
 {
 };
+
 struct ConceptNonMatchingExample
 {
 };

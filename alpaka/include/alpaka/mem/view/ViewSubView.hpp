@@ -34,23 +34,26 @@ namespace alpaka
         //! \param view The view this view is a sub-view of.
         //! \param extentElements The extent in elements.
         //! \param relativeOffsetsElements The offsets in elements.
-        template<typename TView, typename TOffsets, typename TExtent>
+        template<typename TQualifiedView, typename TOffsets, typename TExtent>
         ViewSubView(
-            TView const& view,
+            TQualifiedView& view,
             TExtent const& extentElements,
             TOffsets const& relativeOffsetsElements = TOffsets())
-            : m_viewParentView(getPtrNative(view), getDev(view), getExtentVec(view), getPitchBytesVec(view))
-            , m_extentElements(getExtentVec(extentElements))
-            , m_offsetsElements(getOffsetVec(relativeOffsetsElements))
+            : m_viewParentView(getPtrNative(view), getDev(view), getExtents(view), getPitchesInBytes(view))
+            , m_extentElements(getExtents(extentElements))
+            , m_offsetsElements(getOffsets(relativeOffsetsElements))
+            , m_nativePtr(computeNativePtr())
         {
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
+            using View = std::remove_cv_t<TQualifiedView>;
+
             static_assert(
-                std::is_same_v<Dev, alpaka::Dev<TView>>,
+                std::is_same_v<Dev, alpaka::Dev<View>>,
                 "The dev type of TView and the Dev template parameter have to be identical!");
 
             static_assert(
-                std::is_same_v<TIdx, Idx<TView>>,
+                std::is_same_v<TIdx, Idx<View>>,
                 "The idx type of TView and the TIdx template parameter have to be identical!");
             static_assert(
                 std::is_same_v<TIdx, Idx<TExtent>>,
@@ -60,7 +63,7 @@ namespace alpaka
                 "The idx type of TOffsets and the TIdx template parameter have to be identical!");
 
             static_assert(
-                std::is_same_v<TDim, Dim<TView>>,
+                std::is_same_v<TDim, Dim<View>>,
                 "The dim type of TView and the TDim template parameter have to be identical!");
             static_assert(
                 std::is_same_v<TDim, Dim<TExtent>>,
@@ -69,67 +72,43 @@ namespace alpaka
                 std::is_same_v<TDim, Dim<TOffsets>>,
                 "The dim type of TOffsets and the TDim template parameter have to be identical!");
 
-            ALPAKA_ASSERT(((m_offsetsElements + m_extentElements) <= getExtentVec(view))
-                              .foldrAll(std::logical_and<bool>(), true));
-        }
-        //! Constructor.
-        //! \param view The view this view is a sub-view of.
-        //! \param extentElements The extent in elements.
-        //! \param relativeOffsetsElements The offsets in elements.
-        template<typename TView, typename TOffsets, typename TExtent>
-        ViewSubView(TView& view, TExtent const& extentElements, TOffsets const& relativeOffsetsElements = TOffsets())
-            : m_viewParentView(getPtrNative(view), getDev(view), getExtentVec(view), getPitchBytesVec(view))
-            , m_extentElements(getExtentVec(extentElements))
-            , m_offsetsElements(getOffsetVec(relativeOffsetsElements))
-        {
-            ALPAKA_DEBUG_FULL_LOG_SCOPE;
-
-            static_assert(
-                std::is_same_v<Dev, alpaka::Dev<TView>>,
-                "The dev type of TView and the Dev template parameter have to be identical!");
-
-            static_assert(
-                std::is_same_v<TIdx, Idx<TView>>,
-                "The idx type of TView and the TIdx template parameter have to be identical!");
-            static_assert(
-                std::is_same_v<TIdx, Idx<TExtent>>,
-                "The idx type of TExtent and the TIdx template parameter have to be identical!");
-            static_assert(
-                std::is_same_v<TIdx, Idx<TOffsets>>,
-                "The idx type of TOffsets and the TIdx template parameter have to be identical!");
-
-            static_assert(
-                std::is_same_v<TDim, Dim<TView>>,
-                "The dim type of TView and the TDim template parameter have to be identical!");
-            static_assert(
-                std::is_same_v<TDim, Dim<TExtent>>,
-                "The dim type of TExtent and the TDim template parameter have to be identical!");
-            static_assert(
-                std::is_same_v<TDim, Dim<TOffsets>>,
-                "The dim type of TOffsets and the TDim template parameter have to be identical!");
-
-            ALPAKA_ASSERT(((m_offsetsElements + m_extentElements) <= getExtentVec(view))
-                              .foldrAll(std::logical_and<bool>(), true));
+            ALPAKA_ASSERT(((m_offsetsElements + m_extentElements) <= getExtents(view)).all());
         }
 
         //! \param view The view this view is a sub-view of.
         template<typename TView>
-        explicit ViewSubView(TView const& view) : ViewSubView(view, view, Vec<TDim, TIdx>::all(0))
+        explicit ViewSubView(TView const& view) : ViewSubView(view, getExtents(view), Vec<TDim, TIdx>::zeros())
         {
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
         }
 
         //! \param view The view this view is a sub-view of.
         template<typename TView>
-        explicit ViewSubView(TView& view) : ViewSubView(view, view, Vec<TDim, TIdx>::all(0))
+        explicit ViewSubView(TView& view) : ViewSubView(view, getExtents(view), Vec<TDim, TIdx>::zeros())
         {
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
         }
 
     public:
+        ALPAKA_FN_HOST auto computeNativePtr()
+        {
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic push
+            // "cast from 'std::uint8_t*' to 'TElem*' increases required alignment of target type"
+#    pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+            return reinterpret_cast<TElem*>(
+                reinterpret_cast<std::uint8_t*>(alpaka::getPtrNative(m_viewParentView))
+                + (m_offsetsElements * getPitchesInBytes(m_viewParentView)).sum());
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic pop
+#endif
+        }
+
         ViewPlainPtr<Dev, TElem, TDim, TIdx> m_viewParentView; // This wraps the parent view.
         Vec<TDim, TIdx> m_extentElements; // The extent of this view.
         Vec<TDim, TIdx> m_offsetsElements; // The offset relative to the parent view.
+        TElem* m_nativePtr;
     };
 
     // Trait specializations for ViewSubView.
@@ -167,89 +146,47 @@ namespace alpaka
         };
 
         //! The ViewSubView width get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TDev, typename TIdx>
-        struct GetExtent<
-            TIdxIntegralConst,
-            ViewSubView<TDev, TElem, TDim, TIdx>,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
+        template<typename TElem, typename TDim, typename TDev, typename TIdx>
+        struct GetExtents<ViewSubView<TDev, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getExtent(ViewSubView<TDev, TElem, TDim, TIdx> const& extent) -> TIdx
+            ALPAKA_FN_HOST auto operator()(ViewSubView<TDev, TElem, TDim, TIdx> const& view) const
             {
-                return extent.m_extentElements[TIdxIntegralConst::value];
+                return view.m_extentElements;
             }
         };
 
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored                                                                                    \
-        "-Wcast-align" // "cast from 'std::uint8_t*' to 'TElem*' increases required alignment of target type"
-#endif
         //! The ViewSubView native pointer get trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct GetPtrNative<ViewSubView<TDev, TElem, TDim, TIdx>>
         {
-        private:
-            using IdxSequence = std::make_index_sequence<TDim::value>;
-
-        public:
             ALPAKA_FN_HOST static auto getPtrNative(ViewSubView<TDev, TElem, TDim, TIdx> const& view) -> TElem const*
             {
-                // \TODO: pre-calculate this pointer for faster execution.
-                return reinterpret_cast<TElem const*>(
-                    reinterpret_cast<std::uint8_t const*>(alpaka::getPtrNative(view.m_viewParentView))
-                    + pitchedOffsetBytes(view, IdxSequence()));
+                return view.m_nativePtr;
             }
+
             ALPAKA_FN_HOST static auto getPtrNative(ViewSubView<TDev, TElem, TDim, TIdx>& view) -> TElem*
             {
-                // \TODO: pre-calculate this pointer for faster execution.
-                return reinterpret_cast<TElem*>(
-                    reinterpret_cast<std::uint8_t*>(alpaka::getPtrNative(view.m_viewParentView))
-                    + pitchedOffsetBytes(view, IdxSequence()));
-            }
-
-        private:
-            //! For a 3D vector this calculates:
-            //!
-            //! getOffset<0u>(view) * getPitchBytes<1u>(view)
-            //! + getOffset<1u>(view) * getPitchBytes<2u>(view)
-            //! + getOffset<2u>(view) * getPitchBytes<3u>(view)
-            //! while getPitchBytes<3u>(view) is equivalent to sizeof(TElem)
-            template<typename TView, std::size_t... TIndices>
-            ALPAKA_FN_HOST static auto pitchedOffsetBytes(TView const& view, std::index_sequence<TIndices...> const&)
-                -> TIdx
-            {
-                return meta::foldr(std::plus<TIdx>(), pitchedOffsetBytesDim<TIndices>(view)..., TIdx{0});
-            }
-            template<std::size_t Tidx, typename TView>
-            ALPAKA_FN_HOST static auto pitchedOffsetBytesDim(TView const& view) -> TIdx
-            {
-                return getOffset<Tidx>(view) * getPitchBytes<Tidx + 1u>(view);
+                return view.m_nativePtr;
             }
         };
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
 
         //! The ViewSubView pitch get trait specialization.
-        template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
-        struct GetPitchBytes<TIdxIntegralConst, ViewSubView<TDev, TElem, TDim, TIdx>>
+        template<typename TDev, typename TElem, typename TDim, typename TIdx>
+        struct GetPitchesInBytes<ViewSubView<TDev, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getPitchBytes(ViewSubView<TDev, TElem, TDim, TIdx> const& view) -> TIdx
+            ALPAKA_FN_HOST auto operator()(ViewSubView<TDev, TElem, TDim, TIdx> const& view) const
             {
-                return alpaka::getPitchBytes<TIdxIntegralConst::value>(view.m_viewParentView);
+                return getPitchesInBytes(view.m_viewParentView);
             }
         };
 
         //! The ViewSubView x offset get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TDev, typename TIdx>
-        struct GetOffset<
-            TIdxIntegralConst,
-            ViewSubView<TDev, TElem, TDim, TIdx>,
-            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
+        template<typename TElem, typename TDim, typename TDev, typename TIdx>
+        struct GetOffsets<ViewSubView<TDev, TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getOffset(ViewSubView<TDev, TElem, TDim, TIdx> const& offset) -> TIdx
+            ALPAKA_FN_HOST auto operator()(ViewSubView<TDev, TElem, TDim, TIdx> const& offset)
             {
-                return offset.m_offsetsElements[TIdxIntegralConst::value];
+                return offset.m_offsetsElements;
             }
         };
 

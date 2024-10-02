@@ -10,17 +10,20 @@ namespace alpaka::meta
     {
         template<typename... T>
         struct ConcatenateImpl;
+
         template<typename T>
         struct ConcatenateImpl<T>
         {
             using type = T;
         };
+
         template<template<typename...> class TList, typename... As, typename... Bs, typename... TRest>
         struct ConcatenateImpl<TList<As...>, TList<Bs...>, TRest...>
         {
             using type = typename ConcatenateImpl<TList<As..., Bs...>, TRest...>::type;
         };
     } // namespace detail
+
     template<typename... T>
     using Concatenate = typename detail::ConcatenateImpl<T...>::type;
 } // namespace alpaka::meta

@@ -47,14 +47,13 @@ namespace alpaka::trait
         using type = TElem;
     };
 
-    //! The std::vector width get trait specialization.
     template<typename TElem, typename TAllocator>
-    struct GetExtent<DimInt<0u>, std::vector<TElem, TAllocator>>
+    struct GetExtents<std::vector<TElem, TAllocator>>
     {
-        ALPAKA_FN_HOST static auto getExtent(std::vector<TElem, TAllocator> const& extent)
-            -> Idx<std::vector<TElem, TAllocator>>
+        ALPAKA_FN_HOST constexpr auto operator()(std::vector<TElem, TAllocator> const& a)
+            -> Vec<DimInt<1>, Idx<std::vector<TElem, TAllocator>>>
         {
-            return std::size(extent);
+            return {std::size(a)};
         }
     };
 
@@ -66,6 +65,7 @@ namespace alpaka::trait
         {
             return std::data(view);
         }
+
         ALPAKA_FN_HOST static auto getPtrNative(std::vector<TElem, TAllocator>& view) -> TElem*
         {
             return std::data(view);
@@ -73,13 +73,13 @@ namespace alpaka::trait
     };
 
     //! The std::vector offset get trait specialization.
-    template<typename TIdx, typename TElem, typename TAllocator>
-    struct GetOffset<TIdx, std::vector<TElem, TAllocator>>
+    template<typename TElem, typename TAllocator>
+    struct GetOffsets<std::vector<TElem, TAllocator>>
     {
-        ALPAKA_FN_HOST static auto getOffset(std::vector<TElem, TAllocator> const&)
-            -> Idx<std::vector<TElem, TAllocator>>
+        ALPAKA_FN_HOST auto operator()(std::vector<TElem, TAllocator> const&) const
+            -> Vec<DimInt<1>, Idx<std::vector<TElem, TAllocator>>>
         {
-            return 0u;
+            return {0};
         }
     };
 

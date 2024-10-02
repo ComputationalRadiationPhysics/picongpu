@@ -202,6 +202,29 @@ namespace alpaka
         "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
 #endif
 
+
+    //! Check if a type used as kernel argument is trivially copyable
+    //!
+    //! \attention In case this trait is specialized for a user type the user should be sure that the result of calling
+    //! the copy constructor is equal to use memcpy to duplicate the object. An existing destructor should be free
+    //! of side effects.
+    //!
+    //! It's implementation defined whether the closure type of a lambda is trivially copyable.
+    //! Therefor the default implementation is true for trivially copyable or empty (stateless) types.
+    //!
+    //! @tparam T type to check
+    //! @{
+    template<typename T, typename = void>
+    struct IsKernelArgumentTriviallyCopyable
+        : std::bool_constant<std::is_empty_v<T> || std::is_trivially_copyable_v<T>>
+    {
+    };
+
+    template<typename T>
+    inline constexpr bool isKernelArgumentTriviallyCopyable = IsKernelArgumentTriviallyCopyable<T>::value;
+
+    //! @}
+
     namespace detail
     {
         //! Check that the return of TKernelFnObj is void
@@ -215,14 +238,23 @@ namespace alpaka
                 static_assert(std::is_same_v<Result, void>, "The TKernelFnObj is required to return void!");
             }
         };
+
+        // asserts that T is trivially copyable. We put this in a separate function so we can see which T would fail
+        // the test, when called from a fold expression.
+        template<typename T>
+        inline void assertKernelArgIsTriviallyCopyable()
+        {
+            static_assert(isKernelArgumentTriviallyCopyable<T>, "The kernel argument T must be trivially copyable!");
+        }
     } // namespace detail
-    //! Creates a kernel execution task.
-    //!
-    //! \tparam TAcc The accelerator type.
-    //! \param workDiv The index domain work division.
-    //! \param kernelFnObj The kernel function object which should be executed.
-    //! \param args,... The kernel invocation arguments.
-    //! \return The kernel execution task.
+
+//! Creates a kernel execution task.
+//!
+//! \tparam TAcc The accelerator type.
+//! \param workDiv The index domain work division.
+//! \param kernelFnObj The kernel function object which should be executed.
+//! \param args,... The kernel invocation arguments.
+//! \return The kernel execution task.
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -240,9 +272,7 @@ namespace alpaka
 #else
         static_assert(std::is_trivially_copyable_v<TKernelFnObj>, "Kernels must be trivially copyable!");
 #endif
-        static_assert(
-            (std::is_trivially_copyable_v<std::decay_t<TArgs>> && ...),
-            "Kernel arguments must be trivially copyable!");
+        (detail::assertKernelArgIsTriviallyCopyable<std::decay_t<TArgs>>(), ...);
         static_assert(
             Dim<std::decay_t<TWorkDiv>>::value == Dim<TAcc>::value,
             "The dimensions of TAcc and TWorkDiv have to be identical!");
@@ -251,8 +281,8 @@ namespace alpaka
             "The idx type of TAcc and the idx type of TWorkDiv have to be identical!");
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-        std::cout << __func__ << " workDiv: " << workDiv
-                  << ", kernelFnObj: " << core::demangled<decltype(kernelFnObj)> << std::endl;
+        std::cout << __func__ << " workDiv: " << workDiv << ", kernelFnObj: " << core::demangled<decltype(kernelFnObj)>
+                  << std::endl;
 #endif
         return trait::CreateTaskKernel<TAcc, TWorkDiv, TKernelFnObj, TArgs...>::createTaskKernel(
             workDiv,
@@ -265,13 +295,13 @@ namespace alpaka
 #    pragma clang diagnostic ignored                                                                                  \
         "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
 #endif
-    //! Executes the given kernel in the given queue.
-    //!
-    //! \tparam TAcc The accelerator type.
-    //! \param queue The queue to enqueue the view copy task into.
-    //! \param workDiv The index domain work division.
-    //! \param kernelFnObj The kernel function object which should be executed.
-    //! \param args,... The kernel invocation arguments.
+//! Executes the given kernel in the given queue.
+//!
+//! \tparam TAcc The accelerator type.
+//! \param queue The queue to enqueue the view copy task into.
+//! \param workDiv The index domain work division.
+//! \param kernelFnObj The kernel function object which should be executed.
+//! \param args,... The kernel invocation arguments.
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif

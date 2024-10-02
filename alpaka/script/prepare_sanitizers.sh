@@ -49,8 +49,6 @@ then
 
         if [[ "${CXX}" == "clang++"* ]]
         then
-            CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize-blacklist=$(pwd)/test/sanitizer_ubsan_blacklist.txt"
-
             # Previously 'local-bounds' was part of UBsan but has been removed because it is not a pure front-end check
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=local-bounds"
             # 'unsigned-integer-overflow' is not really undefined behaviour but we want to handle it as such for our tests.
@@ -83,7 +81,6 @@ then
         fi
 
         ASAN_OPTIONS="strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
-        LSAN_OPTIONS="print_suppressions=1:suppressions=$(pwd)/test/sanitizer_lsan_blacklist.txt"
     fi
 
     # TSan - http://clang.llvm.org/docs/ThreadSanitizer.html

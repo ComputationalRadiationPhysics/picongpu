@@ -13,28 +13,26 @@
 
 #include <type_traits>
 
-#ifndef ALPAKA_DISABLE_VENDOR_RNG
+#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)) && !defined(ALPAKA_DISABLE_VENDOR_RNG)
 
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#            include <curand_kernel.h>
-#        elif defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#            if BOOST_COMP_CLANG
-#                pragma clang diagnostic push
-#                pragma clang diagnostic ignored "-Wduplicate-decl-specifier"
-#            endif
-
-#            if HIP_VERSION >= 50200000
-#                include <hiprand/hiprand_kernel.h>
-#            else
-#                include <hiprand_kernel.h>
-#            endif
-
-#            if BOOST_COMP_CLANG
-#                pragma clang diagnostic pop
-#            endif
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+#        include <curand_kernel.h>
+#    elif defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+#        if BOOST_COMP_CLANG
+#            pragma clang diagnostic push
+#            pragma clang diagnostic ignored "-Wduplicate-decl-specifier"
 #        endif
+
+#        if HIP_VERSION >= 50'200'000
+#            include <hiprand/hiprand_kernel.h>
+#        else
+#            include <hiprand_kernel.h>
+#        endif
+
+#        if BOOST_COMP_CLANG
+#            pragma clang diagnostic pop
+#        endif
+#    endif
 
 namespace alpaka::rand
 {
@@ -44,15 +42,15 @@ namespace alpaka::rand
     {
     };
 
-#        if !defined(ALPAKA_HOST_ONLY)
+#    if !defined(ALPAKA_HOST_ONLY)
 
-#            if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#                error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#            endif
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
 
-#            if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#                error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#            endif
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
 
     namespace distribution::uniform_cuda_hip
     {
@@ -84,11 +82,11 @@ namespace alpaka::rand
                 std::uint32_t const& subsequence = 0,
                 std::uint32_t const& offset = 0)
             {
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 curand_init(seed, subsequence, offset, &state);
-#            else
+#        else
                 hiprand_init(seed, subsequence, offset, &state);
-#            endif
+#        endif
             }
 
         private:
@@ -99,37 +97,39 @@ namespace alpaka::rand
             template<typename T>
             friend class distribution::uniform_cuda_hip::UniformUint;
 
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
             curandStateXORWOW_t state = curandStateXORWOW_t{};
-#            else
+#        else
             hiprandStateXORWOW_t state = hiprandStateXORWOW_t{};
-#            endif
+#        endif
 
         public:
             // STL UniformRandomBitGenerator concept. This is not strictly necessary as the distributions
             // contained in this file are aware of the API specifics of the CUDA/HIP XORWOW engine and STL
             // distributions might not work on the device, but it servers a compatibility bridge to other
             // potentially compatible alpaka distributions.
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
             using result_type = decltype(curand(&state));
-#            else
+#        else
             using result_type = decltype(hiprand(&state));
-#            endif
-            ALPAKA_FN_HOST_ACC constexpr static result_type min()
+#        endif
+            ALPAKA_FN_HOST_ACC static constexpr result_type min()
             {
                 return std::numeric_limits<result_type>::min();
             }
-            ALPAKA_FN_HOST_ACC constexpr static result_type max()
+
+            ALPAKA_FN_HOST_ACC static constexpr result_type max()
             {
                 return std::numeric_limits<result_type>::max();
             }
+
             __device__ result_type operator()()
             {
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 return curand(&state);
-#            else
+#        else
                 return hiprand(&state);
-#            endif
+#        endif
             }
         };
     } // namespace engine::uniform_cuda_hip
@@ -144,11 +144,11 @@ namespace alpaka::rand
             template<typename TEngine>
             __device__ auto operator()(TEngine& engine) -> float
             {
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 return curand_normal(&engine.state);
-#            else
+#        else
                 return hiprand_normal(&engine.state);
-#            endif
+#        endif
             }
         };
 
@@ -160,11 +160,11 @@ namespace alpaka::rand
             template<typename TEngine>
             __device__ auto operator()(TEngine& engine) -> double
             {
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 return curand_normal_double(&engine.state);
-#            else
+#        else
                 return hiprand_normal_double(&engine.state);
-#            endif
+#        endif
             }
         };
 
@@ -177,11 +177,11 @@ namespace alpaka::rand
             __device__ auto operator()(TEngine& engine) -> float
             {
                 // (0.f, 1.0f]
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 float const fUniformRand(curand_uniform(&engine.state));
-#            else
+#        else
                 float const fUniformRand(hiprand_uniform(&engine.state));
-#            endif
+#        endif
                 // NOTE: (1.0f - curand_uniform) does not work, because curand_uniform seems to return
                 // denormalized floats around 0.f. [0.f, 1.0f)
                 return fUniformRand * static_cast<float>(fUniformRand != 1.0f);
@@ -197,11 +197,11 @@ namespace alpaka::rand
             __device__ auto operator()(TEngine& engine) -> double
             {
                 // (0.f, 1.0f]
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 double const fUniformRand(curand_uniform_double(&engine.state));
-#            else
+#        else
                 double const fUniformRand(hiprand_uniform_double(&engine.state));
-#            endif
+#        endif
                 // NOTE: (1.0f - curand_uniform_double) does not work, because curand_uniform_double seems to
                 // return denormalized floats around 0.f. [0.f, 1.0f)
                 return fUniformRand * static_cast<double>(fUniformRand != 1.0);
@@ -216,11 +216,11 @@ namespace alpaka::rand
             template<typename TEngine>
             __device__ auto operator()(TEngine& engine) -> unsigned int
             {
-#            ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 return curand(&engine.state);
-#            else
+#        else
                 return hiprand(&engine.state);
-#            endif
+#        endif
             }
         };
     } // namespace distribution::uniform_cuda_hip
@@ -277,9 +277,7 @@ namespace alpaka::rand
             }
         };
     } // namespace engine::trait
-#        endif
-} // namespace alpaka::rand
-
 #    endif
+} // namespace alpaka::rand
 
 #endif

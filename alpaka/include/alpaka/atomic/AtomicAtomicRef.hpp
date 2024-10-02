@@ -28,6 +28,7 @@ namespace alpaka
         using atomic_ref = boost::atomic_ref<T>;
 #    endif
     } // namespace detail
+
     //! The atomic ops based on atomic_ref for CPU accelerators.
     //
     //  Atomics can be used in the grids, blocks and threads hierarchy levels.

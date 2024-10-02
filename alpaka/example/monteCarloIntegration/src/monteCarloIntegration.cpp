@@ -72,7 +72,6 @@ struct Kernel
     }
 };
 
-
 auto main() -> int
 {
     // Defines and setup.

@@ -42,7 +42,7 @@ namespace alpaka
     public:
         BlockSharedMemDynMember(std::size_t sizeBytes) : m_dynPitch(getPitch(sizeBytes))
         {
-            ALPAKA_ASSERT_OFFLOAD(static_cast<std::uint32_t>(sizeBytes) <= staticAllocBytes());
+            ALPAKA_ASSERT_ACC(static_cast<std::uint32_t>(sizeBytes) <= staticAllocBytes());
         }
 
         auto dynMemBegin() const -> uint8_t*

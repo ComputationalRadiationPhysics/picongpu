@@ -1,11 +1,98 @@
 CMake Arguments
 ===============
 
-Alpaka configures a lot of its functionality at compile time. Therefore a lot of compiler and link flags are needed, which are set by CMake arguments. The beginning of this section introduces the general Alpaca flag. The last parts of the section describe back-end specific flags.
+Alpaka configures a large part of its functionality at compile time. Therefore, a lot of compiler and link flags are needed, which are set by CMake arguments. First, we show a simple way to build alpaka for different back-ends using `CMake Presets <https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html>`_. The second part of the documentation shows the general and back-end specific alpaka CMake flags.
 
 .. hint::
 
    To display the cmake variables with value and type in the build folder of your project, use ``cmake -LH <path-to-build>``.
+
+CMake Presets
+-------------
+
+The `CMake Presets <https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html>`_ are defined in the ``CMakePresets.json`` file. Each preset contains a set of CMake arguments. We use different presets to build the examples and tests with different back-ends. Execute the following command to display all presets:
+
+.. code-block:: bash
+
+   cd <alpaka_project_root>
+   cmake --list-presets
+
+To configure, build and run the tests of a specific preset, run the following commands (for the example, we use the ``cpu-serial`` preset):
+
+.. code-block:: bash
+
+   cd <alpaka_project_root>
+   # configure a specific preset
+   cmake --preset cpu-serial
+   # build the preset
+   cmake --build --preset cpu-serial
+   # run test of the preset
+   ctest --preset cpu-serial
+
+All presets are configure and build in a subfolder of the ``<alpaka_project_root>/build`` folder.
+
+Modifying and Extending Presets
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The easiest way to change a preset is to set CMake arguments during configuration:
+
+.. code-block:: bash
+
+   cd <alpaka_project_root>
+   # configure the cpu-serial preset with clang++ as C++ compiler
+   cmake --preset cpu-serial -DCMAKE_CXX_COMPILER=clang++
+   # build the preset
+   cmake --build --preset cpu-serial
+   # run test of the preset
+   ctest --preset cpu-serial
+
+It is also possible to configure the default setting first and then change the arguments with ``ccmake``:
+
+.. code-block:: bash
+
+   cd <alpaka_project_root>
+   # configure the cpu-serial preset with clang++ as C++ compiler
+   cmake --preset cpu-serial
+   cd build/cpu-serial
+   ccmake .
+   cd ../..
+   # build the preset
+   cmake --build --preset cpu-serial
+   # run test of the preset
+   ctest --preset cpu-serial
+
+CMake presets also offer the option of creating personal, user-specific configurations based on the predefined CMake presets. To do this, you can create the file ``CMakeUserPresets.json`` in the root directory of your project (the file is located directly next to ``CMakePresets.json``). You can then create your own configurations from the existing CMake presets. The following example takes the cpu-serial configuration, uses ``ninja`` as the generator instead of the standard generator and uses the build type ``RELEASE``.
+
+.. code-block:: json
+
+   {
+      "version": 3,
+      "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 22,
+        "patch": 0
+      },
+      "configurePresets": [
+        {
+            "name": "cpu-serial-ninja-release",
+            "inherits": "cpu-serial",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "RELEASE"
+                }
+            }
+        }
+      ]
+   }
+
+.. hint::
+
+   Many IDEs like `Visual Studio Code <https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/cmake-presets.md>`_ and `CLion <https://www.jetbrains.com/help/clion/cmake-presets.html>`_ support CMake presets.
+
+Arguments
+---------
 
 **Table of back-ends**
 
@@ -18,7 +105,7 @@ Alpaka configures a lot of its functionality at compile time. Therefore a lot of
    * :ref:`HIP <hip>`
 
 Common
-------
+^^^^^^
 
 alpaka_CXX_STANDARD
   .. code-block::
@@ -89,7 +176,7 @@ alpaka_USE_MDSPAN
 .. _cpu-serial:
 
 CPU Serial
-----------
+^^^^^^^^^^
 
 alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE
   .. code-block::
@@ -105,7 +192,7 @@ alpaka_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB
 .. _cpp-threads:
 
 C++ Threads
------------
+^^^^^^^^^^^
 
 alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE
   .. code-block::
@@ -115,7 +202,7 @@ alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE
 .. _intel-tbb:
 
 Intel TBB
----------
+^^^^^^^^^
 
 alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE
   .. code-block::
@@ -131,7 +218,7 @@ alpaka_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB
 .. _openmp2-grid-block:
 
 OpenMP 2 Grid Block
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE
   .. code-block::
@@ -147,7 +234,7 @@ alpaka_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB
 .. _openmp2-block-thread:
 
 OpenMP 2 Block thread
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE
   .. code-block::
@@ -157,7 +244,7 @@ alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE
 .. _cuda:
 
 CUDA
-----
+^^^^
 
 alpaka_ACC_GPU_CUDA_ENABLE
   .. code-block::
@@ -203,7 +290,7 @@ alpaka_RELOCATABLE_DEVICE_CODE
      Enable relocatable device code. Note: This affects all targets in the
      CMake scope where ``alpaka_RELOCATABLE_DEVICE_CODE`` is set. For the
      effects on CUDA code see NVIDIA's blog post:
-     
+
 https://developer.nvidia.com/blog/separate-compilation-linking-cuda-device-code/
 
 alpaka_CUDA_SHOW_CODELINES
@@ -221,7 +308,7 @@ alpaka_CUDA_SHOW_REGISTER
 .. _hip:
 
 HIP
----
+^^^
 
 To enable the HIP back-end please extend ``CMAKE_PREFIX_PATH`` with the path to the HIP installation.
 
@@ -235,7 +322,7 @@ alpaka_ACC_GPU_HIP_ONLY_MODE
 
      Only back-ends using HIP can be enabled in this mode.
 
-GPU_TARGETS
+CMAKE_HIP_ARCHITECTURES
   .. code-block::
 
      Set the GPU architecture: e.g. "gfx900;gfx906;gfx908".
@@ -255,13 +342,13 @@ alpaka_RELOCATABLE_DEVICE_CODE
      CMake scope where ``alpaka_RELOCATABLE_DEVICE_CODE`` is set. For the
      effects on HIP code see the NVIDIA blog post linked below; HIP follows
      CUDA's behaviour.
-     
+
 https://developer.nvidia.com/blog/separate-compilation-linking-cuda-device-code/
 
 .. _sycl:
 
 SYCL
-----
+^^^^
 
 alpaka_RELOCATABLE_DEVICE_CODE
   .. code-block::
@@ -269,5 +356,5 @@ alpaka_RELOCATABLE_DEVICE_CODE
      Enable relocatable device code. Note: This affects all targets in the
      CMake scope where ``alpaka_RELOCATABLE_DEVICE_CODE`` is set. For the
      effects on SYCL code see Intel's documentation:
-     
+
 https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2023-2/fsycl-rdc.html

@@ -1,5 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
- * Bernhard Manfred Gruber, Antonio Di Pilato
+/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
+ *                Bernhard Manfred Gruber, Antonio Di Pilato
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -16,6 +16,7 @@
 #include "alpaka/queue/QueueUniformCudaHipRtBlocking.hpp"
 #include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <set>
 #include <tuple>
@@ -48,16 +49,11 @@ namespace alpaka
                 : m_uniformMemCpyKind(uniformMemCpyKind)
                 , m_iDstDevice(iDstDevice)
                 , m_iSrcDevice(iSrcDevice)
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                , m_dstWidth(static_cast<Idx>(getWidth(viewDst)))
-                , m_srcWidth(static_cast<Idx>(getWidth(viewSrc)))
-#    endif
                 , m_dstMemNative(reinterpret_cast<void*>(getPtrNative(viewDst)))
                 , m_srcMemNative(reinterpret_cast<void const*>(getPtrNative(viewSrc)))
             {
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                ALPAKA_ASSERT(Idx(1u) <= m_dstWidth);
-                ALPAKA_ASSERT(Idx(1u) <= m_srcWidth);
+                ALPAKA_ASSERT(getExtentProduct(extent) == 1);
 #    endif
             }
 
@@ -85,8 +81,8 @@ namespace alpaka
             ALPAKA_FN_HOST auto printDebug() const -> void
             {
                 std::cout << __func__ << " ddev: " << m_iDstDevice << " ew: " << Idx(1u)
-                          << " ewb: " << static_cast<Idx>(sizeof(Elem<TViewDst>)) << " dw: " << m_dstWidth
-                          << " dptr: " << m_dstMemNative << " sdev: " << m_iSrcDevice << " sw: " << m_srcWidth
+                          << " ewb: " << static_cast<Idx>(sizeof(Elem<TViewDst>)) << " dw: " << Idx(1u)
+                          << " dptr: " << m_dstMemNative << " sdev: " << m_iSrcDevice << " sw: " << Idx(1u)
                           << " sptr: " << m_srcMemNative << std::endl;
             }
 #    endif
@@ -94,10 +90,6 @@ namespace alpaka
             typename TApi::MemcpyKind_t m_uniformMemCpyKind;
             int m_iDstDevice;
             int m_iSrcDevice;
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-            Idx m_dstWidth;
-            Idx m_srcWidth;
-#    endif
             void* m_dstMemNative;
             void const* m_srcMemNative;
         };
@@ -124,7 +116,7 @@ namespace alpaka
                 , m_dstWidth(static_cast<Idx>(getWidth(viewDst)))
                 , m_srcWidth(static_cast<Idx>(getWidth(viewSrc)))
 #    endif
-                , m_extentWidthBytes(getWidth(extent) * static_cast<Idx>(sizeof(Elem<TViewDst>)))
+                , m_extentWidthBytes(static_cast<std::size_t>(getWidth(extent)) * sizeof(Elem<TViewDst>))
                 , m_dstMemNative(reinterpret_cast<void*>(getPtrNative(viewDst)))
                 , m_srcMemNative(reinterpret_cast<void const*>(getPtrNative(viewSrc)))
             {
@@ -140,7 +132,7 @@ namespace alpaka
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 printDebug();
 #    endif
-                if(m_extentWidthBytes == 0)
+                if(m_extentWidthBytes == std::size_t{0})
                 {
                     return;
                 }
@@ -153,7 +145,7 @@ namespace alpaka
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memcpyAsync(
                     m_dstMemNative,
                     m_srcMemNative,
-                    static_cast<std::size_t>(m_extentWidthBytes),
+                    m_extentWidthBytes,
                     m_uniformMemCpyKind,
                     queue.getNativeHandle()));
             }
@@ -177,7 +169,7 @@ namespace alpaka
             Idx m_dstWidth;
             Idx m_srcWidth;
 #    endif
-            Idx m_extentWidthBytes;
+            std::size_t m_extentWidthBytes;
             void* m_dstMemNative;
             void const* m_srcMemNative;
         };
@@ -202,7 +194,7 @@ namespace alpaka
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 , m_extentWidth(getWidth(extent))
 #    endif
-                , m_extentWidthBytes(getWidth(extent) * static_cast<Idx>(sizeof(Elem<TViewDst>)))
+                , m_extentWidthBytes(static_cast<std::size_t>(getWidth(extent)) * sizeof(Elem<TViewDst>))
                 , m_dstWidth(static_cast<Idx>(getWidth(viewDst)))
                 , m_srcWidth(static_cast<Idx>(getWidth(viewSrc)))
                 , m_extentHeight(getHeight(extent))
@@ -210,12 +202,8 @@ namespace alpaka
                 , m_dstHeight(static_cast<Idx>(getHeight(viewDst)))
                 , m_srcHeight(static_cast<Idx>(getHeight(viewSrc)))
 #    endif
-                , m_dstpitchBytesX(static_cast<Idx>(getPitchBytes<Dim<TViewDst>::value - 1u>(viewDst)))
-                , m_srcpitchBytesX(static_cast<Idx>(getPitchBytes<Dim<TViewSrc>::value - 1u>(viewSrc)))
-                , m_dstPitchBytesY(
-                      static_cast<Idx>(getPitchBytes<Dim<TViewDst>::value - (2u % Dim<TViewDst>::value)>(viewDst)))
-                , m_srcPitchBytesY(
-                      static_cast<Idx>(getPitchBytes<Dim<TViewSrc>::value - (2u % Dim<TViewDst>::value)>(viewSrc)))
+                , m_dstRowPitchBytes(static_cast<std::size_t>(getPitchesInBytes(viewDst)[0]))
+                , m_srcRowPitchBytes(static_cast<std::size_t>(getPitchesInBytes(viewSrc)[0]))
                 , m_dstMemNative(reinterpret_cast<void*>(getPtrNative(viewDst)))
                 , m_srcMemNative(reinterpret_cast<void const*>(getPtrNative(viewSrc)))
             {
@@ -224,8 +212,8 @@ namespace alpaka
                 ALPAKA_ASSERT(m_extentHeight <= m_dstHeight);
                 ALPAKA_ASSERT(m_extentWidth <= m_srcWidth);
                 ALPAKA_ASSERT(m_extentHeight <= m_srcHeight);
-                ALPAKA_ASSERT(m_extentWidthBytes <= m_dstpitchBytesX);
-                ALPAKA_ASSERT(m_extentWidthBytes <= m_srcpitchBytesX);
+                ALPAKA_ASSERT(m_extentWidthBytes <= m_dstRowPitchBytes);
+                ALPAKA_ASSERT(m_extentWidthBytes <= m_srcRowPitchBytes);
 #    endif
             }
 
@@ -236,7 +224,7 @@ namespace alpaka
                 printDebug();
 #    endif
                 // This is not only an optimization but also prevents a division by zero.
-                if(m_extentWidthBytes == 0 || m_extentHeight == 0)
+                if(m_extentWidthBytes == std::size_t{0} || m_extentHeight == 0)
                 {
                     return;
                 }
@@ -248,10 +236,10 @@ namespace alpaka
                 // Initiate the memory copy.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memcpy2DAsync(
                     m_dstMemNative,
-                    static_cast<std::size_t>(m_dstpitchBytesX),
+                    m_dstRowPitchBytes,
                     m_srcMemNative,
-                    static_cast<std::size_t>(m_srcpitchBytesX),
-                    static_cast<std::size_t>(m_extentWidthBytes),
+                    m_srcRowPitchBytes,
+                    m_extentWidthBytes,
                     static_cast<std::size_t>(m_extentHeight),
                     m_uniformMemCpyKind,
                     queue.getNativeHandle()));
@@ -263,9 +251,9 @@ namespace alpaka
             {
                 std::cout << __func__ << " ew: " << m_extentWidth << " eh: " << m_extentHeight
                           << " ewb: " << m_extentWidthBytes << " ddev: " << m_iDstDevice << " dw: " << m_dstWidth
-                          << " dh: " << m_dstHeight << " dptr: " << m_dstMemNative << " dpitchb: " << m_dstpitchBytesX
+                          << " dh: " << m_dstHeight << " dptr: " << m_dstMemNative << " dpitch: " << m_dstRowPitchBytes
                           << " sdev: " << m_iSrcDevice << " sw: " << m_srcWidth << " sh: " << m_srcHeight
-                          << " sptr: " << m_srcMemNative << " spitchb: " << m_srcpitchBytesX << std::endl;
+                          << " sptr: " << m_srcMemNative << " spitch: " << m_srcRowPitchBytes << std::endl;
             }
 #    endif
 
@@ -275,7 +263,7 @@ namespace alpaka
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             Idx m_extentWidth;
 #    endif
-            Idx m_extentWidthBytes;
+            std::size_t m_extentWidthBytes;
             Idx m_dstWidth;
             Idx m_srcWidth;
 
@@ -284,10 +272,8 @@ namespace alpaka
             Idx m_dstHeight;
             Idx m_srcHeight;
 #    endif
-            Idx m_dstpitchBytesX;
-            Idx m_srcpitchBytesX;
-            Idx m_dstPitchBytesY;
-            Idx m_srcPitchBytesY;
+            std::size_t m_dstRowPitchBytes;
+            std::size_t m_srcRowPitchBytes;
 
             void* m_dstMemNative;
             void const* m_srcMemNative;
@@ -311,7 +297,7 @@ namespace alpaka
                 , m_iDstDevice(iDstDevice)
                 , m_iSrcDevice(iSrcDevice)
                 , m_extentWidth(getWidth(extent))
-                , m_extentWidthBytes(m_extentWidth * static_cast<Idx>(sizeof(Elem<TViewDst>)))
+                , m_extentWidthBytes(static_cast<std::size_t>(m_extentWidth) * sizeof(Elem<TViewDst>))
                 , m_dstWidth(static_cast<Idx>(getWidth(viewDst)))
                 , m_srcWidth(static_cast<Idx>(getWidth(viewSrc)))
                 , m_extentHeight(getHeight(extent))
@@ -322,12 +308,10 @@ namespace alpaka
                 , m_dstDepth(static_cast<Idx>(getDepth(viewDst)))
                 , m_srcDepth(static_cast<Idx>(getDepth(viewSrc)))
 #    endif
-                , m_dstpitchBytesX(static_cast<Idx>(getPitchBytes<Dim<TViewDst>::value - 1u>(viewDst)))
-                , m_srcpitchBytesX(static_cast<Idx>(getPitchBytes<Dim<TViewSrc>::value - 1u>(viewSrc)))
-                , m_dstPitchBytesY(
-                      static_cast<Idx>(getPitchBytes<Dim<TViewDst>::value - (2u % Dim<TViewDst>::value)>(viewDst)))
-                , m_srcPitchBytesY(
-                      static_cast<Idx>(getPitchBytes<Dim<TViewSrc>::value - (2u % Dim<TViewDst>::value)>(viewSrc)))
+                , m_dstRowPitchBytes(static_cast<std::size_t>(getPitchesInBytes(viewDst)[1]))
+                , m_srcRowPitchBytes(static_cast<std::size_t>(getPitchesInBytes(viewSrc)[1]))
+                , m_dstSlicePitchBytes(static_cast<std::size_t>(getPitchesInBytes(viewDst)[0]))
+                , m_srcSlicePitchBytes(static_cast<std::size_t>(getPitchesInBytes(viewSrc)[0]))
                 , m_dstMemNative(reinterpret_cast<void*>(getPtrNative(viewDst)))
                 , m_srcMemNative(reinterpret_cast<void const*>(getPtrNative(viewSrc)))
             {
@@ -338,8 +322,8 @@ namespace alpaka
                 ALPAKA_ASSERT(m_extentWidth <= m_srcWidth);
                 ALPAKA_ASSERT(m_extentHeight <= m_srcHeight);
                 ALPAKA_ASSERT(m_extentDepth <= m_srcDepth);
-                ALPAKA_ASSERT(m_extentWidthBytes <= m_dstpitchBytesX);
-                ALPAKA_ASSERT(m_extentWidthBytes <= m_srcpitchBytesX);
+                ALPAKA_ASSERT(m_extentWidthBytes <= m_dstRowPitchBytes);
+                ALPAKA_ASSERT(m_extentWidthBytes <= m_srcRowPitchBytes);
 #    endif
             }
 
@@ -350,7 +334,7 @@ namespace alpaka
                 printDebug();
 #    endif
                 // This is not only an optimization but also prevents a division by zero.
-                if(m_extentWidthBytes == 0 || m_extentHeight == 0 || m_extentDepth == 0)
+                if(m_extentWidthBytes == std::size_t{0} || m_extentHeight == 0 || m_extentDepth == 0)
                 {
                     return;
                 }
@@ -373,23 +357,19 @@ namespace alpaka
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                 // Fill CUDA/HIP parameter structure.
-                typename TApi::Memcpy3DParms_t memCpy3DParms;
-                memCpy3DParms.srcArray = nullptr; // Either srcArray or srcPtr.
-                memCpy3DParms.srcPos = TApi::makePos(0, 0, 0); // Optional. Offset in bytes.
+                typename TApi::Memcpy3DParms_t memCpy3DParms{}; // zero-init required per CUDA documentation
                 memCpy3DParms.srcPtr = TApi::makePitchedPtr(
                     const_cast<void*>(m_srcMemNative),
-                    static_cast<std::size_t>(m_srcpitchBytesX),
+                    m_srcRowPitchBytes,
                     static_cast<std::size_t>(m_srcWidth),
-                    static_cast<std::size_t>(m_srcPitchBytesY / m_srcpitchBytesX));
-                memCpy3DParms.dstArray = nullptr; // Either dstArray or dstPtr.
-                memCpy3DParms.dstPos = TApi::makePos(0, 0, 0); // Optional. Offset in bytes.
+                    m_srcSlicePitchBytes / m_srcRowPitchBytes);
                 memCpy3DParms.dstPtr = TApi::makePitchedPtr(
                     m_dstMemNative,
-                    static_cast<std::size_t>(m_dstpitchBytesX),
+                    m_dstRowPitchBytes,
                     static_cast<std::size_t>(m_dstWidth),
-                    static_cast<std::size_t>(m_dstPitchBytesY / m_dstpitchBytesX));
+                    m_dstSlicePitchBytes / m_dstRowPitchBytes);
                 memCpy3DParms.extent = TApi::makeExtent(
-                    static_cast<std::size_t>(m_extentWidthBytes),
+                    m_extentWidthBytes,
                     static_cast<std::size_t>(m_extentHeight),
                     static_cast<std::size_t>(m_extentDepth));
                 memCpy3DParms.kind = m_uniformMemCpyKind;
@@ -402,10 +382,11 @@ namespace alpaka
                 std::cout << __func__ << " ew: " << m_extentWidth << " eh: " << m_extentHeight
                           << " ed: " << m_extentDepth << " ewb: " << m_extentWidthBytes << " ddev: " << m_iDstDevice
                           << " dw: " << m_dstWidth << " dh: " << m_dstHeight << " dd: " << m_dstDepth
-                          << " dptr: " << m_dstMemNative << " dpitchb: " << m_dstpitchBytesX
-                          << " sdev: " << m_iSrcDevice << " sw: " << m_srcWidth << " sh: " << m_srcHeight
-                          << " sd: " << m_srcDepth << " sptr: " << m_srcMemNative << " spitchb: " << m_srcpitchBytesX
-                          << std::endl;
+                          << " dptr: " << m_dstMemNative << " drowpitch: " << m_dstRowPitchBytes
+                          << " dslicepitch: " << m_dstSlicePitchBytes << " sdev: " << m_iSrcDevice
+                          << " sw: " << m_srcWidth << " sh: " << m_srcHeight << " sd: " << m_srcDepth
+                          << " sptr: " << m_srcMemNative << " srowpitch: " << m_srcRowPitchBytes
+                          << " sslicepitch: " << m_srcSlicePitchBytes << std::endl;
             }
 #    endif
             typename TApi::MemcpyKind_t m_uniformMemCpyKind;
@@ -413,7 +394,7 @@ namespace alpaka
             int m_iSrcDevice;
 
             Idx m_extentWidth;
-            Idx m_extentWidthBytes;
+            std::size_t m_extentWidthBytes;
             Idx m_dstWidth;
             Idx m_srcWidth;
 
@@ -425,10 +406,10 @@ namespace alpaka
             Idx m_dstDepth;
             Idx m_srcDepth;
 #    endif
-            Idx m_dstpitchBytesX;
-            Idx m_srcpitchBytesX;
-            Idx m_dstPitchBytesY;
-            Idx m_srcPitchBytesY;
+            std::size_t m_dstRowPitchBytes;
+            std::size_t m_srcRowPitchBytes;
+            std::size_t m_dstSlicePitchBytes;
+            std::size_t m_srcSlicePitchBytes;
 
             void* m_dstMemNative;
             void const* m_srcMemNative;

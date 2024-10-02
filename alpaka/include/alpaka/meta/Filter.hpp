@@ -14,11 +14,13 @@ namespace alpaka::meta
     {
         template<template<typename...> class TList, template<typename> class TPred, typename... Ts>
         struct FilterImplHelper;
+
         template<template<typename...> class TList, template<typename> class TPred>
         struct FilterImplHelper<TList, TPred>
         {
             using type = TList<>;
         };
+
         template<template<typename...> class TList, template<typename> class TPred, typename T, typename... Ts>
         struct FilterImplHelper<TList, TPred, T, Ts...>
         {
@@ -30,6 +32,7 @@ namespace alpaka::meta
 
         template<typename TList, template<typename> class TPred>
         struct FilterImpl;
+
         template<template<typename...> class TList, template<typename> class TPred, typename... Ts>
         struct FilterImpl<TList<Ts...>, TPred>
         {

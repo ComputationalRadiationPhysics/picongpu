@@ -14,7 +14,8 @@ from alpaka_globals import *  # pylint: disable=wildcard-import,unused-wildcard-
 from util import print_warn, exit_error
 
 JOB_COMPILE_ONLY = "compile_only_job"
-JOB_RUNTIME = "runtime_job"
+JOB_RUNTIME = "runtime_job_gpu"
+JOB_CPU_RUNTIME = "runtime_job_cpu"
 JOB_ROCM_RUNTIME = "rocm_runtime_job"
 JOB_NVCC_GCC_RUNTIME = "nvcc_gcc_runtime_job"
 JOB_NVCC_CLANG_RUNTIME = "nvcc_clng_runtime_job"
@@ -25,8 +26,8 @@ JOB_UNKNOWN = "unknowm_job_type"
 WAVE_GROUP_NAMES = [
     JOB_COMPILE_ONLY,
     JOB_RUNTIME,
+    JOB_CPU_RUNTIME,
     # can be enabled again, if fine granular scheduling is required
-    # JOB_CPU_RUNTIME,
     # JOB_ROCM_RUNTIME,
     # JOB_NVCC_GCC_RUNTIME,
     # JOB_NVCC_CLANG_RUNTIME,
@@ -219,6 +220,23 @@ def job_image(
 
 
 @typechecked
+def append_backend_variables(
+    variables: Dict[str, str], job: Dict[str, Tuple[str, str]]
+):
+    """Searches for enabled back-ends in the job parameters and appends the back-end
+    variable to variables to enable it in the CI job.
+
+    Args:
+        variables (Dict[str, str]): variables of the CI job
+        job (Dict[str, Tuple[str, str]]): job with parameters from the pair-wise
+            generator.
+    """
+    for backend in BACKENDS_LIST:
+        if backend in job:
+            variables[backend] = "ON"
+
+
+@typechecked
 def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
     """Add variables to the job depending of the job dict.
 
@@ -270,14 +288,12 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
     variables["ALPAKA_CI_CMAKE_VER"] = job[CMAKE][VERSION]
     variables["ALPAKA_BOOST_VERSION"] = job[BOOST][VERSION]
 
-    # TODO(SimeonEhrig) at the moment, not all backends are available in
-    # versions.sw_versions[BACKENDS], therefore we have to set each backend explicit
-    # Later, we can iterate over versions.sw_versions[BACKENDS] and check, if a Backend needs to be
-    # enabled
+    # all back-ends are disabled by default
+    # back-ends are conditionally enabled depending on the job parameters
     variables[ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE] = "OFF"
     variables[ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE] = "OFF"
     variables[ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE] = "OFF"
-    variables[ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE] = "ON"
+    variables[ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE] = "OFF"
     variables[ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE] = "OFF"
     variables[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE] = "OFF"
     variables[ALPAKA_ACC_GPU_CUDA_ENABLE] = "OFF"
@@ -285,20 +301,44 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
     variables[ALPAKA_ACC_GPU_HIP_ENABLE] = "OFF"
     variables["alpaka_ACC_GPU_HIP_ONLY_MODE"] = "OFF"
     variables[ALPAKA_ACC_SYCL_ENABLE] = "OFF"
+    # TODO(SimeonEhrig): set libstdc++ for all backends
+    # support for different standard c++ libraries is planed
+    # https://github.com/alpaka-group/alpaka-job-matrix-library/issues/9
+    variables["ALPAKA_CI_STDLIB"] = "libstdc++"
     if job[MDSPAN][VERSION] == ON_VER:
         variables["ALPAKA_TEST_MDSPAN"] = "ON"
     else:
         variables["ALPAKA_TEST_MDSPAN"] = "OFF"
 
-    if job[DEVICE_COMPILER][NAME] == HIPCC:
-        variables[ALPAKA_ACC_GPU_HIP_ENABLE] = "ON"
+    append_backend_variables(variables, job)
+
+    if job[DEVICE_COMPILER][NAME] == GCC:
+        variables["CC"] = "gcc"
+        variables["CXX"] = "g++"
+        variables["ALPAKA_CI_GCC_VER"] = job[DEVICE_COMPILER][VERSION]
+        if (
+            ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job
+            and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER
+        ):
+            variables["ALPAKA_CI_TBB_VERSION"] = "2021.10.0"
+
+    if job[DEVICE_COMPILER][NAME] == CLANG:
         variables["CC"] = "clang"
         variables["CXX"] = "clang++"
-        variables["GPU_TARGETS"] = "${CI_GPU_ARCH}"
+        variables["ALPAKA_CI_CLANG_VER"] = job[DEVICE_COMPILER][VERSION]
+        if (
+            ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job
+            and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER
+        ):
+            variables["ALPAKA_CI_TBB_VERSION"] = "2021.10.0"
+
+    if job[DEVICE_COMPILER][NAME] == HIPCC:
+        variables["CC"] = "clang"
+        variables["CXX"] = "clang++"
+        variables["CMAKE_HIP_COMPILER"] = "clang++"
+        variables["CMAKE_HIP_ARCHITECTURES"] = "${CI_GPU_ARCH}"
         # TODO(SimeonEhrig) check, if we can remove this variable:
-        if job[DEVICE_COMPILER][VERSION] == "5.0":
-            variables["ALPAKA_CI_CLANG_VER"] = "14"
-        elif job[DEVICE_COMPILER][VERSION] == "5.1":
+        if job[DEVICE_COMPILER][VERSION] == "5.1":
             variables["ALPAKA_CI_CLANG_VER"] = "14"
         elif job[DEVICE_COMPILER][VERSION] == "5.2":
             variables["ALPAKA_CI_CLANG_VER"] = "14"
@@ -308,6 +348,12 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
             variables["ALPAKA_CI_CLANG_VER"] = "15"
         elif job[DEVICE_COMPILER][VERSION] == "5.5":
             variables["ALPAKA_CI_CLANG_VER"] = "16"
+        elif job[DEVICE_COMPILER][VERSION] == "5.6":
+            variables["ALPAKA_CI_CLANG_VER"] = "16"
+        elif job[DEVICE_COMPILER][VERSION] == "5.7":
+            variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "6.0":
+            variables["ALPAKA_CI_CLANG_VER"] = "17"
         else:
             raise RuntimeError(
                 "generate_job_yaml.job_variables(): unknown hip version: "
@@ -322,7 +368,6 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
         ALPAKA_ACC_GPU_CUDA_ENABLE in job
         and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER
     ):
-        variables[ALPAKA_ACC_GPU_CUDA_ENABLE] = "ON"
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
         variables["CMAKE_CUDA_ARCHITECTURES"] = job[SM_LEVEL][VERSION]
         variables["ALPAKA_CI_CUDA_VERSION"] = job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION]
@@ -336,16 +381,11 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
             variables["CC"] = "gcc"
             variables["CXX"] = "g++"
             variables["ALPAKA_CI_GCC_VER"] = job[HOST_COMPILER][VERSION]
-            variables[ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE] = "ON"
-            variables[ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE] = "ON"
-            variables[ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE] = "ON"
         # configuration, if Clang is the CUDA host compiler
         elif job[HOST_COMPILER][NAME] == CLANG:
             variables["CC"] = "clang"
             variables["CXX"] = "clang++"
             variables["ALPAKA_CI_CLANG_VER"] = job[HOST_COMPILER][VERSION]
-            variables[ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE] = "ON"
-            variables[ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE] = "ON"
         else:
             raise RuntimeError(
                 "generate_job_yaml.job_variables(): unknown CUDA host compiler: "
@@ -357,9 +397,6 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
         variables["CXX"] = "clang++"
         variables["ALPAKA_CI_CLANG_VER"] = job[DEVICE_COMPILER][VERSION]
         variables["CMAKE_CUDA_COMPILER"] = "clang++"
-        variables[ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE] = "ON"
-        variables[ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE] = "OFF"
-        variables[ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE] = "OFF"
 
     # oneAPI configuration
     if job[DEVICE_COMPILER][NAME] == ICPX:
@@ -371,12 +408,8 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
             variables["ALPAKA_CI_CLANG_VER"] = "16"
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
         variables["ALPAKA_CI_ONEAPI_VERSION"] = job[DEVICE_COMPILER][VERSION]
-        variables[ALPAKA_ACC_SYCL_ENABLE] = "ON"
         variables["alpaka_SYCL_ONEAPI_CPU"] = "ON"
         variables["alpaka_SYCL_ONEAPI_CPU_ISA"] = "avx2"
-        variables[ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE] = "OFF" # Turn off OpenMP back-ends until Intel fixes https://github.com/intel/llvm/issues/10711
-        variables[ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE] = "OFF"
-        variables[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE] = "ON"
 
     return variables
 
@@ -410,7 +443,7 @@ def job_tags(job: Dict[str, Tuple[str, str]]) -> List[str]:
         and job[ALPAKA_ACC_SYCL_ENABLE][VERSION] != OFF_VER
     ):
         return ["x86_64", "cpuonly"]
-    
+
     # fallback
     return ["x86_64", "cpuonly"]
 
@@ -448,7 +481,7 @@ def global_variables() -> Dict[str, str]:
     variables["ALPAKA_CI_BOOST_LIB_DIR"] = "$HOME/boost_libs"
     variables["ALPAKA_CI_CUDA_DIR"] = "$HOME/cuda"
     variables["ALPAKA_CI_HIP_ROOT_DIR"] = "$HOME/hip"
-    variables["alpaka_ENABLE_WERROR"] ="ON"
+    variables["alpaka_ENABLE_WERROR"] = "ON"
 
     return variables
 
@@ -545,12 +578,13 @@ def distribute_to_waves(
         job_name: str = next(iter(job))
         if "_compile_only_" in job_name:
             sorted_groups[JOB_COMPILE_ONLY].append(job)
+        elif job_name.startswith("linux_gcc"):
+            sorted_groups[JOB_CPU_RUNTIME].append(job)
         # Clang as C++ compiler without CUDA backend
         elif job_name.startswith("linux_clang") and not job_name.startswith(
             "linux_clang-cuda"
         ):
-            # sorted_groups[JOB_CPU_RUNTIME].append(job)
-            sorted_groups[JOB_COMPILE_ONLY].append(job)
+            sorted_groups[JOB_CPU_RUNTIME].append(job)
         elif job_name.startswith("linux_hipcc"):
             # sorted_groups[JOB_ROCM_RUNTIME].append(job)
             sorted_groups[JOB_RUNTIME].append(job)

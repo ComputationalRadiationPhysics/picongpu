@@ -25,7 +25,6 @@ struct PrintBufferKernel
     }
 };
 
-
 //! Tests if the value of the buffer on index i is equal to i.
 struct TestBufferKernel
 {
@@ -40,7 +39,7 @@ struct TestBufferKernel
         for(size_t z = idx[0]; z < data.extent(0); z += gridSize[0])
             for(size_t y = idx[1]; y < data.extent(1); y += gridSize[1])
                 for(size_t x = idx[2]; x < data.extent(2); x += gridSize[2])
-                    ALPAKA_ASSERT_OFFLOAD(
+                    ALPAKA_ASSERT_ACC(
                         data(z, y, x)
                         == alpaka::mapIdx<1u>(Vec{z, y, x}, Vec{data.extent(0), data.extent(1), data.extent(2)})[0]);
     }
@@ -215,10 +214,10 @@ auto main() -> int
     // padding between rows/planes of multidimensional memory allocations.
     // Therefore the pitch (distance between consecutive rows/planes) may be
     // greater than the space required for the data.
-    Idx const deviceBuffer1Pitch(alpaka::getPitchBytes<2u>(deviceBuffer1) / sizeof(Data));
-    Idx const deviceBuffer2Pitch(alpaka::getPitchBytes<2u>(deviceBuffer2) / sizeof(Data));
-    Idx const hostBuffer1Pitch(alpaka::getPitchBytes<2u>(hostBuffer) / sizeof(Data));
-    Idx const hostViewPlainPtrPitch(alpaka::getPitchBytes<2u>(hostViewPlainPtr) / sizeof(Data));
+    Idx const deviceBuffer1Pitch(alpaka::getPitchesInBytes(deviceBuffer1)[1] / sizeof(Data));
+    Idx const deviceBuffer2Pitch(alpaka::getPitchesInBytes(deviceBuffer2)[1] / sizeof(Data));
+    Idx const hostBuffer1Pitch(alpaka::getPitchesInBytes(hostBuffer)[1] / sizeof(Data));
+    Idx const hostViewPlainPtrPitch(alpaka::getPitchesInBytes(hostViewPlainPtr)[1] / sizeof(Data));
 
     // Test device Buffer
     //

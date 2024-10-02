@@ -1,7 +1,318 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [1.1.0] - 2024-01-18
+
+### Added
+
+- Warp Shfl- Up, Down and Xor #1924
+- Add alpaka-ls #2175 #2218
+- Named access to Vec `.x()`, `.y()` #2201
+- Add CMake presets #2203
+- Add trait IsKernelArgumentTriviallyCopyable #2198
+- Add alpaka::getPreferredWarpSize(dev) #2216
+- `ROCm`
+  - ROCm 5.3 and later support asynchronous memory operations #2197
+  - Support for ROCM 5.6 - 6.0 #2207 #2210
+  - Use CMake's native HIP support #2215
+- `CUDA`
+  - Support for CUDA 12.3 #2211
+
+### Changed
+
+- Trim device names #2193
+- Change all CUDA warp operations to synchronise all threads #2204
+
+### Fixed
+
+- Fix a few warnings #2164
+- Workaround gcc warning on uninitialized PlatformCpu #2165
+- Fix icpx 2024.0 OpenMP atomics #2213
+
+### Removed
+
+- Remove ALPAKA_ASSERT_OFFLOAD, introduce ALPAKA_ASSERT_ACC #2199
+- `ROCm`
+  - Remove support for HIP ROCm 5.0 #2214
+
+## [1.0.0] - 2023-11-14
+
+### Added
+
+- `g++`:
+  - Added support for `g++-13` #1967
+  - Added support for `g++-12` #1721 #1754 #1765 #1867
+- `clang++`:
+  - Added support for `clang-17` #2171 #2174
+  - Added support for `clang-16` #1971 #2006
+  - Added support for `clang-15` #1898
+  - Added support for `clang-14` #1766
+  - Added support for `clang-13` #1756
+- `icpx`:
+  - Added support for the Intel® oneAPI DPC++/C++ Compiler (`icpx`) #1700 #1706 #1884 #2064 #2081
+- Xcode:
+  - Added support for Xcode 14.3.1 #1973
+  - Added support for Xcode 14.2 #1899
+- CUDA:
+  - Added support for CUDA 12.2 #2043
+  - Added support for CUDA 12.1 #1957
+  - Added support for CUDA 11.{6,7,8} and 12.0 #1890
+- ROCm:
+  - Added support for ROCm 5.5 #1961
+  - Added support for ROCm 5.4 #1915
+  - Added support for ROCm 5.3 #1838
+  - Added support for ROCm 5.2.3 #1812
+- `alpaka::math`:
+  - Added `alpaka::math::copysign` function #2050
+  - Added `alpaka::math::log2` and `alpaka::math::log10` functions #2029
+  - Added `alpaka::math::fma` functions #2015 
+  - Added hyperbolic functions #1828 #2030
+  - Added `constants` namespace which contains constants such as π, e, etc. #1710
+- `alpaka::Vec`:
+  - Added generator constructor #2085
+  - Added `front` and `back` methods #2085
+  - Added `elementwise_{min,max}` methods #1805
+  - `Vec` now features a deduction guide for easier construction #1610
+- Documentation:
+  - Added example illustrating typical data-parallel patterns with alpaka #1712
+  - Added documentation about the behaviour of `constexpr` functions in kernel code #1699
+  - Added documentation about CUDA function attributes #1697
+  - Added documentation about setting the C++ standard library for clang #1695
+- Test cases:
+  - Added test for `alpaka::ViewSubView` #2095
+  - Added queue test which checks that a task is destroyed after execution #2047
+  - Added test for `alpaka::getValidWorkDiv` with `Idx` type #1830
+  - Added tests for `alpaka::subDivideGridElements` #1829
+- CI:
+  - Run test cases with `-Werror` #2163
+  - Added UBSan CI job #2059
+  - Added CI job to create amalgamated `alpaka.hpp` #1956 #1965 #1972
+  - Made GitLab CI jobs interruptible #1904
+  - Updated used Boost and CMake versions #1903 #1969
+  - Added `agc-manager` support #1871 #1921
+  - Added TSan CI job #1851 #2103 #2137
+  - GitLab CI jobs are now automatically generated #1785 #1889 #1896 #1951 #1952 #2005 #2041
+- Upgraded to `clang-format-16` #2147
+- Added `alpaka::getPitchesInBytes` function which returns all pitches for a given view as an `alpaka::Vec` #2092 #2093 #2116 #2125
+- Added `alpaka::get{Extents,Offsets}` functions which return all extents/offsets for a given view as an `alpaka::Vec` #2080
+- Added `alpaka_DISABLE_VENDOR_RNG` CMake flag and its corresponding preprocessor macro `ALPAKA_DISABLE_VENDOR_RNG` to optionally disable vendor RNG libraries #2036
+- Added alpaka port of BabelStream #1846 #1934
+- Added utility functions `alpaka::core::{divCeil,intPow,nthRootFloor}` #1830
+- Added `operator==` for `alpaka::WorkDivMembers` #1829
+- Added `alpaka::is{Accelerator,Device,Platform,Queue}` variable templates #1818
+- Added accelerator tags which allow for accelerator-specific code paths without enabling the corresponding back-end #1804 #1814
+- Added experimental support for `std::mdspan` #1788 #2048 #2052 #2053
+- Added `alpaka::ViewConst` which wraps another view but prevents modifying accesses #1746
+- `alpaka::{memcpy,memset}` now support temporary destination views #1743
+- Host memory alignment can now be specified by using the `ALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT` macro #1686
+- Added `alpaka::allocMappedBuf` for allocating device-accessible pinned host memory #1685 #1782 #2162
+  - Added related trait `alpaka::trait::hasMappedBufSupport` to query the host CPU for device-accessible pinned memory support #1782
+  - Added related utility function `alpaka::allocMappedBufIfSupported` to allocate device-accessible pinned memory, if supported, and regular memory otherwise #1782 #2120
+- Relocatable device code can now be enabled using the `alpaka_RELOCATABLE_DEVICE_CODE` CMake option #1467
+
+### Changed
+
+- API changes:
+  - **Breaking change**: `alpaka::get{Width,Height,Depth}` now always return `1` for unavailable dimensions instead of `static_assert`ing #2148
+  - **Breaking change**: alpaka platforms have been renamed from `alpaka::Pltf*` to `alpaka::Platform*` #2024 #2032
+  - **Breaking change**: alpaka platforms are now full objects instead of types #1988 #2051 #2165
+  - `operator<<(std::ostream&, WorkDivMembers const&)` is now a `friend` of `alpaka::WorkDivMembers` instead of a method #1829
+  - **Potentially breaking change**: Switched several view-related methods from `ALPAKA_FN_HOST_ACC` to `ALPAKA_FN_HOST` #1826
+  - Accelerators' copy/move constructors and assignment operators are now explicitly `delete`d #1825
+  - `alpaka::test::allocAsyncBufIfSupported` was moved into the general `namespace alpaka` #1782
+  - Removed unnecessary attribute `ALPAKA_FN_HOST_ACC` from defaulted functions #1761
+  - The `UniformCudaHip` types are now templated on traits-like `struct`s which encapsulate the CUDA or HIP API #1665
+- General behavioural changes:
+  - Improved handling of CMake generator expressions #2146
+  - Improved detection of C++20 features #2138
+  - Simplified internals of `alpaka_add_{executable,library}` #2072 #2082
+  - **Breaking change**: Removed dummy atomics from memory fence implementations. Users now need to guarantee correctness themselves #2071
+  - In debug mode MSVC will use the `/Od` optimization level #1977
+  - In debug mode clang-based compilers will explicitly use the `-O0` optimization level #1977
+  - In debug mode `g++` will use the `-Og` optimization level #1977
+  - `-Werror` and its MSVC equivalent `/WX` are no longer enabled by default when `BUILD_TESTING` is set to `ON` #1977
+  - A platform's internal `std::vector` containing the `alpaka::Device`s now reserves the necessary memory before initialization #1926
+  - **Potentially breaking change**: `ALPAKA_FN_INLINE` now enforces inlining for platforms other than CUDA and HIP #1918
+  - Replaced `alpaka::core::ConcurrentExecPool` with `alpaka::core::CallbackThread` in all queue implementations #1870
+  - If no back-end is enabled, alpaka automatically selects the serial back-end for examples and test cases #1843
+  - On Linux platforms, the free global memory is now determined by a call to `sysconf(_SC_AVPHYS_PAGES)` instead of querying `/proc/sysinfo` #1776
+  - **Potentially breaking change**: Changed CMake's look-up of MSVC's runtime libraries (see [here](https://cmake.org/cmake/help/v3.22/policy/CMP0091.html) for an in-depth explanation) #1751
+  - Unified `alpaka::{memcpy,memset}`'s internal `static_assert`s #1748
+  - `alpaka::core::aligned{Alloc,Free}` now internally use aligned `new`/`delete` instead of OS-specific APIs #1689
+- CUDA/HIP back-end changes:
+  - `nvcc` now makes correct use of `--Werror` and more CUDA-related warnings #2135
+  - Unified `ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK` macros #2090
+  - Made some internal constants `constexpr` #2063
+  - The CUDA/HIP back-ends will now always use `std::size_t` for internal pitch calculations #2056
+  - **Breaking change**: clang as CUDA compiler will only work in `Release` build mode #2027
+  - **Potentially breaking change**: In debug mode `ǹvcc` will now use the `-G` flag which enables device-side debug symbols #1977
+  - Starting from HIP 5.2.0, the HIP back-end includes `<hip/hiprand_kernel.h>` instead of `<hiprand_kernel.h>` #1914
+  - Starting from HIP 5.2.0, the HIP back-end makes use of `hip{Malloc,Free}Async` #1894
+  - If clang is used as CUDA compiler together with CUDA 11.3 a warning will be printed #1890
+  - Starting from HIP 5.4.0, the HIP back-end internally uses `hipLaunchHostFunc` instead of a work-around #1883
+  - Adapted to API changes in CUDA 11.7's stream memory operations #1878 #1919 
+  - Shortened mangled CUDA kernel names #1795
+  - CUDA runtime versions checks are now based upon `CUDART_VERSION` instead of `BOOST_LANG_CUDA` #1777
+  - Because of a HIP performance regression the HIP back-end now uses the emulated `atomicAdd(float)` on the `Threads` hierarchy level #1771
+  - Changed look-up of built-in and emulated atomic functions for the CUDA and HIP back-ends #1768
+  - The HIP back-end now uses the built-in `atomicAdd(double)` #1767
+  - CUDA/HIP queues now internally make use of callback threads #1719 #1735 #1976 #2011
+- SYCL back-end changes:
+  - Removed unnecessary `-fintelfpga` flag from CMake build system when compiling the SYCL back-end for Intel FPGAs #2179
+  - **Breaking change**: Support for the `activemask` intrinsic is disabled for the SYCL back-end #2161
+  - Updated `README_SYCL.md` #2140
+  - **Breaking change**: Reworked CMake handling for SYCL targets #1970 #2066
+  - **Breaking change**: The SYCL back-end now accepts SYCL USM pointers as kernel parameters #1845 #2042
+  - **Breaking change**: The SYCL CPU selector was generalized to both Intel and non-Intel CPUs and therefore renamed #1845
+  - **Breaking change**: The SYCL back-end replaced `sycl::stream` with `printf` for device side printing #1845 #2045
+  - The SYCL back-end now features a kernel trait which allows to set the SYCL sub-group (= warp) size #1845
+  - The SYCL back-end now supports RNG through the Intel oneAPI libraries #1845
+  - The SYCL back-end is now based upon the SYCL 2020 specification #1845 #1981
+- RNG changes:
+  - **Breaking change**: Philox RNG is now counter-based and stateless #1792
+  - Philox random engines are now trivially copyable #1778
+- Documentation:
+  - Improved documentation of `ALPAKA_FN_INLINE` #2091
+  - Reduced example work sizes #2084
+  - Improved documentation of `alpaka::QueueCpuOmp2Collective` #2025
+  - Clarified kernel and kernel argument requirements #1944
+  - Replaced license headers with SPDX license identifiers #1917
+  - Collapsed compiler support matrix in `README.md` #1860
+- Refactorings:
+  - Refactored test classes #2156 #2158
+  - Use nested namespace specifiers #2152
+  - Removed unnecessary member initialization calls #2151
+  - Avoid unnecessary indentions #2149
+  - Renamed internal variables of `ViewSubViewTest.cpp` and `ViewPlainPtrTest.cpp` to prevent name shadowing #2144
+  - Refactored the internals of `alpaka::{mapIdx,mapIdxPitchBytes}` #2136
+  - Replaced Codeplay's STLTuple implementation with `std::tuple` #2106
+  - Replaced `ALPAKA_DECAY_T` macro with `std::decay_t` #2104
+  - Refactored `alpaka::internal::ViewAccessOps` #2094
+  - **Breaking change**: Replaced `alpaka::createVecFromIndexedFn` family of functions with `alpaka::Vec`'s new generator constructor #2085
+  - Refactored `alpaka::QueueCpuOmp2Collective` #2013
+  - Refactored `alpaka::meta::ndLoop` #1999
+  - Refactored `alpaka::TaskKernelCpuThreads` #1998
+  - Refactored `alpaka::core::ConcurrentExecPool` and related classes #1852 #2000
+  - Refactored `alpaka::subDivideGridElements` #1830
+  - Refactored includes inside `alpaka/dev/cpu/SysInfo.hpp` #1776
+- Test changes:
+  - Catch2 is no longer built with fast math enabled when using `icpx` as compiler #2128
+  - `-pedantic` is no longer added when compiling CUDA code #2096
+  - Reduced noise from `helloWorld`, `helloWorldLambda` and `TestTemplate` #2076
+  - Renamed `fenceTest` to `FenceTest` #2037
+  - The `Any` intrinsic unit test now assumes a sub-group size of `4` #2017
+  - The `NativeHandleTest` no longer assumes that a native handle is an `int` #2008
+  - Test cases are now compiled with MSVC's two phase lookup enabled #1986
+  - Kernel names in the test cases are now demangled #1983
+  - CUDA/HIP/SYCL atomic tests are now restricted to explicitly supported types #1980
+  - Test cases are no longer executed for zero-dimensional SYCL accelerators #1979
+  - Tests are disabled by default when using alpaka via CMake's `add_subdirectory` #1912  
+- CI changes:
+  - Removed unused sanitizer blacklists #2154
+  - Simplified CI oneTBB installation #2145
+  - The GitLab CI now features runtime tests built with `g++` and `clang++` #2131 #2141
+  - Upgraded ASan CI job to `clang-16` #2057
+  - Upgraded special CUDA jobs to newer versions #2055
+  - Re-enabled `g++-9` + CUDA jobs #2040
+  - Updated Read the Docs configuration to v2 #2010
+  - For ROCm versions <= 5.3 certain warnings are ignored #1932
+  - Split compile and runtime CI runners into separate GitLab pipelines #1908
+  - Switched more CI runners to C++20 mode #1902
+  - LLVM sanitizer libraries are explicitly installed #1900
+  - Re-enabled CUDA + `gcc-10` jobs #1890
+  - Moved all GitHub jobs from `ubuntu-latest` to `ubuntu-20.04` #1872
+  - More jobs are only compiling the test cases but no longer execute them #1869
+  - CUDA CI runners no longer manually install the GPU driver #1853
+  - Change ROCm CI node #1844
+  - Reworked Xcode OpenMP installation #1840 #1922
+  - Upgraded to GitHub checkout action v3 #1832
+  - Upgraded test infrastructure to Catch2 v3 #1749 #1815 #1861 #1911 
+  - Upgraded headercheck CI run to clang-13 and CUDA 11.2 #1803
+  - Simplified CI clang installation #1763
+  - Running CI workflows are now automatically cancelled when their corresponding PRs are updated #1717
+
+### Deprecated
+
+- **Breaking change**: deprecated `alpaka::getPitchBytes[Vec]` functions in favour of new `alpaka::getPitchesInBytes` function #2092 #2116
+- **Breaking change**: deprecated `alpaka::get{Extent,Offset}[Vec]` functions in favour of new `alpaka::get{Extents,Offsets}` functions #2080 #2139
+
+### Removed
+
+- `g++`:
+  - Dropped support for `g++-{7,8}` #1872
+- `clang++`:
+  - Removed work-around for very old clang versions #1916
+  - Dropped support for clang as CUDA compiler for all versions before `clang-14` #1890
+  - Dropped support for `clang-{6,7,8,9}` #1872
+  - Dropped support for `clang-5` #1750
+- `icpc`:
+  - Dropped support for the Intel® C++ Compiler Classic (`icpc`) #1702
+- MSVC:
+  - Temporarily dropped support for MSVC + CUDA due to a nvcc bug #1958
+  - Dropped support for MSVC 2019 #1887
+- Xcode:
+  - Dropped support for Xcode 12.4.0 #1759
+- CUDA:
+  - Dropped support for CUDA 10 #1872
+  - Dropped support for CUDA 9.2 #1855
+- ROCm:
+  - Dropped support for ROCm 4 #1886
+- SYCL:
+  - Removed Xilinx platform support #1970
+- Removed floating point contractions for math test cases #2155
+- Removed `alpaka::set{Extent,Offset}` functions #2087
+- Removed alpaka's experimental accessors #2054 #2062
+- Catch2 is no longer compiled with `CATCH_CONFIG_FAST_COMPILE` set to `ON` #1978
+- Removed OpenMP 5 back-end #1947
+- Removed OpenACC back-end #1941
+- Removed warning for Boost 1.73 since alpaka requires Boost >= 1.74 #1849
+- Removed previously deprecated `alpaka::time` functionality #1841
+- Removed `alpaka::{map,unmap,pin,unpin,isPinned,prepareForAsyncCopy}()` free functions #1790
+- Removed unused `alpaka::ConceptUniformCudaHip` #1736
+- Removed Boost.fiber back-end #1718
+
+### Fixed
+
+- Fixed warnings uncovered by `nvcc` + `clang++ -Werror` #2157 #2159 #2164 #2167
+- Removed useless semicolon #2129
+- Fixed debug information for SYCL zero-dimensional buffer allocations #2127
+- Fixed missing `[[maybe_unused]]` inside `extent/Traits.hpp` #2122
+- Fixed several minor issues with the documentation #2121 #2176
+- Fixed unsigned integer conversion inside `ViewAccessOps.hpp` #2119
+- Fixed several warnings issued by `nvcc` #2118
+- Fixed compiler explorer link #2117
+- `alpaka::core::detail::ThreadPool` now handles a task's `noexcept` specifier correctly #2115
+- Fixed missing `<cstdint>` include in `BlockSyncBarrierOmp.hpp` #2114
+- Fixed integer conversions inside `memViewTest` #2113
+- Fixed `alpaka::BufUniformCudaHipRt` declarations sometimes being a `struct` and sometimes a `class` #2109
+- Fixed `alpaka::wait()` behaviour for events and devices #2108
+- Fixed `alpaka::ViewPlainPtr` not being copyable and moveable #2105
+- **Potentially breaking change**: Fixed `alpaka::core::{CallbackThread,ThreadPool}` not propagatinc exceptions #2067
+- Fixed missing `ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK` calls in debug mode #2034
+- Worked around Catch2 macros not being thread-safe #2022
+- Fixed `alpaka::test::KernelExecutionFixture`'s delegating constructor #2021
+- Fixed missing `<cstdint>` include in `alpaka/rand/Traits.hpp` #1977
+- Fixed ill-formed spelling of `alpaka::EventUniformCudaHipRt`'s constructor in C++20 mode #1968
+- Fixed typo in memory fence documentation #1944
+- Fixed compilation issues for CPU-only jobs running on GPU CI runners #1939
+- Fixed clang-specific warning suppression occurring for other compilers in HIP back-end #1914
+- Fixed CI clang installation #1907
+- Fixed CUDA async / mapped memory allocation bug #1868
+- Fixed several bugs related to thread safety #1850 #1975 #1987 #1989 #2026 #2057
+- Fixed `alpaka::createView` for containers without a size argument #1847
+- Fixed behaviour of `alpaka::detail::nextDivisorLowerOrEqual` #1829
+- Fixed missing `final` keyword for accelerator inheritance #1816
+- Fixed missing template parameters in `alpaka::allocBuf(host, extent)` #1777
+- Fixed look-up of `atomic*_block()` functions for the CUDA back-end when clang is the device compiler #1773
+- Fixed mixed-type and mixed-precision `alpaka::math::pow` implementation #1733
+- Fixed `alpaka::QueueGenericThreadsNonBlocking` not completing running tasks upon its destruction #1728
+- Fixed host memory allocation / pinning on OpenPOWER platforms #1725
+- Fixed `alpaka::ffs` CPU intrinsic in C++20 mode #1716
+- Fixed typo in cheatsheet example for `alpaka::getWorkDiv` #1711
+- Fixed missing braces around aggregate initializers #1704
+- Fixed CI installation of CUDA apt repository keys #1703
 
 ## [0.9.0] - 2022-04-21
 ### Compatibility Changes:

@@ -1,52 +1,61 @@
 {
-  "title":"mallocMC - Memory Allocator for Many Core Architectures",
-  "description":"This project provides a framework for fast memory managers on many core accelerators. It is based on alpaka to run on many different accelerators and implements the ScatterAlloc algorithm.",
-  "keywords":[
+  "title": "mallocMC - Memory Allocator for Many Core Architectures",
+  "description": "This project provides a framework for fast memory managers on many core accelerators. It is based on alpaka to run on many different accelerators and implements multiple algorithms.",
+  "keywords": [
     "mallocMC",
     "CUDA",
     "manycore",
     "GPU",
     "allocator"
   ],
-  "language":"eng",
-  "access_right":"open",
-  "license":{
-    "id":"MIT"
+  "language": "eng",
+  "access_right": "open",
+  "license": {
+    "id": "MIT"
   },
-  "creators":[
+  "creators": [
     {
-      "name":"Eckert, Carlchristian",
-      "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
-      "orcid":"0000-0002-6459-0842"
+      "name": "Widera, René",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1642-0459"
     },
     {
-      "name":"Widera, René",
-      "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid":"0000-0003-1642-0459"
+      "name": "Lenz, Julian",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-5250-0005"
     },
     {
-      "name":"Huebl, Axel",
-      "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid":"0000-0003-1943-7141"
+      "name": "Huebl, Axel",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1943-7141"
     },
     {
-      "name":"Gruber, Bernhard Manfred",
-      "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf, CASUS, CERN",
-      "orcid":"0000-0001-7848-1690"
+      "name": "Gruber, Bernhard Manfred",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, CASUS, CERN",
+      "orcid": "0000-0001-7848-1690"
     },
     {
-      "name":"Bastrakov, Sergei",
-      "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid":"0000-0003-3396-6154"
+      "name": "Bastrakov, Sergei",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-3396-6154"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Eckert, Carlchristian",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
+      "orcid": "0000-0002-6459-0842",
+      "type": "Other"
     },
     {
-      "name":"Worpitz, Benjamin"
+      "name": "Worpitz, Benjamin",
+      "type": "Other"
     },
     {
-      "name":"Grund, Alexander",
-      "affiliation":"Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid":"0000-0002-7196-8452"
+      "name": "Grund, Alexander",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0002-7196-8452",
+      "type": "Other"
     }
   ]
 }
-

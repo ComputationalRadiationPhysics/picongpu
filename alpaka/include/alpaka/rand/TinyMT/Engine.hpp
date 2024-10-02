@@ -23,9 +23,9 @@ namespace alpaka::rand::engine::cpu
         void seed(result_type value = default_seed())
         {
             // parameters from TinyMT/jump/sample.c
-            prng.mat1 = 0x8f7011ee;
-            prng.mat2 = 0xfc78ff1f;
-            prng.tmat = 0x3793fdff;
+            prng.mat1 = 0x8f70'11ee;
+            prng.mat2 = 0xfc78'ff1f;
+            prng.tmat = 0x3793'fdff;
 
             tinymt32_init(&prng, value);
         }

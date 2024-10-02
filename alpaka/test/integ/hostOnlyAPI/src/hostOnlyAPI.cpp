@@ -47,8 +47,7 @@ TEMPLATE_LIST_TEST_CASE("hostOnlyAPI", "[hostOnlyAPI]", TestAccs)
     HostQueue hostQueue(host);
 
     // host buffer
-    auto h_buffer1
-        = alpaka::allocMappedBufIfSupported<alpaka::Platform<Device>, int, Idx>(host, platformAcc, Vec1D{Idx{42}});
+    auto h_buffer1 = alpaka::allocMappedBufIfSupported<int, Idx>(host, platformAcc, Vec1D{Idx{42}});
     INFO(
         "host buffer allocated at " << alpaka::getPtrNative(h_buffer1) << " with "
                                     << alpaka::getExtentProduct(h_buffer1) << " element(s)");

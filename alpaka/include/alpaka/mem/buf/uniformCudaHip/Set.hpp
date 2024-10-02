@@ -1,5 +1,5 @@
-/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
- * Antonio Di Pilato
+/* Copyright 2023 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Bernhard Manfred Gruber,
+ *                Antonio Di Pilato, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -16,6 +16,8 @@
 #include "alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp"
 #include "alpaka/queue/Traits.hpp"
 #include "alpaka/wait/Traits.hpp"
+
+#include <cstddef>
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
@@ -92,8 +94,6 @@ namespace alpaka
             template<typename TQueue>
             auto enqueue(TQueue& queue) const -> void
             {
-                using Idx = Idx<TExtent>;
-
                 auto& view = this->m_view;
                 auto const& extent = this->m_extent;
 
@@ -106,11 +106,11 @@ namespace alpaka
                 }
 
                 // Initiate the memory set.
-                auto const extentWidthBytes = extentWidth * static_cast<Idx>(sizeof(Elem<TView>));
+                auto const extentWidthBytes = static_cast<std::size_t>(extentWidth) * sizeof(Elem<TView>);
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memsetAsync(
                     getPtrNative(view),
                     static_cast<int>(this->m_byte),
-                    static_cast<size_t>(extentWidthBytes),
+                    extentWidthBytes,
                     queue.getNativeHandle()));
             }
         };
@@ -132,8 +132,6 @@ namespace alpaka
             template<typename TQueue>
             auto enqueue(TQueue& queue) const -> void
             {
-                using Idx = Idx<TExtent>;
-
                 auto& view = this->m_view;
                 auto const& extent = this->m_extent;
 
@@ -145,13 +143,13 @@ namespace alpaka
                     return;
                 }
 
-                auto const extentWidthBytes = extentWidth * static_cast<Idx>(sizeof(Elem<TView>));
+                auto const extentWidthBytes = static_cast<std::size_t>(extentWidth) * sizeof(Elem<TView>);
 
 #    if !defined(NDEBUG)
                 auto const dstWidth = getWidth(view);
                 auto const dstHeight = getHeight(view);
 #    endif
-                auto const dstPitchBytesX = getPitchBytes<Dim<TView>::value - 1u>(view);
+                auto const dstRowPitchBytes = static_cast<std::size_t>(getPitchesInBytes(view)[0]);
                 auto const dstNativePtr = reinterpret_cast<void*>(getPtrNative(view));
                 ALPAKA_ASSERT(extentWidth <= dstWidth);
                 ALPAKA_ASSERT(extentHeight <= dstHeight);
@@ -159,10 +157,10 @@ namespace alpaka
                 // Initiate the memory set.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memset2DAsync(
                     dstNativePtr,
-                    static_cast<size_t>(dstPitchBytesX),
+                    dstRowPitchBytes,
                     static_cast<int>(this->m_byte),
-                    static_cast<size_t>(extentWidthBytes),
-                    static_cast<size_t>(extentHeight),
+                    extentWidthBytes,
+                    static_cast<std::size_t>(extentHeight),
                     queue.getNativeHandle()));
             }
         };
@@ -185,7 +183,6 @@ namespace alpaka
             auto enqueue(TQueue& queue) const -> void
             {
                 using Elem = alpaka::Elem<TView>;
-                using Idx = Idx<TExtent>;
 
                 auto& view = this->m_view;
                 auto const& extent = this->m_extent;
@@ -205,8 +202,7 @@ namespace alpaka
                 auto const dstHeight = getHeight(view);
                 auto const dstDepth = getDepth(view);
 #    endif
-                auto const dstPitchBytesX = getPitchBytes<Dim<TView>::value - 1u>(view);
-                auto const dstPitchBytesY = getPitchBytes<Dim<TView>::value - (2u % Dim<TView>::value)>(view);
+                auto const [dstSlicePitchBytes, dstRowPitchBytes, _] = getPitchesInBytes(view);
                 auto const dstNativePtr = reinterpret_cast<void*>(getPtrNative(view));
                 ALPAKA_ASSERT(extentWidth <= dstWidth);
                 ALPAKA_ASSERT(extentHeight <= dstHeight);
@@ -215,14 +211,14 @@ namespace alpaka
                 // Fill CUDA parameter structures.
                 typename TApi::PitchedPtr_t const pitchedPtrVal = TApi::makePitchedPtr(
                     dstNativePtr,
-                    static_cast<size_t>(dstPitchBytesX),
-                    static_cast<size_t>(dstWidth * static_cast<Idx>(sizeof(Elem))),
-                    static_cast<size_t>(dstPitchBytesY / dstPitchBytesX));
+                    static_cast<std::size_t>(dstRowPitchBytes),
+                    static_cast<std::size_t>(dstWidth) * sizeof(Elem),
+                    static_cast<std::size_t>(dstSlicePitchBytes / dstRowPitchBytes));
 
                 typename TApi::Extent_t const extentVal = TApi::makeExtent(
-                    static_cast<size_t>(extentWidth * static_cast<Idx>(sizeof(Elem))),
-                    static_cast<size_t>(extentHeight),
-                    static_cast<size_t>(extentDepth));
+                    static_cast<std::size_t>(extentWidth) * sizeof(Elem),
+                    static_cast<std::size_t>(extentHeight),
+                    static_cast<std::size_t>(extentDepth));
 
                 // Initiate the memory set.
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::memset3DAsync(
