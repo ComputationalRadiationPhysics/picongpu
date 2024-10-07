@@ -79,11 +79,6 @@ namespace alpaka
                 *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
                 blockSharedMemDynSizeBytes);
 
-            if(blockThreadExtent.prod() != static_cast<TIdx>(1u))
-            {
-                throw std::runtime_error("A block for the serial accelerator can only ever have one single thread!");
-            }
-
             // Execute the blocks serially.
             meta::ndLoopIncIdx(
                 gridBlockExtent,

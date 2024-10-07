@@ -105,7 +105,6 @@ rsync
 alpaka 1.2.X
 """"""""""""""""
 - `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
-- requires code version or newer https://github.com/alpaka-group/alpaka/tree/6854077d6db2fcf9805e1c53c86b12f5d59a0739
 
 mallocMC 2.6.0crp-dev
 """""""""""""""""""""
