@@ -27,6 +27,11 @@
 
 namespace picongpu::atomicPhysics::debug
 {
+    namespace configNumber
+    {
+        constexpr bool RUN_UNIT_TESTS = false;
+    } // namespace configNumber
+
     namespace atomicData
     {
         constexpr bool PRINT_TO_CONSOLE = false;
