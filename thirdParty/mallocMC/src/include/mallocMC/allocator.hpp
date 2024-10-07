@@ -166,7 +166,7 @@ namespace mallocMC
         ALPAKA_FN_HOST void free()
         {
             devAllocatorBuffer = {};
-            reservePolicy.resetMemPool(heapInfos.p);
+            reservePolicy.resetMemPool();
             heapInfos.size = 0;
             heapInfos.p = nullptr;
         }

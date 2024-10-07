@@ -978,7 +978,7 @@ namespace mallocMC
                     mem = (void*) counter;
                 }
 
-                if(chunksize < pagesize)
+                if(chunksize <= pagesize)
                     deallocChunked(acc, mem, page, chunksize);
                 else
                     deallocPageBased(acc, mem, page, chunksize);

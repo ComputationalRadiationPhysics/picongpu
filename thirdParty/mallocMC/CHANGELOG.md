@@ -1,6 +1,43 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
+2.6.0
+-----
+
+Date: 2024-08-28
+
+This is mostly a maintenance release.
+Years of production use in PIConGPU have surfaced
+a number of bugs and inconsistencies that are addressed.
+We will drop the 'crp' suffix in our version numbers
+because the original version
+(that we distinguished from via 'crp')
+is no longer maintained.
+
+Features
+
+- Compatibility with C++20
+- Use runtime selected number of access blocks
+- Full support for CPU accelerators
+- Scatter: optimize page search algorithm
+- Scatter: optimize hash and allocation size
+- Scatter: add more informations to `classname()`
+
+Bug fixes
+
+- Scatter: Various deadlocks, data races and inconsistencies
+- Compilation failure without `alpaka_ACC_GPU_CUDA_ONLY_MODE` set
+- Adjustments to the examples to compile and run cleanly again
+- Alignment violation in edge cases of small allocations fixed
+- Remove undefined behaviour in handling bit masks
+
+Maintenance
+
+- Update to alpaka 1.1.0
+- Minor adjustments in the README
+- Scatter: Internal refactorings
+- CI fixes
+
 2.5.0crp
 --------
 **Date:** 2021-02-18
