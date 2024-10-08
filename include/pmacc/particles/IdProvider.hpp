@@ -88,8 +88,8 @@ namespace pmacc
         {
             HostDeviceBuffer<uint64_t, 1> newIdBuf(DataSpace<1>(1));
 
-            auto kernel = [] ALPAKA_FN_ACC(auto const& acc, auto idGenerator, uint64_t* nextId) -> void
-            { *nextId = idGenerator.fetchInc(acc); };
+            auto kernel = [] ALPAKA_FN_ACC(auto const& worker, auto idGenerator, uint64_t* nextId) -> void
+            { *nextId = idGenerator.fetchInc(worker); };
             PMACC_LOCKSTEP_KERNEL(kernel).config<1>(1)(getDeviceGenerator(), newIdBuf.getDeviceBuffer().data());
             newIdBuf.deviceToHost();
             return *newIdBuf.getHostBuffer().data();
