@@ -75,3 +75,5 @@ namespace picongpu
         } // namespace twtstight
     } // namespace templates
 } // namespace picongpu
+
+#include "picongpu/fields/background/templates/twtstight/twtstight.tpp"
