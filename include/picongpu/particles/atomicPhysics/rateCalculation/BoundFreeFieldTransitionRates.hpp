@@ -111,7 +111,14 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 u32(T_ADKLaserPolarization) == u32(atomicPhysics::enums::ADKLaserPolarization::linearPolarization))
                 rateADK_AU *= math::sqrt(3._X * nEffCubed * eFieldNorm_AU / (pi * screenedChargeCubed));
 
-            return rateADK_AU / sim.atomicUnit.time();
+            /* A * 1/sim.atomicUnit.time() = A * 1/sim.atomicUnit.time() * sim.unit.time() / sim.unit.time()
+             *   = A * [sim.unit.time()/sim.atomicUnit.time()] * 1/sim.unit.time()
+             *   = (A * timeConversion) * 1/sim.unit.time()
+             *   = B * 1/sim.unit.time() */
+            constexpr float_X timeConversion = picongpu::sim.unit.time() / picongpu::sim.atomicUnit.time();
+
+            // 1/ sim.unit.time()
+            return rateADK_AU * timeConversion;
         }
     };
 } // namespace picongpu::particles::atomicPhysics::rateCalculation
