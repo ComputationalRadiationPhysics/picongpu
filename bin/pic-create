@@ -27,7 +27,7 @@ picongpu_prefix=$(cd $this_dir/.. && pwd)
 default_folder_to_copy="etc/picongpu"
 
 # Folder which get recusivly copied from the source input set into the destination input set
-folder_to_clone="etc/picongpu bin include/picongpu lib"
+folder_to_clone="etc/picongpu bin include/picongpu lib validation"
 files_to_copy="cmakeFlags executeOnClone"
 
 if [ -n "$PIC_SYSTEM_TEMPLATE_PATH" ] ; then
