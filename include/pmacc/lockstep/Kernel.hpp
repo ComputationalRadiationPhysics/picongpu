@@ -264,7 +264,7 @@ namespace pmacc::lockstep
          * @code{.cpp}
          *   pmacc::lockstep::exec::kernel([]ALPAKA_FN_ACC(auto const& acc) -> void{
          *       printf("Hello World.\n");
-         *   })(1,1)()
+         *   }).config<1>(1)()
          * @endcode
          *
          * @tparam T_KernelFunctor type of the kernel functor
