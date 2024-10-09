@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/ClassicalTemperatureFunctor.hpp"
+#include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/NoIPD.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/RelativisticTemperatureFunctor.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/StewartPyattIPD.hpp"
 
