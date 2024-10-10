@@ -210,12 +210,19 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox,
             float_X const ionizationPotentialDepression)
         {
-            // internal units
+            // sim.unit.eField()
             PMACC_SMEM(worker, maximumNormEFieldValueSuperCell, typename T_EFieldDataBox::ValueType::type);
 
             // find maximum field strength of superCell
+            auto onlyMaster = lockstep::makeMaster(worker);
+            onlyMaster(
+                [&maximumNormEFieldValueSuperCell]()
+                {
+                    // sim.unit.eField()
+                    maximumNormEFieldValueSuperCell = 0._X;
+                });
+            worker.sync();
 
-            /// @todo switch to shared memory reduce, Brian Marre, 2024
             constexpr auto numberCellsInSuperCell
                 = pmacc::math::CT::volume<typename picongpu::SuperCellSize>::type::value;
             auto forEachCell = pmacc::lockstep::makeForEach<numberCellsInSuperCell, T_Worker>(worker);
@@ -234,7 +241,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
                     alpaka::atomicMax(
                         worker.getAcc(),
-                        // internal units
+                        // sim.unit.eField()
                         &maximumNormEFieldValueSuperCell,
                         eFieldNorm);
                 });
@@ -278,6 +285,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                                 atomicStateDataDataBox,
                                 boundFreeTransitionDataBox);
                     }
+
                     rateCache.template add<s_enums::ChooseTransitionGroup::fieldBoundFreeUpward>(
                         atomicStateCollectionIndex,
                         sumRateTransitions);
