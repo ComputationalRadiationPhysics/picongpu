@@ -71,13 +71,13 @@ namespace picongpu::particles::atomicPhysics::stage
 
             auto& atomicData = *dc.get<AtomicDataType>(IonSpecies::FrameType::getName() + "_atomicData");
 
-            namespace enums = picongpu::particles::atomicPhysics::enums;
+            namespace s_enums = picongpu::particles::atomicPhysics::enums;
 
             if constexpr(AtomicDataType::switchElectronicExcitation)
             {
                 using RecordChanges_electronicExcitation
                     = picongpu::particles::atomicPhysics ::kernel::RecordChangesKernel<
-                        enums::ProcessClass::electronicExcitation,
+                        s_enums::ProcessClass::electronicExcitation,
                         picongpu::atomicPhysics::ElectronHistogram,
                         IPDModel>;
 
@@ -90,14 +90,14 @@ namespace picongpu::particles::atomicPhysics::stage
                         atomicData.template getAtomicStateDataDataBox<false>(),
                         atomicData.template getBoundBoundTransitionDataBox<
                             false,
-                            enums::TransitionOrdering::byLowerState>());
+                            s_enums::TransitionOrdering::byLowerState>());
             }
 
             if constexpr(AtomicDataType::switchElectronicDeexcitation)
             {
                 using RecordChanges_electronicDeexcitation
                     = picongpu::particles::atomicPhysics::kernel::RecordChangesKernel<
-                        enums::ProcessClass::electronicDeexcitation,
+                        s_enums::ProcessClass::electronicDeexcitation,
                         picongpu::atomicPhysics::ElectronHistogram,
                         IPDModel>;
 
@@ -110,14 +110,14 @@ namespace picongpu::particles::atomicPhysics::stage
                         atomicData.template getAtomicStateDataDataBox<false>(),
                         atomicData.template getBoundBoundTransitionDataBox<
                             false,
-                            enums::TransitionOrdering::byUpperState>());
+                            s_enums::TransitionOrdering::byUpperState>());
             }
 
             if constexpr(AtomicDataType::switchSpontaneousDeexcitation)
             {
                 using RecordChanges_spontaneousDeexcitation
                     = picongpu::particles::atomicPhysics::kernel::RecordChangesKernel<
-                        enums::ProcessClass::spontaneousDeexcitation,
+                        s_enums::ProcessClass::spontaneousDeexcitation,
                         picongpu::atomicPhysics::ElectronHistogram,
                         IPDModel>;
 
@@ -130,14 +130,14 @@ namespace picongpu::particles::atomicPhysics::stage
                         atomicData.template getAtomicStateDataDataBox<false>(),
                         atomicData.template getBoundBoundTransitionDataBox<
                             false,
-                            enums::TransitionOrdering::byUpperState>());
+                            s_enums::TransitionOrdering::byUpperState>());
             }
 
             if constexpr(AtomicDataType::switchElectronicIonization)
             {
                 using RecordChanges_electronicIonization
                     = picongpu::particles::atomicPhysics::kernel::RecordChangesKernel<
-                        enums::ProcessClass::electronicIonization,
+                        s_enums::ProcessClass::electronicIonization,
                         picongpu::atomicPhysics::ElectronHistogram,
                         IPDModel>;
 
@@ -151,18 +151,36 @@ namespace picongpu::particles::atomicPhysics::stage
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData
-                        .template getBoundFreeTransitionDataBox<false, enums::TransitionOrdering::byLowerState>(),
+                        .template getBoundFreeTransitionDataBox<false, s_enums::TransitionOrdering::byLowerState>(),
                     atomicData.template getChargeStateDataDataBox<false>());
             }
 
-            // currently no bound-free based non-collisional processes exist
-            /// @todo implement field ionization, Brian Marre, 2023
+            if constexpr(AtomicDataType::switchFieldIonization)
+            {
+                using RecordChanges_fieldIonization = picongpu::particles::atomicPhysics::kernel::RecordChangesKernel<
+                    s_enums::ProcessClass::fieldIonization,
+                    picongpu::atomicPhysics::ElectronHistogram,
+                    IPDModel>;
+
+                IPDModel::template callKernelWithIPDInput<
+                    RecordChanges_fieldIonization,
+                    IonSpecies::FrameType::frameSize>(
+                    dc,
+                    mapper,
+                    localTimeRemainingField.getDeviceDataBox(),
+                    ions.getDeviceParticlesBox(),
+                    localElectronHistogramField.getDeviceDataBox(),
+                    atomicData.template getAtomicStateDataDataBox<false>(),
+                    atomicData
+                        .template getBoundFreeTransitionDataBox<false, s_enums::TransitionOrdering::byLowerState>(),
+                    atomicData.template getChargeStateDataDataBox<false>());
+            }
 
             if constexpr(AtomicDataType::switchAutonomousIonization)
             {
                 using RecordChanges_autonomousIonization
                     = picongpu::particles::atomicPhysics::kernel::RecordChangesKernel<
-                        enums::ProcessClass::autonomousIonization,
+                        s_enums::ProcessClass::autonomousIonization,
                         picongpu::atomicPhysics::ElectronHistogram,
                         IPDModel>;
 
@@ -176,7 +194,7 @@ namespace picongpu::particles::atomicPhysics::stage
                     localElectronHistogramField.getDeviceDataBox(),
                     atomicData.template getAtomicStateDataDataBox<false>(),
                     atomicData
-                        .template getAutonomousTransitionDataBox<false, enums::TransitionOrdering::byUpperState>());
+                        .template getAutonomousTransitionDataBox<false, s_enums::TransitionOrdering::byUpperState>());
             }
         }
     };

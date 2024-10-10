@@ -125,10 +125,14 @@ namespace picongpu::particles::atomicPhysics::kernel
                 return;
 
             // get histogram for current superCell
-            T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
+            [[maybe_unused]] T_Histogram& electronHistogram = localElectronHistogramDataBox(superCellFieldIdx);
 
             // eV
             [[maybe_unused]] float_X ionizationPotentialDepression = 0._X;
+
+            /* field ionization is not energy conserving currently
+             *-> no need to calculate energy used -> no need to calculate IPD */
+            /// @todo implement energy conservation in field ionization, Brian Marre, 2024
             if constexpr(isIonizing && isCollisional)
                 ionizationPotentialDepression
                     = ionizationPotentialDepression::PassIPDInputs::template calculateIPD<T_IPDModel>(

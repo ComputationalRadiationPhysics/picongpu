@@ -29,7 +29,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/LocalHistogramField.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
