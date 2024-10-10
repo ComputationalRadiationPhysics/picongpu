@@ -196,9 +196,8 @@ namespace picongpu
                 template<uint32_t T_component>
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
-                    float3_64 const invUnitField
-                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
-                    float3_X const amplitude = precisionCast<float_X>(Params::AMPLITUDE_SI * invUnitField);
+                    float_64 const invUnitField = 1.0 / m_unitField[T_component];
+                    float_X const amplitude = precisionCast<float_X>(Params::AMPLITUDE_SI * invUnitField);
                     return amplitude * twtsFieldBpos.getComponent<T_component>(totalCellIdx, m_currentStep);
                 }
 #endif
@@ -239,9 +238,8 @@ namespace picongpu
                 template<uint32_t T_component>
                 HDINLINE float_X getComponent(floatD_X const& totalCellIdx) const
                 {
-                    float3_64 const invUnitField
-                        = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
-                    float3_X const amplitude = precisionCast<float_X>(Params::AMPLITUDE_SI * invUnitField);
+                    float_64 const invUnitField = 1.0 / m_unitField[T_component];
+                    float_X const amplitude = precisionCast<float_X>(Params::AMPLITUDE_SI * invUnitField);
                     return amplitude * twtsFieldBneg.getComponent<T_component>(totalCellIdx, m_currentStep);
                 }
 #endif
