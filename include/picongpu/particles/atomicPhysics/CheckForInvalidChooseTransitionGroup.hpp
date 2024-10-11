@@ -29,7 +29,7 @@ namespace picongpu::particles::atomicPhysics
 {
     //! check if ChooseTransitionGroup previously assigned by ChooseTransitionGroupKernel is valid
     template<typename T_Ion>
-    HDINLINE void checkForInvalidChooseTransitionGroup(T_Ion const ion)
+    HDINLINE void checkForInvalidChooseTransitionGroup([[maybe_unused]] T_Ion const ion)
     {
         if constexpr(picongpu::atomicPhysics::debug::kernel::chooseTransition::CHECK_FOR_INVALID_TRANSITION_TYPE)
         {

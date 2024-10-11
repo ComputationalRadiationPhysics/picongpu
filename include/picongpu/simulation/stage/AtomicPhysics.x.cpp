@@ -209,7 +209,7 @@ namespace picongpu::simulation::stage
                 ForEachIonSpeciesResetAcceptedStatus{}(mappingDesc);
             }
 
-            void debugForceConstantElectronTemperature(uint32_t const currentStep) const
+            void debugForceConstantElectronTemperature([[maybe_unused]] uint32_t const currentStep) const
             {
                 if constexpr(picongpu::atomicPhysics::debug::scFlyComparison::FORCE_CONSTANT_ELECTRON_TEMPERATURE)
                 {

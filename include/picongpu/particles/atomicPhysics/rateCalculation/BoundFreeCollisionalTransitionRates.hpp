@@ -123,15 +123,12 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             using S_ConfigNumber = typename T_AtomicStateDataBox::ConfigNumber;
             using LevelVector = pmacc::math::Vector<uint8_t, T_numberLevels>;
 
-            uint32_t const upperStateClctIdx
-                = boundFreeTransitionDataBox.upperStateCollectionIndex(transitionCollectionIndex);
             uint32_t const lowerStateClctIdx
                 = boundFreeTransitionDataBox.lowerStateCollectionIndex(transitionCollectionIndex);
 
             float_64 const combinatorialFactor
                 = static_cast<float_64>(boundFreeTransitionDataBox.multiplicity(transitionCollectionIndex));
 
-            auto const upperStateConfigNumber = atomicStateDataBox.configNumber(upperStateClctIdx);
             auto const lowerStateConfigNumber = atomicStateDataBox.configNumber(lowerStateClctIdx);
 
             // eV
@@ -143,6 +140,10 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 chargeStateDataBox);
 
             if constexpr(picongpu::atomicPhysics::debug::rateCalculation::DEBUG_CHECKS)
+            {
+                uint32_t const upperStateClctIdx
+                    = boundFreeTransitionDataBox.upperStateCollectionIndex(transitionCollectionIndex);
+                auto const upperStateConfigNumber = atomicStateDataBox.configNumber(upperStateClctIdx);
                 if(S_ConfigNumber::getChargeState(upperStateConfigNumber)
                    < S_ConfigNumber::getChargeState(lowerStateConfigNumber))
                 {
@@ -150,6 +151,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                            "collisionalIonizationCrossSection() call\n");
                     return 0._X;
                 }
+            }
 
             float_X result = 0._X;
             if(energyDifference <= energyElectron)

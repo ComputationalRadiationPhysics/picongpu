@@ -24,6 +24,5 @@
 // clang-format off
 
 #include "picongpu/param/fieldBackground.param"
-#include "picongpu/unitless/fieldBackground.unitless"
 
 // clang-format on
