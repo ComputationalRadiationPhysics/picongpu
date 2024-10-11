@@ -26,6 +26,7 @@
 #include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
+#include "picongpu/particles/atomicPhysics/kernel/EFieldNormExtrema.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeCollisionalTransitionRates.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeFieldTransitionRates.hpp"
 
@@ -35,6 +36,7 @@
 #include <pmacc/static_assert.hpp>
 
 #include <cstdint>
+#include <limits>
 
 namespace picongpu::particles::atomicPhysics::kernel
 {
@@ -211,49 +213,19 @@ namespace picongpu::particles::atomicPhysics::kernel
             float_X const ionizationPotentialDepression)
         {
             // sim.unit.eField()
-            PMACC_SMEM(worker, maximumNormEFieldValueSuperCell, typename T_EFieldDataBox::ValueType::type);
+            PMACC_SMEM(worker, minEFieldSuperCell, typename T_EFieldDataBox::ValueType::type);
+            // sim.unit.eField()
+            PMACC_SMEM(worker, maxEFieldSuperCell, typename T_EFieldDataBox::ValueType::type);
 
-            // find maximum field strength of superCell
-            auto onlyMaster = lockstep::makeMaster(worker);
-            onlyMaster(
-                [&maximumNormEFieldValueSuperCell]()
-                {
-                    // sim.unit.eField()
-                    maximumNormEFieldValueSuperCell = 0._X;
-                });
-            worker.sync();
-
-            constexpr auto numberCellsInSuperCell
-                = pmacc::math::CT::volume<typename picongpu::SuperCellSize>::type::value;
-            auto forEachCell = pmacc::lockstep::makeForEach<numberCellsInSuperCell, T_Worker>(worker);
-
-            DataSpace<picongpu::simDim> const superCellCellOffset = superCellIdx * picongpu::SuperCellSize::toRT();
-
-            /// @todo switch to shared memory reduce, Brian Marre, 2024
-            forEachCell(
-                [&worker, &superCellCellOffset, &maximumNormEFieldValueSuperCell, &eFieldBox](uint32_t const linearIdx)
-                {
-                    DataSpace<picongpu::simDim> const localCellIndex
-                        = pmacc::math::mapToND(picongpu::SuperCellSize::toRT(), static_cast<int>(linearIdx));
-                    DataSpace<picongpu::simDim> const cellIndex = localCellIndex + superCellCellOffset;
-
-                    auto const eFieldNorm = pmacc::math::l2norm(eFieldBox(cellIndex));
-
-                    alpaka::atomicMax(
-                        worker.getAcc(),
-                        // sim.unit.eField()
-                        &maximumNormEFieldValueSuperCell,
-                        eFieldNorm);
-                });
+            EFieldNormExtrema::find(worker, superCellIdx, eFieldBox, minEFieldSuperCell, maxEFieldSuperCell);
             worker.sync();
 
             // calculate ADK field ionization rate, for each atomic state and maximum field value
             auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
-
-            //      accumulate rates of possible transitions by state
             forEachAtomicState(
                 [&ionizationPotentialDepression,
-                 &maximumNormEFieldValueSuperCell,
+                 &maxEFieldSuperCell,
+                 &minEFieldSuperCell,
                  &rateCache,
                  &numberTransitionsDataBox,
                  &startIndexDataBox,
@@ -276,14 +248,16 @@ namespace picongpu::particles::atomicPhysics::kernel
                         uint32_t const transitionCollectionIndex = offset + transitionID;
 
                         // 1/picongpu::sim.unit.time()
-                        sumRateTransitions += atomicPhysics::rateCalculation::
-                            BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::template rateADKFieldIonization(
-                                maximumNormEFieldValueSuperCell,
-                                ionizationPotentialDepression,
-                                transitionCollectionIndex,
-                                chargeStateDataDataBox,
-                                atomicStateDataDataBox,
-                                boundFreeTransitionDataBox);
+                        sumRateTransitions
+                            += atomicPhysics::rateCalculation::BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::
+                                template maximumRateADKFieldIonization(
+                                    minEFieldSuperCell,
+                                    maxEFieldSuperCell,
+                                    ionizationPotentialDepression,
+                                    transitionCollectionIndex,
+                                    chargeStateDataDataBox,
+                                    atomicStateDataDataBox,
+                                    boundFreeTransitionDataBox);
                     }
 
                     rateCache.template add<s_enums::ChooseTransitionGroup::fieldBoundFreeUpward>(

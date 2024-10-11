@@ -28,6 +28,7 @@
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpRateCacheToConsole.hpp"
 #include "picongpu/particles/atomicPhysics/debug/stage/DumpSuperCellDataToConsole.hpp"
 #include "picongpu/particles/atomicPhysics/param.hpp"
+#include "picongpu/particles/atomicPhysics/stage/ApplyInstantFieldTransitions.hpp"
 #include "picongpu/particles/atomicPhysics/stage/BinElectrons.hpp"
 #include "picongpu/particles/atomicPhysics/stage/CalculateStepLength.hpp"
 #include "picongpu/particles/atomicPhysics/stage/CheckForOverSubscription.hpp"
@@ -391,7 +392,7 @@ namespace picongpu::simulation::stage
             }
 
             template<typename T_DeviceReduce>
-            void doIPDIonization(
+            void doUnboundStateIonization(
                 picongpu::MappingDesc const& mappingDesc,
                 uint32_t const currentStep,
                 T_DeviceReduce& deviceReduce) const
@@ -402,7 +403,7 @@ namespace picongpu::simulation::stage
                 DataSpace<picongpu::simDim> const fieldGridLayoutFoundUnbound
                     = localFoundUnboundIonField.getGridLayout().sizeWithoutGuardND();
 
-                // pressure ionization loop, ends when no ion in unbound state anymore
+                // foundUnbound loop, ends when no ion found in IPD-unbound or instant ionization state
                 bool foundUnbound = true;
                 do
                 {
@@ -414,6 +415,11 @@ namespace picongpu::simulation::stage
                     picongpu::atomicPhysics::IPDModel::template applyIPDIonization<AtomicPhysicsIonSpecies>(
                         mappingDesc,
                         currentStep);
+
+                    using ForEachIonSpeciesApplyInstantFieldTransitions = pmacc::meta::ForEach<
+                        AtomicPhysicsIonSpecies,
+                        particles::atomicPhysics::stage::ApplyInstantFieldTransitions<boost::mpl::_1>>;
+                    ForEachIonSpeciesApplyInstantFieldTransitions{}(mappingDesc, currentStep);
 
                     auto linearizedFoundUnboundIonBox = S_LinearizedBox<S_FoundUnboundField>(
                         localFoundUnboundIonField.getDeviceDataBox(),
@@ -478,6 +484,7 @@ namespace picongpu::simulation::stage
                 bool isSubSteppingComplete = false;
                 while(!isSubSteppingComplete)
                 {
+                    doUnboundStateIonization(mappingDesc, currentStep, deviceLocalReduce);
                     resetAcceptStatus(mappingDesc);
                     resetElectronEnergyHistogram();
                     debugForceConstantElectronTemperature(currentStep);
@@ -535,10 +542,12 @@ namespace picongpu::simulation::stage
 
                     recordChanges(mappingDesc);
                     updateElectrons(mappingDesc, currentStep);
-                    doIPDIonization(mappingDesc, currentStep, deviceLocalReduce);
                     updateTimeRemaining(mappingDesc);
                     isSubSteppingComplete = isSubSteppingFinished(mappingDesc, deviceLocalReduce);
                 } // end atomicPhysics sub-stepping loop
+
+                // check once more for unbound states to ensure correct state for every other step.
+                doUnboundStateIonization(mappingDesc, currentStep, deviceLocalReduce);
             }
         };
 

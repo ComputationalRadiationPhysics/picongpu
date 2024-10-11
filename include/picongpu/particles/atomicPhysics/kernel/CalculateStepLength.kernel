@@ -27,12 +27,16 @@
 
 #include <pmacc/lockstep/ForEach.hpp>
 
+#include <cstdint>
+
 namespace picongpu::particles::atomicPhysics::kernel
 {
     /** find atomicPhysics time step length kernel
      *
      * will find minimum time step length from the minimum stepLength of all atomic states
      *  of all species
+     *
+     * @tparam T_numberAtomicStates number of atomic states
      */
     template<uint32_t T_numberAtomicStates>
     struct CalculateStepLengthKernel
