@@ -26,6 +26,8 @@
  * in focus. That is, SD, AD, GDD, and TOD, respectively.
  *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
  *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
+ *  - profiles::FromOpenPMDPulse<>    : reads an experimental pulse chunk defined in space-time domain into the
+ * simulation; requires openPMD API dependency and a 3D simulation
  *  - profiles::GaussianPulse<>       : Pulse with Gaussian profile in all three dimensions with given parameters
  *  - profiles::None                  : no incident field
  *  - profiles::PlaneWave<>           : plane wave profile with given parameters
