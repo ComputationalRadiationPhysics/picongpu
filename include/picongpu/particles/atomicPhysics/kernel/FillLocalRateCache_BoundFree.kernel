@@ -221,6 +221,8 @@ namespace picongpu::particles::atomicPhysics::kernel
                 [&maxEFieldSuperCell, &minEFieldSuperCell]()
                 {
                     maxEFieldSuperCell = 0._X;
+                    /// needs to be initialized with neutral element of Minimum
+                    /// @warning never increase the result from this variable, may be maximum representable value.
                     minEFieldSuperCell = std::numeric_limits<float_X>::max();
                 });
             worker.sync();
@@ -255,7 +257,7 @@ namespace picongpu::particles::atomicPhysics::kernel
                 });
             worker.sync();
 
-            // calculate ADK field ionization rate, for each atomic state and maximum field value
+            // calculate maximum ADK field ionization rate for each atomic state
             auto forEachAtomicState = pmacc::lockstep::makeForEach<T_numberAtomicStates, T_Worker>(worker);
             forEachAtomicState(
                 [&ionizationPotentialDepression,
