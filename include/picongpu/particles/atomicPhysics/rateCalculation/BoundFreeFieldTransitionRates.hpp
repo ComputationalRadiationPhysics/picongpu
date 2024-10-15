@@ -1,4 +1,4 @@
-/* Copyright 2023 Brian Marre, Marco Garten
+/* Copyright 2024 Brian Marre, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -41,48 +41,48 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
     struct BoundFreeFieldTransitionRates
     {
     private:
-        struct ResultStruct
+        //! input required for calling rate formula
+        template<typename T_ChargeStateDataBox, typename T_AtomicStateDataBox, typename T_BoundFreeTransitionDataBox>
+        struct RateFormulaVariables
         {
             // unitless
-            PMACC_ALIGN(effectivePrincipalQuantumNumber, float_X);
+            PMACC_ALIGN(nEff, float_X);
             // in elementary charge
-            PMACC_ALIGN(screenedCharge, float_X);
+            PMACC_ALIGN(Z, float_X);
+
+            /** initialize
+             *
+             * @param ionizationPotentialDepression, in eV
+             * @param transitionCollectionIndex index of transition in boundBoundTransitionDataBox
+             * @param atomicStateDataBox access to atomic state property data
+             * @param boundBoundTransitionDataBox access to bound-bound transition data
+             */
+            HDINLINE RateFormulaVariables(
+                float_X const ionizationPotentialDepression,
+                uint32_t const transitionCollectionIndex,
+                T_ChargeStateDataBox const chargeStateDataBox,
+                T_AtomicStateDataBox const atomicStateDataBox,
+                T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox)
+            {
+                Z = BoundFreeFieldTransitionRates::screenedCharge(
+                    transitionCollectionIndex,
+                    chargeStateDataBox,
+                    atomicStateDataBox,
+                    boundFreeTransitionDataBox);
+
+                // Hartree
+                float_X const ionizationEnergy = picongpu::sim.si.conv().eV2auEnergy(DeltaEnergyTransition::get(
+                    transitionCollectionIndex,
+                    atomicStateDataBox,
+                    boundFreeTransitionDataBox,
+                    ionizationPotentialDepression,
+                    chargeStateDataBox));
+
+                nEff = BoundFreeFieldTransitionRates::effectivePrincipalQuantumNumber(Z, ionizationEnergy);
+            }
         };
 
-        /** get input required for calling rate formula
-         *
-         * @param ionizationPotentialDepression, in eV
-         * @param transitionCollectionIndex index of transition in boundBoundTransitionDataBox
-         * @param atomicStateDataBox access to atomic state property data
-         * @param boundBoundTransitionDataBox access to bound-bound transition data
-         */
-        template<typename T_ChargeStateDataBox, typename T_AtomicStateDataBox, typename T_BoundFreeTransitionDataBox>
-        HDINLINE static ResultStruct getInput(
-            float_X const ionizationPotentialDepression,
-            uint32_t const transitionCollectionIndex,
-            T_ChargeStateDataBox const chargeStateDataBox,
-            T_AtomicStateDataBox const atomicStateDataBox,
-            T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox)
-        {
-            float_X const Z = screenedCharge(
-                transitionCollectionIndex,
-                chargeStateDataBox,
-                atomicStateDataBox,
-                boundFreeTransitionDataBox);
-
-            // Hartree
-            float_X const ionizationEnergy = picongpu::sim.si.conv().eV2auEnergy(DeltaEnergyTransition::get(
-                transitionCollectionIndex,
-                atomicStateDataBox,
-                boundFreeTransitionDataBox,
-                ionizationPotentialDepression,
-                chargeStateDataBox));
-
-            float_X const nEff = effectivePrincipalQuantumNumber(Z, ionizationEnergy);
-
-            return ResultStruct{nEff, Z};
-        }
-
+    public:
         /** get effective principal quantum number
          *
          * @param ionizationEnergy, in Hartree
@@ -184,19 +184,18 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             if(eFieldNorm == 0._X)
                 return 0._X;
 
-            ResultStruct input = getInput(
-                ionizationPotentialDepression,
-                transitionCollectionIndex,
-                chargeStateDataBox,
-                atomicStateDataBox,
-                boundFreeTransitionDataBox);
-            float_X const nEff = input.effectivePrincipalQuantumNumber;
-            float_X const Z = input.screenedCharge;
+            auto const v
+                = RateFormulaVariables<T_ChargeStateDataBox, T_AtomicStateDataBox, T_BoundFreeTransitionDataBox>(
+                    ionizationPotentialDepression,
+                    transitionCollectionIndex,
+                    chargeStateDataBox,
+                    atomicStateDataBox,
+                    boundFreeTransitionDataBox);
 
             // sim.atomicUnit.eField()
             float_X const eFieldNorm_AU = sim.pic.conv().eField2auEField(eFieldNorm);
 
-            return rateFormula(Z, nEff, eFieldNorm_AU);
+            return rateFormula(v.Z, v.nEff, eFieldNorm_AU);
         }
 
         /** get maximum field ionization ADK rate for electric field strengths inside the given boundaries
@@ -231,27 +230,26 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             if(maxEFieldNorm == 0._X)
                 return 0._X;
 
-            ResultStruct input = getInput(
-                ionizationPotentialDepression,
-                transitionCollectionIndex,
-                chargeStateDataBox,
-                atomicStateDataBox,
-                boundFreeTransitionDataBox);
-            float_X const nEff = input.effectivePrincipalQuantumNumber;
-            float_X const Z = input.screenedCharge;
+            auto const v
+                = RateFormulaVariables<T_ChargeStateDataBox, T_AtomicStateDataBox, T_BoundFreeTransitionDataBox>(
+                    ionizationPotentialDepression,
+                    transitionCollectionIndex,
+                    chargeStateDataBox,
+                    atomicStateDataBox,
+                    boundFreeTransitionDataBox);
 
-            float_X const nEffCubed = pmacc::math::cPow(nEff, u32(3u));
-            float_X const ZCubed = pmacc::math::cPow(Z, u32(3u));
+            float_X const nEffCubed = pmacc::math::cPow(v.nEff, u32(3u));
+            float_X const ZCubed = pmacc::math::cPow(v.Z, u32(3u));
 
             float_X const maxEField_AU = picongpu::sim.pic.conv().eField2auEField(maxEFieldNorm);
             float_X const minEField_AU = picongpu::sim.pic.conv().eField2auEField(minEFieldNorm);
 
             // theoretical maximum ADK Rate, in sim.atomicUnit.eField()
-            float_X const F_max = 4._X * ZCubed / (3._X * nEffCubed * (4._X * nEff - 3._X));
+            float_X const F_max = 4._X * ZCubed / (3._X * nEffCubed * (4._X * v.nEff - 3._X));
 
             // fieldStrength for maximum Rate, in sim.atomicUnit.eField(), see Notebook 2024 P.43-48
             float_X F;
-            if(nEff <= 0.75_X || F_max > maxEField_AU)
+            if(v.nEff <= 0.75_X || F_max > maxEField_AU)
             {
                 F = maxEField_AU;
             }
@@ -263,7 +261,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                     F = minEField_AU;
             }
 
-            return rateFormula(Z, nEff, F);
+            return rateFormula(v.Z, v.nEff, F);
         }
     };
 } // namespace picongpu::particles::atomicPhysics::rateCalculation
