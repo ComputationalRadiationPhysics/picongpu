@@ -19,18 +19,25 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
+#include <pmacc/attribute/FunctionSpecifier.hpp>
+
 #include <array>
 #include <map>
 
-#include <openPMD/openPMD.hpp>
+#if(ENABLE_OPENPMD == 1)
+#    include <openPMD/openPMD.hpp>
+#endif
 
 namespace picongpu
 {
     namespace plugins::binning
     {
         constexpr unsigned numUnits = 7;
+
         // @todo add where this 7D format is from
-        std::array<double, numUnits> UnitDimensions{
+        static std::array<double, numUnits> UnitDimensions{
             sim.unit.length(), // length
             sim.unit.mass(), // mass
             sim.unit.time(), // time
@@ -74,7 +81,7 @@ namespace picongpu
             return static_cast<double>(varPIC) * getConversionFactor(myDimension);
         }
 
-
+#if(ENABLE_OPENPMD == 1)
         HINLINE std::map<::openPMD::UnitDimension, double> makeOpenPMDUnitMap(
             const std::array<double, numUnits>& myDimension)
         {
@@ -91,5 +98,6 @@ namespace picongpu
             }
             return map;
         }
+#endif
     } // namespace plugins::binning
 } // namespace picongpu

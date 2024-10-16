@@ -19,25 +19,27 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
-#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
-#include "picongpu/plugins/PhaseSpace/Pair.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/communication/manager_common.hpp>
-#include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/math/vector/Int.hpp>
-#include <pmacc/verify.hpp>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+#    include "picongpu/plugins/PhaseSpace/Pair.hpp"
 
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
+#    include <pmacc/communication/manager_common.hpp>
+#    include <pmacc/dimensions/DataSpace.hpp>
+#    include <pmacc/mappings/simulation/GridController.hpp>
+#    include <pmacc/mappings/simulation/SubGrid.hpp>
+#    include <pmacc/math/vector/Int.hpp>
+#    include <pmacc/verify.hpp>
 
-#include <mpi.h>
-#include <openPMD/openPMD.hpp>
+#    include <fstream>
+#    include <sstream>
+#    include <string>
+#    include <utility>
+#    include <vector>
+
+#    include <mpi.h>
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -217,3 +219,5 @@ namespace picongpu
     };
 
 } /* namespace picongpu */
+
+#endif

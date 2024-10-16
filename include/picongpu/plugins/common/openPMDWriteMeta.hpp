@@ -18,22 +18,25 @@
  */
 
 #pragma once
-#include "picongpu/defines.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/absorber.hpp"
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/common/stringHelpers.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <pmacc/Environment.hpp>
+#if(ENABLE_OPENPMD == 1)
 
-#include <list>
-#include <sstream>
-#include <string>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#    include "picongpu/fields/absorber.hpp"
+#    include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
+#    include "picongpu/plugins/common/openPMDVersion.def"
+#    include "picongpu/plugins/common/stringHelpers.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <openPMD/openPMD.hpp>
+#    include <pmacc/Environment.hpp>
+
+#    include <list>
+#    include <sstream>
+#    include <string>
+
+#    include <openPMD/openPMD.hpp>
 
 
 namespace picongpu
@@ -245,3 +248,5 @@ namespace picongpu
         };
     } // namespace openPMD
 } // namespace picongpu
+
+#endif

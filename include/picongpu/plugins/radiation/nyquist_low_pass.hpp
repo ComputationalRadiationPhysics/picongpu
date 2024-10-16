@@ -22,6 +22,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/calc_amplitude.hpp"
+#include "picongpu/plugins/radiation/param.hpp"
 #include "picongpu/plugins/radiation/particle.hpp"
 
 

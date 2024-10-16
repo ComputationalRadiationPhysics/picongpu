@@ -68,7 +68,3 @@ namespace picongpu
         } // namespace radiation
     } // namespace plugins
 } // namespace picongpu
-
-#include "picongpu/plugins/radiation/frequencies/radiation_lin_freq.hpp"
-#include "picongpu/plugins/radiation/frequencies/radiation_list_freq.hpp"
-#include "picongpu/plugins/radiation/frequencies/radiation_log_freq.hpp"

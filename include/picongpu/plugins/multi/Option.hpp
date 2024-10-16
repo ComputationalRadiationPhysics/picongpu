@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <boost/program_options.hpp>
+
 #include <exception>
 #include <sstream>
 #include <string>

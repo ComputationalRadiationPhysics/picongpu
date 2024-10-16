@@ -76,18 +76,7 @@ add_subdirectory(${PIC_ROOT_DIR}/../../thirdParty/catch2 ${CMAKE_BINARY_DIR}/cat
 #---------------------------------------------------------------------------
 # Create source files.
 set(PIC_SUFFIXED_INCLUDE_DIR "${PIC_ROOT_DIR}")
-append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/algorithms" "hpp" "PIC_FILES_HEADER")
-append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/debug" "hpp" "PIC_FILES_HEADER")
-append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/random" "hpp" "PIC_FILES_HEADER")
-append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/traits" "hpp" "PIC_FILES_HEADER")
-append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/fields" "hpp" "PIC_FILES_HEADER")
-append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/particles" "hpp" "PIC_FILES_HEADER")
-
-# remove traits which where include dependencies can not be solved easily
-file(GLOB_RECURSE PIC_ATTRIBUTE_TRAITS "${PIC_SUFFIXED_INCLUDE_DIR}/traits/attribute/*.hpp")
-file(GLOB_RECURSE PIC_FRAME_TRAITS "${PIC_SUFFIXED_INCLUDE_DIR}/traits/frame/*.hpp")
-list(REMOVE_ITEM PIC_FILES_HEADER ${PIC_ATTRIBUTE_TRAITS})
-list(REMOVE_ITEM PIC_FILES_HEADER ${PIC_FRAME_TRAITS})
+append_recursive_files("${PIC_SUFFIXED_INCLUDE_DIR}/." "hpp" "PIC_FILES_HEADER")
 
 set(_GENERATED_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/src")
 

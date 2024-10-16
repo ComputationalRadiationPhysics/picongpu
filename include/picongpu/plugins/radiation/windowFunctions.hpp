@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/defines.hpp"
+
 #include <pmacc/algorithms/math/defines/pi.hpp>
 
 #include <cmath>

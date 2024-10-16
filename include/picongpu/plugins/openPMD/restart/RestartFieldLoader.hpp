@@ -20,26 +20,28 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
-#include "picongpu/plugins/misc/ComponentNames.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/simulation/control/MovingWindow.hpp"
-#include "picongpu/traits/IsFieldDomainBound.hpp"
-#include "picongpu/traits/IsFieldOutputOptional.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/Environment.hpp>
-#include <pmacc/communication/manager_common.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/particles/frame_types.hpp>
-#include <pmacc/types.hpp>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/plugins/misc/ComponentNames.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/simulation/control/MovingWindow.hpp"
+#    include "picongpu/traits/IsFieldDomainBound.hpp"
+#    include "picongpu/traits/IsFieldOutputOptional.hpp"
 
-#include <sstream>
-#include <stdexcept>
-#include <string>
+#    include <pmacc/Environment.hpp>
+#    include <pmacc/communication/manager_common.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/dimensions/DataSpace.hpp>
+#    include <pmacc/dimensions/GridLayout.hpp>
+#    include <pmacc/particles/frame_types.hpp>
+#    include <pmacc/types.hpp>
 
-#include <openPMD/openPMD.hpp>
+#    include <sstream>
+#    include <stdexcept>
+#    include <string>
+
+#    include <openPMD/openPMD.hpp>
 
 
 namespace picongpu
@@ -162,7 +164,7 @@ namespace picongpu
 
                     int const elementCount = local_domain_size.productOfComponents();
 
-#pragma omp parallel for simd
+#    pragma omp parallel for simd
                     for(int linearId = 0; linearId < elementCount; ++linearId)
                     {
                         DataSpace<simDim> destIdx;
@@ -205,7 +207,7 @@ namespace picongpu
         public:
             HDINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
             {
-#ifndef __CUDA_ARCH__
+#    ifndef __CUDA_ARCH__
                 DataConnector& dc = Environment<>::get().DataConnector();
                 ThreadParams* tp = params;
 
@@ -225,7 +227,7 @@ namespace picongpu
                     tp,
                     restartStep,
                     isDomainBound);
-#endif
+#    endif
             }
         };
 
@@ -233,3 +235,5 @@ namespace picongpu
 
     } /* namespace openPMD */
 } /* namespace picongpu */
+
+#endif

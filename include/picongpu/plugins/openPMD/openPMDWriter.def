@@ -40,7 +40,9 @@
 #include <string>
 #include <type_traits>
 
-#include <openPMD/openPMD.hpp>
+#if(ENABLE_OPENPMD == 1)
+#    include <openPMD/openPMD.hpp>
+#endif
 
 namespace picongpu
 {
@@ -76,8 +78,9 @@ namespace picongpu
 
         struct ThreadParams : PluginParameters
         {
+#if(ENABLE_OPENPMD == 1)
             std::unique_ptr<::openPMD::Series> openPMDSeries; /* is null iff there is no series currently open */
-
+#endif
             /** current dump is a checkpoint */
             bool isCheckpoint;
 
@@ -102,7 +105,13 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
-            static constexpr bool enableTimeTrace = PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES > 0;
+
+            static constexpr bool enableTimeTrace =
+#if PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES > 0
+                true;
+#else
+                false;
+#endif
             DumpTimes<enableTimeTrace> m_dumpTimes
             {
 #if PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES < 1
@@ -110,7 +119,11 @@ namespace picongpu
 #else
                 []()
                 {
+#    if PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES
                     constexpr unsigned maxLogFiles = PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES;
+#    else
+                    constexpr unsigned maxLogFiles = 0;
+#    endif
                     static GridController<simDim>& gc = Environment<simDim>::get().GridController();
                     auto const size = gc.getGlobalSize();
                     auto const rank = gc.getGlobalRank();
@@ -147,8 +160,6 @@ namespace picongpu
 #endif
             };
 
-            ::openPMD::Series& openSeries(::openPMD::Access at);
-
             void closeSeries();
 
             /*
@@ -160,7 +171,7 @@ namespace picongpu
                 uint32_t const currentStep,
                 std::string const& dir,
                 std::optional<std::string> file = {});
-
+#if(ENABLE_OPENPMD == 1)
             /**
              * Wrapper for ::openPMD::resetDataset, set dataset parameters
              * @tparam DIM number of variable dimensions
@@ -176,6 +187,9 @@ namespace picongpu
                 ::openPMD::Datatype datatype,
                 pmacc::math::UInt64<DIM> const& globalDimensions,
                 std::string const& datasetName);
+
+            ::openPMD::Series& openSeries(::openPMD::Access at);
+#endif
         };
 
         std::string printAvailableExtensions();

@@ -18,16 +18,18 @@
  */
 #pragma once
 
-#include "openPMD/openPMD.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/eventSystem/waitForAllTasks.hpp>
+#    include "openPMD/openPMD.hpp"
 
-#include <cstdlib> // std::getenv
-#include <memory>
-#include <string> // std::stoull
-#include <utility> // std::declval
+#    include <pmacc/eventSystem/waitForAllTasks.hpp>
 
-#include <openPMD/RecordComponent.hpp>
+#    include <cstdlib> // std::getenv
+#    include <memory>
+#    include <string> // std::stoull
+#    include <utility> // std::declval
+
+#    include <openPMD/RecordComponent.hpp>
 
 namespace picongpu
 {
@@ -55,3 +57,5 @@ namespace picongpu
         static constexpr int picongpuIOVersionMinor = 0;
     } // namespace openPMD
 } // namespace picongpu
+
+#endif

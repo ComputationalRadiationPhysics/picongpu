@@ -21,6 +21,8 @@
 
 #include "picongpu/defines.hpp"
 
+#include <pmacc/traits/GetStringProperties.hpp>
+
 #include <cstdint>
 #include <memory>
 #include <string>

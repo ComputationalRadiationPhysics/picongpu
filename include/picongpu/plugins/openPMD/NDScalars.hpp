@@ -19,15 +19,19 @@
 
 #pragma once
 
-#include "picongpu/plugins/common/openPMDDefinitions.def"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/Environment.hpp>
-#include <pmacc/types.hpp>
+#    include "picongpu/plugins/common/openPMDDefinitions.def"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
 
-#include <stdexcept>
-#include <tuple>
-#include <utility>
+#    include <pmacc/Environment.hpp>
+#    include <pmacc/types.hpp>
+
+#    include <stdexcept>
+#    include <tuple>
+#    include <utility>
+
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -198,3 +202,5 @@ namespace picongpu
 
     } // namespace openPMD
 } // namespace picongpu
+
+#endif

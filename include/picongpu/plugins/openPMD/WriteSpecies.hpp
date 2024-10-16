@@ -20,36 +20,40 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
-#include "picongpu/particles/traits/GetShape.hpp"
-#include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/kernel/CopySpecies.kernel"
-#include "picongpu/plugins/openPMD/openPMDDimension.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/plugins/openPMD/writer/ParticleAttribute.hpp"
-#include "picongpu/plugins/openPMD/writer/misc.hpp"
-#include "picongpu/plugins/output/ConstSpeciesAttributes.hpp"
-#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/assert.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/eventSystem/events/kernelEvents.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/mappings/kernel/RangeMapping.hpp>
-#include <pmacc/meta/conversion/MakeSeq.hpp>
-#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
-#include <pmacc/particles/ParticleDescription.hpp>
-#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#include <pmacc/particles/operations/ConcatListOfFrames.hpp>
-#include <pmacc/particles/particleFilter/FilterFactory.hpp>
-#include <pmacc/particles/particleFilter/PositionFilter.hpp>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/particles/traits/GetShape.hpp"
+#    include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
+#    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/kernel/CopySpecies.kernel"
+#    include "picongpu/plugins/openPMD/openPMDDimension.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/plugins/openPMD/writer/ParticleAttribute.hpp"
+#    include "picongpu/plugins/openPMD/writer/misc.hpp"
+#    include "picongpu/plugins/output/ConstSpeciesAttributes.hpp"
+#    include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 
-#include <boost/mpl/placeholders.hpp>
+#    include <pmacc/assert.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/eventSystem/events/kernelEvents.hpp>
+#    include <pmacc/mappings/kernel/AreaMapping.hpp>
+#    include <pmacc/mappings/kernel/RangeMapping.hpp>
+#    include <pmacc/memory/buffers/GridBuffer.hpp>
+#    include <pmacc/meta/conversion/MakeSeq.hpp>
+#    include <pmacc/meta/conversion/RemoveFromSeq.hpp>
+#    include <pmacc/particles/ParticleDescription.hpp>
+#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+#    include <pmacc/particles/memory/frames/Frame.hpp>
+#    include <pmacc/particles/operations/ConcatListOfFrames.hpp>
+#    include <pmacc/particles/particleFilter/FilterFactory.hpp>
+#    include <pmacc/particles/particleFilter/PositionFilter.hpp>
 
-#include <algorithm>
-#include <type_traits> // std::remove_reference_t
-#include <vector>
+#    include <boost/mpl/placeholders.hpp>
+
+#    include <algorithm>
+#    include <type_traits> // std::remove_reference_t
+#    include <vector>
 
 namespace picongpu
 {
@@ -144,11 +148,11 @@ namespace picongpu
 
                 pmacc::particles::operations::ConcatListOfFrames concatListOfFrames{};
 
-#if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
+#    if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
                 auto mallocMCBuffer
                     = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
                 auto particlesBox = rp.speciesTmp->getHostParticlesBox(mallocMCBuffer->getOffset());
-#else
+#    else
                 /* This separate code path is only a workaround until
                  * MallocMCBuffer is alpaka compatible.
                  *
@@ -163,7 +167,7 @@ namespace picongpu
                  */
                 eventSystem::startOperation(ITask::TASK_HOST);
 
-#endif
+#    endif
                 concatListOfFrames(
                     particlesProcessed,
                     this->frame,
@@ -594,5 +598,6 @@ namespace picongpu
 
 
     } // namespace openPMD
-
 } // namespace picongpu
+
+#endif

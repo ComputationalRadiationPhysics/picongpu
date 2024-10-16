@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
+#include "picongpu/fields/background/param.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>

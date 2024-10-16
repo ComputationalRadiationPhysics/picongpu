@@ -26,6 +26,7 @@
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/operations/Deselect.hpp>
 
 
 namespace picongpu
@@ -76,8 +77,6 @@ namespace picongpu
             T_Mapping const mapper,
             T_ParticleFilter parFilter) const
         {
-            using namespace pmacc::particles::operations;
-
             using SrcFramePtr = typename T_SrcBox::FramePtr;
 
             constexpr uint32_t numParticlesPerFrame = T_SrcBox::frameSize;
@@ -146,7 +145,7 @@ namespace picongpu
                         if(storageOffset != -1)
                         {
                             auto parDest = destFrame[globalOffset + storageOffset];
-                            auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
+                            auto parDestNoDomainIdx = pmacc::particles::operations::deselect<T_Identifier>(parDest);
                             auto parSrc = (srcFramePtr[idx]);
                             parDestNoDomainIdx = parSrc;
                             // calculate cell index for user-defined domain

@@ -20,17 +20,19 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
-#include "picongpu/particles/traits/MacroWeighted.hpp"
-#include "picongpu/particles/traits/WeightingPower.hpp"
-#include "picongpu/plugins/openPMD/GetComponentsType.hpp"
-#include "picongpu/plugins/openPMD/openPMDDimension.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/traits/PICToOpenPMD.tpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/traits/GetComponentsType.hpp>
-#include <pmacc/traits/GetNComponents.hpp>
-#include <pmacc/traits/Resolve.hpp>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/particles/traits/MacroWeighted.hpp"
+#    include "picongpu/particles/traits/WeightingPower.hpp"
+#    include "picongpu/plugins/openPMD/GetComponentsType.hpp"
+#    include "picongpu/plugins/openPMD/openPMDDimension.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/traits/PICToOpenPMD.tpp"
+
+#    include <pmacc/traits/GetComponentsType.hpp>
+#    include <pmacc/traits/GetNComponents.hpp>
+#    include <pmacc/traits/Resolve.hpp>
 
 namespace picongpu
 {
@@ -178,7 +180,7 @@ namespace picongpu
                               .currentBuffer();
 
 /* copy strided data from source to temporary buffer */
-#pragma omp parallel for simd
+#    pragma omp parallel for simd
                     for(size_t i = 0; i < elements; ++i)
                     {
                         span[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
@@ -191,3 +193,5 @@ namespace picongpu
 
     } // namespace openPMD
 } // namespace picongpu
+
+#endif

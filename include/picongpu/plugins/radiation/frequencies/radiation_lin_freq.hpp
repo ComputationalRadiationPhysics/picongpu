@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-
+#include "picongpu/plugins/radiation/param.hpp"
 
 namespace picongpu
 {

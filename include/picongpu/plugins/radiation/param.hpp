@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Rene Widera, Felix Schmitt
+/* Copyright 2024 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,25 +21,8 @@
 
 #include "picongpu/defines.hpp"
 
-#include <pmacc/mappings/simulation/Selection.hpp>
-#include <pmacc/types.hpp>
-
-namespace picongpu
-{
-    using namespace pmacc;
-
-    /**
-     * Window describes sizes and offsets.
-     *
-     * For a detailed description of windows, see the PIConGPU wiki page:
-     * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
-     */
-    struct Window
-    {
-        /* Dimensions (size/offset) of the global virtual window over all GPUs */
-        Selection<simDim> globalDimensions;
-
-        /* Dimensions (size/offset) of the local virtual window on this GPU */
-        Selection<simDim> localDimensions;
-    };
-} // namespace picongpu
+// clang-format off
+#include "picongpu/param/radiation.param"
+#include "picongpu/param/radiationObserver.param"
+#include "picongpu/unitless/radiation.unitless"
+// clang-format on

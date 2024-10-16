@@ -19,23 +19,25 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
-#include "picongpu/particles/param.hpp"
-#include "picongpu/plugins/binning/BinningData.hpp"
-#include "picongpu/plugins/binning/BinningFunctors.hpp"
-#include "picongpu/plugins/binning/WriteHist.hpp"
-#include "picongpu/plugins/binning/utility.hpp"
-#include "picongpu/plugins/misc/ExecuteIf.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/particles/param.hpp"
+#    include "picongpu/plugins/binning/BinningData.hpp"
+#    include "picongpu/plugins/binning/BinningFunctors.hpp"
+#    include "picongpu/plugins/binning/WriteHist.hpp"
+#    include "picongpu/plugins/binning/utility.hpp"
+#    include "picongpu/plugins/misc/ExecuteIf.hpp"
 
-#include <cstdint>
-#include <memory>
-#include <optional>
+#    include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
+#    include <pmacc/mpi/MPIReduce.hpp>
+#    include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
-#include <openPMD/Series.hpp>
+#    include <cstdint>
+#    include <memory>
+#    include <optional>
+
+#    include <openPMD/Series.hpp>
 
 
 namespace picongpu
@@ -533,3 +535,5 @@ namespace picongpu
 
     } // namespace plugins::binning
 } // namespace picongpu
+
+#endif

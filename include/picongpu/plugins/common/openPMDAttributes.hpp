@@ -19,12 +19,14 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <string>
-#include <vector>
+#    include "picongpu/defines.hpp"
 
-#include <openPMD/openPMD.hpp>
+#    include <string>
+#    include <vector>
+
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -138,3 +140,5 @@ namespace picongpu
         }
     } // namespace openPMD
 } // namespace picongpu
+
+#endif

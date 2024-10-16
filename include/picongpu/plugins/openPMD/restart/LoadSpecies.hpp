@@ -19,24 +19,26 @@
 
 #pragma once
 
-#include "picongpu/defines.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/plugins/openPMD/restart/LoadParticleAttributesFromOpenPMD.hpp"
-#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#if(ENABLE_OPENPMD == 1)
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/meta/conversion/MakeSeq.hpp>
-#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
-#include <pmacc/particles/ParticleDescription.hpp>
-#include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
+#    include "picongpu/defines.hpp"
+#    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.def"
+#    include "picongpu/plugins/openPMD/restart/LoadParticleAttributesFromOpenPMD.hpp"
+#    include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 
-#include <boost/mpl/placeholders.hpp>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/meta/conversion/MakeSeq.hpp>
+#    include <pmacc/meta/conversion/RemoveFromSeq.hpp>
+#    include <pmacc/particles/ParticleDescription.hpp>
+#    include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
 
-#include <cassert>
-#include <stdexcept>
+#    include <boost/mpl/placeholders.hpp>
 
-#include <openPMD/openPMD.hpp>
+#    include <cassert>
+#    include <stdexcept>
+
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -255,3 +257,5 @@ namespace picongpu
     } /* namespace openPMD */
 
 } /* namespace picongpu */
+
+#endif
