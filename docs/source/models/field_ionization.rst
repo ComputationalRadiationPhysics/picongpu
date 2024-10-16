@@ -158,7 +158,7 @@ You can test the implemented ionization models yourself with the corresponding m
 
     import numpy as np
     import scipy.constants as sc
-    from picongpu.utils import FieldIonization
+    from picongpu.extra.utils import FieldIonization
 
     # instantiate class object that contains functions for
     #   - ionization rates
