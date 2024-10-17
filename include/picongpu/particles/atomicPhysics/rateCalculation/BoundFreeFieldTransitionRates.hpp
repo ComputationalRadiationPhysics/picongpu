@@ -129,14 +129,16 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             float_X const nEffCubed = pmacc::math::cPow(nEff, 3u);
             float_X const ZCubed = pmacc::math::cPow(Z, 3u);
 
-            float_X const dBase = 4.0_X * math::exp(1._X) * ZCubed / (eFieldNorm_AU * pmacc::math::cPow(nEff, 4u));
-            float_X const dFromADK = math::pow(dBase, nEff);
+            float_64 const dBase
+                = float_64(4.0_X * math::exp(1._X) * ZCubed / (eFieldNorm_AU * pmacc::math::cPow(nEff, 4u)));
+            float_64 const dFromADK = math::pow(dBase, float_64(nEff));
 
             constexpr float_X pi = pmacc::math::Pi<float_X>::value;
 
             // 1/sim.atomicUnit.time()
-            float_X rateADK_AU = eFieldNorm_AU * pmacc::math::cPow(dFromADK, 2u) / (8._X * pi * Z)
-                * math::exp(-2._X * ZCubed / (3._X * nEffCubed * eFieldNorm_AU));
+            float_X rateADK_AU = eFieldNorm_AU / (8._X * pi * Z)
+                * float_X(pmacc::math::cPow(dFromADK, 2u)
+                          * math::exp(float_64(-2._X * ZCubed / (3._X * nEffCubed * eFieldNorm_AU))));
 
             // factor from averaging over one laser cycle with LINEAR polarization
             if constexpr(

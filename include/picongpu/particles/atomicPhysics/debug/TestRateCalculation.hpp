@@ -33,9 +33,11 @@
 
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicTuples.def"
+#include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionOrdering.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundBoundTransitionRates.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeCollisionalTransitionRates.hpp"
+#include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeFieldTransitionRates.hpp"
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
 #include <pmacc/algorithms/math.hpp>
@@ -105,9 +107,11 @@ namespace picongpu::particles::atomicPhysics::debug
             // charge state already specifies number of entries
             chargeStateBuffer.reset(new S_ChargeStateBuffer());
 
-            atomicStateBuffer.reset(new S_AtomicStateBuffer(4u));
+            /// @attention number of states/transitions set for buffers needs to be == as actually added states in
+            ///     setup()
+            atomicStateBuffer.reset(new S_AtomicStateBuffer(5u));
             boundBoundBuffer.reset(new S_BoundBoundBuffer(1u));
-            boundFreeBuffer.reset(new S_BoundFreeBuffer(1u));
+            boundFreeBuffer.reset(new S_BoundFreeBuffer(2u));
 
             setup();
         }
@@ -123,10 +127,12 @@ namespace picongpu::particles::atomicPhysics::debug
             S_ChargeStateBox chargeStateHostBox = chargeStateBuffer->getHostDataBox();
             //      ionizationEnergy = 100 eV, screened charge = 5 e
             auto tupleChargeState_1 = std::make_tuple(u8(0u), 100._X, 5._X);
-            auto tupleChargeState_2 = std::make_tuple(u8(1u), 100._X, 5._X);
+            auto tupleChargeState_2 = std::make_tuple(u8(1u), 5._X, 5._X);
+            auto tupleChargeState_3 = std::make_tuple(u8(2u), 100._X, 5._X);
 
             chargeStateHostBox.store(u8(0u), tupleChargeState_1);
             chargeStateHostBox.store(u8(1u), tupleChargeState_2);
+            chargeStateHostBox.store(u8(2u), tupleChargeState_3);
 
             chargeStateBuffer->hostToDevice();
 
@@ -134,18 +140,26 @@ namespace picongpu::particles::atomicPhysics::debug
             S_AtomicStateBox atomicStateHostBox = atomicStateBuffer->getHostDataBox();
 
             // 1:(1,1,0,0,0,0,1,0,1,0) lowerStateBoundFree
-            auto tupleAtomicState_1 = std::make_tuple(static_cast<uint64_t>(243754u), 0._X);
-            atomicStateHostBox.store(u8(1u), tupleAtomicState_1);
+            auto tupleAtomicState_bf_1 = std::make_tuple(static_cast<uint64_t>(243754u), 0._X);
             // 2:(1,1,0,0,0,0,1,0,0,0) upperStateBoundFree, excitationEnergyDifference = 5 eV
-            auto tupleAtomicState_2 = std::make_tuple(static_cast<uint64_t>(9379u), 5._X);
-            atomicStateHostBox.store(u8(3u), tupleAtomicState_2);
+            auto tupleAtomicState_bf_2 = std::make_tuple(static_cast<uint64_t>(9379u), 5._X);
+            // 3:(1,1,0,0,0,0,0,0,0,0) upperStateBoundFree, excitationEnergyDifference = 5 eV
+            auto tupleAtomicState_bf_3 = std::make_tuple(static_cast<uint64_t>(4u), 5._X);
+
+            /// @note states must be sorted primarily ascending by charge state, secondarily ascending by configNumber
+            atomicStateHostBox.store(u8(1u), tupleAtomicState_bf_1);
+            atomicStateHostBox.store(u8(3u), tupleAtomicState_bf_2);
+            atomicStateHostBox.store(u8(4u), tupleAtomicState_bf_3);
 
             // 1:(1,0,2,0,0,0,1,0,0,0) lowerStateBoundBound
-            auto tupleAtomicState_3 = std::make_tuple(static_cast<uint64_t>(9406u), 0._X);
-            atomicStateHostBox.store(u8(0u), tupleAtomicState_3);
+            auto tupleAtomicState_bb_1 = std::make_tuple(static_cast<uint64_t>(9406u), 0._X);
             // 1:(1,0,1,0,0,0,1,0,1,0) upperStateBoundBound, energyDiffLowerUpper = 5 eV
-            auto tupleAtomicState_4 = std::make_tuple(static_cast<uint64_t>(243766u), 5._X);
-            atomicStateHostBox.store(u8(2u), tupleAtomicState_4);
+            auto tupleAtomicState_bb_2 = std::make_tuple(static_cast<uint64_t>(243766u), 5._X);
+
+            /// @note states must be sorted primarily ascending by charge state, secondarily ascending by configNumber
+            atomicStateHostBox.store(u8(0u), tupleAtomicState_bb_1);
+            atomicStateHostBox.store(u8(2u), tupleAtomicState_bb_2);
+
             atomicStateBuffer->hostToDevice();
 
             // bound-bound transitions
@@ -161,14 +175,13 @@ namespace picongpu::particles::atomicPhysics::debug
                 3._X,
                 4._X,
                 5._X,
-                static_cast<uint64_t>(std::get<0>(tupleAtomicState_3)),
-                static_cast<uint64_t>(std::get<0>(tupleAtomicState_4)));
+                static_cast<uint64_t>(std::get<0>(tupleAtomicState_bb_1)),
+                static_cast<uint64_t>(std::get<0>(tupleAtomicState_bb_2)));
             boundBoundHostBox.store(0u, tupleBoundBound, atomicStateHostBox);
             boundBoundBuffer->hostToDevice();
 
             // bound-free transition
-            S_BoundFreeBox boundFreeHostBox = boundFreeBuffer->getHostDataBox();
-            auto tupleBoundFree = std::make_tuple(
+            auto tupleBoundFree_1 = std::make_tuple(
                 1._X,
                 2._X,
                 3._X,
@@ -177,9 +190,23 @@ namespace picongpu::particles::atomicPhysics::debug
                 6._X,
                 7._X,
                 8._X,
-                static_cast<uint64_t>(std::get<0>(tupleAtomicState_1)),
-                static_cast<uint64_t>(std::get<0>(tupleAtomicState_2)));
-            boundFreeHostBox.store(0u, tupleBoundFree, atomicStateHostBox);
+                static_cast<uint64_t>(std::get<0>(tupleAtomicState_bf_1)),
+                static_cast<uint64_t>(std::get<0>(tupleAtomicState_bf_2)));
+            auto tupleBoundFree_2 = std::make_tuple(
+                1._X,
+                2._X,
+                3._X,
+                4._X,
+                5._X,
+                6._X,
+                7._X,
+                8._X,
+                static_cast<uint64_t>(std::get<0>(tupleAtomicState_bf_2)),
+                static_cast<uint64_t>(std::get<0>(tupleAtomicState_bf_3)));
+
+            S_BoundFreeBox boundFreeHostBox = boundFreeBuffer->getHostDataBox();
+            boundFreeHostBox.store(0u, tupleBoundFree_1, atomicStateHostBox);
+            boundFreeHostBox.store(1u, tupleBoundFree_2, atomicStateHostBox);
             boundFreeBuffer->hostToDevice();
         }
 
@@ -353,7 +380,7 @@ namespace picongpu::particles::atomicPhysics::debug
         }
 
         //! @return true =^= test passed, pass silently if correct
-        bool testCollisionalIonizationRate()
+        bool testCollisionalIonizationRate() const
         {
             float_64 const correctRate = 1.507910098065e+14; // 1/s
             float_64 const rate
@@ -376,10 +403,41 @@ namespace picongpu::particles::atomicPhysics::debug
             return testRelativeError(correctRate, rate, "collisional ionization rate", 1e-3);
         }
 
+        //! @return true =^= test passed
+        bool testADKIonizationRate() const
+        {
+            // 1/s
+            float_64 const correctRate = 6.391666527e+9 * 1 / 3.3e-17;
+
+            // sim.unit.eField()
+            float_X const eFieldNorm = 0.0126 * sim.atomicUnit.eField() / sim.unit.eField();
+
+            // eV
+            float_X const ipd = 0._X;
+
+            constexpr auto laserPolarization
+                = picongpu::particles::atomicPhysics::enums::ADKLaserPolarization::linearPolarization;
+            // 1/s
+            float_64 const rate
+                = static_cast<float_64>(
+                      rateCalculation::BoundFreeFieldTransitionRates<laserPolarization>::rateADKFieldIonization(
+                          eFieldNorm,
+                          ipd,
+                          u32(1u),
+                          chargeStateBuffer->getHostDataBox(),
+                          atomicStateBuffer->getHostDataBox(),
+                          boundFreeBuffer->getHostDataBox()))
+                * 1. / sim.unit.time();
+
+            /// @note larger error limit required due to numerics of ADK rate formula
+            return testRelativeError(correctRate, rate, "ADK field ionization", 1e-5);
+        }
+
         //! @return true =^= all tests passed
         bool testAll()
         {
-            bool pass[7];
+            constexpr uint8_t numberTests = 8;
+            bool pass[numberTests];
             pass[0] = testCollisionalExcitationCrossSection();
             pass[1] = testCollisionalDeexcitationCrossSection();
             pass[2] = testCollisionalIonizationCrossSection();
@@ -387,16 +445,21 @@ namespace picongpu::particles::atomicPhysics::debug
             pass[4] = testCollisionalDeexcitationRate();
             pass[5] = testSpontaneousRadiativeDeexcitationRate();
             pass[6] = testCollisionalIonizationRate();
+            pass[7] = testADKIonizationRate();
 
-            bool pass_total = pass[0] && pass[1] && pass[2] && pass[3] && pass[4] && pass[5] && pass[6];
+            bool pass_total = true;
+            for(uint8_t i = 0u; i < numberTests; ++i)
+            {
+                pass_total = pass_total && pass[i];
+            }
 
             if constexpr(T_consoleOutput)
             {
-                std::cout << "Result:" << std::endl;
+                std::cout << "Result:";
                 if(pass_total)
-                    std::cout << "* Success" << std::endl;
+                    std::cout << " * Success" << std::endl;
                 else
-                    std::cout << "x Fail" << std::endl;
+                    std::cout << " x Fail" << std::endl;
             }
             return pass_total;
         }
