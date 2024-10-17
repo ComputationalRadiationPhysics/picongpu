@@ -247,10 +247,8 @@ namespace picongpu
                 float_64 sinPhiVal;
                 float_64 cosPhiVal;
                 pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
-                float_64 const tanAlpha = (1.0 - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
-                float_64 const tanFocalLine = math::tan(PI / 2.0 - phi);
-                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (1.0 + tanAlpha / tanFocalLine);
-                float_64 const deltaY = wavelength_SI * cosPhiVal + wavelength_SI * sinPhiVal * sinPhiVal / cosPhiVal;
+                float_64 const deltaY = wavelength_SI / beta_0 / (1.0 - cosPhiVal);
+                float_64 const deltaT = deltaY / sim.si.getSpeedOfLight();
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
                 auto const timeMod = float_T(time - numberOfPeriods * deltaT);
                 auto const yMod = float_T(pos.y() - numberOfPeriods * deltaY);
@@ -370,10 +368,8 @@ namespace picongpu
                 float_64 sinPhiVal;
                 float_64 cosPhiVal;
                 pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
-                float_64 const tanAlpha = (1.0 - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
-                float_64 const tanFocalLine = math::tan(PI / 2.0 - phi);
-                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (1.0 + tanAlpha / tanFocalLine);
-                float_64 const deltaY = wavelength_SI * cosPhiVal + wavelength_SI * sinPhiVal * sinPhiVal / cosPhiVal;
+                float_64 const deltaY = wavelength_SI / beta_0 / (1.0 - cosPhiVal);
+                float_64 const deltaT = deltaY / sim.si.getSpeedOfLight();
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
                 auto const timeMod = float_T(time - numberOfPeriods * deltaT);
                 auto const yMod = float_T(pos.y() - numberOfPeriods * deltaY);
@@ -505,10 +501,8 @@ namespace picongpu
                 float_64 sinPhiVal;
                 float_64 cosPhiVal;
                 pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
-                float_64 const tanAlpha = (1.0 - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
-                float_64 const tanFocalLine = math::tan(PI / 2.0 - phi);
-                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight() * (1.0 + tanAlpha / tanFocalLine);
-                float_64 const deltaY = wavelength_SI * cosPhiVal + wavelength_SI * sinPhiVal * sinPhiVal / cosPhiVal;
+                float_64 const deltaY = wavelength_SI / beta_0 / (1.0 - cosPhiVal);
+                float_64 const deltaT = deltaY / sim.si.getSpeedOfLight();
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
                 auto const timeMod = float_T(time - numberOfPeriods * deltaT);
                 auto const yMod = float_T(pos.y() - numberOfPeriods * deltaY);
