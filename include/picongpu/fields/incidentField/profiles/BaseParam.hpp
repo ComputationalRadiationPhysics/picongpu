@@ -96,24 +96,6 @@ namespace picongpu
                             return 0.0;
                         }
 
-                        /** SFINAE deduction if the user parameter define the variable TIME_DELAY_SI
-                         *
-                         * This allows that time delay can be an optional variable a user must only define if needed.
-                         * The default if it is not defined is 0.
-                         * @{
-                         */
-                        template<typename T, typename = void>
-                        struct GetTimeDelay
-                        {
-                            static constexpr float_X value = 0.0;
-                        };
-
-                        template<typename T>
-                        struct GetTimeDelay<T, decltype((void) T::TIME_DELAY_SI, void())>
-                        {
-                            static constexpr float_X value = T::TIME_DELAY_SI;
-                        };
-
                     public:
                         /** Time delay
                          *
