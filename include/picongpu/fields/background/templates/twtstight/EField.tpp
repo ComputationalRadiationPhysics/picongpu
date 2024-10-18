@@ -210,29 +210,13 @@ namespace picongpu
                 auto const beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
-                 * z-axis of the coordinate system in this function.
+                 * y-axis of the coordinate system in this function.
                  */
-                auto const phiReal = float_T(math::abs(phi));
-                float_T sinPhiReal;
-                float_T cosPhiReal;
-                pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
-                float_T const alphaTilt = math::atan2(float_T(1.0) - beta0 * cosPhiReal, beta0 * sinPhiReal);
-                /* Definition of the laser pulse front tilt angle for the laser field below.
-                 *
-                 * For beta0 = 1.0, this is equivalent to our standard definition. Question: Why is the
-                 * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
-                 * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
-                 * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
-                 * the dispersion will (although physically correct) be slightly off the ideal TWTS
-                 * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-                 * scenarios close to beta0 = 1.
-                 */
-                float_T const phiT = float_T(2.0) * alphaTilt;
-
-                /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-                 * documentation purposes.
-                 * float_T const eta = (PI / 2) - (phiReal - alphaTilt);
-                 */
+                auto const phiT = float_T(math::abs(phi));
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phiT, sinPhi, cosPhi);
+                float_T const tanAlpha = (float_T(1.0) - beta0 * cosPhi) / (beta0 * sinPhi);
 
                 auto const cspeed = float_T(sim.si.getSpeedOfLight() / sim.unit.speed());
                 auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
@@ -249,11 +233,9 @@ namespace picongpu
                  * (i.e. from a finite coordinate range) only. All these quantities have to be calculated
                  * in double precision.
                  */
-                float_64 sinPhiVal;
-                float_64 cosPhiVal;
-                pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
-                float_64 const deltaY = wavelength_SI / beta_0 / (1.0 - cosPhiVal);
-                float_64 const deltaT = deltaY / sim.si.getSpeedOfLight();
+                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight()
+                    / (1.0 - beta_0 * pmacc::math::cos(precisionCast<float_64>(phi)));
+                float_64 const deltaY = beta0 * sim.si.getSpeedOfLight() * deltaT;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
                 auto const timeMod = float_T(time - numberOfPeriods * deltaT);
                 auto const yMod = float_T(pos.y() - numberOfPeriods * deltaY);
@@ -269,11 +251,8 @@ namespace picongpu
                     return float_T(0.0);
 
                 /* Calculating shortcuts for speeding up field calculation */
-                float_T sinPhi;
-                float_T cosPhi;
-                pmacc::math::sincos(phiT, sinPhi, cosPhi);
-                float_T const cosPhi2 = math::cos(phiT / float_T(2.0));
-                float_T const tanPhi2 = math::tan(phiT / float_T(2.0));
+                float_T const tanPhi = math::tan(phiT);
+                float_T const cotPhi = float_T(1.0) / tanPhi;
                 float_T const sinPhi_2 = sinPhi * sinPhi;
                 float_T const cosPhi_2 = cosPhi * cosPhi;
                 float_T const sinPolAngle = math::sin(polAngle);
@@ -284,9 +263,10 @@ namespace picongpu
                 float_T const tauG2 = tauG * tauG;
                 float_T const psi0 = float_T(2.0) / k;
                 float_T const w02 = w0 * w0;
+                float_T const beta02 = beta0 * beta0;
 
                 complex_T const nu = (y * cosPhi - z * sinPhi) / cspeed;
-                complex_T const xi = (-z * cosPhi - y * sinPhi) * tanPhi2 / cspeed;
+                complex_T const xi = (-z * cosPhi - y * sinPhi) * tanAlpha / cspeed;
                 complex_T const rhom
                     = math::sqrt(x2 + pmacc::math::cPow(-z - complex_T(0, 0.5) * k * w02, static_cast<uint32_t>(2u)));
                 complex_T const rhom2 = rhom * rhom;
@@ -295,15 +275,17 @@ namespace picongpu
                 complex_T const besselJ0const = pmacc::math::bessel::j0(k * rhom * sinPhi);
                 complex_T const besselJ1const = pmacc::math::bessel::j1(k * rhom * sinPhi);
 
-                complex_T const zeroOrder = tauG * math::sqrt(omega0 * (float_T(1.0) + cosPhi))
+                complex_T const zeroOrder = (beta0 * tauG)
                     / (math::sqrt(float_T(2.0))
                        * math::exp(
-                           omega0 * pmacc::math::cPow((t - nu + xi) * cosPhi2, static_cast<uint32_t>(2u))
-                           / (+(omega0 * tauG2) / float_T(2.0) - complex_T(0, 1) * nu
-                              + ((omega0 * tauG2) / float_T(2.0) + complex_T(0, 1) * (nu - xi)) * cosPhi))
+                           beta02 * omega0 * pmacc::math::cPow(t - nu + xi, static_cast<uint32_t>(2u))
+                           / (beta02 * omega0 * tauG2 - complex_T(0, 2) * beta02 * (nu - xi) * cotPhi * cotPhi
+                              + complex_T(0, 2) * beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi
+                              - complex_T(0, 2) * nu / sinPhi_2))
                        * math::sqrt(
-                           +(omega0 * tauG2) / float_T(2.0) - I * nu
-                           + ((omega0 * tauG2) / float_T(2.0) + I * (nu - xi)) * cosPhi));
+                           ((beta02 * omega0 * tauG2) / float_T(2.0) - I * beta02 * (nu - xi) * cotPhi * cotPhi
+                            + I * beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi - I * nu / sinPhi_2)
+                           / omega0));
 
                 complex_T const result
                     = (complex_T(0, 0.25) * math::exp(I * (omega0 * t - k * y * cosPhi)) * zeroOrder
@@ -342,29 +324,13 @@ namespace picongpu
                 auto const beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
-                 * z-axis of the coordinate system in this function.
+                 * y-axis of the coordinate system in this function.
                  */
-                auto const phiReal = float_T(math::abs(phi));
-                float_T sinPhiReal;
-                float_T cosPhiReal;
-                pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
-                float_T const alphaTilt = math::atan2(float_T(1.0) - beta0 * cosPhiReal, beta0 * sinPhiReal);
-                /* Definition of the laser pulse front tilt angle for the laser field below.
-                 *
-                 * For beta0 = 1.0, this is equivalent to our standard definition. Question: Why is the
-                 * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
-                 * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
-                 * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
-                 * the dispersion will (although physically correct) be slightly off the ideal TWTS
-                 * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-                 * scenarios close to beta0 = 1.
-                 */
-                float_T const phiT = float_T(2.0) * alphaTilt;
-
-                /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-                 * documentation purposes.
-                 * float_T const eta = (PI / 2) - (phiReal - alphaTilt);
-                 */
+                auto const phiT = float_T(math::abs(phi));
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phiT, sinPhi, cosPhi);
+                float_T const tanAlpha = (float_T(1.0) - beta0 * cosPhi) / (beta0 * sinPhi);
 
                 auto const cspeed = float_T(sim.si.getSpeedOfLight() / sim.unit.speed());
                 auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
@@ -381,11 +347,9 @@ namespace picongpu
                  * (i.e. from a finite coordinate range) only. All these quantities have to be calculated
                  * in double precision.
                  */
-                float_64 sinPhiVal;
-                float_64 cosPhiVal;
-                pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
-                float_64 const deltaY = wavelength_SI / beta_0 / (1.0 - cosPhiVal);
-                float_64 const deltaT = deltaY / sim.si.getSpeedOfLight();
+                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight()
+                    / (1.0 - beta_0 * pmacc::math::cos(precisionCast<float_64>(phi)));
+                float_64 const deltaY = beta0 * sim.si.getSpeedOfLight() * deltaT;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
                 auto const timeMod = float_T(time - numberOfPeriods * deltaT);
                 auto const yMod = float_T(pos.y() - numberOfPeriods * deltaY);
@@ -401,11 +365,8 @@ namespace picongpu
                     return float_T(0.0);
 
                 /* Calculating shortcuts for speeding up field calculation */
-                float_T sinPhi;
-                float_T cosPhi;
-                pmacc::math::sincos(phiT, sinPhi, cosPhi);
-                float_T const cosPhi2 = math::cos(phiT / float_T(2.0));
-                float_T const tanPhi2 = math::tan(phiT / float_T(2.0));
+                float_T const tanPhi = math::tan(phiT);
+                float_T const cotPhi = float_T(1.0) / tanPhi;
                 float_T const sinPhi_2 = sinPhi * sinPhi;
                 float_T const cosPhi_2 = cosPhi * cosPhi;
                 float_T const sinPolAngle = math::sin(polAngle);
@@ -416,9 +377,10 @@ namespace picongpu
                 float_T const tauG2 = tauG * tauG;
                 float_T const psi0 = float_T(2.0) / k;
                 float_T const w02 = w0 * w0;
+                float_T const beta02 = beta0 * beta0;
 
                 complex_T const nu = (y * cosPhi - z * sinPhi) / cspeed;
-                complex_T const xi = (-z * cosPhi - y * sinPhi) * tanPhi2 / cspeed;
+                complex_T const xi = (-z * cosPhi - y * sinPhi) * tanAlpha / cspeed;
                 complex_T const rhom
                     = math::sqrt(x2 + pmacc::math::cPow(-z - complex_T(0, 0.5) * k * w02, static_cast<uint32_t>(2u)));
                 complex_T const Xm = -z - complex_T(0, 0.5) * k * w02;
@@ -426,15 +388,17 @@ namespace picongpu
                 complex_T const besselJ0const = pmacc::math::bessel::j0(k * rhom * sinPhi);
                 complex_T const besselJ1const = pmacc::math::bessel::j1(k * rhom * sinPhi);
 
-                complex_T const zeroOrder = tauG * math::sqrt(omega0 * (float_T(1.0) + cosPhi))
+                complex_T const zeroOrder = (beta0 * tauG)
                     / (math::sqrt(float_T(2.0))
                        * math::exp(
-                           omega0 * pmacc::math::cPow((t - nu + xi) * cosPhi2, static_cast<uint32_t>(2u))
-                           / (+(omega0 * tauG2) / float_T(2.0) - complex_T(0, 1) * nu
-                              + ((omega0 * tauG2) / float_T(2.0) + complex_T(0, 1) * (nu - xi)) * cosPhi))
+                           beta02 * omega0 * pmacc::math::cPow(t - nu + xi, static_cast<uint32_t>(2u))
+                           / (beta02 * omega0 * tauG2 - complex_T(0, 2) * beta02 * (nu - xi) * cotPhi * cotPhi
+                              + complex_T(0, 2) * beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi
+                              - complex_T(0, 2) * nu / sinPhi_2))
                        * math::sqrt(
-                           +(omega0 * tauG2) / float_T(2.0) - I * nu
-                           + ((omega0 * tauG2) / float_T(2.0) + I * (nu - xi)) * cosPhi));
+                           ((beta02 * omega0 * tauG2) / float_T(2.0) - I * beta02 * (nu - xi) * cotPhi * cotPhi
+                            + I * beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi - I * nu / sinPhi_2)
+                           / omega0));
 
                 complex_T const result = (math::exp(I * (omega0 * t - k * y * cosPhi)) * k * zeroOrder * sinPhi
                                           * (besselJ1const
@@ -461,29 +425,13 @@ namespace picongpu
                 auto const beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
-                 * z-axis of the coordinate system in this function.
+                 * y-axis of the coordinate system in this function.
                  */
-                auto const phiReal = float_T(math::abs(phi));
-                float_T sinPhiReal;
-                float_T cosPhiReal;
-                pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
-                float_T const alphaTilt = math::atan2(float_T(1.0) - beta0 * cosPhiReal, beta0 * sinPhiReal);
-                /* Definition of the laser pulse front tilt angle for the laser field below.
-                 *
-                 * For beta0 = 1.0, this is equivalent to our standard definition. Question: Why is the
-                 * local "phi_T" not equal in value to the object member "phiReal" or "phi"?
-                 * Because the standard TWTS pulse is defined for beta0 = 1.0 and in the coordinate-system
-                 * of the TWTS model phi is responsible for pulse front tilt and dispersion only. Hence
-                 * the dispersion will (although physically correct) be slightly off the ideal TWTS
-                 * pulse for beta0 != 1.0. This only shows that this TWTS pulse is primarily designed for
-                 * scenarios close to beta0 = 1.
-                 */
-                float_T const phiT = float_T(2.0) * alphaTilt;
-
-                /* Angle between the laser pulse front and the y-axis. Not used, but remains in code for
-                 * documentation purposes.
-                 * float_T const eta = (PI / 2) - (phiReal - alphaTilt);
-                 */
+                auto const phiT = float_T(math::abs(phi));
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phiT, sinPhi, cosPhi);
+                float_T const tanAlpha = (float_T(1.0) - beta0 * cosPhi) / (beta0 * sinPhi);
 
                 auto const cspeed = float_T(sim.si.getSpeedOfLight() / sim.unit.speed());
                 auto const lambda0 = float_T(wavelength_SI / sim.unit.length());
@@ -500,15 +448,12 @@ namespace picongpu
                  * (i.e. from a finite coordinate range) only. All these quantities have to be calculated
                  * in double precision.
                  */
-                float_64 sinPhiVal;
-                float_64 cosPhiVal;
-                pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
-                float_64 const deltaY = wavelength_SI / beta_0 / (1.0 - cosPhiVal);
-                float_64 const deltaT = deltaY / sim.si.getSpeedOfLight();
+                float_64 const deltaT = wavelength_SI / sim.si.getSpeedOfLight()
+                    / (1.0 - beta_0 * pmacc::math::cos(precisionCast<float_64>(phi)));
+                float_64 const deltaY = beta0 * sim.si.getSpeedOfLight() * deltaT;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
                 auto const timeMod = float_T(time - numberOfPeriods * deltaT);
                 auto const yMod = float_T(pos.y() - numberOfPeriods * deltaY);
-
                 auto const x = float_T(phiPositive * pos.x() / sim.unit.length());
                 auto const y = float_T(yMod / sim.unit.length());
                 auto const z = float_T(phiPositive * pos.z() / sim.unit.length());
@@ -520,11 +465,8 @@ namespace picongpu
                     return float_T(0.0);
 
                 /* Calculating shortcuts for speeding up field calculation */
-                float_T sinPhi;
-                float_T cosPhi;
-                pmacc::math::sincos(phiT, sinPhi, cosPhi);
-                float_T const cosPhi2 = math::cos(phiT / float_T(2.0));
-                float_T const tanPhi2 = math::tan(phiT / float_T(2.0));
+                float_T const tanPhi = math::tan(phiT);
+                float_T const cotPhi = float_T(1.0) / tanPhi;
                 float_T const sinPhi_2 = sinPhi * sinPhi;
                 float_T const sinPolAngle = math::sin(polAngle);
                 float_T const cosPolAngle = math::cos(polAngle);
@@ -535,9 +477,10 @@ namespace picongpu
                 float_T const tauG2 = tauG * tauG;
                 float_T const psi0 = float_T(2.0) / k;
                 float_T const w02 = w0 * w0;
+                float_T const beta02 = beta0 * beta0;
 
                 complex_T const nu = (y * cosPhi - z * sinPhi) / cspeed;
-                complex_T const xi = (-z * cosPhi - y * sinPhi) * tanPhi2 / cspeed;
+                complex_T const xi = (-z * cosPhi - y * sinPhi) * tanAlpha / cspeed;
                 complex_T const rhom
                     = math::sqrt(x2 + pmacc::math::cPow(-z - complex_T(0, 0.5) * k * w02, static_cast<uint32_t>(2u)));
                 complex_T const rhom2 = rhom * rhom;
@@ -547,15 +490,17 @@ namespace picongpu
                 complex_T const besselJ0const = pmacc::math::bessel::j0(k * rhom * sinPhi);
                 complex_T const besselJ1const = pmacc::math::bessel::j1(k * rhom * sinPhi);
 
-                complex_T const zeroOrder = tauG * math::sqrt(omega0 * (float_T(1.0) + cosPhi))
+                complex_T const zeroOrder = (beta0 * tauG)
                     / (math::sqrt(float_T(2.0))
                        * math::exp(
-                           omega0 * pmacc::math::cPow((t - nu + xi) * cosPhi2, static_cast<uint32_t>(2u))
-                           / (+(omega0 * tauG2) / float_T(2.0) - complex_T(0, 1) * nu
-                              + ((omega0 * tauG2) / float_T(2.0) + complex_T(0, 1) * (nu - xi)) * cosPhi))
+                           beta02 * omega0 * pmacc::math::cPow(t - nu + xi, static_cast<uint32_t>(2u))
+                           / (beta02 * omega0 * tauG2 - complex_T(0, 2) * beta02 * (nu - xi) * cotPhi * cotPhi
+                              + complex_T(0, 2) * beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi
+                              - complex_T(0, 2) * nu / sinPhi_2))
                        * math::sqrt(
-                           +(omega0 * tauG2) / float_T(2.0) - I * nu
-                           + ((omega0 * tauG2) / float_T(2.0) + I * (nu - xi)) * cosPhi));
+                           ((beta02 * omega0 * tauG2) / float_T(2.0) - I * beta02 * (nu - xi) * cotPhi * cotPhi
+                            + I * beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi - I * nu / sinPhi_2)
+                           / omega0));
 
                 complex_T const result
                     = (complex_T(0, 0.125) * math::exp(I * (omega0 * t - k * y * cosPhi)) * zeroOrder
