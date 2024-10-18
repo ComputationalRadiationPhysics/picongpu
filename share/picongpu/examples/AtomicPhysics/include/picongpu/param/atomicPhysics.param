@@ -112,6 +112,6 @@ namespace picongpu::atomicPhysics
         // T_autonomousIonization
         true,
         // T_fieldIonization
-        true,
+        false,
         picongpu::particles::atomicPhysics::enums::ADKLaserPolarization::linearPolarization>;
 } // namespace picongpu::atomicPhysics
