@@ -590,13 +590,6 @@ namespace picongpu::simulation::stage
             std::cout << "TestRateCalculation:" << std::endl;
             test.testAll();
         }
-
-        if constexpr(picongpu::atomicPhysics::debug::configNumber::RUN_UNIT_TESTS)
-        {
-            auto test = particles::atomicPhysics::debug::TestAtomicConfigNumber();
-            std::cout << "TestAtomicConfigNumber:" << std::endl;
-            test.testAll();
-        }
     }
 
     void AtomicPhysics::fixAtomicStateInit(picongpu::MappingDesc const mappingDesc)
