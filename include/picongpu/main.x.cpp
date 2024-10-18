@@ -33,6 +33,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
 
 
 /** Run a PIConGPU simulation
