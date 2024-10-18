@@ -29,6 +29,7 @@
 #include "pmacc/types.hpp"
 
 #include <string>
+#include <typeinfo>
 
 
 /* No namespace in this file since we only declare macro defines */
