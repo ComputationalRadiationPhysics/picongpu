@@ -18,4 +18,4 @@
 # along with PIConGPU.
 # If not, see <http://www.gnu.org/licenses/>.
 
-pic-build -c "-DPARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE"
+pic-build -c "-DPARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE=true"
