@@ -21,7 +21,7 @@
 # assume working picongpu with atomic physics environment
 
 # build setup
-pic-build -c "-DPARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE" 2>&1 | tee compile.result
+pic-build -c "-DPARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE=true" 2>&1 | tee compile.result
 
 # run test simulation
 ./bin/picongpu -r 4 -g 32 32 32 -d 1 1 1 --periodic 1 1 1 -s 25 --progressPeriod 1 --versionOnce 2>&1 | tee ../output.result

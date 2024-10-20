@@ -20,9 +20,10 @@ def validate(relativeAbundanceErrorThreshold: float = 0.01) -> bool:
     #! @details may not use standard deviation from sample or reference, since we seem to consistently underestimate the
     # actual variation
 
-    # check state has more than expected deviation
+    # check state has more than expected deviation if abundance is above 10^-5
+    mask = mean_reference > 1.0e-5
     result = np.all(
-        np.abs((binning_data / np.expand_dims(np.sum(binning_data, axis=1), axis=-1)) - mean_reference)
+        np.abs((binning_data / np.expand_dims(np.sum(binning_data, axis=1), axis=-1)) - mean_reference)[mask]
         < relativeAbundanceErrorThreshold
     )
 
