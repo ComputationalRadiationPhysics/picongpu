@@ -61,7 +61,6 @@
 #include <string>
 
 // debug only
-#include "picongpu/particles/atomicPhysics/debug/TestAtomicConfigNumber.hpp"
 #include "picongpu/particles/atomicPhysics/debug/TestRateCalculation.hpp"
 
 #include <iostream>
@@ -588,13 +587,6 @@ namespace picongpu::simulation::stage
         {
             auto test = particles::atomicPhysics::debug::TestRateCalculation<10u>();
             std::cout << "TestRateCalculation:" << std::endl;
-            test.testAll();
-        }
-
-        if constexpr(picongpu::atomicPhysics::debug::configNumber::RUN_UNIT_TESTS)
-        {
-            auto test = particles::atomicPhysics::debug::TestAtomicConfigNumber();
-            std::cout << "TestAtomicConfigNumber:" << std::endl;
             test.testAll();
         }
     }
