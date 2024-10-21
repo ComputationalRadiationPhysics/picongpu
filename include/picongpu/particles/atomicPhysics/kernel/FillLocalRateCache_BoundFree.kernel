@@ -344,13 +344,19 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_AreaMapping const areaMapping,
             T_LocalTimeRemainingBox const localTimeRemainingBox,
             T_LocalRateCacheBox localRateCacheBox,
-            T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
-            T_EFieldDataBox const eFieldBox,
+            // Only used when electronic ionization is active:
+            [[maybe_unused]] T_LocalElectronHistogramDataBox const localElectronHistogramDataBox,
+            // Only used when field ionization is active:
+            [[maybe_unused]] T_EFieldDataBox const eFieldBox,
+            // The rest is only used when at least one form of ionization is activated but I'd argue that NOT having
+            // at least one active when calling this is likely enough to be a bug to not tag them with
+            // [[maybe_unused]].
             T_ChargeStateDataDataBox const chargeStateDataDataBox,
             T_AtomicStateDataDataBox const atomicStateDataDataBox,
             T_AtomicStateStartIndexBox const startIndexDataBox,
             T_AtomicStateNumberTransitionsBox const numberTransitionsDataBox,
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox,
+            // This last is always used:
             T_IPDInput... ipdInput) const
         {
             PMACC_CASSERT(correctAtomicDataBoxes<
