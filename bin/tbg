@@ -494,7 +494,7 @@ for i in $overwrite_vars; do
 done
 
 # get the full replaced and evaluated variable definitions
-run_cfg_and_set_solved_variables "$TBG_cfgFile" template_file_data $overwrite_vars
+run_cfg_and_set_solved_variables "$TBG_cfgFile" template_file_data overwrite_vars
 
 #delete all variable assignments (form: `.var=value`) from the tpl file
 template_file_data_cleaned=$(echo "$template_file_data" |  grep -v "^[[:blank:]]*\.[[:alpha:]][[:alnum:]_]*=.*")
