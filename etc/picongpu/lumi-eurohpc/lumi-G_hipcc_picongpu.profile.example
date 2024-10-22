@@ -30,18 +30,18 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 # such as mpi, libfabric and others.
 # The following modules just add to these.
 
-module load PrgEnv-cray-amd/8.3.3 # Compiling with cray compiler wrapper CC
+module load PrgEnv-cray/8.5.0 # Compiling with cray compiler wrapper CC
 module load craype-accel-amd-gfx90a
-module load rocm/5.2.3
+module load rocm/6.0.3
 
 export MPICH_GPU_SUPPORT_ENABLED=1
-module load cray-mpich/8.1.23
+module load cray-mpich/8.1.29
 
 
-module load LUMI/23.03  partition/G
-module load Boost/1.81.0-cpeCray-23.03
+module load LUMI/24.03  partition/G
+module load Boost/1.83.0-cpeCray-24.03
 
-module load buildtools/23.03
+module load buildtools/24.03
 
 ## set environment variables required for compiling and linking
 ##   see (https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#compiling-with-hipcc)
@@ -58,33 +58,21 @@ export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a}
 
 # Other Software ##############################################################
 #
-module load libpng/1.6.38-cpeCray-23.03
-module load freetype/2.12.1-cpeCray-23.03
-
-# ATTENTION: blosc2 is used, please check your cfg's and replace blosc with blosc2
-#module load openpmd-api/0.15.2
+module load libpng/1.6.40-cpeCray-24.03
+module load freetype/2.13.2-cpeCray-24.03
+module load bzip2/1.0.8-cpeCray-24.03
+module load cray-python/3.11.7
 
 # Self-Build Software #########################################################
 # Optional, not required.
 #
 # needs to be compiled by the user
-#export PIC_LIBS=$HOME/lib/
+export PIC_LIBS=/projappl/$(PROJID)/workshop_software/local
 
-export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.1
-export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
-export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1.436
-export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.14.4
+export LD_LIBRARY_PATH=$PIC_LIBS/lib64:$PIC_LIBS/lib:$LD_LIBRARY_PATH
+export PATH=$PIC_LIBS/bin:$PATH
+export PYTHONPATH=$PIC_LIBS/lib64/python3.11/site-packages/openpmd_api:$PYTHONPATH
 
-export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
-
-export PATH=$ADIOS2_ROOT/bin:$PATH
-export PATH=$OPENPMD_ROOT/bin:$PATH
-
-export PYTHONPATH=$ADIOS2_ROOT/lib/python3.9/site-packages/adios2:$PYTHONPATH
-export PYTHONPATH=$OPENPMD_ROOT/lib64/python3.9/site-packages/openpmd_api:$PYTHONPATH
 
 # Environment #################################################################
 #
