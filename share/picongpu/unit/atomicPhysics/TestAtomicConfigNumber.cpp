@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
@@ -31,12 +29,13 @@
 #include <string>
 #include <utility>
 
+#include <catch2/catch_test_macros.hpp>
+
 namespace picongpu::particles::atomicPhysics::debug
 {
     /** Tests of configNumber conversion methods
      *
      * @tparam T_ConsoleOutput true =^= write results and correct value to console
-     * @attention must be called on cpu only, if T_ConsoleOutput==true
      *
      * @return true =^= all tests passed
      */
@@ -162,3 +161,8 @@ namespace picongpu::particles::atomicPhysics::debug
         }
     };
 } // namespace picongpu::particles::atomicPhysics::debug
+
+TEST_CASE("unit::atomicPhysics atomicConfigNumber", "[atomic physics]")
+{
+    CHECK(picongpu::particles::atomicPhysics::debug::TestAtomicConfigNumber{}.testAll());
+};
