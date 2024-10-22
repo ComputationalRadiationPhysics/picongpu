@@ -14,6 +14,8 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   - project for allocation and shared directories
 #   - use lumi-allocations to see all your projects
 #export PROJID=<your_project>
+#export PROJECT_DIR=/projappl/$PROJID/
+#export SCRATCH=/scratch/$PROJID/
 
 # Job control
 # Allocate more nodes then required to execute the jobs to be able to handle broken nodes
