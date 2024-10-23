@@ -33,7 +33,7 @@ if [[ "$PIC_BACKEND" =~ hip.* ]] ; then
         # to Radeon VII or MI50/60.
         export GPU_TARGETS="gfx906"
     fi
-    export PIC_CMAKE_ARGS="$PIC_CMAKE_ARGS -DGPU_TARGETS=$GPU_TARGETS"
+    export PIC_CMAKE_ARGS="$PIC_CMAKE_ARGS -DCMAKE_HIP_ARCHITECTURES=$GPU_TARGETS"
 fi
 
 ###################################################

@@ -42,10 +42,10 @@ get_backend_flags()
     elif [ "${backend_cfg[0]}" == "hip" ] ; then
         result+=" -Dalpaka_ACC_GPU_HIP_ENABLE=ON -Dalpaka_ACC_GPU_HIP_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DGPU_TARGETS=${backend_cfg[1]}"
+            result+=" -DCMAKE_HIP_ARCHITECTURES=${backend_cfg[1]}"
         else
             # If no architecture is given build for Radeon VII or MI50/60.
-            result+=" -DGPU_TARGETS=gfx906"
+            result+=" -DCMAKE_HIP_ARCHITECTURES=gfx906"
         fi
     else
         echo "unsupported backend given '$1'" >&2
