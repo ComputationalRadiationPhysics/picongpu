@@ -70,7 +70,7 @@ class FindTime(object):
         # our UNIT_TIME is scaled to dt
         dt = np.fromregex(
             data_file_path,
-            r"\s+UNIT_TIME " + rg_flt + r"\n",
+            r"\s+sim\.unit\.time\(\) " + rg_flt + r"\n",
             dtype=np.dtype([("dt", "float")]),
         )
 
