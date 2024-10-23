@@ -262,24 +262,24 @@ class PrepRoutines:
         # rescale the amplitude to 1
         self.Ew /= np.abs(self.Ew).max()
 
-    def correct_phase(self, GVD=0, TOD=0):
+    def correct_phase(self, GDD=0, TOD=0):
         """
         Since there is no information about the global phase of every wavelength measured with Insight,
         there has to be a phase correction.
         For that, we assume perfect compression of the beam center in the near field, thus we subtract a
         frequency's phase value at the beam center from every phase value in the frequency's transverse
         distribution in the near field.
-        Furthermore, there is the possibility to add dispersion parameters (GVD, TOD) to the data.
+        Furthermore, there is the possibility to add dispersion parameters (GDD, TOD) to the data.
 
         Arguments:
-        GVD : Group velocity disperison in fs**2/rad,  optional. The default is 0.
+        GDD : Group delay disperison in fs**2/rad,  optional. The default is 0.
         TOD : Third order dispersion in fs**3/rad**2, optional. The default is 0.
         """
         # phase in near field beam center
         phase_centr = np.unwrap(
             np.angle(self.Ew_NF[np.abs(self.y_NF - self.yc_NF).argmin(), np.abs(self.x_NF - self.xc_NF).argmin(), :])
         )
-        dispersion = -GVD / 2 * (self.w - self.w[self.wc_idx]) ** 2 - TOD / 6 * (self.w - self.w[self.wc_idx]) ** 3
+        dispersion = -GDD / 2 * (self.w - self.w[self.wc_idx]) ** 2 - TOD / 6 * (self.w - self.w[self.wc_idx]) ** 3
 
         # correcting near field
         self.Ew_NF = np.abs(self.Ew_NF) * np.exp(1j * (np.angle(self.Ew_NF) - phase_centr + dispersion))
@@ -287,8 +287,8 @@ class PrepRoutines:
         self.Ew = np.abs(self.Ew) * np.exp(1j * (np.angle(self.Ew) - phase_centr + dispersion))
         self.is_phase_corrected = True
         print(
-            "Phase has been corrected. \nApplied dispersion parameters: GVD = %.f fs**2/rad, TOD = %.f fs**3/rad**2"
-            % (GVD, TOD)
+            "Phase has been corrected. \nApplied dispersion parameters: GDD = %.f fs**2/rad, TOD = %.f fs**3/rad**2"
+            % (GDD, TOD)
         )
 
     def correct_ugly_spot_in_nf(self, x_ugly, y_ugly, uglybins=3, method="linear"):
