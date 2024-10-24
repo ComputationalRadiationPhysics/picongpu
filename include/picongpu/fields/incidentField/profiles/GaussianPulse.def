@@ -1,6 +1,6 @@
-/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus, Sergei Bastrakov,
-                       Julian Lenz
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Anton Helm,
+ *                     Rene Widera, Richard Pausch, Alexander Debus,
+ *                     Sergei Bastrakov, Julian Lenz
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,6 @@
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
 
 #include <nlohmann/json.hpp>
-
 
 namespace picongpu::fields::incidentField::profiles
 {
@@ -76,8 +75,25 @@ namespace picongpu::fields::incidentField::profiles
             {
                 auto baseMetadata = BaseParam::metadata<My>();
                 auto gaussianMetadata = nlohmann::json::object();
-                gaussianMetadata["W0"] = W0_SI;
-                gaussianMetadata["PULSE_INIT"] = PULSE_INIT;
+
+                // Adding units to Gaussian-specific parameters
+                gaussianMetadata["W0"] = {{"value", My::W0_SI}, {"unit", "m"}};
+                gaussianMetadata["PULSE_INIT"] = {{"value", My::PULSE_INIT}, {"unit", "none"}};
+                gaussianMetadata["Mode number"] = {{"value", My::numModes}, {"unit", "none"}};
+
+                // Adding Laguerre modes and phases
+                nlohmann::json laguerreModesJson = nlohmann::json::array();
+                nlohmann::json laguerrePhasesJson = nlohmann::json::array();
+
+                for(uint32_t i = 0; i <= numModes; ++i)
+                {
+                    laguerreModesJson.push_back(laguerreModes[i]);
+                    laguerrePhasesJson.push_back(laguerrePhases[i]);
+                }
+
+                gaussianMetadata["Laguerre modes"] = {{"value", laguerreModesJson}, {"unit", "none"}};
+                gaussianMetadata["Laguerre phases"] = {{"value", laguerrePhasesJson}, {"unit", "none"}};
+
                 baseMetadata["Gaussian parameters"] = gaussianMetadata;
                 return baseMetadata;
             }
