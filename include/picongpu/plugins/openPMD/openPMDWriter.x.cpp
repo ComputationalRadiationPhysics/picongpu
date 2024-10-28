@@ -1871,25 +1871,28 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing RNG states.");
                 }
 
-                DataConnector& dc = Environment<>::get().DataConnector();
-                auto idProvider = dc.get<IdProvider>("globalId");
-                auto idProviderState = idProvider->getState();
-                log<picLog::INPUT_OUTPUT>("openPMD: Writing IdProvider state (StartId: %1%, NextId: %2%, "
-                                          "maxNumProc: %3%)")
-                    % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
+                if(threadParams->isCheckpoint)
+                {
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto idProvider = dc.get<IdProvider>("globalId");
+                    auto idProviderState = idProvider->getState();
+                    log<picLog::INPUT_OUTPUT>("openPMD: Writing IdProvider state (StartId: %1%, NextId: %2%, "
+                                              "maxNumProc: %3%)")
+                        % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
 
-                WriteNDScalars<uint64_t, uint64_t> writeIdProviderStartId(
-                    "picongpu",
-                    "idProvider",
-                    "startId",
-                    "maxNumProc");
-                WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu", "idProvider", "nextId");
-                writeIdProviderStartId(
-                    *threadParams,
-                    currentStep,
-                    idProviderState.startId,
-                    idProviderState.maxNumProc);
-                writeIdProviderNextId(*threadParams, currentStep, idProviderState.nextId);
+                    WriteNDScalars<uint64_t, uint64_t> writeIdProviderStartId(
+                        "picongpu",
+                        "idProvider",
+                        "startId",
+                        "maxNumProc");
+                    WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu", "idProvider", "nextId");
+                    writeIdProviderStartId(
+                        *threadParams,
+                        currentStep,
+                        idProviderState.startId,
+                        idProviderState.maxNumProc);
+                    writeIdProviderNextId(*threadParams, currentStep, idProviderState.nextId);
+                }
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
