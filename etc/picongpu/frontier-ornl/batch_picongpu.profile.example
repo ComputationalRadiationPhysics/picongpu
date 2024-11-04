@@ -31,14 +31,14 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 
 module load PrgEnv-cray/8.5.0 # Compiling with cray compiler wrapper CC
 module load craype-accel-amd-gfx940
-module load rocm/6.2.0
+module load rocm/6.1.3
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 module load cray-mpich/8.1.28
 
 module load boost/1.79.0
-
-module load cmake/3.23.2
+module load zlib/1.3.1
+module load cmake/3.27.9
 module load git
 
 ## set environment variables required for compiling and linking
@@ -57,8 +57,7 @@ export LDFLAGS="$LDFLAGS -L${MPICH_DIR}/lib -lmpi ${PE_MPICH_GTL_DIR_amd_gfx90a}
 
 # Other Software ##############################################################
 #
-module load libpng/1.6.37
-module load freetype/2.11.1
+module load libpng/1.6.39
 
 # Please use your self compiled openpmd-api with adios2 and blosc2 support.
 # ORNL is only providing outdated modules.
@@ -71,9 +70,11 @@ module load freetype/2.11.1
 # needs to be compiled by the user
 export PIC_LIBS=$HOME/lib/frontier
 
-# optionally install pngwriter yourself:
+# optionally install pngwriter (and freetype) yourself:
 #   https://picongpu.readthedocs.io/en/0.6.0/install/dependencies.html#pngwriter
 # But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
+export FREETYPE2_ROOT=$PIC_LIBS/libfreetype2
+export LD_LIBRARY_PATH=$FREETYPE2_ROOT/lib:$LD_LIBRARY_PATH
 export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
 export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
 
