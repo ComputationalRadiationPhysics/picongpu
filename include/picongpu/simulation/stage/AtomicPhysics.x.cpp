@@ -464,10 +464,7 @@ namespace picongpu::simulation::stage
                 do
                 {
                     resetFoundUnboundIon();
-                    picongpu::atomicPhysics::IPDModel::
-                        template calculateIPDInput<T_numberAtomicPhysicsIonSpecies, IPDIonSpecies, IPDElectronSpecies>(
-                            mappingDesc,
-                            currentStep);
+                    calculateIPDInput(mappingDesc, currentStep);
                     picongpu::atomicPhysics::IPDModel::template applyIPDIonization<AtomicPhysicsIonSpecies>(
                         mappingDesc,
                         currentStep);
@@ -540,8 +537,8 @@ namespace picongpu::simulation::stage
                     resetAcceptStatus(mappingDesc);
                     resetElectronEnergyHistogram();
                     debugForceConstantElectronTemperature(currentStep);
+                    doIPDIonization(mappingDesc, currentStep, deviceLocalReduce);
                     binElectronsToEnergyHistogram(mappingDesc);
-                    calculateIPDInput(mappingDesc, currentStep);
                     resetTimeStep(mappingDesc);
                     resetRateCache();
                     checkPresence(mappingDesc);
@@ -584,10 +581,12 @@ namespace picongpu::simulation::stage
                     recordChanges(mappingDesc);
                     updateElectrons(mappingDesc, currentStep);
                     updateElectricField(mappingDesc);
-                    doIPDIonization(mappingDesc, currentStep, deviceLocalReduce);
                     updateTimeRemaining(mappingDesc);
                     isSubSteppingComplete = isSubSteppingFinished(mappingDesc, deviceLocalReduce);
                 } // end atomicPhysics sub-stepping loop
+
+                // ensure no unbound states are visible to the rest of the loop
+                doIPDIonization(mappingDesc, currentStep, deviceLocalReduce);
             }
         };
 
