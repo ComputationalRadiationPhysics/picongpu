@@ -33,18 +33,15 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/SetAtomicState.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics/initElectrons/CoMoving.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/BarrierSupressionIonization.hpp"
+#include "picongpu/particles/atomicPhysics/spawnFromSourceSpeciesModules/CacheEFieldForSuperCell.hpp"
+#include "picongpu/particles/atomicPhysics/spawnFromSourceSpeciesModules/InitAsCoMoving.hpp"
+#include "picongpu/particles/atomicPhysics/spawnFromSourceSpeciesModules/SkipFinishedSuperCells.hpp"
+#include "picongpu/particles/atomicPhysics/spawnFromSourceSpeciesModules/SuperCellFieldIndexFunctor.hpp"
 #include "picongpu/particles/creation/SpawnFromSourceSpecies.kernel"
 #include "picongpu/particles/creation/SpawnFromSourceSpeciesModuleInterfaces.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/dimensions/SuperCellDescription.hpp>
-#include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include <pmacc/math/operation/Assign.hpp>
-#include <pmacc/memory/boxes/CachedBox.hpp>
-#include <pmacc/memory/boxes/DataBox.hpp>
-#include <pmacc/memory/boxes/SharedBox.hpp>
 
 #include <cstdint>
 
@@ -92,36 +89,6 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         }
     };
 
-    //! functor to get superCellFieldIdx
-    template<typename... T_KernelConfigOptions>
-    struct SuperCellFieldIndexFunctor : public s_interfaces::AdditionalDataIndexFunctor<T_KernelConfigOptions...>
-    {
-        template<typename T_AreaMapping>
-        HDINLINE static pmacc::DataSpace<picongpu::simDim> getIndex(
-            T_AreaMapping const areaMapping,
-            pmacc::DataSpace<picongpu::simDim> const superCellIdx)
-        {
-            // atomicPhysics superCellFields have no guard, but areMapping includes a guard
-            //  -> must subtract guard to get correct superCellFieldIdx
-            return superCellIdx - areaMapping.getGuardingSuperCells();
-        }
-    };
-
-    //! test for local time remaining <= 0 for superCell
-    template<typename... T_KernelConfigOptions>
-    struct SkipFinishedSuperCellsAtomicPhysics : public s_interfaces::SuperCellFilterFunctor<T_KernelConfigOptions...>
-    {
-        template<typename T_LocalTimeRemainingBox, typename... T_AdditionalStuff>
-        HDINLINE static bool skipSuperCell(
-            pmacc::DataSpace<picongpu::simDim> const,
-            pmacc::DataSpace<picongpu::simDim> const superCellFieldIndex,
-            T_LocalTimeRemainingBox const timeRemainingBox,
-            T_AdditionalStuff...)
-        {
-            return (timeRemainingBox[superCellFieldIndex] <= 0._X);
-        }
-    };
-
     struct KernelState
     {
         // eV
@@ -158,58 +125,6 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
                 superCellFieldIndex,
                 ipdInputBoxes...);
             kernelState.foundUnbound = u32(false);
-        }
-    };
-
-    template<typename T_IPDModel, typename T_fieldIonizationActive>
-    struct CacheEFieldForSuperCell
-        : public s_interfaces::
-              InitCacheFunctor<pmacc::DataSpace<picongpu::simDim>, T_IPDModel, T_fieldIonizationActive>
-    {
-        template<
-            typename T_Worker,
-            typename T_LocalTimeRemainingBox,
-            typename T_FoundUnboundIonBox,
-            typename T_ChargeStateDataBox,
-            typename T_AtomicStateDataBox,
-            typename T_IPDIonizationStateDataBox,
-            typename T_EFieldDataBox,
-            typename... T_IPDInputBoxes>
-        HDINLINE static auto getCache(
-            T_Worker const& worker,
-            pmacc::DataSpace<picongpu::simDim> const superCellIndex,
-            T_LocalTimeRemainingBox const,
-            T_FoundUnboundIonBox const,
-            T_ChargeStateDataBox const,
-            T_AtomicStateDataBox const,
-            T_IPDIonizationStateDataBox const,
-            T_EFieldDataBox const eFieldBox,
-            T_IPDInputBoxes const... ipdInputBoxes)
-        {
-            if constexpr(T_fieldIonizationActive::value)
-            {
-                using SuperCellBlock = pmacc::SuperCellDescription<typename picongpu::SuperCellSize>;
-                /// @note cache is unique for kernel call by id and dataType, and thereby shared between workers
-                auto eFieldCache = CachedBox::create<__COUNTER__, typename T_EFieldDataBox::ValueType::type>(
-                    worker,
-                    SuperCellBlock());
-
-                pmacc::DataSpace<picongpu::simDim> const superCellCellOffset
-                    = superCellIndex * picongpu::SuperCellSize::toRT();
-
-                auto fieldEBlockToCache = eFieldBox.shift(superCellCellOffset);
-
-                pmacc::math::operation::Assign assign;
-                auto collective = makeThreadCollective<SuperCellBlock>();
-
-                collective(worker, assign, eFieldCache, fieldEBlockToCache);
-
-                return eFieldCache;
-            }
-            else
-            {
-                return 0._X;
-            }
         }
     };
 
@@ -312,35 +227,6 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         }
     };
 
-    template<typename... T_KernelConfigOptions>
-    struct InitAsCoMoving : public s_interfaces::ParticlePairUpdateFunctor<T_KernelConfigOptions...>
-    {
-        template<
-            typename T_Worker,
-            typename T_SourceParticle,
-            typename T_ProductParticle,
-            typename T_Number,
-            typename T_KernelStateType,
-            typename T_Index,
-            typename... T_AdditionalData>
-        HDINLINE static void update(
-            T_Worker const& worker,
-            T_SourceParticle& sourceParticle,
-            T_ProductParticle& productParticle,
-            IdGenerator& idGen,
-            T_Number const,
-            T_KernelStateType&,
-            T_Index const,
-            T_AdditionalData...)
-        {
-            particles::atomicPhysics::initElectrons::CoMoving::initElectron(
-                worker,
-                sourceParticle,
-                productParticle,
-                idGen);
-        }
-    };
-
     template<typename T_IPDModel, typename T_fieldIonizationActive>
     struct WriteFoundUnboundToSuperCellField
         : public s_interfaces::WriteOutKernelStateFunctor<T_IPDModel, T_fieldIonizationActive>
@@ -374,13 +260,13 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
     //! moduleConfig of the ApplyIPDIonizationKernel
     using ApplyIPDIonizationModulConfig = particles::creation::ModuleConfig<
         ApplyIPDIonizationSanityCheckInputs,
-        SkipFinishedSuperCellsAtomicPhysics,
+        spawnFromSourceSpeciesModules::SkipFinishedSuperCells,
         IPDIonizationPredictor,
-        InitAsCoMoving,
+        spawnFromSourceSpeciesModules::InitAsCoMoving,
         KernelState,
         CalculateIPDValue,
-        CacheEFieldForSuperCell,
-        SuperCellFieldIndexFunctor,
+        spawnFromSourceSpeciesModules::CacheEFieldForSuperCell,
+        spawnFromSourceSpeciesModules::SuperCellFieldIndexFunctor,
         WriteFoundUnboundToSuperCellField>;
 
     //! actual definition of ApplyIPDIonizationKernel
