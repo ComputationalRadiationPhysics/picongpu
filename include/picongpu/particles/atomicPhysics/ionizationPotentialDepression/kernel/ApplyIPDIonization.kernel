@@ -265,7 +265,9 @@ namespace picongpu::particles::atomicPhysics::ionizationPotentialDepression::ker
         spawnFromSourceSpeciesModules::InitAsCoMoving,
         KernelState,
         CalculateIPDValue,
-        spawnFromSourceSpeciesModules::CacheEFieldForSuperCell,
+        template<typename T_Worker, typename T_IPDModel, typename T_fieldIonizationActive>
+        spawnFromSourceSpeciesModules::
+            CacheEFieldForSuperCell<__COUNTER__, T_Worker, T_IPDModel, T_fieldIonizationActive>,
         spawnFromSourceSpeciesModules::SuperCellFieldIndexFunctor,
         WriteFoundUnboundToSuperCellField>;
 

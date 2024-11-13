@@ -23,6 +23,7 @@
 #include "picongpu/particles/atomicPhysics/CheckForInvalidChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/CheckSetOfAtomicDataBoxes.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
+#include "picongpu/particles/atomicPhysics/EFieldCache.hpp"
 #include "picongpu/particles/atomicPhysics/KernelIndexation.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
@@ -62,25 +63,6 @@ namespace picongpu::particles::atomicPhysics::kernel
     {
         using VectorIdx = pmacc::DataSpace<picongpu::simDim>;
 
-    private:
-        //! @attention this is a collective method and implicitly synchronises
-        template<typename BlockDescription, typename T_Worker, typename T_EFieldBox, typename T_EfieldCache>
-        HDINLINE void initEFieldCache(
-            T_Worker const& worker,
-            VectorIdx const& superCellCellOffset,
-            T_EFieldBox const eFieldBox,
-            T_EfieldCache& eFieldCache) const
-        {
-            auto fieldEBlockToCache = eFieldBox.shift(superCellCellOffset);
-
-            pmacc::math::operation::Assign assign;
-            auto collective = makeThreadCollective<BlockDescription>();
-
-            collective(worker, assign, eFieldCache, fieldEBlockToCache);
-            worker.sync();
-        }
-
-    public:
         /** call operator
          *
          * called by ChooseTransition atomic physics sub-stage
@@ -146,15 +128,11 @@ namespace picongpu::particles::atomicPhysics::kernel
             if((timeRemaining <= 0._X) || (!forEachLocalIonBoxEntry.hasParticles()))
                 return;
 
-            using SuperCellBlock = pmacc::SuperCellDescription<typename picongpu::SuperCellSize>;
-            VectorIdx const superCellSize = picongpu::SuperCellSize::toRT();
-            /// @note cache is unique for kernel call by id and dataType, and thereby shared between workers
-            auto eFieldCache
-                = CachedBox::create</* Id */ 0u, typename T_EFieldBox::ValueType::type>(worker, SuperCellBlock());
-            VectorIdx const superCellCellOffset = superCellIdx * superCellSize;
-            initEFieldCache<SuperCellBlock>(worker, superCellCellOffset, eFieldBox, eFieldCache);
+            auto eFieldCache = EFieldCache::get<__COUNTER__>(worker, superCellIdx, eFieldBox);
+            worker.sync()
 
-            auto rngGeneratorFloat = rngFactoryFloat(worker, superCellFieldIdx);
+                auto rngGeneratorFloat
+                = rngFactoryFloat(worker, superCellFieldIdx);
             auto& rateCache = rateCacheBox(superCellFieldIdx);
 
             float_X const ionizationPotentialDepression

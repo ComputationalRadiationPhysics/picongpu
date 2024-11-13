@@ -25,19 +25,13 @@
 #include "picongpu/particles/creation/SpawnFromSourceSpeciesModuleInterfaces.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/dimensions/SuperCellDescription.hpp>
-#include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include <pmacc/math/operation/Assign.hpp>
-#include <pmacc/memory/boxes/CachedBox.hpp>
-#include <pmacc/memory/boxes/DataBox.hpp>
-#include <pmacc/memory/boxes/SharedBox.hpp>
 
 namespace picongpu::particles::atomicPhysics::spawnFromSourceSpeciesModules
 {
     namespace s_interfaces = picongpu::particles::creation::moduleInterfaces;
 
     //! definition of Modul
-    template<typename T_IPDModel, typename T_fieldIonizationActive>
+    template<uint32_t T_id, typename T_IPDModel, typename T_fieldIonizationActive>
     struct CacheEFieldForSuperCell
         : public s_interfaces::
               InitCacheFunctor<pmacc::DataSpace<picongpu::simDim>, T_IPDModel, T_fieldIonizationActive>
@@ -65,7 +59,7 @@ namespace picongpu::particles::atomicPhysics::spawnFromSourceSpeciesModules
         {
             if constexpr(T_fieldIonizationActive::value)
             {
-                return EFieldCache::get(worker, superCellIndex, eFieldBox);
+                return EFieldCache::get<T_id>(worker, superCellIndex, eFieldBox);
             }
             else
             {
