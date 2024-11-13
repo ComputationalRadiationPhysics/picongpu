@@ -21,6 +21,7 @@
 
 // need unit.param for normalisation and units, memory.param for SuperCellSize and dim.param for simDim
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/CheckSetOfAtomicDataBoxes.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/CachedHistogram.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ADKLaserPolarization.hpp"
@@ -62,7 +63,7 @@ namespace picongpu::particles::atomicPhysics::kernel
      *
      * @tparam T_electronicIonization is collisional electronic ionization channel active?
      * @tparam T_fieldIonization is field ionization channel active?
-     * @tparam T_TransitionOrdering ordering of assumed for transition DataBox
+     * @tparam T_TransitionOrdering ordering assumed for transition DataBox
      */
     template<
         typename T_IPDModel,
@@ -75,31 +76,6 @@ namespace picongpu::particles::atomicPhysics::kernel
         s_enums::TransitionOrdering T_TransitionOrdering>
     struct FillRateCacheKernel_BoundFree
     {
-        template<
-            typename T_AtomicStateNumberTransitionsBox,
-            typename T_AtomicStateStartIndexBox,
-            typename T_BoundFreeTransitionDataBox>
-        static constexpr bool correctAtomicDataBoxes()
-        {
-            // check that correct databoxes are given
-            PMACC_CASSERT_MSG(
-                number_transitions_dataBox_not_bound_free_based,
-                u8(T_AtomicStateNumberTransitionsBox::processClassGroup)
-                    == u8(s_enums::ProcessClassGroup::boundFreeBased));
-            PMACC_CASSERT_MSG(
-                startIndex_dataBox_not_bound_free_based,
-                u8(T_AtomicStateStartIndexBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
-            PMACC_CASSERT_MSG(
-                transition_dataBox_not_bound_free_based,
-                u8(T_BoundFreeTransitionDataBox::processClassGroup) == u8(s_enums::ProcessClassGroup::boundFreeBased));
-            // check ordering of transition dataBox
-            PMACC_CASSERT_MSG(
-                wrong_ordering_of_DataBox,
-                u8(T_BoundFreeTransitionDataBox::transitionOrdering) == u8(T_TransitionOrdering));
-
-            return true;
-        };
-
         template<
             typename T_Worker,
             typename T_RateCache,
@@ -309,18 +285,17 @@ namespace picongpu::particles::atomicPhysics::kernel
          *
          * @param worker object containing the device and block information, passed by PMACC_KERNEL call
          * @param areaMapping mapping of blockIndex to block superCell index
-         * @param timeRemainingBox deviceDataBox giving access to the local time remaining of all local super
-         * cells
-         * @param rateCacheBox deviceDataBox giving access to the local rate cache of
-         *  all local superCells
-         * @param electronHistogramDataBox giving access to the local electron histograms
-         *  of all local superCells
+         * @param timeRemainingBox deviceDataBox giving access to the time remaining of all local superCells
+         * @param rateCacheBox deviceDataBox giving access to the rate cache of all local superCells
+         * @param electronHistogramDataBox deviceDataBox giving access to the electron histograms of all local
+         *  superCells
+         * @param eFieldBox deviceDataBox giving access to the E-Field values of all local cells
          * @param chargeStateDataDataBox deviceDataBox giving access to charge state property data
          * @param atomicStateDataDataBox deviceDataBox giving access to atomic state property data
-         * @param startIndexDataBox deviceDataBox giving access to the start index of each atomic states'
-         *  block of transitions in the up-/down-ward bound-bound transition collection
-         * @param numberTransitionsDataBox deviceDataBox giving access to the number of transitions
-         *   of each atomic state up- and down-ward
+         * @param startIndexDataBox deviceDataBox giving access to the start index of each atomic states' block of
+         *  transitions in the up-/down-ward bound-bound transition collection
+         * @param numberTransitionsDataBox deviceDataBox giving access to the number of transitions of each atomic
+         *  state up- and down-ward
          * @param boundFreeTransitionDataBox deviceDataBox giving access to bound-free transition property data
          * @param ipdInput deviceDataBoxes giving access to ionization potential depression input for each superCell
          *
@@ -359,7 +334,8 @@ namespace picongpu::particles::atomicPhysics::kernel
             // This last is always used:
             T_IPDInput... ipdInput) const
         {
-            PMACC_CASSERT(correctAtomicDataBoxes<
+            PMACC_CASSERT(CheckSetOfAtomicDataBoxes::areBoundFreeAndOrdering<
+                          T_TransitionOrdering,
                           T_AtomicStateNumberTransitionsBox,
                           T_AtomicStateStartIndexBox,
                           T_BoundFreeTransitionDataBox>());

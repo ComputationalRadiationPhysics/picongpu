@@ -21,13 +21,12 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/CheckForInvalidChooseTransitionGroup.hpp"
+#include "picongpu/particles/atomicPhysics/CheckSetOfAtomicDataBoxes.hpp"
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/KernelIndexation.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ChooseTransitionGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/ProcessClass.hpp"
-#include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics/enums/TransitionDirection.hpp"
-#include "picongpu/particles/atomicPhysics/enums/TransitionOrderingFor.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/BoundFreeFieldTransitionRates.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -86,30 +85,6 @@ namespace picongpu::particles::atomicPhysics::kernel
             worker.sync();
         }
 
-        template<
-            typename T_AtomicStateBoundFreeStartIndexBlockDataBox,
-            typename T_AtomicStateBoundFreeNumberTransitionsDataBox,
-            typename T_BoundFreeTransitionDataBox>
-        static constexpr bool checkCorrectAtomicDataBoxesPassed()
-        {
-            PMACC_CASSERT_MSG(
-                number_transition_dataBox_not_bound_free_based,
-                u8(T_AtomicStateBoundFreeNumberTransitionsDataBox::processClassGroup)
-                    == u8(enums::ProcessClassGroup::boundFreeBased));
-            PMACC_CASSERT_MSG(
-                startIndex_dataBox_not_bound_free_based,
-                u8(T_AtomicStateBoundFreeStartIndexBlockDataBox::processClassGroup)
-                    == u8(enums::ProcessClassGroup::boundFreeBased));
-            PMACC_CASSERT_MSG(
-                boundFreeTransitiondataBox_not_bound_free_based,
-                u8(T_BoundFreeTransitionDataBox::processClassGroup) == u8(enums::ProcessClassGroup::boundFreeBased));
-            PMACC_CASSERT_MSG(
-                wrong_transition_ordering_boundFreeTransitionDataBox,
-                u8(T_BoundFreeTransitionDataBox::transitionOrdering)
-                    == u8(s_enums::TransitionOrderingFor<s_enums::TransitionDirection::upward>::ordering));
-            return true;
-        }
-
     public:
         /** call operator
          *
@@ -126,7 +101,7 @@ namespace picongpu::particles::atomicPhysics::kernel
          * @param startIndexBox deviceDataBox giving access to the start index of each
          * @param timeRemainingBox deviceDataBox giving access to the local time remaining of all local super
          * cells
-         * @param eFieldBox deviceDataBox giving access to the device local eField Values
+         * @param eFieldBox deviceDataBox giving access to the device local E-Field values
          * @param ionBox deviceDataBox giving access to the ion frames of all local superCells
          * @param ipdInput everything required by T_IPDModel to calculate the IonizationPotentialDepression,
          *  passed by T_IPDModel::callKernelWithIPDInput
@@ -160,7 +135,8 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_IonBox ionBox,
             T_IPDInput const... ipdInput) const
         {
-            PMACC_CASSERT(checkCorrectAtomicDataBoxesPassed<
+            PMACC_CASSERT(CheckSetOfAtomicDataBoxes::areBoundFreeAndDirection<
+                          s_enums::TransitionDirection::upward,
                           T_AtomicStateBoundFreeStartIndexBlockDataBox,
                           T_AtomicStateBoundFreeNumberTransitionsDataBox,
                           T_BoundFreeTransitionDataBox>());
