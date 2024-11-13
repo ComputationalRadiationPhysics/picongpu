@@ -200,14 +200,15 @@ namespace picongpu::particles::atomicPhysics::kernel
                         uint32_t const transitionCollectionIndex = transitionID + startIndexTransitionBlock;
 
                         // 1/picongpu::sim.unit.time()
-                        float_X const rateTransition = atomicPhysics::rateCalculation::
-                            BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::template rateADKFieldIonization(
-                                eFieldNormCell,
-                                ionizationPotentialDepression,
-                                transitionCollectionIndex,
-                                chargeStateDataDataBox,
-                                atomicStateDataDataBox,
-                                transitionDataBox);
+                        float_X const rateTransition
+                            = atomicPhysics::rateCalculation::BoundFreeFieldTransitionRates<T_ADKLaserPolarization>::
+                                template rateADKFieldIonization<float_X>(
+                                    eFieldNormCell,
+                                    ionizationPotentialDepression,
+                                    transitionCollectionIndex,
+                                    chargeStateDataDataBox,
+                                    atomicStateDataDataBox,
+                                    transitionDataBox);
 
                         cumSum += rateTransition
                             / rateCache.rate(

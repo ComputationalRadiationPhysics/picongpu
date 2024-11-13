@@ -120,10 +120,13 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
 
         /** actual rate rateFormula
          *
+         * @tparam T_ReturnType type and precision of return, usually float_32 or float_64
+         *
          * @param Z screenedCharge for ionization electron, e
          * @param nEff effective principal quantum number, unitless
          * @param eFieldNorm_AU norm of the E-Field strength, in sim.atomicUnit.eField()
          */
+        template<typename T_ReturnType>
         HDINLINE static float_X rateFormula(float_X const Z, float_X const nEff, float_X const eFieldNorm_AU)
         {
             float_X const nEffCubed = pmacc::math::cPow(nEff, 3u);
@@ -133,31 +136,35 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                 = float_64(4.0_X * math::exp(1._X) * ZCubed / (eFieldNorm_AU * pmacc::math::cPow(nEff, 4u)));
             float_64 const dFromADK = math::pow(dBase, float_64(nEff));
 
-            constexpr float_X pi = pmacc::math::Pi<float_X>::value;
+            constexpr T_ReturnType pi = pmacc::math::Pi<T_ReturnType>::value;
 
             // 1/sim.atomicUnit.time()
-            float_X rateADK_AU = eFieldNorm_AU / (8._X * pi * Z)
-                * float_X(pmacc::math::cPow(dFromADK, 2u)
-                          * math::exp(float_64(-2._X * ZCubed / (3._X * nEffCubed * eFieldNorm_AU))));
+            T_ReturnType rateADK_AU = eFieldNorm_AU
+                / (static_cast<T_ReturnType>(8.) * pi * static_cast<T_ReturnType>(Z))
+                * static_cast<T_ReturnType>(
+                                          pmacc::math::cPow(dFromADK, 2u)
+                                          * math::exp(float_64(-2._X * ZCubed / (3._X * nEffCubed * eFieldNorm_AU))));
 
             // factor from averaging over one laser cycle with LINEAR polarization
             if constexpr(
                 u32(T_ADKLaserPolarization) == u32(atomicPhysics::enums::ADKLaserPolarization::linearPolarization))
-                rateADK_AU *= math::sqrt(3._X * nEffCubed * eFieldNorm_AU / (pi * ZCubed));
+                rateADK_AU *= math::sqrt(static_cast<T_ReturnType>(3._X * nEffCubed * eFieldNorm_AU / (pi * ZCubed)));
 
-            /* A * 1/sim.atomicUnit.time() = A * 1/sim.atomicUnit.time() * sim.unit.time() / sim.unit.time()
-             *   = A * [sim.unit.time()/sim.atomicUnit.time()] * 1/sim.unit.time()
-             *   = (A * timeConversion) * 1/sim.unit.time()
-             *   = B * 1/sim.unit.time() */
-            constexpr float_X timeConversion = picongpu::sim.unit.time() / picongpu::sim.atomicUnit.time();
+            /* unit: A * 1/atomicUnit_time = A * 1/atomicUnit_time * unit_time / unit_time
+             *   = A * [unit_time/atomicUnit_time] * 1/unit_time
+             *   = (A * timeConversion) * 1/unit_time
+             *   = B * 1/unit_time */
+            constexpr auto timeConversion
+                = static_cast<T_ReturnType>(picongpu::sim.unit.time() / picongpu::sim.atomicUnit.time());
 
-            // 1/ sim.unit.time()
+            // unit: 1/unit_time
             return rateADK_AU * timeConversion;
         }
 
     public:
         /** field ionization ADK rate for a given electric field strength
          *
+         * @tparam T_ReturnType type and precision of return, usually float_32 or float_64
          * @tparam T_ChargeStateDataBox instantiated type of dataBox
          * @tparam T_AtomicStateDataBox instantiated type of dataBox
          * @tparam T_BoundFreeTransitionDataBox instantiated type of dataBox
@@ -170,8 +177,12 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          *
          * @return unit: 1/picongpu::sim.unit.time()
          */
-        template<typename T_ChargeStateDataBox, typename T_AtomicStateDataBox, typename T_BoundFreeTransitionDataBox>
-        HDINLINE static float_X rateADKFieldIonization(
+        template<
+            typename T_ReturnType,
+            typename T_ChargeStateDataBox,
+            typename T_AtomicStateDataBox,
+            typename T_BoundFreeTransitionDataBox>
+        HDINLINE static T_ReturnType rateADKFieldIonization(
             float_X const eFieldNorm,
             float_X const ionizationPotentialDepression,
             uint32_t const transitionCollectionIndex,
@@ -180,7 +191,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox)
         {
             if(eFieldNorm == 0._X)
-                return 0._X;
+                return static_cast<T_ReturnType>(0.);
 
             auto const v
                 = RateFormulaVariables<T_ChargeStateDataBox, T_AtomicStateDataBox, T_BoundFreeTransitionDataBox>(
@@ -190,14 +201,15 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                     atomicStateDataBox,
                     boundFreeTransitionDataBox);
 
-            // sim.atomicUnit.eField()
+            // unit: atomicUnit_eField
             float_X const eFieldNorm_AU = sim.pic.conv().eField2auEField(eFieldNorm);
 
-            return rateFormula(v.Z, v.nEff, eFieldNorm_AU);
+            return rateFormula<T_ReturnType>(v.Z, v.nEff, eFieldNorm_AU);
         }
 
         /** get maximum field ionization ADK rate for electric field strengths inside the given boundaries
          *
+         * @tparam T_ReturnType type and precision of return, usually float_32 or float_64
          * @tparam T_ChargeStateDataBox instantiated type of dataBox
          * @tparam T_AtomicStateDataBox instantiated type of dataBox
          * @tparam T_BoundFreeTransitionDataBox instantiated type of dataBox
@@ -211,10 +223,14 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
          *
          * @return unit: 1/picongpu::sim.unit.time()
          */
-        template<typename T_ChargeStateDataBox, typename T_AtomicStateDataBox, typename T_BoundFreeTransitionDataBox>
-        HDINLINE static float_X maximumRateADKFieldIonization(
-            float_X const maxEFieldNorm,
+        template<
+            typename T_ReturnType,
+            typename T_ChargeStateDataBox,
+            typename T_AtomicStateDataBox,
+            typename T_BoundFreeTransitionDataBox>
+        HDINLINE static T_ReturnType maximumRateADKFieldIonization(
             float_X const minEFieldNorm,
+            float_X const maxEFieldNorm,
             float_X const ionizationPotentialDepression,
             uint32_t const transitionCollectionIndex,
             T_ChargeStateDataBox const chargeStateDataBox,
@@ -222,7 +238,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             T_BoundFreeTransitionDataBox const boundFreeTransitionDataBox)
         {
             if(maxEFieldNorm == 0._X)
-                return 0._X;
+                return static_cast<T_ReturnType>(0.);
 
             auto const v
                 = RateFormulaVariables<T_ChargeStateDataBox, T_AtomicStateDataBox, T_BoundFreeTransitionDataBox>(
@@ -235,13 +251,13 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             float_X const nEffCubed = pmacc::math::cPow(v.nEff, u32(3u));
             float_X const ZCubed = pmacc::math::cPow(v.Z, u32(3u));
 
-            float_X const maxEField_AU = picongpu::sim.pic.conv().eField2auEField(maxEFieldNorm);
             float_X const minEField_AU = picongpu::sim.pic.conv().eField2auEField(minEFieldNorm);
+            float_X const maxEField_AU = picongpu::sim.pic.conv().eField2auEField(maxEFieldNorm);
 
-            // theoretical maximum ADK Rate, in sim.atomicUnit.eField()
+            // theoretical maximum ADK Rate, in atomicUnit_eField
             float_X const F_max = 4._X * ZCubed / (3._X * nEffCubed * (4._X * v.nEff - 3._X));
 
-            // fieldStrength for maximum Rate, in sim.atomicUnit.eField(), see Notebook 2024 P.43-48
+            // fieldStrength for maximum Rate, in atomicUnit_eField, see Notebook 2024 P.43-48
             float_X F;
             if(v.nEff <= 0.75_X || F_max > maxEField_AU)
             {
@@ -255,7 +271,7 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
                     F = minEField_AU;
             }
 
-            return rateFormula(v.Z, v.nEff, F);
+            return rateFormula<T_ReturnType>(v.Z, v.nEff, F);
         }
     };
 } // namespace picongpu::particles::atomicPhysics::rateCalculation

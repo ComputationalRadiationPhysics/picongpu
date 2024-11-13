@@ -420,7 +420,8 @@ namespace picongpu::particles::atomicPhysics::debug
             // 1/s
             float_64 const rate
                 = static_cast<float_64>(
-                      rateCalculation::BoundFreeFieldTransitionRates<laserPolarization>::rateADKFieldIonization(
+                      rateCalculation::BoundFreeFieldTransitionRates<laserPolarization>::rateADKFieldIonization<
+                          float_X>(
                           eFieldNorm,
                           ipd,
                           u32(1u),
