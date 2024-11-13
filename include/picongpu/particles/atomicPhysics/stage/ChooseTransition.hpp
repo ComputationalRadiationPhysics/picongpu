@@ -172,7 +172,6 @@ namespace picongpu::particles::atomicPhysics::stage
                 using ChooseTransitionKernel_FieldBoundFree
                     = picongpu::particles::atomicPhysics::kernel::ChooseTransitionKernel_FieldBoundFree<
                         AtomicDataType::ADKLaserPolarization,
-                        FieldE,
                         AtomicDataType::ConfigNumber::numberLevels,
                         IPDModel>;
 
