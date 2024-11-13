@@ -313,7 +313,7 @@ namespace picongpu::particles::atomicPhysics::kernel
 
             VectorIdx const superCellIdx = KernelIndexation::getSuperCellIndex(worker, areaMapping);
             VectorIdx const superCellFieldIdx
-                = KernelIndexation::getSuperCellFieldIndex(worker, areaMapping, superCellIdx);
+                = KernelIndexation::getSuperCellFieldIndexFromSuperCellIndex(areaMapping, superCellIdx);
 
             // unit: unit_time
             auto const timeRemaining = timeRemainingBox(superCellFieldIdx);

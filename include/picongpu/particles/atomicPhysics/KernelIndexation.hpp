@@ -60,9 +60,8 @@ namespace picongpu::particles::atomicPhysics
          * @details version for already known superCellIndex
          * @attention assumes that the kernel was launched for CORE+BORDER Region
          */
-        template<typename T_Worker, typename T_AreaMapping>
-        HDINLINE static pmacc::DataSpace<picongpu::simDim> getSuperCellFieldIndex(
-            T_Worker const& worker,
+        template<typename T_AreaMapping>
+        HDINLINE static pmacc::DataSpace<picongpu::simDim> getSuperCellFieldIndexFromSuperCellIndex(
             T_AreaMapping const areaMapping,
             pmacc::DataSpace<picongpu::simDim> const superCellIndex)
         {

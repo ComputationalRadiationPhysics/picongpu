@@ -83,7 +83,8 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_IPDInput const... ipdInput) const
         {
             auto const superCellIdx = KernelIndexation::getSuperCellIndex(worker, areaMapping);
-            auto const superCellFieldIdx = KernelIndexation::getSuperCellFieldIndex(worker, areaMapping, superCellIdx);
+            auto const superCellFieldIdx
+                = KernelIndexation::getSuperCellFieldIndexFromSuperCellIndex(areaMapping, superCellIdx);
 
             auto const timeRemaining = timeRemainingBox(superCellFieldIdx);
             auto forEachLocalIonBoxEntry = pmacc::particles::algorithm::acc::makeForEach(worker, ionBox, superCellIdx);

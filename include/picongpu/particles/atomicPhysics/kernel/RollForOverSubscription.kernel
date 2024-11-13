@@ -78,7 +78,8 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_RejectionProbabilityCacheDataBox rejectionProbabilityCacheBox) const
         {
             auto const superCellIdx = KernelIndexation::getSuperCellIndex(worker, areaMapping);
-            auto const superCellFieldIdx = KernelIndexation::getSuperCellFieldIndex(worker, areaMapping, superCellIdx);
+            auto const superCellFieldIdx
+                = KernelIndexation::getSuperCellFieldIndexFromSuperCellIndex(areaMapping, superCellIdx);
 
             auto const timeRemaining = timeRemainingBox(superCellFieldIdx);
             bool const sharedResourcesOverSubscribed
