@@ -1825,7 +1825,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     {
                         // ask openPMD to create a buffer for us
                         // in some backends (ADIOS2), this allows avoiding memcopies
-                        auto span = mrc.storeChunk<ComponentType>(
+                        auto span = mrc.template storeChunk<ComponentType>(
                             asStandardVector(recordOffsetDims),
                             asStandardVector(recordLocalSizeDims),
                             [&fieldBuffer](size_t size)
