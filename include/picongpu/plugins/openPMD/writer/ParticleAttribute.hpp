@@ -123,9 +123,9 @@ namespace picongpu
                 ThreadParams* params,
                 FrameType& frame,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
-                const size_t elements,
-                const size_t globalElements,
-                const size_t globalOffset,
+                size_t const elements,
+                size_t const globalElements,
+                size_t const globalOffset,
                 size_t& accumulateWrittenBytes)
             {
                 using Identifier = T_Identifier;
