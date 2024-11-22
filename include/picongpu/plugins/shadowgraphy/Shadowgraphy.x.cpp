@@ -97,6 +97,8 @@ namespace picongpu
                         = {"fourierOutput",
                            "optional output: E and B fields in (x, y, omega) Fourier space, 1==enabled",
                            0};
+                    plugins::multi::Option<bool> optionFinalOutput
+                        = {"finalOutput", "optional output: final calculation of Shadowgram, 1==enabled", 0};
                     plugins::multi::Option<bool> optionIntermediateOutput
                         = {"intermediateOutput",
                            "optional output: E and B fields in (kx, ky, omega) Fourier space, 1==enabled",
@@ -114,6 +116,7 @@ namespace picongpu
                         optionFocusPosition.registerHelp(desc, masterPrefix + prefix);
                         optionDuration.registerHelp(desc, masterPrefix + prefix);
                         optionFourierOutput.registerHelp(desc, masterPrefix + prefix);
+                        optionFinalOutput.registerHelp(desc, masterPrefix + prefix);
                         optionIntermediateOutput.registerHelp(desc, masterPrefix + prefix);
                     }
 
@@ -330,16 +333,19 @@ namespace picongpu
                                 writeFourierOutputToOpenPMDFile(currentStep);
                             }
 
-                            helper->propagateFieldsAndCalculateShadowgram();
+                            if(m_help->optionFinalOutput.get(m_id))
+                            {
+                                helper->propagateFieldsAndCalculateShadowgram();
 
-                            std::ostringstream filename;
-                            filename << m_help->optionFileName.get(m_id) << "_" << startTime << ":" << currentStep
-                                     << ".dat";
+                                std::ostringstream filename;
+                                filename << m_help->optionFileName.get(m_id) << "_" << startTime << ":" << currentStep
+                                         << ".dat";
 
-                            writeToOpenPMDFile(currentStep);
+                                writeToOpenPMDFile(currentStep);
 
-                            // delete helper and free all memory
-                            helper.reset(nullptr);
+                                // delete helper and free all memory
+                                helper.reset(nullptr);
+                            }
                         }
                         isIntegrating = false;
                     }
