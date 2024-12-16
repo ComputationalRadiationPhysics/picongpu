@@ -4,10 +4,12 @@ Changelog
 0.8.0
 -----
 
-**Date:** 2024-12-XX
+**Date:** 2024-12-18
 
-Key highlights for this release are a new atomic model FLYonPIC 2.0, the shadowgraphy plugin with advanced diagnostics for laser-plasma interactions,
+Key highlights for this release are a new atomic physics model FLYonPIC 2.0, the shadowgraphy plugin as advanced synthetic diagnostic of laser plasma interactions, 
+a new laser profile FromOpenPMDPulse allowing to load electric fields in transverse space and time domain into the simulation via incidentField,
 enhanced OpenPMD functionality, and support for the RISC-V ecosystem.
+
 As usual, this release features fixes of PIConGPU and extensions and clarifications of the documentation.
 This is the last release with C++17 support before we switch to C++20.
 
@@ -16,7 +18,7 @@ This is the last release with C++17 support before we switch to C++20.
     - fix C++20 compile #5015
     - fix Gaussian and Dispersive pulse #4889
 - PMacc:
-  - Fix null parameter in MPI_Init_thread #5230
+    - Fix null parameter in MPI_Init_thread #5230
     - fix C++20 compiler #5015
     - fix `atomicAllInc()` #4825
     - avoid using uninitialized `pmacc::memory::Array` #4789
@@ -38,7 +40,7 @@ This is the last release with C++17 support before we switch to C++20.
 - PMacc:
     - replace cupla fully by alpaka #4838
 - other:
-    - topic remove cuda11.3 and g++9/CUDA support #5010
+    - remove cuda11.3 and g++9/CUDA support #5010
     - allow multiple gaussian density profiles with differing density #4981
     - correct spack options for boost #4780
     - RISC-V support #4712
@@ -54,7 +56,6 @@ This is the last release with C++17 support before we switch to C++20.
 
 **Features:**
 - PIC:
-    - BSI minimal implementation #5205
     - refactor unit/si and pic unit system and param files #5066
     - change pulse laguerre mode definition #4964
     - remove broken B field implementation of dispersive laser #4932
@@ -65,7 +66,7 @@ This is the last release with C++17 support before we switch to C++20.
     - add openPMD-viewer test #4747
     - PIConGPU unit tests #4723
     - add CKC Solver #4661
-    - FLYonPIC v2.0 #4551
+    - FLYonPIC v2.0, with energy conserving ADK and BSI field ionization #4551 #5205
 - PMacc:
     - add logical-and and logical-or Operations #4915
     - matrix multiplication for pmacc #4914
@@ -134,6 +135,10 @@ This is the last release with C++17 support before we switch to C++20.
 - tools:
     - refactor `pic-build` and `pic-configure` #4936
     - Pre-commit #4792
+- PICMI:
+    - Added support to configure the moving window #4987
+    - Added support for custom user inputs #4996
+    - Added the ability to configure ionization model interactions #5007
 
 **User Input Changes:**
 - refactor `value_identifier` #5130
