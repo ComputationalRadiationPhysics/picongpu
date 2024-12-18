@@ -21,7 +21,7 @@
     {
       "affiliation":"CASUS, HZDR",
       "name":"Ehrig, Simeon",
-      "orcid":"000-0002-8218-3116"
+      "orcid":"0000-0002-8218-3116"
     },
     {
       "affiliation":"HZDR, TU Dresden",
@@ -49,7 +49,8 @@
     },
     {
       "name":"Marre, Brian Edward",
-      "affiliation":"HZDR, TU Dresden"
+      "affiliation":"HZDR, TU Dresden",
+      "orcid":"0009-0005-6873-8292"
     },
     {
       "name": "Lenz, Julian",
