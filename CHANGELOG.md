@@ -1,6 +1,155 @@
 Changelog
 =========
 
+0.8.0
+-----
+
+**Date:** 2024-12-18
+
+Key highlights for this release are a new atomic physics model FLYonPIC 2.0, the shadowgraphy plugin as advanced synthetic diagnostic of laser plasma interactions, 
+a new laser profile FromOpenPMDPulse allowing to load electric fields in transverse space and time domain into the simulation via incidentField,
+enhanced OpenPMD functionality, and support for the RISC-V ecosystem.
+
+As usual, this release features fixes of PIConGPU and extensions and clarifications of the documentation.
+This is the last release with C++17 support before we switch to C++20.
+
+**Bug Fixes:**
+- PIC:
+    - fix C++20 compile #5015
+    - fix Gaussian and Dispersive pulse #4889
+- PMacc:
+    - Fix null parameter in MPI_Init_thread #5230
+    - fix C++20 compiler #5015
+    - fix `atomicAllInc()` #4825
+    - avoid using uninitialized `pmacc::memory::Array` #4789
+- other:
+    - fix wrong conversion factor #5017
+    - correct spack options for boost #4780
+    - fix potential deadlock #4755
+- plugins:
+    - remove IDProvider from normal OpenPMD output #5193
+    - set main rank correctly in the binning plugin #4997
+    - fix incorrect data type #4992
+- tools:
+    - fix slow tbg substitution #4905
+    - fix growth rate and charge conservation test tools #4834
+ 
+**Documentation:**
+- PIC:
+    - replace cupla fully by alpaka #4838
+- PMacc:
+    - replace cupla fully by alpaka #4838
+- other:
+    - remove cuda11.3 and g++9/CUDA support #5010
+    - allow multiple gaussian density profiles with differing density #4981
+    - correct spack options for boost #4780
+    - RISC-V support #4712
+- plugins:
+    - add shadowgraphy plugin #4868
+    - remove deactivation of ISAAC with HIP #4821
+    - change class and function names in radPlugin to camelCase #4734
+    - add calorimeter python module #4697
+- tools:
+    - pre-commit #4792
+    - remove hemera k80 and k20 partition #4779
+    - add calorimeter python module #4697
+
+**Features:**
+- PIC:
+    - refactor unit/si and pic unit system and param files #5066
+    - change pulse laguerre mode definition #4964
+    - remove broken B field implementation of dispersive laser #4932
+    - new flexible kernel for particle creation #4918
+    - add particle sparser manipulator #4916
+    - implementation of Maxwell Juettner distribution #4826
+    - add feature `--dump-metadata` #4812
+    - add openPMD-viewer test #4747
+    - PIConGPU unit tests #4723
+    - add CKC Solver #4661
+    - FLYonPIC v2.0, with energy conserving ADK and BSI field ionization #4551 #5205
+- PMacc:
+    - add logical-and and logical-or Operations #4915
+    - matrix multiplication for pmacc #4914
+    - add PMacc example - Solving the 2D HeatEquation #4767
+- other:
+    - add FromOpenPMDPulse profile #5148
+    - add atomicPhysicsCI setup #5129
+    - Topic remove cuda11.3 and g++9/CUDA support #5010
+    - allow multiple gaussian density profiles with differing density #4981
+    - drop HIP 5.2/5.3 and CUDA 11.0 support #4968
+    - update alpaka requirements to 1.2.0 #4966
+    - RISC-V support #4712
+    - make fieldAbsorberTest a test for the CI #4682
+    - add CurrentDeposition test #4557
+- plugins:
+    - openPMD plugin: Add option for Append mode in writing #5224
+    - time tracing for the openPMD plugin #4909
+    - add shadowgraphy plugin #4868
+    - remove deactivation of ISAAC with HIP #4821
+    - Implement checkpoint and restart capability to the binning plugin #4766
+    - add method to radiation python module to load distributed amplitudes #4752
+    - change class and function names in radPlugin to camelCase #4734
+    - add calorimeter python module #4697
+    - change radiation plugin python module to openPMD-api #4680
+- tools:
+    - remove hemera k80 and k20 partition #4779
+    - add Snakemake workflow example #4774
+    - add method to radiation python module to load distributed amplitudes #4752
+    - add calorimeter python module #4697
+    - change radiation plugin python module to openPMD-api #4680
+
+**Refactoring:**
+- PIC:
+    - refactor `value_identifier` #5130
+    - implement TWTS-laser twtstight to replace twtsfast #5112
+    - add ADK field ionization to FLYonPIC #5098
+    - increase performance of DispersivePulse #4930
+    - replace cupla fully by alpaka #4838
+    - optimize collision #4828
+    - move PMacc and PIConGPU fully to alpaka #4820
+    - topic remove preprocessor struct generator #4750
+    - refactor to make superCellSize and frameSize independent #4685
+    - refactor particle init kernel #4681
+    - Add an optional time delay for incident field pulses #4651
+- PMacc:
+    - refactor `value_identifier` #5130
+    - CONST_VECTOR use global device memory #5003
+    - rename `getDataSpace` to `capacityND` #4851
+    - refactor lockstep programming model #4840
+    - replace cupla fully by alpaka #4838
+    - move PMacc and PIConGPU fully to alpaka #4820
+    - Topic remove preprocessor struct generator #4750
+    - remove accessor from `math::Vector<>` #4746
+    - get supercell index relative to user defined origin #4731
+    - remove `atomicAddNoRet()` #4722
+    - refactor DataSpaceOperations #4719
+- other:
+    - set minimum CMake version back to 3.22 #5113
+    - remove CONST_VECTOR from OnePositionParameter #4875
+- plugins:
+    - optimize OpenPMD IO #4882
+    - openPMD: add parameter `particleIOChunkSize` #4874
+    - bump openPMD-api to minimal version 0.15 #4782
+    - simplify output structure colorimeter plugin  #4695
+    - transitionRadiation plugin openPMD output #4649
+- tools:
+    - refactor `pic-build` and `pic-configure` #4936
+    - Pre-commit #4792
+- PICMI:
+    - Added support to configure the moving window #4987
+    - Added support for custom user inputs #4996
+    - Added the ability to configure ionization model interactions #5007
+
+**User Input Changes:**
+- refactor `value_identifier` #5130
+- refactor unit/si and pic unit system and param files #5066
+- allow multiple gaussian density profiles with differing density #4981
+- change pulse laguerre mode definition #4964
+- remove CONST_VECTOR from OnePositionParameter #4875
+- topic remove preprocessor struct generator #4750
+- change class and function names in radPlugin to camelCase #4734
+- refactor to make superCellSize and frameSize independent #4685
+
 0.7.0
 -----
 
