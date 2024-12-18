@@ -83,7 +83,12 @@ namespace picongpu::plugins::binning
 
         auto weightingData = createFunctorDescription<float_64>(getParticleWeighting, "Particle Weighting");
 
-        binningCreator.addBinner("atomicStateBinning", axisTuple, speciesTuple, weightingData)
+        auto appendWeightScalingFactor
+            = [](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
+        { mesh.setAttribute("weightScalingFactor", sim.unit.typicalNumParticlesPerMacroParticle()); };
+
+        binningCreator
+            .addBinner("atomicStateBinning", axisTuple, speciesTuple, weightingData, appendWeightScalingFactor)
             .setDumpPeriod(numberTimeSteps)
             .setOpenPMDExtension("bp")
             .setNormalizeByBinVolume(false)
