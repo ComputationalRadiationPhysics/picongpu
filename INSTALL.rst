@@ -30,13 +30,13 @@ Mandatory
 
 Compiler
 """"""""
-- C++17 supporting compiler, e.g. GCC 9+ or Clang 11+
+- C++20 supporting compiler, e.g. GCC 10+ or Clang 11+
 - if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
 - *note:* be sure to build all libraries/dependencies with the *same* compiler version
 - *Debian/Ubuntu:*
 
-  - ``sudo apt-get install gcc-9 g++-9 build-essential``
-  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9``
+  - ``sudo apt-get install gcc-10 g++-10 build-essential``
+  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10``
 - *Arch Linux:*
 
   - ``sudo pacman --sync base-devel``
@@ -82,7 +82,7 @@ Boost
   - ``tar -xzf boost_1_74_0.tar.gz``
   - ``cd boost_1_74_0``
   - ``./bootstrap.sh --with-libraries=atomic,program_options --prefix=$HOME/lib/boost``
-  - ``./b2 cxxflags="-std=c++17" -j4 && ./b2 install``
+  - ``./b2 cxxflags="-std=c++20" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
   - ``export CMAKE_PREFIX_PATH=$HOME/lib/boost:$CMAKE_PREFIX_PATH``

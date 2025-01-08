@@ -4,7 +4,7 @@ PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 [![Code Status dev](https://gitlab.com/hzdr/crp/picongpu/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/picongpu/pipelines/dev/latest)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
-[![Language](https://img.shields.io/badge/language-C%2B%2B17-orange.svg)](https://isocpp.org/)
+[![Language](https://img.shields.io/badge/language-C%2B%2B20-orange.svg)](https://isocpp.org/)
 [![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
 

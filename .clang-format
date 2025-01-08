@@ -1,7 +1,7 @@
 ---
 # General options
 Language: Cpp
-Standard: c++17
+Standard: c++20
 DisableFormat: false
 
 AccessModifierOffset: -4

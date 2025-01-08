@@ -114,11 +114,9 @@ def is_valid_combination(row):
         # hipcc is only valid in one combination
         if is_hip:
             if is_hipcc and is_clang:
-                if 5.3 <= v_hip <= 5.4 and v_compiler == 15:
-                    return True
-                if 5.5 <= v_hip <= 5.6 and v_compiler == 16:
-                    return True
-                if 5.7 <= v_hip <= 6.1 and v_compiler == 17:
+                if v_hip < 6.0:
+                    return False
+                if 6.0 <= v_hip <= 6.1 and v_compiler == 17:
                     return True
                 if v_hip == 6.2 and v_compiler == 18:
                     return True
@@ -144,20 +142,16 @@ def is_valid_combination(row):
         if is_clang_cuda:
             if not is_cuda:
                 return False
-            # alpaka version 1.X enforces at least clang 14 to compile CUDA
-            # code with clang
-            if v_compiler < 14:
-                return False
-            if 11.0 <= v_cuda <= 11.5 and 14 <= v_compiler <= 15:
-                return True
-            if 11.0 <= v_cuda <= 11.8 and v_compiler == 17:
-                return True
-            if 11.0 <= v_cuda <= 12.3 and v_compiler == 18:
+            if 12.0 <= v_cuda <= 12.3 and v_compiler == 18:
                 return True
             return False
 
         # nvcc compatibility
         if is_cuda and is_nvcc:
+            # for C++20 support CUDA >= 12 is required
+            if v_cuda < 12.0:
+                return False
+
             if is_gnu:
                 # disabled due to a bug in CUDA 12.4 with gcc 13
                 #   /usr/include/x86_64-linux-gnu/bits/floatn-common.h(214):
@@ -165,32 +159,16 @@ def is_valid_combination(row):
                 #     typedef float _Float32;
                 if 12.4 == v_cuda and v_compiler == 13:
                     return False
-                # official g++ 9 and CUDA is supported but due to many
-                # compile issue we do not support this combination anymore
-                if v_compiler <= 9:
+                # for C++20 add least gcc 10 is required
+                if v_compiler < 10:
                     return False
-                if 11.1 <= v_cuda <= 11.3 and v_compiler <= 10:
-                    if v_compiler == 10:
-                        # nvcc + gcc 10.3 bug see:
-                        # https://github.com/alpaka-group/alpaka/issues/1297
-                        return False
-                    else:
-                        return True
-                # nvcc 11.4/11.5 does not work with gcc 11.4 (11.3 is working)
-                if 11.4 <= v_cuda <= 11.5 and v_compiler == 11:
-                    return False
-                if 11.4 <= v_cuda <= 11.8 and v_compiler <= 11:
-                    return True
                 if 12.0 <= v_cuda <= 12.3 and v_compiler <= 12:
                     return True
                 if 12.4 <= v_cuda <= 12.5 and v_compiler <= 13:
                     return True
 
             if is_clang:
-                # for C++17 support CUDA >= 11 is required
-                if v_cuda == 11.0 and v_compiler <= 9:
-                    return True
-                if 11.1 <= v_cuda <= 12.0 and v_compiler <= 10:
+                if v_cuda == 12.0 and v_compiler == 10:
                     return True
                 if v_cuda == 12.1 and v_compiler == 14:
                     return True
@@ -214,7 +192,7 @@ clang_compiers = [
     ("clang++", 17),
     ("clang++", 18),
 ]
-gnu_compilers = [("g++", 9), ("g++", 10), ("g++", 11), ("g++", 13)]
+gnu_compilers = [("g++", 10), ("g++", 11), ("g++", 13)]
 compilers = [clang_compiers, gnu_compilers]
 
 # generate clang cuda compiler list
@@ -242,18 +220,8 @@ compilers.append(hip_clang_compilers)
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
 backends = [
-    ("hip", 5.4),
-    ("hip", 5.5),
-    ("hip", 5.6),
-    ("hip", 5.7),
     ("hip", 6.0),
     ("hip", 6.1),
-    ("cuda", 11.3),
-    ("cuda", 11.4),
-    ("cuda", 11.5),
-    ("cuda", 11.6),
-    ("cuda", 11.7),
-    ("cuda", 11.8),
     ("cuda", 12.0),
     ("cuda", 12.1),
     ("cuda", 12.2),
