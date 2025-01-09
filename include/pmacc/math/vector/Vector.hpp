@@ -185,7 +185,7 @@ namespace pmacc
 
             constexpr Vector operator-() const
             {
-                return Vector([=](uint32_t const i) constexpr { return -(*this)[i]; });
+                return Vector([this](uint32_t const i) constexpr { return -(*this)[i]; });
             }
 
 /** assign operator
