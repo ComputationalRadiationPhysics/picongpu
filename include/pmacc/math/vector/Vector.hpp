@@ -64,7 +64,6 @@ namespace pmacc
             using Storage = T_Storage;
             using type = T_Type;
             static constexpr uint32_t dim = T_dim;
-            using ParamType = typename boost::call_traits<type>::param_type;
 
             /*Vectors without elements are not allowed*/
             PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed, dim > 0u);
@@ -514,7 +513,7 @@ namespace pmacc
     template<typename T_Type, uint32_t T_dim, typename T_Storage>                                                     \
     constexpr auto operator op(                                                                                       \
         const Vector<T_Type, T_dim, T_Storage>& lhs,                                                                  \
-        typename Vector<T_Type, T_dim, T_Storage>::ParamType rhs)                                                     \
+        typename Vector<T_Type, T_dim, T_Storage>::type rhs)                                                          \
     {                                                                                                                 \
         /* to avoid allocation side effects the result is always a vector                                             \
          * with default policies                                                                                      \
@@ -526,7 +525,7 @@ namespace pmacc
     }                                                                                                                 \
     template<typename T_Type, uint32_t T_dim, typename T_Storage>                                                     \
     constexpr auto operator op(                                                                                       \
-        typename Vector<T_Type, T_dim, T_Storage>::ParamType lhs,                                                     \
+        typename Vector<T_Type, T_dim, T_Storage>::type lhs,                                                          \
         const Vector<T_Type, T_dim, T_Storage>& rhs)                                                                  \
     {                                                                                                                 \
         /* to avoid allocation side effects the result is always a vector                                             \

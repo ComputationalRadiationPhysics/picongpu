@@ -34,7 +34,7 @@
         using namespace PMACC_JOIN(pmacc_static_const_vector_host, id)
 #endif
 
-#if defined(__CUDACC__) || BOOST_COMP_HIP
+#if BOOST_LANG_CUDA || BOOST_LANG_HIP
 #    define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id, Name, Type, ...)                                               \
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \
@@ -83,12 +83,12 @@
     } /* namespace pmacc_static_const_storage + id */                                                                 \
     using namespace PMACC_JOIN(pmacc_static_const_storage, id)
 
-#if defined(__CUDACC__) || BOOST_COMP_HIP
+#if BOOST_LANG_CUDA || BOOST_LANG_HIP
 #    define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name, id)                                                     \
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \
             /* create const instance on device */                                                                     \
-            [[maybe_unused]] __device__ const PMACC_JOIN(Name, _t) Name;                                              \
+            [[maybe_unused]] __device__ constexpr PMACC_JOIN(Name, _t) Name{};                                        \
         } /* namespace pmacc_static_const_vector_device + id */
 #else
 #    define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name, id)
@@ -104,7 +104,7 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_host, id)                                                      \
         {                                                                                                             \
             /* create const instance on host*/                                                                        \
-            [[maybe_unused]] constexpr PMACC_JOIN(Name, _t) Name;                                                     \
+            [[maybe_unused]] constexpr PMACC_JOIN(Name, _t) Name{};                                                   \
         } /* namespace pmacc_static_const_vector_host + id  */                                                        \
     } /* namespace pmacc_static_const_storage + id */
 
