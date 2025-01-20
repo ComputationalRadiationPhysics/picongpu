@@ -1,10 +1,11 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
 
-  Copyright 2020 Helmholtz-Zentrum Dresden - Rossendorf,
+  Copyright 2020-2024 Helmholtz-Zentrum Dresden - Rossendorf,
                  CERN
 
   Author(s):  Bernhard Manfred Gruber
+              Julian J. Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +29,7 @@
 #pragma once
 
 #include <alpaka/alpaka.hpp>
+
 #include <memory>
 #include <string>
 
@@ -39,7 +41,7 @@ namespace mallocMC
         struct AlpakaBuf
         {
             template<typename AlpakaDev>
-            auto setMemPool(const AlpakaDev& dev, size_t memsize) -> void*
+            auto setMemPool(AlpakaDev const& dev, size_t memsize) -> void*
             {
                 poolBuffer = std::make_unique<PoolBufferType>(alpaka::allocBuf<unsigned char, size_t>(dev, memsize));
                 return alpaka::getPtrNative(*poolBuffer);

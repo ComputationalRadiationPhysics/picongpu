@@ -44,19 +44,19 @@ namespace mallocMC
         }
 
         template<typename AlpakaAcc>
-        ALPAKA_FN_ACC auto malloc(const AlpakaAcc& acc, size_t size) -> void*
+        ALPAKA_FN_ACC auto malloc(AlpakaAcc const& acc, size_t size) -> void*
         {
             return devAllocator->malloc(acc, size);
         }
 
         template<typename AlpakaAcc>
-        ALPAKA_FN_ACC void free(const AlpakaAcc& acc, void* p)
+        ALPAKA_FN_ACC void free(AlpakaAcc const& acc, void* p)
         {
             devAllocator->free(acc, p);
         }
 
         template<typename AlpakaAcc>
-        ALPAKA_FN_ACC auto getAvailableSlots(const AlpakaAcc& acc, size_t slotSize) -> unsigned
+        ALPAKA_FN_ACC auto getAvailableSlots(AlpakaAcc const& acc, size_t slotSize) -> unsigned
         {
             return devAllocator->getAvailableSlots(acc, slotSize);
         }

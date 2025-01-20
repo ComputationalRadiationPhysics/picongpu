@@ -1,12 +1,9 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
-  https://www.hzdr.de/crp
 
-  Copyright 2014 - 2024 Institute of Radiation Physics,
-                        Helmholtz-Zentrum Dresden - Rossendorf
+  Copyright 2024 Helmholtz-Zentrum Dresden - Rossendorf
 
-  Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
-              Julian Lenz - j.lenz ( at ) hzdr.de
+  Author(s):  Julian Johannes Lenz
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +26,17 @@
 
 #pragma once
 
-namespace mallocMC
+#include <cstdint>
+
+namespace mallocMC::CreationPolicies::FlatterScatterAlloc
 {
-    template<class T_Allocator>
-    struct Traits
+    /**
+     * @class DataPage
+     * @brief Raw piece of memory of size T_pageSize
+     */
+    template<uint32_t T_pageSize>
+    struct DataPage
     {
-        static constexpr bool providesAvailableSlots = T_Allocator::CreationPolicy::providesAvailableSlots;
+        char data[T_pageSize]{};
     };
-} // namespace mallocMC
+} // namespace mallocMC::CreationPolicies::FlatterScatterAlloc

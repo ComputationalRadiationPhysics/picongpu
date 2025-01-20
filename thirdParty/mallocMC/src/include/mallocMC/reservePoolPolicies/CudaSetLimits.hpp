@@ -1,10 +1,11 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
 
-  Copyright 2014 Institute of Radiation Physics,
+  Copyright 2014-2024 Institute of Radiation Physics,
                  Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +33,7 @@
 #    include "CudaSetLimits.hpp"
 
 #    include <cuda_runtime_api.h>
+
 #    include <mutex>
 #    include <string>
 
@@ -57,7 +59,7 @@ namespace mallocMC
         struct CudaSetLimits
         {
             template<typename AlpakaDev>
-            auto setMemPool(const AlpakaDev& dev, size_t memsize) -> void*
+            auto setMemPool(AlpakaDev const& dev, size_t memsize) -> void*
             {
                 cudaDeviceSetLimit(cudaLimitMallocHeapSize, memsize);
                 return nullptr;

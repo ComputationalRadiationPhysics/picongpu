@@ -23,21 +23,6 @@
       "name": "Lenz, Julian",
       "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
       "orcid": "0000-0001-5250-0005"
-    },
-    {
-      "name": "Huebl, Axel",
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0003-1943-7141"
-    },
-    {
-      "name": "Gruber, Bernhard Manfred",
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, CASUS, CERN",
-      "orcid": "0000-0001-7848-1690"
-    },
-    {
-      "name": "Bastrakov, Sergei",
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0003-3396-6154"
     }
   ],
   "contributors": [
@@ -55,6 +40,24 @@
       "name": "Grund, Alexander",
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
       "orcid": "0000-0002-7196-8452",
+      "type": "Other"
+    },
+    {
+      "name": "Huebl, Axel",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1943-7141",
+      "type": "Other"
+    },
+    {
+      "name": "Gruber, Bernhard Manfred",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, CASUS, CERN",
+      "orcid": "0000-0001-7848-1690",
+      "type": "Other"
+    },
+    {
+      "name": "Bastrakov, Sergei",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-3396-6154",
       "type": "Other"
     }
   ]

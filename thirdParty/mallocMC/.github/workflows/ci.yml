@@ -1,11 +1,43 @@
 name: Continuous Integration
 on: [push, pull_request]
 jobs:
-  clang-format:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: DoozyX/clang-format-lint-action@v0.11
-      with:
-        exclude: './thirdParty ./alpaka'
-        clangFormatVersion: 11
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - uses: pre-commit/action@v3.0.1
+      - uses: pre-commit-ci/lite-action@v1.0.2
+        if: always()
+  cpu-tests:
+    # This action only runs on various CPU backends.
+    # As such, this is not a fully-fletched production-like test.
+    # Hopefully, it will still save us from a few stupid mistakes.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install libboost-all-dev
+      - run: mkdir build_dir
+      - working-directory: build_dir
+        run: |
+          git submodule init && git submodule update
+      - working-directory: build_dir
+        run: |
+          cmake .. \
+          -DCMAKE_CXX_FLAGS="-std=c++20 -g" \
+          -Dalpaka_CXX_STANDARD=20 \
+          -DmallocMC_CATCH2_PROVIDER=intern \
+          -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE:BOOL=ON \
+          -Dalpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE:BOOL=ON \
+          -Dalpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE:BOOL=ON \
+          -Dalpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE:BOOL=ON
+      - working-directory: build_dir
+        run: make -j tests examples
+      - working-directory: build_dir
+        run: ./tests
+      - working-directory: build_dir
+        run: ./mallocMC_Example01
+      - working-directory: build_dir
+        run: ./mallocMC_Example03

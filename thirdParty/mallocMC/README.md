@@ -5,8 +5,9 @@ mallocMC: *Memory Allocator for Many Core Architectures*
 
 This project provides a framework for **fast memory managers** on **many core
 accelerators**. It is based on [alpaka](https://github.com/alpaka-group/alpaka)
-to run on many different accelerators and implements the *ScatterAlloc* algorithm.
-
+to run on many different accelerators and comes with multiple allocation
+algorithms out-of-the-box. Custom ones can be added easily due to the
+policy-based design.
 
 Usage
 -------
@@ -14,30 +15,31 @@ Usage
 Follow the step-by-step instructions in [Usage.md](Usage.md) to replace your
 `new`/`malloc` calls with a *blacingly fast* mallocMC heap! :rocket:
 
-
 Install
 -------
 
 mallocMC is header-only, but requires a few other C++ libraries to be
 available. Our installation notes can be found in [INSTALL.md](INSTALL.md).
 
-
 Contributing
 ------------
 
-Rules for contributions are found in [CONTRIBUTING.md](CONTRIBUTING.md).
+Rules for contributions are found in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-On the ScatterAlloc Algorithm
+On the Algorithms
 -----------------------------
 
-This library implements the *ScatterAlloc* algorithm, originally
+This library was originally inspired by the *ScatterAlloc* algorithm,
 [forked](https://en.wikipedia.org/wiki/Fork_%28software_development%29)
 from the **ScatterAlloc** project, developed by the
 [Managed Volume Processing](http://www.icg.tugraz.at/project/mvp)
 group at [Institute for Computer Graphics and Vision](http://www.icg.tugraz.at),
-TU Graz (kudos!).
+TU Graz (kudos!). The currently shipped algorithms are using similar ideas but
+differ from the original one significantly.
 
-From http://www.icg.tugraz.at/project/mvp/downloads :
+From the original project page (which is no longer existent to the best of our
+knowledge):
+
 ```quote
 ScatterAlloc is a dynamic memory allocator for the GPU. It is
 designed concerning the requirements of massively parallel
@@ -51,21 +53,18 @@ execution time is almost independent of the thread count.
 ScatterAlloc is open source and easy to use in your CUDA projects.
 ```
 
-Original Homepage: http://www.icg.tugraz.at/project/mvp
+Our Homepage: <https://www.hzdr.de/crp>
 
-Our Homepage: https://www.hzdr.de/crp
+Versions and Releases
+---------------------
 
-
-Branches
---------
-
-| *branch*    | *state* | *description*           |
-| ----------- | ------- | ----------------------- |
-| **master**  | [![Build Status Master](https://travis-ci.org/alpaka-group/mallocMC.png?branch=master)](https://travis-ci.org/alpaka-group/mallocMC "master") | our latest stable release |
-| **dev**     | [![Build Status Development](https://travis-ci.org/alpaka-group/mallocMC.png?branch=dev)](https://travis-ci.org/alpaka-group/mallocMC "dev") | our development branch - start and merge new branches here |
-| **tugraz**  | n/a | *ScatterAlloc* "upstream" branch: not backwards compatible mirror for algorithmic changes |
-
-
+Official releases can be found in the
+[Github releases](https://github.com/alpaka-group/mallocMC/releases).
+We try to stick to [semantic versioning](https://semver.org/) but we'll bump
+the major version number for major features.
+Development happens on the `dev` branch.
+Changes there have passed the CI and a code review but we make no guarantees
+about API or feature stability in this branch.
 
 Literature
 ----------
@@ -80,7 +79,6 @@ Just an incomplete link collection for now:
 
 - Junior Thesis [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.34461.svg)](http://dx.doi.org/10.5281/zenodo.34461) by
   Carlchristian Eckert (2014)
-
 
 License
 -------

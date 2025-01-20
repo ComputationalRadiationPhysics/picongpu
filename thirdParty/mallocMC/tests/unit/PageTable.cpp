@@ -1,12 +1,9 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
-  https://www.hzdr.de/crp
 
-  Copyright 2014 - 2024 Institute of Radiation Physics,
-                        Helmholtz-Zentrum Dresden - Rossendorf
+  Copyright 2024 Helmholtz-Zentrum Dresden - Rossendorf
 
-  Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
-              Julian Lenz - j.lenz ( at ) hzdr.de
+  Author(s):  Julian Johannes Lenz
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +24,31 @@
   THE SOFTWARE.
 */
 
-#pragma once
+#include "mallocMC/creationPolicies/FlatterScatter/AccessBlock.hpp"
 
-namespace mallocMC
+#include <catch2/catch_test_macros.hpp>
+
+using mallocMC::CreationPolicies::FlatterScatterAlloc::PageTable;
+
+constexpr uint32_t const numPages = 3;
+
+TEST_CASE("PageTable")
 {
-    template<class T_Allocator>
-    struct Traits
+    PageTable<numPages> pageTable{};
+
+    SECTION("initialises chunk sizes to 0.")
     {
-        static constexpr bool providesAvailableSlots = T_Allocator::CreationPolicy::providesAvailableSlots;
-    };
-} // namespace mallocMC
+        for(auto const& chunkSize : pageTable.chunkSizes)
+        {
+            CHECK(chunkSize == 0U);
+        }
+    }
+
+    SECTION("initialises filling levels to 0.")
+    {
+        for(auto const& fillingLevel : pageTable.fillingLevels)
+        {
+            CHECK(fillingLevel == 0U);
+        }
+    }
+}

@@ -2,10 +2,11 @@
   mallocMC: Memory Allocator for Many Core Architectures.
   https://www.hzdr.de/crp
 
-  Copyright 2014 - 2015 Institute of Radiation Physics,
+  Copyright 2014 - 2024 Institute of Radiation Physics,
                         Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian J. Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +29,10 @@
 
 #pragma once
 
-#include "mallocMC_constraints.hpp"
 #include "mallocMC_traits.hpp"
-#include "mallocMC_utils.hpp"
 
 #include <alpaka/core/Common.hpp>
+
 #include <cstdint>
 #include <cstdio>
 
@@ -57,7 +57,7 @@ namespace mallocMC
         typename T_DistributionPolicy,
         typename T_OOMPolicy,
         typename T_AlignmentPolicy>
-    class DeviceAllocator : public T_CreationPolicy
+    class DeviceAllocator : public T_CreationPolicy::template AlignmentAwarePolicy<T_AlignmentPolicy>
     {
         using uint32 = std::uint32_t;
 
@@ -67,24 +67,31 @@ namespace mallocMC
         using OOMPolicy = T_OOMPolicy;
         using AlignmentPolicy = T_AlignmentPolicy;
 
-        void* pool;
-
         template<typename AlpakaAcc>
-        ALPAKA_FN_ACC auto malloc(const AlpakaAcc& acc, size_t bytes) -> void*
+        ALPAKA_FN_ACC auto malloc(AlpakaAcc const& acc, size_t bytes) -> void*
         {
+            if(bytes == 0U)
+            {
+                return nullptr;
+            }
             bytes = AlignmentPolicy::applyPadding(bytes);
             DistributionPolicy distributionPolicy(acc);
-            const uint32 req_size = distributionPolicy.collect(acc, bytes);
-            void* memBlock = CreationPolicy::template create<AlignmentPolicy>(acc, req_size);
+            uint32 const req_size = distributionPolicy.collect(acc, bytes);
+            void* memBlock = CreationPolicy::template AlignmentAwarePolicy<T_AlignmentPolicy>::create(acc, req_size);
             if(CreationPolicy::isOOM(memBlock, req_size))
+            {
                 memBlock = OOMPolicy::handleOOM(memBlock);
+            }
             return distributionPolicy.distribute(acc, memBlock);
         }
 
         template<typename AlpakaAcc>
-        ALPAKA_FN_ACC void free(const AlpakaAcc& acc, void* p)
+        ALPAKA_FN_ACC void free(AlpakaAcc const& acc, void* pointer)
         {
-            CreationPolicy::destroy(acc, p);
+            if(pointer != nullptr)
+            {
+                CreationPolicy::template AlignmentAwarePolicy<T_AlignmentPolicy>::destroy(acc, pointer);
+            }
         }
 
         /** Provide the number of available free slots.
@@ -96,13 +103,19 @@ namespace mallocMC
          * device side 0 will be returned.
          */
         template<typename AlpakaAcc>
-        ALPAKA_FN_ACC auto getAvailableSlots(const AlpakaAcc& acc, size_t slotSize) -> unsigned
+        ALPAKA_FN_ACC auto getAvailableSlots(AlpakaAcc const& acc, size_t slotSize) -> unsigned
         {
             slotSize = AlignmentPolicy::applyPadding(slotSize);
             if constexpr(Traits<DeviceAllocator>::providesAvailableSlots)
-                return CreationPolicy::template getAvailableSlotsAccelerator<AlignmentPolicy>(acc, slotSize);
+            {
+                return CreationPolicy::template AlignmentAwarePolicy<T_AlignmentPolicy>::getAvailableSlotsAccelerator(
+                    acc,
+                    slotSize);
+            }
             else
-                return 0u;
+            {
+                return 0U;
+            }
         }
     };
 
