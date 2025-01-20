@@ -20,8 +20,8 @@ macro(alpaka_add_executable In_Name)
     if(alpaka_ACC_GPU_CUDA_ENABLE)
        enable_language(CUDA)
        foreach(_file ${ARGN})
-            if((${_file} MATCHES "\\.cpp$") OR 
-               (${_file} MATCHES "\\.cxx$") OR 
+            if((${_file} MATCHES "\\.cpp$") OR
+               (${_file} MATCHES "\\.cxx$") OR
                (${_file} MATCHES "\\.cu$")
             )
                 set_source_files_properties(${_file} PROPERTIES LANGUAGE CUDA)
@@ -49,7 +49,7 @@ macro(alpaka_add_executable In_Name)
 
         # We have to set this here because CMake currently doesn't provide hip_std_${VERSION} for
         # target_compile_features() and HIP_STANDARD isn't propagated by interface libraries.
-        set_target_properties(${In_Name} PROPERTIES 
+        set_target_properties(${In_Name} PROPERTIES
                               HIP_STANDARD ${alpaka_CXX_STANDARD}
                               HIP_STANDARD_REQUIRED ON)
     endif()

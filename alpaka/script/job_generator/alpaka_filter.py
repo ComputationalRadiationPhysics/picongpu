@@ -55,4 +55,51 @@ def alpaka_post_filter(row: List) -> bool:
     ):
         return False
 
+    # there is a compiler bug in GCC 11.4 which avoids working with NVCC 11.5
+    if (
+        row_check_name(row, DEVICE_COMPILER, "==", NVCC)
+        and (
+            row_check_version(row, DEVICE_COMPILER, "==", "11.4")
+            or row_check_version(row, DEVICE_COMPILER, "==", "11.5")
+        )
+        and row_check_name(row, HOST_COMPILER, "==", GCC)
+        and row_check_version(row, HOST_COMPILER, "==", "11")
+    ):
+        return False
+
+    # cmake 3.24 and older does not support C++20 for nvcc
+    if (
+        row_check_name(row, DEVICE_COMPILER, "==", NVCC)
+        and row_check_version(row, CXX_STANDARD, ">=", "20")
+        and row_check_version(row, CMAKE, "<", "3.25")
+    ):
+        return False
+
+    # Debug builds with HIP/ROCm 6.2 produce compiler errors
+    if (
+        is_in_row(row, BUILD_TYPE)
+        and row[param_map[BUILD_TYPE]][VERSION] == CMAKE_DEBUG
+        and row_check_name(row, DEVICE_COMPILER, "==", HIPCC)
+        and row_check_version(row, DEVICE_COMPILER, "==", "6.2")
+    ):
+        return False
+
+     # g++-12 is not available on the Ubuntu 20.04 ppa's
+    if (
+        row_check_name(row, HOST_COMPILER, "==", GCC)
+        and row_check_version(row, HOST_COMPILER, "==", "12")
+        and row_check_version(row, UBUNTU, "==", "20.04")
+    ):
+        return False
+
+    # there is a bug with g++-13 and cuda 12.4 on Ubuntu 20.04
+    if (
+        row_check_name(row, DEVICE_COMPILER, "==", NVCC)
+        and row_check_version(row, DEVICE_COMPILER, "==", "12.4")
+        and row_check_name(row, HOST_COMPILER, "==", GCC)
+        and row_check_version(row, HOST_COMPILER, "==", "13")
+        and row_check_version(row, UBUNTU, "==", "20.04")
+    ):
+        return False
+
     return True

@@ -200,9 +200,9 @@ namespace alpaka
         {
             template<typename TExtent, typename TView>
             static auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& extent)
-                -> detail::TaskSetSycl<TDim, TView, TExtent>
+                -> alpaka::detail::TaskSetSycl<TDim, TView, TExtent>
             {
-                return detail::TaskSetSycl<TDim, TView, TExtent>(view, byte, extent);
+                return alpaka::detail::TaskSetSycl<TDim, TView, TExtent>(view, byte, extent);
             }
         };
 

@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Luca Ferragina, Andrea Bocci
+/* Copyright 2024 Jan Stephan, Luca Ferragina, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,8 +12,6 @@
 
 #    include <sycl/sycl.hpp>
 
-#    include <string>
-
 namespace alpaka
 {
     namespace detail
@@ -24,7 +22,8 @@ namespace alpaka
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wweak-vtables"
 #    endif
-        struct IntelFpgaSelector final
+        template<>
+        struct SYCLDeviceSelector<TagFpgaSyclIntel>
         {
 #    ifdef ALPAKA_FPGA_EMULATION
             static constexpr auto platform_name = "Intel(R) FPGA Emulation Platform for OpenCL(TM)";
@@ -46,17 +45,7 @@ namespace alpaka
     } // namespace detail
 
     //! The SYCL device manager.
-    using PlatformFpgaSyclIntel = PlatformGenericSycl<detail::IntelFpgaSelector>;
+    using PlatformFpgaSyclIntel = PlatformGenericSycl<TagFpgaSyclIntel>;
 } // namespace alpaka
-
-namespace alpaka::trait
-{
-    //! The SYCL device manager device type trait specialization.
-    template<>
-    struct DevType<PlatformFpgaSyclIntel>
-    {
-        using type = DevGenericSycl<PlatformFpgaSyclIntel>; // = DevFpgaSyclIntel
-    };
-} // namespace alpaka::trait
 
 #endif

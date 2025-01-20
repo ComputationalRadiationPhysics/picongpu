@@ -8,7 +8,7 @@ linux_clang-14_debug_analysis:
     CMAKE_BUILD_TYPE: Debug
     ALPAKA_BOOST_VERSION: 1.80.0
     ALPAKA_CI_CMAKE_VER: 3.23.5
+    alpaka_CXX_STANDARD: 17
     ALPAKA_CI_ANALYSIS: "ON"
     alpaka_DEBUG: 2
     alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: "OFF"
-

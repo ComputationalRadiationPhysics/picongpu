@@ -231,7 +231,7 @@ namespace alpaka::rand
         template<typename TApi, typename T>
         struct CreateNormalReal<RandUniformCudaHipRand<TApi>, T, std::enable_if_t<std::is_floating_point_v<T>>>
         {
-            __device__ static auto createNormalReal(RandUniformCudaHipRand<TApi> const& /*rand*/)
+            static __device__ auto createNormalReal(RandUniformCudaHipRand<TApi> const& /*rand*/)
                 -> uniform_cuda_hip::NormalReal<T>
             {
                 return {};
@@ -242,7 +242,7 @@ namespace alpaka::rand
         template<typename TApi, typename T>
         struct CreateUniformReal<RandUniformCudaHipRand<TApi>, T, std::enable_if_t<std::is_floating_point_v<T>>>
         {
-            __device__ static auto createUniformReal(RandUniformCudaHipRand<TApi> const& /*rand*/)
+            static __device__ auto createUniformReal(RandUniformCudaHipRand<TApi> const& /*rand*/)
                 -> uniform_cuda_hip::UniformReal<T>
             {
                 return {};
@@ -253,7 +253,7 @@ namespace alpaka::rand
         template<typename TApi, typename T>
         struct CreateUniformUint<RandUniformCudaHipRand<TApi>, T, std::enable_if_t<std::is_integral_v<T>>>
         {
-            __device__ static auto createUniformUint(RandUniformCudaHipRand<TApi> const& /*rand*/)
+            static __device__ auto createUniformUint(RandUniformCudaHipRand<TApi> const& /*rand*/)
                 -> uniform_cuda_hip::UniformUint<T>
             {
                 return {};
@@ -267,7 +267,7 @@ namespace alpaka::rand
         template<typename TApi>
         struct CreateDefault<RandUniformCudaHipRand<TApi>>
         {
-            __device__ static auto createDefault(
+            static __device__ auto createDefault(
                 RandUniformCudaHipRand<TApi> const& /*rand*/,
                 std::uint32_t const& seed = 0,
                 std::uint32_t const& subsequence = 0,

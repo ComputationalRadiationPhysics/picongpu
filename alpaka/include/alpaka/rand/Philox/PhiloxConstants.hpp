@@ -31,34 +31,40 @@ namespace alpaka::rand::engine
     class PhiloxConstants
     {
     public:
+        /// First Weyl sequence parameter: the golden ratio
         static constexpr std::uint64_t WEYL_64_0()
         {
-            return 0x9E37'79B9'7F4A'7C15; ///< First Weyl sequence parameter: the golden ratio
+            return 0x9E37'79B9'7F4A'7C15;
         }
 
+        /// Second Weyl sequence parameter: \f$ \sqrt{3}-1 \f$
         static constexpr std::uint64_t WEYL_64_1()
         {
-            return 0xBB67'AE85'84CA'A73B; ///< Second Weyl sequence parameter: \f$ \sqrt{3}-1 \f$
+            return 0xBB67'AE85'84CA'A73B;
         }
 
+        /// 1st Weyl sequence parameter, 32 bits
         static constexpr std::uint32_t WEYL_32_0()
         {
-            return high32Bits(WEYL_64_0()); ///< 1st Weyl sequence parameter, 32 bits
+            return high32Bits(WEYL_64_0());
         }
 
+        /// 2nd Weyl sequence parameter, 32 bits
         static constexpr std::uint32_t WEYL_32_1()
         {
-            return high32Bits(WEYL_64_1()); ///< 2nd Weyl sequence parameter, 32 bits
+            return high32Bits(WEYL_64_1());
         }
 
+        /// First Philox S-box multiplier
         static constexpr std::uint32_t MULTIPLITER_4x32_0()
         {
-            return 0xCD9E'8D57; ///< First Philox S-box multiplier
+            return 0xCD9E'8D57;
         }
 
+        /// Second Philox S-box multiplier
         static constexpr std::uint32_t MULTIPLITER_4x32_1()
         {
-            return 0xD251'1F53; ///< Second Philox S-box multiplier
+            return 0xD251'1F53;
         }
     };
 } // namespace alpaka::rand::engine

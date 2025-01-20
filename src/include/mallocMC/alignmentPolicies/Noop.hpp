@@ -30,6 +30,7 @@
 #include "Noop.hpp"
 
 #include <alpaka/core/Common.hpp>
+
 #include <cstdint>
 #include <string>
 #include <tuple>

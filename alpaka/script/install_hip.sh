@@ -5,9 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: install_hip>"
 
 : "${ALPAKA_CI_HIP_ROOT_DIR?'ALPAKA_CI_HIP_ROOT_DIR must be specified'}"
 : "${ALPAKA_CI_HIP_VERSION?'ALPAKA_CI_HIP_VERSION must be specified'}"
@@ -15,8 +16,11 @@ source ./script/set.sh
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 if agc-manager -e rocm@${ALPAKA_CI_HIP_VERSION} ; then
+    echo_green "<USE: preinstalled ROCm ${ALPAKA_CI_HIP_VERSION}>"
     export ROCM_PATH=$(agc-manager -b rocm@${ALPAKA_CI_HIP_VERSION})
 else
+    echo_yellow "<INSTALL: ROCm ${ALPAKA_CI_HIP_VERSION}>"
+
     travis_retry apt-get -y --quiet update
     travis_retry apt-get -y --quiet install wget gnupg2
     # AMD container keys are outdated and must be updated
@@ -44,6 +48,15 @@ export HSA_PATH=$ROCM_PATH
 
 export PATH=${ROCM_PATH}/bin:$PATH
 export PATH=${ROCM_PATH}/llvm/bin:$PATH
+
+# Workaround if clang uses the stdlibc++. The stdlibc++-9 does not support C++20, therefore we install the stdlibc++-11. Clang automatically uses the latest stdlibc++ version.
+if [[ "$(cat /etc/os-release)" =~ "20.04" ]] && [ "${alpaka_CXX_STANDARD}" == "20" ];
+then
+    travis_retry sudo apt install -y --no-install-recommends software-properties-common
+    sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
+    travis_retry sudo apt update
+    travis_retry sudo apt install -y --no-install-recommends g++-11
+fi
 
 sudo update-alternatives --install /usr/bin/clang clang ${ROCM_PATH}/llvm/bin/clang 50
 sudo update-alternatives --install /usr/bin/clang++ clang++ ${ROCM_PATH}/llvm/bin/clang++ 50
@@ -88,3 +101,6 @@ hipconfig
 rocm-smi
 # print newline as previous command does not do this
 echo
+
+# use the clang++ of the HIP SDK as C++ compiler
+export CMAKE_CXX_COMPILER=$(which clang++)

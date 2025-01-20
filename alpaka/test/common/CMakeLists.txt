@@ -33,13 +33,13 @@ target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE alpaka::alpaka)
 # Prevent "unsafe buffer usage" warnings from clang >= 16
 if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "16.0.0") OR
    (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "2023.2.0"))
-    
+
     target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "-Wno-unsafe-buffer-usage")
 
     # We have no way to determine if we are using amdclang++. So we will just decide this by checking for the HIP back-end.
     if(alpaka_ACC_GPU_HIP_ENABLE)
         # amdclang++-5.5 pretends to be clang-16 but doesn't know all warnings.
-        target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "-Wno-unknown-warning-option") 
+        target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "-Wno-unknown-warning-option")
     endif()
 endif()
 

@@ -5,7 +5,7 @@
 
   Copyright (C) 2012 Institute for Computer Graphics and Vision,
                      Graz University of Technology
-  Copyright (C) 2014-2015 Institute of Radiation Physics,
+  Copyright (C) 2014-2024 Institute of Radiation Physics,
                           Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Markus Steinberger - steinberger ( at ) icg.tugraz.at
@@ -14,6 +14,7 @@
               Rene Widera - r.widera ( at ) hzdr.de
               Axel Huebl - a.huebl ( at ) hzdr.de
               Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +38,8 @@
 #pragma once
 
 /** the mallocMC version: major API changes should be reflected here */
-#define MALLOCMC_VERSION_MAJOR 2
-#define MALLOCMC_VERSION_MINOR 6
+#define MALLOCMC_VERSION_MAJOR 3
+#define MALLOCMC_VERSION_MINOR 0
 #define MALLOCMC_VERSION_PATCH 0
 
 /** the mallocMC flavor is used to differentiate the releases of the

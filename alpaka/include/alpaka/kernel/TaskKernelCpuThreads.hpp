@@ -17,8 +17,10 @@
 #include "alpaka/core/Decay.hpp"
 #include "alpaka/core/ThreadPool.hpp"
 #include "alpaka/dev/DevCpu.hpp"
+#include "alpaka/kernel/KernelFunctionAttributes.hpp"
 #include "alpaka/kernel/Traits.hpp"
 #include "alpaka/meta/NdLoop.hpp"
+#include "alpaka/platform/PlatformCpu.hpp"
 #include "alpaka/workdiv/WorkDivMembers.hpp"
 
 #include <algorithm>
@@ -200,6 +202,38 @@ namespace alpaka
         {
             using type = TIdx;
         };
+
+        //! \brief Specialisation of the class template FunctionAttributes
+        //! \tparam TDev The device type.
+        //! \tparam TDim The dimensionality of the accelerator device properties.
+        //! \tparam TIdx The idx type of the accelerator device properties.
+        //! \tparam TKernelFn Kernel function object type.
+        //! \tparam TArgs Kernel function object argument types as a parameter pack.
+        template<typename TDev, typename TDim, typename TIdx, typename TKernelFn, typename... TArgs>
+        struct FunctionAttributes<AccCpuThreads<TDim, TIdx>, TDev, TKernelFn, TArgs...>
+        {
+            //! \param dev The device instance
+            //! \param kernelFn The kernel function object which should be executed.
+            //! \param args The kernel invocation arguments.
+            //! \return KernelFunctionAttributes instance. The default version always returns an instance with zero
+            //! fields. For CPU, the field of max threads allowed by kernel function for the block is 1.
+            ALPAKA_FN_HOST static auto getFunctionAttributes(
+                TDev const& dev,
+                [[maybe_unused]] TKernelFn const& kernelFn,
+                [[maybe_unused]] TArgs&&... args) -> alpaka::KernelFunctionAttributes
+            {
+                alpaka::KernelFunctionAttributes kernelFunctionAttributes;
+
+                // set function properties for maxThreadsPerBlock to device properties, since API doesn't have function
+                // properties function.
+                auto const& props = alpaka::getAccDevProps<AccCpuThreads<TDim, TIdx>>(dev);
+                kernelFunctionAttributes.maxThreadsPerBlock = static_cast<int>(props.m_blockThreadCountMax);
+                kernelFunctionAttributes.maxDynamicSharedSizeBytes
+                    = static_cast<int>(alpaka::BlockSharedDynMemberAllocKiB * 1024);
+                return kernelFunctionAttributes;
+            }
+        };
+
     } // namespace trait
 } // namespace alpaka
 

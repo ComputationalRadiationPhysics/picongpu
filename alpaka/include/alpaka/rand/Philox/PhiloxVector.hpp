@@ -5,7 +5,7 @@
 #pragma once
 
 #include "alpaka/rand/Philox/MultiplyAndSplit64to32.hpp"
-#include "alpaka/rand/Philox/PhiloxBaseTraits.hpp"
+#include "alpaka/rand/Philox/PhiloxBaseCommon.hpp"
 
 #include <utility>
 
@@ -22,8 +22,10 @@ namespace alpaka::rand::engine
         using Counter = TCounter;
         using Key = TKey;
 
-        Counter counter; ///< Counter array
-        Key key; ///< Key array
+        /// Counter array
+        Counter counter;
+        /// Key array
+        Key key;
     };
 
     /** Philox engine generating a vector of numbers
@@ -32,21 +34,23 @@ namespace alpaka::rand::engine
      * This is a convenience vs. memory size tradeoff since the user has to deal with the output array
      * themselves, but the internal state comprises only of a single counter and a key.
      *
-     * @tparam TAcc Accelerator type as defined in alpaka/acc
      * @tparam TParams Basic parameters for the Philox algorithm
      */
-    template<typename TAcc, typename TParams>
-    class PhiloxVector : public trait::PhiloxBaseTraits<TAcc, TParams, PhiloxVector<TAcc, TParams>>::Base
+    template<typename TParams>
+    class PhiloxVector : public PhiloxBaseCommon<TParams, PhiloxVector<TParams>>
     {
     public:
-        /// Specialization for different TAcc backends
-        using Traits = trait::PhiloxBaseTraits<TAcc, TParams, PhiloxVector<TAcc, TParams>>;
+        using Base = PhiloxBaseCommon<TParams, PhiloxVector<TParams>>;
 
-        using Counter = typename Traits::Counter; ///< Backend-dependent Counter type
-        using Key = typename Traits::Key; ///< Backend-dependent Key type
-        using State = PhiloxStateVector<Counter, Key>; ///< Backend-dependent State type
+        /// Counter type
+        using Counter = typename Base::Counter;
+        /// Key type
+        using Key = typename Base::Key;
+        /// State type
+        using State = PhiloxStateVector<Counter, Key>;
+
         template<typename TDistributionResultScalar>
-        using ResultContainer = typename Traits::template ResultContainer<TDistributionResultScalar>;
+        using ResultContainer = typename Base::template ResultContainer<TDistributionResultScalar>;
 
         State state;
 

@@ -3,7 +3,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <alpaka/example/ExecuteForEachAccTag.hpp>
 
 #include <chrono>
 #include <cstdint>
@@ -17,8 +17,7 @@ constexpr unsigned NUM_ROLLS = 2000; ///< Amount of random number "dice rolls" p
 
 /// Selected PRNG engine
 // Comment the current "using" line, and uncomment a different one to change the PRNG engine
-template<typename TAcc>
-using RandomEngine = alpaka::rand::Philox4x32x10<TAcc>;
+using RandomEngine = alpaka::rand::Philox4x32x10;
 
 // using RandomEngine = alpaka::rand::engine::cpu::MersenneTwister;
 // using RandomEngine = alpaka::rand::engine::cpu::TinyMersenneTwister;
@@ -26,13 +25,14 @@ using RandomEngine = alpaka::rand::Philox4x32x10<TAcc>;
 
 
 /// Parameters to set up the default accelerator, queue, and buffers
+template<typename TAccTag>
 struct Box
 {
     // accelerator, queue, and work division typedefs
     using Dim = alpaka::DimInt<1>;
     using Idx = std::size_t;
     using Vec = alpaka::Vec<Dim, Idx>;
-    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     using PlatformHost = alpaka::PlatformCpu;
     using Host = alpaka::Dev<PlatformHost>;
     using PlatformAcc = alpaka::Platform<Acc>;
@@ -45,11 +45,12 @@ struct Box
     QueueAcc queue; ///< default accelerator queue
 
     // buffers holding the PRNG states
-    using BufHostRand = alpaka::Buf<Host, RandomEngine<Acc>, Dim, Idx>;
-    using BufAccRand = alpaka::Buf<Acc, RandomEngine<Acc>, Dim, Idx>;
+    using BufHostRand = alpaka::Buf<Host, RandomEngine, Dim, Idx>;
+    using BufAccRand = alpaka::Buf<Acc, RandomEngine, Dim, Idx>;
 
     Vec const extentRand; ///< size of the buffer of PRNG states
-    WorkDiv workdivRand; ///< work division for PRNG buffer initialization
+    // WorkDiv workdivRand; ///< work division for PRNG buffer initialization // REMOVE THAT!!
+    // WorkDiv workdivResult; ///< work division of the result calculation // REMOVE THAT!!
     BufHostRand bufHostRand; ///< host side PRNG states buffer (can be used to check the state of the states)
     BufAccRand bufAccRand; ///< device side PRNG states buffer
 
@@ -58,28 +59,16 @@ struct Box
     using BufAcc = alpaka::Buf<Acc, float, Dim, Idx>;
 
     Vec const extentResult; ///< size of the results buffer
-    WorkDiv workdivResult; ///< work division of the result calculation
+
     BufHost bufHostResult; ///< host side results buffer
     BufAcc bufAccResult; ///< device side results buffer
 
     Box()
         : queue{alpaka::getDevByIdx(accPlatform, 0)}
         , extentRand{static_cast<Idx>(NUM_POINTS)} // One PRNG state per "point".
-        , workdivRand{alpaka::getValidWorkDiv<Acc>(
-              alpaka::getDevByIdx(accPlatform, 0),
-              extentRand,
-              Vec(Idx{1}),
-              false,
-              alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)}
-        , bufHostRand{alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentRand)}
-        , bufAccRand{alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentRand)}
+        , bufHostRand{alpaka::allocBuf<RandomEngine, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentRand)}
+        , bufAccRand{alpaka::allocBuf<RandomEngine, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentRand)}
         , extentResult{static_cast<Idx>((NUM_POINTS * NUM_ROLLS))} // Store all "rolls" for each "point"
-        , workdivResult{alpaka::getValidWorkDiv<Acc>(
-              alpaka::getDevByIdx(accPlatform, 0),
-              extentResult,
-              Vec(static_cast<Idx>(NUM_ROLLS)), // One thread per "point"; each performs NUM_ROLLS "rolls"
-              false,
-              alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)}
         , bufHostResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx(hostPlatform, 0), extentResult)}
         , bufAccResult{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx(accPlatform, 0), extentResult)}
     {
@@ -167,7 +156,7 @@ struct FillKernel
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc, ///< current accelerator
         TExtent const extent, ///< size of the results buffer
-        RandomEngine<TAcc>* const states, ///< PRNG states buffer
+        RandomEngine* const states, ///< PRNG states buffer
         float* const cells ///< results buffer
     ) const -> void
     {
@@ -180,7 +169,7 @@ struct FillKernel
             auto const numWorkers
                 = alpaka::math::min(acc, numGridThreads, static_cast<decltype(numGridThreads)>(NUM_POINTS));
 
-            RandomEngine<TAcc> engine(states[idx]); // Setup the PRNG using the saved state for this thread.
+            RandomEngine engine(states[idx]); // Setup the PRNG using the saved state for this thread.
             alpaka::rand::UniformReal<float> dist; // Setup the random number distribution
             for(uint32_t i = idx; i < extent[0]; i += numWorkers)
             {
@@ -195,13 +184,14 @@ struct FillKernel
  *
  *  File is in TSV format. One line for each "point"; line length is the number of "rolls".
  */
-void saveDataAndShowAverage(std::string filename, float const* buffer, Box const& box)
+template<typename TAccTag>
+void saveDataAndShowAverage(std::string filename, float const* buffer, Box<TAccTag> const& box)
 {
     std::ofstream output(filename);
     std::cout << "Writing " << filename << " ... " << std::flush;
     auto const lineLength = box.extentResult[0] / box.extentRand[0];
     double average = 0;
-    for(Box::Idx i = 0; i < box.extentResult[0]; ++i)
+    for(typename Box<TAccTag>::Idx i = 0; i < box.extentResult[0]; ++i)
     {
         output << buffer[i] << ((i + 1) % lineLength ? "\t" : "\n");
         average += buffer[i];
@@ -217,7 +207,8 @@ struct Writer;
 template<>
 struct Writer<Strategy::seed>
 {
-    static void save(float const* buffer, Box const& box)
+    template<typename TAccTag>
+    static void save(float const* buffer, Box<TAccTag> const& box)
     {
         saveDataAndShowAverage("out_seed.csv", buffer, box);
     }
@@ -226,7 +217,8 @@ struct Writer<Strategy::seed>
 template<>
 struct Writer<Strategy::subsequence>
 {
-    static void save(float const* buffer, Box const& box)
+    template<typename TAccTag>
+    static void save(float const* buffer, Box<TAccTag> const& box)
     {
         saveDataAndShowAverage("out_subsequence.csv", buffer, box);
     }
@@ -235,17 +227,18 @@ struct Writer<Strategy::subsequence>
 template<>
 struct Writer<Strategy::offset>
 {
-    static void save(float const* buffer, Box const& box)
+    template<typename TAccTag>
+    static void save(float const* buffer, Box<TAccTag> const& box)
     {
         saveDataAndShowAverage("out_offset.csv", buffer, box);
     }
 };
 
-template<Strategy TStrategy>
-void runStrategy(Box& box)
+template<Strategy TStrategy, typename TAccTag>
+void runStrategy(Box<TAccTag>& box)
 {
     // Set up the pointer to the PRNG states buffer
-    RandomEngine<Box::Acc>* const ptrBufAccRand{alpaka::getPtrNative(box.bufAccRand)};
+    RandomEngine* const ptrBufAccRand{std::data(box.bufAccRand)};
 
     // Initialize the PRNG and its states on the device
     InitRandomKernel<TStrategy> initRandomKernel;
@@ -253,9 +246,26 @@ void runStrategy(Box& box)
     // of the PRNG buffer and has to be passed in explicitly. Other strategies ignore the last parameter, and deduce
     // the initial parameters solely from the thread index
 
-    alpaka::exec<Box::Acc>(
+
+    alpaka::KernelCfg<typename Box<TAccTag>::Acc> kernelCfg
+        = {box.extentRand,
+           typename Box<TAccTag>::Vec(typename Box<TAccTag>::Idx{1}),
+           false,
+           alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDivRand = alpaka::getValidWorkDiv(
+        kernelCfg,
+        alpaka::getDevByIdx(box.accPlatform, 0),
+        initRandomKernel,
+        box.extentRand,
+        ptrBufAccRand,
+        static_cast<unsigned>(box.extentResult[0] / box.extentRand[0]));
+
+
+    alpaka::exec<typename Box<TAccTag>::Acc>(
         box.queue,
-        box.workdivRand,
+        workDivRand,
         initRandomKernel,
         box.extentRand,
         ptrBufAccRand,
@@ -265,22 +275,46 @@ void runStrategy(Box& box)
     alpaka::wait(box.queue);
 
     // OPTIONAL: copy the the initial states to host if you want to check them yourself
-    // alpaka_rand::Philox4x32x10<Box::Acc>* const ptrBufHostRand{alpaka::getPtrNative(box.bufHostRand)};
+    // alpaka_rand::Philox4x32x10<Box::Acc>* const ptrBufHostRand{std::data(box.bufHostRand)};
     // alpaka::memcpy(box.queue, box.bufHostRand, box.bufAccRand);
     // alpaka::wait(box.queue);
 
     // Set up the pointers to the results buffers
-    float* const ptrBufHostResult{alpaka::getPtrNative(box.bufHostResult)};
-    float* const ptrBufAccResult{alpaka::getPtrNative(box.bufAccResult)};
+    float* const ptrBufHostResult{std::data(box.bufHostResult)};
+    float* const ptrBufAccResult{std::data(box.bufAccResult)};
 
     // Initialise the results buffer to zero
-    for(Box::Idx i = 0; i < box.extentResult[0]; ++i)
+    for(typename Box<TAccTag>::Idx i = 0; i < box.extentResult[0]; ++i)
         ptrBufHostResult[i] = 0;
 
     // Run the "computation" kernel filling the results buffer with random numbers in parallel
     alpaka::memcpy(box.queue, box.bufAccResult, box.bufHostResult);
     FillKernel fillKernel;
-    alpaka::exec<Box::Acc>(box.queue, box.workdivResult, fillKernel, box.extentResult, ptrBufAccRand, ptrBufAccResult);
+
+    alpaka::KernelCfg<typename Box<TAccTag>::Acc> fillKernelCfg
+        = {box.extentResult,
+           typename Box<TAccTag>::Vec(static_cast<typename Box<TAccTag>::Idx>(
+               NUM_ROLLS)), // One thread per "point"; each performs NUM_ROLLS "rolls"
+           false,
+           alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workdivResult = alpaka::getValidWorkDiv(
+        fillKernelCfg,
+        alpaka::getDevByIdx(box.accPlatform, 0),
+        fillKernel,
+        box.extentResult,
+        ptrBufAccRand,
+        ptrBufAccResult);
+
+
+    alpaka::exec<typename Box<TAccTag>::Acc>(
+        box.queue,
+        workdivResult,
+        fillKernel,
+        box.extentResult,
+        ptrBufAccRand,
+        ptrBufAccResult);
     alpaka::memcpy(box.queue, box.bufHostResult, box.bufAccResult);
     alpaka::wait(box.queue);
 
@@ -288,13 +322,34 @@ void runStrategy(Box& box)
     Writer<TStrategy>::save(ptrBufHostResult, box);
 }
 
-auto main() -> int
+// In standard projects, you typically do not execute the code with any available accelerator.
+// Instead, a single accelerator is selected once from the active accelerators and the kernels are executed with the
+// selected accelerator only. If you use the example as the starting point for your project, you can rename the
+// example() function to main() and move the accelerator tag to the function body.
+template<typename TAccTag>
+auto example(TAccTag const&) -> int
 {
-    Box box; // Initialize the box
+    Box<TAccTag> box; // Initialize the box
 
     runStrategy<Strategy::seed>(box); // threads start from different seeds
     runStrategy<Strategy::subsequence>(box); // threads use different subsequences
     runStrategy<Strategy::offset>(box); // threads start form an offset equal to the amount of work per thread
 
     return 0;
+}
+
+auto main() -> int
+{
+    // Execute the example once for each enabled accelerator.
+    // If you would like to execute it for a single accelerator only you can use the following code.
+    //  \code{.cpp}
+    //  auto tag = TagCpuSerial;
+    //  return example(tag);
+    //  \endcode
+    //
+    // valid tags:
+    //   TagCpuSerial, TagGpuHipRt, TagGpuCudaRt, TagCpuOmp2Blocks, TagCpuTbbBlocks,
+    //   TagCpuOmp2Threads, TagCpuSycl, TagCpuTbbBlocks, TagCpuThreads,
+    //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
+    return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }

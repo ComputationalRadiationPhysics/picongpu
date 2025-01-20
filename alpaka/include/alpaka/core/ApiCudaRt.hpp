@@ -75,6 +75,7 @@ namespace alpaka
         static constexpr DeviceAttr_t deviceAttributeMaxSharedMemoryPerBlock = ::cudaDevAttrMaxSharedMemoryPerBlock;
         static constexpr DeviceAttr_t deviceAttributeMaxThreadsPerBlock = ::cudaDevAttrMaxThreadsPerBlock;
         static constexpr DeviceAttr_t deviceAttributeMultiprocessorCount = ::cudaDevAttrMultiProcessorCount;
+        static constexpr DeviceAttr_t deviceAttributeWarpSize = ::cudaDevAttrWarpSize;
 
         static constexpr Limit_t limitPrintfFifoSize = ::cudaLimitPrintfFifoSize;
         static constexpr Limit_t limitMallocHeapSize = ::cudaLimitMallocHeapSize;
@@ -181,7 +182,14 @@ namespace alpaka
         template<typename T>
         static inline Error_t funcGetAttributes(FuncAttributes_t* attr, T* func)
         {
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wconditionally-supported"
+#    endif
             return ::cudaFuncGetAttributes(attr, reinterpret_cast<void const*>(func));
+#    if BOOST_COMP_GNUC
+#        pragma GCC diagnostic pop
+#    endif
         }
 
         static inline Error_t getDeviceCount(int* count)

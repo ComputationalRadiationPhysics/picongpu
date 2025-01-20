@@ -33,7 +33,7 @@ if(MSVC)
     endif()
     # Improve debugging.
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:SHELL:/Zo>"
-                                           "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CUDA>>:-Xcompiler /Zo>")
+                                           "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-Xcompiler /Zo>")
 
     # Flags added in Visual Studio 2013
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:SHELL:/Zc:throwingNew>"
@@ -50,7 +50,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wall")
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wextra")
     # Turn off -pedantic when compiling CUDA code, otherwise the CI logs are flooded with warnings. gcc doesn't like nvcc's code transformations.
-    list(APPEND alpaka_DEV_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-pedantic>" 
+    list(APPEND alpaka_DEV_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-pedantic>"
                                            "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -Wno-pedantic>")
     if(alpaka_ENABLE_WERROR)
         list(APPEND alpaka_DEV_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-Werror>"
@@ -189,7 +189,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Inte
         if (alpaka_ACC_SYCL_ENABLE)
             # avoid: warning: disabled expansion of recursive macro
             list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-disabled-macro-expansion")
+            list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-reserved-identifier")
+            list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-old-style-cast")
         endif()
     endif()
 endif()
-

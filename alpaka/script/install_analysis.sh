@@ -5,9 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: install_analysis>"
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then

@@ -5,8 +5,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: install_doxygen>"
 
 travis_retry sudo apt-get -y --quiet install --no-install-recommends doxygen graphviz

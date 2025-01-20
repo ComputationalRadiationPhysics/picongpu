@@ -1,4 +1,4 @@
-/* Copyright 2022 Jan Stephan
+/* Copyright 2024 Jan Stephan, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -10,8 +10,8 @@
 
 namespace alpaka
 {
-    template<typename TDev>
-    using QueueGenericSyclBlocking = detail::QueueGenericSyclBase<TDev, true>;
+    template<typename TTag>
+    using QueueGenericSyclBlocking = detail::QueueGenericSyclBase<TTag, true>;
 } // namespace alpaka
 
 #endif

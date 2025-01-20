@@ -108,7 +108,6 @@ using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::uint32_t>;
 TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
     Idx const numElements = 1u << 16u;
@@ -130,13 +129,17 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     // Get a queue on this device.
     QueueAcc queue(devAcc);
 
-    // Set the grid blocks extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        numElements,
-        static_cast<Idx>(1u),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
+
+    auto blockRetValuesDummy = alpaka::allocBuf<Val, Idx>(devAcc, static_cast<Idx>(1));
+
+    // Kernel input during the runtime of kernel will be different and is chosen to depend on workdiv.
+    // Therefore, initially a  workdiv is needed to find the parameter. Therefore, in kernel bundle, we can not use the
+    // real input for the buffer pointer.
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    alpaka::KernelCfg<Acc> const kernelCfg
+        = {numElements, static_cast<Idx>(1u), false, alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+    auto const workDiv = alpaka::getValidWorkDiv(kernelCfg, devAcc, kernel, std::data(blockRetValuesDummy));
 
     std::cout << "SharedMemKernel("
               << " accelerator: " << alpaka::getAccName<Acc>()
@@ -155,7 +158,7 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     alpaka::memcpy(queue, blockRetValsAcc, blockRetVals, resultElemCount);
 
     // Create the kernel execution task.
-    auto const taskKernel = alpaka::createTaskKernel<Acc>(workDiv, kernel, alpaka::getPtrNative(blockRetValsAcc));
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(workDiv, kernel, std::data(blockRetValsAcc));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

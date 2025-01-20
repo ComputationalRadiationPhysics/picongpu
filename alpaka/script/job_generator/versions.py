@@ -14,8 +14,6 @@ sw_versions: Dict[str, List[str]] = {
     GCC: ["9", "10", "11", "12", "13"],
     CLANG: ["9", "10", "11", "12", "13", "14", "15", "16", "17"],
     NVCC: [
-        "11.0",
-        "11.1",
         "11.2",
         "11.3",
         "11.4",
@@ -27,9 +25,12 @@ sw_versions: Dict[str, List[str]] = {
         "12.1",
         "12.2",
         "12.3",
+        "12.4",
+        "12.5",
+        "12.6",
     ],
-    HIPCC: ["5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6.0"],
-    ICPX: ["2023.1.0", "2023.2.0"],
+    HIPCC: ["5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "6.0", "6.1", "6.2"],
+    ICPX: ["2024.2"],
     # Contains all enabled back-ends.
     # There are special cases for ALPAKA_ACC_GPU_CUDA_ENABLE and ALPAKA_ACC_GPU_HIP_ENABLE
     # which have to be combined with nvcc and hipcc versions.
@@ -74,7 +75,7 @@ sw_versions: Dict[str, List[str]] = {
         ],
     ],
     UBUNTU: ["20.04"],
-    CMAKE: ["3.22.6", "3.23.5", "3.24.4", "3.25.3", "3.26.4"],
+    CMAKE: ["3.22.6", "3.23.5", "3.24.4", "3.25.3", "3.26.4", "3.27.9", "3.28.6", "3.29.8", "3.30.3"],
     BOOST: [
         "1.74.0",
         "1.75.0",
@@ -85,6 +86,10 @@ sw_versions: Dict[str, List[str]] = {
         "1.80.0",
         "1.81.0",
         "1.82.0",
+        "1.83.0",
+        "1.84.0",
+        "1.85.0",
+        "1.86.0",
     ],
     CXX_STANDARD: ["17", "20"],
     BUILD_TYPE: BUILD_TYPES,
@@ -109,9 +114,7 @@ def get_compiler_versions(clang_cuda: bool = True) -> List[Tuple[str, str]]:
     compilers: List[Tuple[str, str]] = []
 
     # only use keys defined in sw_versions
-    for compiler_name in set(sw_versions.keys()).intersection(
-        [GCC, CLANG, NVCC, HIPCC, ICPX]
-    ):
+    for compiler_name in set(sw_versions.keys()).intersection([GCC, CLANG, NVCC, HIPCC, ICPX]):
         for version in sw_versions[compiler_name]:
             compilers.append((compiler_name, version))
             if clang_cuda and compiler_name == CLANG:

@@ -1,4 +1,4 @@
-/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Jan Stephan, René Widera, Andrea Bocci
+/* Copyright 2024 Axel Hübl, Benjamin Worpitz, Matthias Werner, Jan Stephan, René Widera, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -98,12 +98,12 @@
 //! This macro defines a variable lying in global accelerator device memory.
 //!
 //! Example:
-//!   ALPAKA_STATIC_ACC_MEM_GLOBAL int i;
+//!   ALPAKA_STATIC_ACC_MEM_GLOBAL alpaka::DevGlobal<TAcc, int> variable;
 //!
-//! Those variables behave like ordinary variables when used in file-scope.
-//! They have external linkage (are accessible from other compilation units).
-//! If you want to access it from a different compilation unit, you have to declare it as extern:
-//!   extern ALPAKA_STATIC_ACC_MEM_GLOBAL int i;
+//! Those variables behave like ordinary variables when used in file-scope,
+//! but inside kernels the get() method must be used to access the variable.
+//! They are declared inline to resolve to a single instance across multiple
+//! translation units.
 //! Like ordinary variables, only one definition is allowed (ODR)
 //! Failure to do so might lead to linker errors.
 //!
@@ -112,36 +112,53 @@
 //! because this is forbidden by CUDA.
 //!
 //! \attention It is not allowed to initialize the variable together with the declaration.
-//!            To initialize the variable alpaka::createStaticDevMemView and alpaka::memcpy must be used.
+//!            To initialize the variable alpaka::memcpy must be used.
 //! \code{.cpp}
-//! ALPAKA_STATIC_ACC_MEM_GLOBAL int foo;
+//! ALPAKA_STATIC_ACC_MEM_GLOBAL alpaka::DevGlobal<TAcc, int> foo;
+//!
+//! struct DeviceMemoryKernel
+//! {
+//!    ALPAKA_NO_HOST_ACC_WARNING
+//!    template<typename TAcc>
+//!    ALPAKA_FN_ACC void operator()(TAcc const& acc) const
+//!    {
+//!      auto a = foo<TAcc>.get();
+//!    }
+//!  }
 //!
 //! void initFoo() {
 //!     auto extent = alpaka::Vec<alpaka::DimInt<1u>, size_t>{1};
-//!     auto viewFoo = alpaka::createStaticDevMemView(&foo, device, extent);
 //!     int initialValue = 42;
 //!     alpaka::ViewPlainPtr<DevHost, int, alpaka::DimInt<1u>, size_t> bufHost(&initialValue, devHost, extent);
-//!     alpaka::memcpy(queue, viewGlobalMemUninitialized, bufHost, extent);
+//!     alpaka::memcpy(queue, foo<Acc>, bufHost, extent);
 //! }
 //! \endcode
 #if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
     || BOOST_LANG_HIP)
-#    define ALPAKA_STATIC_ACC_MEM_GLOBAL __device__
-#elif defined(ALPAKA_ACC_SYCL_ENABLED)
-#    define ALPAKA_STATIC_ACC_MEM_GLOBAL _Pragma("GCC error \"The SYCL backend does not support global device variables.\""))
+#    if defined(__CUDACC_RDC__) || defined(__CLANG_RDC__)
+#        define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                          \
+            template<typename TAcc>                                                                                   \
+            __device__ inline
+#    else
+#        define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                          \
+            template<typename TAcc>                                                                                   \
+            __device__ static
+#    endif
 #else
-#    define ALPAKA_STATIC_ACC_MEM_GLOBAL
+#    define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                              \
+        template<typename TAcc>                                                                                       \
+        inline
 #endif
 
 //! This macro defines a variable lying in constant accelerator device memory.
 //!
 //! Example:
-//!   ALPAKA_STATIC_ACC_MEM_CONSTANT int i;
+//!   ALPAKA_STATIC_ACC_MEM_CONSTANT alpaka::DevGlobal<TAcc, const int> variable;
 //!
-//! Those variables behave like ordinary variables when used in file-scope.
-//! They have external linkage (are accessible from other compilation units).
-//! If you want to access it from a different compilation unit, you have to declare it as extern:
-//!   extern ALPAKA_STATIC_ACC_MEM_CONSTANT int i;
+//! Those variables behave like ordinary variables when used in file-scope,
+//! but inside kernels the get() method must be used to access the variable.
+//! They are declared inline to resolve to a single instance across multiple
+//! translation units.
 //! Like ordinary variables, only one definition is allowed (ODR)
 //! Failure to do so might lead to linker errors.
 //!
@@ -150,25 +167,42 @@
 //! because this is forbidden by CUDA.
 //!
 //! \attention It is not allowed to initialize the variable together with the declaration.
-//!            To initialize the variable alpaka::createStaticDevMemView and alpaka::memcpy must be used.
+//!            To initialize the variable alpaka::memcpy must be used.
 //! \code{.cpp}
-//! ALPAKA_STATIC_ACC_MEM_CONSTANT int foo;
+//! ALPAKA_STATIC_ACC_MEM_CONSTANT alpaka::DevGlobal<TAcc, const int> foo;
+//!
+//! struct DeviceMemoryKernel
+//! {
+//!    ALPAKA_NO_HOST_ACC_WARNING
+//!    template<typename TAcc>
+//!    ALPAKA_FN_ACC void operator()(TAcc const& acc) const
+//!    {
+//!      auto a = foo<TAcc>.get();
+//!    }
+//!  }
 //!
 //! void initFoo() {
 //!     auto extent = alpaka::Vec<alpaka::DimInt<1u>, size_t>{1};
-//!     auto viewFoo = alpaka::createStaticDevMemView(&foo, device, extent);
 //!     int initialValue = 42;
 //!     alpaka::ViewPlainPtr<DevHost, int, alpaka::DimInt<1u>, size_t> bufHost(&initialValue, devHost, extent);
-//!     alpaka::memcpy(queue, viewGlobalMemUninitialized, bufHost, extent);
+//!     alpaka::memcpy(queue, foo<Acc>, bufHost, extent);
 //! }
 //! \endcode
 #if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
     || BOOST_LANG_HIP)
-#    define ALPAKA_STATIC_ACC_MEM_CONSTANT __constant__
-#elif defined(ALPAKA_ACC_SYCL_ENABLED)
-#    define ALPAKA_STATIC_ACC_MEM_CONSTANT _Pragma("GCC error \"The SYCL backend does not support global device constants.\""))
+#    if defined(__CUDACC_RDC__) || defined(__CLANG_RDC__)
+#        define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                        \
+            template<typename TAcc>                                                                                   \
+            __constant__ inline
+#    else
+#        define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                        \
+            template<typename TAcc>                                                                                   \
+            __constant__ static
+#    endif
 #else
-#    define ALPAKA_STATIC_ACC_MEM_CONSTANT
+#    define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                            \
+        template<typename TAcc>                                                                                       \
+        inline
 #endif
 
 //! This macro disables memory optimizations for annotated device memory.

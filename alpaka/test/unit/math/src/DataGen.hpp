@@ -11,6 +11,11 @@
 #include <limits>
 #include <random>
 
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wswitch-default"
+#endif
+
 namespace mathtest
 {
     //! Helper to generate random numbers of the given type for testing
@@ -199,3 +204,7 @@ namespace mathtest
         }
     }
 } // namespace mathtest
+
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif

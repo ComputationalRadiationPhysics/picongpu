@@ -79,8 +79,8 @@ auto reduce(
     auto const taskKernelReduceMain = alpaka::createTaskKernel<Acc>(
         workDiv1,
         kernel1,
-        alpaka::getPtrNative(sourceDeviceMemory),
-        alpaka::getPtrNative(destinationDeviceMemory),
+        std::data(sourceDeviceMemory),
+        std::data(destinationDeviceMemory),
         n,
         func);
 
@@ -88,8 +88,8 @@ auto reduce(
     auto const taskKernelReduceLastBlock = alpaka::createTaskKernel<Acc>(
         workDiv2,
         kernel2,
-        alpaka::getPtrNative(destinationDeviceMemory),
-        alpaka::getPtrNative(destinationDeviceMemory),
+        std::data(destinationDeviceMemory),
+        std::data(destinationDeviceMemory),
         blockCount,
         func);
 
@@ -131,7 +131,7 @@ auto main() -> int
     // allocate memory
     auto hostMemory = alpaka::allocBuf<T, Idx>(devHost, n);
 
-    T* nativeHostMemory = alpaka::getPtrNative(hostMemory);
+    T* nativeHostMemory = std::data(hostMemory);
 
     // fill array with data
     for(uint64_t i = 0; i < n; i++)

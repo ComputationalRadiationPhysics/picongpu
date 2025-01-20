@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2024 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -121,6 +121,18 @@ namespace alpaka
             using type = AccCpuOmp2Threads<TDim, TIdx>;
         };
 
+        //! The CPU OpenMP 2.0 thread single thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsSingleThreadAcc<AccCpuOmp2Threads<TDim, TIdx>> : std::false_type
+        {
+        };
+
+        //! The CPU OpenMP 2.0 thread multi thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsMultiThreadAcc<AccCpuOmp2Threads<TDim, TIdx>> : std::true_type
+        {
+        };
+
         //! The CPU OpenMP 2.0 thread accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuOmp2Threads<TDim, TIdx>>
@@ -132,6 +144,7 @@ namespace alpaka
 #    else
                 auto const blockThreadCountMax = alpaka::core::clipCast<TIdx>(::omp_get_max_threads());
 #    endif
+                auto const memBytes = getMemBytes(dev);
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(1),
                         // m_gridBlockExtentMax
@@ -147,7 +160,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        getMemBytes(dev)};
+                        memBytes,
+                        // m_globalMemSizeBytes
+                        memBytes};
             }
         };
 

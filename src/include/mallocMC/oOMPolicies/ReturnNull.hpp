@@ -30,6 +30,7 @@
 #include "ReturnNull.hpp"
 
 #include <alpaka/core/Common.hpp>
+
 #include <string>
 
 namespace mallocMC

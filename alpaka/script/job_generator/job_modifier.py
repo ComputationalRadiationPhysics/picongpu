@@ -48,13 +48,13 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
 
     # This is a helper dictionary to find the latest minor version of a CUDA SDK major, used by a
     # specific host compiler.
-    # e.g. We have CUDA SDK versions from 11.0 to 11.8 and 12.0 and 12.1. GCC as host compiler
+    # e.g. We have CUDA SDK versions from 11.2 to 11.8 and 12.0 and 12.1. GCC as host compiler
     # supports all SDK versions, Clang as host compiler only the 11 versions and Clang as CUDA
     # compiler only up to 11.5. So the result is (see CUDA_SDK_per_compiler later):
     # {"GCC" : ["11.8", "12.1"], "Clang" : ["11.8"], "Clang-CUDA" : ["11.5"]}
 
     # { compiler_name : {major : (minor, (version_string)}}
-    latest_CUDA_SDK_minor_versions: Dict[str : Dict[int:(int, str)]] = {
+    latest_CUDA_SDK_minor_versions: Dict[str : Dict[int : (int, str)]] = {
         GCC: {},
         CLANG: {},
         CLANG_CUDA: {},
@@ -64,22 +64,14 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
     VERSION_STRING = 1
 
     for job in job_matrix:
-        if (
-            ALPAKA_ACC_GPU_CUDA_ENABLE in job
-            and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER
-        ):
+        if ALPAKA_ACC_GPU_CUDA_ENABLE in job and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER:
             v = version.parse(job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION])
-            if not v.major in latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]]:
+            if v.major not in latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]]:
                 latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]][v.major] = (
                     v.minor,
                     job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION],
                 )
-            elif (
-                latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]][v.major][
-                    MINOR_VERSION
-                ]
-                < v.minor
-            ):
+            elif latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]][v.major][MINOR_VERSION] < v.minor:
                 latest_CUDA_SDK_minor_versions[job[HOST_COMPILER][NAME]][v.major] = (
                     v.minor,
                     job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION],
@@ -100,22 +92,16 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
 
     for job in job_matrix:
         for compiler_name, sdk_versions in CUDA_SDK_per_compiler.items():
-            if (
-                ALPAKA_ACC_GPU_CUDA_ENABLE in job
-                and job[HOST_COMPILER][NAME] == compiler_name
-            ):
+            if ALPAKA_ACC_GPU_CUDA_ENABLE in job and job[HOST_COMPILER][NAME] == compiler_name:
                 for sdk_version in sdk_versions:
                     if (
                         job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] == sdk_version
                         # needs to be a release build, otherwise there is the risk of running ot of
                         # GPU resources
                         and job[BUILD_TYPE][VERSION] == CMAKE_RELEASE
-                        and not job[HOST_COMPILER][VERSION]
-                        in used_host_compiler[job[HOST_COMPILER][NAME]]
+                        and job[HOST_COMPILER][VERSION] not in used_host_compiler[job[HOST_COMPILER][NAME]]
                     ):
-                        used_host_compiler[job[HOST_COMPILER][NAME]].append(
-                            job[HOST_COMPILER][VERSION]
-                        )
+                        used_host_compiler[job[HOST_COMPILER][NAME]].append(job[HOST_COMPILER][VERSION])
                         job[JOB_EXECUTION_TYPE] = (
                             JOB_EXECUTION_TYPE,
                             JOB_EXECUTION_RUNTIME,
@@ -140,10 +126,7 @@ def add_job_parameters(job_matrix: List[Dict[str, Tuple[str, str]]]):
             else:
                 job[SM_LEVEL] = (SM_LEVEL, STANDARD_SM_LEVEL + ";90")
             missing_nvcc_versions.remove(job[DEVICE_COMPILER][VERSION])
-        elif (
-            ALPAKA_ACC_GPU_CUDA_ENABLE in job
-            and ALPAKA_ACC_GPU_CUDA_ENABLE[VERSION] != OFF_VER
-        ):
+        elif ALPAKA_ACC_GPU_CUDA_ENABLE in job and ALPAKA_ACC_GPU_CUDA_ENABLE[VERSION] != OFF_VER:
             job[SM_LEVEL] = (SM_LEVEL, STANDARD_SM_LEVEL)
         else:
             job[SM_LEVEL] = (SM_LEVEL, "")

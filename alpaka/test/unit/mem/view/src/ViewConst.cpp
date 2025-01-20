@@ -74,40 +74,18 @@ TEMPLATE_LIST_TEST_CASE("viewConstTest", "[memView]", alpaka::test::TestAccs)
     alpaka::test::iotaFillView(queue, buf);
     auto const offsets = alpaka::Vec<Dim, Idx>::all(static_cast<Idx>(0));
 
-#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 2, 0)
-    auto view = alpaka::ViewConst<decltype(buf)>(buf);
-#else
     auto view = alpaka::ViewConst(buf);
-#endif
     alpaka::test::testViewConst<Acc>(view, dev, queue, extents, offsets);
 
-#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 2, 0)
-    auto const cview = alpaka::ViewConst<decltype(buf)>(buf);
-#else
     auto const cview = alpaka::ViewConst(buf);
-#endif
     alpaka::test::testViewConst<Acc>(cview, dev, queue, extents, offsets);
 
-#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 2, 0)
-    auto view_cbuf = alpaka::ViewConst<decltype(buf)>(std::as_const(buf));
-#else
     auto view_cbuf = alpaka::ViewConst(std::as_const(buf));
-#endif
     alpaka::test::testViewConst<Acc>(view_cbuf, dev, queue, extents, offsets);
 
-#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 2, 0)
-    auto const cview_cbuf = alpaka::ViewConst<decltype(buf)>(std::as_const(buf));
-#else
     auto const cview_cbuf = alpaka::ViewConst(std::as_const(buf));
-#endif
     alpaka::test::testViewConst<Acc>(cview_cbuf, dev, queue, extents, offsets);
 
-#if BOOST_COMP_NVCC && BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(11, 2, 0)
-    using BufType = std::remove_const_t<decltype(cview_cbuf)>;
-    auto yolo = alpaka::ViewConst<alpaka::ViewConst<alpaka::ViewConst<BufType>>>(
-        alpaka::ViewConst<alpaka::ViewConst<BufType>>(alpaka::ViewConst<BufType>(cview_cbuf)));
-#else
     auto yolo = alpaka::ViewConst(alpaka::ViewConst(alpaka::ViewConst(cview_cbuf)));
-#endif
     alpaka::test::testViewConst<Acc>(yolo, dev, queue, extents, offsets);
 }

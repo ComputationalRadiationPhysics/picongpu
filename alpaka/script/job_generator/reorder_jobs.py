@@ -9,8 +9,6 @@ from typing import List, Dict, Tuple
 from typeguard import typechecked
 
 from alpaka_job_coverage.globals import *  # pylint: disable=wildcard-import,unused-wildcard-import
-from alpaka_job_coverage.util import search_and_move_job
-from versions import sw_versions
 
 
 @typechecked

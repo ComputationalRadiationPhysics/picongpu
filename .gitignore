@@ -32,3 +32,6 @@
 
 # original backup files
 *.orig
+
+.cache
+compile_commands.json

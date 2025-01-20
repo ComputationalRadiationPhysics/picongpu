@@ -5,16 +5,18 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
+
+echo_green "<SCRIPT: ci>"
 
 ./script/print_env.sh
 source ./script/before_install.sh
-
-if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
-then
-  ./script/docker_ci.sh
-elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
-then
-  source ./script/install.sh
-  ./script/run.sh
+if [ -n "$GITHUB_ACTIONS" ] && [ "$ALPAKA_CI_OS_NAME" = "Linux" ]; then
+  # Workaround for the error: ThreadSanitizer: unexpected memory mapping
+  # change the configuration of the address space layout randomization
+  sudo sysctl vm.mmap_rnd_bits=28
 fi
+
+source ./script/install.sh
+./script/run.sh

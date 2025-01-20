@@ -5,7 +5,13 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
+
+echo_green "<SCRIPT: run_generate>"
+
+: "${CMAKE_CXX_COMPILER?'CMAKE_CXX_COMPILER must be specified'}"
+: "${alpaka_CXX_STANDARD?'alpaka_CXX_STANDARD must be specified'}"
 
 #-------------------------------------------------------------------------------
 
@@ -33,10 +39,6 @@ function env2cmake()
 if [ ! -z "${CMAKE_CXX_FLAGS+x}" ]
 then
     echo "CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
-fi
-if [ ! -z "${CMAKE_C_COMPILER+x}" ]
-then
-    echo "CMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
 fi
 if [ ! -z "${CMAKE_CXX_COMPILER+x}" ]
 then
@@ -78,9 +80,9 @@ mkdir -p build/
 cd build/
 
 "${ALPAKA_CI_CMAKE_EXECUTABLE}" --log-level=VERBOSE -G "${ALPAKA_CI_CMAKE_GENERATOR}" ${ALPAKA_CI_CMAKE_GENERATOR_PLATFORM}\
-    -Dalpaka_BUILD_EXAMPLES=ON -DBUILD_TESTING=ON "$(env2cmake alpaka_ENABLE_WERROR)" \
+    -Dalpaka_BUILD_EXAMPLES=ON -DBUILD_TESTING=ON -Dalpaka_BUILD_BENCHMARKS=ON "$(env2cmake alpaka_ENABLE_WERROR)" \
     "$(env2cmake BOOST_ROOT)" -DBOOST_LIBRARYDIR="${ALPAKA_CI_BOOST_LIB_DIR}/lib" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF -DBoost_ARCHITECTURE="-x64" \
-    "$(env2cmake CMAKE_BUILD_TYPE)" "$(env2cmake CMAKE_CXX_FLAGS)" "$(env2cmake CMAKE_C_COMPILER)" "$(env2cmake CMAKE_CXX_COMPILER)" "$(env2cmake CMAKE_EXE_LINKER_FLAGS)" "$(env2cmake CMAKE_CXX_EXTENSIONS)"\
+    "$(env2cmake CMAKE_BUILD_TYPE)" "$(env2cmake CMAKE_CXX_FLAGS)" "$(env2cmake CMAKE_CXX_COMPILER)" "$(env2cmake CMAKE_EXE_LINKER_FLAGS)" "$(env2cmake CMAKE_CXX_EXTENSIONS)"\
     "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE)" \
     "$(env2cmake alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE)" \
     "$(env2cmake alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE)" "$(env2cmake alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)" \

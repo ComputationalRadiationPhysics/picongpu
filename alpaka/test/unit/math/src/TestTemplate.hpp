@@ -74,9 +74,6 @@ namespace mathtest
             // DevAcc is defined in Buffer.hpp too.
             using DevAcc = alpaka::Dev<TAcc>;
 
-            using Dim = alpaka::DimInt<1u>;
-            using Idx = std::size_t;
-            using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
             using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
             using TArgsItem = ArgsItem<TData, TFunctor::arity>;
 
@@ -98,15 +95,20 @@ namespace mathtest
 
             TestKernel<capacity> kernel;
             TFunctor functor;
-            Args args{devAcc};
-            Results results{devAcc};
+            Args args{devAcc, platformHost, platformAcc};
+            Results results{devAcc, platformHost, platformAcc};
 
-            WorkDiv const workDiv = alpaka::getValidWorkDiv<TAcc>(
+            // Let alpaka calculate good block and grid sizes given our full problem extent
+            alpaka::KernelCfg<TAcc> const kernelCfg
+                = {sizeExtent, elementsPerThread, false, alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+            auto const workDiv = alpaka::getValidWorkDiv(
+                kernelCfg,
                 devAcc,
-                sizeExtent,
-                elementsPerThread,
-                false,
-                alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
+                kernel,
+                results.pDevBuffer,
+                wrappedFunctor,
+                args.pDevBuffer);
+
             // SETUP COMPLETED.
 
             // Fill the buffer with random test-numbers.
@@ -174,7 +176,7 @@ namespace mathtest
             if(!isFinite(a) && !isFinite(b))
                 return true;
             // For the same reason use relative difference comparison with a large margin
-            auto const scalingFactor = static_cast<T>(std::is_same_v<T, float> ? 1.1e4 : 1.1e6);
+            auto const scalingFactor = static_cast<T>(std::is_same_v<T, float> ? 1.5e4 : 1.1e6);
             auto const marginValue = scalingFactor * std::numeric_limits<T>::epsilon();
             return (a.real() == Catch::Approx(b.real()).margin(marginValue).epsilon(marginValue))
                    && (a.imag() == Catch::Approx(b.imag()).margin(marginValue).epsilon(marginValue));

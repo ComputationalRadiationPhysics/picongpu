@@ -1,5 +1,5 @@
 /* Copyright 2023 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov, Jan Stephan, Bernhard Manfred Gruber,
- *                Andrea Bocci, Aurora Perego
+ *                Andrea Bocci, Aurora Perego, Mehmet Yusufoglu
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,6 +12,7 @@
 #include "alpaka/core/OmpSchedule.hpp"
 #include "alpaka/dim/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
+#include "alpaka/kernel/KernelFunctionAttributes.hpp"
 #include "alpaka/queue/Traits.hpp"
 #include "alpaka/vec/Vec.hpp"
 #include "alpaka/workdiv/Traits.hpp"
@@ -66,6 +67,29 @@ namespace alpaka
                 [[maybe_unused]] TArgs const&... args) -> std::size_t
             {
                 return 0u;
+            }
+        };
+
+        //! \brief The structure template to access to the functions attributes of a kernel function object.
+        //! \tparam TAcc The accelerator type
+        //! \tparam TKernelFnObj Kernel function object type.
+        //! \tparam TArgs Kernel function object argument types as a parameter pack.
+        template<typename TAcc, typename TDev, typename TKernelFnObj, typename... TArgs>
+        struct FunctionAttributes
+        {
+            //! \param dev The device instance
+            //! \param kernelFn The kernel function object which should be executed.
+            //! \param args The kernel invocation arguments.
+            //! \return KernelFunctionAttributes data structure instance. The default version always returns the
+            //! instance with fields which are set to zero.
+            ALPAKA_FN_HOST static auto getFunctionAttributes(
+                [[maybe_unused]] TDev const& dev,
+                [[maybe_unused]] TKernelFnObj const& kernelFn,
+                [[maybe_unused]] TArgs&&... args) -> alpaka::KernelFunctionAttributes
+            {
+                std::string const str
+                    = std::string(__func__) + " function is not specialised for the given arguments.\n";
+                throw std::invalid_argument{str};
             }
         };
 
@@ -142,13 +166,13 @@ namespace alpaka
 #    pragma clang diagnostic ignored                                                                                  \
         "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
 #endif
-    //! \tparam TAcc The accelerator type.
-    //! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
-    //! \param blockThreadExtent The block thread extent.
-    //! \param threadElemExtent The thread element extent.
-    //! \param args,... The kernel invocation arguments.
-    //! \return The size of the shared memory allocated for a block in bytes.
-    //! The default implementation always returns zero.
+//! \tparam TAcc The accelerator type.
+//! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
+//! \param blockThreadExtent The block thread extent.
+//! \param threadElemExtent The thread element extent.
+//! \param args,... The kernel invocation arguments.
+//! \return The size of the shared memory allocated for a block in bytes.
+//! The default implementation always returns zero.
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -167,18 +191,37 @@ namespace alpaka
             args...);
     }
 
+    //! \tparam TAcc The accelerator type.
+    //! \tparam TDev The device type.
+    //! \param dev The device instance
+    //! \param kernelFnObj The kernel function object which should be executed.
+    //! \param args The kernel invocation arguments.
+    //! \return KernelFunctionAttributes instance. Instance is filled with values returned by the accelerator API
+    //! depending on the specific kernel. The default version always returns the instance with fields which are set to
+    //! zero.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TAcc, typename TDev, typename TKernelFnObj, typename... TArgs>
+    ALPAKA_FN_HOST auto getFunctionAttributes(TDev const& dev, TKernelFnObj const& kernelFnObj, TArgs&&... args)
+        -> alpaka::KernelFunctionAttributes
+    {
+        return trait::FunctionAttributes<TAcc, TDev, TKernelFnObj, TArgs...>::getFunctionAttributes(
+            dev,
+            kernelFnObj,
+            std::forward<TArgs>(args)...);
+    }
+
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored                                                                                  \
         "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
 #endif
-    //! \tparam TAcc The accelerator type.
-    //! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
-    //! \param blockThreadExtent The block thread extent.
-    //! \param threadElemExtent The thread element extent.
-    //! \param args,... The kernel invocation arguments.
-    //! \return The OpenMP schedule information as an alpaka::omp::Schedule object if the kernel specialized the
-    //!         OmpSchedule trait, an object of another type if the kernel didn't specialize the trait.
+//! \tparam TAcc The accelerator type.
+//! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
+//! \param blockThreadExtent The block thread extent.
+//! \param threadElemExtent The thread element extent.
+//! \param args,... The kernel invocation arguments.
+//! \return The OpenMP schedule information as an alpaka::omp::Schedule object if the kernel specialized the
+//!         OmpSchedule trait, an object of another type if the kernel didn't specialize the trait.
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
@@ -248,6 +291,33 @@ namespace alpaka
         }
     } // namespace detail
 
+    //! Check if the kernel type is trivially copyable
+    //!
+    //! \attention In case this trait is specialized for a user type the user should be sure that the result of calling
+    //! the copy constructor is equal to use memcpy to duplicate the object. An existing destructor should be free
+    //! of side effects.
+    //!
+    //! The default implementation is true for trivially copyable types (or for extended lambda expressions for CUDA).
+    //!
+    //! @tparam T type to check
+    //! @{
+    template<typename T, typename = void>
+    struct IsKernelTriviallyCopyable
+#if BOOST_COMP_NVCC
+        : std::bool_constant<
+              std::is_trivially_copyable_v<T> || __nv_is_extended_device_lambda_closure_type(T)
+              || __nv_is_extended_host_device_lambda_closure_type(T)>
+#else
+        : std::is_trivially_copyable<T>
+#endif
+    {
+    };
+
+    template<typename T>
+    inline constexpr bool isKernelTriviallyCopyable = IsKernelTriviallyCopyable<T>::value;
+
+//! @}
+
 //! Creates a kernel execution task.
 //!
 //! \tparam TAcc The accelerator type.
@@ -266,11 +336,10 @@ namespace alpaka
 
 #if BOOST_COMP_NVCC
         static_assert(
-            std::is_trivially_copyable_v<TKernelFnObj> || __nv_is_extended_device_lambda_closure_type(TKernelFnObj)
-                || __nv_is_extended_host_device_lambda_closure_type(TKernelFnObj),
+            isKernelTriviallyCopyable<TKernelFnObj>,
             "Kernels must be trivially copyable or an extended CUDA lambda expression!");
 #else
-        static_assert(std::is_trivially_copyable_v<TKernelFnObj>, "Kernels must be trivially copyable!");
+        static_assert(isKernelTriviallyCopyable<TKernelFnObj>, "Kernels must be trivially copyable!");
 #endif
         (detail::assertKernelArgIsTriviallyCopyable<std::decay_t<TArgs>>(), ...);
         static_assert(

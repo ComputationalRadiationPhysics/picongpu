@@ -3,7 +3,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <alpaka/example/ExecuteForEachAccTag.hpp>
 #include <alpaka/rand/RandPhiloxStateless.hpp>
 
 #include <chrono>
@@ -17,12 +17,9 @@ class CounterBasedRngKernel
 public:
     template<class TAcc>
     using Vec = alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>>;
-    template<class TAcc>
-    using Gen = typename alpaka::rand::PhiloxStateless4x32x10Vector<TAcc>;
-    template<class TAcc>
-    using Key = typename Gen<TAcc>::Key;
-    template<class TAcc>
-    using Counter = typename Gen<TAcc>::Counter;
+    using Gen = typename alpaka::rand::PhiloxStateless4x32x10Vector;
+    using Key = typename Gen::Key;
+    using Counter = typename Gen::Counter;
 
     template<typename TAcc, typename TElem>
     using Mdspan = alpaka::experimental::MdSpan<TElem, alpaka::Idx<TAcc>, alpaka::Dim<TAcc>>;
@@ -36,7 +33,7 @@ private:
         static ALPAKA_FN_ACC auto elemLoop(
             TAcc const& acc,
             Mdspan<TAcc, TElem> dst,
-            Key<TAcc> const& key,
+            Key const& key,
             Vec<TAcc> const& threadElemExtent,
             Vec<TAcc>& threadFirstElemIdx) -> void
         {
@@ -56,14 +53,14 @@ private:
             }
             else
             {
-                Counter<TAcc> c = {0, 0, 0, 0};
+                Counter c = {0, 0, 0, 0};
                 for(unsigned int i = 0; i < Dim; ++i)
                     c[i] = threadFirstElemIdx[i];
 
                 for(; threadFirstElemIdx[Dim - 1] < threadLastElemIdxClipped; ++threadFirstElemIdx[Dim - 1])
                 {
                     c[Dim - 1] = threadFirstElemIdx[Dim - 1];
-                    auto const random = Gen<TAcc>::generate(c, key);
+                    auto const random = Gen::generate(c, key);
                     // to make use of the whole random vector we would need to ensure numElement[0] % 4 == 0
                     dst(alpaka::toArray(threadFirstElemIdx)) = TElem(random[0]);
                 }
@@ -82,7 +79,7 @@ public:
     //! \param extent The matrix dimension in elements.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename TElem>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, Mdspan<TAcc, TElem> dst, Key<TAcc> const& key) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, Mdspan<TAcc, TElem> dst, Key const& key) const -> void
     {
         constexpr auto Dim = alpaka::Dim<TAcc>::value;
         static_assert(Dim <= 4, "The CounterBasedRngKernel expects at most 4-dimensional indices!");
@@ -95,30 +92,19 @@ public:
     }
 };
 
-auto main() -> int
+// In standard projects, you typically do not execute the code with any available accelerator.
+// Instead, a single accelerator is selected once from the active accelerators and the kernels are executed with the
+// selected accelerator only. If you use the example as the starting point for your project, you can rename the
+// example() function to main() and move the accelerator tag to the function body.
+template<typename TAccTag>
+auto example(TAccTag const&) -> int
 {
-// Fallback for the CI with disabled sequential backend
-#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-    return EXIT_SUCCESS;
-#else
-
     // Define the index domain
     using Dim = alpaka::DimInt<3u>;
     using Idx = std::size_t;
 
     // Define the accelerator
-    //
-    // It is possible to choose from a set of accelerators:
-    // - AccGpuCudaRt
-    // - AccGpuHipRt
-    // - AccCpuThreads
-    // - AccCpuFibers
-    // - AccCpuOmp2Threads
-    // - AccCpuOmp2Blocks
-    // - AccCpuTbbBlocks
-    // - AccCpuSerial
-    // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
-    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     using AccHost = alpaka::AccCpuSerial<Dim, Idx>;
@@ -145,19 +131,6 @@ auto main() -> int
     alpaka::Vec<Dim, Idx> const elementsPerThread = {1, 1, 1};
     alpaka::Vec<Dim, Idx> const elementsPerThreadHost = {1, 1, 8};
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent
-    alpaka::WorkDivMembers<Dim, Idx> const workDivAcc(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        elementsPerThread,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
-    alpaka::WorkDivMembers<Dim, Idx> const workDivHost(alpaka::getValidWorkDiv<AccHost>(
-        devHost,
-        extent,
-        elementsPerThreadHost,
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
 
     // Define the buffer element type
     using Data = std::uint32_t;
@@ -166,16 +139,23 @@ auto main() -> int
     auto bufHost(alpaka::allocBuf<Data, Idx>(devHost, extent));
     auto bufHostDev(alpaka::allocBuf<Data, Idx>(devHost, extent));
 
-    // Initialize the host input vectors A and B
-    Data* const pBufHost(alpaka::getPtrNative(bufHost));
-    Data* const pBufHostDev(alpaka::getPtrNative(bufHostDev));
-
     std::random_device rd{};
-    CounterBasedRngKernel::Key<AccHost> key = {rd(), rd()};
+    CounterBasedRngKernel::Key key = {rd(), rd()};
 
     // Allocate buffer on the accelerator
     using BufAcc = alpaka::Buf<Acc, Data, Dim, Idx>;
     BufAcc bufAcc(alpaka::allocBuf<Data, Idx>(devAcc, extent));
+
+    CounterBasedRngKernel counterBasedRngKernel;
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    alpaka::KernelCfg<Acc> kernerlCfgAccDev = {extent, elementsPerThread};
+    auto const workDivAcc = alpaka::getValidWorkDiv(
+        kernerlCfgAccDev,
+        devAcc,
+        counterBasedRngKernel,
+        alpaka::experimental::getMdSpan(bufAcc),
+        key);
 
     // Create the kernel execution task.
     auto const taskKernelAcc = alpaka::createTaskKernel<Acc>(
@@ -183,6 +163,15 @@ auto main() -> int
         CounterBasedRngKernel(),
         alpaka::experimental::getMdSpan(bufAcc),
         key);
+
+    alpaka::KernelCfg<AccHost> kernerlCfgAccHost = {extent, elementsPerThreadHost};
+    auto const workDivHost = alpaka::getValidWorkDiv(
+        kernerlCfgAccHost,
+        devHost,
+        counterBasedRngKernel,
+        alpaka::experimental::getMdSpan(bufHost),
+        key);
+
     auto const taskKernelHost = alpaka::createTaskKernel<AccHost>(
         workDivHost,
         CounterBasedRngKernel(),
@@ -233,5 +222,20 @@ auto main() -> int
                   << "Execution results incorrect!" << std::endl;
         return EXIT_FAILURE;
     }
-#endif
+}
+
+auto main() -> int
+{
+    // Execute the example once for each enabled accelerator.
+    // If you would like to execute it for a single accelerator only you can use the following code.
+    //  \code{.cpp}
+    //  auto tag = TagCpuSerial;
+    //  return example(tag);
+    //  \endcode
+    //
+    // valid tags:
+    //   TagCpuSerial, TagGpuHipRt, TagGpuCudaRt, TagCpuOmp2Blocks, TagCpuTbbBlocks,
+    //   TagCpuOmp2Threads, TagCpuSycl, TagCpuTbbBlocks, TagCpuThreads,
+    //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
+    return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }

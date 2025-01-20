@@ -35,6 +35,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Options and Variants
 
 option(alpaka_BUILD_EXAMPLES "Build the examples" OFF)
+option(alpaka_BUILD_BENCHMARKS "Build the benchmarks" OFF)
 
 # Enable the test infrastructure only if alpaka is the top-level project
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -46,8 +47,9 @@ endif()
 option(alpaka_INSTALL_TEST_HEADER "Install headers of the namespace alpaka::test. Attention, headers are not designed for production code, see documentation." OFF)
 
 include(CMakeDependentOption)
+
 cmake_dependent_option(alpaka_CHECK_HEADERS "Check all alpaka headers as part of the tests whether they can be compiled standalone." OFF BUILD_TESTING OFF)
-cmake_dependent_option(alpaka_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON BUILD_TESTING OFF)
+cmake_dependent_option(alpaka_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON "BUILD_TESTING OR alpaka_BUILD_BENCHMARKS" OFF)
 
 ################################################################################
 # Internal variables.
@@ -80,7 +82,7 @@ set(_alpaka_INCLUDE_DIRECTORY "${_alpaka_ROOT_DIR}/include")
 set(_alpaka_SUFFIXED_INCLUDE_DIR "${_alpaka_INCLUDE_DIRECTORY}/alpaka")
 
 # the sequential accelerator is required for the tests and examples
-if(alpaka_BUILD_EXAMPLES OR BUILD_TESTING)
+if(alpaka_BUILD_EXAMPLES OR alpaka_BUILD_BENCHMARKS OR BUILD_TESTING)
   if (NOT (alpaka_ACC_GPU_CUDA_ONLY_MODE OR alpaka_ACC_GPU_HIP_ONLY_MODE))
     if (NOT DEFINED alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE)
       option(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE "enable alpaka serial accelerator" ON)
@@ -148,6 +150,10 @@ if(alpaka_BUILD_EXAMPLES)
     add_subdirectory("example/")
 endif()
 
+if(alpaka_BUILD_BENCHMARKS)
+    add_subdirectory("benchmarks/")
+endif()
+
 # Only build the tests if alpaka is the top-level project and BUILD_TESTING is ON
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory("test/")
@@ -184,10 +190,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     if(alpaka_INSTALL_TEST_HEADER)
         install(DIRECTORY "${_alpaka_SUFFIXED_INCLUDE_DIR}"
-	        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
     else()
-	install(DIRECTORY "${_alpaka_SUFFIXED_INCLUDE_DIR}"
-	        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    install(DIRECTORY "${_alpaka_SUFFIXED_INCLUDE_DIR}"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
                 PATTERN "test" EXCLUDE)
     endif()
 

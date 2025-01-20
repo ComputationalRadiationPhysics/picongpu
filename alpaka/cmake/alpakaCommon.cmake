@@ -177,12 +177,12 @@ if(MSVC)
 else()
     # For std::future we need to pass the correct pthread flag for the compiler and the linker:
     # https://github.com/alpaka-group/cupla/pull/128#issuecomment-545078917
-    
+
     # Allow users to override the "-pthread" preference.
     if(NOT THREADS_PREFER_PTHREAD_FLAG)
         set(THREADS_PREFER_PTHREAD_FLAG TRUE)
     endif()
-    
+
     find_package(Threads REQUIRED)
     target_link_libraries(alpaka INTERFACE Threads::Threads)
 
@@ -200,7 +200,7 @@ else()
                                                           "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-Xcompiler -Og>"
                                                           "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>"
                                                           "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:SHELL:/Od>")
-    
+
     target_link_options(alpaka INTERFACE "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:SHELL:-Og>"
                                          "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>")
 endif()
@@ -350,6 +350,11 @@ if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
     else()
         find_package(OpenMP REQUIRED COMPONENTS CXX)
         target_link_libraries(alpaka INTERFACE OpenMP::OpenMP_CXX)
+        # shown with CMake 3.29 and cray clang 17
+        # workaround: cmake is missing to add '-fopenmp' to the linker flags
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
+            target_link_libraries(alpaka INTERFACE -fopenmp)
+        endif()
     endif()
 endif()
 
@@ -358,7 +363,7 @@ endif()
 if(alpaka_ACC_GPU_CUDA_ENABLE)
     # Save the user-defined host compiler (if any)
     set(_alpaka_CUDA_HOST_COMPILER ${CMAKE_CUDA_HOST_COMPILER})
-    
+
     check_language(CUDA)
 
     if(CMAKE_CUDA_COMPILER)
@@ -373,7 +378,44 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             endif()
         endif()
 
+        # the CMake compiler detection of clang 17 and 18 as CUDA compiler is broken
+        # the detection try to compile an empty file with the default C++ standard of clang, which is -std=gnu++17
+        # but CUDA does not support the 128 bit float extension, therefore the test failes
+        # more details: https://gitlab.kitware.com/cmake/cmake/-/issues/25861
+        # this workaround disable the gnu extensions for the compiler detection
+        # the bug is fixed in clang 19: https://github.com/llvm/llvm-project/issues/88695
+        if("${CMAKE_CUDA_COMPILER}" MATCHES "clang*")
+            # get compiler version without enable_language()
+            execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -dumpversion
+                   OUTPUT_VARIABLE _CLANG_CUDA_VERSION
+                   RESULT_VARIABLE _CLANG_CUDA_VERSION_ERROR_CODE)
+
+            if(NOT "${_CLANG_CUDA_VERSION_ERROR_CODE}" STREQUAL "0")
+                message(FATAL_ERROR "running '${CMAKE_CUDA_COMPILER} -dumpversion' failed: ${_CLANG_CUDA_VERSION_ERROR_CODE}")
+            endif()
+
+            string(STRIP ${_CLANG_CUDA_VERSION} _CLANG_CUDA_VERSION)
+            message(DEBUG "Workaround: manual checked Clang-CUDA version: ${_CLANG_CUDA_VERSION}")
+
+            if(${_CLANG_CUDA_VERSION} VERSION_GREATER_EQUAL 17 AND ${_CLANG_CUDA_VERSION} VERSION_LESS 19)
+                message(DEBUG "Workaround: apply -std=c++98 for clang as cuda compiler")
+                set(_CMAKE_CUDA_FLAGS_BEFORE ${CMAKE_CUDA_FLAGS})
+                # we need to use C++ 98 for the detection test, because from new, disabling the extension is ignored for C++ 98
+                set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++98")
+            endif()
+        endif()
+
         enable_language(CUDA)
+
+        if(DEFINED _CLANG_CUDA_VERSION)
+            message(DEBUG "Workaround: reset variables for clang as cuda compiler -std=c++98 fix")
+            # remove the flag compiler -std=c++98
+            set(CMAKE_CUDA_FLAGS ${_CMAKE_CUDA_FLAGS_BEFORE})
+            unset(_CMAKE_CUDA_FLAGS_BEFORE)
+            unset(_CLANG_CUDA_VERSION)
+            unset(_CLANG_CUDA_VERSION_ERROR_CODE)
+        endif()
+
         find_package(CUDAToolkit REQUIRED)
 
         target_compile_features(alpaka INTERFACE cuda_std_${alpaka_CXX_STANDARD})
@@ -425,6 +467,10 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
 
         elseif(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
             message(STATUS "nvcc is used as CUDA compiler")
+
+            if(alpaka_CXX_STANDARD GREATER_EQUAL 20 AND CMAKE_VERSION VERSION_LESS "3.25.0")
+                message(FATAL_ERROR "CMake 3.24 and older does not support C++20 for nvcc")
+            endif()
 
             # nvcc sets no linux/__linux macros on OpenPOWER linux
             # nvidia bug id: 2448610
@@ -494,9 +540,31 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             endif()
         endif()
 
+        # Use the Shared CUDA Runtime library by default
+        if(NOT DEFINED CMAKE_CUDA_RUNTIME_LIBRARY)
+            set(CMAKE_CUDA_RUNTIME_LIBRARY "Shared")
+        endif()
+
+        # Link the CUDA Runtime library
+        if(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Shared")
+            target_link_libraries(alpaka INTERFACE CUDA::cudart)
+        elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Static")
+            target_link_libraries(alpaka INTERFACE CUDA::cudart_static)
+        elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "None")
+            message(WARNING "Building alpaka applications with CMAKE_CUDA_RUNTIME_LIBRARY=None is not supported.")
+        else()
+            message(FATAL_ERROR "Invalid setting for CMAKE_CUDA_RUNTIME_LIBRARY.")
+        endif()
+
         if(NOT alpaka_DISABLE_VENDOR_RNG)
             # Use cuRAND random number generators
-            target_link_libraries(alpaka INTERFACE CUDA::cudart CUDA::curand)
+            if(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Shared")
+                target_link_libraries(alpaka INTERFACE CUDA::curand)
+            elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Static")
+                target_link_libraries(alpaka INTERFACE CUDA::curand_static)
+            elseif(CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "None")
+                message(FATAL_ERROR "cuRAND requires the CUDA runtime library.")
+            endif()
         endif()
     else()
         message(FATAL_ERROR "Optional alpaka dependency CUDA could not be found!")
@@ -514,7 +582,7 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         find_package(hip REQUIRED)
 
         set(_alpaka_HIP_MIN_VER 5.1)
-        set(_alpaka_HIP_MAX_VER 6.0)
+        set(_alpaka_HIP_MAX_VER 6.2)
 
         # construct hip version only with major and minor level
         # cannot use hip_VERSION because of the patch level
@@ -526,6 +594,8 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
             message(WARNING "HIP ${_hip_MAJOR_MINOR_VERSION} is not official supported by alpaka. Supported versions: ${_alpaka_HIP_MIN_VER} - ${_alpaka_HIP_MAX_VER}")
         endif()
 
+        # let the compiler find the HIP headers also when building host-only code
+        target_include_directories(alpaka SYSTEM INTERFACE ${hip_INCLUDE_DIR})
 
         target_link_libraries(alpaka INTERFACE "$<$<LINK_LANGUAGE:CXX>:hip::host>")
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_AMD__>")
@@ -566,7 +636,7 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         endif()
 
         if(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL ON)
-            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL-fgpu-rdc>")
+            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-fgpu-rdc>")
             target_link_options(alpaka INTERFACE "$<$<LINK_LANGUAGE:HIP>:SHELL:-fgpu-rdc --hip-link>")
         elseif(alpaka_RELOCATABLE_DEVICE_CODE STREQUAL OFF)
             alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:HIP>:SHELL:-fno-gpu-rdc>")
@@ -619,9 +689,9 @@ if(alpaka_ACC_SYCL_ENABLE)
         list(JOIN alpaka_SYCL_TARGETS "," alpaka_SYCL_TARGETS_CONCAT)
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
         target_link_options(alpaka INTERFACE "-fsycl-targets=${alpaka_SYCL_TARGETS_CONCAT}")
-        
+
         #-----------------------------------------------------------------------------------------------------------------
-        # Determine actual hardware to compile for 
+        # Determine actual hardware to compile for
         if(alpaka_SYCL_ONEAPI_CPU)
             set(alpaka_SYCL_ONEAPI_CPU_ISA "avx2" CACHE STRING "Intel ISA to compile for")
             set_property(CACHE alpaka_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse4.2;avx;avx2;avx512")
@@ -663,7 +733,7 @@ if(alpaka_ACC_SYCL_ENABLE)
                         PROPERTY STRINGS "intel_gpu_pvc;intel_gpu_acm_g12;intel_gpu_acm_g11;intel_gpu_acm_g10;intel_gpu_dg1;intel_gpu_adl_n;intel_gpu_adl_p;intel_gpu_rpl_s;intel_gpu_adl_s;intel_gpu_rkl;intel_gpu_tgllp;intel_gpu_icllp;intel_gpu_cml;intel_gpu_aml;intel_gpu_whl;intel_gpu_glk;intel_gpu_apl;intel_gpu_cfl;intel_gpu_kbl;intel_gpu_skl;intel_gpu_bdw")
             # If the user has given us a list turn all ';' into ',' to pacify the Intel OpenCL compiler.
             string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
-            
+
             target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
         endif()
 
@@ -679,7 +749,7 @@ if(alpaka_ACC_SYCL_ENABLE)
             target_link_options(alpaka INTERFACE "-fno-sycl-rdc")
         endif()
     else()
-        message(FATAL_ERROR "alpaka currently does not support SYCL implementations other than oneAPI.")
+        message(FATAL_ERROR "alpaka currently does not support SYCL implementations other than oneAPI: ${CMAKE_CXX_COMPILER_ID}.")
     endif()
 
     if(NOT alpaka_DISABLE_VENDOR_RNG)

@@ -13,28 +13,45 @@
       "orcid": "0000-0002-8218-3116"
     },
     {
+      "name": "Erdem, Sven",
+      "affiliation": "Helmholtz-Zentrum Berlin"
+    },
+    {
+      "name": "Fila, Mateusz Jakub",
+      "affiliation": "CERN"
+    },
+    {
       "name": "Gruber, Bernhard Manfred",
       "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf, CERN",
       "orcid": "0000-0001-7848-1690"
     },
     {
-      "name": "Martin-Haugh, Stewart",
-      "affiliation": "STFC Rutherford Appleton Laboratory",
-      "orcid": "0000-0001-9457-1928"
+      "name": "Lenz, Julian",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-5250-0005"
     },
     {
       "name": "Perego, Aurora",
       "affiliation": "CERN",
-      "orcid": "0000-0003-1576-6757"
+      "orcid": "0009-0002-5210-6213"
     },
     {
-      "name": "Tascon, Andres Rios",
-      "affiliation": "Princeton University"
+      "name": "Varvarin, Michael",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
+      "name": "Vyskočil, Jiří",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-8822-0929"
     },
     {
       "name": "Widera, René",
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
       "orcid": "0000-0003-1642-0459"
+    },
+    {
+      "name": "Yusufoglu, Mehmet",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf"
     }
   ],
   "contributors": [
@@ -99,6 +116,12 @@
       "type": "Other"
     },
     {
+      "name": "Martin-Haugh, Stewart",
+      "affiliation": "STFC Rutherford Appleton Laboratory",
+      "orcid": "0000-0001-9457-1928",
+      "type": "Other"
+    },
+    {
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
       "name": "Matthes, Alexander",
       "orcid": "0000-0002-6702-2015",
@@ -143,14 +166,13 @@
       "type": "Other"
     },
     {
-      "name": "Vollmer, Daniel",
-      "affiliation": "Deutsches Zentrum für Luft- und Raumfahrt e.V.",
+      "name": "Tascon, Andres Rios",
+      "affiliation": "Princeton University",
       "type": "Other"
     },
     {
-      "name": "Vyskočil, Jiří",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0001-8822-0929",
+      "name": "Vollmer, Daniel",
+      "affiliation": "Deutsches Zentrum für Luft- und Raumfahrt e.V.",
       "type": "Other"
     },
     {

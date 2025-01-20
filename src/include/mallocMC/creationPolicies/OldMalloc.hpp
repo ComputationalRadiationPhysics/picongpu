@@ -1,10 +1,11 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
 
-  Copyright 2014 Institute of Radiation Physics,
+  Copyright 2014-2024 Institute of Radiation Physics,
                  Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +31,7 @@
 #include "OldMalloc.hpp"
 
 #include <alpaka/core/Common.hpp>
+
 #include <cstdint>
 
 namespace mallocMC
@@ -48,16 +50,19 @@ namespace mallocMC
             using uint32 = std::uint32_t;
 
         public:
+            template<typename T_AlignmentPolicy>
+            using AlignmentAwarePolicy = OldMalloc;
+
             static constexpr auto providesAvailableSlots = false;
 
-            template<typename AlignmentPolicy, typename AlpakaAcc>
-            ALPAKA_FN_ACC auto create(const AlpakaAcc& acc, uint32 bytes) const -> void*
+            template<typename AlpakaAcc>
+            ALPAKA_FN_ACC auto create(AlpakaAcc const& acc, uint32 bytes) const -> void*
             {
                 return ::malloc(static_cast<size_t>(bytes));
             }
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC void destroy(const AlpakaAcc& /*acc*/, void* mem) const
+            ALPAKA_FN_ACC void destroy(AlpakaAcc const& /*acc*/, void* mem) const
             {
                 ::free(mem);
             }

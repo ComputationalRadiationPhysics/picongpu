@@ -5,7 +5,7 @@
 
   Copyright (C) 2012 Institute for Computer Graphics and Vision,
                      Graz University of Technology
-  Copyright (C) 2014 Institute of Radiation Physics,
+  Copyright (C) 2014-2024 Institute of Radiation Physics,
                      Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Markus Steinberger - steinberger ( at ) icg.tugraz.at
@@ -14,6 +14,7 @@
               Rene Widera - r.widera ( at ) hzdr.de
               Axel Huebl - a.huebl ( at ) hzdr.de
               Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +46,7 @@
 // all the policies
 #include "alignmentPolicies/Noop.hpp"
 #include "alignmentPolicies/Shrink.hpp"
+#include "creationPolicies/FlatterScatter.hpp"
 #include "creationPolicies/OldMalloc.hpp"
 #include "creationPolicies/Scatter.hpp"
 #include "distributionPolicies/Noop.hpp"

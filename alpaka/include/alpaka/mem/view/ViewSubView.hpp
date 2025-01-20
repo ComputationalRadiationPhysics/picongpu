@@ -53,23 +53,23 @@ namespace alpaka
                 "The dev type of TView and the Dev template parameter have to be identical!");
 
             static_assert(
-                std::is_same_v<TIdx, Idx<View>>,
+                std::is_same_v<TIdx, alpaka::Idx<View>>,
                 "The idx type of TView and the TIdx template parameter have to be identical!");
             static_assert(
-                std::is_same_v<TIdx, Idx<TExtent>>,
+                std::is_same_v<TIdx, alpaka::Idx<TExtent>>,
                 "The idx type of TExtent and the TIdx template parameter have to be identical!");
             static_assert(
-                std::is_same_v<TIdx, Idx<TOffsets>>,
+                std::is_same_v<TIdx, alpaka::Idx<TOffsets>>,
                 "The idx type of TOffsets and the TIdx template parameter have to be identical!");
 
             static_assert(
-                std::is_same_v<TDim, Dim<View>>,
+                std::is_same_v<TDim, alpaka::Dim<View>>,
                 "The dim type of TView and the TDim template parameter have to be identical!");
             static_assert(
-                std::is_same_v<TDim, Dim<TExtent>>,
+                std::is_same_v<TDim, alpaka::Dim<TExtent>>,
                 "The dim type of TExtent and the TDim template parameter have to be identical!");
             static_assert(
-                std::is_same_v<TDim, Dim<TOffsets>>,
+                std::is_same_v<TDim, alpaka::Dim<TOffsets>>,
                 "The dim type of TOffsets and the TDim template parameter have to be identical!");
 
             ALPAKA_ASSERT(((m_offsetsElements + m_extentElements) <= getExtents(view)).all());

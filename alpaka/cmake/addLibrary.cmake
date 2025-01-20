@@ -13,10 +13,10 @@
 # Using a macro to stay in the scope (fixes lost assignment of linker command in FindHIP.cmake)
 # https://github.com/ROCm-Developer-Tools/HIP/issues/631
 
-macro(alpaka_add_library libraryName)
+macro(alpaka_add_library In_Name)
     # add_library( <name> [STATIC | SHARED | MODULE] [EXCLUDE_FROM_ALL] [<source>...])
 
-    add_library(${libraryName} ${ARGN})
+    add_library(${In_Name} ${ARGN})
 
     if(alpaka_ACC_GPU_CUDA_ENABLE)
         enable_language(CUDA)
@@ -50,7 +50,7 @@ macro(alpaka_add_library libraryName)
 
         # We have to set this here because CMake currently doesn't provide hip_std_${VERSION} for
         # target_compile_features() and HIP_STANDARD isn't propagated by interface libraries.
-        set_target_properties(${In_Name} PROPERTIES 
+        set_target_properties(${In_Name} PROPERTIES
                               HIP_STANDARD ${alpaka_CXX_STANDARD}
                               HIP_STANDARD_REQUIRED ON)
     endif()

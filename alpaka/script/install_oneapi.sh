@@ -4,15 +4,17 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: install_oneapi>"
 
-: "${CXX?'CXX must be specified'}"
-
-
-if ! agc-manager -e oneapi
+if agc-manager -e oneapi
 then
+    echo_green "<USE: preinstalled OneAPI ${ALPAKA_CI_ONEAPI_VERSION}>"
+else
+    echo_yellow "<INSTALL: Intel OneAPI ${ALPAKA_CI_ONEAPI_VERSION}>"
+
     # Ref.: https://github.com/rscohn2/oneapi-ci
     # intel-basekit intel-hpckit are too large in size
 
@@ -41,10 +43,20 @@ then
     set +eu
     source /opt/intel/oneapi/setvars.sh
     set -eu
+
+    # Workaround if icpx uses the stdlibc++. The stdlibc++-9 does not support C++20, therefore we install the stdlibc++-11. Clang automatically uses the latest stdlibc++ version.
+    if [[ "$(cat /etc/os-release)" =~ "20.04" ]] && [ "${alpaka_CXX_STANDARD}" == "20" ];
+    then
+        travis_retry sudo apt install -y --no-install-recommends software-properties-common
+        sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
+        travis_retry sudo apt update
+        travis_retry sudo apt install -y --no-install-recommends g++-11
+    fi
+
+    # path depends on the SDK version
+    export CMAKE_CXX_COMPILER=$(which icpx)
 fi
 
-which "${CXX}"
-${CXX} --version
-which "${CC}"
-${CC} --version
+which "${CMAKE_CXX_COMPILER}"
+${CMAKE_CXX_COMPILER} --version
 sycl-ls

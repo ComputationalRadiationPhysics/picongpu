@@ -15,18 +15,18 @@ The **alpaka** library is a header-only C++17 abstraction library for accelerato
 
 Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.
 
-It is platform independent and supports the concurrent and cooperative use of multiple devices such as the hosts CPU as well as attached accelerators as for instance CUDA GPUs and Xeon Phis (currently native execution only).
-A multitude of accelerator back-end variants using CUDA, OpenMP (2.0/5.0), std::thread and also serial execution is provided and can be selected depending on the device.
+It is platform independent and supports the concurrent and cooperative use of multiple devices such as the hosts CPU (x86, ARM, RISC-V and Power 8+) and  GPU accelerators from different vendors (NVIDIA, AMD and Intel).
+A multitude of accelerator back-end variants using NVIDIA CUDA, AMD HIP, SYCL, OpenMP 2.0+, std::thread and also serial execution is provided and can be selected depending on the device.
 Only one implementation of the user kernel is required by representing them as function objects with a special interface.
-There is no need to write special CUDA, OpenMP or custom threading code.
-Accelerator back-ends can be mixed within a device queue.
+There is no need to write special CUDA, HIP, OpenMP or custom threading code.
+Accelerator back-ends can be mixed and synchronized via compute device queue.
 The decision which accelerator back-end executes which kernel can be made at runtime.
 
-The abstraction used is very similar to the CUDA grid-blocks-threads division strategy.
+The abstraction used is very similar to the CUDA grid-blocks-threads domain decomposition strategy.
 Algorithms that should be parallelized have to be divided into a multi-dimensional grid consisting of small uniform work items.
 These functions are called kernels and are executed in parallel threads.
 The threads in the grid are organized in blocks.
-All threads in a block are executed in parallel and can interact via fast shared memory.
+All threads in a block are executed in parallel and can interact via fast shared memory and low level synchronization methods.
 Blocks are executed independently and can not interact in any way.
 The block execution order is unspecified and depends on the accelerator in use.
 By using this abstraction the execution can be optimally adapted to the available hardware.
@@ -65,17 +65,17 @@ Supported Compilers
 
 This library uses C++17 (or newer when available).
 
-| Accelerator Back-end                                                           | gcc 9.5 <br/> (Linux)                           | gcc 10.4 / 11.1 <br/> (Linux)                   | gcc 12.3 <br/> (Linux)                      | gcc 13.1 <br/> (Linux) | clang 9 <br/> (Linux)                                      | clang 10 / 11<br/> (Linux)                            | clang 12 <br/> (Linux)                          | clang 13 <br/> (Linux)                      | clang 14 <br/> (Linux)                            | clang 15 <br/> (Linux)                    | clang 16 <br/> (Linux)                    | clang 17 <br/> (Linux)                    | icpx 2023.1.0 / 2023.2.0 (Linux) | Xcode 13.2.1 / 14.2 / 14.3.1 <br /> (macOS)           | Visual Studio 2022 <br/> (Windows)   |
-|--------------------------------------------------------------------------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------|------------------------|------------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------|---------------------------------------------|---------------------------------------------------|-------------------------------------------|-------------------------------------------|-------------------------------------------|----------------------------------|-------------------------------------------------------|--------------------------------------|
-| Serial                                                                         | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:               | :white_check_mark:                                    | :white_check_mark:                   |
-| OpenMP 2.0+ blocks                                                             | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:[^3]           | :white_check_mark:                                    | :white_check_mark:                   |
-| OpenMP 2.0+ threads                                                            | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:[^3]           | :white_check_mark:                                    | :white_check_mark:                   |
-| std::thread                                                                    | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:               | :white_check_mark:                                    | :white_check_mark:                   |
-| TBB                                                                            | :white_check_mark:                              | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:     | :white_check_mark:                                         | :white_check_mark:                                    | :white_check_mark:                              | :white_check_mark:                          | :white_check_mark:                                | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:               | :white_check_mark:                                    | :white_check_mark:                   |
-| CUDA (nvcc)                                                                    | :white_check_mark: <br/> (CUDA 11.0 - 12.3)[^2] | :white_check_mark: <br/> (CUDA 11.4 - 12.0)[^2] | :white_check_mark: <br/> (CUDA 12.0 - 12.3) | :x:                    | :white_check_mark: <br/> (CUDA 11.0-11.2; 11.6 - 12.0)[^2] | :white_check_mark: <br/> (CUDA 11.2, 11.6 - 12.0)[^2] | :white_check_mark: <br/> (CUDA 11.6 - 12.0)[^2] | :white_check_mark: <br/> (CUDA 11.7 - 12.0) | :white_check_mark: <br/> (CUDA 11.8 - 12.0)       | :white_check_mark: <br/> (CUDA 12.2)      | :white_check_mark: <br/> (CUDA 12.3)      | :x:                                       | :x:                              | :x:                                                   | :x:                                  |
-| CUDA (clang)                                                                   | -                                               | -                                               | -                                           | :x:                    | :x:                                                        | :x:                                                   | :x:                                             | :x:                                         | :white_check_mark: (CUDA 11.0 - 11.5)             | :white_check_mark: (CUDA 11.0 - 11.5)[^1] | :white_check_mark: (CUDA 11.0 - 11.5)[^1] | :white_check_mark: (CUDA 11.0 - 11.8)[^1] | :x:                              | -                                                     | -                                    |
-| [HIP](https://alpaka.readthedocs.io/en/latest/install/HIP.html) (clang)        | -                                               | -                                               | -                                           | :x:                    | :x:                                                        | :x:                                                   | :x:                                             | :x:                                         | :white_check_mark: (HIP 5.1 - 5.2)                | :white_check_mark: (HIP 5.3 - 5.4)        | :white_check_mark: (HIP 5.5 - 5.6)        | :white_check_mark: (HIP 5.7 - 6.0)        | :x:                              | -                                                     | -                                    |
-| SYCL                                                                           | :x:                                             | :x:                                             | :x:                                         | :x:                    | :x:                                                        | :x:                                                   | :x:                                             | :x:                                         | :x:                                               | :x:                                       | :x:                                       | :x:                                       | :white_check_mark:[^4]           | :x:                                                   | :x:                                  |
+| Accelerator Back-end | gcc 9.5 (Linux)                           | gcc 10.4 / 11.1 (Linux)                   | gcc 12.3 (Linux)                      | gcc 13.1 (Linux)                      | clang 9 (Linux)                           | clang 10/11 (Linux)                             | clang 12 (Linux)                          | clang 13 (Linux)                      | clang 14 (Linux)                      | clang 15 (Linux)                      | clang 16 (Linux)                      | clang 17 (Linux)                      | icpx 2024.2 (Linux)     | Xcode 13.2.1 / 14.2 / 14.3.1 (macOS) | Visual Studio 2022 (Windows) |
+|----------------------|-------------------------------------------|-------------------------------------------|---------------------------------------|---------------------------------------|-------------------------------------------|-------------------------------------------------|-------------------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|-------------------------|--------------------------------------|------------------------------|
+| Serial               | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                        | :white_check_mark:                              | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:      | :white_check_mark:                   | :white_check_mark:           |
+| OpenMP 2.0+ blocks   | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                        | :white_check_mark:                              | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark: [^1] | :white_check_mark:                   | :white_check_mark:           |
+| OpenMP 2.0+ threads  | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                        | :white_check_mark:                              | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark: [^1] | :white_check_mark:                   | :white_check_mark:           |
+| std::thread          | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                        | :white_check_mark:                              | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:      | :white_check_mark:                   | :white_check_mark:           |
+| TBB                  | :white_check_mark:                        | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                        | :white_check_mark:                              | :white_check_mark:                        | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:      | :white_check_mark:                   | :white_check_mark:           |
+| CUDA (nvcc)          | :white_check_mark: (CUDA 11.2 - 12.5)[^2] | :white_check_mark: (CUDA 11.4 - 12.0)[^2] | :white_check_mark: (CUDA 12.0 - 12.5) | :white_check_mark: (CUDA 12.4 - 12.5) | :white_check_mark: (CUDA 11.6 - 12.0)[^2] | :white_check_mark: (CUDA 11.2, 11.6 - 12.0)[^2] | :white_check_mark: (CUDA 11.6 - 12.0)[^2] | :white_check_mark: (CUDA 11.7 - 12.0) | :white_check_mark: (CUDA 11.8 - 12.0) | :white_check_mark: (CUDA 12.2)        | :white_check_mark: (CUDA 12.3)        | :white_check_mark: (CUDA 12.4 - 15.5) | :x:                     | -                                    | :x:                          |
+| CUDA (clang)         | -                                         | -                                         | -                                     | -                                     | :x:                                       | :x:                                             | :x:                                       | :x:                                   | :white_check_mark: (CUDA 11.2 - 11.5) | :white_check_mark: (CUDA 11.2 - 11.5) | :white_check_mark: (CUDA 11.2 - 11.5) | :white_check_mark: (CUDA 11.2 - 11.8) | :x:                     | -                                    | -                            |
+| HIP (clang)          | -                                         | -                                         | -                                     | -                                     | :x:                                       | :x:                                             | :x:                                       | :x:                                   | :white_check_mark: (HIP 5.1 - 5.2)    | :white_check_mark: (HIP 5.3 - 5.4)    | :white_check_mark: (HIP 5.5 - 5.6)    | :white_check_mark: (HIP 5.7 - 6.1)    | :x:                     | -                                    | -                            |
+| SYCL                 | :x:                                       | :x:                                       | :x:                                   | :x:                                   | :x:                                       | :x:                                             | :x:                                       | :x:                                   | :x:                                   | :x:                                   | :x:                                   | :x:                                   | :white_check_mark: [^4] | -                                    | :x:                          |
 
 Other compilers or combinations marked with :x: in the table above may work but are not tested in CI and are therefore not explicitly supported.
 
@@ -91,7 +91,7 @@ Dependencies
 The **alpaka** library itself just requires header-only libraries.
 However some of the accelerator back-end implementations require different boost libraries to be built.
 
-When an accelerator back-end using *CUDA* is enabled, version *11.0* (with nvcc as CUDA compiler) or version *9.2* (with clang as CUDA compiler) of the *CUDA SDK* is the minimum requirement.
+When an accelerator back-end using *CUDA* is enabled, version *11.2* (with nvcc as CUDA compiler) or version *11.2* (with clang as CUDA compiler) of the *CUDA SDK* is the minimum requirement.
 *NOTE*: When using clang as a native *CUDA* compiler, the *CUDA accelerator back-end* can not be enabled together with any *OpenMP accelerator back-end* because this combination is currently unsupported.
 *NOTE*: Separable compilation is disabled by default and can be enabled via the CMake flag `CMAKE_CUDA_SEPARABLE_COMPILATION`.
 
@@ -214,47 +214,7 @@ consider citing us accordingly in your derived work and publications:
 Contributing
 ------------
 
-Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
+Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
+Any pull request will be reviewed by a [maintainer](https://github.com/orgs/alpaka-group/teams/alpaka-maintainers).
 
-Authors
--------
-
-### Maintainers* and Core Developers
-
-- Benjamin Worpitz* (original author)
-- Dr. Sergei Bastrakov*
-- Kseniia Bastrakova
-- Dr. Andrea Bocci*
-- Dr. Antonio Di Pilato
-- Simeon Ehrig
-- Luca Ferragina
-- Bernhard Manfred Gruber*
-- Christian Kaever
-- Dr. Jeffrey Kelling
-- Dr. Stewart Martin-Haugh
-- Aurora Perego
-- Jan Stephan*
-- René Widera*
-- Dr. Jeffrey Young
-
-### Former Members, Contributions and Thanks
-
-- Dr. Michael Bussmann
-- Mat Colgrove
-- Valentin Gehrke
-- Dr. Axel Hübl
-- Maximilian Knespel
-- Jakob Krude
-- Alexander Matthes
-- Hauke Mewes
-- Phil Nash
-- Dr. Felice Pantaleo
-- Dr. David M. Rogers
-- Mutsuo Saito
-- Jonas Schenke
-- Daniel Vollmer
-- Dr. Jiří Vyskočil
-- Matthias Werner
-- Bert Wesarg
-- Malte Zacharias
-- Erik Zenker
+Thanks to all [active and former contributors](.zenodo.json).

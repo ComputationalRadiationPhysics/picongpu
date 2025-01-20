@@ -5,7 +5,6 @@
 #pragma once
 
 #include "alpaka/rand/Philox/PhiloxStateless.hpp"
-#include "alpaka/rand/Philox/PhiloxStatelessVector.hpp"
 #include "alpaka/rand/Traits.hpp"
 
 namespace alpaka::rand
@@ -20,13 +19,10 @@ namespace alpaka::rand
      * Ref.: J. K. Salmon, M. A. Moraes, R. O. Dror and D. E. Shaw, "Parallel random numbers: As easy as 1, 2, 3,"
      * SC '11: Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and
      * Analysis, 2011, pp. 1-12, doi: 10.1145/2063384.2063405.
-     *
-     * @tparam TAcc Accelerator type as defined in alpaka/acc
      */
-    template<typename TAcc>
     class PhiloxStateless4x32x10Vector
-        : public alpaka::rand::engine::PhiloxStatelessVector<TAcc, engine::PhiloxParams<4, 32, 10>>
-        , public concepts::Implements<ConceptRand, PhiloxStateless4x32x10Vector<TAcc>>
+        : public alpaka::rand::engine::PhiloxStateless<engine::PhiloxParams<4, 32, 10>>
+        , public concepts::Implements<ConceptRand, PhiloxStateless4x32x10Vector>
     {
     public:
         using EngineParams = engine::PhiloxParams<4, 32, 10>;

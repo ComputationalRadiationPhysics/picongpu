@@ -3,6 +3,65 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2024-10-02
+
+### Added
+
+- device functions to simplify writing kernel code #2337 #2369 #2383
+- support Clang 18 and 19 #2387
+- support oneAPI 2024.2 #2368
+- support for mapped memory allocation for the SYCL backend #2375
+- support for pre-commit #2253
+- support for device and constant global variables in the SYCL backend #2242
+- alpaka::meta::isList, alpaka::meta::ToList and alpaka::meta::toTuple #2269
+- accelerator trait to check for single and multi-threads per block #2263
+- trait IsKernelTriviallyCopyable #2302
+- trait AccIsEnabled #2267
+- documentation: cmake flag to build alpaka benchmarks #2272
+- benchmark: babelstream support for different Accs #2299
+- example: using MdSpan to pass 2D data #2293
+- example: 2D heat equation #2365 #2383
+- example: Convolution #2228 #2220
+
+### Changed
+
+- update cheatsheet.rst  #2398 #2386 #2241
+- signature of `[get|is]ValidWorkDiv*` #2349
+- use shared CUDA libraries by default #2348 #2342
+- add thread count to CPU blocks accelerators #2338
+- link libcudart even when libcurand is not used #2329
+- ctest: display only output of tests, which failed #2322
+- example: Matrix Multiplication use MdSpan #2317
+- move the Complex class to internal namespace #2301
+- run examples with all enabled accelerators #2280
+- template order allocMappedBuf #2270
+- slow getWarpSize problem #2246
+- simplification of workdiv creation #2240
+- benchmarks: move from examples into own directory #2237
+
+### Fixed
+
+- `[get|is]ValidWorkDiv*` #2349 #2335
+- cray clang compiler errors #2392
+- fix and update SYCL targets #2390 #2361
+- single thread acc throw for invalid workdiv fix #2391
+- explicitly call alpaka::detail to achieve SYCL compilation #2385
+- deduction guide for vector #2376
+- issue with device global variables with CUDA 12.4 #2303
+- clang9/nvcc11.2 boost bug #2294
+- HIP: fix CMake relocatable device code option #2290
+- Re-enable AtomicAtomicRef #2288
+- alpaka_add_library relocatable device code #2273
+- forwarding of msvc compiler flag '/Zo' #2266
+- Windows: usage of Idx to alpaka::Idx #2265
+- compiler detection for clang 17 and 18 as CUDA compiler with libstdc++ (gcc) #2256
+- support for non-integral types in Vec generator constructor #2236
+- memcpy warning #2295
+
+### Removed
+
+- support for nvcc11.0 and nvcc11.1 #2310
+
 ## [1.1.0] - 2024-01-18
 
 ### Added

@@ -1,10 +1,11 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
 
-  Copyright 2014 Institute of Radiation Physics,
+  Copyright 2014-2024 Institute of Radiation Physics,
                  Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +31,7 @@
 #include "Noop.hpp"
 
 #include <alpaka/core/Common.hpp>
+
 #include <cstdint>
 #include <string>
 
@@ -49,18 +51,18 @@ namespace mallocMC
 
         public:
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC Noop(const AlpakaAcc& /*acc*/)
+            ALPAKA_FN_ACC Noop(AlpakaAcc const& /*acc*/)
             {
             }
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC auto collect(const AlpakaAcc& /*acc*/, uint32 bytes) const -> uint32
+            ALPAKA_FN_ACC auto collect(AlpakaAcc const& /*acc*/, uint32 bytes) const -> uint32
             {
                 return bytes;
             }
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC auto distribute(const AlpakaAcc& /*acc*/, void* allocatedMem) const -> void*
+            ALPAKA_FN_ACC auto distribute(AlpakaAcc const& /*acc*/, void* allocatedMem) const -> void*
             {
                 return allocatedMem;
             }

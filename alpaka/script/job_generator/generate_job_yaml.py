@@ -5,7 +5,8 @@ Create GitLab-CI job description written in yaml from the job matrix."""
 
 from typing import List, Dict, Tuple
 from typeguard import typechecked
-import os, yaml
+import os
+import yaml
 import gitlab
 
 
@@ -136,18 +137,12 @@ def job_image(
     """
 
     verified_container_url = [
-        "registry.hzdr.de/crp/alpaka-group-container/"
-        + "alpaka-ci-ubuntu"
-        + job[UBUNTU][VERSION]
+        "registry.hzdr.de/crp/alpaka-group-container/" + "alpaka-ci-ubuntu" + job[UBUNTU][VERSION]
     ]
 
-    is_in_gitlab_images = lambda name: bool(
-        [i for i in gitlab_images if i.startswith(name)]
-    )
+    is_in_gitlab_images = lambda name: bool([i for i in gitlab_images if i.startswith(name)])
 
-    def verify_image(
-        test_url: List[str], verified_url: List[str], gitlab_images: List[str]
-    ) -> bool:
+    def verify_image(test_url: List[str], verified_url: List[str], gitlab_images: List[str]) -> bool:
         """Verify if the test_url is included in gitlab_images.
 
         Args:
@@ -165,8 +160,7 @@ def job_image(
         if gitlab_images and not is_in_gitlab_images("".join(test_url)):
             if "".join(test_url) not in image_warning_cache:
                 print_warn(
-                    f'image {"".join(test_url)} does not exist\n'
-                    f'  use instead image: {"".join(verified_url)}'
+                    f'image {"".join(test_url)} does not exist\n' f'  use instead image: {"".join(verified_url)}'
                 )
                 # append image to a cache to show the warning only one time
                 image_warning_cache.append("".join(test_url))
@@ -188,26 +182,16 @@ def job_image(
         return "".join(verified_container_url)
     verified_container_url = testing_container_url.copy()
 
-    if (
-        ALPAKA_ACC_GPU_CUDA_ENABLE in job
-        and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER
-    ):
+    if ALPAKA_ACC_GPU_CUDA_ENABLE in job and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER:
         # Cast cuda version shape. E.g. from 11.0 to 110
-        testing_container_url.insert(
-            1, "-cuda" + str(int(float(job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION]) * 10))
-        )
+        testing_container_url.insert(1, "-cuda" + str(int(float(job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION]) * 10)))
 
     if not verify_image(testing_container_url, verified_container_url, gitlab_images):
         return "".join(verified_container_url)
     verified_container_url = testing_container_url.copy()
 
-    if (
-        ALPAKA_ACC_GPU_HIP_ENABLE in job
-        and job[ALPAKA_ACC_GPU_HIP_ENABLE][VERSION] != OFF_VER
-    ):
-        testing_container_url.insert(
-            1, "-rocm" + job[ALPAKA_ACC_GPU_HIP_ENABLE][VERSION]
-        )
+    if ALPAKA_ACC_GPU_HIP_ENABLE in job and job[ALPAKA_ACC_GPU_HIP_ENABLE][VERSION] != OFF_VER:
+        testing_container_url.insert(1, "-rocm" + job[ALPAKA_ACC_GPU_HIP_ENABLE][VERSION])
 
     if not verify_image(testing_container_url, verified_container_url, gitlab_images):
         return "".join(verified_container_url)
@@ -220,9 +204,7 @@ def job_image(
 
 
 @typechecked
-def append_backend_variables(
-    variables: Dict[str, str], job: Dict[str, Tuple[str, str]]
-):
+def append_backend_variables(variables: Dict[str, str], job: Dict[str, Tuple[str, str]]):
     """Searches for enabled back-ends in the job parameters and appends the back-end
     variable to variables to enable it in the CI job.
 
@@ -287,6 +269,7 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
 
     variables["ALPAKA_CI_CMAKE_VER"] = job[CMAKE][VERSION]
     variables["ALPAKA_BOOST_VERSION"] = job[BOOST][VERSION]
+    variables["alpaka_CXX_STANDARD"] = job[CXX_STANDARD][VERSION]
 
     # all back-ends are disabled by default
     # back-ends are conditionally enabled depending on the job parameters
@@ -313,28 +296,19 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
     append_backend_variables(variables, job)
 
     if job[DEVICE_COMPILER][NAME] == GCC:
-        variables["CC"] = "gcc"
-        variables["CXX"] = "g++"
+        variables["ALPAKA_CI_CXX"] = "g++"
         variables["ALPAKA_CI_GCC_VER"] = job[DEVICE_COMPILER][VERSION]
-        if (
-            ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job
-            and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER
-        ):
+        if ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER:
             variables["ALPAKA_CI_TBB_VERSION"] = "2021.10.0"
 
     if job[DEVICE_COMPILER][NAME] == CLANG:
-        variables["CC"] = "clang"
-        variables["CXX"] = "clang++"
+        variables["ALPAKA_CI_CXX"] = "clang++"
         variables["ALPAKA_CI_CLANG_VER"] = job[DEVICE_COMPILER][VERSION]
-        if (
-            ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job
-            and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER
-        ):
+        if ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE in job and job[ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE][VERSION] == ON_VER:
             variables["ALPAKA_CI_TBB_VERSION"] = "2021.10.0"
 
     if job[DEVICE_COMPILER][NAME] == HIPCC:
-        variables["CC"] = "clang"
-        variables["CXX"] = "clang++"
+        variables["ALPAKA_CI_CXX"] = "clang++"
         variables["CMAKE_HIP_COMPILER"] = "clang++"
         variables["CMAKE_HIP_ARCHITECTURES"] = "${CI_GPU_ARCH}"
         # TODO(SimeonEhrig) check, if we can remove this variable:
@@ -354,58 +328,55 @@ def job_variables(job: Dict[str, Tuple[str, str]]) -> Dict[str, str]:
             variables["ALPAKA_CI_CLANG_VER"] = "17"
         elif job[DEVICE_COMPILER][VERSION] == "6.0":
             variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "6.1":
+            variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "6.2":
+            variables["ALPAKA_CI_CLANG_VER"] = "18"
         else:
             raise RuntimeError(
-                "generate_job_yaml.job_variables(): unknown hip version: "
-                f"{job[DEVICE_COMPILER][VERSION]}"
+                "generate_job_yaml.job_variables(): unknown ROCm version: " f"{job[DEVICE_COMPILER][VERSION]}"
             )
         variables["ALPAKA_CI_HIP_VERSION"] = job[DEVICE_COMPILER][VERSION]
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
 
     # general configuration, if the CUDA backend is enabled (includes nvcc and clang as CUDA
     # compiler)
-    if (
-        ALPAKA_ACC_GPU_CUDA_ENABLE in job
-        and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER
-    ):
+    if ALPAKA_ACC_GPU_CUDA_ENABLE in job and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER:
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
         variables["CMAKE_CUDA_ARCHITECTURES"] = job[SM_LEVEL][VERSION]
         variables["ALPAKA_CI_CUDA_VERSION"] = job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION]
 
     if job[DEVICE_COMPILER][NAME] == NVCC:
         # general configuration, if nvcc is the CUDA compiler
-        variables["CMAKE_CUDA_COMPILER"] = "nvcc"
+        variables["ALPAKA_CI_CUDA_COMPILER"] = "nvcc"
 
         # configuration, if GCC is the CUDA host compiler
         if job[HOST_COMPILER][NAME] == GCC:
-            variables["CC"] = "gcc"
-            variables["CXX"] = "g++"
+            variables["ALPAKA_CI_CXX"] = "g++"
             variables["ALPAKA_CI_GCC_VER"] = job[HOST_COMPILER][VERSION]
         # configuration, if Clang is the CUDA host compiler
         elif job[HOST_COMPILER][NAME] == CLANG:
-            variables["CC"] = "clang"
-            variables["CXX"] = "clang++"
+            variables["ALPAKA_CI_CXX"] = "clang++"
             variables["ALPAKA_CI_CLANG_VER"] = job[HOST_COMPILER][VERSION]
         else:
             raise RuntimeError(
-                "generate_job_yaml.job_variables(): unknown CUDA host compiler: "
-                f"{job[HOST_COMPILER][NAME]}"
+                "generate_job_yaml.job_variables(): unknown CUDA host compiler: " f"{job[HOST_COMPILER][NAME]}"
             )
 
     if job[DEVICE_COMPILER][NAME] == CLANG_CUDA:
-        variables["CC"] = "clang"
-        variables["CXX"] = "clang++"
+        variables["ALPAKA_CI_CXX"] = "clang++"
         variables["ALPAKA_CI_CLANG_VER"] = job[DEVICE_COMPILER][VERSION]
-        variables["CMAKE_CUDA_COMPILER"] = "clang++"
+        variables["ALPAKA_CI_CUDA_COMPILER"] = "clang++"
 
     # oneAPI configuration
     if job[DEVICE_COMPILER][NAME] == ICPX:
-        variables["CC"] = "icx"
-        variables["CXX"] = "icpx"
-        if job[DEVICE_COMPILER][VERSION] == "2023.1.0":
-            variables["ALPAKA_CI_CLANG_VER"] = "16"
-        elif job[DEVICE_COMPILER][VERSION] == "2023.2.0":
-            variables["ALPAKA_CI_CLANG_VER"] = "16"
+        variables["ALPAKA_CI_CXX"] = "icpx"
+        if job[DEVICE_COMPILER][VERSION] == "2024.0":
+            variables["ALPAKA_CI_CLANG_VER"] = "17"
+        elif job[DEVICE_COMPILER][VERSION] == "2024.1":
+            variables["ALPAKA_CI_CLANG_VER"] = "18"
+        elif job[DEVICE_COMPILER][VERSION] == "2024.2":
+            variables["ALPAKA_CI_CLANG_VER"] = "19"
         variables["ALPAKA_CI_STDLIB"] = "libstdc++"
         variables["ALPAKA_CI_ONEAPI_VERSION"] = job[DEVICE_COMPILER][VERSION]
         variables["alpaka_SYCL_ONEAPI_CPU"] = "ON"
@@ -427,21 +398,12 @@ def job_tags(job: Dict[str, Tuple[str, str]]) -> List[str]:
     if job[JOB_EXECUTION_TYPE][VERSION] == JOB_EXECUTION_COMPILE_ONLY:
         return ["x86_64", "cpuonly"]
 
-    if (
-        ALPAKA_ACC_GPU_CUDA_ENABLE in job
-        and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER
-    ):
+    if ALPAKA_ACC_GPU_CUDA_ENABLE in job and job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION] != OFF_VER:
         return ["x86_64", "cuda"]
-    if (
-        ALPAKA_ACC_GPU_HIP_ENABLE in job
-        and job[ALPAKA_ACC_GPU_HIP_ENABLE][VERSION] != OFF_VER
-    ):
+    if ALPAKA_ACC_GPU_HIP_ENABLE in job and job[ALPAKA_ACC_GPU_HIP_ENABLE][VERSION] != OFF_VER:
         return ["x86_64", "rocm"]
 
-    if (
-        ALPAKA_ACC_SYCL_ENABLE in job
-        and job[ALPAKA_ACC_SYCL_ENABLE][VERSION] != OFF_VER
-    ):
+    if ALPAKA_ACC_SYCL_ENABLE in job and job[ALPAKA_ACC_SYCL_ENABLE][VERSION] != OFF_VER:
         return ["x86_64", "cpuonly"]
 
     # fallback
@@ -487,9 +449,7 @@ def global_variables() -> Dict[str, str]:
 
 
 @typechecked
-def create_job(
-    job: Dict[str, Tuple[str, str]], container_version: float, gitlab_images: List[str]
-) -> Dict[str, Dict]:
+def create_job(job: Dict[str, Tuple[str, str]], container_version: float, gitlab_images: List[str]) -> Dict[str, Dict]:
     """Create complete GitLab-CI yaml for a single job
 
     Args:
@@ -505,9 +465,7 @@ def create_job(
     job_name = "linux_" + job[DEVICE_COMPILER][NAME] + job[DEVICE_COMPILER][VERSION]
     # if the nvcc is the device compiler, add also the host compiler to the name
     if job[DEVICE_COMPILER][NAME] == NVCC:
-        job_name = (
-            job_name + "-" + job[HOST_COMPILER][NAME] + job[HOST_COMPILER][VERSION]
-        )
+        job_name = job_name + "-" + job[HOST_COMPILER][NAME] + job[HOST_COMPILER][VERSION]
     # if Clang-CUDA is the device compiler, add also the CUDA SDK version to the name
     if job[DEVICE_COMPILER][NAME] == CLANG_CUDA:
         job_name = job_name + "-cuda" + job[ALPAKA_ACC_GPU_CUDA_ENABLE][VERSION]
@@ -581,9 +539,7 @@ def distribute_to_waves(
         elif job_name.startswith("linux_gcc"):
             sorted_groups[JOB_CPU_RUNTIME].append(job)
         # Clang as C++ compiler without CUDA backend
-        elif job_name.startswith("linux_clang") and not job_name.startswith(
-            "linux_clang-cuda"
-        ):
+        elif job_name.startswith("linux_clang") and not job_name.startswith("linux_clang-cuda"):
             sorted_groups[JOB_CPU_RUNTIME].append(job)
         elif job_name.startswith("linux_hipcc"):
             # sorted_groups[JOB_ROCM_RUNTIME].append(job)
@@ -604,7 +560,7 @@ def distribute_to_waves(
             sorted_groups[JOB_UNKNOWN].append(job)
 
     for wave in WAVE_GROUP_NAMES:
-        if not wave in wave_size:
+        if wave not in wave_size:
             wave_size[wave] = len(sorted_groups[wave])
         else:
             # if max_jobs is negative, set to 0
@@ -653,9 +609,7 @@ def write_job_yaml(
                     "dummy-job": {
                         "image": "alpine:latest",
                         "interruptible": True,
-                        "script": [
-                            'echo "This is a dummy job so that the CI does not fail."'
-                        ],
+                        "script": ['echo "This is a dummy job so that the CI does not fail."'],
                     }
                 },
                 output_file,
@@ -679,9 +633,7 @@ def write_job_yaml(
         # The CUDA and HIP jobs inherent from a job template written in yaml
         script_path = os.path.abspath(__file__)
         with open(
-            os.path.abspath(
-                os.path.join(os.path.dirname(script_path), "../gitlabci/job_base.yml")
-            ),
+            os.path.abspath(os.path.join(os.path.dirname(script_path), "../gitlabci/job_base.yml")),
             "r",
             encoding="utf8",
         ) as file:
@@ -693,14 +645,10 @@ def write_job_yaml(
             # If all jobs would be collected first in dict, the order would be not guarantied.
             for stage_number, wave in enumerate(job_matrix[wave_name]):
                 # Improve the readability of the generated job yaml
-                output_file.write(
-                    f"# <<<<<<<<<<<<< {wave_name}-stage{stage_number} >>>>>>>>>>>>>\n\n"
-                )
+                output_file.write(f"# <<<<<<<<<<<<< {wave_name}-stage{stage_number} >>>>>>>>>>>>>\n\n")
                 for job in wave:
                     # the first key is the name
-                    job[list(job.keys())[0]][
-                        "stage"
-                    ] = f"{wave_name}-stage{stage_number}"
+                    job[list(job.keys())[0]]["stage"] = f"{wave_name}-stage{stage_number}"
 
                     yaml.dump(job, output_file)
                     output_file.write("\n")

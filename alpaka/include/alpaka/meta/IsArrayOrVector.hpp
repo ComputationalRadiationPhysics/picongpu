@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/meta/CudaVectorArrayWrapper.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <functional>
 #include <numeric>
@@ -52,11 +52,14 @@ namespace alpaka::meta
     {
     };
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-    /// Specialization of \a IsArrayOrVector for CUDA vector array wrapper
-    template<typename T, unsigned N>
-    struct IsArrayOrVector<CudaVectorArrayWrapper<T, N>> : std::true_type
+    /** Specialization of \a IsArrayOrVector for alpaka::Vec
+     *
+     * @tparam T inner type held in the array
+     * @tparam N size of the array
+     */
+    template<typename T, typename N>
+    struct IsArrayOrVector<alpaka::Vec<N, T>> : std::true_type
     {
     };
-#endif
+
 } // namespace alpaka::meta

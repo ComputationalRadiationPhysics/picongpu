@@ -1,4 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2024 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+ *                Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -31,6 +32,7 @@
 
 // Implementation details.
 #include "alpaka/acc/Tag.hpp"
+#include "alpaka/core/ClipCast.hpp"
 #include "alpaka/core/Concepts.hpp"
 #include "alpaka/dev/DevCpu.hpp"
 
@@ -38,6 +40,8 @@
 #include <typeinfo>
 
 #ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
+
+#    include <tbb/tbb.h>
 
 namespace alpaka
 {
@@ -107,14 +111,26 @@ namespace alpaka
             using type = AccCpuTbbBlocks<TDim, TIdx>;
         };
 
+        //! The CPU TBB block single thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsSingleThreadAcc<AccCpuTbbBlocks<TDim, TIdx>> : std::true_type
+        {
+        };
+
+        //! The CPU TBB block multi thread accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IsMultiThreadAcc<AccCpuTbbBlocks<TDim, TIdx>> : std::false_type
+        {
+        };
+
         //! The CPU TBB block accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuTbbBlocks<TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& /* dev */) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
                 return {// m_multiProcessorCount
-                        static_cast<TIdx>(1),
+                        alpaka::core::clipCast<TIdx>(tbb::this_task_arena::max_concurrency()),
                         // m_gridBlockExtentMax
                         Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_gridBlockCountMax
@@ -128,7 +144,9 @@ namespace alpaka
                         // m_threadElemCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_sharedMemSizeBytes
-                        static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes())};
+                        static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes()),
+                        // m_globalMemSizeBytes
+                        getMemBytes(dev)};
             }
         };
 
@@ -165,6 +183,13 @@ namespace alpaka
                 TKernelFnObj const& kernelFnObj,
                 TArgs&&... args)
             {
+                if(workDiv.m_blockThreadExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error(
+                        "The given work division is not valid for a single thread Acc: "
+                        + getAccName<AccCpuTbbBlocks<TDim, TIdx>>() + ". Threads per block should be 1!");
+                }
+
                 return TaskKernelCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>(
                     workDiv,
                     kernelFnObj,

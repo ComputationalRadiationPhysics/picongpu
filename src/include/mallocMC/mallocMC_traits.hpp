@@ -2,10 +2,11 @@
   mallocMC: Memory Allocator for Many Core Architectures.
   https://www.hzdr.de/crp
 
-  Copyright 2014 - 2015 Institute of Radiation Physics,
+  Copyright 2014 - 2024 Institute of Radiation Physics,
                         Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
+              Julian Lenz - j.lenz ( at ) hzdr.de
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal

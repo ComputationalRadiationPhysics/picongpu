@@ -190,18 +190,6 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     // Result matrix is MxN. We create one worker per result matrix cell.
     Vec2 const extentC(static_cast<Idx>(m), static_cast<Idx>(n));
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extentC,
-        alpaka::Vec<Dim, Idx>::ones(),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::EqualExtent));
-
-    std::cout << "MatMulKernel("
-              << "m:" << m << ", n:" << n << ", k:" << k << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
-              << std::endl;
 
     // Allocate the A and B matrices as std::vectors because this allows them to be filled with uint32_t(1).
     // alpaka::set only supports setting all bytes leading to a value of 16843009 in all elements.
@@ -255,6 +243,32 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     std::cout << "pitchesB " << alpaka::getPitchesInBytes(bufBAcc) << " ldb: " << ldb << "\n";
     std::cout << "pitchesC " << alpaka::getPitchesInBytes(bufCAcc) << " ldc: " << ldc << "\n";
 
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    alpaka::KernelCfg<Acc> const kernelCfg
+        = {extentC, alpaka::Vec<Dim, Idx>::ones(), false, alpaka::GridBlockExtentSubDivRestrictions::EqualExtent};
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
+        kernel,
+        m,
+        n,
+        k,
+        static_cast<Val>(1),
+        std::data(bufAAcc),
+        lda,
+        std::data(bufBAcc),
+        ldb,
+        static_cast<Val>(1),
+        std::data(bufCAcc),
+        ldc);
+
+
+    std::cout << "MatMulKernel("
+              << "m:" << m << ", n:" << n << ", k:" << k << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
+
+
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
@@ -263,12 +277,12 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
         n,
         k,
         static_cast<Val>(1),
-        alpaka::getPtrNative(bufAAcc),
+        std::data(bufAAcc),
         lda,
-        alpaka::getPtrNative(bufBAcc),
+        std::data(bufBAcc),
         ldb,
         static_cast<Val>(1),
-        alpaka::getPtrNative(bufCAcc),
+        std::data(bufCAcc),
         ldc);
 
     // Profile the kernel execution.
@@ -290,7 +304,7 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     auto const correctResult = static_cast<Val>(k);
 
     bool resultCorrect = true;
-    auto const pHostData = alpaka::getPtrNative(bufCHost);
+    auto const pHostData = std::data(bufCHost);
     for(Idx i(0u); i < m * n; ++i)
     {
         auto const& val(pHostData[i]);

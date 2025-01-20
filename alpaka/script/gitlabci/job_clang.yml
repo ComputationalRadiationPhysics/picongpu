@@ -9,6 +9,7 @@ linux_clang-11_release:
     ALPAKA_BOOST_VERSION: 1.75.0
     ALPAKA_CI_CMAKE_VER: 3.22.6
     CMAKE_CXX_EXTENSIONS: "OFF"
+    alpaka_CXX_STANDARD: 17
 
 linux_clang-14_debug:
   extends: .base_clang
@@ -18,7 +19,8 @@ linux_clang-14_debug:
     CMAKE_BUILD_TYPE: Debug
     ALPAKA_BOOST_VERSION: 1.80.0
     ALPAKA_CI_CMAKE_VER: 3.23.5
- 
+    alpaka_CXX_STANDARD: 17
+
 linux_clang-16_relwithdebinfo_asan_c++20:
   extends: .base_clang
   variables:

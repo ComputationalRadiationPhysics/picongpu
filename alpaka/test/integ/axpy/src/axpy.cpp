@@ -94,26 +94,13 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 
     alpaka::Vec<Dim, Idx> const extent(numElements);
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        static_cast<Idx>(3u),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
-
-    std::cout << "AxpyKernel("
-              << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
-              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
-              << std::endl;
-
     // Allocate host memory buffers in pinned memory.
     auto memBufHostX = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
     auto memBufHostOrigY = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
     auto memBufHostY = alpaka::allocMappedBufIfSupported<Val, Idx>(devHost, platformAcc, extent);
-    Val* const pBufHostX = alpaka::getPtrNative(memBufHostX);
-    Val* const pBufHostOrigY = alpaka::getPtrNative(memBufHostOrigY);
-    Val* const pBufHostY = alpaka::getPtrNative(memBufHostY);
+    Val* const pBufHostX = std::data(memBufHostX);
+    Val* const pBufHostOrigY = std::data(memBufHostOrigY);
+    Val* const pBufHostY = std::data(memBufHostY);
 
     // random generator for uniformly distributed numbers in [0,1)
     // keep in mind, this can generate different values on different platforms
@@ -159,14 +146,33 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     std::cout << std::endl;
 #endif
 
+
+    alpaka::KernelCfg<Acc> const kernelCfg
+        = {extent, static_cast<Idx>(3u), false, alpaka::GridBlockExtentSubDivRestrictions::Unrestricted};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDiv = alpaka::getValidWorkDiv(
+        kernelCfg,
+        devAcc,
+        kernel,
+        numElements,
+        alpha,
+        std::data(memBufAccX),
+        std::data(memBufAccY));
+
+    std::cout << "AxpyKernel("
+              << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << alpaka::core::demangled<decltype(kernel)> << ", workDiv: " << workDiv << ")"
+              << std::endl;
+
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         numElements,
         alpha,
-        alpaka::getPtrNative(memBufAccX),
-        alpaka::getPtrNative(memBufAccY));
+        std::data(memBufAccX),
+        std::data(memBufAccY));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

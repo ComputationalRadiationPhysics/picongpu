@@ -3,7 +3,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <alpaka/example/ExecuteForEachAccTag.hpp>
 
 #include <iostream>
 
@@ -76,27 +76,16 @@ struct WrapperKernel
     }
 };
 
-auto main() -> int
+// In standard projects, you typically do not execute the code with any available accelerator.
+// Instead, a single accelerator is selected once from the active accelerators and the kernels are executed with the
+// selected accelerator only. If you use the example as the starting point for your project, you can rename the
+// example() function to main() and move the accelerator tag to the function body.
+template<typename TAccTag>
+auto example(TAccTag const&) -> int
 {
-// Fallback for the CI with disabled sequential backend
-#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-    return EXIT_SUCCESS;
-#else
-
     // Define the accelerator
-    //
-    // It is possible to choose from a set of accelerators:
-    // - AccGpuCudaRt
-    // - AccGpuHipRt
-    // - AccCpuThreads
-    // - AccCpuFibers
-    // - AccCpuOmp2Threads
-    // - AccCpuOmp2Blocks
-    // - AccCpuTbbBlocks
-    // - AccCpuSerial
-    //
     // For simplicity this examples always uses 1 dimensional indexing, and index type size_t
-    using Acc = alpaka::ExampleDefaultAcc<alpaka::DimInt<1>, std::size_t>;
+    using Acc = alpaka::TagToAcc<TAccTag, alpaka::DimInt<1>, std::size_t>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Call the specialized functions
@@ -126,5 +115,20 @@ auto main() -> int
     alpaka::exec<Acc>(queue, workDiv, WrapperKernel{});
     alpaka::wait(queue);
     return EXIT_SUCCESS;
-#endif
+}
+
+auto main() -> int
+{
+    // Execute the example once for each enabled accelerator.
+    // If you would like to execute it for a single accelerator only you can use the following code.
+    //  \code{.cpp}
+    //  auto tag = TagCpuSerial;
+    //  return example(tag);
+    //  \endcode
+    //
+    // valid tags:
+    //   TagCpuSerial, TagGpuHipRt, TagGpuCudaRt, TagCpuOmp2Blocks, TagCpuTbbBlocks,
+    //   TagCpuOmp2Threads, TagCpuSycl, TagCpuTbbBlocks, TagCpuThreads,
+    //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
+    return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }

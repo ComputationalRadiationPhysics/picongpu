@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Andrea Bocci, Aurora Perego
+/* Copyright 2024 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -23,259 +23,267 @@
 
 #    include <sycl/sycl.hpp>
 
-namespace alpaka::detail
+namespace alpaka
 {
-    template<typename T, typename = void>
-    inline constexpr auto is_sycl_task = false;
+    template<typename TTag>
+    class DevGenericSycl;
 
-    template<typename T>
-    inline constexpr auto is_sycl_task<T, std::void_t<decltype(T::is_sycl_task)>> = true;
+    template<typename TTag>
+    class EventGenericSycl;
 
-    template<typename T, typename = void>
-    inline constexpr auto is_sycl_kernel = false;
-
-    template<typename T>
-    inline constexpr auto is_sycl_kernel<T, std::void_t<decltype(T::is_sycl_kernel)>> = true;
-
-    class QueueGenericSyclImpl
+    namespace detail
     {
-    public:
-        QueueGenericSyclImpl(sycl::context context, sycl::device device)
-            : m_queue{
-                std::move(context), // This is important. In SYCL a device can belong to multiple contexts.
-                std::move(device),
-                {sycl::property::queue::enable_profiling{}, sycl::property::queue::in_order{}}}
+        template<typename T, typename = void>
+        inline constexpr auto is_sycl_task = false;
+
+        template<typename T>
+        inline constexpr auto is_sycl_task<T, std::void_t<decltype(T::is_sycl_task)>> = true;
+
+        template<typename T, typename = void>
+        inline constexpr auto is_sycl_kernel = false;
+
+        template<typename T>
+        inline constexpr auto is_sycl_kernel<T, std::void_t<decltype(T::is_sycl_kernel)>> = true;
+
+        class QueueGenericSyclImpl
         {
-        }
-
-        // This class will only exist as a pointer. We don't care about copy and move semantics.
-        QueueGenericSyclImpl(QueueGenericSyclImpl const& other) = delete;
-        auto operator=(QueueGenericSyclImpl const& rhs) -> QueueGenericSyclImpl& = delete;
-
-        QueueGenericSyclImpl(QueueGenericSyclImpl&& other) noexcept = delete;
-        auto operator=(QueueGenericSyclImpl&& rhs) noexcept -> QueueGenericSyclImpl& = delete;
-
-        ~QueueGenericSyclImpl()
-        {
-            try
+        public:
+            QueueGenericSyclImpl(sycl::context context, sycl::device device)
+                : m_queue{
+                    std::move(context), // This is important. In SYCL a device can belong to multiple contexts.
+                    std::move(device),
+                    {sycl::property::queue::enable_profiling{}, sycl::property::queue::in_order{}}}
             {
-                m_queue.wait_and_throw();
             }
-            catch(sycl::exception const& err)
+
+            // This class will only exist as a pointer. We don't care about copy and move semantics.
+            QueueGenericSyclImpl(QueueGenericSyclImpl const& other) = delete;
+            auto operator=(QueueGenericSyclImpl const& rhs) -> QueueGenericSyclImpl& = delete;
+
+            QueueGenericSyclImpl(QueueGenericSyclImpl&& other) noexcept = delete;
+            auto operator=(QueueGenericSyclImpl&& rhs) noexcept -> QueueGenericSyclImpl& = delete;
+
+            ~QueueGenericSyclImpl()
             {
-                std::cerr << "Caught SYCL exception while destructing a SYCL queue: " << err.what() << " ("
-                          << err.code() << ')' << std::endl;
+                try
+                {
+                    m_queue.wait_and_throw();
+                }
+                catch(sycl::exception const& err)
+                {
+                    std::cerr << "Caught SYCL exception while destructing a SYCL queue: " << err.what() << " ("
+                              << err.code() << ')' << std::endl;
+                }
+                catch(std::exception const& err)
+                {
+                    std::cerr << "The following runtime error(s) occured while destructing a SYCL queue:" << err.what()
+                              << std::endl;
+                }
             }
-            catch(std::exception const& err)
+
+            // Don't call this without locking first!
+            auto clean_dependencies() -> void
             {
-                std::cerr << "The following runtime error(s) occured while destructing a SYCL queue:" << err.what()
-                          << std::endl;
+                // Clean up completed events
+                auto const start = std::begin(m_dependencies);
+                auto const old_end = std::end(m_dependencies);
+                auto const new_end = std::remove_if(
+                    start,
+                    old_end,
+                    [](sycl::event ev) {
+                        return ev.get_info<sycl::info::event::command_execution_status>()
+                               == sycl::info::event_command_status::complete;
+                    });
+
+                m_dependencies.erase(new_end, old_end);
             }
-        }
 
-        // Don't call this without locking first!
-        auto clean_dependencies() -> void
-        {
-            // Clean up completed events
-            auto const start = std::begin(m_dependencies);
-            auto const old_end = std::end(m_dependencies);
-            auto const new_end = std::remove_if(
-                start,
-                old_end,
-                [](sycl::event ev) {
-                    return ev.get_info<sycl::info::event::command_execution_status>()
-                           == sycl::info::event_command_status::complete;
-                });
-
-            m_dependencies.erase(new_end, old_end);
-        }
-
-        auto register_dependency(sycl::event event) -> void
-        {
-            std::lock_guard<std::shared_mutex> lock{m_mutex};
-
-            clean_dependencies();
-            m_dependencies.push_back(event);
-        }
-
-        auto empty() const -> bool
-        {
-            std::shared_lock<std::shared_mutex> lock{m_mutex};
-            return m_last_event.get_info<sycl::info::event::command_execution_status>()
-                   == sycl::info::event_command_status::complete;
-        }
-
-        auto wait() -> void
-        {
-            // SYCL queues are thread-safe.
-            m_queue.wait_and_throw();
-        }
-
-        auto get_last_event() const -> sycl::event
-        {
-            std::shared_lock<std::shared_mutex> lock{m_mutex};
-            return m_last_event;
-        }
-
-        template<bool TBlocking, typename TTask>
-        auto enqueue(TTask const& task) -> void
-        {
+            auto register_dependency(sycl::event event) -> void
             {
                 std::lock_guard<std::shared_mutex> lock{m_mutex};
 
                 clean_dependencies();
-
-                // Execute task
-                if constexpr(is_sycl_task<TTask> && !is_sycl_kernel<TTask>) // Copy / Fill
-                {
-                    m_last_event = task(m_queue, m_dependencies); // Will call queue.{copy, fill} internally
-                }
-                else
-                {
-                    m_last_event = m_queue.submit(
-                        [this, &task](sycl::handler& cgh)
-                        {
-                            if(!m_dependencies.empty())
-                                cgh.depends_on(m_dependencies);
-
-                            if constexpr(is_sycl_kernel<TTask>) // Kernel
-                                task(cgh); // Will call cgh.parallel_for internally
-                            else // Host
-                                cgh.host_task(task);
-                        });
-                }
-
-                m_dependencies.clear();
+                m_dependencies.push_back(event);
             }
 
-            if constexpr(TBlocking)
-                wait();
-        }
+            auto empty() const -> bool
+            {
+                std::shared_lock<std::shared_mutex> lock{m_mutex};
+                return m_last_event.get_info<sycl::info::event::command_execution_status>()
+                       == sycl::info::event_command_status::complete;
+            }
 
-        [[nodiscard]] auto getNativeHandle() const noexcept
+            auto wait() -> void
+            {
+                // SYCL queues are thread-safe.
+                m_queue.wait_and_throw();
+            }
+
+            auto get_last_event() const -> sycl::event
+            {
+                std::shared_lock<std::shared_mutex> lock{m_mutex};
+                return m_last_event;
+            }
+
+            template<bool TBlocking, typename TTask>
+            auto enqueue(TTask const& task) -> void
+            {
+                {
+                    std::lock_guard<std::shared_mutex> lock{m_mutex};
+
+                    clean_dependencies();
+
+                    // Execute task
+                    if constexpr(is_sycl_task<TTask> && !is_sycl_kernel<TTask>) // Copy / Fill
+                    {
+                        m_last_event = task(m_queue, m_dependencies); // Will call queue.{copy, fill} internally
+                    }
+                    else
+                    {
+                        m_last_event = m_queue.submit(
+                            [this, &task](sycl::handler& cgh)
+                            {
+                                if(!m_dependencies.empty())
+                                    cgh.depends_on(m_dependencies);
+
+                                if constexpr(is_sycl_kernel<TTask>) // Kernel
+                                    task(cgh); // Will call cgh.parallel_for internally
+                                else // Host
+                                    cgh.host_task(task);
+                            });
+                    }
+
+                    m_dependencies.clear();
+                }
+
+                if constexpr(TBlocking)
+                    wait();
+            }
+
+            [[nodiscard]] auto getNativeHandle() const noexcept
+            {
+                return m_queue;
+            }
+
+            std::vector<sycl::event> m_dependencies;
+            sycl::event m_last_event;
+            std::shared_mutex mutable m_mutex;
+
+        private:
+            sycl::queue m_queue;
+        };
+
+        template<typename TTag, bool TBlocking>
+        class QueueGenericSyclBase
+            : public concepts::Implements<ConceptCurrentThreadWaitFor, QueueGenericSyclBase<TTag, TBlocking>>
+            , public concepts::Implements<ConceptQueue, QueueGenericSyclBase<TTag, TBlocking>>
+            , public concepts::Implements<ConceptGetDev, QueueGenericSyclBase<TTag, TBlocking>>
         {
-            return m_queue;
-        }
+        public:
+            QueueGenericSyclBase(DevGenericSycl<TTag> const& dev)
+                : m_dev{dev}
+                , m_spQueueImpl{std::make_shared<detail::QueueGenericSyclImpl>(
+                      dev.getNativeHandle().second,
+                      dev.getNativeHandle().first)}
+            {
+                m_dev.m_impl->register_queue(m_spQueueImpl);
+            }
 
-        std::vector<sycl::event> m_dependencies;
-        sycl::event m_last_event;
-        std::shared_mutex mutable m_mutex;
+            friend auto operator==(QueueGenericSyclBase const& lhs, QueueGenericSyclBase const& rhs) -> bool
+            {
+                return (lhs.m_dev == rhs.m_dev) && (lhs.m_spQueueImpl == rhs.m_spQueueImpl);
+            }
 
-    private:
-        sycl::queue m_queue;
-    };
+            friend auto operator!=(QueueGenericSyclBase const& lhs, QueueGenericSyclBase const& rhs) -> bool
+            {
+                return !(lhs == rhs);
+            }
 
-    template<typename TDev, bool TBlocking>
-    class QueueGenericSyclBase
+            [[nodiscard]] auto getNativeHandle() const noexcept
+            {
+                return m_spQueueImpl->getNativeHandle();
+            }
+
+            DevGenericSycl<TTag> m_dev;
+            std::shared_ptr<detail::QueueGenericSyclImpl> m_spQueueImpl;
+        };
+    } // namespace detail
+
+    namespace trait
     {
-    public:
-        QueueGenericSyclBase(TDev const& dev)
-            : m_dev{dev}
-            , m_spQueueImpl{std::make_shared<detail::QueueGenericSyclImpl>(
-                  dev.getNativeHandle().second,
-                  dev.getNativeHandle().first)}
+        //! The SYCL blocking queue device type trait specialization.
+        template<typename TTag, bool TBlocking>
+        struct DevType<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>>
         {
-            m_dev.m_impl->register_queue(m_spQueueImpl);
-        }
+            using type = DevGenericSycl<TTag>;
+        };
 
-        friend auto operator==(QueueGenericSyclBase const& lhs, QueueGenericSyclBase const& rhs) -> bool
+        //! The SYCL blocking queue device get trait specialization.
+        template<typename TTag, bool TBlocking>
+        struct GetDev<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>>
         {
-            return (lhs.m_dev == rhs.m_dev) && (lhs.m_spQueueImpl == rhs.m_spQueueImpl);
-        }
+            static auto getDev(alpaka::detail::QueueGenericSyclBase<TTag, TBlocking> const& queue)
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                return queue.m_dev;
+            }
+        };
 
-        friend auto operator!=(QueueGenericSyclBase const& lhs, QueueGenericSyclBase const& rhs) -> bool
+        //! The SYCL blocking queue event type trait specialization.
+        template<typename TTag, bool TBlocking>
+        struct EventType<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>>
         {
-            return !(lhs == rhs);
-        }
+            using type = EventGenericSycl<TTag>;
+        };
 
-        [[nodiscard]] auto getNativeHandle() const noexcept
+        //! The SYCL blocking queue enqueue trait specialization.
+        template<typename TTag, bool TBlocking, typename TTask>
+        struct Enqueue<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>, TTask>
         {
-            return m_spQueueImpl->getNativeHandle();
-        }
+            static auto enqueue(alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>& queue, TTask const& task)
+                -> void
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                queue.m_spQueueImpl->template enqueue<TBlocking>(task);
+            }
+        };
 
-        TDev m_dev;
-        std::shared_ptr<detail::QueueGenericSyclImpl> m_spQueueImpl;
-    };
-} // namespace alpaka::detail
+        //! The SYCL blocking queue test trait specialization.
+        template<typename TTag, bool TBlocking>
+        struct Empty<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>>
+        {
+            static auto empty(alpaka::detail::QueueGenericSyclBase<TTag, TBlocking> const& queue) -> bool
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                return queue.m_spQueueImpl->empty();
+            }
+        };
 
-namespace alpaka
-{
-    template<typename TDev>
-    class EventGenericSycl;
+        //! The SYCL blocking queue thread wait trait specialization.
+        //!
+        //! Blocks execution of the calling thread until the queue has finished processing all previously requested
+        //! tasks (kernels, data copies, ...)
+        template<typename TTag, bool TBlocking>
+        struct CurrentThreadWaitFor<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>>
+        {
+            static auto currentThreadWaitFor(alpaka::detail::QueueGenericSyclBase<TTag, TBlocking> const& queue)
+                -> void
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                queue.m_spQueueImpl->wait();
+            }
+        };
+
+        //! The SYCL queue native handle trait specialization.
+        template<typename TTag, bool TBlocking>
+        struct NativeHandle<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>>
+        {
+            [[nodiscard]] static auto getNativeHandle(
+                alpaka::detail::QueueGenericSyclBase<TTag, TBlocking> const& queue)
+            {
+                return queue.getNativeHandle();
+            }
+        };
+    } // namespace trait
 } // namespace alpaka
-
-namespace alpaka::trait
-{
-    //! The SYCL blocking queue device type trait specialization.
-    template<typename TDev, bool TBlocking>
-    struct DevType<detail::QueueGenericSyclBase<TDev, TBlocking>>
-    {
-        using type = TDev;
-    };
-
-    //! The SYCL blocking queue device get trait specialization.
-    template<typename TDev, bool TBlocking>
-    struct GetDev<detail::QueueGenericSyclBase<TDev, TBlocking>>
-    {
-        static auto getDev(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            return queue.m_dev;
-        }
-    };
-
-    //! The SYCL blocking queue event type trait specialization.
-    template<typename TDev, bool TBlocking>
-    struct EventType<detail::QueueGenericSyclBase<TDev, TBlocking>>
-    {
-        using type = EventGenericSycl<TDev>;
-    };
-
-    //! The SYCL blocking queue enqueue trait specialization.
-    template<typename TDev, bool TBlocking, typename TTask>
-    struct Enqueue<detail::QueueGenericSyclBase<TDev, TBlocking>, TTask>
-    {
-        static auto enqueue(detail::QueueGenericSyclBase<TDev, TBlocking>& queue, TTask const& task) -> void
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            queue.m_spQueueImpl->template enqueue<TBlocking>(task);
-        }
-    };
-
-    //! The SYCL blocking queue test trait specialization.
-    template<typename TDev, bool TBlocking>
-    struct Empty<detail::QueueGenericSyclBase<TDev, TBlocking>>
-    {
-        static auto empty(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue) -> bool
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            return queue.m_spQueueImpl->empty();
-        }
-    };
-
-    //! The SYCL blocking queue thread wait trait specialization.
-    //!
-    //! Blocks execution of the calling thread until the queue has finished processing all previously requested
-    //! tasks (kernels, data copies, ...)
-    template<typename TDev, bool TBlocking>
-    struct CurrentThreadWaitFor<detail::QueueGenericSyclBase<TDev, TBlocking>>
-    {
-        static auto currentThreadWaitFor(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue) -> void
-        {
-            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-            queue.m_spQueueImpl->wait();
-        }
-    };
-
-    //! The SYCL queue native handle trait specialization.
-    template<typename TDev, bool TBlocking>
-    struct NativeHandle<detail::QueueGenericSyclBase<TDev, TBlocking>>
-    {
-        [[nodiscard]] static auto getNativeHandle(detail::QueueGenericSyclBase<TDev, TBlocking> const& queue)
-        {
-            return queue.getNativeHandle();
-        }
-    };
-} // namespace alpaka::trait
-
 #endif

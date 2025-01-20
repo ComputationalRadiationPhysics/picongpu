@@ -1,4 +1,4 @@
-/* Copyright 2023 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2024 Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -34,27 +34,51 @@ namespace alpaka::test
         using Queue = test::DefaultQueue<Device>;
         using WorkDiv = WorkDivMembers<Dim, Idx>;
 
-        KernelExecutionFixture(WorkDiv workDiv) : m_workDiv{std::move(workDiv)}
+        KernelExecutionFixture(WorkDiv workDiv) : m_queue{m_device}, m_workDiv{std::move(workDiv)}
         {
         }
 
         template<typename TExtent>
-        KernelExecutionFixture(TExtent const& extent)
-            : m_workDiv{getValidWorkDiv<Acc>(
-                m_device,
-                extent,
-                Vec<Dim, Idx>::ones(),
-                false,
-                GridBlockExtentSubDivRestrictions::Unrestricted)}
+        KernelExecutionFixture(TExtent const& extent) : m_queue{m_device}
+                                                      , m_extent{extent}
+        {
+        }
+
+        KernelExecutionFixture(Queue queue, WorkDiv workDiv)
+            : m_platform{} // if the platform is not stateless, this is wrong; we ignore it because it is not be used
+            , m_device{alpaka::getDev(queue)}
+            , m_queue{std::move(queue)}
+            , m_workDiv{std::move(workDiv)}
+        {
+        }
+
+        template<typename TExtent>
+        KernelExecutionFixture(Queue queue, TExtent const& extent)
+            : m_platform{} // if the platform is not stateless, this is wrong; we ignore it because it is not be used
+            , m_device{alpaka::getDev(queue)}
+            , m_queue{std::move(queue)}
+            , m_extent{extent}
         {
         }
 
         template<typename TKernelFnObj, typename... TArgs>
-        auto operator()(TKernelFnObj const& kernelFnObj, TArgs&&... args) -> bool
+        auto operator()(TKernelFnObj kernelFnObj, TArgs&&... args) -> bool
         {
             // Allocate the result value
             auto bufAccResult = allocBuf<bool, Idx>(m_device, static_cast<Idx>(1u));
             memset(m_queue, bufAccResult, static_cast<std::uint8_t>(true));
+
+
+            alpaka::KernelCfg<Acc> const kernelCfg = {m_extent, Vec<Dim, Idx>::ones()};
+
+            // set workdiv if it is not before
+            if(m_workDiv == WorkDiv{Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0)})
+                m_workDiv = alpaka::getValidWorkDiv(
+                    kernelCfg,
+                    m_device,
+                    kernelFnObj,
+                    getPtrNative(bufAccResult),
+                    std::forward<TArgs>(args)...);
 
             exec<Acc>(m_queue, m_workDiv, kernelFnObj, getPtrNative(bufAccResult), std::forward<TArgs>(args)...);
 
@@ -73,7 +97,9 @@ namespace alpaka::test
         DevCpu m_devHost{getDevByIdx(m_platformHost, 0)};
         Platform m_platform{};
         Device m_device{getDevByIdx(m_platform, 0)};
-        Queue m_queue{m_device};
-        WorkDiv m_workDiv;
+        Queue m_queue;
+        WorkDiv m_workDiv{Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0), Vec<Dim, Idx>::all(0)};
+        Vec<Dim, Idx> m_extent;
     };
+
 } // namespace alpaka::test

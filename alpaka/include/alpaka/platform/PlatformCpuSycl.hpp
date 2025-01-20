@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Luca Ferragina, Andrea Bocci
+/* Copyright 2024 Jan Stephan, Luca Ferragina, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -8,8 +8,6 @@
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/platform/PlatformGenericSycl.hpp"
 
-#include <string>
-
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_ONEAPI_CPU)
 
 #    include <sycl/sycl.hpp>
@@ -18,7 +16,8 @@ namespace alpaka
 {
     namespace detail
     {
-        struct SyclCpuSelector
+        template<>
+        struct SYCLDeviceSelector<TagCpuSycl>
         {
             auto operator()(sycl::device const& dev) const -> int
             {
@@ -28,17 +27,7 @@ namespace alpaka
     } // namespace detail
 
     //! The SYCL device manager.
-    using PlatformCpuSycl = PlatformGenericSycl<detail::SyclCpuSelector>;
+    using PlatformCpuSycl = PlatformGenericSycl<TagCpuSycl>;
 } // namespace alpaka
-
-namespace alpaka::trait
-{
-    //! The SYCL device manager device type trait specialization.
-    template<>
-    struct DevType<PlatformCpuSycl>
-    {
-        using type = DevGenericSycl<PlatformCpuSycl>; // = DevCpuSycl
-    };
-} // namespace alpaka::trait
 
 #endif

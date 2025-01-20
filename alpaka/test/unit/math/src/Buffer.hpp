@@ -38,12 +38,10 @@ namespace mathtest
         using PlatformAcc = alpaka::Platform<DevAcc>;
         using BufAcc = alpaka::Buf<DevAcc, TData, Dim, Idx>;
 
-        PlatformHost platformHost;
         DevHost devHost;
 
         BufHost hostBuffer;
         BufAcc devBuffer;
-        PlatformAcc platformAcc;
 
         // Native pointer to access buffer.
         TData* const pHostBuffer;
@@ -54,12 +52,12 @@ namespace mathtest
         Buffer() = delete;
 
         // Constructor needs to initialize all Buffer.
-        Buffer(DevAcc const& devAcc)
+        Buffer(DevAcc const& devAcc, PlatformHost const& platformHost, PlatformAcc const& platformAcc)
             : devHost{alpaka::getDevByIdx(platformHost, 0)}
             , hostBuffer{alpaka::allocMappedBufIfSupported<TData, Idx>(devHost, platformAcc, Tcapacity)}
             , devBuffer{alpaka::allocBuf<TData, Idx>(devAcc, Tcapacity)}
-            , pHostBuffer{alpaka::getPtrNative(hostBuffer)}
-            , pDevBuffer{alpaka::getPtrNative(devBuffer)}
+            , pHostBuffer{std::data(hostBuffer)}
+            , pDevBuffer{std::data(devBuffer)}
         {
         }
 

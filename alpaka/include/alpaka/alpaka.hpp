@@ -23,6 +23,7 @@
 #include "alpaka/acc/AccGpuHipRt.hpp"
 #include "alpaka/acc/AccGpuSyclIntel.hpp"
 #include "alpaka/acc/Tag.hpp"
+#include "alpaka/acc/TagAccIsEnabled.hpp"
 #include "alpaka/acc/Traits.hpp"
 // atomic
 #include "alpaka/atomic/AtomicCpu.hpp"
@@ -67,6 +68,7 @@
 #include "alpaka/core/OmpSchedule.hpp"
 #include "alpaka/core/Positioning.hpp"
 #include "alpaka/core/RemoveRestrict.hpp"
+#include "alpaka/core/RuntimeMacros.hpp"
 #include "alpaka/core/Sycl.hpp"
 #include "alpaka/core/ThreadPool.hpp"
 #include "alpaka/core/Unreachable.hpp"
@@ -96,6 +98,11 @@
 #include "alpaka/event/EventGpuSyclIntel.hpp"
 #include "alpaka/event/EventHipRt.hpp"
 #include "alpaka/event/Traits.hpp"
+// exec
+#include "alpaka/exec/ElementIndex.hpp"
+#include "alpaka/exec/IndependentElements.hpp"
+#include "alpaka/exec/Once.hpp"
+#include "alpaka/exec/UniformElements.hpp"
 // extent
 #include "alpaka/extent/Traits.hpp"
 // idx
@@ -147,6 +154,10 @@
 #include "alpaka/mem/fence/MemFenceOmp2Threads.hpp"
 #include "alpaka/mem/fence/MemFenceUniformCudaHipBuiltIn.hpp"
 #include "alpaka/mem/fence/Traits.hpp"
+#include "alpaka/mem/global/DeviceGlobalCpu.hpp"
+#include "alpaka/mem/global/DeviceGlobalGenericSycl.hpp"
+#include "alpaka/mem/global/DeviceGlobalUniformCudaHipBuiltIn.hpp"
+#include "alpaka/mem/global/Traits.hpp"
 #include "alpaka/mem/view/Traits.hpp"
 #include "alpaka/mem/view/ViewConst.hpp"
 #include "alpaka/mem/view/ViewPlainPtr.hpp"
@@ -157,7 +168,6 @@
 #include "alpaka/meta/Apply.hpp"
 #include "alpaka/meta/CartesianProduct.hpp"
 #include "alpaka/meta/Concatenate.hpp"
-#include "alpaka/meta/CudaVectorArrayWrapper.hpp"
 #include "alpaka/meta/DependentFalseType.hpp"
 #include "alpaka/meta/Filter.hpp"
 #include "alpaka/meta/Fold.hpp"

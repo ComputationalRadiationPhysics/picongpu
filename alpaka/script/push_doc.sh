@@ -5,9 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: push_doc>"
 
 cd docs/doxygen/html
 

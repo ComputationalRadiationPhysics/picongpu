@@ -4,8 +4,10 @@
 # Copyright 2014-2021 Benjamin Worpitz, Simeon Ehrig
 # SPDX-License-Identifier: MPL-2.0
 #
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: run_build>"
 
 cd build/
 

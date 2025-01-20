@@ -116,20 +116,18 @@ Create a CPU device for memory allocation on the host side
 Allocate a buffer in host memory
   .. code-block:: c++
 
-     Vec<Dim, Idx> extent = value;
-     using BufHost = Buf<DevHost, DataType, Dim, Idx>;
+     // Use alpaka vector as a static array for the extents
+     alpaka::Vec<Dim, Idx> extent = value;
+     // Allocate memory for the alpaka buffer, which is a dynamic array
+     using BufHost = alpaka::Buf<DevHost, DataType, Dim, Idx>;
      BufHost bufHost = allocBuf<DataType, Idx>(devHost, extent);
-
-(Optional, affects CPU – GPU memory copies) Prepare it for asynchronous memory copies
-  .. code-block:: c++
-
-     prepareForAsyncCopy(bufHost);
 
 Create a view to host memory represented by a pointer
   .. code-block:: c++
 
      using Dim = alpaka::DimInt<1u>;
-     Vec<Dim, Idx> extent = size;
+     // Create an alpaka vector which is a static array
+     alpaka::Vec<Dim, Idx> extent = size;
      DataType* ptr = ...;
      auto hostView = createView(devHost, ptr, extent);
 
@@ -151,6 +149,18 @@ Get a raw pointer to a buffer or view initialization, etc.
      DataType* raw = view::getPtrNative(bufHost);
      DataType* rawViewPtr = view::getPtrNative(hostView);
 
+Get the pitches (memory in bytes to the next element in the buffer along the pitch dimension) of a buffer
+  .. code-block:: c++
+
+     auto pitchBufAcc = alpaka::getPitchesInBytes(bufAcc)
+     auto pitchViewAcc = alpaka::getPitchesInBytes(viewAcc)
+
+Get a mdspan to a buffer or view initialization, etc.
+  .. code-block:: c++
+
+     auto bufMdSpan = alpaka::experimental::getMdSpan(bufAcc)
+     auto viewMdSpan = alpaka::experimental::getMdSpan(viewAcc)
+
 Allocate a buffer in device memory
   .. code-block:: c++
 
@@ -159,6 +169,7 @@ Allocate a buffer in device memory
 Enqueue a memory copy from host to device
   .. code-block:: c++
 
+     // arguments can be also alpaka::View instances instead of alpaka::Buf
      memcpy(queue, bufDevice, bufHost, extent);
 
 Enqueue a memory copy from device to host
@@ -172,6 +183,10 @@ Enqueue a memory copy from device to host
 
 Kernel Execution
 ----------------
+Prepare Kernel Bundle
+  .. code-block:: c++
+
+     HeatEquationKernel heatEqKernel;
 
 Automatically select a valid kernel launch configuration
   .. code-block:: c++
@@ -179,11 +194,21 @@ Automatically select a valid kernel launch configuration
      Vec<Dim, Idx> const globalThreadExtent = vectorValue;
      Vec<Dim, Idx> const elementsPerThread = vectorValue;
 
-     auto autoWorkDiv = getValidWorkDiv<Acc>(
-       device,
-       globalThreadExtent, elementsPerThread,
+     KernelCfg<Acc> const kernelCfg = {
+       globalThreadExtent,
+       elementsPerThread,
        false,
-       GridBlockExtentSubDivRestrictions::Unrestricted);
+       GridBlockExtentSubDivRestrictions::Unrestricted};
+
+     auto autoWorkDiv = getValidWorkDiv(
+       kernelCfg,
+       device,
+       heatEqKernel,
+       pCurrAcc,
+       pNextAcc,
+       numNodesX,
+       dx,
+       dt);
 
 Manually set a kernel launch configuration
   .. code-block:: c++
@@ -193,22 +218,28 @@ Manually set a kernel launch configuration
      Vec<Dim, Idx> const elementsPerThread = vectorValue;
 
      using WorkDiv = WorkDivMembers<Dim, Idx>;
-     auto manualWorkDiv = WorkDiv{blocksPerGrid,
-                                  threadsPerBlock,
-				  elementsPerThread};
+     auto manualWorkDiv = WorkDiv{
+       blocksPerGrid,
+       threadsPerBlock,
+       elementsPerThread};
 
-Instantiate a kernel and create a task that will run it (does not launch it yet)
+Instantiate a kernel (does not launch it yet)
   .. code-block:: c++
 
      Kernel kernel{argumentsForConstructor};
-     auto taskRunKernel = createTaskKernel<Acc>(workDiv, kernel, parameters);
 
 acc parameter of the kernel is provided automatically, does not need to be specified here
+
+Get information about the kernel from the device (size, maxThreadsPerBlock, sharedMemSize, registers, etc.)
+  .. code-block:: c++
+
+     auto kernelFunctionAttributes = alpaka::getFunctionAttributes<Acc>(devAcc, kernel, parameters...);
+
 
 Put the kernel for execution
   .. code-block:: c++
 
-     enqueue(queue, taskRunKernel);
+     exec(queue, workDiv, kernel, parameters...);
 
 Kernel Implementation
 ---------------------
@@ -231,7 +262,7 @@ Access multi-dimensional indices and extents of blocks, threads, and elements
      // Origin: Grid, Block, Thread
      // Unit: Blocks, Threads, Elems
 
-Access components of and destructuremulti-dimensional indices and extents
+Access components of and destructure multi-dimensional indices and extents
   .. code-block:: c++
 
      auto idxX = idx[0];
@@ -240,7 +271,12 @@ Access components of and destructuremulti-dimensional indices and extents
 Linearize multi-dimensional vectors
   .. code-block:: c++
 
-     auto linearIdx = mapIdx<1u>(idx, extent);
+     auto linearIdx = mapIdx<1u>(idxND, extentND);
+
+More generally, index multi-dimensional vectors with a different dimensionality
+  .. code-block:: c++
+
+     auto idxND = alpaka::mapIdx<N>(idxMD, extentMD);
 
 .. raw:: pdf
 

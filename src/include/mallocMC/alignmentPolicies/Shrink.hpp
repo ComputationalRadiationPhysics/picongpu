@@ -34,6 +34,7 @@
 #include "Shrink.hpp"
 
 #include <alpaka/core/Common.hpp>
+
 #include <cstdint>
 #include <iostream>
 #include <sstream>
@@ -50,6 +51,7 @@ namespace mallocMC
             {
                 using type = unsigned int;
             };
+
             template<>
             struct __PointerEquivalent<8>
             {

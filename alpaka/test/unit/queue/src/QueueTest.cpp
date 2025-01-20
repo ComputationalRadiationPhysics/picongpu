@@ -269,3 +269,12 @@ TEMPLATE_LIST_TEST_CASE("enqueueBenchmark", "[queue]", alpaka::test::TestQueues)
         return count.load();
     };
 }
+
+TEMPLATE_LIST_TEST_CASE("isQueue", "[queue]", alpaka::test::TestQueues)
+{
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
+    Fixture f;
+
+    REQUIRE(alpaka::isQueue<decltype(f.m_queue)>);
+}

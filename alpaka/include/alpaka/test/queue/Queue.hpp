@@ -1,4 +1,5 @@
-/* Copyright 2023 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+/* Copyright 2024 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci,
+ * Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -38,14 +39,20 @@ namespace alpaka::test
 #    endif
         };
 #endif
-    } // namespace trait
 
-    //! The queue type that should be used for the given device.
-    template<typename TDev>
-    using DefaultQueue = typename trait::DefaultQueueType<TDev>::type;
+#ifdef ALPAKA_ACC_SYCL_ENABLED
+        //! The default queue type trait specialization for the SYCL device.
+        template<typename TTag>
+        struct DefaultQueueType<DevGenericSycl<TTag>>
+        {
+#    if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
+            using type = QueueGenericSyclBlocking<TTag>;
+#    else
+            using type = QueueGenericSyclNonBlocking<TTag>;
+#    endif
+        };
+#endif
 
-    namespace trait
-    {
         //! The blocking queue trait.
         template<typename TQueue, typename TSfinae = void>
         struct IsBlockingQueue;
@@ -82,80 +89,23 @@ namespace alpaka::test
 #endif
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
-#    ifdef ALPAKA_SYCL_ONEAPI_CPU
-        //! The default queue type trait specialization for the Intel CPU device.
-        template<>
-        struct DefaultQueueType<alpaka::DevCpuSycl>
-        {
-#        if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::QueueCpuSyclBlocking;
-#        else
-            using type = alpaka::QueueCpuSyclNonBlocking;
-#        endif
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::QueueCpuSyclBlocking>
+        template<typename TTag>
+        struct IsBlockingQueue<QueueGenericSyclBlocking<TTag>>
         {
             static constexpr auto value = true;
         };
 
-        template<>
-        struct IsBlockingQueue<alpaka::QueueCpuSyclNonBlocking>
+        template<typename TTag>
+        struct IsBlockingQueue<QueueGenericSyclNonBlocking<TTag>>
         {
             static constexpr auto value = false;
         };
-#    endif
-#    ifdef ALPAKA_SYCL_ONEAPI_FPGA
-        //! The default queue type trait specialization for the Intel SYCL device.
-        template<>
-        struct DefaultQueueType<alpaka::DevFpgaSyclIntel>
-        {
-#        if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::QueueFpgaSyclIntelBlocking;
-#        else
-            using type = alpaka::QueueFpgaSyclIntelNonBlocking;
-#        endif
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::QueueFpgaSyclIntelBlocking>
-        {
-            static constexpr auto value = true;
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::QueueFpgaSyclIntelNonBlocking>
-        {
-            static constexpr auto value = false;
-        };
-#    endif
-#    ifdef ALPAKA_SYCL_ONEAPI_GPU
-        //! The default queue type trait specialization for the Intel CPU device.
-        template<>
-        struct DefaultQueueType<alpaka::DevGpuSyclIntel>
-        {
-#        if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-            using type = alpaka::QueueGpuSyclIntelBlocking;
-#        else
-            using type = alpaka::QueueGpuSyclIntelNonBlocking;
-#        endif
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::QueueGpuSyclIntelBlocking>
-        {
-            static constexpr auto value = true;
-        };
-
-        template<>
-        struct IsBlockingQueue<alpaka::QueueGpuSyclIntelNonBlocking>
-        {
-            static constexpr auto value = false;
-        };
-#    endif
 #endif
     } // namespace trait
+
+    //! The queue type that should be used for the given device.
+    template<typename TDev>
+    using DefaultQueue = typename trait::DefaultQueueType<TDev>::type;
 
     //! The queue type that should be used for the given accelerator.
     template<typename TQueue>

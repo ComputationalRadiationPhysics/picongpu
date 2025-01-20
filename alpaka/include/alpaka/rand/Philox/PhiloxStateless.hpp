@@ -7,6 +7,7 @@
 #include "alpaka/core/Unroll.hpp"
 #include "alpaka/rand/Philox/MultiplyAndSplit64to32.hpp"
 #include "alpaka/rand/Philox/PhiloxConstants.hpp"
+#include "alpaka/vec/Vec.hpp"
 
 #include <utility>
 
@@ -28,13 +29,12 @@ namespace alpaka::rand::engine
 
     /** Class basic Philox family counter-based PRNG
      *
-     * Checks the validity of passed-in parameters and calls the \a TBackend methods to perform N rounds of the
+     * Checks the validity of passed-in parameters and calls the backend methods to perform N rounds of the
      * Philox shuffle.
      *
-     * @tparam TBackend device-dependent backend, specifies the array types
      * @tparam TParams Philox algorithm parameters \sa PhiloxParams
      */
-    template<typename TBackend, typename TParams>
+    template<typename TParams>
     class PhiloxStateless : public PhiloxConstants<TParams>
     {
         static constexpr unsigned numRounds()
@@ -60,8 +60,8 @@ namespace alpaka::rand::engine
         static_assert(numberWidth() == 32, "Philox implemented only for 32 bit numbers.");
 
     public:
-        using Counter = typename TBackend::Counter;
-        using Key = typename TBackend::Key;
+        using Counter = alpaka::Vec<alpaka::DimInt<TParams::counterSize>, std::uint32_t>;
+        using Key = alpaka::Vec<alpaka::DimInt<TParams::counterSize / 2>, std::uint32_t>;
         using Constants = PhiloxConstants<TParams>;
 
     protected:

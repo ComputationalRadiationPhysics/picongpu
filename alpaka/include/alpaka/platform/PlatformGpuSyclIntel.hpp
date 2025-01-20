@@ -1,4 +1,4 @@
-/* Copyright 2023 Jan Stephan, Luca Ferragina, Andrea Bocci
+/* Copyright 2024 Jan Stephan, Luca Ferragina, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -8,8 +8,6 @@
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/platform/PlatformGenericSycl.hpp"
 
-#include <string>
-
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_ONEAPI_GPU)
 
 #    include <sycl/sycl.hpp>
@@ -18,7 +16,8 @@ namespace alpaka
 {
     namespace detail
     {
-        struct IntelGpuSelector
+        template<>
+        struct SYCLDeviceSelector<TagGpuSyclIntel>
         {
             auto operator()(sycl::device const& dev) const -> int
             {
@@ -31,17 +30,7 @@ namespace alpaka
     } // namespace detail
 
     //! The SYCL device manager.
-    using PlatformGpuSyclIntel = PlatformGenericSycl<detail::IntelGpuSelector>;
+    using PlatformGpuSyclIntel = PlatformGenericSycl<TagGpuSyclIntel>;
 } // namespace alpaka
-
-namespace alpaka::trait
-{
-    //! The SYCL device manager device type trait specialization.
-    template<>
-    struct DevType<PlatformGpuSyclIntel>
-    {
-        using type = DevGenericSycl<PlatformGpuSyclIntel>; // = DevGpuSyclIntel
-    };
-} // namespace alpaka::trait
 
 #endif

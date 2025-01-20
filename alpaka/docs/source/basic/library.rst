@@ -124,7 +124,7 @@ Kernels can also be defined via lambda expressions.
 
       int main() {
           // ...
-	  using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+	  using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 
 	  auto kernel = [] ALPAKA_FN_ACC (Acc const & acc /* , ... */) -> void {
 	      // ...
@@ -211,8 +211,11 @@ Memory Management
 
 The memory allocation function of the *alpaka* library (``alpaka::allocBuf<TElem>(device, extents)``) is uniform for all devices, even for the host device.
 It does not return raw pointers but reference counted memory buffer objects that remove the necessity for manual freeing and the possibility of memory leaks.
-Additionally the memory buffer objects know their extents, their pitches as well as the device they reside on.
-This allows buffers that possibly reside on different devices with different pitches to be copied only by providing the buffer objects as well as the extents of the region to copy (``alpaka::memcpy(bufDevA, bufDevB, copyExtents``).
+Additionally, the memory buffer objects know their extents, their pitches as well as the device they reside on.
+Due to padding, the allocated number of bytes may be more than the required storage; the pitch value gives the correct stride for each dimension for row-major access.
+This allows buffers that possibly reside on different devices with different pitches to be copied by providing the buffer objects as well as the extents of the region to copy (``alpaka::memcpy(queue, bufDevA, bufDevB, copyExtents``).
+
+If the data is already in a contiguous STL container on the host; the container can be converted to a View to be used in ``alpaka::memcpy`` function. The data structure ``alpaka::View`` knows the the extent and the device of the data; therefore can be used in memcpy. (``alpaka::memcpy(queue, bufDevA, viewDevB, copyExtents``).
 
 Kernel Execution
 ````````````````

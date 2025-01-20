@@ -5,8 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/travis_retry.sh
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
+
+echo_green "<SCRIPT: install boost>"
 
 : "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
 : "${ALPAKA_BOOST_VERSION?'ALPAKA_BOOST_VERSION must be specified'}"
@@ -16,8 +18,7 @@ then
     : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
 fi
 : "${CMAKE_BUILD_TYPE?'CMAKE_BUILD_TYPE must be specified'}"
-: "${CXX?'CXX must be specified'}"
-: "${CC?'CC must be specified'}"
+: "${ALPAKA_CI_CXX?'ALPAKA_CI_CXX must be specified'}"
 : "${ALPAKA_CI_INSTALL_ATOMIC?'ALPAKA_CI_INSTALL_ATOMIC must be specified'}"
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
@@ -29,14 +30,17 @@ then
     ALPAKA_CI_STDLIB=""
 fi
 
-if [ "${CXX}" != "icpc" ] && [ "${ALPAKA_CI_STDLIB}" != "libc++" ]
+if [ "${ALPAKA_CI_CXX}" != "icpc" ] && [ "${ALPAKA_CI_STDLIB}" != "libc++" ]
 then
     if agc-manager -e boost@${ALPAKA_BOOST_VERSION} ; then
+        echo_green "<USE: preinstalled BOOST ${ALPAKA_BOOST_VERSION}>"
         export BOOST_ROOT=$(agc-manager -b boost@${ALPAKA_BOOST_VERSION})
         export ALPAKA_CI_BOOST_LIB_DIR=${BOOST_ROOT}
         return
     fi
 fi
+
+echo_yellow "<INSTALL: BOOST ${ALPAKA_BOOST_VERSION}>"
 
 ALPAKA_CI_BOOST_BRANCH="boost-${ALPAKA_BOOST_VERSION}"
 
@@ -66,15 +70,22 @@ then
         TOOLSET="msvc-14.3"
     fi
     # Add new versions as needed
-elif [ "${CXX}" == "icpc" ]
+elif [ "${ALPAKA_CI_CXX}" == "icpc" ]
 then
     TOOLSET="intel-linux"
-elif [ "${CXX}" == "icpx" ]
+elif [ "${ALPAKA_CI_CXX}" == "g++" ]
+then
+    TOOLSET="gcc"
+elif [ "${ALPAKA_CI_CXX}" == "clang++" ]
+then
+    TOOLSET="clang"
+elif [ "${ALPAKA_CI_CXX}" == "icpx" ]
 then
     # icpx is binary compatibly with g++ and ipcx is not supported by b2
     TOOLSET="gcc"
 else
-    TOOLSET="${CC}"
+    echo_red "unknown ALPAKA_CI_CXX: ${ALPAKA_CI_CXX}"
+    exit 1
 fi
 
 # Bootstrap boost.
@@ -146,7 +157,7 @@ then
 
     # Clang is not supported by the FindBoost script.
     # boost (especially old versions) produces too much warnings when using clang (newer versions) so that the 4 MiB log is too short.
-    if [[ "${CXX}" == "clang++"* ]]
+    if [[ "${ALPAKA_CI_CXX}" == "clang++"* ]]
     then
         ALPAKA_BOOST_B2_CXXFLAGS+=" -Wunused-private-field -Wno-unused-local-typedef -Wno-c99-extensions -Wno-variadic-macros"
     fi

@@ -5,7 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
+
+echo_green "<SCRIPT: run_tests>"
 
 : "${alpaka_ACC_GPU_CUDA_ENABLE?'alpaka_ACC_GPU_CUDA_ENABLE must be specified'}"
 : "${alpaka_ACC_GPU_HIP_ENABLE?'alpaka_ACC_GPU_HIP_ENABLE must be specified'}"
@@ -34,10 +37,10 @@ then
 
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
     then
-        ctest -V
+        ctest --output-on-failure
     elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
     then
-        ctest -V -C ${CMAKE_BUILD_TYPE}
+        ctest --output-on-failure -C ${CMAKE_BUILD_TYPE}
     fi
 
     cd ..

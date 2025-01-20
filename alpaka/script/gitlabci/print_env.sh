@@ -5,6 +5,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
+# set exit on error manually instead using setup_utilities because
+# otherwise the begin of the job log looks not helpful
+if [ -z ${alpaka_DISABLE_EXIT_FAILURE+x} ]; then
+    set -e
+fi
+
 # display output with yellow color
 echo -e "\033[0;33mSteps to setup containter locally"
 
@@ -14,17 +20,17 @@ if [ "${CMAKE_CXX_COMPILER}" == "nvc++" ] || [ "${alpaka_ACC_GPU_CUDA_ENABLE}" =
 then
     if [ "${ALPAKA_CI_RUN_TESTS}" == "ON" ];
     then
-	    echo "${first_step_prefix} docker run --gpus=all -it ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run --gpus=all -it ${CI_JOB_IMAGE} bash"
     else
-	    echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
     fi
 elif [ "${alpaka_ACC_GPU_HIP_ENABLE}" == "ON" ];
 then
     if [ "${ALPAKA_CI_RUN_TESTS}" == "ON" ];
     then
-	    echo "${first_step_prefix} docker run -it --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run -it --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video ${CI_JOB_IMAGE} bash"
     else
-	    echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
+        echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
     fi
 else
     echo "${first_step_prefix} docker run -it ${CI_JOB_IMAGE} bash"
@@ -33,10 +39,12 @@ fi
 echo -e "2. Run the following export commands in the container to setup enviroment\n"
 
 # take all env variables, filter it and display it with a `export` prefix
-printenv | grep -E 'alpaka_*|ALPAKA_*|CMAKE_*|BOOST_|CC|CXX|CUDA_' | while read -r line ; do
+printenv | grep -E 'alpaka_*|ALPAKA_*|CMAKE_*|BOOST_|CUDA_' | while read -r line ; do
     echo "export $line \\"
 done
 
+# the variable is not set, but should be set if a job is debugged locally in a container
+echo 'export alpaka_DISABLE_EXIT_FAILURE=true \'
 echo 'export GITLAB_CI=true'
 echo ""
 

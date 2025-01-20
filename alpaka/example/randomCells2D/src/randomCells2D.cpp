@@ -3,7 +3,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <alpaka/example/ExecuteForEachAccTag.hpp>
 
 #include <cstdint>
 #include <cstdlib>
@@ -15,16 +15,14 @@ constexpr unsigned NUM_X = 127;
 constexpr unsigned NUM_Y = 211;
 
 /// Selected PRNG engine for single-value operation
-template<typename TAcc>
-using RandomEngineSingle = alpaka::rand::Philox4x32x10<TAcc>;
+using RandomEngineSingle = alpaka::rand::Philox4x32x10;
 // using RandomEngineSingle = alpaka::rand::engine::uniform_cuda_hip::Xor;
 // using RandomEngineSingle = alpaka::rand::engine::cpu::MersenneTwister;
 // using RandomEngineSingle = alpaka::rand::engine::cpu::TinyMersenneTwister;
 
 
 /// Selected PRNG engine for vector operation
-template<typename TAcc>
-using RandomEngineVector = alpaka::rand::Philox4x32x10Vector<TAcc>;
+using RandomEngineVector = alpaka::rand::Philox4x32x10Vector;
 
 /** Get a  pointer to the correct location of `TElement array` taking pitch into account.
  *
@@ -71,7 +69,7 @@ struct RunTimestepKernelSingle
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         TExtent const extent,
-        RandomEngineSingle<TAcc>* const states,
+        RandomEngineSingle* const states,
         float* const cells,
         std::size_t pitchRand,
         std::size_t pitchOut) const -> void
@@ -84,7 +82,7 @@ struct RunTimestepKernelSingle
             auto cellsOut = pitchedPointer2D(cells, pitchOut, idx);
 
             // Setup generator and distribution.
-            RandomEngineSingle<TAcc> engine(*statesOut);
+            RandomEngineSingle engine(*statesOut);
             alpaka::rand::UniformReal<float> dist;
 
             float sum = 0;
@@ -104,7 +102,7 @@ struct RunTimestepKernelVector
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         TExtent const extent,
-        RandomEngineVector<TAcc>* const states,
+        RandomEngineVector* const states,
         float* const cells,
         std::size_t pitchRand,
         std::size_t pitchOut) const -> void
@@ -117,10 +115,10 @@ struct RunTimestepKernelVector
             auto cellsOut = pitchedPointer2D(cells, pitchOut, idx);
 
             // Setup generator and distribution.
-            RandomEngineVector<TAcc> engine(*statesOut); // Load the state of the random engine
+            RandomEngineVector engine(*statesOut); // Load the state of the random engine
             using DistributionResult =
-                typename RandomEngineVector<TAcc>::template ResultContainer<float>; // Container type which will store
-                                                                                    // the distribution results
+                typename RandomEngineVector::template ResultContainer<float>; // Container type which will store
+                                                                              // the distribution results
             constexpr unsigned resultVectorSize = std::tuple_size_v<DistributionResult>; // Size of the result vector
             alpaka::rand::UniformReal<DistributionResult> dist; // Vector-aware distribution function
 
@@ -143,12 +141,17 @@ struct RunTimestepKernelVector
     }
 };
 
-auto main() -> int
+// In standard projects, you typically do not execute the code with any available accelerator.
+// Instead, a single accelerator is selected once from the active accelerators and the kernels are executed with the
+// selected accelerator only. If you use the example as the starting point for your project, you can rename the
+// example() function to main() and move the accelerator tag to the function body.
+template<typename TAccTag>
+auto example(TAccTag const&) -> int
 {
     using Dim = alpaka::DimInt<2>;
     using Idx = std::size_t;
     using Vec = alpaka::Vec<Dim, Idx>;
-    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     using Host = alpaka::DevCpu;
     auto const platformHost = alpaka::PlatformCpu{};
     auto const devHost = alpaka::getDevByIdx(platformHost, 0);
@@ -160,53 +163,55 @@ auto main() -> int
 
     using BufHost = alpaka::Buf<Host, float, Dim, Idx>;
     using BufAcc = alpaka::Buf<Acc, float, Dim, Idx>;
-    using BufHostRand = alpaka::Buf<Host, RandomEngineSingle<Acc>, Dim, Idx>;
-    using BufAccRand = alpaka::Buf<Acc, RandomEngineSingle<Acc>, Dim, Idx>;
-    using BufHostRandVec = alpaka::Buf<Host, RandomEngineVector<Acc>, Dim, Idx>;
-    using BufAccRandVec = alpaka::Buf<Acc, RandomEngineVector<Acc>, Dim, Idx>;
-    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+    using BufHostRand = alpaka::Buf<Host, RandomEngineSingle, Dim, Idx>;
+    using BufAccRand = alpaka::Buf<Acc, RandomEngineSingle, Dim, Idx>;
+    using BufHostRandVec = alpaka::Buf<Host, RandomEngineVector, Dim, Idx>;
+    using BufAccRandVec = alpaka::Buf<Acc, RandomEngineVector, Dim, Idx>;
 
     constexpr Idx numX = NUM_X;
     constexpr Idx numY = NUM_Y;
 
-    const Vec extent(numY, numX);
+    Vec const extent(numY, numX);
 
     constexpr Idx perThreadX = 1;
     constexpr Idx perThreadY = 1;
 
-    WorkDiv workdiv{alpaka::getValidWorkDiv<Acc>(
-        devAcc,
-        extent,
-        Vec(perThreadY, perThreadX),
-        false,
-        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted)};
-
     // Setup buffer.
     BufHost bufHostS{alpaka::allocBuf<float, Idx>(devHost, extent)};
-    float* const ptrBufHostS{alpaka::getPtrNative(bufHostS)};
+    float* const ptrBufHostS{std::data(bufHostS)};
     BufAcc bufAccS{alpaka::allocBuf<float, Idx>(devAcc, extent)};
-    float* const ptrBufAccS{alpaka::getPtrNative(bufAccS)};
+    float* const ptrBufAccS{std::data(bufAccS)};
 
     BufHost bufHostV{alpaka::allocBuf<float, Idx>(devHost, extent)};
-    float* const ptrBufHostV{alpaka::getPtrNative(bufHostV)};
+    float* const ptrBufHostV{std::data(bufHostV)};
     BufAcc bufAccV{alpaka::allocBuf<float, Idx>(devAcc, extent)};
-    float* const ptrBufAccV{alpaka::getPtrNative(bufAccV)};
+    float* const ptrBufAccV{std::data(bufAccV)};
 
-    BufHostRand bufHostRandS{alpaka::allocBuf<RandomEngineSingle<Acc>, Idx>(devHost, extent)};
-    BufAccRand bufAccRandS{alpaka::allocBuf<RandomEngineSingle<Acc>, Idx>(devAcc, extent)};
-    RandomEngineSingle<Acc>* const ptrBufAccRandS{alpaka::getPtrNative(bufAccRandS)};
+    BufHostRand bufHostRandS{alpaka::allocBuf<RandomEngineSingle, Idx>(devHost, extent)};
+    BufAccRand bufAccRandS{alpaka::allocBuf<RandomEngineSingle, Idx>(devAcc, extent)};
+    RandomEngineSingle* const ptrBufAccRandS{std::data(bufAccRandS)};
 
-    BufHostRandVec bufHostRandV{alpaka::allocBuf<RandomEngineVector<Acc>, Idx>(devHost, extent)};
-    BufAccRandVec bufAccRandV{alpaka::allocBuf<RandomEngineVector<Acc>, Idx>(devAcc, extent)};
-    RandomEngineVector<Acc>* const ptrBufAccRandV{alpaka::getPtrNative(bufAccRandV)};
+    BufHostRandVec bufHostRandV{alpaka::allocBuf<RandomEngineVector, Idx>(devHost, extent)};
+    BufAccRandVec bufAccRandV{alpaka::allocBuf<RandomEngineVector, Idx>(devAcc, extent)};
+    RandomEngineVector* const ptrBufAccRandV{std::data(bufAccRandV)};
 
     InitRandomKernel initRandomKernel;
+
+
     auto pitchBufAccRandS = alpaka::getPitchesInBytes(bufAccRandS)[0];
-    alpaka::exec<Acc>(queue, workdiv, initRandomKernel, extent, ptrBufAccRandS, pitchBufAccRandS);
-    alpaka::wait(queue);
 
     auto pitchBufAccRandV = alpaka::getPitchesInBytes(bufAccRandV)[0];
-    alpaka::exec<Acc>(queue, workdiv, initRandomKernel, extent, ptrBufAccRandV, pitchBufAccRandV);
+
+    alpaka::KernelCfg<Acc> const kernelCfg = {extent, Vec(perThreadY, perThreadX)};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDivInitRandom
+        = alpaka::getValidWorkDiv(kernelCfg, devAcc, initRandomKernel, extent, ptrBufAccRandS, pitchBufAccRandS);
+
+    alpaka::exec<Acc>(queue, workDivInitRandom, initRandomKernel, extent, ptrBufAccRandS, pitchBufAccRandS);
+    alpaka::wait(queue);
+
+    alpaka::exec<Acc>(queue, workDivInitRandom, initRandomKernel, extent, ptrBufAccRandV, pitchBufAccRandV);
     alpaka::wait(queue);
 
     auto pitchHostS = alpaka::getPitchesInBytes(bufHostS)[0];
@@ -224,9 +229,23 @@ auto main() -> int
     auto pitchBufAccS = alpaka::getPitchesInBytes(bufAccS)[0];
     alpaka::memcpy(queue, bufAccS, bufHostS);
     RunTimestepKernelSingle runTimestepKernelSingle;
+
+    alpaka::KernelCfg<Acc> const runtimeRandomKernelCfg = {extent, Vec(perThreadY, perThreadX)};
+
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    auto const workDivRuntimeStep = alpaka::getValidWorkDiv(
+        runtimeRandomKernelCfg,
+        devAcc,
+        runTimestepKernelSingle,
+        extent,
+        ptrBufAccRandS,
+        ptrBufAccS,
+        pitchBufAccRandS,
+        pitchBufAccS);
+
     alpaka::exec<Acc>(
         queue,
-        workdiv,
+        workDivRuntimeStep,
         runTimestepKernelSingle,
         extent,
         ptrBufAccRandS,
@@ -240,7 +259,7 @@ auto main() -> int
     RunTimestepKernelVector runTimestepKernelVector;
     alpaka::exec<Acc>(
         queue,
-        workdiv,
+        workDivRuntimeStep,
         runTimestepKernelVector,
         extent,
         ptrBufAccRandV,
@@ -286,4 +305,20 @@ auto main() -> int
         std::cout << "Convergence test failed!" << std::endl;
         return 1;
     }
+}
+
+auto main() -> int
+{
+    // Execute the example once for each enabled accelerator.
+    // If you would like to execute it for a single accelerator only you can use the following code.
+    //  \code{.cpp}
+    //  auto tag = TagCpuSerial;
+    //  return example(tag);
+    //  \endcode
+    //
+    // valid tags:
+    //   TagCpuSerial, TagGpuHipRt, TagGpuCudaRt, TagCpuOmp2Blocks, TagCpuTbbBlocks,
+    //   TagCpuOmp2Threads, TagCpuSycl, TagCpuTbbBlocks, TagCpuThreads,
+    //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
+    return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }

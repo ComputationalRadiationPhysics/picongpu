@@ -5,7 +5,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-source ./script/set.sh
+set +xv
+source ./script/setup_utilities.sh
+
+echo_green "<SCRIPT: run_doxygen>"
 
 #To deploy the doxygen documentation a copy of the repository is created inside the deployed folder.
 #This copy is always in the gh-pages branch consisting only of the containing files.

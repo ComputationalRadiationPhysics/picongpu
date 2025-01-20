@@ -14,9 +14,7 @@ from alpaka_job_coverage.versions import is_supported_version
 from util import print_warn
 
 
-def verify_parameters(
-    parameters: Dict[str, Union[List[Tuple[str, str]], List[List[Tuple[str, str]]]]]
-):
+def verify_parameters(parameters: Dict[str, Union[List[Tuple[str, str]], List[List[Tuple[str, str]]]]]):
     """Prints a warning for each parameter value which is not supported by the
     alpaka-job-coverage library.
 
@@ -29,10 +27,7 @@ def verify_parameters(
             for backend in param_value:
                 for name, version in backend:
                     if not is_supported_version(name=name, version=version):
-                        print_warn(
-                            f"{name}-{version} is not officially supported by "
-                            "the alpaka-job-library."
-                        )
+                        print_warn(f"{name}-{version} is not officially supported by the alpaka-job-library.")
         elif param_name not in [BUILD_TYPE, JOB_EXECUTION_TYPE, MDSPAN]:
             for name, version in param_value:
                 # if we compare a minor.major.patch version with a minor.major
@@ -41,16 +36,11 @@ def verify_parameters(
                 #      2.4 == 2.4.1 -> False
                 if name == CMAKE:
                     parsed_cmake_version = pk_version.parse(version)
-                    mod_version = (
-                        f"{parsed_cmake_version.major}.{parsed_cmake_version.minor}"
-                    )
+                    mod_version = f"{parsed_cmake_version.major}.{parsed_cmake_version.minor}"
                 else:
                     mod_version = version
                 if not is_supported_version(name=name, version=mod_version):
-                    print_warn(
-                        f"{name}-{mod_version} is not officially supported by "
-                        "the alpaka-job-library."
-                    )
+                    print_warn(f"{name}-{mod_version} is not officially supported by the alpaka-job-library.")
 
 
 class Combination:
@@ -121,15 +111,9 @@ def verify(combinations: List[Dict[str, Tuple[str, str]]]) -> bool:
         Combination({HOST_COMPILER: (GCC, "*"), DEVICE_COMPILER: (NVCC, "*")}),
         Combination({HOST_COMPILER: (CLANG, "*"), DEVICE_COMPILER: (NVCC, "*")}),
         Combination({HOST_COMPILER: (HIPCC, "*"), DEVICE_COMPILER: (HIPCC, "*")}),
-        Combination(
-            {HOST_COMPILER: (CLANG_CUDA, "*"), DEVICE_COMPILER: (CLANG_CUDA, "*")}
-        ),
-        Combination(
-            {DEVICE_COMPILER: (NVCC, "12.0"), CXX_STANDARD: (CXX_STANDARD, "20")}
-        ),
-        Combination(
-            {DEVICE_COMPILER: (NVCC, "12.1"), CXX_STANDARD: (CXX_STANDARD, "20")}
-        ),
+        Combination({HOST_COMPILER: (CLANG_CUDA, "*"), DEVICE_COMPILER: (CLANG_CUDA, "*")}),
+        Combination({DEVICE_COMPILER: (NVCC, "12.0"), CXX_STANDARD: (CXX_STANDARD, "20")}),
+        Combination({DEVICE_COMPILER: (NVCC, "12.1"), CXX_STANDARD: (CXX_STANDARD, "20")}),
         Combination({HOST_COMPILER: (ICPX, "*"), DEVICE_COMPILER: (ICPX, "*")}),
     ]
 

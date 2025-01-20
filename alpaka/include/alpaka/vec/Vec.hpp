@@ -41,6 +41,7 @@ namespace alpaka
 
         using Dim = TDim;
         using Val = TVal;
+        using value_type = Val; //!< STL-like value_type.
 
     private:
         //! A sequence of integers from 0 to dim-1.
@@ -87,18 +88,22 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC constexpr explicit Vec(
             F&& generator,
             std::void_t<decltype(generator(std::integral_constant<std::size_t, 0>{}))>* ignore = nullptr)
+            : Vec(std::forward<F>(generator), std::make_index_sequence<TDim::value>{})
+        {
+            static_cast<void>(ignore);
+        }
 #else
         template<typename F, std::enable_if_t<std::is_invocable_v<F, std::integral_constant<std::size_t, 0>>, int> = 0>
         ALPAKA_FN_HOST_ACC constexpr explicit Vec(F&& generator)
-#endif
-            : Vec(std::forward<F>(generator), std::make_integer_sequence<TVal, TDim::value>{})
+            : Vec(std::forward<F>(generator), std::make_index_sequence<TDim::value>{})
         {
         }
+#endif
 
     private:
-        template<typename F, TVal... Is>
-        ALPAKA_FN_HOST_ACC constexpr explicit Vec(F&& generator, std::integer_sequence<TVal, Is...>)
-            : m_data{generator(std::integral_constant<TVal, Is>{})...}
+        template<typename F, std::size_t... Is>
+        ALPAKA_FN_HOST_ACC constexpr explicit Vec(F&& generator, std::index_sequence<Is...>)
+            : m_data{generator(std::integral_constant<std::size_t, Is>{})...}
         {
         }
 
@@ -587,7 +592,8 @@ namespace alpaka
     };
 
     template<typename TFirstIndex, typename... TRestIndices>
-    Vec(TFirstIndex&&, TRestIndices&&...) -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
+    ALPAKA_FN_HOST_ACC Vec(TFirstIndex&&, TRestIndices&&...)
+        -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
 
     template<typename T>
     inline constexpr bool isVec = false;

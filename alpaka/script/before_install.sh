@@ -4,8 +4,10 @@
 # Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan, Simeon Ehrig
 # SPDX-License-Identifier: MPL-2.0
 #
+set +xv
+source ./script/setup_utilities.sh
 
-source ./script/set.sh
+echo_green "<SCRIPT: before_install>"
 
 # because of the strict abort conditions, a variable needs to be defined, if we read from
 # this statement avoids additional checks later in the scripts
@@ -93,10 +95,15 @@ if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
     then
-        if [[ "${CXX}" == "g++"* ]]
+        if [[ "${ALPAKA_CI_CXX}" == "g++"* ]]
         then
             echo "using libc++ with g++ not yet supported."
             exit 1
         fi
     fi
+fi
+
+if [ "$ALPAKA_CI_OS_NAME" = "Windows" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
+then
+    export CMAKE_CXX_COMPILER=$ALPAKA_CI_CXX
 fi
