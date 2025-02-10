@@ -379,12 +379,12 @@ endif()
 
 if(alpaka_ACC_GPU_CUDA_ENABLE OR alpaka_ACC_GPU_HIP_ENABLE)
     set(mallocMC_alpaka_PROVIDER "extern" CACHE STRING "Select which alpaka is used for mallocMC")
-    find_package(mallocMC 2.6.0 QUIET)
+    find_package(mallocMC 3.0.0 QUIET)
 
     if(NOT mallocMC_FOUND)
         message(STATUS "Using mallocMC from thirdParty/ directory")
         set(MALLOCMC_ROOT "${PMacc_DIR}/../../thirdParty/mallocMC")
-        find_package(mallocMC 2.6.0 REQUIRED)
+        find_package(mallocMC 3.0.0 REQUIRED)
     endif(NOT mallocMC_FOUND)
 
     target_include_directories(pmacc PUBLIC ${mallocMC_INCLUDE_DIRS})
