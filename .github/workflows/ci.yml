@@ -1,0 +1,46 @@
+name: Continuous Integration
+on: [push, pull_request]
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+  CTEST_OUTPUT_ON_FAILURE: 1
+  SKIP: no-commit-to-branch
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - uses: pre-commit/action@v3.0.1
+      - uses: pre-commit-ci/lite-action@v1.0.2
+        if: always()
+  cpu-tests:
+    # This action only runs on various CPU backends.
+    # As such, this is not a fully-fletched production-like test.
+    # Hopefully, it will still save us from a few stupid mistakes.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+      - run: sudo apt update && sudo apt install libboost-all-dev
+      - run: |
+          cmake -S. -Bbuild \
+          -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE:BOOL=ON \
+          -Dalpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE:BOOL=ON \
+          -Dalpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE:BOOL=ON \
+          -Dalpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE:BOOL=ON \
+          -DmallocMC_BUILD_TESTING:BOOL=ON \
+          -DmallocMC_BUILD_EXAMPLES:BOOL=ON
+      - working-directory: build
+        run: cmake --build . -j
+      - working-directory: build
+        run: ctest
+      - working-directory: build
+        run: |
+          for example in examples/[^C]*/mallocMCExample*; do
+            ./${example}
+          done
