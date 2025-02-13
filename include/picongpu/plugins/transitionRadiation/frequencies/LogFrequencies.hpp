@@ -29,15 +29,15 @@ namespace picongpu
     {
         namespace transitionRadiation
         {
-            namespace logFrequencies
+            namespace log_frequencies
             {
                 class FreqFunctor
                 {
                 public:
                     FreqFunctor(void)
                     {
-                        omega_log_min = math::log(omegaMin);
-                        delta_omega_log = (math::log(omegaMax) - omega_log_min) / float_X(nOmega - 1);
+                        omega_log_min = math::log(omega_min);
+                        delta_omega_log = (math::log(omega_max) - omega_log_min) / float_X(N_omega - 1);
                     }
 
                     HDINLINE float_X operator()(const int ID)
@@ -78,13 +78,13 @@ namespace picongpu
                 std::string getParameters(void)
                 {
                     std::string params = std::string("log\t");
-                    params += std::to_string(nOmega) + "\t";
-                    params += std::to_string(SI::omegaMin) + "\t";
-                    params += std::to_string(SI::omegaMax) + "\t";
+                    params += std::to_string(N_omega) + "\t";
+                    params += std::to_string(SI::omega_min) + "\t";
+                    params += std::to_string(SI::omega_max) + "\t";
                     return params;
                 }
 
-            } // namespace logFrequencies
+            } // namespace log_frequencies
         } // namespace transitionRadiation
     } // namespace plugins
 } // namespace picongpu

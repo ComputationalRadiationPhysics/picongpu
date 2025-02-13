@@ -35,7 +35,7 @@ namespace picongpu
     {
         namespace transitionRadiation
         {
-            namespace listFrequencies
+            namespace frequencies_from_list
             {
                 class FreqFunctor
                 {
@@ -53,12 +53,12 @@ namespace picongpu
 
                     HDINLINE float_X operator()(const unsigned int ID)
                     {
-                        return (ID < frequencies::nOmega) ? frequencies_dev[ID] : 0.0;
+                        return (ID < frequencies::N_omega) ? frequencies_dev[ID] : 0.0;
                     }
 
                     HINLINE float_X get(const unsigned int ID)
                     {
-                        return (ID < frequencies::nOmega) ? frequencies_host[ID] : 0.0;
+                        return (ID < frequencies::N_omega) ? frequencies_host[ID] : 0.0;
                     }
 
                 private:
@@ -76,7 +76,7 @@ namespace picongpu
 
                     HINLINE void Init(const std::string path)
                     {
-                        frequencyBuffer = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(nOmega));
+                        frequencyBuffer = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(N_omega));
 
 
                         DBoxType frequencyDB = frequencyBuffer->getHostBuffer().getDataBox();
@@ -94,7 +94,7 @@ namespace picongpu
                         }
 
 
-                        for(i = 0; i < nOmega && !freqListFile.eof(); ++i)
+                        for(i = 0; i < N_omega && !freqListFile.eof(); ++i)
                         {
                             freqListFile >> frequencyDB[i];
                             // verbose output of loaded frequencies if verbose level PHYSICS is set:
@@ -103,7 +103,7 @@ namespace picongpu
                             frequencyDB[i] *= sim.unit.time();
                         }
 
-                        if(i != nOmega)
+                        if(i != N_omega)
                         {
                             throw std::runtime_error(std::string("The number of frequencies in the list and the "
                                                                  "number of frequencies in the parameters differ.\n"));
@@ -130,7 +130,7 @@ namespace picongpu
                     return params;
                 }
 
-            } // namespace listFrequencies
+            } // namespace frequencies_from_list
         } // namespace transitionRadiation
     } // namespace plugins
 } // namespace picongpu

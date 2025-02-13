@@ -289,7 +289,7 @@ namespace picongpu
                             worker.sync();
 
                             // run over all  valid omegas for this thread
-                            for(uint32_t o = worker.workerIdx(); o < transitionRadiation::frequencies::nOmega;
+                            for(uint32_t o = worker.workerIdx(); o < transitionRadiation::frequencies::N_omega;
                                 o += T_Worker::numWorkers())
                             {
                                 float_X itrSum = 0.0;
@@ -300,7 +300,7 @@ namespace picongpu
                                 // create a form factor object for physical correct coherence effects within
                                 // macro-particles
                                 float_X const omega = freqFkt(o);
-                                macroParticleFormFactor::RadFormFactor const macroParticleFormFactor{
+                                radFormFactor::RadFormFactor const macroParticleFormFactor{
                                     omega,
                                     precisionCast<float_64>(look)};
 
@@ -319,7 +319,7 @@ namespace picongpu
                                 }
 
                                 uint32_t const index
-                                    = static_cast<uint32_t>(theta_idx) * transitionRadiation::frequencies::nOmega + o;
+                                    = static_cast<uint32_t>(theta_idx) * transitionRadiation::frequencies::N_omega + o;
                                 incTransRad[index] += itrSum;
                                 numParticles[index] += totalParticles;
                                 cohTransRadPara[index] += ctrSumPara;

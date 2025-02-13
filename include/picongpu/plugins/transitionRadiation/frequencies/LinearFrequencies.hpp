@@ -28,7 +28,7 @@ namespace picongpu
     {
         namespace transitionRadiation
         {
-            namespace linearFrequencies
+            namespace linear_frequencies
             {
                 class FreqFunctor
                 {
@@ -37,7 +37,7 @@ namespace picongpu
 
                     HDINLINE float_X operator()(const int ID)
                     {
-                        return omegaMin + float_X(ID) * deltaOmega;
+                        return omega_min + float_X(ID) * deltaOmega;
                     }
 
                     HINLINE float_X get(const int ID)
@@ -67,13 +67,13 @@ namespace picongpu
                 std::string getParameters(void)
                 {
                     std::string params = std::string("lin\t");
-                    params += std::to_string(nOmega) + "\t";
-                    params += std::to_string(SI::omegaMin) + "\t";
-                    params += std::to_string(SI::omegaMax) + "\t";
+                    params += std::to_string(N_omega) + "\t";
+                    params += std::to_string(SI::omega_min) + "\t";
+                    params += std::to_string(SI::omega_max) + "\t";
                     return params;
                 }
 
-            } // namespace linearFrequencies
+            } // namespace linear_frequencies
         } // namespace transitionRadiation
     } // namespace plugins
 } // namespace picongpu

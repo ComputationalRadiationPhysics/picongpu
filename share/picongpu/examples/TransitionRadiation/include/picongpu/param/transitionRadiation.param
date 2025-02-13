@@ -76,55 +76,55 @@ namespace picongpu
 
         namespace transitionRadiation
         {
-            namespace linearFrequencies
+            namespace linear_frequencies
             {
                 namespace SI
                 {
                     //! mimimum frequency of the linear frequency scale in units of [1/s]
-                    constexpr float_64 omegaMin = 0.0;
+                    constexpr float_64 omega_min = 0.0;
                     //! maximum frequency of the linear frequency scale in units of [1/s]
-                    constexpr float_64 omegaMax = 1.06e16;
+                    constexpr float_64 omega_max = 1.06e16;
                 } // namespace SI
 
                 //! number of frequency values to compute in the linear frequency [unitless]
-                constexpr unsigned int nOmega = 512;
+                constexpr unsigned int N_omega = 512;
 
-            } // namespace linearFrequencies
+            } // namespace linear_frequencies
 
-            namespace logFrequencies
+            namespace log_frequencies
             {
                 namespace SI
                 {
                     //! mimimum frequency of the logarithmic frequency scale in units of [1/s]
-                    constexpr float_64 omegaMin = 1.0e13;
+                    constexpr float_64 omega_min = 1.0e13;
                     //! maximum frequency of the logarithmic frequency scale in units of [1/s]
-                    constexpr float_64 omegaMax = 1.0e17;
+                    constexpr float_64 omega_max = 1.0e17;
                 } // namespace SI
 
                 //! number of frequency values to compute in the logarithmic frequency [unitless]
-                constexpr unsigned int nOmega = 256;
+                constexpr unsigned int N_omega = 256;
 
-            } // namespace logFrequencies
+            } // namespace log_frequencies
 
 
-            namespace listFrequencies
+            namespace frequencies_from_list
             {
                 //! path to text file with frequencies
                 constexpr char listLocation[] = "/path/to/frequency_list";
                 //! number of frequency values to compute if frequencies are given in a file [unitless]
-                constexpr unsigned int nOmega = 512;
+                constexpr unsigned int N_omega = 512;
 
-            } // namespace listFrequencies
+            } // namespace frequencies_from_list
 
 
             /** selected mode of frequency scaling:
              *
              * options:
-             * - linearFrequencies
-             * - logFrequencies
-             * - listFrequencies
+             * - linear_frequencies
+             * - log_frequencies
+             * - frequencies_from_list
              */
-            namespace frequencies = logFrequencies;
+            namespace frequencies = log_frequencies;
 
             ///////////////////////////////////////////////////
 
@@ -143,24 +143,24 @@ namespace picongpu
              *  - ::picongpu::plugins::radiation::radFormFactor_incoherent ... only incoherent radiation
              *  - ::picongpu::plugins::radiation::radFormFactor_coherent ... only coherent radiation
              */
-            namespace macroParticleFormFactor = ::picongpu::plugins::radiation::radFormFactor_Gauss_spherical;
+            namespace radFormFactor = ::picongpu::plugins::radiation::radFormFactor_Gauss_spherical;
 
             ///////////////////////////////////////////////////////////
 
             namespace parameters
             {
                 // number of observation directions
-                constexpr unsigned int nPhi = 128;
-                constexpr unsigned int nTheta = 128;
-                constexpr unsigned int nObserver = nPhi * nTheta;
+                constexpr unsigned int N_phi = 128;
+                constexpr unsigned int N_theta = 128;
+                constexpr unsigned int N_observer = N_phi * N_theta;
 
                 // theta goes from 0 to pi
-                constexpr float_64 thetaMin = 0.0;
-                constexpr float_64 thetaMax = picongpu::PI;
+                constexpr float_64 theta_min = 0.0;
+                constexpr float_64 theta_max = picongpu::PI;
 
                 // phi goes from 0 to 2*pi
-                constexpr float_64 phiMin = 0.0;
-                constexpr float_64 phiMax = 2 * picongpu::PI;
+                constexpr float_64 phi_min = 0.0;
+                constexpr float_64 phi_max = 2 * picongpu::PI;
             } // end namespace parameters
 
 
@@ -202,11 +202,11 @@ namespace picongpu
              * observation directions for 2D virtual detector field
              * with its center pointing toward the +y direction (for theta=0, phi=0)
              * with observation angles ranging from
-             * theta = [angle_theta_start : angle_theta_end]
-             * phi   = [angle_phi_start   : angle_phi_end  ]
+             * theta = [theta_min : theta_max]
+             * phi   = [phi_min   : phi_max  ]
              * Every observation_id_extern index moves the phi angle from its
              * start value toward its end value until the observation_id_extern
-             * reaches N_split. After that the theta angle moves further from its
+             * reaches N_phi. After that the theta angle moves further from its
              * start value towards its end value while phi is reset to its start
              * value.
              *
@@ -220,6 +220,9 @@ namespace picongpu
              * The example setup describes an detector array of
              * 128X128 detectors ranging from 0 to pi for the azimuth angle
              * theta and from 0 to 2 pi for the polar angle phi.
+             *
+             * If the calculation is only supposed to be done for a single azimuth
+             * or polar angle, it will use the respective minimal angle.
              *
              * @param    observation_id_extern
              *           int index that identifies each block on the GPU
@@ -237,26 +240,26 @@ namespace picongpu
                  * index_b = index % split_distance
                  */
                 /** get index for computing angle theta: */
-                const int indexTheta = observation_id_extern / parameters::nPhi;
+                const int index_theta = observation_id_extern / parameters::N_phi;
 
-                /** step width angle theta, set it to 0 if nTheta = 1 */
-                const picongpu::float_64 deltaTheta = (parameters::nTheta > 1)
-                    ? (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0)
+                /** step width angle theta */
+                const picongpu::float_64 delta__theta = (parameters::N_theta > 1)
+                    ? (parameters::theta_max - parameters::theta_min) / (parameters::N_theta - 1.0)
                     : 0.0;
 
                 /** compute observation angles theta */
-                const picongpu::float_64 theta = indexTheta * deltaTheta + parameters::thetaMin;
+                const picongpu::float_64 theta = index_theta * delta__theta + parameters::theta_min;
 
                 /** get index for computing angle phi: */
-                const int indexPhi = observation_id_extern % parameters::nPhi;
+                const int index_phi = observation_id_extern % parameters::N_phi;
 
-                /** step width angle phi, set it to 0 if nPhi = 1 */
-                const picongpu::float_64 deltaPhi = (parameters::nPhi > 1)
-                    ? (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0)
+                /** step width angle phi */
+                const picongpu::float_64 delta__phi = (parameters::N_phi > 1)
+                    ? (parameters::phi_max - parameters::phi_min) / (parameters::N_phi - 1.0)
                     : 0.0;
 
                 /** compute observation angles phi */
-                const picongpu::float_64 phi = indexPhi * deltaPhi - parameters::phiMin;
+                const picongpu::float_64 phi = index_phi * delta__phi - parameters::phi_min;
 
                 /* helper functions for efficient trigonometric calculations */
                 picongpu::float_32 sinPhi;

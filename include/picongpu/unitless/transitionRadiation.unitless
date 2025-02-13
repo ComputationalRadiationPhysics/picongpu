@@ -28,33 +28,33 @@ namespace picongpu
         namespace transitionRadiation
         {
             //! units for linear frequencies distribution for transition radiation plugin
-            namespace linearFrequencies
+            namespace linear_frequencies
             {
-                constexpr float_X omegaMin = SI::omegaMin * sim.unit.time();
-                constexpr float_X omegaMax = SI::omegaMax * sim.unit.time();
+                constexpr float_X omega_min = SI::omega_min * sim.unit.time();
+                constexpr float_X omega_max = SI::omega_max * sim.unit.time();
                 constexpr float_X deltaOmega
-                    = (float_X) ((omegaMax - omegaMin) / (float_X) (nOmega - 1)); // difference beween two omega
+                    = (float_X) ((omega_max - omega_min) / (float_X) (N_omega - 1)); // difference beween two omega
 
                 constexpr unsigned int blocksizeOmega = numFrameSlots;
-                constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
-            } // namespace linearFrequencies
+                constexpr unsigned int gridsizeOmega = N_omega / blocksizeOmega; // size of grid (dim: x); radiation
+            } // namespace linear_frequencies
 
             //! units for logarithmic frequencies distribution for transition radiation plugin
-            namespace logFrequencies
+            namespace log_frequencies
             {
-                constexpr float_X omegaMin = (SI::omegaMin * sim.unit.time());
-                constexpr float_X omegaMax = (SI::omegaMax * sim.unit.time());
+                constexpr float_X omega_min = (SI::omega_min * sim.unit.time());
+                constexpr float_X omega_max = (SI::omega_max * sim.unit.time());
 
                 constexpr unsigned int blocksizeOmega = numFrameSlots;
-                constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
-            } // namespace logFrequencies
+                constexpr unsigned int gridsizeOmega = N_omega / blocksizeOmega; // size of grid (dim: x); radiation
+            } // namespace log_frequencies
 
             //! units for frequencies from list for transition radiation calculation
-            namespace listFrequencies
+            namespace frequencies_from_list
             {
                 constexpr unsigned int blocksizeOmega = numFrameSlots;
-                constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
-            } // namespace listFrequencies
+                constexpr unsigned int gridsizeOmega = N_omega / blocksizeOmega; // size of grid (dim: x); radiation
+            } // namespace frequencies_from_list
         } // namespace transitionRadiation
     } // namespace plugins
 } // namespace picongpu

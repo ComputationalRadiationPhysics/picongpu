@@ -328,7 +328,7 @@ namespace picongpu
                     numParticles
                         = std::make_unique<GridBuffer<float_X, DIM1>>(DataSpace<DIM1>(elementsTransitionRadiation()));
 
-                    freqInit.Init(listFrequencies::listLocation);
+                    freqInit.Init(frequencies_from_list::listLocation);
                     freqFkt = freqInit.getFunctor();
 
                     if(isMaster)
@@ -363,8 +363,8 @@ namespace picongpu
                  */
                 static unsigned int elementsTransitionRadiation()
                 {
-                    return transitionRadiation::frequencies::nOmega
-                        * transitionRadiation::parameters::nObserver; // storage for amplitude results on GPU
+                    return transitionRadiation::frequencies::N_omega
+                        * transitionRadiation::parameters::N_observer; // storage for amplitude results on GPU
                 }
 
                 /** Combine transition radiation data from each CPU and store result on master.
@@ -492,19 +492,19 @@ namespace picongpu
                     {
                         outFile << "# \t";
                         outFile << transitionRadiation::frequencies::getParameters();
-                        outFile << transitionRadiation::parameters::nPhi << "\t";
-                        outFile << transitionRadiation::parameters::phiMin << "\t";
-                        outFile << transitionRadiation::parameters::phiMax << "\t";
-                        outFile << transitionRadiation::parameters::nTheta << "\t";
-                        outFile << transitionRadiation::parameters::thetaMin << "\t";
-                        outFile << transitionRadiation::parameters::thetaMax << "\t";
+                        outFile << transitionRadiation::parameters::N_phi << "\t";
+                        outFile << transitionRadiation::parameters::phi_min << "\t";
+                        outFile << transitionRadiation::parameters::phi_max << "\t";
+                        outFile << transitionRadiation::parameters::N_theta << "\t";
+                        outFile << transitionRadiation::parameters::theta_min << "\t";
+                        outFile << transitionRadiation::parameters::theta_max << "\t";
                         outFile << std::endl;
 
                         for(unsigned int index_direction = 0;
-                            index_direction < transitionRadiation::parameters::nObserver;
+                            index_direction < transitionRadiation::parameters::N_observer;
                             ++index_direction) // over all directions
                         {
-                            for(unsigned index_omega = 0; index_omega < transitionRadiation::frequencies::nOmega;
+                            for(unsigned index_omega = 0; index_omega < transitionRadiation::frequencies::N_omega;
                                 ++index_omega) // over all frequencies
                             {
                                 // Take Amplitude for one direction and frequency,
@@ -514,7 +514,8 @@ namespace picongpu
                                     * sim.si.getElectronCharge()
                                     * (1.0 / (4 * PI * sim.si.getEps0() * PI * PI * sim.si.getSpeedOfLight()));
                                 outFile
-                                    << values[index_direction * transitionRadiation::frequencies::nOmega + index_omega]
+                                    << values
+                                            [index_direction * transitionRadiation::frequencies::N_omega + index_omega]
                                         * transRadUnit
                                     << "\t";
 
@@ -541,9 +542,9 @@ namespace picongpu
                     ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 
                     ::openPMD::Extent extent
-                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega),
-                           static_cast<unsigned long int>(parameters::nPhi),
-                           static_cast<unsigned long int>(parameters::nTheta)};
+                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::N_omega),
+                           static_cast<unsigned long int>(parameters::N_phi),
+                           static_cast<unsigned long int>(parameters::N_theta)};
                     ::openPMD::Offset offset = {0, 0, 0};
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset dataset{datatype, extent};
@@ -573,25 +574,26 @@ namespace picongpu
                     auto span = transitionRadiation.storeChunk<float_X>(offset, extent);
                     auto spanBuffer = span.currentBuffer();
 
-                    for(unsigned int index_direction = 0; index_direction < transitionRadiation::parameters::nObserver;
+                    for(unsigned int index_direction = 0;
+                        index_direction < transitionRadiation::parameters::N_observer;
                         ++index_direction)
                     {
                         // theta
-                        const int i = index_direction / parameters::nPhi;
+                        const int i = index_direction / parameters::N_phi;
                         // phi
-                        const int j = index_direction % parameters::nPhi;
+                        const int j = index_direction % parameters::N_phi;
 
-                        for(unsigned int k = 0; k < transitionRadiation::frequencies::nOmega; ++k)
+                        for(unsigned int k = 0; k < transitionRadiation::frequencies::N_omega; ++k)
                         {
-                            const int index = (k * parameters::nPhi + j) * parameters::nTheta + i;
+                            const int index = (k * parameters::N_phi + j) * parameters::N_theta + i;
                             spanBuffer[index] = static_cast<float_X>(
-                                theTransRad[index_direction * transitionRadiation::frequencies::nOmega + k]);
+                                theTransRad[index_direction * transitionRadiation::frequencies::N_omega + k]);
                         }
                     }
 
                     // Omega axis
                     ::openPMD::Extent extentOmega
-                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::nOmega), 1, 1};
+                        = {static_cast<unsigned long int>(transitionRadiation::frequencies::N_omega), 1, 1};
                     ::openPMD::Offset offsetOmega = {0, 0, 0};
                     ::openPMD::Datatype datatypeOmega = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetOmega{datatypeOmega, extentOmega};
@@ -615,14 +617,14 @@ namespace picongpu
                     auto spanOmega = omega.storeChunk<float_X>(offsetOmega, extentOmega);
                     auto spanBufferOmega = spanOmega.currentBuffer();
 
-                    for(unsigned int i = 0; i < transitionRadiation::frequencies::nOmega; ++i)
+                    for(unsigned int i = 0; i < transitionRadiation::frequencies::N_omega; ++i)
                     {
                         spanBufferOmega[i] = static_cast<float_X>(freqFkt(i));
                     }
 
                     // Phi axis
                     ::openPMD::Extent extentPhi
-                        = {1, static_cast<unsigned long int>(transitionRadiation::parameters::nPhi), 1};
+                        = {1, static_cast<unsigned long int>(transitionRadiation::parameters::N_phi), 1};
                     ::openPMD::Offset offsetPhi = {0, 0, 0};
                     ::openPMD::Datatype datatypePhi = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetPhi{datatypePhi, extentPhi};
@@ -645,21 +647,21 @@ namespace picongpu
                     auto spanPhi = phi.storeChunk<float_X>(offsetPhi, extentPhi);
                     auto spanBufferPhi = spanPhi.currentBuffer();
 
-                    if(transitionRadiation::parameters::nPhi > 1)
+                    if(transitionRadiation::parameters::N_phi > 1)
                     {
-                        for(unsigned int i = 0; i < transitionRadiation::parameters::nPhi; ++i)
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::N_phi; ++i)
                         {
-                            spanBufferPhi[i] = parameters::phiMin
-                                + i * (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0);
+                            spanBufferPhi[i] = parameters::phi_min
+                                + i * (parameters::phi_max - parameters::phi_min) / (parameters::N_phi - 1.0);
                         }
                     }
                     else
                     {
-                        spanBufferPhi[0] = parameters::phiMin;
+                        spanBufferPhi[0] = parameters::phi_min;
                     }
 
                     // Theta axis
-                    ::openPMD::Extent extentTheta = {1, 1, transitionRadiation::parameters::nTheta};
+                    ::openPMD::Extent extentTheta = {1, 1, transitionRadiation::parameters::N_theta};
                     ::openPMD::Offset offsetTheta = {0, 0, 0};
                     ::openPMD::Datatype datatypeTheta = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetTheta{datatypeTheta, extentTheta};
@@ -682,17 +684,17 @@ namespace picongpu
                     auto spanTheta = theta.storeChunk<float_X>(offsetTheta, extentTheta);
                     auto spanBufferTheta = spanTheta.currentBuffer();
 
-                    if(transitionRadiation::parameters::nTheta > 1)
+                    if(transitionRadiation::parameters::N_theta > 1)
                     {
-                        for(unsigned int i = 0; i < transitionRadiation::parameters::nTheta; ++i)
+                        for(unsigned int i = 0; i < transitionRadiation::parameters::N_theta; ++i)
                         {
-                            spanBufferTheta[i] = parameters::thetaMin
-                                + i * (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0);
+                            spanBufferTheta[i] = parameters::theta_min
+                                + i * (parameters::theta_max - parameters::theta_min) / (parameters::N_theta - 1.0);
                         }
                     }
                     else
                     {
-                        spanBufferTheta[0] = parameters::thetaMin;
+                        spanBufferTheta[0] = parameters::theta_min;
                     }
 
                     series.iterations[currentStep].close();
@@ -723,7 +725,7 @@ namespace picongpu
                     /* execute the particle filter */
                     transitionRadiation::executeParticleFilter(particles, currentStep);
 
-                    const auto gridDim_rad = transitionRadiation::parameters::nObserver;
+                    const auto gridDim_rad = transitionRadiation::parameters::N_observer;
 
                     /* number of threads per block = number of cells in a super cell
                      *          = number of particles in a Frame
