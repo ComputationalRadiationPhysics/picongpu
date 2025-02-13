@@ -246,7 +246,7 @@ namespace picongpu
                 /** get index for computing angle theta: */
                 const int index_theta = observation_id_extern / parameters::N_phi;
 
-                /** step width angle theta */
+                /** step width angle theta, set it to 0 if nTheta = 1 */
                 const picongpu::float_64 delta__theta = (parameters::N_theta > 1)
                     ? (parameters::theta_max - parameters::theta_min) / (parameters::N_theta - 1.0)
                     : 0.0;
@@ -257,7 +257,7 @@ namespace picongpu
                 /** get index for computing angle phi: */
                 const int index_phi = observation_id_extern % parameters::N_phi;
 
-                /** step width angle phi */
+                /** step width angle phi, set it to 0 if nPhi = 1 */
                 const picongpu::float_64 delta__phi = (parameters::N_phi > 1)
                     ? (parameters::phi_max - parameters::phi_min) / (parameters::N_phi - 1.0)
                     : 0.0;
