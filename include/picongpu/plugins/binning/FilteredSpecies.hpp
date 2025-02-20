@@ -29,7 +29,7 @@ namespace picongpu
     {
         struct AllParticles
         {
-            HDINLINE bool operator()(auto const& domainInfo, auto const& worker, auto const& particle) const
+            HDINLINE bool operator()(auto const& worker, auto const& domainInfo, auto const& particle) const
             {
                 return true;
             }

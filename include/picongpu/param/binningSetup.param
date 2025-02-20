@@ -26,7 +26,8 @@ namespace picongpu
 {
     namespace plugins::binning
     {
-        void binningExample(BinningCreator& binningCreator);
+        void fieldBinningExample(BinningCreator& binningCreator);
+        void particleBinningExample(BinningCreator& binningCreator);
 
         inline void getBinning(BinningCreator& binningCreator)
         {
@@ -35,7 +36,7 @@ namespace picongpu
             /// USER CODE ENDS HERE
         }
 
-        inline void binningExample(BinningCreator& binningCreator)
+        inline void particleBinningExample(BinningCreator& binningCreator)
         {
             /**
              * define axes here
@@ -44,7 +45,7 @@ namespace picongpu
             /// Axis 1
             // Define Functor
             auto getPositionY
-                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> int
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> int
             {
                 auto posBin = getParticlePosition<DomainOrigin::TOTAL>(domainInfo, particle);
                 return posBin[1];
@@ -64,7 +65,7 @@ namespace picongpu
             /// Axis 2
             // Define Functor
             auto getMomentumY
-                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> float_X
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_X
             { return particle[momentum_][1] / particle[weighting_]; };
 
             // Define units
@@ -88,7 +89,7 @@ namespace picongpu
             /// Axis 3
             // Define Functor
             auto getTimeStep
-                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> uint32_t
             { return domainInfo.currentStep; };
 
             // Create Functor Description
@@ -113,7 +114,7 @@ namespace picongpu
              * Simply a particle predicate functor
              */
             auto allParticles
-                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> bool
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> bool
             { return true; };
 
             // type is void if species doesn't exist
@@ -131,7 +132,8 @@ namespace picongpu
                 /**
                  * Define deposited quantity here
                  */
-                auto getParticleChargeDensity = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
+                auto getParticleChargeDensity
+                    = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_X
                 {
                     const float_X charge = picongpu::traits::attribute::getCharge(particle[weighting_], particle);
                     const float_X particleChargeDensity
@@ -150,7 +152,8 @@ namespace picongpu
 
 
                 auto getParticleCount
-                    = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X { return 1.0; };
+                    = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_X
+                { return 1.0; };
                 auto getCounts = createFunctorDescription<float_X>(getParticleCount, "Counts");
 
 
@@ -166,16 +169,96 @@ namespace picongpu
                     [ax_py](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
                 { mesh.setAttribute("p_nbins", ax_py.getNBins()); };
 
-                binningCreator
-                    .addBinner("chargeDensityBinning", axisTuple, speciesTuple, chargeDepositionData, writeOpenPMD)
+                binningCreator.addParticleBinner("chargeDensityBinning", axisTuple, speciesTuple, chargeDepositionData)
                     .setNotifyPeriod("1:500")
-                    .setJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
-                    .setOpenPMDExtension("h5");
+                    .setOpenPMDJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
+                    .setOpenPMDExtension("h5")
+                    .setOpenPMDWriteFunctor(writeOpenPMD);
 
-                binningCreator.addBinner("particleBinning", createTuple(ax_timeStep, ax_py), speciesTuple, getCounts)
+                binningCreator
+                    .addParticleBinner("particleBinning", createTuple(ax_timeStep, ax_py), speciesTuple, getCounts)
                     .setDumpPeriod(2000)
                     .setNormalizeByBinVolume(false);
             }
         }
+
+        inline void fieldBinningExample(BinningCreator& binningCreator)
+        {
+            /**
+             * define axes here
+             */
+
+            /// Axis 1
+            // Define Functor
+            auto getField
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& field1, auto const& field2)
+                -> float_X
+            {
+                auto fieldValue = field1(domainInfo.template getCellPosition<DomainOrigin::TOTAL>());
+                auto squaredSum = fieldValue.x() * fieldValue.x() + fieldValue.y() * fieldValue.y()
+                    + fieldValue.z() * fieldValue.z();
+                return squaredSum;
+            };
+
+            // Create Functor Description
+            auto fieldDescription = createFunctorDescription<float_X>(getField, "sadasfasfasf");
+
+            // Create Axis Splitting
+            auto fieldRange = axis::Range{0._X, 100._X};
+            auto fieldSplitting = axis::AxisSplitting(fieldRange, 100);
+
+            // Create Axis
+            auto ax_y = axis::createLinear(fieldSplitting, fieldDescription);
+
+            /// Axis 2
+            // Define Functor
+            auto getTimeStep
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& field1, auto const& field2)
+                -> uint32_t { return domainInfo.currentStep; };
+
+            // Create Functor Description
+            auto timeStepDescription = createFunctorDescription<uint32_t>(getTimeStep, "time_axis");
+
+            // Create Axis
+            auto ax_timeStep
+                = axis::createLinear(axis::AxisSplitting(axis::Range<uint32_t>{0, 2000}, 2000), timeStepDescription);
+
+            // Bring the axes together in a tuple
+            auto axisTuple = createTuple(ax_y, ax_timeStep);
+
+            // Bring the fields together in a tuple
+            DataConnector& dc = Environment<>::get().DataConnector();
+            auto fieldsTuple = createTuple(
+                dc.get<FieldB>(FieldB::getName())->getDeviceDataBox(),
+                dc.get<FieldTmp>(FieldTmp::getUniqueId(0))->getDeviceDataBox());
+
+            /**
+             * Define deposited quantity here
+             */
+            auto getFieldX
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& field1, auto const& field2)
+                -> float_X { return field1(domainInfo.localCellIdx).x(); };
+
+            std::array<double, numUnits> depositedUnits{}; // Tell user the 7 dimensional format
+            depositedUnits[SIBaseUnits::length] = -3.0;
+            depositedUnits[SIBaseUnits::electricCurrent] = 1.0;
+            depositedUnits[SIBaseUnits::time] = 1.0;
+
+            // @todo enforce functor return type is same as createFunctorDescription template type
+            auto fieldX = createFunctorDescription<float_X>(getFieldX, "FieldX", depositedUnits);
+
+            /** A hook that is called on every notify.
+             *  Can be used to fill fields
+             */
+            auto fillFieldsHook = []() -> void {
+
+            };
+
+            binningCreator.addFieldBinner("chargeDensityBinning", axisTuple, fieldsTuple, fieldX)
+                .setNotifyPeriod("1:500")
+                .setHostSideHook(fillFieldsHook);
+        }
+
+
     } // namespace plugins::binning
 } // namespace picongpu

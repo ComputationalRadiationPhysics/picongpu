@@ -42,7 +42,7 @@ namespace picongpu
 
             // axis 1: energy axis
             auto getEnergy
-                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> float_X
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_X
             {
                 float3_X const mom = particle[momentum_];
                 float_X const weighting = particle[weighting_];
@@ -74,7 +74,7 @@ namespace picongpu
 
             // axis 2: pointing axis
             auto getPointingXY
-                = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> float_X
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_X
             {
                 auto theta = math::atan2(particle[momentum_][0], particle[momentum_][1]);
                 return theta;
@@ -114,7 +114,8 @@ namespace picongpu
             /**
              * Define deposited quantity here: charge per bin
              */
-            auto getParticleCharge = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_X
+            auto getParticleCharge
+                = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_X
             {
                 const float_X charge = picongpu::traits::attribute::getCharge(particle[weighting_], particle);
                 return charge;
@@ -128,10 +129,10 @@ namespace picongpu
             // @todo enforce functor return type is same as createFunctorDescription template type
             auto chargeDepositionData = createFunctorDescription<float_X>(getParticleCharge, "Charge", depositedUnits);
 
-            binningCreator.addBinner("eSpec", axisTuple, speciesTuple, chargeDepositionData)
+            binningCreator.addParticleBinner("eSpec", axisTuple, speciesTuple, chargeDepositionData)
                 .setNormalizeByBinVolume(true)
                 .setNotifyPeriod("100")
-                .setJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
+                .setOpenPMDJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
                 .setOpenPMDExtension("h5");
         }
     } // namespace plugins::binning

@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/plugins/binning/Axis.hpp"
-#include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/UnitConversion.hpp"
+#include "picongpu/plugins/binning/axis/Axis.hpp"
 
 #include <array>
 #include <cstdint>
@@ -81,9 +80,9 @@ namespace picongpu
                     bool overflowEnabled;
 
                     constexpr LinearAxisKernel(
-                        T_AttrFunctor attrFunc,
-                        AxisSplitting<T_Attribute> axisSplit,
-                        std::array<double, numUnits> unitsArr)
+                        T_AttrFunctor const& attrFunc,
+                        AxisSplitting<T_Attribute> const& axisSplit,
+                        std::array<double, numUnits> const& unitsArr)
                         : getAttributeValue{attrFunc}
                         , min{toPICUnits(axisSplit.m_range.min, unitsArr)}
                         , max{toPICUnits(axisSplit.m_range.max, unitsArr)}
@@ -93,13 +92,10 @@ namespace picongpu
                     {
                     }
 
-                    template<typename T_Worker, typename T_Particle>
-                    ALPAKA_FN_ACC std::pair<bool, uint32_t> getBinIdx(
-                        const DomainInfo& domainInfo,
-                        const T_Worker& worker,
-                        const T_Particle& particle) const
+                    template<typename... Args>
+                    ALPAKA_FN_ACC std::pair<bool, uint32_t> getBinIdx(Args const&... args) const
                     {
-                        auto val = getAttributeValue(domainInfo, worker, particle);
+                        auto val = getAttributeValue(args...);
 
                         static_assert(
                             std::is_same<decltype(val), T_Attribute>::value,
@@ -138,7 +134,9 @@ namespace picongpu
                     ScalingType scaling;
                     uint32_t nBins;
 
-                    BinWidthKernel(LinearAxisKernel axisKernel) : scaling{axisKernel.scaling}, nBins{axisKernel.nBins}
+                    BinWidthKernel(LinearAxisKernel const& axisKernel)
+                        : scaling{axisKernel.scaling}
+                        , nBins{axisKernel.nBins}
                     {
                     }
 
@@ -152,10 +150,10 @@ namespace picongpu
                 BinWidthKernel bWK;
 
                 LinearAxis(
-                    AxisSplitting<T_Attribute> axSplit,
-                    T_AttrFunctor attrFunctor,
-                    std::string label,
-                    std::array<double, numUnits> units) // add type T_Attribute to the default label string
+                    AxisSplitting<T_Attribute> const& axSplit,
+                    T_AttrFunctor const& attrFunctor,
+                    std::string const& label,
+                    std::array<double, numUnits> const& units) // add type T_Attribute to the default label string
                     : axisSplit{axSplit}
                     , label{label}
                     , units{units}
@@ -180,7 +178,7 @@ namespace picongpu
                     return lAK;
                 }
 
-                BinWidthKernel getBinWidthKernel()
+                BinWidthKernel getBinWidthKernel() const
                 {
                     return bWK;
                 }
@@ -214,7 +212,9 @@ namespace picongpu
              * @param functorDescription
              */
             template<typename T_Attribute, typename T_FunctorDescription>
-            HINLINE auto createLinear(AxisSplitting<T_Attribute> axSplit, T_FunctorDescription functorDesc)
+            HINLINE auto createLinear(
+                AxisSplitting<T_Attribute> const& axSplit,
+                T_FunctorDescription const& functorDesc)
             {
                 static_assert(
                     std::is_same_v<typename T_FunctorDescription::QuantityType, T_Attribute>,

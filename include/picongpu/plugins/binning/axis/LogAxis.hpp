@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/plugins/binning/Axis.hpp"
-#include "picongpu/plugins/binning/DomainInfo.hpp"
 #include "picongpu/plugins/binning/UnitConversion.hpp"
+#include "picongpu/plugins/binning/axis/Axis.hpp"
 
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 
@@ -88,9 +87,9 @@ namespace picongpu
                     bool overflowEnabled;
 
                     constexpr LogAxisKernel(
-                        T_AttrFunctor attrFunc,
-                        AxisSplitting<T_Attribute> axisSplit,
-                        std::array<double, numUnits> unitsArr)
+                        T_AttrFunctor const& attrFunc,
+                        AxisSplitting<T_Attribute> const& axisSplit,
+                        std::array<double, numUnits> const& unitsArr)
                         : getAttributeValue{attrFunc}
                         , overflowEnabled{axisSplit.enableOverflowBins}
                     {
@@ -113,13 +112,10 @@ namespace picongpu
                     }
 
 
-                    template<typename T_Worker, typename T_Particle>
-                    ALPAKA_FN_ACC std::pair<bool, uint32_t> getBinIdx(
-                        const DomainInfo& domainInfo,
-                        const T_Worker& worker,
-                        const T_Particle& particle) const
+                    template<typename... Args>
+                    ALPAKA_FN_ACC std::pair<bool, uint32_t> getBinIdx(Args const&... args) const
                     {
-                        auto val = getAttributeValue(domainInfo, worker, particle);
+                        auto val = getAttributeValue(args...);
 
                         static_assert(
                             std::is_same<decltype(val), T_Attribute>::value,
@@ -228,7 +224,7 @@ namespace picongpu
                     return lAK;
                 }
 
-                BinWidthKernel getBinWidthKernel()
+                BinWidthKernel getBinWidthKernel() const
                 {
                     // reset whenever binWidths changes
                     static bool set = false;
@@ -272,7 +268,7 @@ namespace picongpu
              * @param functorDescription
              */
             template<typename T_Attribute, typename T_FunctorDescription>
-            HINLINE auto createLog(AxisSplitting<T_Attribute> axSplit, T_FunctorDescription functorDesc)
+            HINLINE auto createLog(AxisSplitting<T_Attribute> const& axSplit, T_FunctorDescription const& functorDesc)
             {
                 static_assert(
                     std::is_same_v<typename T_FunctorDescription::QuantityType, T_Attribute>,

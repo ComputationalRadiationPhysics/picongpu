@@ -21,13 +21,10 @@
 
 #if(ENABLE_OPENPMD == 1)
 
-#    include "picongpu/defines.hpp"
-#    include "picongpu/particles/param.hpp"
-#    include "picongpu/plugins/binning/BinningData.hpp"
-#    include "picongpu/plugins/binning/BinningFunctors.hpp"
+#    include "picongpu/plugins/binning/UnitConversion.hpp"
 #    include "picongpu/plugins/binning/WriteHist.hpp"
+#    include "picongpu/plugins/binning/functors/helpers.hpp"
 #    include "picongpu/plugins/binning/utility.hpp"
-#    include "picongpu/plugins/misc/ExecuteIf.hpp"
 
 #    include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
@@ -44,92 +41,6 @@ namespace picongpu
 {
     namespace plugins::binning
     {
-        /**
-         * Functor to run on divide for time averaging
-         */
-        // @todo make this generic? apply a functor on all elements of a databox? take in functor?
-        template<uint32_t blockSize, uint32_t nAxes>
-        struct ProductKernel
-        {
-            using ResultType = void;
-
-            HINLINE
-            ProductKernel()
-            {
-            }
-
-            template<typename T_Worker, typename T_DataSpace, typename T_DepositedQuantity, typename T_DataBox>
-            HDINLINE void operator()(
-                const T_Worker& worker,
-                const T_DataSpace& extentsDataspace,
-                const T_DepositedQuantity factor,
-                T_DataBox dataBox) const
-            {
-                auto blockIdx = worker.blockDomIdxND().x() * blockSize;
-                auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
-                forEachElemInDataboxChunk(
-                    [&](int32_t const linearIdx)
-                    {
-                        int32_t const linearTid = blockIdx + linearIdx;
-                        if(linearTid < extentsDataspace.productOfComponents())
-                            dataBox(DataSpace<1u>{static_cast<int>(linearTid)}) *= factor;
-                    });
-            }
-        };
-
-
-        /**
-         * Functor to do volume normaliztion
-         * Factor with picongpu units
-         * User needs to deal with the units seperately
-         */
-        // @todo make this more generic? databox operations with another databox?
-        // maybe store the normalization in a buffer rather than computing it at every output timestep (memory vs ops)
-        // this style vs having the members as params of operator()
-        template<uint32_t blockSize, uint32_t nAxes>
-        struct BinNormalizationKernel
-        {
-            using ResultType = void;
-
-            HINLINE
-            BinNormalizationKernel()
-            {
-            }
-
-            // @todo check if type stored in histBox is same as axisKernelTuple Type
-            template<typename T_Worker, typename T_DataSpace, typename T_BinWidthKernelTuple, typename T_DataBox>
-            HDINLINE void operator()(
-                const T_Worker& worker,
-                const T_DataSpace& extentsDataspace,
-                const T_BinWidthKernelTuple& binWidthsKernelTuple,
-                T_DataBox histBox) const
-            {
-                // @todo check normDataBox shape is same as histBox
-                auto blockIdx = worker.blockDomIdxND().x() * blockSize;
-                auto forEachElemInDataboxChunk = lockstep::makeForEach<blockSize>(worker);
-                forEachElemInDataboxChunk(
-                    [&](int32_t const linearIdx)
-                    {
-                        int32_t const linearTid = blockIdx + linearIdx;
-                        if(linearTid < extentsDataspace.productOfComponents())
-                        {
-                            pmacc::DataSpace<nAxes> const nDIdx = pmacc::math::mapToND(extentsDataspace, linearTid);
-                            float_X factor = 1.;
-                            binning::apply(
-                                [&](auto const&... binWidthsKernel)
-                                {
-                                    // uses bin width for axes without dimensions as well should those be ignored?
-                                    uint32_t i = 0;
-                                    ((factor *= binWidthsKernel.getBinWidth(nDIdx[i++])), ...);
-                                },
-                                binWidthsKernelTuple);
-
-                            histBox(linearTid) *= 1 / factor;
-                        }
-                    });
-            }
-        };
-
         HINLINE void dimensionSubtraction(
             std::array<double, numUnits>& outputDims,
             const std::array<double, numUnits>& axisDims)
@@ -143,11 +54,12 @@ namespace picongpu
         template<typename TBinningData>
         class Binner : public IPlugin
         {
+        public:
             using TDepositedQuantity = typename TBinningData::DepositedQuantityType;
 
             friend class BinningCreator;
 
-        private:
+        protected:
             std::string pluginName; /** @brief name used for restarts */
             TBinningData binningData;
             MappingDesc* cellDescription;
@@ -182,14 +94,7 @@ namespace picongpu
             void notify(uint32_t currentStep) override
             {
                 // @todo auto range init. Init ranges and AxisKernels
-
-                //  Do binning for species. Writes to histBuffer
-                if(binningData.isRegionEnabled(ParticleRegion::Bounded))
-                {
-                    std::apply(
-                        [&](auto const&... tupleArgs) { ((doBinningForSpecies(tupleArgs, currentStep)), ...); },
-                        binningData.speciesTuple);
-                }
+                doBinning(currentStep);
 
                 /**
                  * Deal with time averaging and notify
@@ -236,8 +141,9 @@ namespace picongpu
 
                         auto normKernel = BinNormalizationKernel<blockSize, TBinningData::getNAxes()>();
 
-                        auto binWidthsKernelTuple
-                            = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getBinWidthKernel(); });
+                        auto binWidthsKernelTuple = tupleMap(
+                            binningData.axisTuple,
+                            [&](auto const& axis) -> decltype(auto) { return axis.getBinWidthKernel(); });
 
                         PMACC_LOCKSTEP_KERNEL(normKernel)
                             .template config<blockSize>(gridSize)(
@@ -277,7 +183,7 @@ namespace picongpu
                                 binningData.binnerOutputName,
                                 binningData.openPMDInfix,
                                 binningData.openPMDExtension,
-                                binningData.jsonCfg},
+                                binningData.openPMDJsonCfg},
                             std::move(hReducedBuffer),
                             binningData,
                             outputUnits,
@@ -286,38 +192,6 @@ namespace picongpu
                     // reset device buffer
                     this->histBuffer->getDeviceBuffer().setValue(TDepositedQuantity(0.0));
                     accumulateCounter = 0;
-                }
-            }
-
-
-            /**
-             * onParticleLeave is called every time step whenever particles leave, it is independent of the notify
-             * period. onParticleLeave isnt called for timestep 0, whereas notify is. Even though it is called every
-             * timestep, notify must still be correctly set up for normalization, averaging and output. If binning only
-             * leaving particles, use notify starting from 1 if you use time averaging, otherwise you have an extra
-             * accumulate count at 0, when notify is called but onParticleLeave isnt.
-             */
-            void onParticleLeave(const std::string& speciesName, int32_t const direction) override
-            {
-                if(binningData.notifyPeriod.empty())
-                    return;
-
-                if(binningData.isRegionEnabled(ParticleRegion::Leaving))
-                {
-                    std::apply(
-                        [&](auto const&... tupleArgs)
-                        {
-                            (misc::ExecuteIf{}(
-                                 std::bind(
-                                     BinLeavingParticles<typename std::decay_t<decltype(tupleArgs)>>{},
-                                     this,
-                                     tupleArgs,
-                                     direction),
-                                 misc::SpeciesNameIsEqual<typename std::decay_t<decltype(tupleArgs)>::species_type>{},
-                                 speciesName),
-                             ...);
-                        },
-                        binningData.speciesTuple);
                 }
             }
 
@@ -363,7 +237,7 @@ namespace picongpu
                             binningData.binnerOutputName,
                             binningData.openPMDInfix,
                             binningData.openPMDExtension,
-                            binningData.jsonCfg},
+                            binningData.openPMDJsonCfg},
                         std::move(hReducedBuffer),
                         binningData,
                         binningData.depositionData.units,
@@ -433,116 +307,14 @@ namespace picongpu
             }
 
         private:
-            template<typename T_FilteredSpecies>
-            void doBinningForSpecies(T_FilteredSpecies const& fs, uint32_t currentStep)
-            {
-                using Species = pmacc::particles::meta::
-                    FindByNameOrType_t<VectorAllSpecies, typename T_FilteredSpecies::species_type>;
-                using TParticlesBox = typename Species::ParticlesBoxType;
-                using TDataBox = DataBox<PitchedBox<TDepositedQuantity, TBinningData::getNAxes()>>;
-                using TDepositedQuantityFunctor = typename TBinningData::DepositionFunctorType;
-                // using TDepositedQuantityFunctor = decltype(binningData.quantityFunctor);
-
-
-                DataConnector& dc = Environment<>::get().DataConnector();
-                auto particles = dc.get<Species>(Species::FrameType::getName());
-
-                // @todo do species filtering
-
-                TParticlesBox particlesBox = particles->getDeviceParticlesBox();
-                auto binningBox = histBuffer->getDeviceBuffer().getDataBox();
-
-                auto cellDesc = *cellDescription;
-                auto const mapper = makeAreaMapper<pmacc::type::CORE + pmacc::type::BORDER>(cellDesc);
-
-                auto const globalOffset = Environment<simDim>::get().SubGrid().getGlobalDomain().offset;
-                auto const localOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset;
-
-                auto const axisKernels
-                    = tupleMap(binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
-
-                auto const functorBlock = BinningFunctor{};
-
-                PMACC_LOCKSTEP_KERNEL(functorBlock)
-                    .config(mapper.getGridDim(), particlesBox)(
-                        binningBox,
-                        particlesBox,
-                        localOffset,
-                        globalOffset,
-                        axisKernels,
-                        binningData.depositionData.functor,
-                        binningData.axisExtentsND,
-                        fs.filter,
-                        currentStep,
-                        mapper);
-            }
-
-            template<typename T_FilteredSpecies>
-            struct BinLeavingParticles
-            {
-                using Species = pmacc::particles::meta::FindByNameOrType_t<
-                    VectorAllSpecies,
-                    typename T_FilteredSpecies::species_type,
-                    pmacc::errorHandlerPolicies::ReturnType<void>>;
-
-                template<typename T_BinData>
-                auto operator()(
-                    [[maybe_unused]] Binner<T_BinData>* binner,
-                    T_FilteredSpecies const& fs,
-                    [[maybe_unused]] int32_t direction) const -> void
-                {
-                    if constexpr(!std::is_same_v<void, Species>)
-                    {
-                        auto& dc = Environment<>::get().DataConnector();
-                        auto particles = dc.get<Species>(Species::FrameType::getName());
-                        auto particlesBox = particles->getDeviceParticlesBox();
-                        auto binningBox = binner->histBuffer->getDeviceBuffer().getDataBox();
-
-                        auto mapperFactory = particles::boundary::getMapperFactory(*particles, direction);
-                        auto const mapper = mapperFactory(*(binner->cellDescription));
-
-                        auto const globalOffset = Environment<simDim>::get().SubGrid().getGlobalDomain().offset;
-                        auto const localOffset = Environment<simDim>::get().SubGrid().getLocalDomain().offset;
-
-                        auto const axisKernels
-                            = tupleMap(binner->binningData.axisTuple, [&](auto axis) { return axis.getAxisKernel(); });
-
-                        pmacc::DataSpace<simDim> beginExternalCellsTotal, endExternalCellsTotal;
-                        particles::boundary::getExternalCellsTotal(
-                            *particles,
-                            direction,
-                            &beginExternalCellsTotal,
-                            &endExternalCellsTotal);
-
-                        auto const shiftTotaltoLocal = globalOffset + localOffset;
-                        auto const beginExternalCellsLocal = beginExternalCellsTotal - shiftTotaltoLocal;
-                        auto const endExternalCellsLocal = endExternalCellsTotal - shiftTotaltoLocal;
-
-                        auto const functorLeaving = BinningFunctorLeaving{};
-
-                        PMACC_LOCKSTEP_KERNEL(functorLeaving)
-                            .config(mapper.getGridDim(), particlesBox)(
-                                binningBox,
-                                particlesBox,
-                                localOffset,
-                                globalOffset,
-                                axisKernels,
-                                binner->binningData.depositionData.functor,
-                                binner->binningData.axisExtentsND,
-                                fs.filter,
-                                Environment<>::get().SimulationDescription().getCurrentStep(),
-                                beginExternalCellsLocal,
-                                endExternalCellsLocal,
-                                mapper);
-                    }
-                }
-            };
-
             void pluginLoad() override
             {
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, binningData.notifyPeriod);
             }
+
+            virtual void doBinning(uint32_t currentStep) = 0;
         };
+
 
     } // namespace plugins::binning
 } // namespace picongpu

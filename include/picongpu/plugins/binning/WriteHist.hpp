@@ -162,7 +162,6 @@ namespace picongpu
                 mesh.setGridGlobalOffset(gridOffsetVector);
 
                 {
-                    using UD = ::openPMD::UnitDimension;
                     mesh.setUnitDimension(makeOpenPMDUnitMap(binningData.depositionData.units)); // charge density
                 }
 

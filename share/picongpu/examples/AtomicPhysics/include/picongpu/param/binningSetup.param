@@ -34,7 +34,7 @@ namespace picongpu::plugins::binning
         /// Axis 1 - Atomic State collection index
         // Define Functor for Particle to Axis Value
         auto getAtomicState
-            = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
+            = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> uint32_t
         { return particle[atomicStateCollectionIndex_]; };
 
         // create Functor Description
@@ -50,7 +50,7 @@ namespace picongpu::plugins::binning
         /// Axis 2 - Time
         // Define Functor
         auto getTimeStep
-            = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> uint32_t
+            = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> uint32_t
         { return domainInfo.currentStep; };
 
         // Create Functor Description
@@ -74,7 +74,8 @@ namespace picongpu::plugins::binning
         auto speciesTuple = createSpeciesTuple(ions);
 
         //! Define deposited quantity
-        auto getParticleWeighting = [] ALPAKA_FN_ACC(auto const& worker, auto const& particle) -> float_64
+        auto getParticleWeighting
+            = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> float_64
         {
             return static_cast<float_64>(
                 static_cast<float_64>(particle[weighting_])
@@ -87,11 +88,11 @@ namespace picongpu::plugins::binning
             = [](::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh) -> void
         { mesh.setAttribute("weightScalingFactor", sim.unit.typicalNumParticlesPerMacroParticle()); };
 
-        binningCreator
-            .addBinner("atomicStateBinning", axisTuple, speciesTuple, weightingData, appendWeightScalingFactor)
+        binningCreator.addParticleBinner("atomicStateBinning", axisTuple, speciesTuple, weightingData)
             .setDumpPeriod(numberTimeSteps)
             .setOpenPMDExtension("bp")
             .setNormalizeByBinVolume(false)
-            .setTimeAveraging(false);
+            .setTimeAveraging(false)
+            .setOpenPMDWriteFunctor(appendWeightScalingFactor);
     }
 } // namespace picongpu::plugins::binning

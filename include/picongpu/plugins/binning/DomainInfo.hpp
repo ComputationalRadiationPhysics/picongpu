@@ -20,8 +20,10 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
+#include "picongpu/simulation_types.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/particles/Identifier.hpp>
 
 #include <cstdint>
 
@@ -29,12 +31,18 @@ namespace picongpu
 {
     namespace plugins::binning
     {
+        enum class BinningType
+        {
+            Field,
+            Particle
+        };
+
         /**
          * @brief Provides knowledge of the simulation domain to the user
          * Names and concept are described at
          * https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
          */
-        class DomainInfo
+        class DomainInfoBase
         {
         public:
             /** Current simulation timestep */
@@ -49,11 +57,11 @@ namespace picongpu
             /**
              * @param physicalSuperCellIdx supercell index relative to the border origin
              */
-            DINLINE DomainInfo(
+            HDINLINE DomainInfoBase(
                 uint32_t simStep,
                 pmacc::DataSpace<simDim> gOffset,
                 pmacc::DataSpace<simDim> lOffset,
-                DataSpace<simDim> physicalSuperCellIdx)
+                pmacc::DataSpace<simDim> physicalSuperCellIdx)
                 : currentStep{simStep}
                 , globalOffset{gOffset}
                 , localOffset{lOffset}
@@ -61,6 +69,9 @@ namespace picongpu
                 blockCellOffset = physicalSuperCellIdx * SuperCellSize::toRT();
             }
         };
+
+        template<BinningType T_Binning>
+        class DomainInfo;
 
         enum class DomainOrigin
         {
@@ -73,8 +84,93 @@ namespace picongpu
             LOCAL
         };
 
-        template<DomainOrigin T_Origin, typename T_Particle>
-        ALPAKA_FN_ACC auto getParticlePosition(DomainInfo domainInfo, T_Particle particle) -> pmacc::DataSpace<simDim>
+        enum class PositionPrecision
+        {
+            // Returns the cell index in which the particle
+            Cell,
+            // Returns the position of the particle as the cell index + the position of the particle inside the cell
+            // [0,1) This value is a floating point number of cells
+            SubCell
+        };
+
+        enum class PositionUnits
+        {
+            // returns the position in SI units
+            SI,
+            // Returns the position as the number of cells (Integral value if PositionPrecision is Cell and
+            // floating point if PositionPrecision is SubCell)
+            Cell
+        };
+
+        template<>
+        class DomainInfo<BinningType::Field> : public DomainInfoBase
+        {
+        public:
+            pmacc::DataSpace<simDim> localCellIdx;
+            HDINLINE DomainInfo(
+                uint32_t simStep,
+                pmacc::DataSpace<simDim> gOffset,
+                pmacc::DataSpace<simDim> lOffset,
+                pmacc::DataSpace<simDim> physicalSuperCellIdx,
+                pmacc::DataSpace<simDim> localCellIndex)
+                : DomainInfoBase(simStep, gOffset, lOffset, physicalSuperCellIdx)
+                , localCellIdx{localCellIndex}
+            {
+            }
+
+            // returns the cell position
+            // passed Can also return in SI units if CellUnits::SI is specified
+            template<DomainOrigin T_Origin, PositionUnits T_Units = PositionUnits::Cell>
+            ALPAKA_FN_ACC auto getCellPosition() const
+            {
+                auto relative_cellpos = blockCellOffset;
+
+                if constexpr(T_Origin == DomainOrigin::GLOBAL)
+                {
+                    relative_cellpos = relative_cellpos + localOffset;
+                }
+                if constexpr(T_Origin == DomainOrigin::TOTAL)
+                {
+                    relative_cellpos = relative_cellpos + globalOffset;
+                }
+
+                auto pos = localCellIdx + relative_cellpos;
+
+                if constexpr(T_Units == PositionUnits::SI)
+                {
+                    return precisionCast<typename std::decay_t<decltype(sim.pic.getCellSize())>::type>(pos)
+                        * sim.pic.getCellSize().shrink<simDim>();
+                }
+
+                return pos;
+            }
+        };
+
+        template<>
+        class DomainInfo<BinningType::Particle> : public DomainInfoBase
+        {
+        public:
+            HDINLINE DomainInfo(
+                uint32_t simStep,
+                pmacc::DataSpace<simDim> gOffset,
+                pmacc::DataSpace<simDim> lOffset,
+                pmacc::DataSpace<simDim> physicalSuperCellIdx)
+                : DomainInfoBase(simStep, gOffset, lOffset, physicalSuperCellIdx)
+            {
+            }
+        };
+
+        // returns the particle position
+        // by default returns the cell index of the cell the particle is in
+        // Can also return a fractional cell index representing the in cell position if PositionPrecision::SubCell is
+        // passed Can also return in SI units if CellUnits::SI is specified
+        template<
+            DomainOrigin T_Origin,
+            PositionPrecision T_Precision = PositionPrecision::Cell,
+            PositionUnits T_Units = PositionUnits::Cell>
+        ALPAKA_FN_ACC auto getParticlePosition(
+            DomainInfo<BinningType::Particle> const& domainInfo,
+            auto const& particle) -> pmacc::DataSpace<simDim>
         {
             int const linearCellIdx = particle[localCellIdx_];
             DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
@@ -89,8 +185,26 @@ namespace picongpu
                 relative_cellpos = relative_cellpos + domainInfo.globalOffset;
             }
 
-            auto posBin = cellIdx + relative_cellpos;
-            return posBin;
+            if constexpr(T_Precision == PositionPrecision::SubCell)
+            {
+                auto pos = precisionCast<typename std::decay_t<decltype(particle)>::type>(cellIdx + relative_cellpos)
+                    + particle[position_];
+                if constexpr(T_Units == PositionUnits::SI)
+                {
+                    return precisionCast<typename std::decay_t<decltype(particle)>::type>(pos)
+                        * sim.pic.getCellSize().shrink<simDim>();
+                }
+                return pos;
+            }
+            else
+            {
+                auto pos = cellIdx + relative_cellpos;
+                if constexpr(T_Units == PositionUnits::SI)
+                {
+                    return precisionCast<typename std::decay_t<decltype(particle)>::type>(pos) * sim.pic.getCellSize();
+                }
+                return pos;
+            }
         }
     } // namespace plugins::binning
 } // namespace picongpu
