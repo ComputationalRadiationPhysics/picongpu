@@ -21,6 +21,10 @@ ENABLE_IONIZATION = True
 ADD_CUSTOM_INPUT = True
 OUTPUT_DIRECTORY_PATH = "LWFA"
 
+# This assumes that you have copied the full example folder.
+# Otherwise, point this to your `/path/to/picongpu/share/picongpu/pypicongpu/examples/laser_wakefield/customTemplates`
+TEMPLATE_PATH = "./customTemplates/" if ADD_CUSTOM_INPUT else None
+
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter)
 
@@ -117,6 +121,7 @@ sim = picmi.Simulation(
     time_step_size=1.39e-16,
     picongpu_moving_window_move_point=0.9,
     picongpu_interaction=interaction,
+    picongpu_template_dir=TEMPLATE_PATH,
 )
 for species, layout in species_list:
     sim.add_species(species, layout=layout)
@@ -149,9 +154,9 @@ if ADD_CUSTOM_INPUT:
             "png_plugin_PRE_CHANNEL2_OPACITY": 1.0,
             "png_plugin_PRE_CHANNEL3_OPACITY": 1.0,
             "png_plugin_preParticleDensCol": "colorScales::grayInv",
-            "png_plugin_preChannel1Col": "colorScales::green",
-            "png_plugin_preChannel2Col": "colorScales::none",
-            "png_plugin_preChannel3Col": "colorScales::none",
+            "png_plugin_preChannel1_colorScale": "colorScales::green",
+            "png_plugin_preChannel2_colorScale": "colorScales::none",
+            "png_plugin_preChannel3_colorScale": "colorScales::none",
             "png_plugin_preChannel1": "field_E.x() * field_E.x();",
             "png_plugin_preChannel2": "field_E.y()",
             "png_plugin_preChannel3": "-1.0_X * field_E.y()",
@@ -170,7 +175,7 @@ if ADD_CUSTOM_INPUT:
             "energy_histogram_period": 100,
             "energy_histogram_bin_count": 1024,
             "energy_histogram_min_energy": 0.0,
-            "energy_histogram_maxEnergy": 1000.0,
+            "energy_histogram_max_energy": 1000.0,
             "energy_histogram_filter": "all",
         },
         "energy histogram plugin configuration",
