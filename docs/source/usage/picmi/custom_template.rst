@@ -20,6 +20,8 @@ Fundamentally there are three different approaches to custom template, differing
 - variable custom templates utilising custom user input
 
 To get started take a look at the examples below, have a look at :ref:`step-by-step guide <step_by_step>`, or at the detailed :ref:`rendering example <pypicongpu-translation-example-boundingbox>` in the developer documentation.
+Alternatively, you can jump right in and have a look at the `laser_wakefield example <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/pypicongpu/examples/laser_wakefield>`
+utilising custom user input and custom templates.
 
 Step-by-Step Guide
 ------------------
