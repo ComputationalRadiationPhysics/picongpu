@@ -69,10 +69,15 @@ class Simulation(RenderedObject):
     def __get_output_context(self) -> dict:
         """retrieve all output objects"""
         auto = output.Auto()
+        openPMD = output.OpenPMD()
         auto.period = max(1, int(self.time_steps / 100))
+        openPMD.period = max(1, int(self.time_steps / 100))
+        openPMD.file_name = "test"
+        openPMD.file_extension = ".h5"
 
         return {
             "auto": auto.get_rendering_context(),
+            "openPMD": openPMD.get_rendering_context(),
         }
 
     def __render_custom_user_input_list(self) -> dict:

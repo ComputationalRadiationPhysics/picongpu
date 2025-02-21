@@ -1,0 +1,26 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openPMD.OpenPMD",
+  "description": "configure openPMD output",
+  "type": "object",
+  "unevaluatedProperties": false,
+  "required": [
+    "period",
+    "file_name",
+    "file_extension"
+  ],
+  "properties": {
+    "period": {
+      "description": "number of time steps: at each multiple output is generated",
+      "type": "integer",
+      "minimum": 1
+    },
+    "file_name": {
+      "description": "file name for openPMD output",
+      "type": "string"
+    },
+    "file_extension": {
+      "description": "file extension for openPMD output (e.g., 'bp', 'h5')",
+      "type": "string"
+    }
+  }
+}

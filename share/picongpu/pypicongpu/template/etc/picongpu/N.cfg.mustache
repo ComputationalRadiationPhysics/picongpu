@@ -114,6 +114,11 @@ pypicongpu_output_with_newlines="
         {{/species_initmanager.species}}
 
     {{/output.auto}}
+    {{#output.openPMD}}
+        --openPMD.period {{{period}}}
+        --openPMD.file {{{file_name}}}
+        --openPMD.ext {{{file_extension}}}
+    {{/output.openPMD}}
 "
 
 # remove newlines

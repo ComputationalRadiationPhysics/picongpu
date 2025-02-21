@@ -50,7 +50,7 @@
             "description": "configuration for all output profiles",
             "type": "object",
             "unevaluatedProperties": false,
-            "required": ["auto"],
+            "required": ["auto", "openPMD"],
             "properties": {
                 "auto": {
                     "anyOf": [
@@ -61,7 +61,17 @@
                             "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.auto.Auto"
                         }
                     ]
+                },                "openPMD": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openPMD.OpenPMD"
+                        }
+                    ]
                 }
+
             }
         },
         "customuserinput":{
