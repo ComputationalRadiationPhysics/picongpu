@@ -165,7 +165,7 @@ if ADD_CUSTOM_INPUT:
             "png_plugin_EM_FIELD_SCALE_CHANNEL1": 7,
             "png_plugin_EM_FIELD_SCALE_CHANNEL2": -1,
             "png_plugin_EM_FIELD_SCALE_CHANNEL3": -1,
-            "png_plugin_CUSTOM_NORMALIZATION_SI": "5.0e12 / constants.c, 5.0e12, 15.0",
+            "png_plugin_CUSTOM_NORMALIZATION_SI": "{5.0e12 / sim.si.getSpeedOfLight(), 5.0e12, 15.0}",
             "png_plugin_PRE_PARTICLE_DENS_OPACITY": 0.25,
             "png_plugin_PRE_CHANNEL1_OPACITY": 1.0,
             "png_plugin_PRE_CHANNEL2_OPACITY": 1.0,
