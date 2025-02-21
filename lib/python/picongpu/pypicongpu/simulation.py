@@ -76,7 +76,7 @@ class Simulation(RenderedObject):
         openPMD.source = "species_all,fields_all"
         openPMD.range_ = ":,:,:"
         openPMD.file_name = "test"
-        openPMD.ext = ".h5"
+        openPMD.ext = "h5"
         openPMD.infix = None
         openPMD.json_ = None
         openPMD.jsonRestart = None

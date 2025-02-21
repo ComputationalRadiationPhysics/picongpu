@@ -72,6 +72,11 @@ class OpenPMD(RenderedObject):
             raise ValueError("file_name cannot be empty")
         if not self.ext:
             raise ValueError("ext cannot be empty")
+        if self.ext.startswith("."):
+            raise ValueError(
+                "Don't start openPMD's `ext` with a dot. It is added automatically. "
+                f"You gave '{self.ext}' but you probably meant '{self.ext.strip('.')}'."
+            )
 
     def _get_serialized(self) -> dict:
         self.check()
