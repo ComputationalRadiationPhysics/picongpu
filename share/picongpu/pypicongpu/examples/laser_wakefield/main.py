@@ -60,8 +60,16 @@ laser = picmi.GaussianLaser(
     duration=5.0e-15,
     propagation_direction=[0.0, 1.0, 0.0],
     polarization_direction=[1.0, 0.0, 0.0],
-    focal_position=[float(numberCells[0] * cellSize[0] / 2.0), 4.62e-5, float(numberCells[2] * cellSize[2] / 2.0)],
-    centroid_position=[float(numberCells[0] * cellSize[0] / 2.0), 0.0, float(numberCells[2] * cellSize[2] / 2.0)],
+    focal_position=[
+        float(numberCells[0] * cellSize[0] / 2.0),
+        4.62e-5,
+        float(numberCells[2] * cellSize[2] / 2.0),
+    ],
+    centroid_position=[
+        float(numberCells[0] * cellSize[0] / 2.0),
+        0.0,
+        float(numberCells[2] * cellSize[2] / 2.0),
+    ],
     picongpu_polarization_type=pypicongpu.laser.GaussianLaser.PolarizationType.CIRCULAR,
     a0=8.0,
     picongpu_phase=0.0,
@@ -82,7 +90,10 @@ if not ENABLE_IONIZATION:
 
     if ENABLE_IONS:
         hydrogen_fully_ionized = picmi.Species(
-            particle_type="H", name="hydrogen", picongpu_fixed_charge=True, initial_distribution=gaussianProfile
+            particle_type="H",
+            name="hydrogen",
+            picongpu_fixed_charge=True,
+            initial_distribution=gaussianProfile,
         )
         species_list.append((hydrogen_fully_ionized, random_layout))
 else:
@@ -90,7 +101,10 @@ else:
         raise ValueError("Ions species required for ionization")
 
     hydrogen_with_ionization = picmi.Species(
-        particle_type="H", name="hydrogen", charge_state=0, initial_distribution=gaussianProfile
+        particle_type="H",
+        name="hydrogen",
+        charge_state=0,
+        initial_distribution=gaussianProfile,
     )
     species_list.append((hydrogen_with_ionization, random_layout))
 
@@ -112,7 +126,10 @@ else:
     )
 
     interaction = picmi.Interaction(
-        ground_state_ionization_model_list=[adk_ionization_model, bsi_effectiveZ_ionization_model]
+        ground_state_ionization_model_list=[
+            adk_ionization_model,
+            bsi_effectiveZ_ionization_model,
+        ]
     )
 
 sim = picmi.Simulation(
@@ -195,16 +212,24 @@ if ADD_CUSTOM_INPUT:
     )
 
     output_configuration.addToCustomInput(
-        {"openPMD_period": 100, "openPMD_file": "simData", "openPMD_extension": "bp"}, "openPMD plugin configuration"
+        {"openPMD_period": 100, "openPMD_file": "simData", "openPMD_extension": "bp"},
+        "openPMD plugin configuration",
     )
 
     output_configuration.addToCustomInput(
-        {"checkpoint_period": 100, "checkpoint_backend": "openPMD", "checkpoint_restart_backend": "openPMD"},
+        {
+            "checkpoint_period": 100,
+            "checkpoint_backend": "openPMD",
+            "checkpoint_restart_backend": "openPMD",
+        },
         "checkpoint configuration",
     )
 
     output_configuration.addToCustomInput(
-        {"macro_particle_count_period": 100, "macro_particle_count_species_name": "electron"},
+        {
+            "macro_particle_count_period": 100,
+            "macro_particle_count_species_name": "electron",
+        },
         "macro particle count plugin configuration",
     )
     sim.picongpu_add_custom_user_input(output_configuration)
