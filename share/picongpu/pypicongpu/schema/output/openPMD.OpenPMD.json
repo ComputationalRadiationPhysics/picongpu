@@ -1,12 +1,14 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openPMD.OpenPMD",
-  "description": "configure openPMD output",
+  "description": "OpenPMD output configuration",
   "type": "object",
   "unevaluatedProperties": false,
   "required": [
     "period",
+    "source",
+    "range",
     "file_name",
-    "file_extension"
+    "ext"
   ],
   "properties": {
     "period": {
@@ -14,13 +16,98 @@
       "type": "integer",
       "minimum": 1
     },
-    "file_name": {
-      "description": "file name for openPMD output",
+    "source": {
+      "description": "data sources and filters to dump",
       "type": "string"
     },
-    "file_extension": {
-      "description": "file extension for openPMD output (e.g., 'bp', 'h5')",
+    "range": {
+      "description": "contiguous range of cells per dimension to dump",
       "type": "string"
+    },
+    "file_name": {
+      "description": "file name for OpenPMD output",
+      "type": "string"
+    },
+    "ext": {
+      "description": "openPMD filename extension",
+      "type": "string"
+    },
+    "infix": {
+      "description": "openPMD filename infix",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "json": {
+      "description": "backend-specific parameters for openPMD backends in JSON format",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "jsonRestart": {
+      "description": "backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "dataPreparationStrategy": {
+      "description": "strategy for preparation of particle data",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "toml": {
+      "description": "configure the openPMD plugin via a TOML file",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "particleIOChunkSize": {
+      "description": "particle data will be written in chunks of the given size",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "writeAccess": {
+      "description": "openPMD Access mode for file writing",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
     }
   }
 }

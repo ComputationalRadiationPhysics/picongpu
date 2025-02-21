@@ -116,8 +116,31 @@ pypicongpu_output_with_newlines="
     {{/output.auto}}
     {{#output.openPMD}}
         --openPMD.period {{{period}}}
+        --openPMD.source {{{source}}}
+        --openPMD.range {{{range}}}
         --openPMD.file {{{file_name}}}
-        --openPMD.ext {{{file_extension}}}
+        --openPMD.ext {{{ext}}}
+        {{#output.openPMD.infix}}
+            --openPMD.infix {{{infix}}}
+        {{/output.openPMD.infix}}
+        {{#output.openPMD.json}}
+           --openPMD.json {{{json}}}
+        {{/output.openPMD.json}}
+        {{#output.openPMD.jsonRestart}}
+           --checkpoint.openPMD.jsonRestart {{{jsonRestart}}}
+        {{/output.openPMD.jsonRestart}}
+        {{#output.openPMD.dataPreparationStrategy}}
+           --openPMD.dataPreparationStrategy {{{dataPreparationStrategy}}}
+        {{/output.openPMD.dataPreparationStrategy}}
+        {{#output.openPMD.toml}}
+           --openPMD.toml {{{toml}}}
+        {{/output.openPMD.toml}}
+        {{#output.openPMD.particleIOChunkSize}}
+           --openPMD.particleIOChunkSize {{{particleIOChunkSize}}}
+        {{/output.openPMD.particleIOChunkSize}}
+        {{#output.openPMD.writeAccess}}
+           --openPMD.writeAccess {{{writeAccess}}}
+        {{/output.openPMD.writeAccess}}
     {{/output.openPMD}}
 "
 

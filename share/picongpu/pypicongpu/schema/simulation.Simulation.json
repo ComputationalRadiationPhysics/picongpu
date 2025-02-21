@@ -61,7 +61,8 @@
                             "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.auto.Auto"
                         }
                     ]
-                },                "openPMD": {
+                },
+                "openPMD": {
                     "anyOf": [
                         {
                             "type": "null"

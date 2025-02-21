@@ -69,11 +69,21 @@ class Simulation(RenderedObject):
     def __get_output_context(self) -> dict:
         """retrieve all output objects"""
         auto = output.Auto()
-        openPMD = output.OpenPMD()
         auto.period = max(1, int(self.time_steps / 100))
+
+        openPMD = output.OpenPMD()
         openPMD.period = max(1, int(self.time_steps / 100))
+        openPMD.source = "species_all,fields_all"
+        openPMD.range_ = ":,:,:"
         openPMD.file_name = "test"
-        openPMD.file_extension = ".h5"
+        openPMD.ext = ".h5"
+        openPMD.infix = None
+        openPMD.json_ = None
+        openPMD.jsonRestart = None
+        openPMD.dataPreparationStrategy = None
+        openPMD.toml = None
+        openPMD.particleIOChunkSize = None
+        openPMD.writeAccess = None
 
         return {
             "auto": auto.get_rendering_context(),
