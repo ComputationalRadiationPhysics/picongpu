@@ -59,6 +59,19 @@ class InterfaceCustomUserInput(RenderedObject, pydantic.BaseModel):
         raise NotImplementedError("Abstract Interface only!")
 
 
+def recursively_replace_bools_with_str(dictionary):
+    """
+    Recursively replace bools with strings
+
+    This is necessary because Python bools render as capital "True"/"False" while C++ needs "true"/"false"
+    """
+    if isinstance(dictionary, dict):
+        return {key: recursively_replace_bools_with_str(value) for key, value in dictionary.items()}
+    if isinstance(dictionary, bool):
+        return "true" if dictionary else "false"
+    return dictionary
+
+
 class CustomUserInput(InterfaceCustomUserInput):
     """
     container for easy passing of additional input as dict from user script to rendering context of simulation input
@@ -104,7 +117,7 @@ class CustomUserInput(InterfaceCustomUserInput):
 
     def _get_serialized(self) -> dict[str, typing.Any]:
         self.check()
-        return self.rendering_context
+        return recursively_replace_bools_with_str(self.rendering_context)
 
     def get_generic_rendering_context(self) -> dict[str, typing.Any]:
         return self.get_rendering_context()
