@@ -5,6 +5,8 @@ Authors: Masoud Afshari, Brian Edward Marre
 License: GPLv3+
 """
 
+from pathlib import Path
+
 from picongpu import picmi
 from picongpu import pypicongpu
 import numpy as np
@@ -23,7 +25,7 @@ OUTPUT_DIRECTORY_PATH = "LWFA"
 
 # This assumes that you have copied the full example folder.
 # Otherwise, point this to your `/path/to/picongpu/share/picongpu/pypicongpu/examples/laser_wakefield/customTemplates`
-TEMPLATE_PATH = "./customTemplates/" if ADD_CUSTOM_INPUT else None
+TEMPLATE_PATH = Path(__file__).parent / "customTemplates" if ADD_CUSTOM_INPUT else None
 
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter)
