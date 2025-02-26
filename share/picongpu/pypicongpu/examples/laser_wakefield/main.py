@@ -214,7 +214,12 @@ if ADD_CUSTOM_INPUT:
     )
 
     output_configuration.addToCustomInput(
-        {"openPMD_period": 100, "openPMD_file": "simData", "openPMD_extension": "bp"},
+        {
+            "openPMD_period": 100,
+            "openPMD_file": "simData",
+            "openPMD_extension": "bp",
+            "openPMD_dataPreparationStrategy": "hdf5",
+        },
         "openPMD plugin configuration",
     )
 
