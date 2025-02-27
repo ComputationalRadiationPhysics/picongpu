@@ -228,6 +228,7 @@ if ADD_CUSTOM_INPUT:
             "checkpoint_period": 100,
             "checkpoint_backend": "openPMD",
             "checkpoint_restart_backend": "openPMD",
+            "checkpoint_openPMD_dataPreparationStrategy": "hdf5",
         },
         "checkpoint configuration",
     )
