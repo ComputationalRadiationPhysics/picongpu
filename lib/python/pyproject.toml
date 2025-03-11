@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+[tool.setuptools]
+packages=["picongpu"]
+
+[project]
+name = "picongpu"
+# should be always identical with PIConGPU version
+version = "0.9.0.dev"
+description = "Python package for PIConGPU"
+requires-python = ">=3.10"
+# dependecies list generated with
+# https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
+dependencies = [
+# Included from: picongpu/extra/requirements.txt
+# Included from: picongpu/extra/input/requirements.txt
+"pint",
+# Included from: picongpu/extra/plugins/requirements.txt
+# Included from: picongpu/extra/plugins/plot_mpl/requirements.txt
+"matplotlib",
+"numpy",
+"scipy",
+# Included from: picongpu/extra/plugins/plot_mpl/../data/requirements.txt
+"numpy",
+"pandas>=0.21.0",
+"h5py",
+"pillow",
+"imageio",
+"openPMD-api>=0.10.3",
+# Included from: picongpu/extra/utils/requirements.txt
+"numpy",
+# Included from: picongpu/extra/utils/FLYonPICRateCalculationReference/requirements.txt
+"scipy >= 1.12.0",
+"numpy >= 1.26.2",
+"mpmath >= 1.3.0",
+# Included from: picongpu/pypicongpu/requirements.txt
+"chevron >= 0.13.1",
+"jsonschema >= 4.23.0",
+"typeguard >= 4.2.1",
+"referencing >= 0.35.1",
+"pydantic >= 2.6.4",
+"periodictable >= 1.7.1",
+# Included from: picongpu/picmi/requirements.txt
+"scipy >= 1.7.1",
+"pydantic >= 2.6.4",
+"picmistandard >= 0.27.0",
+"typeguard >= 4.2.1",
+"sympy >= 1.9",
+"pydantic >= 2.6.4",
+"particle >= 0.25.1",
+]
