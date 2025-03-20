@@ -21,11 +21,11 @@ Users can set up their binning in the ``binningSetup.param`` file. After setup, 
 
    Unlike other plugins, the binning plugin doesn't provide any runtime configuration. To set up binning, users need to define it in the param file and then recompile.
 
-A binner is created using the ``addBinner()`` function, which describes the configuration options available to the user to set up the binning.
-Multiple binnings can be run at the same time by simply calling ``addBinner()`` multiple times with different parameters.
+A binner is created using the ``addParticleBinner()`` function, which describes the configuration options available to the user to set up the binning.
+Multiple binnings can be run at the same time by simply calling ``addParticleBinner()`` multiple times with different parameters.
 
 .. doxygenclass:: picongpu::plugins::binning::BinningCreator
-    :members: addBinner
+    :members: addParticleBinner
 
 The most important parts of defining a binning are the axes (the axes of the histogram which define the bins) and the deposited quantity (the quantity to be binned).
 Both of these are described using the "Functor Description".
@@ -46,7 +46,7 @@ The functor needs to follow the signature shown below. This provides the user ac
 
 .. code-block:: c++
 
-    auto myFunctor = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> returnType
+    auto myFunctor = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> returnType
     {
         // fn body
         return myParameter;
@@ -125,7 +125,7 @@ Range
 
 .. note::
 
-   Axes are passed to addBinner grouped in a tuple. This is just a collection of axis objects and is of arbitrary size. 
+   Axes are passed to addParticleBinner grouped in a tuple. This is just a collection of axis objects and is of arbitrary size. 
    Users can make a tuple for axes by using the ``createTuple()`` function and passing in the axis objects as arguments.
 
 Species
@@ -142,7 +142,7 @@ They can then create a FilteredSpecies object which contains the species and the
 
 .. code-block:: c++
     
-    auto myFilter = [] ALPAKA_FN_ACC(auto const& domainInfo, auto const& worker, auto const& particle) -> bool
+    auto myFilter = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> bool
     {
         bool binningEnabled = true;
         // fn body
@@ -153,7 +153,7 @@ They can then create a FilteredSpecies object which contains the species and the
 
 .. note::
 
-   Species are passed to addBinner in the form of a tuple. This is just a collection of Species and FilteredSpecies objects (the tuple can be a mixure of both) and is of arbitrary size.
+   Species are passed to addParticleBinner in the form of a tuple. This is just a collection of Species and FilteredSpecies objects (the tuple can be a mixure of both) and is of arbitrary size.
    Users can make a species tuple by using the ``createSpeciesTuple()`` function and passing in the objects as arguments.
 
 
