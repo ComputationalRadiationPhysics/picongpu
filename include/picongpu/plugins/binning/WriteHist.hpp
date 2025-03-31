@@ -165,9 +165,7 @@ namespace picongpu
                 mesh.setGridSpacing(gridSpacingVector);
                 mesh.setGridGlobalOffset(gridOffsetVector);
 
-                {
-                    mesh.setUnitDimension(makeOpenPMDUnitMap(binningData.depositionData.units)); // charge density
-                }
+                mesh.setUnitDimension(makeOpenPMDUnitMap(outputUnits));
 
                 /*
                  * The value represents an aggregation over one cell, so any value is correct for the mesh position.
