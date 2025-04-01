@@ -15,5 +15,4 @@ import typeguard
 class Plugin(SelfRegisteringRenderedObject):
     """general interface for all plugins"""
 
-    def __init__(self):
-        raise NotImplementedError("abstract base class only")
+    pass
