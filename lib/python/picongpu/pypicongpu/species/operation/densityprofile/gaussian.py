@@ -21,6 +21,8 @@ class Gaussian(DensityProfile):
     - for gasCenterRear < y;    density * exp(gasFactor * (abs( (y - gasCenterRear) / gasSigmaRear))^gasPower)
     """
 
+    _name = "gaussian"
+
     gas_center_front = util.build_typesafe_property(float)
     """position of the front edge of the constant middle of the density profile, [m]"""
 
@@ -44,10 +46,6 @@ class Gaussian(DensityProfile):
 
     density = util.build_typesafe_property(float)
     """particle number density in m^-3"""
-
-    def __init__(self):
-        # (nothing to do, overwrite from abstract parent)
-        pass
 
     def check(self) -> None:
         if self.density <= 0:

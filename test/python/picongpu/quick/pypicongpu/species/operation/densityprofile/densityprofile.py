@@ -26,16 +26,6 @@ class TestDensityProfile(unittest.TestCase):
         def __init__(self):
             pass
 
-    def test_abstract(self):
-        """density profile is abstract"""
-        with self.assertRaises(NotImplementedError):
-            DensityProfile()
-
-        # also, check() is not implemented
-        dummy = self.DummyCheckNotImplemented()
-        with self.assertRaises(NotImplementedError):
-            dummy.check()
-
     def test_rendering_not_implemented(self):
         """rendering method is defined, but not implemented"""
         dummy = self.DummyCheckNotImplemented()

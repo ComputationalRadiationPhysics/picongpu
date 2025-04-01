@@ -20,12 +20,10 @@ class Uniform(DensityProfile):
     ambiguities the PICMI name uniform is followed here.
     """
 
+    _name = "uniform"
+
     density_si = util.build_typesafe_property(float)
     """density at every point in space (kg * m^-3)"""
-
-    def __init__(self):
-        # (nothing to do, overwrite from abstract parent)
-        pass
 
     def check(self) -> None:
         if self.density_si <= 0:

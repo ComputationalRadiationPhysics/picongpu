@@ -18,8 +18,26 @@ class DensityProfile(RenderedObject):
     A density profile describes the density in space.
     """
 
-    def __init__(self):
-        raise NotImplementedError()
+    # IMPORTANT: This is a mutable type ON PURPOSE!
+    # We will let our children register themselves by mutating this instance.
+    _names = []
+
+    # We have this as a "backup" because subclasses will have a real name
+    # but we still want to be able to check against the dummy name.
+    _dummy_name = "base class -- has no name"
+
+    # This is supposed to be set (and registered) by our children.
+    _name = _dummy_name
+
+    @classmethod
+    def _register(cls):
+        if cls._name not in cls._names:
+            cls._names.append(cls._name)
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        if cls._name != cls._dummy_name:
+            cls._register()
 
     def check(self) -> None:
         """
@@ -82,24 +100,11 @@ class DensityProfile(RenderedObject):
             - returned representation is designed for easy use with templating
               engine mustache
         """
-        # import here to avoid circular inclusion
-        from .uniform import Uniform
-        from .foil import Foil
-        from .gaussian import Gaussian
-
-        template_name_by_type = {Uniform: "uniform", Foil: "foil", Gaussian: "gaussian"}
-        if self.__class__ not in template_name_by_type:
-            raise RuntimeError("unkown type: {}".format(self.__class__))
-
-        serialized_data = self.get_rendering_context()
-
-        # create dict with all types set to false, except for the current one
-        type_dict = dict(map(lambda type_name: (type_name, False), template_name_by_type.values()))
-        self_class_template_name = template_name_by_type[self.__class__]
-        type_dict[self_class_template_name] = True
-
         # final context to be returned: data + type info
-        returned_context = {"type": type_dict, "data": serialized_data}
+        returned_context = {
+            "type": {name: name == self._name for name in self._names},
+            "data": self.get_rendering_context(),
+        }
 
         # make sure it passes schema checks
         RenderedObject.check_context_for_type(DensityProfile, returned_context)
