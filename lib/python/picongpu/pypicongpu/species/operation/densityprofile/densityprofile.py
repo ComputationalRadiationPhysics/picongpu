@@ -5,8 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from ....util import SelfRegistering
-from ....rendering import RenderedObject
+from ....rendering import RenderedObject, SelfRegistering
 
 import typeguard
 

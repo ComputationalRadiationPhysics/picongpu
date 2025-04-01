@@ -1,7 +1,4 @@
 from .renderer import Renderer
-from .renderedobject import RenderedObject
+from .renderedobject import RenderedObject, SelfRegistering
 
-__all__ = [
-    "Renderer",
-    "RenderedObject",
-]
+__all__ = ["Renderer", "RenderedObject", "SelfRegistering"]

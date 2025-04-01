@@ -5,8 +5,7 @@ Authors: Brian Edward Marre, Masoud Afshari
 License: GPLv3+
 """
 
-from ..util import SelfRegistering
-from ..rendering import RenderedObject
+from ..rendering import RenderedObject, SelfRegistering
 
 
 import typeguard
