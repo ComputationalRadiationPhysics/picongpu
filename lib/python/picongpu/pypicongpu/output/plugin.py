@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2024 PIConGPU contributors
-Authors: Brian Edward Marre, Masoud Afshari
+Authors: Brian Edward Marre, Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
