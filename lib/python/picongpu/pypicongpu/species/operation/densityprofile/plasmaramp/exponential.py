@@ -14,6 +14,8 @@ from .plasmaramp import PlasmaRamp
 class Exponential(PlasmaRamp):
     """exponential plasma ramp, either up or down"""
 
+    _name = "exponential"
+
     def __init__(self, PlasmaLength: float, PlasmaCutoff: float):
         self.PlasmaLength = PlasmaLength
         self.PlasmaCutoff = PlasmaCutoff
@@ -26,5 +28,4 @@ class Exponential(PlasmaRamp):
 
     def _get_serialized(self) -> dict:
         self.check()
-
         return {"PlasmaLength": self.PlasmaLength, "PlasmaCutoff": self.PlasmaCutoff}

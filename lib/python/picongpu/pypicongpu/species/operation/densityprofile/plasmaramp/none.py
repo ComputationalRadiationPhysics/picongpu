@@ -14,12 +14,10 @@ from .plasmaramp import PlasmaRamp
 class None_(PlasmaRamp):
     """no plasma ramp, either up or down"""
 
-    def __init__(self):
-        # just overwriting the base class method
-        pass
+    _name = "none"
 
-    def check(self) -> None:
-        return
+    def check(self):
+        pass
 
     def _get_serialized(self) -> dict | None:
         return None
