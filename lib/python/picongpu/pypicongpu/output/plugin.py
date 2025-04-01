@@ -19,7 +19,7 @@ class Plugin(RenderedObject, SelfRegistering):
     def __init__(self):
         raise NotImplementedError("abstract base class only")
 
-    def get_generic_plugin_rendering_context(self) -> dict:
+    def get_rendering_context(self) -> dict:
         """
         retrieve a context valid for "any plugin"
 
@@ -71,10 +71,11 @@ class Plugin(RenderedObject, SelfRegistering):
             - returned representation is designed for easy use with templating
               engine mustache
         """
+
         # final context to be returned: data + type info
         returned_context = {
             "typeID": {name: name == self._name for name in self._names},
-            "data": self.get_rendering_context(),
+            "data": super().get_rendering_context(),
         }
 
         # make sure it passes schema checks

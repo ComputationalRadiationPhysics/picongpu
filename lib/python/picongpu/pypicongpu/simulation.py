@@ -77,11 +77,11 @@ class Simulation(RenderedObject):
             auto = output.Auto()
             auto.period = TimeStepSpec([slice(0, None, max(1, int(self.time_steps / 100)))])
 
-            return [auto.get_generic_plugin_rendering_context()]
+            return [auto.get_rendering_context()]
         else:
             output_rendering_context = []
             for entry in self.plugins:
-                output_rendering_context.append(entry.get_generic_plugin_rendering_context())
+                output_rendering_context.append(entry.get_rendering_context())
 
             return output_rendering_context
 

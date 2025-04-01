@@ -94,6 +94,8 @@ class TestPhaseSpace(unittest.TestCase):
 
         # normal rendering
         context = ps.get_rendering_context()
+        self.assertTrue(context["typeID"]["phasespace"])
+        context = context["data"]
         self.assertEqual(42, context["period"]["specs"][0]["step"])
         self.assertEqual("x", context["spatial_coordinate"])
         self.assertEqual("px", context["momentum_coordinate"])

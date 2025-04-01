@@ -31,4 +31,6 @@ class TestAuto(unittest.TestCase):
 
         # normal rendering
         context = a.get_rendering_context()
+        self.assertTrue(context["typeID"]["auto"])
+        context = context["data"]
         self.assertEqual(17, context["period"]["specs"][0]["step"])
