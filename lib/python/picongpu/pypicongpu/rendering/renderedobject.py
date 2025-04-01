@@ -226,6 +226,13 @@ class RenderedObject:
 
 
 class SelfRegistering:
+    """
+    A parent class the children of which will register their names in a list.
+
+    Any subclass that wants to register has to overwrite _name.
+    Its name will appear in _names afterwards.
+    """
+
     # IMPORTANT: This is a mutable type ON PURPOSE!
     # We will let our children register themselves by mutating this instance.
     _names = []
@@ -249,6 +256,17 @@ class SelfRegistering:
 
 
 class SelfRegisteringRenderedObject(RenderedObject, SelfRegistering):
+    """
+    A rendered object specialisation for grouping together self-registered subclasses.
+
+    This class can be used like a RenderedObject but inheriting from this will create
+    a new group of subclasses that are grouped into a category like Plugin, DensityProfile, etc.
+
+    Typically, the class inheriting from this doesn't contain any functionality on its own
+    but is purely for grouping, so `class Plugin(SelfRegisteringRenderedObject): pass` is
+    a valid intermediate layer in the inheritance tree for grouping together plugins.
+    """
+
     def __init_subclass__(cls):
         if SelfRegisteringRenderedObject in cls.__bases__:
             cls._names = []
@@ -287,7 +305,12 @@ class SelfRegisteringRenderedObject(RenderedObject, SelfRegistering):
         where DATA is the serialization as returned by get_rendering_context().
         """
 
-        # final context to be returned: data + type info
+        # We perform two checks here:
+        # First we check against the schema of the wrapped object (e.g. the concrete Auto plugin)
+        # and afterwards we check against the schema for Plugin in general.
+        # TODO: The schema for different registered classes are likely to be identical
+        # upto the fact that they refer to different allowed content.
+        # We might want to unify this in the future.
         return RenderedObject.check_context_for_type(
             self._registered_class,
             {
