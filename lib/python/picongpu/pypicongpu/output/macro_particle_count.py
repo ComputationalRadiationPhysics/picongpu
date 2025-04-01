@@ -20,6 +20,8 @@ class MacroParticleCount(Plugin):
     species = util.build_typesafe_property(Species)
     period = util.build_typesafe_property(TimeStepSpec)
 
+    _name = "macroparticlecount"
+
     def __init__(self):
         "do nothing"
 

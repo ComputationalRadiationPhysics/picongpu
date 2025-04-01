@@ -5,6 +5,7 @@ Authors: Brian Edward Marre, Masoud Afshari
 License: GPLv3+
 """
 
+from ..util import SelfRegistering
 from ..rendering import RenderedObject
 
 
@@ -12,7 +13,7 @@ import typeguard
 
 
 @typeguard.typechecked
-class Plugin(RenderedObject):
+class Plugin(RenderedObject, SelfRegistering):
     """general interface for all plugins"""
 
     def __init__(self):
@@ -70,31 +71,13 @@ class Plugin(RenderedObject):
             - returned representation is designed for easy use with templating
               engine mustache
         """
-        # import here to avoid circular inclusion
-        from .auto import Auto
-        from .phase_space import PhaseSpace
-        from .energy_histogram import EnergyHistogram
-        from .macro_particle_count import MacroParticleCount
-
-        template_name_by_type = {
-            Auto: "auto",
-            PhaseSpace: "phasespace",
-            EnergyHistogram: "energyhistogram",
-            MacroParticleCount: "macroparticlecount",
-        }
-        if self.__class__ not in template_name_by_type:
-            raise RuntimeError("unkown type: {}".format(self.__class__))
-
-        serialized_data = self.get_rendering_context()
-
-        # create dict with all types set to false, except for the current one
-        typeID = dict(map(lambda type_name: (type_name, False), template_name_by_type.values()))
-        self_class_template_name = template_name_by_type[self.__class__]
-        typeID[self_class_template_name] = True
-
         # final context to be returned: data + type info
-        returned_context = {"typeID": typeID, "data": serialized_data}
+        returned_context = {
+            "typeID": {name: name == self._name for name in self._names},
+            "data": self.get_rendering_context(),
+        }
 
         # make sure it passes schema checks
         RenderedObject.check_context_for_type(Plugin, returned_context)
+
         return returned_context

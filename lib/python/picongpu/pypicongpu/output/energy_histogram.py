@@ -23,6 +23,8 @@ class EnergyHistogram(Plugin):
     min_energy = util.build_typesafe_property(float)
     max_energy = util.build_typesafe_property(float)
 
+    _name = "energyhistogram"
+
     def __init__(self):
         "do nothing"
 

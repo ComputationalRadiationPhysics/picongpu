@@ -29,6 +29,8 @@ class Auto(Plugin):
     period = util.build_typesafe_property(TimeStepSpec)
     """period to print data at"""
 
+    _name = "auto"
+
     def __init__(self):
         pass
 

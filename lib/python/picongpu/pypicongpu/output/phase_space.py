@@ -25,6 +25,8 @@ class PhaseSpace(Plugin):
     min_momentum = util.build_typesafe_property(float)
     max_momentum = util.build_typesafe_property(float)
 
+    _name = "phasespace"
+
     def __init__(self):
         "do nothing"
 
