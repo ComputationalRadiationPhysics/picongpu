@@ -1,43 +1,23 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre
+Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
+from ....util import SelfRegistering
 from ....rendering import RenderedObject
 
 import typeguard
 
 
 @typeguard.typechecked
-class DensityProfile(RenderedObject):
+class DensityProfile(RenderedObject, SelfRegistering):
     """
     (abstract) parent class of all density profiles
 
     A density profile describes the density in space.
     """
-
-    # IMPORTANT: This is a mutable type ON PURPOSE!
-    # We will let our children register themselves by mutating this instance.
-    _names = []
-
-    # We have this as a "backup" because subclasses will have a real name
-    # but we still want to be able to check against the dummy name.
-    _dummy_name = "base class -- has no name"
-
-    # This is supposed to be set (and registered) by our children.
-    _name = _dummy_name
-
-    @classmethod
-    def _register(cls):
-        if cls._name not in cls._names:
-            cls._names.append(cls._name)
-
-    def __init_subclass__(cls):
-        super().__init_subclass__()
-        if cls._name != cls._dummy_name:
-            cls._register()
 
     def check(self) -> None:
         """
