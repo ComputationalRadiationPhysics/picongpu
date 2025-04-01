@@ -82,7 +82,7 @@ class DensityProfile(RenderedObject, SelfRegistering):
         """
         # final context to be returned: data + type info
         returned_context = {
-            "type": {name: name == self._name for name in self._names},
+            "typeID": {name: name == self._name for name in self._names},
             "data": self.get_rendering_context(),
         }
 

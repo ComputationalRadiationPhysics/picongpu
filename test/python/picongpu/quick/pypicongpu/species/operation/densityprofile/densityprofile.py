@@ -51,21 +51,21 @@ class TestDensityProfile(unittest.TestCase):
         self.assertEqual(context["data"], uniform.get_rendering_context())
 
         # contains information on all types
-        self.assertEqual(context["type"], {"uniform": True, "foil": False, "gaussian": False})
+        self.assertEqual(context["typeID"], {"uniform": True, "foil": False, "gaussian": False})
 
         # is actually validated against "DensityProfile" schema
         RenderedObject._schemas_loaded = False
         schema = RenderedObject._get_schema_from_class(DensityProfile)
 
         # check 1: schema actually enforce existance of all keys
-        self.assertTrue("uniform" in schema["properties"]["type"]["required"])
+        self.assertTrue("uniform" in schema["properties"]["typeID"]["required"])
         # TODO: copy line above for more types
 
         # check 1b: all keys that are available for the "type" dict are
         # required
         self.assertEqual(
-            set(schema["properties"]["type"]["required"]),
-            set(schema["properties"]["type"]["properties"].keys()),
+            set(schema["properties"]["typeID"]["required"]),
+            set(schema["properties"]["typeID"]["properties"].keys()),
         )
 
         # check 2: break the schema, schema rejects everything now

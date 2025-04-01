@@ -123,7 +123,7 @@ class PlasmaRamp(RenderedObject):
 
         # final context to be returned: data + type info
         self.returned_context = {
-            "type": type_dict,
+            "typeID": type_dict,
             "data": serialized_data,
         }
         self.check()

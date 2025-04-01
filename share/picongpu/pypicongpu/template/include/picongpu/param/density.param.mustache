@@ -31,7 +31,7 @@ namespace picongpu
         {{#species_initmanager.operations.simple_density}}
         // a species has always only exactly one profile, so only one of the following blocks below will be present
 
-          {{#profile.type.gaussian}}
+          {{#profile.typeID.gaussian}}
             /** generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
              *
              * @note the density may be further modified from this profile by the densityRatio of the species, set in
@@ -61,9 +61,9 @@ namespace picongpu
             };
 
             using init_{{{placed_species_initial.typename}}} = GaussianImpl<init_{{{placed_species_initial.typename}}}_GaussianParam>;
-          {{/profile.type.gaussian}}
+          {{/profile.typeID.gaussian}}
 
-          {{#profile.type.uniform}}
+          {{#profile.typeID.uniform}}
             /** generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
              *
              * @note the density may be further modified from this profile by the densityRatio of the species set in the
@@ -83,9 +83,9 @@ namespace picongpu
                 }
             };
             using init_{{{placed_species_initial.typename}}} = FreeFormulaImpl<init_{{{placed_species_initial.typename}}}_functor>;
-          {{/profile.type.uniform}}
+          {{/profile.typeID.uniform}}
 
-          {{#profile.type.foil}}
+          {{#profile.typeID.foil}}
             /** generate the initial macroparticle position for species "{{{placed_species_initial.name}}}" ({{{placed_species_initial.typename}}})
              *
              * @note the density may be further modified from this profile by the densityRatio of the species, set in
@@ -104,7 +104,7 @@ namespace picongpu
                     constexpr float_64 y1 = y0 + {{{profile.data.thickness_foil_si}}};
 
                     // prePlasma ramp
-                    {{#profile.data.pre_foil_plasmaRamp.type.exponential}}
+                    {{#profile.data.pre_foil_plasmaRamp.typeID.exponential}}
                         // exponential pre-expanded density ramp before plateau of foil
                         constexpr float_64 prePlasmaLength = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaLength}}};
                         constexpr float_64 prePlasmaCutoff = {{{profile.data.pre_foil_plasmaRamp.data.PlasmaCutoff}}};
@@ -113,14 +113,14 @@ namespace picongpu
                         if((y < y0) &&  y > y0 - prePlasmaCutoff)
                             dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
                                 * math::exp((y - y0) / prePlasmaLength);
-                    {{/profile.data.pre_foil_plasmaRamp.type.exponential}}
+                    {{/profile.data.pre_foil_plasmaRamp.typeID.exponential}}
 
-                    {{#profile.data.pre_foil_plasmaRamp.type.none}}
+                    {{#profile.data.pre_foil_plasmaRamp.typeID.none}}
                         // no prePlasma ramp
-                    {{/profile.data.pre_foil_plasmaRamp.type.none}}
+                    {{/profile.data.pre_foil_plasmaRamp.typeID.none}}
 
                     // postPlasma ramp
-                    {{#profile.data.post_foil_plasmaRamp.type.exponential}}
+                    {{#profile.data.post_foil_plasmaRamp.typeID.exponential}}
                         // exponential pre-expanded density ramp after plateau of foil
                         constexpr float_64 postPlasmaLength = {{{profile.data.post_foil_plasmaRamp.data.PlasmaLength}}};
                         constexpr float_64 postPlasmaCutoff = {{{profile.data.post_foil_plasmaRamp.data.PlasmaCutoff}}};
@@ -128,11 +128,11 @@ namespace picongpu
                         if(y > y1 && y < y1 + postPlasmaCutoff)
                             dens = static_cast<float_X>({{{profile.data.density_si}}} / SI::BASE_DENSITY_SI)
                                 * math::exp((y1 - y) / postPlasmaLength);
-                    {{/profile.data.post_foil_plasmaRamp.type.exponential}}
+                    {{/profile.data.post_foil_plasmaRamp.typeID.exponential}}
 
-                    {{#profile.data.post_foil_plasmaRamp.type.none}}
+                    {{#profile.data.post_foil_plasmaRamp.typeID.none}}
                         // no postPlasma ramp
-                    {{/profile.data.post_foil_plasmaRamp.type.none}}
+                    {{/profile.data.post_foil_plasmaRamp.typeID.none}}
 
                     // foil plateau
                     if(y >= y0 && y <= y1)
@@ -144,7 +144,7 @@ namespace picongpu
                 }
             };
             using init_{{{placed_species_initial.typename}}} = FreeFormulaImpl<init_{{{placed_species_initial.typename}}}_functor>;
-          {{/profile.type.foil}}
+          {{/profile.typeID.foil}}
 
         {{/species_initmanager.operations.simple_density}}
     } // namespace densityProfiles::pypicongpu

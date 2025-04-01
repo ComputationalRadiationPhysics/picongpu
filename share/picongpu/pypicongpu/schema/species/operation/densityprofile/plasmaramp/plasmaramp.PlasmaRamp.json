@@ -3,12 +3,12 @@
   "description": "Any plasma ramp. Consists of (1) the type of plasma ramp used and (2) the actual data for that plasma ramp.",
   "type": "object",
   "required": [
-    "type",
+    "typeID",
     "data"
   ],
   "unevaluatedProperties": false,
   "properties": {
-    "type": {
+    "typeID": {
       "description": "Enum-equivalent of selected type. Note that only one entry should be marked as true, and all others as false, but that is not enforced by the schema.",
       "type": "object",
       "required": [
