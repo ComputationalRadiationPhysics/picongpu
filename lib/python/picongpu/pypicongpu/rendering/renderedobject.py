@@ -207,7 +207,7 @@ class RenderedObject:
         return serialized
 
     @staticmethod
-    def check_context_for_type(type_to_check: type, context: dict | None) -> None:
+    def check_context_for_type(type_to_check: type, context: dict | None):
         """
         check if the given context is valid for the given type
 
@@ -222,6 +222,7 @@ class RenderedObject:
 
         # raises on error
         validator.validate(context)
+        return context
 
 
 class SelfRegistering:
@@ -243,7 +244,54 @@ class SelfRegistering:
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-        if SelfRegistering in cls.__bases__:
-            cls._names = []
         if cls._name != cls._dummy_name:
             cls._register()
+
+
+class SelfRegisteringRenderedObject(RenderedObject, SelfRegistering):
+    def __init_subclass__(cls):
+        if SelfRegisteringRenderedObject in cls.__bases__:
+            cls._names = []
+            cls._registered_class = cls
+        super().__init_subclass__()
+
+    def get_rendering_context(self):
+        """
+        retrieve a context valid for "any plugin"
+
+        Problem: Every self-registered subclass has its respective schema,
+        and it is difficult in JSON (particularly in a mustache-compatible way)
+        to get the type of the schema.
+
+        Solution: The normal rendering of self-registered subclasses via
+        get_rendering_context() provides **only their parameters**, i.e.
+        there is **no meta information** on types etc.
+
+        If a generic context is requested one can use the schema for
+        parent class, for which this method returns the correct content.
+        It includes metainformation and the data on the schema itself.
+
+        E.g.:
+
+        .. code::
+
+            {
+                "type": {
+                    "phasespace": true,
+                    "auto": false,
+                    ...
+                },
+                "data": DATA
+            }
+
+        where DATA is the serialization as returned by get_rendering_context().
+        """
+
+        # final context to be returned: data + type info
+        return RenderedObject.check_context_for_type(
+            self._registered_class,
+            {
+                "typeID": {name: name == self._name for name in self._names},
+                "data": RenderedObject.check_context_for_type(self.__class__, super().get_rendering_context()),
+            },
+        )
