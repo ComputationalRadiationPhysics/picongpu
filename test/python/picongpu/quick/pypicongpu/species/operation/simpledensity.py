@@ -192,7 +192,7 @@ class TestSimpleDensity(unittest.TestCase):
         context = self.sd.get_rendering_context()
 
         self.assertEqual(2, context["ppc"])
-        self.assertEqual(context["profile"], self.sd.profile.get_generic_profile_rendering_context())
+        self.assertEqual(context["profile"], self.sd.profile.get_rendering_context())
 
         # species with lowest ratio must be placed as first, which is species1
         self.assertEqual(context["placed_species_initial"], self.species1.get_rendering_context())
@@ -221,7 +221,7 @@ class TestSimpleDensity(unittest.TestCase):
         context = sd.get_rendering_context()
 
         self.assertEqual(1, context["ppc"])
-        self.assertEqual(context["profile"], sd.profile.get_generic_profile_rendering_context())
+        self.assertEqual(context["profile"], sd.profile.get_rendering_context())
 
         self.assertEqual(context["placed_species_initial"], species.get_rendering_context())
         self.assertEqual(context["placed_species_copied"], [])

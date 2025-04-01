@@ -5,7 +5,10 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.species.operation.densityprofile import Gaussian, DensityProfile
+from picongpu.pypicongpu.species.operation.densityprofile import (
+    Gaussian,
+    DensityProfile,
+)
 
 import unittest
 import typeguard
@@ -210,6 +213,8 @@ class TestGaussian(unittest.TestCase):
         g = self._getGaussian()
 
         context = g.get_rendering_context()
+        self.assertTrue(context["typeID"]["gaussian"])
+        context = context["data"]
         self.assertAlmostEqual(g.gas_center_front, context["gas_center_front"])
         self.assertAlmostEqual(g.gas_center_rear, context["gas_center_rear"])
         self.assertAlmostEqual(g.gas_sigma_front, context["gas_sigma_front"])

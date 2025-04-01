@@ -43,12 +43,12 @@ class TestDensityProfile(unittest.TestCase):
         RenderedObject._schemas_loaded = False
         RenderedObject._registry = referencing.Registry()
 
-        context = uniform.get_generic_profile_rendering_context()
+        context = uniform.get_rendering_context()
 
         # schemas now loaded
         self.assertTrue(RenderedObject._schemas_loaded)
 
-        self.assertEqual(context["data"], uniform.get_rendering_context())
+        self.assertEqual(context["data"], uniform._get_serialized())
 
         # contains information on all types
         self.assertEqual(context["typeID"], {"uniform": True, "foil": False, "gaussian": False})
@@ -73,4 +73,4 @@ class TestDensityProfile(unittest.TestCase):
         with self.assertRaises(referencing.exceptions.NoSuchResource):
             # schema now rejects everything
             # -> must also reject previously correct context
-            uniform.get_generic_profile_rendering_context()
+            uniform.get_rendering_context()

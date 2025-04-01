@@ -28,7 +28,7 @@ class DensityProfile(RenderedObject, SelfRegistering):
         """
         raise NotImplementedError()
 
-    def get_generic_profile_rendering_context(self) -> dict:
+    def get_rendering_context(self) -> dict:
         """
         retrieve a context valid for "any profile"
 
@@ -83,7 +83,7 @@ class DensityProfile(RenderedObject, SelfRegistering):
         # final context to be returned: data + type info
         returned_context = {
             "typeID": {name: name == self._name for name in self._names},
-            "data": self.get_rendering_context(),
+            "data": super().get_rendering_context(),
         }
 
         # make sure it passes schema checks

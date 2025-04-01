@@ -46,7 +46,7 @@ class PlasmaRamp(RenderedObject):
                     foundPreviousActive = True
                     foundPreviousActiveType = typeEntry
 
-    def get_generic_profile_rendering_context(self) -> dict:
+    def get_rendering_context(self) -> dict:
         """
         retrieve a context valid for "any profile"
 
@@ -119,7 +119,7 @@ class PlasmaRamp(RenderedObject):
         type_dict[self_class_template_name] = True
 
         # get data from actual inheriting implementation
-        serialized_data = self.get_rendering_context()
+        serialized_data = super().get_rendering_context()
 
         # final context to be returned: data + type info
         self.returned_context = {

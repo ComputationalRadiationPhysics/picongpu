@@ -140,6 +140,8 @@ class TestFoil(unittest.TestCase):
         }
 
         context = f.get_rendering_context()
+        self.assertTrue(context["typeID"]["foil"])
+        context = context["data"]
         self.assertAlmostEqual(f.density_si, context["density_si"])
         self.assertAlmostEqual(f.y_value_front_foil_si, context["y_value_front_foil_si"])
         self.assertAlmostEqual(f.thickness_foil_si, context["thickness_foil_si"])

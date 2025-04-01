@@ -51,6 +51,8 @@ class TestUniform(unittest.TestCase):
         u.density_si = 42.17
 
         context = u.get_rendering_context()
+        self.assertTrue(context["typeID"]["uniform"])
+        context = context["data"]
         self.assertAlmostEqual(u.density_si, context["density_si"])
 
         # ensure check() is performed

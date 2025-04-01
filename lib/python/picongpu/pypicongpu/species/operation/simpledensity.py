@@ -120,7 +120,7 @@ class SimpleDensity(DensityOperation):
 
         return {
             "ppc": self.ppc,
-            "profile": self.profile.get_generic_profile_rendering_context(),
+            "profile": self.profile.get_rendering_context(),
             "placed_species_initial": placed_species[0],
             "placed_species_copied": placed_species[1:],
         }

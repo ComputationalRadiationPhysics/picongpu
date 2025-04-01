@@ -305,7 +305,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
         """density set to zero is not accepted"""
         foil = picmi.FoilDistribution(density=0, thickness=1.0, front=2.0)
         with self.assertRaisesRegex(ValueError, ".*density must be > 0.*"):
-            foil.get_as_pypicongpu().get_generic_profile_rendering_context()
+            foil.get_as_pypicongpu().get_rendering_context()
 
     def test_front_zero(self):
         """front set to zero is accepted"""
@@ -377,7 +377,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
 
         for i, entry in enumerate(testCases):
             with self.assertRaisesRegex(ValueError, ".*PlasmaCutoff must be >=0.*"):
-                entry.get_as_pypicongpu().get_generic_profile_rendering_context()
+                entry.get_as_pypicongpu().get_rendering_context()
 
     def test_length_zero(self):
         """length set to zero is not accepted"""
@@ -385,7 +385,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
 
         for entry in testCases:
             with self.assertRaisesRegex(ValueError, ".*PlasmaLength must be >0.*"):
-                entry.get_as_pypicongpu().get_generic_profile_rendering_context()
+                entry.get_as_pypicongpu().get_rendering_context()
 
     def test_length_below_zero(self):
         """length below zero is not accepted"""
@@ -394,7 +394,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
 
         for entry in testCases:
             with self.assertRaisesRegex(ValueError, ".*PlasmaLength must be >0.*"):
-                entry.get_as_pypicongpu().get_generic_profile_rendering_context()
+                entry.get_as_pypicongpu().get_rendering_context()
 
     def test_setting_noPlasmaRamps(self):
         testCases = self._get_test_foils(None, 1.0)
@@ -406,7 +406,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
                 "length and exponential_(pre|post)_plasma_cutoff must be"
                 " set to none or neither!",
             ):
-                entry.get_as_pypicongpu().get_generic_profile_rendering_context()
+                entry.get_as_pypicongpu().get_rendering_context()
 
         testCases = self._get_test_foils(1.0, None)
         for entry in testCases:
@@ -416,7 +416,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
                 "length and exponential_(pre|post)_plasma_cutoff must be"
                 " set to none or neither!",
             ):
-                entry.get_as_pypicongpu().get_generic_profile_rendering_context()
+                entry.get_as_pypicongpu().get_rendering_context()
 
     def test_mandatory(self):
         """check that mandatory must be given"""
@@ -499,7 +499,7 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
         gaussian = self._get_distribution()
         gaussian.density = 0.0
         with self.assertRaisesRegex(ValueError, ".*density must be > 0.*"):
-            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+            gaussian.get_as_pypicongpu().get_rendering_context()
 
     def test_front_rear_swapped(self):
         """front and rear swapped is not accepted"""
@@ -507,19 +507,19 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
         gaussian.center_front = self.values["center_rear"]
         gaussian.center_rear = self.values["center_front"]
         with self.assertRaisesRegex(ValueError, ".*center_front must be <= center_rear.*"):
-            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+            gaussian.get_as_pypicongpu().get_rendering_context()
 
     def test_sigma_zero(self):
         """sigma == 0 is not accepted"""
         gaussian = self._get_distribution()
         gaussian.sigma_front = 0.0
         with self.assertRaisesRegex(ValueError, ".*sigma_front must be != 0.*"):
-            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+            gaussian.get_as_pypicongpu().get_rendering_context()
 
         gaussian = self._get_distribution()
         gaussian.sigma_rear = 0.0
         with self.assertRaisesRegex(ValueError, ".*sigma_rear must be != 0.*"):
-            gaussian.get_as_pypicongpu().get_generic_profile_rendering_context()
+            gaussian.get_as_pypicongpu().get_rendering_context()
 
     def test_drift(self):
         """drift is correctly translated"""
