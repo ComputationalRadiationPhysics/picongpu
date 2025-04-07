@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from sympy import And, Eq, Piecewise
+from sympy import And, Eq, Piecewise, KroneckerDelta, tanh
 from picongpu import picmi
 import numpy as np
 
@@ -31,7 +31,31 @@ def myDeltaPeak(x, y, z, dx, dy, dz):
     return tmp
 
 
-myDensity = picmi.AnalyticDistribution(myDeltaPeak)
+def myDeltaPeak2(x, y, z, dx, dy, dz):
+    x0 = 1.024e-5
+    y0 = 9.072e-5
+    z0 = 1.024e-5
+
+    id_x = x // dx
+    id_y = y // dy
+    id_z = z // dz
+
+    id_x0 = x0 // dx
+    id_y0 = y0 // dy
+    id_z0 = z0 // dz
+
+    # This cannot be printed currently.
+    # We'd have to define a translation of
+    # `KroneckerDelta` into C++/alpaka code ourselves.
+    # Seems quite doable but doesn't exist currently.
+    return KroneckerDelta(id_x, id_x0) * KroneckerDelta(id_y, id_y0) * KroneckerDelta(id_z, id_z0)
+
+
+def profile_from_picmi_standard(x, y, z, dx, dy, dz):
+    return 1.0e23 * (1 + tanh((z - 20.0e-6) / 10.0e-6)) / 2.0
+
+
+myDensity = picmi.AnalyticDistribution(profile_from_picmi_standard)
 
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter
