@@ -5,6 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
+from numpy import vectorize
 from ...pypicongpu import species
 
 
@@ -60,3 +61,7 @@ class AnalyticDistribution:
         drift = species.operation.momentum.Drift()
         drift.fill_from_velocity(self.directed_velocity)
         return drift
+
+    def __call__(self, *args, **kwargs):
+        # we vectorize here, so you can use numpy arrays on your density
+        return vectorize(self.density_expression)(*args, **kwargs)

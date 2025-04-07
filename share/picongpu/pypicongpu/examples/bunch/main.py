@@ -27,8 +27,7 @@ def myDeltaPeak(x, y, z, dx, dy, dz):
     id_y0 = y0 // dy
     id_z0 = z0 // dz
 
-    tmp = Piecewise((1.0, And(Eq(id_x, id_x0), Eq(id_y, id_y0), Eq(id_z, id_z0))), (0.0, True))
-    return tmp
+    return Piecewise((1.0, And(Eq(id_x, id_x0), Eq(id_y, id_y0), Eq(id_z, id_z0))), (0.0, True))
 
 
 def myDeltaPeak2(x, y, z, dx, dy, dz):
@@ -56,6 +55,14 @@ def profile_from_picmi_standard(x, y, z, dx, dy, dz):
 
 
 myDensity = picmi.AnalyticDistribution(profile_from_picmi_standard)
+myDensity2 = picmi.AnalyticDistribution(myDeltaPeak)
+
+print(f"Value of my density at (1,2,3): {myDensity(1, 2, 3, 0.1, 0.2, 0.3)}")
+print(f"Value of my second density at (1,2,3): {myDensity2(1, 2, 3, 0.1, 0.2, 0.3)}")
+points = np.linspace(0, 1, 10)
+print(f"Values of my density with numpy arrays: {myDensity(points, points, points, 0.1, 0.2, 0.3)}")
+print(f"Values of my second density with numpy arrays: {myDensity2(points, points, points, 0.1, 0.2, 0.3)}")
+
 
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter
@@ -78,5 +85,9 @@ sim = picmi.Simulation(
 )
 sim.add_species(
     picmi.Species(particle_type="electron", name="electron", initial_distribution=myDensity),
+    picmi.PseudoRandomLayout(n_macroparticles_per_cell=2),
+)
+sim.add_species(
+    picmi.Species(particle_type="electron", name="electron_delta", initial_distribution=myDensity2),
     picmi.PseudoRandomLayout(n_macroparticles_per_cell=2),
 )
