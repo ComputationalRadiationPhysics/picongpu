@@ -9,8 +9,14 @@ from picongpu import pypicongpu
 
 import importlib.util
 import os
+from pathlib import Path
 
 import unittest
+
+EXAMPLES = filter(
+    Path.is_dir,
+    (Path(os.environ["PICSRC"]) / "share/picongpu/pypicongpu/examples/").iterdir(),
+)
 
 
 class TestExamples(unittest.TestCase):
@@ -30,16 +36,8 @@ class TestExamples(unittest.TestCase):
         runner.generate(printDirToConsole=True)
         runner.build()
 
-    def test_LWFA_example(self):
+    def test_example(self):
         """generate a PIConGPU setup from the laser_wakefield PICMI example and compile the setup"""
-        sim = self.load_example_script(
-            os.environ["PICSRC"] + "/share/picongpu/pypicongpu/examples/laser_wakefield/main.py"
-        )
-
-        self.build_simulation(sim)
-
-    def test_warm_plasma_example(self):
-        """generate a PIConGPU setup from the warm_plasma PICMI example and compile the setup"""
-        sim = self.load_example_script(os.environ["PICSRC"] + "/share/picongpu/pypicongpu/examples/warm_plasma/main.py")
-
-        self.build_simulation(sim)
+        for example in EXAMPLES:
+            with self.subTest(example=example):
+                self.build_simulation(self.load_example_script(example / "main.py"))
