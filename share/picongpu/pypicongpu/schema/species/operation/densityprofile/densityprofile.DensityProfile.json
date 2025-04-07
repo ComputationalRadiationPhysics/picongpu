@@ -24,6 +24,9 @@
         "foil": {
           "type": "boolean"
         },
+        "freeformula": {
+          "type": "boolean"
+        },
         "gaussian": {
           "type": "boolean"
         }
@@ -37,6 +40,9 @@
         },
         {
           "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.foil.Foil"
+        },
+        {
+          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.free_formula.FreeFormula"
         },
         {
           "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.gaussian.Gaussian"

@@ -18,6 +18,8 @@ class AlpakaPrinter(cxx_code_printers["c++17"]):
 
 @typeguard.typechecked
 class FreeFormula(DensityProfile):
+    _name = "freeformula"
+
     def __init__(self, density_expression) -> None:
         self.density_expression = density_expression
 

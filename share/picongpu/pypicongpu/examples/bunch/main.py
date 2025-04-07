@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-import sympy
+from sympy import And, Eq, Piecewise
 from picongpu import picmi
 import numpy as np
 
@@ -19,15 +19,16 @@ def myDeltaPeak(x, y, z, dx, dy, dz):
     y0 = 9.072e-5
     z0 = 1.024e-5
 
-    id_x = x / dx
-    id_y = y / dy
-    id_z = z / dz
+    id_x = x // dx
+    id_y = y // dy
+    id_z = z // dz
 
-    id_x0 = x0 / dx
-    id_y0 = y0 / dy
-    id_z0 = z0 / dz
+    id_x0 = x0 // dx
+    id_y0 = y0 // dy
+    id_z0 = z0 // dz
 
-    return sympy.Piecewise((1.0, sympy.And(id_x == id_x0, id_y == id_y0, id_z == id_z0)), (0.0, True))
+    tmp = Piecewise((1.0, And(Eq(id_x, id_x0), Eq(id_y, id_y0), Eq(id_z, id_z0))), (0.0, True))
+    return tmp
 
 
 myDensity = picmi.AnalyticDistribution(myDeltaPeak)

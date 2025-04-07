@@ -1,0 +1,15 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.densityprofile.free_formula.FreeFormula",
+  "type": "object",
+  "description": "A free formula particle density",
+  "unevaluatedProperties": false,
+  "required": [
+    "function_body"
+  ],
+  "properties": {
+    "function_body": {
+      "description": "The central position of the left part of the gas distribution in meters",
+      "type": "string"
+    }
+  }
+}
