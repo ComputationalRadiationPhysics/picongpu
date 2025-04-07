@@ -6,14 +6,11 @@ License: GPLv3+
 """
 
 from ...pypicongpu import species
-from ...pypicongpu import util
 
-import picmistandard
 
 import typeguard
 import typing
 import sympy
-import math
 
 """
 note on rms_velocity:
@@ -38,36 +35,28 @@ this method returns None.
 
 
 @typeguard.typechecked
-class AnalyticDistribution(picmistandard.PICMI_AnalyticDistribution):
+class AnalyticDistribution:
     """Analytic Particle Distribution as defined by PICMI @todo"""
 
-    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
-        return tuple(self.rms_velocity)
+    def __init__(self, density_expression):
+        self.density_expression = density_expression
+        self.rms_velocity = (0.0, 0.0, 0.0)
+        self.directed_velocity = (0.0, 0.0, 0.0)
 
     def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
-        util.unsupported("momentum expressions", self.momentum_expressions)
-        util.unsupported("fill in", self.fill_in)
+        return species.operation.densityprofile.FreeFormula(self.density_expression(*sympy.symbols("x,y,z,dx,dy,dz")))
 
-        # TODO
-        profile = object()
-        profile.lower_bound = tuple(map(lambda x: -math.inf if x is None else x, self.lower_bound))
-        profile.upper_bound = tuple(map(lambda x: math.inf if x is None else x, self.upper_bound))
-
-        # final (more thorough) formula checking will be invoked inside
-        # pypicongpu on translation to CPP
-        sympy_density_expression = sympy.sympify(self.density_expression).subs(self.user_defined_kw)
-        profile.expression = sympy_density_expression
-
-        return profile
+    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
+        return self.rms_velocity
 
     def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None
         """
-        if [0, 0, 0] == self.directed_velocity:
+        if all(v == 0 for v in self.directed_velocity):
             return None
 
         drift = species.operation.momentum.Drift()
-        drift.fill_from_velocity(tuple(self.directed_velocity))
+        drift.fill_from_velocity(self.directed_velocity)
         return drift
