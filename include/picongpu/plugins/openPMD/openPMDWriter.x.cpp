@@ -1780,7 +1780,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
                 {
-                    auto mrc = [&]() -> ::openPMD::MeshRecordComponent
+                    ::openPMD::MeshRecordComponent mrc = [&]() -> ::openPMD::MeshRecordComponent
                     {
                         // Normally, the name of the record component is implicitly defined by the
                         // inherent dimensionality of the mesh: x, y, z.
