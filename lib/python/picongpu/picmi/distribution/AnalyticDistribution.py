@@ -39,13 +39,15 @@ this method returns None.
 class AnalyticDistribution:
     """Analytic Particle Distribution as defined by PICMI @todo"""
 
-    def __init__(self, density_expression):
+    def __init__(self, density_expression, directed_velocity=(0.0, 0.0, 0.0)):
         self.density_expression = density_expression
         self.rms_velocity = (0.0, 0.0, 0.0)
-        self.directed_velocity = (0.0, 0.0, 0.0)
+        self.directed_velocity = tuple(float(v) for v in directed_velocity)
 
     def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
-        return species.operation.densityprofile.FreeFormula(self.density_expression(*sympy.symbols("x,y,z,dx,dy,dz")))
+        return species.operation.densityprofile.FreeFormula(
+            density_expression=self.density_expression(*sympy.symbols("x,y,z,dx,dy,dz"))
+        )
 
     def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return self.rms_velocity

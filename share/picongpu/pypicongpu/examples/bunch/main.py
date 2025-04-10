@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from scipy.constants import c
 from sympy import And, Eq, Piecewise
 from picongpu import picmi
 import numpy as np
@@ -12,6 +13,8 @@ import numpy as np
 """
 @file PICMI user script reproducing the PIConGPU bunch example
 """
+
+OUTPUT_DIRECTORY_PATH = "bunch"
 
 time_step_size = 0.64e-17
 number_of_time_steps = 7500
@@ -48,7 +51,11 @@ def delta_peak(x, y, z, dx, dy, dz):
     return Piecewise((1.0, And(Eq(id_x, id_x0), Eq(id_y, id_y0), Eq(id_z, id_z0))), (0.0, True))
 
 
-myDensity = picmi.AnalyticDistribution(delta_peak)
+def velocity(gamma):
+    return np.sqrt(c**2 * (1.0 - 1.0 / gamma**2))
+
+
+myDensity = picmi.AnalyticDistribution(delta_peak, directed_velocity=-velocity(gamma=5.0) * np.eye(3)[1, :])
 
 base_density = 1 / cellSize.prod()
 
@@ -67,3 +74,6 @@ sim.add_species(
     picmi.Species(particle_type="electron", name="electron", initial_distribution=myDensity),
     picmi.PseudoRandomLayout(n_macroparticles_per_cell=2),
 )
+
+if __name__ == "__main__":
+    sim.write_input_file(OUTPUT_DIRECTORY_PATH)
