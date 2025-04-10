@@ -7,6 +7,10 @@
       "type": "number",
       "description": "width of a single timestamp in s"
     },
+    "base_density": {
+      "type": "number",
+      "description": "value to normalise densities"
+    },
     "time_steps": {
       "type": "integer",
       "minimum": 1,

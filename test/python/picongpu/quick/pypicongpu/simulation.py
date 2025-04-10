@@ -48,6 +48,7 @@ class TestSimulation(unittest.TestCase):
         self.s.moving_window = None
         self.s.plugins = "auto"
         self.s.init_manager = species.InitManager()
+        self.s.base_density = 1.0e25
 
         self.laser = GaussianLaser()
         self.laser.wavelength = 1.2

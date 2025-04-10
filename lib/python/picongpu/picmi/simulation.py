@@ -73,6 +73,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(typing.Optional[int])
     """iteration, at which to stop moving the simulation window"""
 
+    picongpu_base_density = pypicongpu.util.build_typesafe_property(typing.Optional[float])
+    """value to normalise densities with"""
+
     __runner = pypicongpu.util.build_typesafe_property(typing.Optional[pypicongpu.runner.Runner])
 
     # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
@@ -84,6 +87,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         picongpu_moving_window_move_point: typing.Optional[float] = None,
         picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
         picongpu_interaction: typing.Optional[Interaction] = None,
+        picongpu_base_density: typing.Optional[float] = None,
         **keyword_arguments,
     ):
         if picongpu_template_dir is not None:
@@ -95,6 +99,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
         self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
         self.picongpu_interaction = picongpu_interaction
+        self.picongpu_base_density = picongpu_base_density
         self.picongpu_custom_user_input = None
         self.__runner = None
 
@@ -436,6 +441,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         s = pypicongpu.simulation.Simulation()
 
         s.delta_t_si = self.time_step_size
+        s.base_density = self.picongpu_base_density or 1.0e25
         s.solver = self.solver.get_as_pypicongpu()
 
         # already pypicongpu objects, therefore directly passing on
