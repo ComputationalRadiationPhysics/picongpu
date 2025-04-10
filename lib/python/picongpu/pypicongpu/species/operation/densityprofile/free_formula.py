@@ -12,8 +12,9 @@ import typeguard
 from sympy.printing.cxx import cxx_code_printers
 
 
-class AlpakaPrinter(cxx_code_printers["c++17"]):
-    pass
+class PMAccPrinter(cxx_code_printers["c++17"]):
+    # Originally, the C++ printers use `_ns = "std::"`.
+    _ns = "pmacc::math::"
 
 
 @typeguard.typechecked
@@ -27,4 +28,4 @@ class FreeFormula(DensityProfile):
         pass
 
     def _get_serialized(self) -> dict | None:
-        return {"function_body": AlpakaPrinter().doprint(self.density_expression)}
+        return {"function_body": PMAccPrinter().doprint(self.density_expression)}
