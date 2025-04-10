@@ -12,6 +12,11 @@ import picmistandard
 import typeguard
 
 
+def normalise_type(kw, key, t):
+    kw[key] = [t(bound) for bound in kw[key]]
+    return kw
+
+
 @typeguard.typechecked
 class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
     def __init__(self, picongpu_n_gpus: list[int] | None = None, **kw):
@@ -22,13 +27,19 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
             a 3-integer-long list is distributed directly as (Nx, Ny, Nz)
         """
         self.picongpu_n_gpus = picongpu_n_gpus
+        normalise_type(kw, "lower_bound", float)
+        normalise_type(kw, "upper_bound", float)
+        normalise_type(kw, "number_of_cells", int)
 
         # continue with regular init
         super().__init__(**kw)
 
     def get_as_pypicongpu(self):
         # todo check
-        assert [0, 0, 0] == self.lower_bound, "lower bounds must be 0, 0, 0"
+        if any(bound != 0.0 for bound in self.lower_bound):
+            raise ValueError(
+                "A lower bound different from 0,0,0 is not supported in PIConGPU. " f"You gave {self.lower_bound}."
+            )
         assert self.lower_boundary_conditions == self.upper_boundary_conditions, (
             "upper and lower boundary conditions must be equal " "(can only be chosen by axis, not by direction)"
         )
@@ -88,7 +99,7 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
                 assert self.picongpu_n_gpus[dim] > 0, "number of gpus must be positive integer"
             g.n_gpus = tuple(self.picongpu_n_gpus)
         else:
-            raise ValueError("picongpu_n_gpus was neither None, " "a 1-integer-list or a 3-integer-list")
+            raise ValueError("picongpu_n_gpus was neither None, a 1-integer-list or a 3-integer-list")
 
         # check if gpu distribution fits grid
         # TODO: super_cell_size still hard coded
