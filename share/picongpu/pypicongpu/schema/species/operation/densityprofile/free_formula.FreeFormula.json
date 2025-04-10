@@ -8,7 +8,7 @@
   ],
   "properties": {
     "function_body": {
-      "description": "The central position of the left part of the gas distribution in meters",
+      "description": "C++ code for computing the given formula",
       "type": "string"
     }
   }
