@@ -54,6 +54,18 @@ def delta_peak(x, y, z):
     )
 
 
+# A shorter version in arbitrary dimensions would be the following.
+# But it's probably less clear to read for a physicist.
+def delta_peak_short(*position):
+    return Piecewise(
+        (
+            1.0,
+            And(*(Eq(x // s, d) for x, s, d in zip(position, cell_size, distinguished_cell))),
+        ),
+        (0.0, True),
+    )
+
+
 def velocity(gamma):
     return np.sqrt(c**2 * (1.0 - 1.0 / gamma**2))
 
