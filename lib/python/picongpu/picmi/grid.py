@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
+Copyright 2021-2025 PIConGPU contributors
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
@@ -38,11 +38,11 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         # todo check
         if any(bound != 0.0 for bound in self.lower_bound):
             raise ValueError(
-                "A lower bound different from 0,0,0 is not supported in PIConGPU. " f"You gave {self.lower_bound}."
+                f"A lower bound different from 0,0,0 is not supported in PIConGPU. You gave {self.lower_bound}."
             )
-        assert self.lower_boundary_conditions == self.upper_boundary_conditions, (
-            "upper and lower boundary conditions must be equal " "(can only be chosen by axis, not by direction)"
-        )
+        assert (
+            self.lower_boundary_conditions == self.upper_boundary_conditions
+        ), "upper and lower boundary conditions must be equal (can only be chosen by axis, not by direction)"
 
         util.unsupported("moving window", self.moving_window_velocity)
         util.unsupported("refined regions", self.refined_regions, [])
@@ -113,7 +113,7 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         for dim in range(3):
             assert ((cells[dim] // g.n_gpus[dim]) // super_cell_size[dim]) * g.n_gpus[dim] * super_cell_size[
                 dim
-            ] == cells[dim], "GPU- and/or super-cell-distribution in {} dimension does " "not match grid size".format(
+            ] == cells[dim], "GPU- and/or super-cell-distribution in {} dimension does not match grid size".format(
                 dim_name[dim]
             )
 

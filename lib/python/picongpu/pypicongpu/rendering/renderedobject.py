@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
@@ -173,7 +173,7 @@ class RenderedObject:
         # there are schemas that are valid but not an object -> skip checks
         if type(schema) is dict:
             if "unevaluatedProperties" not in schema:
-                logging.warning("schema does not explicitly forbid " "unevaluated properties: {}".format(fqn))
+                logging.warning("schema does not explicitly forbid unevaluated properties: {}".format(fqn))
             # special exemption for custom user input which is never evaluated
             elif schema["unevaluatedProperties"] and fqn != "picongpu.pypicongpu.customuserinput.CustomUserInput":
                 logging.warning("schema supports unevaluated properties: {}".format(fqn))

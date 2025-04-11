@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
-Copyright 2023-2024 PIConGPU contributors
-Authors: Brian Edward Marre
+Copyright 2023-2025 PIConGPU contributors
+Authors: Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
