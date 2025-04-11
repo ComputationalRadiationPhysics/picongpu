@@ -51,6 +51,9 @@ class TestAnalyticDistribution(unittest.TestCase):
             result = dist.get_picongpu_drift()
             np.testing.assert_allclose(velocity(result.gamma) * np.asarray(result.direction_normalized), drift)
 
+    def test_drift_is_none_for_vanishing_vector(self):
+        self.assertIsNone(AnalyticDistribution(lambda *x: sum(x), directed_velocity=[0, 0, 0]).get_picongpu_drift())
+
     def test_drift_wrong_dimensionality(self):
         # Test drift with wrong dimensionality
         with self.assertRaises(typeguard.TypeCheckError):
