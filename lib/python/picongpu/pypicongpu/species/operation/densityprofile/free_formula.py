@@ -10,6 +10,7 @@ import typeguard
 
 
 from sympy.printing.cxx import cxx_code_printers
+from sympy import Expr
 
 
 class PMAccPrinter(cxx_code_printers["c++17"]):
@@ -21,7 +22,7 @@ class PMAccPrinter(cxx_code_printers["c++17"]):
 class FreeFormula(DensityProfile):
     _name = "freeformula"
 
-    def __init__(self, density_expression) -> None:
+    def __init__(self, density_expression: Expr) -> None:
         self.density_expression = density_expression
 
     def check(self):
