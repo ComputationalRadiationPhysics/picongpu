@@ -18,37 +18,40 @@ OUTPUT_DIRECTORY_PATH = "bunch"
 
 time_step_size = 0.64e-17
 number_of_time_steps = 7500
-cellSize = np.array([0.16e-6, 0.40e-7, 0.16e-6])  # unit: meter
-numberCells = np.array([128, 3072, 128])
+cell_size = np.array([0.16e-6, 0.40e-7, 0.16e-6])  # unit: meter
+number_cells = np.array([128, 3072, 128])
+distinguished_cell = [1.024e-5, 9.072e-5, 1.024e-5] // cell_size
 boundary_conditions = ["periodic", "open", "periodic"]
 
 solver = picmi.ElectromagneticSolver(
     method="Yee",
     grid=picmi.Cartesian3DGrid(
         picongpu_n_gpus=[2, 8, 2],
-        number_of_cells=numberCells,
+        number_of_cells=number_cells,
         lower_bound=[0, 0, 0],
-        upper_bound=(numberCells * cellSize),
+        upper_bound=(number_cells * cell_size),
         lower_boundary_conditions=boundary_conditions,
         upper_boundary_conditions=boundary_conditions,
     ),
 )
 
 
-def delta_peak(x, y, z, dx, dy, dz):
-    x0 = 1.024e-5
-    y0 = 9.072e-5
-    z0 = 1.024e-5
+def delta_peak(x, y, z):
+    current_cell_x = x // cell_size[0]
+    current_cell_y = y // cell_size[1]
+    current_cell_z = z // cell_size[2]
 
-    id_x = x // dx
-    id_y = y // dy
-    id_z = z // dz
-
-    id_x0 = x0 // dx
-    id_y0 = y0 // dy
-    id_z0 = z0 // dz
-
-    return Piecewise((1.0, And(Eq(id_x, id_x0), Eq(id_y, id_y0), Eq(id_z, id_z0))), (0.0, True))
+    return Piecewise(
+        (
+            1.0,
+            And(
+                Eq(current_cell_x, distinguished_cell[0]),
+                Eq(current_cell_y, distinguished_cell[1]),
+                Eq(current_cell_z, distinguished_cell[2]),
+            ),
+        ),
+        (0.0, True),
+    )
 
 
 def velocity(gamma):
@@ -57,11 +60,11 @@ def velocity(gamma):
 
 myDensity = picmi.AnalyticDistribution(delta_peak, directed_velocity=-velocity(gamma=5.0) * np.eye(3)[1, :])
 
-base_density = 1 / cellSize.prod()
+base_density = 1 / cell_size.prod()
 
-print(f"Value of my density at (1,2,3): {myDensity(1, 2, 3, 0.1, 0.2, 0.3)}")
+print(f"Value of my density at (1,2,3): {myDensity(1, 2, 3)}")
 points = np.linspace(0, 1, 10)
-print(f"Values of my density with numpy arrays: {myDensity(points, points, points, 0.1, 0.2, 0.3)}")
+print(f"Values of my density with numpy arrays: {myDensity(points, points, points)}")
 
 
 sim = picmi.Simulation(

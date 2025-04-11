@@ -162,7 +162,6 @@ namespace picongpu
             HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
             {
               const auto [x, y, z] = position_SI;
-              const auto [dx, dy, dz] = cellSize_SI;
 
               return {{{profile.data.function_body}}};
             }
