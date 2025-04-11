@@ -8,7 +8,7 @@ License: GPLv3+
 from numpy import vectorize
 from ...pypicongpu import species
 
-
+from inspect import signature
 import typeguard
 import typing
 import sympy
@@ -46,7 +46,7 @@ class AnalyticDistribution:
 
     def get_as_pypicongpu(self) -> species.operation.densityprofile.DensityProfile:
         return species.operation.densityprofile.FreeFormula(
-            density_expression=self.density_expression(*sympy.symbols("x,y,z"))
+            self.density_expression(*sympy.symbols("x,y,z")[: len(signature(self.density_expression).parameters)])
         )
 
     def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
