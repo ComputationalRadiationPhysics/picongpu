@@ -13,6 +13,7 @@ from .macro_particle_count import MacroParticleCount
 from .png import Png
 from .timestepspec import TimeStepSpec
 from .checkpoint import Checkpoint
+from .openpmd import OpenPMD
 
 __all__ = [
     "Auto",
@@ -23,4 +24,5 @@ __all__ = [
     "Png",
     "TimeStepSpec",
     "Checkpoint",
+    "OpenPMD",
 ]
