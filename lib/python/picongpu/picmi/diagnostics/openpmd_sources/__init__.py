@@ -12,7 +12,7 @@ from .momentum import Momentum
 from .momentum_density import MomentumDensity
 from .weighted_velocity import WeightedVelocity
 
-from .source import Source
+from .source_base import SourceBase
 
 __all__ = [
     "BoundElectronDensity",
@@ -28,5 +28,5 @@ __all__ = [
     "Momentum",
     "MomentumDensity",
     "WeightedVelocity",
-    "Source",
+    "SourceBase",
 ]
