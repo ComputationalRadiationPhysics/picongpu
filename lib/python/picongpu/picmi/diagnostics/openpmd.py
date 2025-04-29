@@ -36,31 +36,32 @@ class OpenPMD:
     range: str, optional
         Contiguous range of cells per dimension to dump (e.g., ":,:,:").
         Format: comma-separated ranges like "begin:end,begin:end,begin:end".
-        Default: None (all cells).
+        Default: ":,::,:" (all cells).
 
     file: str, optional
         Relative or absolute file prefix for openPMD output files.
+        If relative, files are stored under the simulation output directory.
         Default: None (backend-dependent default).
 
     ext: Literal["bp", "h5", "sst"], optional
         File extension controlling the openPMD backend.
         Options: "bp" (ADIOS2), "h5" (HDF5), "sst" (ADIOS2/SST for streaming).
-        Default: None (backend-dependent).
+        Default: "bp" (ADIOS2 backend).
 
     infix: str, optional
         Filename infix for iteration layout (e.g., "_%06T").
         Use "NULL" for group-based layout. Required as "NULL" if ext="sst".
-        Default: None (backend-dependent).
+        Default: "NULL" (group-based layout).
 
     json: Union[str, Dict], optional
         Backend-specific parameters for writing, as a JSON string, dictionary, or filename
         (filename must be prepended with "@").
-        Default: None (empty dictionary).
+        Default: {} (empty dictionary).
 
     json_restart: Union[str, Dict], optional
         Backend-specific parameters for restarting, as a JSON string, dictionary, or filename
         (filename must be prepended with "@").
-        Default: None (empty dictionary).
+        Default: {} (empty dictionary).
 
     data_preparation_strategy: Literal["doubleBuffer", "adios", "mappedMemory", "hdf5"], optional
         Strategy for particle data preparation.
@@ -79,7 +80,7 @@ class OpenPMD:
     file_access: Literal["create", "append"], optional
         File access mode for writing.
         Options: "create" (new files), "append" (for checkpoint-restart workflows).
-        Default: None (backend-dependent).
+        Default: "create" (new files).
     """
 
     def check(self):
@@ -99,16 +100,16 @@ class OpenPMD:
         self,
         period: TimeStepSpec,
         source: Optional[List[SourceBase]] = None,
-        range: Optional[str] = None,
+        range: Optional[str] = ":,:,:",
         file: Optional[str] = None,
-        ext: Optional[Literal["bp", "h5", "sst"]] = None,
-        infix: Optional[str] = None,
+        ext: Optional[Literal["bp", "h5", "sst"]] = "bp",
+        infix: Optional[str] = "NULL",
         json: Optional[Union[str, Dict]] = None,
         json_restart: Optional[Union[str, Dict]] = None,
         data_preparation_strategy: Optional[Literal["doubleBuffer", "adios", "mappedMemory", "hdf5"]] = None,
         toml: Optional[str] = None,
         particle_io_chunk_size: Optional[int] = None,
-        file_access: Optional[Literal["create", "append"]] = None,
+        file_access: Optional[Literal["create", "append"]] = "create",
     ):
         self.period = period
         self.source = source
