@@ -11,7 +11,7 @@ import typing
 
 
 @typeguard.typechecked
-class ChargeDensity:
+class BoundElectronDensity:
     filter = property(lambda self: self._filter)
     species = property(lambda self: self._species)
 
@@ -28,7 +28,7 @@ class ChargeDensity:
 
     def _get_serialized(self) -> typing.Dict:
         return {
-            "dataset": "chargeDensity",
+            "dataset": "boundElectronDensity",
             "filter": self._filter,
             "species": [s.get_rendering_context() for s in self._species],
         }
