@@ -53,6 +53,7 @@
 #include "picongpu/simulation/stage/ParticleInit.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
+#include "picongpu/simulation/stage/Poisson.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
@@ -322,7 +323,7 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
 
             dc.share(currentInterpolationAndAdditionToEMF);
-
+            
             // This has to be called before initFields()
             currentInterpolationAndAdditionToEMF->init();
 
