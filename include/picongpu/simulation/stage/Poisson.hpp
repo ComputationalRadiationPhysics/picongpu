@@ -94,7 +94,7 @@
              using SpeciesEligibleForChargeDeposition =
                  typename particles::traits::SpeciesEligibleForSolver<T, simulation::stage::Poisson>::type;
 
-             void Poisson::operator()(uint32_t const currentStep) const
+             void Poisson::operator()(uint32_t const currentStep, MappingDesc *cellDescription) const
              {
                  using namespace pmacc;
                  constexpr uint fieldRhoSlot = 0;
@@ -119,6 +119,17 @@
                 /* add results of all species that are still in GUARD to next GPUs BORDER */
                 EventTask fieldTmpEvent = fieldRho.asyncCommunication(eventSystem::getTransactionEvent());
                 eventSystem::setTransactionEvent(fieldTmpEvent);
+
+
+
+
+                constexpr uint fieldVSlot = 1;
+                auto& fieldV = *dc.get<FieldTmp>(FieldTmp::getUniqueId(fieldVSlot));
+                fieldV.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
+
+                BICGStab(fieldV, fieldRho, cellDescription);
+
+
              }
          } // namespace stage
      } // namespace simulation
