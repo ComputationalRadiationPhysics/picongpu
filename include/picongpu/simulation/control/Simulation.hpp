@@ -323,7 +323,7 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
 
             dc.share(currentInterpolationAndAdditionToEMF);
-            
+
             // This has to be called before initFields()
             currentInterpolationAndAdditionToEMF->init();
 
@@ -333,6 +333,8 @@ namespace picongpu
             atomicPhysics = std::make_shared<simulation::stage::AtomicPhysics>(*cellDescription);
 
             synchrotronRadiation = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
+
+            poissonSolver = std::make_shared<simulation::stage::Poisson>(*cellDescription);
 
             initFields(dc);
 
@@ -490,6 +492,7 @@ namespace picongpu
                 {
                     initialiserController->init();
                     simulation::stage::ParticleInit{}(step);
+                    (*poissonSolver)(step);
                     (*atomicPhysics).fixAtomicStateInit(*cellDescription);
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);
@@ -632,6 +635,8 @@ namespace picongpu
         // Runtime density file stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::RuntimeDensityFile runtimeDensityFile;
+
+        std::shared_ptr<simulation::stage::Poisson> poissonSolver;
 
         IInitPlugin* initialiserController{nullptr};
 

@@ -1,94 +1,112 @@
+/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/FieldTmpOperations.hpp"
+#include "picongpu/fields/poissonSolver/FieldV.hpp"
 
-struct BoundaryConditionsDirichlet
+#include <pmacc/lockstep/lockstep.hpp>
+#include <pmacc/mappings/kernel/ExchangeMapping.hpp>
+#include <pmacc/memory/dataTypes/Mask.hpp>
+
+namespace picongpu::fields::poissonSolver
+{
+    struct SolutionFunction
     {
-        // return residual
-        // return number of iterations 
-        void operator()(FieldTmp& fieldV, FieldTmp& fiedlRho, MappingDesk *cellDescription)
+        HDINLINE auto operator()(math::Vector<double, simDim> const& totalCellCoordinate) const
         {
-            // set boundary conditions on fieldV (Dirichlet or Neuman)
-
-            // normalize the problem based on norm(fieldRho)
-
-            pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
-
-            DataSpace<simDim> myGPUpos(gc.getPosition());
-            DataSpace<simDim> gpus(gc.getGpuNodes());
-            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-            auto globalDomain = subGrid.getGlobalDomain();
-            auto localDomain = subGrid.getLocalDomain()
-            auto const mapper = makeAreaMapper<BORDER>(*cellDescription());
-
-            
-            
-            for(int dir=0; dir<simDim; dir++)
+            if constexpr(simDim == 3u)
             {
-                
-                // todo check for moving window
-                if(myGPUpos[dir] == 0){
-                    DataSpace<2*Dim> indexLimitsEdge = ;
-                    indexLimitsEdge[2*dir+1] = indexLimitsEdge[2*dir] + guardsSize[dir];
-                    PMACC_LOCKSTEP_KERNEL().config(mapper.getGridDim(), SuperCellSize{})();}
-
-                if(myGPUpos[dir] == gpus[dir] -1){
-                    PMACC_LOCKSTEP_KERNEL(KernelComputeSupercells<BlockArea>{})
-                .config(mapper.getGridDim(), pBox)(fieldTmpBox, pBox, solver, iFilter, mapper);
-                }
-
-
-
-                dirAlpaka = 2 - dir;
-                if(hasBoundary_[2*dir] && bcsType_[2*dir]==0)
-                {
-                    indexLimitsEdge = this->alpakaHelper_.indexLimitsDataAlpaka_;
-                    indexLimitsEdge[2*dirAlpaka+1]=indexLimitsEdge[2*dirAlpaka] + guards_[dir];
-                    alpaka::exec<Acc>(this->queueSolverNonBlocking1_, workDivExtentApplyDirichletBCsFromFunctionKernel_, applyDirichletBCsFromFunctionKernel, bufMdSpan, this->exactSolutionAndBCs_, 
-                                            indexLimitsEdge, this->alpakaHelper_.indexLimitsDataAlpaka_, this->alpakaHelper_.ds_, this->alpakaHelper_.origin_, 
-                                            this->alpakaHelper_.globalLocation_, this->alpakaHelper_.nlocal_noguards_, this->alpakaHelper_.haloSize_ );
-
-                }
-                if(hasBoundary_[2*dir+1] && bcsType_[2*dir+1]==0)
-                {
-                    indexLimitsEdge = this->alpakaHelper_.indexLimitsDataAlpaka_;
-                    indexLimitsEdge[2*dirAlpaka]=indexLimitsEdge[2*dirAlpaka+1] - guards_[dir];
-                    alpaka::exec<Acc>(this->queueSolverNonBlocking1_, workDivExtentApplyDirichletBCsFromFunctionKernel_, applyDirichletBCsFromFunctionKernel, bufMdSpan, this->exactSolutionAndBCs_, 
-                                            indexLimitsEdge, this->alpakaHelper_.indexLimitsDataAlpaka_, this->alpakaHelper_.ds_, this->alpakaHelper_.origin_, 
-                                            this->alpakaHelper_.globalLocation_, this->alpakaHelper_.nlocal_noguards_, this->alpakaHelper_.haloSize_ );
-                }
+                return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
+                       + 3.0 * math::sin(totalCellCoordinate.z())
+                       + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
             }
-
+            else if constexpr(simDim == 2u)
+            {
+                return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
+                       + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
+            }
         }
     };
 
-
-template<int DIM, typename T_data> 
-struct ApplyDirichletBCsFromFunctionKernel
-{
-    template<typename TAcc, typename TMdSpan>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, TMdSpan bufData, const auto boundaryFunction, DataSpace<Dim> guardsSize, DataSpace<Dim> extents, DataSpace<Dim> offsets ) const -> void
+    struct ApplyDirichletBCsFromFunctionKernel
     {
-        // Get indexes
-        auto const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-    
-        auto const gridThreadIdxShifted = gridThreadIdx + guardsSize;
-        //auto const indxData = gridThreadIdxShifted + adjustIdx;
-        //auto const indxGuard = gridThreadIdxShifted - adjustIdx;
-        
-        auto const iGrid = gridThreadIdxShifted[2];
-        auto const jGrid = gridThreadIdxShifted[1];
-        auto const kGrid = gridThreadIdxShifted[0];
-
-        const T_data x = (iGrid-indexLimitsData[4])*ds[2] + offsets[2]*ds[2];
-        const T_data y = (jGrid-indexLimitsData[2])*ds[1] + offsets[1]*ds[1];
-        const T_data z = (kGrid-indexLimitsData[0])*ds[0] + offsets[0]*ds[0];
-
-
-        if( iGrid>=indexLimitsEdge[4] && iGrid<indexLimitsEdge[5] && jGrid>=indexLimitsEdge[2] && jGrid<indexLimitsEdge[3] && kGrid>=indexLimitsEdge[0] && kGrid<indexLimitsEdge[1])
+        DINLINE auto operator()(
+            auto const& worker,
+            auto fieldVBox,
+            auto const boundaryFunction,
+            DataSpace<simDim> cellOffsetToTotalOrigin,
+            auto const mapper) const -> void
         {
-            bufData(gridThreadIdxShifted[0],gridThreadIdxShifted[1],gridThreadIdxShifted[2]) = boundaryFunction(x,y,z);
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
+            DataSpace<simDim> superCellTotalCellOffset
+                = cellOffsetToTotalOrigin + superCellIdx * SuperCellSize::toRT();
+
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+            auto forEachCellInSupercell = lockstep::makeForEach<cellsPerSuperCell>(worker);
+
+            forEachCellInSupercell(
+                [&](int32_t const linearCellIdx)
+                {
+                    /* cell index within the superCell */
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
+                    DataSpace<simDim> const totalCellIdx = superCellTotalCellOffset + cellIdx;
+
+                    auto totalDistance = precisionCast<float_64>(totalCellIdx)
+                                         * precisionCast<float_64>(sim.pic.getCellSize().shrink<simDim>());
+
+                    fieldVBox(superCellIdx * SuperCellSize::toRT() + cellIdx) = boundaryFunction(totalDistance);
+                });
         }
-    }
-};
-    
+    };
+
+    struct BoundaryConditionsDirichlet
+    {
+        // return residual
+        // return number of iterations
+        void operator()(FieldV& fieldV, MappingDesc cellDescription) const
+        {
+            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+            auto globalDomain = subGrid.getGlobalDomain();
+            auto localDomain = subGrid.getLocalDomain();
+
+            auto cellOffsetToTotalOrigin = globalDomain.offset + localDomain.offset;
+
+
+            for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+            {
+                /* only call for planes: left right top bottom back front*/
+                if(FRONT % i == 0 && !(Environment<simDim>::get().GridController().getCommunicationMask().isSet(i)))
+                {
+                    ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
+
+                    PMACC_LOCKSTEP_KERNEL(ApplyDirichletBCsFromFunctionKernel{})
+                        .config(mapper.getGridDim(), SuperCellSize{})(
+                            fieldV.fieldVBuffer->getDeviceBuffer().getDataBox(),
+                            SolutionFunction{},
+                            cellOffsetToTotalOrigin,
+                            mapper);
+                }
+            }
+        }
+    };
+} // namespace picongpu::fields::poissonSolver
