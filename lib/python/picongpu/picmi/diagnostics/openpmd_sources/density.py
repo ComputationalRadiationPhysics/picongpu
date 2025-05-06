@@ -6,21 +6,24 @@ License: GPLv3+
 """
 
 from .source_base import SourceBase
-from ...pypicongpu.output.openpmd_source import BoundElectronDensity as PyPIConGPUBoundElectronDensity
+from ...pypicongpu.output.openpmd_source import Density as PyPIConGPUDensity
 from ...species import Species as PICMISpecies
 import typeguard
 import typing
 
 
 @typeguard.typechecked
-class BoundElectronDensity(SourceBase):
+class Density(SourceBase):
     """
-    Bound electron density data source for openPMD output
+    Particle density data source for openPMD output
 
-    This source calculates the density of bound electrons from a specified particle species,
-    optionally filtered by a selection criterion, for particle-in-cell simulations.
+    This source derives a scalar field representing the number density (in m^-3) of a specified
+    particle species, optionally filtered by a selection criterion, in particle-in-cell simulations.
+    The density is calculated based on the species' weighting and position attributes and mapped to
+    cells according to the PIC code's spatial shape assignment.
 
-    @param species Particle species contributing to the bound electron density (e.g., ions).
+    @param species Particle species to calculate density for (e.g., electrons, ions).
+        Must have weighting and position attributes.
     @param filter Name of a filter to select particles contributing to the source.
         Default: "all" (includes all particles of the specified species).
     """
@@ -44,12 +47,12 @@ class BoundElectronDensity(SourceBase):
     def get_as_pypicongpu(
         self,
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, typing.Any],
-    ) -> PyPIConGPUBoundElectronDensity:
+    ) -> PyPIConGPUDensity:
         """
-        Convert this BoundElectronDensity source to a PyPIConGPU BoundElectronDensity source.
+        Convert this Density source to a PyPIConGPU Density source.
 
         @param dict_species_picmi_to_pypicongpu Mapping of PICMI species to PyPIConGPU species.
-        @return A PyPIConGPU BoundElectronDensity instance with the same filter and species.
+        @return A PyPIConGPU Density instance with the same filter and species.
         @throw ValueError If the species is not known to the simulation or not mapped to a PyPIConGPUSpecies.
         """
         self.check()
@@ -62,4 +65,4 @@ class BoundElectronDensity(SourceBase):
         if pypicongpu_species is None:
             raise ValueError(f"Species {self.species} is not mapped to a PyPIConGPUSpecies.")
 
-        return PyPIConGPUBoundElectronDensity(filter=self.filter, species=pypicongpu_species)
+        return PyPIConGPUDensity(filter=self.filter, species=pypicongpu_species)

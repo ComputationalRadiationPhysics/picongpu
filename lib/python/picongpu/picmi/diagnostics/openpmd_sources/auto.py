@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2025-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -15,17 +15,14 @@ import typing
 @typeguard.typechecked
 class Auto(SourceBase):
     """
-    Represents a default data source for openPMD output in particle-in-cell simulations.
+    Default data source for openPMD output
 
-    This class specifies a backend-specific default source for dumping simulation data
-    using the openPMD standard. For example, in some backends, it may dump all particle
-    species and fields.
+    This class provides a convenient way to dump default simulation data (e.g., all
+    particle species and fields) using the openPMD standard, with defaults determined
+    by the PIC code in particle-in-cell simulations.
 
-    Parameters
-    ----------
-    filter: str, optional
-        Name of a filter to select data contributing to the source.
-        Default: None (backend-dependent).
+    @param filter Name of a filter to select data contributing to the source.
+        Default: None (PIC code-dependent).
     """
 
     filter = util.build_typesafe_property(typing.Optional[str])
@@ -38,10 +35,7 @@ class Auto(SourceBase):
         """
         Validate the filter parameter.
 
-        Raises
-        ------
-        ValueError
-            If the filter is not a string or None.
+        @throw ValueError If the filter is not a string or None.
         """
         if self.filter is not None and not isinstance(self.filter, str):
             raise ValueError(f"Filter must be a string or None, got {type(self.filter)}")
@@ -50,10 +44,7 @@ class Auto(SourceBase):
         """
         Convert this Auto source to a PyPIConGPU Auto source.
 
-        Returns
-        -------
-        PyPIConGPUAuto
-            A PyPIConGPU Auto instance with the same filter.
+        @return A PyPIConGPU Auto instance with the same filter.
         """
         self.check()
         return PyPIConGPUAuto(filter=self.filter)

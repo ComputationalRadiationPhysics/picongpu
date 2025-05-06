@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2025-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -15,18 +15,13 @@ import typing
 @typeguard.typechecked
 class ChargeDensity(SourceBase):
     """
-    Represents a charge density data source for openPMD output in particle-in-cell simulations.
+    Charge density data source for openPMD output
 
     This source calculates the charge density from a specified particle species, optionally
-    filtered by a selection criterion.
+    filtered by a selection criterion, for particle-in-cell simulations.
 
-    Parameters
-    ----------
-    species: PICMISpecies
-        Particle species contributing to the charge density (e.g., electrons, protons).
-
-    filter: str, optional
-        Name of a filter to select particles contributing to the source.
+    @param species Particle species contributing to the charge density (e.g., electrons, protons).
+    @param filter Name of a filter to select particles contributing to the source.
         Default: "all" (includes all particles of the specified species).
     """
 
@@ -39,10 +34,7 @@ class ChargeDensity(SourceBase):
         """
         Validate the parameters.
 
-        Raises
-        ------
-        ValueError
-            If filter is not a string or species is not a PICMISpecies.
+        @throw ValueError If filter is not a string or species is not a PICMISpecies.
         """
         if not isinstance(self.filter, str):
             raise ValueError(f"Filter must be a string, got {type(self.filter)}")
@@ -52,30 +44,13 @@ class ChargeDensity(SourceBase):
     def get_as_pypicongpu(
         self,
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, typing.Any],
-        time_step_size: float,
-        num_steps: int,
     ) -> PyPIConGPUChargeDensity:
         """
         Convert this ChargeDensity source to a PyPIConGPU ChargeDensity source.
 
-        Parameters
-        ----------
-        dict_species_picmi_to_pypicongpu: dict[PICMISpecies, Any]
-            Mapping of PICMI species to PyPIConGPU species.
-        time_step_size: float
-            Size of a simulation time step (unused).
-        num_steps: int
-            Total number of simulation steps (unused).
-
-        Returns
-        -------
-        PyPIConGPUChargeDensity
-            A PyPIConGPU ChargeDensity instance with the same filter and species.
-
-        Raises
-        ------
-        ValueError
-            If the species is not known to the simulation or not mapped to a PyPIConGPUSpecies.
+        @param dict_species_picmi_to_pypicongpu Mapping of PICMI species to PyPIConGPU species.
+        @return A PyPIConGPU ChargeDensity instance with the same filter and species.
+        @throw ValueError If the species is not known to the simulation or not mapped to a PyPIConGPUSpecies.
         """
         self.check()
 
