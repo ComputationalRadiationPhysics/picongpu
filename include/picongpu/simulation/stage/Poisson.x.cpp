@@ -118,20 +118,54 @@ namespace picongpu
                 }
             };
 
+            template<typename T_TranformFunctor>
+            class TransformDataBox : private T_TranformFunctor
+            {
+            public:
+                using ValueType = decltype(std::declval<T_TranformFunctor>()(DataSpace<simDim>::create(0)));
+
+                static constexpr std::uint32_t Dim = simDim;
+
+                HDINLINE TransformDataBox() = default;
+
+                HDINLINE TransformDataBox(T_TranformFunctor transformFunc) : T_TranformFunctor(transformFunc)
+                {
+                }
+
+                HDINLINE TransformDataBox(TransformDataBox const&) = default;
+
+                HDINLINE ValueType operator()(DataSpace<simDim> const& idx) const
+                {
+                    return T_TranformFunctor::operator()(idx + m_offset);
+                }
+
+                HDINLINE ValueType operator[](DataSpace<simDim> const idx) const
+                {
+                    return T_TranformFunctor::operator()(idx + m_offset);
+                }
+
+                HDINLINE TransformDataBox shift(DataSpace<simDim> const& offset) const
+                {
+                    TransformDataBox result(*this);
+                    result.m_offset += offset;
+                    return result;
+                }
+
+                DataSpace<simDim> m_offset = DataSpace<simDim>::create(0);
+            };
+
             auto Poisson::calcNorm(FieldTmp& fieldRho)
             {
-                /*define stacked DataBox's for reduce algorithm*/
-                using TransformedBox = DataBoxUnaryTransform<typename FieldTmp::DataBoxType, squareComponentWise>;
-                using Box64bit = DataBoxUnaryTransform<TransformedBox, cast64Bit>;
-                using D1Box = DataBoxDim1Access<Box64bit>;
-
                 /* reduce field E*/
                 DataSpace<simDim> fieldSize = fieldRho.getGridLayout().sizeWithoutGuardND();
                 DataSpace<simDim> fieldGuard = fieldRho.getGridLayout().guardSizeND();
 
-                TransformedBox fieldTransform(fieldRho.getDeviceDataBox().shift(fieldGuard));
-                Box64bit field64bit(fieldTransform);
-                D1Box d1Access(field64bit, fieldSize);
+                auto rhoDeviceBox = fieldRho.getDeviceDataBox().shift(fieldGuard);
+
+                TransformDataBox fieldTransform(
+                    [rhoDeviceBox] DEVICEONLY(DataSpace<simDim> const& idx)
+                    { return precisionCast<float_64>(rhoDeviceBox[idx] * rhoDeviceBox[idx]); });
+                DataBoxDim1Access d1Access(fieldTransform, fieldSize);
 
                 float_64 fieldRhoNormSquaredLocal
                     = (*localReduce)(pmacc::math::operation::Add(), d1Access, fieldSize.productOfComponents()).x();
@@ -225,5 +259,6 @@ namespace picongpu
 
                 // BICGStab(fieldV, fieldRho, cellDescription);
             }
-        } // namespace simulation
-    } // namespace picongpu
+        } // namespace stage
+    } // namespace simulation
+} // namespace picongpu
