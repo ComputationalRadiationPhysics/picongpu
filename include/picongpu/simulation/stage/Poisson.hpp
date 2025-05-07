@@ -30,8 +30,11 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/device/Reduce.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
 
@@ -55,6 +58,9 @@ namespace picongpu::simulation::stage
 
         picongpu::MappingDesc const m_mappingDesc;
 
+        mpi::MPIReduce mpiReduce;
+        std::unique_ptr<pmacc::device::Reduce> localReduce;
+
 
         Poisson(picongpu::MappingDesc const mappingDesc);
         /** Compute the current created by particles and add it to the current
@@ -62,6 +68,14 @@ namespace picongpu::simulation::stage
          *
          * @param currentStep index of time iteration
          */
-        void operator()(uint32_t const currentStep) const;
+        void operator()(uint32_t const currentStep);
+
+        void participate(bool status)
+        {
+            mpiReduce.participate(status);
+        }
+
+    private:
+        auto calcNorm(FieldTmp& fieldRho);
     };
 } // namespace picongpu::simulation::stage

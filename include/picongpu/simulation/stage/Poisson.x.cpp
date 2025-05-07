@@ -32,6 +32,8 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/memory/boxes/DataBoxUnaryTransform.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
@@ -75,7 +77,9 @@ namespace picongpu
             using SpeciesEligibleForChargeDeposition =
                 typename particles::traits::SpeciesEligibleForSolver<T, simulation::stage::Poisson>::type;
 
-            Poisson::Poisson(MappingDesc const mappingDesc) : m_mappingDesc(mappingDesc)
+            Poisson::Poisson(MappingDesc const mappingDesc)
+                : m_mappingDesc(mappingDesc)
+                , localReduce{std::make_unique<pmacc::device::Reduce>(1024)}
             {
                 pkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
                 rkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
@@ -88,6 +92,61 @@ namespace picongpu
 
                 DataConnector& dc = Environment<>::get().DataConnector();
                 dc.share(fieldV);
+
+                participate(true);
+            }
+
+            template<typename T_Type>
+            struct cast64Bit
+            {
+                using result = typename TypeCast<float_64, T_Type>::result;
+
+                HDINLINE result operator()(T_Type const& value) const
+                {
+                    return precisionCast<float_64>(value);
+                }
+            };
+
+            template<typename T_Type>
+            struct squareComponentWise
+            {
+                using result = T_Type;
+
+                HDINLINE result operator()(T_Type const& value) const
+                {
+                    return value * value;
+                }
+            };
+
+            auto Poisson::calcNorm(FieldTmp& fieldRho)
+            {
+                /*define stacked DataBox's for reduce algorithm*/
+                using TransformedBox = DataBoxUnaryTransform<typename FieldTmp::DataBoxType, squareComponentWise>;
+                using Box64bit = DataBoxUnaryTransform<TransformedBox, cast64Bit>;
+                using D1Box = DataBoxDim1Access<Box64bit>;
+
+                /* reduce field E*/
+                DataSpace<simDim> fieldSize = fieldRho.getGridLayout().sizeWithoutGuardND();
+                DataSpace<simDim> fieldGuard = fieldRho.getGridLayout().guardSizeND();
+
+                TransformedBox fieldTransform(fieldRho.getDeviceDataBox().shift(fieldGuard));
+                Box64bit field64bit(fieldTransform);
+                D1Box d1Access(field64bit, fieldSize);
+
+                float_64 fieldRhoNormSquaredLocal
+                    = (*localReduce)(pmacc::math::operation::Add(), d1Access, fieldSize.productOfComponents()).x();
+
+                // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                eventSystem::getTransactionEvent().waitForFinished();
+                float_64 fieldRhoNormSquaredGlobal;
+                mpiReduce(
+                    pmacc::math::operation::Add(),
+                    &fieldRhoNormSquaredGlobal,
+                    &fieldRhoNormSquaredLocal,
+                    1,
+                    mpi::reduceMethods::AllReduce());
+
+                return math::sqrt(fieldRhoNormSquaredGlobal);
             }
 
             struct NormalizeField
@@ -113,7 +172,7 @@ namespace picongpu
                 }
             };
 
-            void Poisson::operator()(uint32_t const currentStep) const
+            void Poisson::operator()(uint32_t const currentStep)
             {
                 using namespace pmacc;
                 constexpr uint fieldRhoSlot = 0;
@@ -145,7 +204,7 @@ namespace picongpu
 
                 auto rightHandSideNormalization = fields::poissonSolver::RightHandSideNormalization{};
                 rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc);
-                float_64 normRho = rightHandSideNormalization.calcNorm(fieldRho);
+                float_64 normRho = calcNorm(fieldRho);
 
                 // recalculate rho
                 computeChargeDensity(fieldRho, currentStep);
@@ -166,31 +225,5 @@ namespace picongpu
 
                 // BICGStab(fieldV, fieldRho, cellDescription);
             }
-        } // namespace stage
-    } // namespace simulation
-
-    namespace particles
-    {
-        namespace traits
-        {
-            template<typename T_Species>
-            struct SpeciesEligibleForSolver<T_Species, simulation::stage::Poisson>
-            {
-                using FrameType = typename T_Species::FrameType;
-
-                // this plugin needs at least the weighting particle attribute
-                using RequiredIdentifiers = MakeSeq_t<weighting>;
-
-                using SpeciesHasIdentifiers =
-                    typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
-
-                // and also a charge ratio for a charge density
-                using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, chargeRatio<>>::type;
-
-                using type = pmacc::mp_and<SpeciesHasIdentifiers, SpeciesHasFlags>;
-            };
-
-        } // namespace traits
-    } // namespace particles
-
-} // namespace picongpu
+        } // namespace simulation
+    } // namespace picongpu
