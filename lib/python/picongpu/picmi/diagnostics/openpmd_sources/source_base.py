@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2025 PIConGPU contributors
+Copyright 2025-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
