@@ -76,6 +76,6 @@ namespace picongpu::simulation::stage
         }
 
     private:
-        auto calcNorm(FieldTmp& fieldRho);
+        auto reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn);
     };
 } // namespace picongpu::simulation::stage

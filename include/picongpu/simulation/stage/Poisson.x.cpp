@@ -26,6 +26,7 @@
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
 #include "picongpu/fields/poissonSolver/BoundaryConditions.hpp"
 #include "picongpu/fields/poissonSolver/RightHandSideNormalization.hpp"
+#include "picongpu/fields/poissonSolver/Stencil.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/param.hpp"
 #include "picongpu/simulation/stage/Poisson.hpp"
@@ -90,33 +91,28 @@ namespace picongpu
                 azkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
                 fieldV = std::make_shared<fields::poissonSolver::FieldV>(m_mappingDesc);
 
+                auto const commTag = pmacc::traits::getUniqueId<uint32_t>();
+                /*go over all directions*/
+                for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+                {
+                    if(FRONT % i == 0)
+                    {
+                        DataSpace<simDim> relativeMask = Mask::getRelativeDirections<simDim>(i);
+                        /* guarding cells depend on direction
+                         * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
+                         * don't switch end and origin because this is a read buffer and no send buffer
+                         */
+                        auto guardingCells = DataSpace<simDim>::create(0);
+                        for(uint32_t d = 0; d < simDim; ++d)
+                            guardingCells[d] = (relativeMask[d] == 0 ? 0 : 1);
+                        pkBuffer->addExchange(GUARD, i, guardingCells, commTag);
+                    }
+                }
                 DataConnector& dc = Environment<>::get().DataConnector();
                 dc.share(fieldV);
 
                 participate(true);
             }
-
-            template<typename T_Type>
-            struct cast64Bit
-            {
-                using result = typename TypeCast<float_64, T_Type>::result;
-
-                HDINLINE result operator()(T_Type const& value) const
-                {
-                    return precisionCast<float_64>(value);
-                }
-            };
-
-            template<typename T_Type>
-            struct squareComponentWise
-            {
-                using result = T_Type;
-
-                HDINLINE result operator()(T_Type const& value) const
-                {
-                    return value * value;
-                }
-            };
 
             template<typename T_TranformFunctor>
             class TransformDataBox : private T_TranformFunctor
@@ -154,42 +150,33 @@ namespace picongpu
                 DataSpace<simDim> m_offset = DataSpace<simDim>::create(0);
             };
 
-            auto Poisson::calcNorm(FieldTmp& fieldRho)
+            auto Poisson::reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn)
             {
-                /* reduce field E*/
-                DataSpace<simDim> fieldSize = fieldRho.getGridLayout().sizeWithoutGuardND();
-                DataSpace<simDim> fieldGuard = fieldRho.getGridLayout().guardSizeND();
+                DataBoxDim1Access d1Access(dataBoxIn, fieldSize);
 
-                auto rhoDeviceBox = fieldRho.getDeviceDataBox().shift(fieldGuard);
-
-                TransformDataBox fieldTransform(
-                    [rhoDeviceBox] DEVICEONLY(DataSpace<simDim> const& idx)
-                    { return precisionCast<float_64>(rhoDeviceBox[idx] * rhoDeviceBox[idx]); });
-                DataBoxDim1Access d1Access(fieldTransform, fieldSize);
-
-                float_64 fieldRhoNormSquaredLocal
-                    = (*localReduce)(pmacc::math::operation::Add(), d1Access, fieldSize.productOfComponents()).x();
+                float_64 resultLocal
+                    = (*localReduce)(pmacc::math::operation::Add(), d1Access, fieldSize.productOfComponents());
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                float_64 fieldRhoNormSquaredGlobal;
+                float_64 resultGlobal;
                 mpiReduce(
                     pmacc::math::operation::Add(),
-                    &fieldRhoNormSquaredGlobal,
-                    &fieldRhoNormSquaredLocal,
+                    &resultGlobal,
+                    &resultLocal,
                     1,
                     mpi::reduceMethods::AllReduce());
 
-                return math::sqrt(fieldRhoNormSquaredGlobal);
+                return resultGlobal;
             }
 
-            struct NormalizeField
+            struct ForEachKernel
             {
-                DINLINE auto operator()(auto const& worker, auto fieldBox, float_64 normValue, auto const mapper) const
+                DINLINE auto operator()(auto const& worker, auto fieldOut, auto const func, auto const mapper) const
                     -> void
                 {
                     DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
-                    DataSpace<simDim> superCellTotalCellOffset = superCellIdx * SuperCellSize::toRT();
+                    DataSpace<simDim> superCellCellOffset = superCellIdx * SuperCellSize::toRT();
 
                     constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
@@ -200,9 +187,20 @@ namespace picongpu
                         {
                             DataSpace<simDim> const cellIdx
                                 = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
-                            DataSpace<simDim> const dataCellOffset = superCellTotalCellOffset + cellIdx;
-                            fieldBox(dataCellOffset) /= normValue;
+                            DataSpace<simDim> const dataCellOffset = superCellCellOffset + cellIdx;
+                            fieldOut[dataCellOffset] = func(dataCellOffset);
                         });
+                }
+            };
+
+            template<typename T_Func>
+            struct FuncWrapper
+            {
+                T_Func const func;
+
+                HDINLINE auto operator()(auto const&... args) const
+                {
+                    return func(args...);
                 }
             };
 
@@ -220,6 +218,8 @@ namespace picongpu
 
                 // todo: log species that are used / ignored in this plugin with INFO
 
+                DataSpace<simDim> numGuardCells = fieldRho.getGridLayout().guardSizeND();
+                DataSpace<simDim> coreBorderSize = fieldRho.getGridLayout().sizeWithoutGuardND();
 
                 /* calculate and add the charge density values from all species in FieldTmp */
                 meta::ForEach<
@@ -238,26 +238,252 @@ namespace picongpu
 
                 auto rightHandSideNormalization = fields::poissonSolver::RightHandSideNormalization{};
                 rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc);
-                float_64 normRho = calcNorm(fieldRho);
 
+
+                float_64 normRho;
+                {
+                    auto rhoDeviceBox = fieldRho.getDeviceDataBox().shift(numGuardCells);
+                    TransformDataBox fieldTransform(
+                        [rhoDeviceBox] DEVICEONLY(DataSpace<simDim> const& idx)
+                        { return precisionCast<float_64>(rhoDeviceBox[idx].x() * rhoDeviceBox[idx].x()); });
+
+                    normRho = std::sqrt(reduceGlobal(coreBorderSize, fieldTransform));
+                }
                 // recalculate rho
                 computeChargeDensity(fieldRho, currentStep);
                 /* add results of all species that are still in GUARD to next GPUs BORDER */
                 eventSystem::setTransactionEvent(fieldRho.asyncCommunication(eventSystem::getTransactionEvent()));
 
                 // normalize rho
-                auto rhoMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc);
-                PMACC_LOCKSTEP_KERNEL(NormalizeField{})
-                    .config(rhoMapper.getGridDim(), SuperCellSize{})(fieldRho.getDeviceDataBox(), normRho, rhoMapper);
+                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc);
+                {
+                    auto rhoBox = fieldRho.getDeviceDataBox();
 
-                // normalize v
-                auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc);
-                PMACC_LOCKSTEP_KERNEL(NormalizeField{})
-                    .config(
-                        vMapper.getGridDim(),
-                        SuperCellSize{})(fieldV->fieldVBuffer->getDeviceBuffer().getDataBox(), normRho, rhoMapper);
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                            rhoBox,
+                            FuncWrapper{[rhoBox, normRho] DEVICEONLY(DataSpace<simDim> idx)
+                                        { return rhoBox[idx].x() / normRho; }},
+                            coreBorderMapper);
+                }
 
-                // BICGStab(fieldV, fieldRho, cellDescription);
+                {
+                    // normalize v
+                    auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc);
+                    auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(vMapper.getGridDim(), SuperCellSize{})(
+                            vField,
+                            FuncWrapper{[vField, normRho] DEVICEONLY(DataSpace<simDim> idx)
+                                        { return vField[idx] / normRho; }},
+                            vMapper);
+                }
+
+                {
+                    auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
+                    auto r0Box = r0Buffer->getDeviceBuffer().getDataBox();
+                    PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+                        .config(
+                            coreBorderMapper.getGridDim(),
+                            SuperCellSize{})(coreBorderMapper, fields::poissonSolver::StencilFunc{}, r0Box, vField);
+
+
+                    auto rhoBox = fieldRho.getDeviceDataBox();
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                            r0Box,
+                            FuncWrapper{[r0Box, rhoBox] DEVICEONLY(DataSpace<simDim> idx)
+                                        { return rhoBox[idx].x() - r0Box[idx]; }},
+                            coreBorderMapper);
+                }
+
+                pkBuffer->getDeviceBuffer().copyFrom(r0Buffer->getDeviceBuffer());
+                rkBuffer->getDeviceBuffer().copyFrom(r0Buffer->getDeviceBuffer());
+
+                float_64 rho0;
+                /* rho reduction */
+                {
+                    auto r0Box = r0Buffer->getDeviceBuffer().getDataBox();
+                    auto r0BoxBorderGuard = r0Box.shift(numGuardCells);
+
+                    TransformDataBox fieldTransform([r0BoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                                                    { return r0BoxBorderGuard[idx] * r0BoxBorderGuard[idx]; });
+
+                    rho0 = reduceGlobal(coreBorderSize, fieldTransform);
+                }
+
+                float_64 rho1 = rho0;
+
+                constexpr int maxIterations = 1000;
+                constexpr float_64 epsilon = 1e-8;
+                for(int i = 0; i < maxIterations; ++i)
+                {
+                    // preconditioner
+                    mpkBuffer->getDeviceBuffer().copyFrom(pkBuffer->getDeviceBuffer());
+                    mpkBuffer->communication();
+
+                    // w = Ap
+                    {
+                        auto mpkBox = mpkBuffer->getDeviceBuffer().getDataBox();
+                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                coreBorderMapper,
+                                fields::poissonSolver::StencilFunc{},
+                                ampkBox,
+                                mpkBox);
+                    }
+
+                    float_64 totalSum1;
+                    /* local p = rw */
+                    {
+                        auto r0Box = r0Buffer->getDeviceBuffer().getDataBox();
+                        auto r0BoxBorderGuard = r0Box.shift(numGuardCells);
+
+                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
+                        auto ampkBoxBorderGuard = ampkBox.shift(numGuardCells);
+
+                        TransformDataBox fieldTransform(
+                            [r0BoxBorderGuard, ampkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                            { return r0BoxBorderGuard[idx] * ampkBoxBorderGuard[idx]; });
+
+                        totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
+                    }
+                    float_64 alpha = rho0 / totalSum1;
+                    // r = r - alpha * w
+                    {
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
+
+                        auto rhoBox = fieldRho.getDeviceDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                rkBox,
+                                FuncWrapper{[rkBox, ampkBox, alpha] DEVICEONLY(DataSpace<simDim> idx)
+                                            { return rkBox[idx] - alpha * ampkBox[idx]; }},
+                                coreBorderMapper);
+                    }
+
+                    // preconditioner
+                    zkBuffer->getDeviceBuffer().copyFrom(rkBuffer->getDeviceBuffer());
+                    zkBuffer->communication();
+
+                    // t = A * r
+                    {
+                        auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
+                        auto zkBox = zkBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                coreBorderMapper,
+                                fields::poissonSolver::StencilFunc{},
+                                azkBox,
+                                zkBox);
+                    }
+
+                    /* totalSum1 = azk * rk */
+                    {
+                        auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
+                        auto azkBoxBorderGuard = azkBox.shift(numGuardCells);
+
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
+
+                        TransformDataBox fieldTransform(
+                            [azkBoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                            { return azkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
+
+                        totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
+                    }
+
+                    float_64 totalSum2;
+                    /* totalSum1 = azk * azk */
+                    {
+                        auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
+                        auto azkBoxBorderGuard = azkBox.shift(numGuardCells);
+
+                        TransformDataBox fieldTransform([azkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                                                        { return azkBoxBorderGuard[idx] * azkBoxBorderGuard[idx]; });
+
+                        totalSum2 = reduceGlobal(coreBorderSize, fieldTransform);
+                    }
+
+                    float_64 omega = totalSum1 / totalSum2;
+                    // v = v + alpha * mpk + omega * zk
+                    {
+                        auto vFieldBox = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
+                        auto mpkBox = mpkBuffer->getDeviceBuffer().getDataBox();
+                        auto zkBox = zkBuffer->getDeviceBuffer().getDataBox();
+
+                        auto rhoBox = fieldRho.getDeviceDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                vFieldBox,
+                                FuncWrapper{[vFieldBox, mpkBox, zkBox, alpha, omega] DEVICEONLY(DataSpace<simDim> idx)
+                                            { return vFieldBox[idx] + alpha * mpkBox[idx] + omega * zkBox[idx]; }},
+                                coreBorderMapper);
+                    }
+                    // rk = rk -  omega * azk
+                    {
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
+
+
+                        auto rhoBox = fieldRho.getDeviceDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                rkBox,
+                                FuncWrapper{[rkBox, azkBox, omega] DEVICEONLY(DataSpace<simDim> idx)
+                                            { return rkBox[idx] - omega * azkBox[idx]; }},
+                                coreBorderMapper);
+                    }
+
+                    /* totalSum1 = r0 * rk */
+                    {
+                        auto r0Box = r0Buffer->getDeviceBuffer().getDataBox();
+                        auto r0BoxBorderGuard = r0Box.shift(numGuardCells);
+
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
+
+                        TransformDataBox fieldTransform(
+                            [r0BoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                            { return r0BoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
+
+                        totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
+                    }
+                    /* totalSum2 = rk * rk */
+                    {
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
+
+                        TransformDataBox fieldTransform([rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                                                        { return rkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
+
+                        totalSum2 = reduceGlobal(coreBorderSize, fieldTransform);
+                    }
+
+                    rho1 = totalSum1;
+                    float_64 beta = rho1 / rho0 * alpha / omega;
+                    rho0 = rho1;
+                    if(std::sqrt(totalSum2) < epsilon)
+                    {
+                        std::cout << "Converged after " << i << " iterations" << std::endl;
+                        break;
+                    }
+                    // pk = rk + beta * (pk - omega * ampk)
+                    {
+                        auto pkBox = pkBuffer->getDeviceBuffer().getDataBox();
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
+
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                pkBox,
+                                FuncWrapper{[pkBox, rkBox, ampkBox, beta, omega] DEVICEONLY(DataSpace<simDim> idx)
+                                            { return rkBox[idx] + beta * (pkBox[idx] - omega * ampkBox[idx]); }},
+                                coreBorderMapper);
+                    }
+                } // for loop
             }
         } // namespace stage
     } // namespace simulation

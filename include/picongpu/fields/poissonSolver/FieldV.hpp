@@ -36,7 +36,7 @@ namespace picongpu::fields::poissonSolver
 
         void synchronize() override
         {
-            fieldVBuffer->getDeviceBuffer().copyFrom(fieldVBuffer->getHostBuffer());
+            fieldVBuffer->getHostBuffer().copyFrom(fieldVBuffer->getDeviceBuffer());
         };
 
         /**

@@ -40,7 +40,7 @@ namespace picongpu
          */
         using InitPipeline = pmacc::mp_list<
             CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Electrons>,
-            Derive<PIC_Electrons, PIC_Ions>,
+            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Ions>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::LowerQuarterYPosition>,
             Manipulate<manipulators::AssignXDriftNegative, PIC_Ions, filter::MiddleHalfYPosition>,
             Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::UpperQuarterYPosition>,
