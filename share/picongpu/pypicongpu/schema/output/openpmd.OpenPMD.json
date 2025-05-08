@@ -1,0 +1,134 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd.OpenPMD",
+  "type": "object",
+  "description": "openPMD output configuration for PIConGPU, writing simulation data to disk using the openPMD standard.",
+  "unevaluatedProperties": false,
+  "required": [
+    "period"
+  ],
+  "properties": {
+    "period": {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.timestepspec.TimeStepSpec",
+      "description": "Specification of time steps for data output."
+    },
+    "source": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.source_base.SourceBase"
+      },
+      "description": "List of data source objects to include in the dump (e.g., ChargeDensity, Auto)."
+    },
+    "range": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Contiguous range of cells to dump fields, in 'begin:end,begin:end,begin:end' format."
+    },
+    "file": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Relative or absolute file path prefix for openPMD output files."
+    },
+    "ext": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "bp",
+        "h5",
+        "sst",
+        null
+      ],
+      "description": "File extension controlling the openPMD backend (bp=ADIOS2, h5=HDF5, sst=ADIOS2/SST)."
+    },
+    "infix": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Filename infix for iteration layout (e.g., '_%06T'), 'NULL' for group-based layout."
+    },
+    "json": {
+      "type": [
+        "string",
+        "object",
+        "null"
+      ],
+      "description": "openPMD backend configuration as JSON string or dictionary."
+    },
+    "json_restart": {
+      "type": [
+        "string",
+        "object",
+        "null"
+      ],
+      "description": "Backend-specific parameters for restarting, as JSON string or dictionary."
+    },
+    "data_preparation_strategy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "doubleBuffer",
+        "adios",
+        "mappedMemory",
+        "hdf5",
+        null
+      ],
+      "description": "Strategy for particle data preparation (e.g., doubleBuffer, adios)."
+    },
+    "toml": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Path to a TOML file for openPMD configuration."
+    },
+    "particle_io_chunk_size": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "Size of particle data chunks used in writing (in MiB)."
+    },
+    "file_access": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "create",
+        "append",
+        null
+      ],
+      "description": "File access mode for writing (create=new files, append=checkpoint-restart)."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ext": {
+            "const": "sst"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "infix": {
+            "const": "NULL"
+          }
+        }
+      }
+    }
+  ]
+}

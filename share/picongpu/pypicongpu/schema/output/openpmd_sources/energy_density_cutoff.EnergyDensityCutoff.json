@@ -1,0 +1,29 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.energy_density_cutoff.EnergyDensityCutoff",
+  "type": "object",
+  "description": "Energy density cutoff data source for openPMD output in PIConGPU, calculating energy density for a specified species with an optional maximum energy cutoff.",
+  "unevaluatedProperties": false,
+  "required": [
+    "species",
+    "filter"
+  ],
+  "properties": {
+    "species": {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
+      "description": "Particle species to calculate energy density for."
+    },
+    "filter": {
+      "type": "string",
+      "description": "Name of a filter to select particles contributing to the data source.",
+      "default": "all"
+    },
+    "cutoff_max_energy": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": 0,
+      "description": "Maximum energy cutoff for particles contributing to the energy density."
+    }
+  }
+}

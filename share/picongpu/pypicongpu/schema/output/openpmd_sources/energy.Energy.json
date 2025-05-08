@@ -1,0 +1,21 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.energy.Energy",
+  "type": "object",
+  "description": "Energy data source for openPMD output in PIConGPU, calculating particle energy for a specified species.",
+  "unevaluatedProperties": false,
+  "required": [
+    "species",
+    "filter"
+  ],
+  "properties": {
+    "species": {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
+      "description": "Particle species to calculate energy for."
+    },
+    "filter": {
+      "type": "string",
+      "description": "Name of a filter to select particles contributing to the data source.",
+      "default": "all"
+    }
+  }
+}

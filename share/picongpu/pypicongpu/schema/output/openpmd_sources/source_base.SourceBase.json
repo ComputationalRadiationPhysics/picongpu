@@ -1,0 +1,62 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.source_base.SourceBase",
+  "type": "object",
+  "description": "Abstract base class for openPMD data sources in PIConGPU, defining common properties for derived attributes.",
+  "unevaluatedProperties": false,
+  "properties": {
+    "filter": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Name of a filter to select particles contributing to the data source."
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.auto.Auto"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.bound_electron_density.BoundElectronDensity"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.charge_density.ChargeDensity"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.counter.Counter"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.density.Density"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.derived_attributes.DerivedAttributes"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.energy.Energy"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.energy_density.EnergyDensity"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.energy_density_cutoff.EnergyDensityCutoff"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.larmor_power.LarmorPower"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.macro_counter.MacroCounter"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.mid_current_density_component.MidCurrentDensityComponent"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.momentum.Momentum"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.momentum_density.MomentumDensity"
+    },
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.weighted_velocity.WeightedVelocity"
+    }
+  ]
+}
