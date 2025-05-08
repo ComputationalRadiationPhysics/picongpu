@@ -18,7 +18,8 @@
         "macroparticlecount",
         "png",
         "binning",
-        "checkpoint"
+        "checkpoint",
+        "openpmd"
       ],
       "unevaluatedProperties": false,
       "properties": {
@@ -41,6 +42,9 @@
           "type": "boolean"
         },
         "checkpoint": {
+          "type": "boolean"
+        },
+        "openpmd": {
           "type": "boolean"
         }
       }
@@ -68,6 +72,9 @@
         },
         {
           "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.checkpoint.Checkpoint"
+        },
+        {
+          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd.OpenPMD"
         }
       ]
     }

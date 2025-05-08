@@ -1,0 +1,32 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.momentum_density.MomentumDensity",
+  "type": "object",
+  "description": "Momentum density data source for openPMD output in PIConGPU, calculating momentum density along a specified direction for a species.",
+  "unevaluatedProperties": false,
+  "required": [
+    "species",
+    "filter",
+    "direction"
+  ],
+  "properties": {
+    "species": {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
+      "description": "Particle species to calculate momentum density for."
+    },
+    "filter": {
+      "type": "string",
+      "description": "Name of a filter to select particles contributing to the data source.",
+      "default": "all"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "x",
+        "y",
+        "z"
+      ],
+      "description": "Direction (x, y, or z) for the momentum density component.",
+      "default": "x"
+    }
+  }
+}

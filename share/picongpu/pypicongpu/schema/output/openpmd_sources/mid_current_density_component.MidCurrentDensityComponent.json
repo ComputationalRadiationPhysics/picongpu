@@ -1,0 +1,32 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.mid_current_density_component.MidCurrentDensityComponent",
+  "type": "object",
+  "description": "Mid-current density component data source for openPMD output in PIConGPU, calculating current density along a specified direction for a species.",
+  "unevaluatedProperties": false,
+  "required": [
+    "species",
+    "filter",
+    "direction"
+  ],
+  "properties": {
+    "species": {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
+      "description": "Particle species to calculate current density for."
+    },
+    "filter": {
+      "type": "string",
+      "description": "Name of a filter to select particles contributing to the data source.",
+      "default": "all"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "x",
+        "y",
+        "z"
+      ],
+      "description": "Direction (x, y, or z) for the current density component.",
+      "default": "x"
+    }
+  }
+}

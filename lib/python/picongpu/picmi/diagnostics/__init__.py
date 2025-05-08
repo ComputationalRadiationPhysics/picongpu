@@ -1,10 +1,3 @@
-"""
-This file is part of PIConGPU.
-Copyright 2024 PIConGPU contributors
-Authors: Julian Lenz, Masoud Afshari
-License: GPLv3+
-"""
-
 from .auto import Auto
 from .binning import Binning
 from .phase_space import PhaseSpace
@@ -14,6 +7,7 @@ from .png import Png
 from .timestepspec import TimeStepSpec
 from .checkpoint import Checkpoint
 from .openpmd import OpenPMD
+from .openpmd_sources.source_base import SourceBase
 
 __all__ = [
     "Auto",
@@ -25,4 +19,5 @@ __all__ = [
     "TimeStepSpec",
     "Checkpoint",
     "OpenPMD",
+    "SourceBase",
 ]
