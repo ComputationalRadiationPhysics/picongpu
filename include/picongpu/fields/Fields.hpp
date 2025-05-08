@@ -25,3 +25,4 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/Fields.def"
+#include "picongpu/fields/poissonSolver/FieldV.hpp"

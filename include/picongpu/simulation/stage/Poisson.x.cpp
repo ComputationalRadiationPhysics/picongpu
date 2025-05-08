@@ -29,6 +29,8 @@
 #include "picongpu/fields/poissonSolver/Stencil.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/param.hpp"
+#include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
 #include "picongpu/simulation/stage/Poisson.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -40,6 +42,8 @@
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
+
+#include <picongpu/param/particle.param>
 
 namespace picongpu
 {
@@ -74,9 +78,10 @@ namespace picongpu
 
             } // namespace detail
 
+            namespace deriveField = particles::particleToGrid;
             template<typename T>
-            using SpeciesEligibleForChargeDeposition =
-                typename particles::traits::SpeciesEligibleForSolver<T, simulation::stage::Poisson>::type;
+            using SpeciesEligibleForChargeConservation = typename particles::traits::
+                SpeciesEligibleForSolver<T, deriveField::derivedAttributes::ChargeDensity>::type;
 
             Poisson::Poisson(MappingDesc const mappingDesc)
                 : m_mappingDesc(mappingDesc)
@@ -220,22 +225,18 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto& fieldRho = *dc.get<FieldTmp>(FieldTmp::getUniqueId(fieldRhoSlot));
 
-                fieldRho.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
-
-
-                using EligibleSpecies = pmacc::mp_filter<SpeciesEligibleForChargeDeposition, VectorAllSpecies>;
-
-                // todo: log species that are used / ignored in this plugin with INFO
-
                 DataSpace<simDim> numGuardCells = fieldRho.getGridLayout().guardSizeND();
                 DataSpace<simDim> coreBorderSize = fieldRho.getGridLayout().sizeWithoutGuardND();
 
+                using EligibleSpecies = pmacc::mp_filter<SpeciesEligibleForChargeConservation, VectorAllSpecies>;
                 /* calculate and add the charge density values from all species in FieldTmp */
                 meta::ForEach<
                     EligibleSpecies,
                     detail::ComputeChargeDensity<boost::mpl::_1, pmacc::mp_int<CORE + BORDER>>,
                     boost::mpl::_1>
                     computeChargeDensity;
+
+                fieldRho.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
                 computeChargeDensity(fieldRho, currentStep);
 
                 /* add results of all species that are still in GUARD to next GPUs BORDER */
@@ -259,6 +260,7 @@ namespace picongpu
                     normRho = std::sqrt(reduceGlobal(coreBorderSize, fieldTransform));
                 }
                 // recalculate rho
+                fieldRho.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
                 computeChargeDensity(fieldRho, currentStep);
                 /* add results of all species that are still in GUARD to next GPUs BORDER */
                 eventSystem::setTransactionEvent(fieldRho.asyncCommunication(eventSystem::getTransactionEvent()));
@@ -486,7 +488,8 @@ namespace picongpu
                     rho0 = rho1;
                     if(std::sqrt(totalSum2) < epsilon)
                     {
-                        std::cout << "Converged after " << i << " iterations" << std::endl;
+                        std::cout << "Converged after " << i << " iterations with norm=" << normRho
+                                  << ", total sum2=" << totalSum2 << std::endl;
                         break;
                     }
                     // pk = rk + beta * (pk - omega * ampk)

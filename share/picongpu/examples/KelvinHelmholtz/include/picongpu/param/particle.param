@@ -61,7 +61,7 @@ namespace picongpu
                 static constexpr uint32_t numParticlesPerCell = 25u;
             };
 
-            using Quiet = RandomImpl<RandomParameter>;
+            using Random = RandomImpl<RandomParameter>;
 
         } // namespace startPosition
 
