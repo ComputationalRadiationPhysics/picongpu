@@ -45,6 +45,38 @@
 
 #include <picongpu/param/particle.param>
 
+namespace picongpu::simulation::stage
+{
+    template<typename T_Func>
+    struct DeviceLambda
+    {
+        T_Func const func;
+
+        template<typename... T>
+        DEVICEONLY auto operator()(T&&... args) const
+        {
+            return func(std::forward<T>(args)...);
+        }
+
+        template<typename... T>
+        DEVICEONLY auto operator()(T&&... args)
+        {
+            return func(std::forward<T>(args)...);
+        }
+    };
+
+    template<typename T_Func>
+    DeviceLambda(T_Func const) -> DeviceLambda<T_Func>;
+} // namespace picongpu::simulation::stage
+
+namespace alpaka
+{
+    template<typename T>
+    struct IsKernelArgumentTriviallyCopyable<picongpu::simulation::stage::DeviceLambda<T>, void> : std::true_type
+    {
+    };
+} // namespace alpaka
+
 namespace picongpu
 {
     namespace simulation
@@ -200,24 +232,6 @@ namespace picongpu
                 }
             };
 
-            template<typename T_Func>
-            struct DeviceLambda
-            {
-                T_Func const func;
-
-                template<typename... T>
-                DEVICEONLY auto operator()(T&&... args) const
-                {
-                    return func(std::forward<T>(args)...);
-                }
-
-                template<typename... T>
-                DEVICEONLY auto operator()(T&&... args)
-                {
-                    return func(std::forward<T>(args)...);
-                }
-            };
-
             void Poisson::operator()(uint32_t const currentStep)
             {
                 using namespace pmacc;
@@ -329,7 +343,7 @@ namespace picongpu
 
                 float_64 rho1 = rho0;
 
-                constexpr int maxIterations = 1000;
+                constexpr int maxIterations = 2000;
                 constexpr float_64 epsilon = 1e-8;
                 for(int i = 0; i < maxIterations; ++i)
                 {
