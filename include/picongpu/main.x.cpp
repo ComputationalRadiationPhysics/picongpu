@@ -44,25 +44,30 @@ int runSimulation(int argc, char** argv)
 {
     using namespace picongpu;
 
-    auto sim = ::picongpu::
-        SimulationStarter<::picongpu::InitialiserController, ::picongpu::PluginController, ::picongpu::Simulation>{};
-    auto const parserStatus = sim.parseConfigs(argc, argv);
     int errorCode = EXIT_FAILURE;
-
-    switch(parserStatus)
     {
-    case ArgsParser::Status::error:
-        errorCode = EXIT_FAILURE;
-        break;
-    case ArgsParser::Status::success:
-        sim.load();
-        sim.start();
-        sim.unload();
-        [[fallthrough]];
-    case ArgsParser::Status::successExit:
-        errorCode = 0;
-        break;
-    };
+        auto sim = ::picongpu::SimulationStarter<
+            ::picongpu::InitialiserController,
+            ::picongpu::PluginController,
+            ::picongpu::Simulation>{};
+        auto const parserStatus = sim.parseConfigs(argc, argv);
+
+
+        switch(parserStatus)
+        {
+        case ArgsParser::Status::error:
+            errorCode = EXIT_FAILURE;
+            break;
+        case ArgsParser::Status::success:
+            sim.load();
+            sim.start();
+            sim.unload();
+            [[fallthrough]];
+        case ArgsParser::Status::successExit:
+            errorCode = 0;
+            break;
+        };
+    }
 
     // finalize the pmacc context */
     pmacc::Environment<>::get().finalize();

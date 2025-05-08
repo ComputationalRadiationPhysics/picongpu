@@ -91,7 +91,8 @@ namespace picongpu
                 azkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
                 fieldV = std::make_shared<fields::poissonSolver::FieldV>(m_mappingDesc);
 
-                auto const commTag = pmacc::traits::getUniqueId<uint32_t>();
+                auto const commTag0 = pmacc::traits::getUniqueId<uint32_t>();
+                auto const commTag1 = pmacc::traits::getUniqueId<uint32_t>();
                 /*go over all directions*/
                 for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
                 {
@@ -105,7 +106,8 @@ namespace picongpu
                         auto guardingCells = DataSpace<simDim>::create(0);
                         for(uint32_t d = 0; d < simDim; ++d)
                             guardingCells[d] = (relativeMask[d] == 0 ? 0 : 1);
-                        pkBuffer->addExchange(GUARD, i, guardingCells, commTag);
+                        mpkBuffer->addExchange(GUARD, i, guardingCells, commTag0);
+                        zkBuffer->addExchange(GUARD, i, guardingCells, commTag1);
                     }
                 }
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -194,13 +196,20 @@ namespace picongpu
             };
 
             template<typename T_Func>
-            struct FuncWrapper
+            struct DeviceLambda
             {
                 T_Func const func;
 
-                HDINLINE auto operator()(auto const&... args) const
+                template<typename... T>
+                DEVICEONLY auto operator()(T&&... args) const
                 {
-                    return func(args...);
+                    return func(std::forward<T>(args)...);
+                }
+
+                template<typename... T>
+                DEVICEONLY auto operator()(T&&... args)
+                {
+                    return func(std::forward<T>(args)...);
                 }
             };
 
@@ -244,7 +253,7 @@ namespace picongpu
                 {
                     auto rhoDeviceBox = fieldRho.getDeviceDataBox().shift(numGuardCells);
                     TransformDataBox fieldTransform(
-                        [rhoDeviceBox] DEVICEONLY(DataSpace<simDim> const& idx)
+                        [rhoDeviceBox] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
                         { return precisionCast<float_64>(rhoDeviceBox[idx].x() * rhoDeviceBox[idx].x()); });
 
                     normRho = std::sqrt(reduceGlobal(coreBorderSize, fieldTransform));
@@ -262,8 +271,9 @@ namespace picongpu
                     PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                         .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                             rhoBox,
-                            FuncWrapper{[rhoBox, normRho] DEVICEONLY(DataSpace<simDim> idx)
-                                        { return rhoBox[idx].x() / normRho; }},
+                            DeviceLambda{
+                                [rhoBox, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return rhoBox[idx].x() / normRho; }},
                             coreBorderMapper);
                 }
 
@@ -274,8 +284,9 @@ namespace picongpu
                     PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                         .config(vMapper.getGridDim(), SuperCellSize{})(
                             vField,
-                            FuncWrapper{[vField, normRho] DEVICEONLY(DataSpace<simDim> idx)
-                                        { return vField[idx] / normRho; }},
+                            DeviceLambda{
+                                [vField, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return vField[idx] / normRho; }},
                             vMapper);
                 }
 
@@ -292,8 +303,9 @@ namespace picongpu
                     PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                         .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                             r0Box,
-                            FuncWrapper{[r0Box, rhoBox] DEVICEONLY(DataSpace<simDim> idx)
-                                        { return rhoBox[idx].x() - r0Box[idx]; }},
+                            DeviceLambda{
+                                [r0Box, rhoBox] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return rhoBox[idx].x() - r0Box[idx]; }},
                             coreBorderMapper);
                 }
 
@@ -306,8 +318,9 @@ namespace picongpu
                     auto r0Box = r0Buffer->getDeviceBuffer().getDataBox();
                     auto r0BoxBorderGuard = r0Box.shift(numGuardCells);
 
-                    TransformDataBox fieldTransform([r0BoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
-                                                    { return r0BoxBorderGuard[idx] * r0BoxBorderGuard[idx]; });
+                    TransformDataBox fieldTransform(
+                        [r0BoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                        { return r0BoxBorderGuard[idx] * r0BoxBorderGuard[idx]; });
 
                     rho0 = reduceGlobal(coreBorderSize, fieldTransform);
                 }
@@ -344,7 +357,7 @@ namespace picongpu
                         auto ampkBoxBorderGuard = ampkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [r0BoxBorderGuard, ampkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                            [r0BoxBorderGuard, ampkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
                             { return r0BoxBorderGuard[idx] * ampkBoxBorderGuard[idx]; });
 
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
@@ -359,8 +372,9 @@ namespace picongpu
                         PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                             .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                                 rkBox,
-                                FuncWrapper{[rkBox, ampkBox, alpha] DEVICEONLY(DataSpace<simDim> idx)
-                                            { return rkBox[idx] - alpha * ampkBox[idx]; }},
+                                DeviceLambda{
+                                    [rkBox, ampkBox, alpha] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return rkBox[idx] - alpha * ampkBox[idx]; }},
                                 coreBorderMapper);
                     }
 
@@ -389,7 +403,7 @@ namespace picongpu
                         auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [azkBoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                            [azkBoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
                             { return azkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
 
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
@@ -401,8 +415,9 @@ namespace picongpu
                         auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
                         auto azkBoxBorderGuard = azkBox.shift(numGuardCells);
 
-                        TransformDataBox fieldTransform([azkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
-                                                        { return azkBoxBorderGuard[idx] * azkBoxBorderGuard[idx]; });
+                        TransformDataBox fieldTransform(
+                            [azkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            { return azkBoxBorderGuard[idx] * azkBoxBorderGuard[idx]; });
 
                         totalSum2 = reduceGlobal(coreBorderSize, fieldTransform);
                     }
@@ -418,8 +433,10 @@ namespace picongpu
                         PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                             .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                                 vFieldBox,
-                                FuncWrapper{[vFieldBox, mpkBox, zkBox, alpha, omega] DEVICEONLY(DataSpace<simDim> idx)
-                                            { return vFieldBox[idx] + alpha * mpkBox[idx] + omega * zkBox[idx]; }},
+                                DeviceLambda{
+                                    [vFieldBox, mpkBox, zkBox, alpha, omega] DEVICEONLY(
+                                        DataSpace<simDim> idx) -> float_64
+                                    { return vFieldBox[idx] + alpha * mpkBox[idx] + omega * zkBox[idx]; }},
                                 coreBorderMapper);
                     }
                     // rk = rk -  omega * azk
@@ -432,8 +449,9 @@ namespace picongpu
                         PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                             .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                                 rkBox,
-                                FuncWrapper{[rkBox, azkBox, omega] DEVICEONLY(DataSpace<simDim> idx)
-                                            { return rkBox[idx] - omega * azkBox[idx]; }},
+                                DeviceLambda{
+                                    [rkBox, azkBox, omega] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return rkBox[idx] - omega * azkBox[idx]; }},
                                 coreBorderMapper);
                     }
 
@@ -446,7 +464,7 @@ namespace picongpu
                         auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [r0BoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
+                            [r0BoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
                             { return r0BoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
 
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
@@ -456,8 +474,9 @@ namespace picongpu
                         auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
                         auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
 
-                        TransformDataBox fieldTransform([rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx)
-                                                        { return rkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
+                        TransformDataBox fieldTransform(
+                            [rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            { return rkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
 
                         totalSum2 = reduceGlobal(coreBorderSize, fieldTransform);
                     }
@@ -479,11 +498,26 @@ namespace picongpu
                         PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                             .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                                 pkBox,
-                                FuncWrapper{[pkBox, rkBox, ampkBox, beta, omega] DEVICEONLY(DataSpace<simDim> idx)
-                                            { return rkBox[idx] + beta * (pkBox[idx] - omega * ampkBox[idx]); }},
+                                DeviceLambda{
+                                    [pkBox, rkBox, ampkBox, beta, omega] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return rkBox[idx] + beta * (pkBox[idx] - omega * ampkBox[idx]); }},
                                 coreBorderMapper);
                     }
                 } // for loop
+
+                {
+                    // normalize v back
+                    auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc);
+                    auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(vMapper.getGridDim(), SuperCellSize{})(
+                            vField,
+                            DeviceLambda{
+                                [vField, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return vField[idx] * normRho; }},
+                            vMapper);
+                    fieldV->fieldVBuffer->communication();
+                }
             }
         } // namespace stage
     } // namespace simulation
