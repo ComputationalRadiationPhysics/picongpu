@@ -128,9 +128,17 @@ namespace picongpu
                 azkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
                 fieldV = std::make_shared<fields::poissonSolver::FieldV>(m_mappingDesc);
 
+                yBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
+                wBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
+                zBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
+
                 auto const commTag0 = pmacc::traits::getUniqueId<uint32_t>();
                 auto const commTag1 = pmacc::traits::getUniqueId<uint32_t>();
+                auto const commTagPk = pmacc::traits::getUniqueId<uint32_t>();
+                auto const commTagRk = pmacc::traits::getUniqueId<uint32_t>();
                 auto const commTagFieldV = pmacc::traits::getUniqueId<uint32_t>();
+
+                auto const commTagY = pmacc::traits::getUniqueId<uint32_t>();
                 /*go over all directions*/
                 for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
                 {
@@ -146,7 +154,11 @@ namespace picongpu
                             guardingCells[d] = (relativeMask[d] == 0 ? 0 : 1);
                         mpkBuffer->addExchange(GUARD, i, guardingCells, commTag0);
                         zkBuffer->addExchange(GUARD, i, guardingCells, commTag1);
+                        pkBuffer->addExchange(GUARD, i, guardingCells, commTagPk);
+                        rkBuffer->addExchange(GUARD, i, guardingCells, commTagRk);
                         fieldV->fieldVBuffer->addExchange(GUARD, i, guardingCells, commTagFieldV);
+
+                        yBuffer->addExchange(GUARD, i, guardingCells, commTagY);
                     }
                 }
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -233,6 +245,150 @@ namespace picongpu
                         });
                 }
             };
+
+            void Poisson::preconditioner(
+                std::unique_ptr<GridBuffer<float_64, simDim>>& xBuffer,
+                std::unique_ptr<GridBuffer<float_64, simDim>>& bBuffer)
+            {
+                yBuffer->getDeviceBuffer().setValue(0.0);
+                wBuffer->getDeviceBuffer().setValue(0.0);
+                zBuffer->getDeviceBuffer().setValue(0.0);
+
+                SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                auto globalDomain = subGrid.getGlobalDomain().size;
+                auto cellSizeSquared = sim.pic.getCellSize<float_64>() * sim.pic.getCellSize<float_64>();
+
+                float_64 eigenMin = 0.0;
+                float_64 eigenMax = 0.0;
+
+                for(uint32_t d = 0; d < simDim; ++d)
+                {
+                    eigenMin += 4.0 * math::sin(1.0 * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
+                                * math::sin(1.0 * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
+                                / (cellSizeSquared[d]);
+
+                    eigenMax
+                        += 4.0
+                           * math::sin(globalDomain[d] * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
+                           * math::sin(globalDomain[d] * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
+                           / (cellSizeSquared[d]);
+                }
+
+                float_64 const theta = 0.5 * (eigenMax + eigenMin);
+                float_64 const delta = 0.5 * (eigenMax - eigenMin);
+                float_64 const sigma = theta / delta;
+
+                float_64 rhoOld = 1. / sigma;
+                float_64 rhoCurrent = 1. / (2. * sigma - rhoOld);
+
+                bBuffer->communication();
+
+                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc);
+
+                {
+                    auto bBox = bBuffer->getDeviceBuffer().getDataBox();
+                    auto zBox = zBuffer->getDeviceBuffer().getDataBox();
+
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                            zBox,
+                            DeviceLambda{
+                                [bBox, theta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return bBox[idx] / theta; }},
+                            coreBorderMapper);
+
+                    auto yBox = yBuffer->getDeviceBuffer().getDataBox();
+
+                    // poisson stencil
+                    PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+                        .config(
+                            coreBorderMapper.getGridDim(),
+                            SuperCellSize{})(coreBorderMapper, fields::poissonSolver::StencilFunc{}, yBox, bBox);
+
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                            yBox,
+                            DeviceLambda{
+                                [yBox, rhoCurrent, theta, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return -2.0 * rhoCurrent * yBox[idx] / theta / delta; }},
+                            coreBorderMapper);
+
+                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                            yBox,
+                            DeviceLambda{
+                                [bBox, yBox, rhoCurrent, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                { return yBox[idx] + 4.0 * bBox[idx] * rhoCurrent / delta; }},
+                            coreBorderMapper);
+                }
+
+                constexpr uint32_t iterMax = 20;
+                for(uint32_t i = 2; i < iterMax; ++i)
+                {
+                    rhoOld = rhoCurrent;
+                    rhoCurrent = 1. / (2. * sigma - rhoOld);
+                    yBuffer->communication();
+
+                    {
+                        auto yBox = yBuffer->getDeviceBuffer().getDataBox();
+                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+                            .config(
+                                coreBorderMapper.getGridDim(),
+                                SuperCellSize{})(coreBorderMapper, fields::poissonSolver::StencilFunc{}, wBox, yBox);
+                    }
+                    {
+                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                wBox,
+                                DeviceLambda{
+                                    [wBox, rhoCurrent, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return -2.0 * rhoCurrent * wBox[idx] / delta; }},
+                                coreBorderMapper);
+                    }
+
+                    {
+                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
+                        auto bBox = bBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                wBox,
+                                DeviceLambda{
+                                    [wBox, bBox, rhoCurrent, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return wBox[idx] + 2.0 * rhoCurrent * bBox[idx] / delta; }},
+                                coreBorderMapper);
+                    }
+
+                    {
+                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
+                        auto yBox = yBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                wBox,
+                                DeviceLambda{
+                                    [wBox, yBox, rhoCurrent, sigma] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return wBox[idx] + 2.0 * rhoCurrent * sigma * yBox[idx]; }},
+                                coreBorderMapper);
+                    }
+
+                    {
+                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
+                        auto zBox = zBuffer->getDeviceBuffer().getDataBox();
+                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                                wBox,
+                                DeviceLambda{
+                                    [wBox, zBox, rhoCurrent, rhoOld] DEVICEONLY(DataSpace<simDim> idx) -> float_64
+                                    { return wBox[idx] - rhoCurrent * rhoOld * zBox[idx]; }},
+                                coreBorderMapper);
+                    }
+
+                    zBuffer->getDeviceBuffer().copyFrom(yBuffer->getDeviceBuffer());
+                    yBuffer->getDeviceBuffer().copyFrom(wBuffer->getDeviceBuffer());
+                } // loop
+                xBuffer->getDeviceBuffer().copyFrom(wBuffer->getDeviceBuffer());
+            }
 
             void Poisson::operator()(uint32_t const currentStep)
             {
@@ -350,7 +506,11 @@ namespace picongpu
                 for(int i = 0; i < maxIterations; ++i)
                 {
                     // preconditioner
+#if 0
                     mpkBuffer->getDeviceBuffer().copyFrom(pkBuffer->getDeviceBuffer());
+#else
+                    preconditioner(mpkBuffer, pkBuffer);
+#endif
                     mpkBuffer->communication();
 
                     // w = Ap
@@ -397,7 +557,11 @@ namespace picongpu
                     }
 
                     // preconditioner
+#if 0
                     zkBuffer->getDeviceBuffer().copyFrom(rkBuffer->getDeviceBuffer());
+#else
+                    preconditioner(zkBuffer, rkBuffer);
+#endif
                     zkBuffer->communication();
 
                     // t = A * r
@@ -532,7 +696,7 @@ namespace picongpu
                             vField,
                             DeviceLambda{
                                 [vField, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return vField[idx] * normRho; }},
+                                { return vField[idx] * normRho / sim.pic.getEps0(); }},
                             coreBorderMapper);
                     fieldV->fieldVBuffer->communication();
 

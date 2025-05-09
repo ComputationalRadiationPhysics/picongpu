@@ -53,6 +53,9 @@ namespace picongpu::simulation::stage
         std::unique_ptr<GridBuffer<float_64, simDim>> zkBuffer;
         std::unique_ptr<GridBuffer<float_64, simDim>> azkBuffer;
 
+        std::unique_ptr<GridBuffer<float_64, simDim>> yBuffer;
+        std::unique_ptr<GridBuffer<float_64, simDim>> wBuffer;
+        std::unique_ptr<GridBuffer<float_64, simDim>> zBuffer;
 
         std::shared_ptr<fields::poissonSolver::FieldV> fieldV;
 
@@ -74,6 +77,10 @@ namespace picongpu::simulation::stage
         {
             mpiReduce.participate(status);
         }
+
+        void preconditioner(
+            std::unique_ptr<GridBuffer<float_64, simDim>>& xBuffer,
+            std::unique_ptr<GridBuffer<float_64, simDim>>& bBuffer);
 
     private:
         auto reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn);
