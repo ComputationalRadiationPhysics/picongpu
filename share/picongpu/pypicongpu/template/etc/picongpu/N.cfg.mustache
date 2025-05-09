@@ -192,6 +192,24 @@ pypicongpu_output_with_newlines="
 {{/openPMD}}
 {{/typeID.checkpoint}}
 
+{{#typeID.openpmd}}
+--openPMD.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
+{{#source}}
+{{#filter}}--openPMD.source.{{{species.name}}}.filter {{{filter}}}{{/filter}}
+{{#direction}}--openPMD.source.{{{species.name}}}.direction {{{direction}}}{{/direction}}
+{{#cutoff_max_energy}}--openPMD.source.{{{species.name}}}.cutoff_max_energy {{{cutoff_max_energy}}}{{/cutoff_max_energy}}
+{{/source}}
+{{#range}}--openPMD.range {{{range}}}{{/range}}
+{{#file}}--openPMD.file {{{file}}}{{/file}}
+{{#ext}}--openPMD.ext {{{ext}}}{{/ext}}
+{{#infix}}--openPMD.infix {{{infix}}}{{/infix}}
+{{#json}}--openPMD.json {{{json}}}{{/json}}
+{{#json_restart}}--checkpoint.openPMD.jsonRestart {{{json_restart}}}{{/json_restart}}
+{{#data_preparation_strategy}}--openPMD.dataPreparationStrategy {{{data_preparation_strategy}}}{{/data_preparation_strategy}}
+{{#toml}}--openPMD.toml {{{toml}}}{{/toml}}
+{{#particle_io_chunk_size}}--openPMD.particleIOChunkSize {{{particle_io_chunk_size}}}{{/particle_io_chunk_size}}
+{{#file_writing}}--openPMD.writeAccess {{{file_writing}}}{{/file_writing}}
+{{/typeID.openpmd}}
 
     {{/data}}
   {{/output}}

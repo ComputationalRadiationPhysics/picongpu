@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from .source_base import SourceBase
-from ...pypicongpu.output.openpmd_source import DerivedAttributes as PyPIConGPUDerivedAttributes
+from ....pypicongpu.output.openpmd_sources import DerivedAttributes as PyPIConGPUDerivedAttributes
 import typeguard
 import typing
 

@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from .source_base import SourceBase
-from ...pypicongpu.output.openpmd_source import Counter as PyPIConGPUCounter
+from ....pypicongpu.output.openpmd_sources import Counter as PyPIConGPUCounter
 from ...species import Species as PICMISpecies
 import typeguard
 import typing

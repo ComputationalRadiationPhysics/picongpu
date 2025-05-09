@@ -5,9 +5,8 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from .... import util
 from .source_base import SourceBase
-from ...pypicongpu.output.openpmd_source import Auto as PyPIConGPUAuto
+from ....pypicongpu.output.openpmd_sources import Auto as PyPIConGPUAuto
 import typeguard
 import typing
 
@@ -25,7 +24,7 @@ class Auto(SourceBase):
         Default: None (PIC code-dependent).
     """
 
-    filter = util.build_typesafe_property(typing.Optional[str])
+    # filter = util.build_typesafe_property(typing.Optional[str])
 
     def __init__(self, filter: typing.Optional[str] = None):
         self.filter = filter

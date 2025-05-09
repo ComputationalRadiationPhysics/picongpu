@@ -100,7 +100,7 @@
       "minimum": 1,
       "description": "Size of particle data chunks used in writing (in MiB)."
     },
-    "file_access": {
+    "file_writing": {
       "type": [
         "string",
         "null"

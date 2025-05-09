@@ -5,16 +5,18 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from . import util
+from .. import util
 from .timestepspec import TimeStepSpec
 from .openpmd_sources.source_base import SourceBase
+from .plugin import Plugin
+
 import typeguard
 import typing
 from typing import Optional, List, Literal, Dict, Union
 
 
 @typeguard.typechecked
-class OpenPMD:
+class OpenPMD(Plugin):
     period = util.build_typesafe_property(TimeStepSpec)
     source = util.build_typesafe_property(Optional[List[SourceBase]])
     range = util.build_typesafe_property(Optional[str])
@@ -28,7 +30,9 @@ class OpenPMD:
     )
     toml = util.build_typesafe_property(Optional[str])
     particle_io_chunk_size = util.build_typesafe_property(Optional[int])
-    file_access = util.build_typesafe_property(Optional[Literal["create", "append"]])
+    file_writing = util.build_typesafe_property(Optional[Literal["create", "append"]])
+
+    _name = "openpmd"
 
     def __init__(
         self,
@@ -43,7 +47,7 @@ class OpenPMD:
         data_preparation_strategy: Optional[Literal["doubleBuffer", "adios", "mappedMemory", "hdf5"]] = None,
         toml: Optional[str] = None,
         particle_io_chunk_size: Optional[int] = None,
-        file_access: Optional[Literal["create", "append"]] = "create",
+        file_writing: Optional[Literal["create", "append"]] = "create",
     ):
         self.period = period
         self.source = source
@@ -51,12 +55,12 @@ class OpenPMD:
         self.file = file
         self.ext = ext
         self.infix = infix
-        self.json = json if json is not None else {}
-        self.json_restart = json_restart if json_restart is not None else {}
+        self.json = None if json is None or json == {} else json
+        self.json_restart = None if json_restart is None or json_restart == {} else json_restart
         self.data_preparation_strategy = data_preparation_strategy
         self.toml = toml
         self.particle_io_chunk_size = particle_io_chunk_size
-        self.file_access = file_access
+        self.file_writing = file_writing
         self.check()
 
     def check(self) -> None:
@@ -85,5 +89,5 @@ class OpenPMD:
             "data_preparation_strategy": self.data_preparation_strategy,
             "toml": self.toml,
             "particle_io_chunk_size": self.particle_io_chunk_size,
-            "file_access": self.file_access,
+            "file_writing": self.file_writing,
         }
