@@ -130,6 +130,7 @@ namespace picongpu
 
                 auto const commTag0 = pmacc::traits::getUniqueId<uint32_t>();
                 auto const commTag1 = pmacc::traits::getUniqueId<uint32_t>();
+                auto const commTagFieldV = pmacc::traits::getUniqueId<uint32_t>();
                 /*go over all directions*/
                 for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
                 {
@@ -145,6 +146,7 @@ namespace picongpu
                             guardingCells[d] = (relativeMask[d] == 0 ? 0 : 1);
                         mpkBuffer->addExchange(GUARD, i, guardingCells, commTag0);
                         zkBuffer->addExchange(GUARD, i, guardingCells, commTag1);
+                        fieldV->fieldVBuffer->addExchange(GUARD, i, guardingCells, commTagFieldV);
                     }
                 }
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -503,7 +505,7 @@ namespace picongpu
                     if(std::sqrt(totalSum2) < epsilon)
                     {
                         std::cout << "Converged after " << i << " iterations with norm=" << normRho
-                                  << ", total sum2=" << totalSum2 << std::endl;
+                                  << ", total sum2=" << std::sqrt(totalSum2) << std::endl;
                         break;
                     }
                     // pk = rk + beta * (pk - omega * ampk)
@@ -524,15 +526,14 @@ namespace picongpu
 
                 {
                     // normalize v back
-                    auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc);
                     auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
                     PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(vMapper.getGridDim(), SuperCellSize{})(
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
                             vField,
                             DeviceLambda{
                                 [vField, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
                                 { return vField[idx] * normRho; }},
-                            vMapper);
+                            coreBorderMapper);
                     fieldV->fieldVBuffer->communication();
                 }
             }

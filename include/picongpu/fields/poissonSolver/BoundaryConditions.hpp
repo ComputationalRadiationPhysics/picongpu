@@ -56,9 +56,14 @@ namespace picongpu::fields::poissonSolver
             DataSpace<simDim> cellOffsetToTotalOrigin,
             auto const mapper) const -> void
         {
+            // including guards
             DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
+
+            DataSpace<simDim> numGuardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+
+            // no guards included
             DataSpace<simDim> superCellTotalCellOffset
-                = cellOffsetToTotalOrigin + superCellIdx * SuperCellSize::toRT();
+                = cellOffsetToTotalOrigin + superCellIdx * SuperCellSize::toRT() - numGuardCells;
 
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
@@ -69,6 +74,7 @@ namespace picongpu::fields::poissonSolver
                 {
                     /* cell index within the superCell */
                     DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
+                    // without guards
                     DataSpace<simDim> const totalCellIdx = superCellTotalCellOffset + cellIdx;
 
                     auto totalDistance = precisionCast<float_64>(totalCellIdx)

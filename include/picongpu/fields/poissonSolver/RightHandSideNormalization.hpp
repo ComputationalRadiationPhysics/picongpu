@@ -38,13 +38,11 @@ namespace picongpu::fields::poissonSolver
             DataSpace<simDim> const relExchangeDir = Mask::getRelativeDirections<simDim>(mapper.getExchangeType());
             DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
             DataSpace<simDim> superCellCellOffset = superCellIdx * SuperCellSize::toRT();
-            DataSpace<simDim> cellOffsetInDomain
-                = superCellCellOffset - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
             DataSpace<simDim> numGuardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
             DataSpace<simDim> adjustedSuperCellCellOffset = superCellCellOffset - (relExchangeDir * numGuardCells);
 
-            DataSpace<simDim> numCellsLocalDomain = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+            DataSpace<simDim> numCellsLocalDomain = mapper.getGridSuperCells() * SuperCellSize::toRT();
 
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
@@ -55,16 +53,17 @@ namespace picongpu::fields::poissonSolver
                 {
                     /* cell index within the superCell */
                     DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
-                    DataSpace<simDim> const localCellIdx = adjustedSuperCellCellOffset + cellIdx;
+
+                    DataSpace<simDim> const localCellIdx = superCellCellOffset + cellIdx;
+                    DataSpace<simDim> const dataCellIdx = adjustedSuperCellCellOffset + cellIdx;
 
                     for(uint32_t d = 0; d < simDim; ++d)
                     {
                         if(relExchangeDir[d] != 0
                            && (localCellIdx[d] == 0u || localCellIdx[d] == numCellsLocalDomain[d] - 1))
                         {
-                            fieldRhoBox(localCellIdx + numGuardCells)
-                                += fieldVBox(localCellIdx + numGuardCells + relExchangeDir)
-                                   / (sim.pic.getCellSize()[d] * sim.pic.getCellSize()[d]);
+                            fieldRhoBox(dataCellIdx) += fieldVBox(dataCellIdx + relExchangeDir)
+                                                        / (sim.pic.getCellSize()[d] * sim.pic.getCellSize()[d]);
                         }
                     }
                 });
