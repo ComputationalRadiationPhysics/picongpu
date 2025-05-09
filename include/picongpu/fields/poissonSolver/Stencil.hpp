@@ -58,6 +58,39 @@ namespace picongpu::fields::poissonSolver
         }
     };
 
+    struct GetFieldEStencil
+    {
+        HDINLINE auto operator()(auto fieldIn) const
+        {
+            constexpr auto cellSize = sim.pic.getCellSize().shrink<simDim>();
+
+            float3_X eValue;
+            if constexpr(simDim == 3u)
+            {
+                constexpr DataSpace<3u> xDir(1, 0, 0);
+                constexpr DataSpace<3u> yDir(0, 1, 0);
+                constexpr DataSpace<3u> zDir(0, 0, 1);
+
+                eValue.x() = (*fieldIn - fieldIn(xDir)) / cellSize.x();
+                eValue.y() = (*fieldIn - fieldIn(yDir)) / cellSize.y();
+                eValue.z() = (*fieldIn - fieldIn(zDir)) / cellSize.z();
+
+                return eValue;
+            }
+            else if constexpr(simDim == 2u)
+            {
+                constexpr DataSpace<3u> xDir(1, 0, 0);
+                constexpr DataSpace<3u> yDir(0, 1, 0);
+
+                eValue.x() = (*fieldIn - fieldIn(xDir)) / cellSize.x();
+                eValue.y() = (*fieldIn - fieldIn(yDir)) / cellSize.y();
+                eValue.z() = 0.0_X;
+
+                return eValue;
+            }
+        }
+    };
+
     struct Stencil
     {
         DINLINE auto operator()(

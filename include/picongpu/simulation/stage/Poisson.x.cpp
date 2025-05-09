@@ -535,6 +535,18 @@ namespace picongpu
                                 { return vField[idx] * normRho; }},
                             coreBorderMapper);
                     fieldV->fieldVBuffer->communication();
+
+                    // compute fieldE
+                    auto& eField = *dc.get<FieldE>(FieldE::getName());
+                    auto fieldEBox = eField.getDeviceDataBox();
+                    PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
+                            coreBorderMapper,
+                            fields::poissonSolver::GetFieldEStencil{},
+                            fieldEBox,
+                            vField);
+                    eField.asyncCommunication(eventSystem::getTransactionEvent());
+                    eventSystem::getTransactionEvent().waitForFinished();
                 }
             }
         } // namespace stage
