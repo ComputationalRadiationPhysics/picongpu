@@ -5,8 +5,8 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from .... import util
-from ....species import Species
+from ... import util
+from ...species import Species
 from .source_base import SourceBase
 import typeguard
 import typing

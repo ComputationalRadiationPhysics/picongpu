@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from .source_base import SourceBase
-from ...pypicongpu.output.openpmd_source import MomentumDensity as PyPIConGPUMomentumDensity
+from ....pypicongpu.output.openpmd_sources import MomentumDensity as PyPIConGPUMomentumDensity
 from ...species import Species as PICMISpecies
 import typeguard
 import typing

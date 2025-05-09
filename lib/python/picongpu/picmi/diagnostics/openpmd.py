@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from ...pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
-from ...pypicongpu.output import Source as PyPIConGPUSource
+from ...pypicongpu.output.openpmd_sources.source_base import SourceBase as PyPIConGPUSource
 from .timestepspec import TimeStepSpec
 
 from .openpmd_sources.source_base import SourceBase
@@ -37,7 +37,7 @@ class OpenPMD:
     @param data_preparation_strategy strategy for particle data preparation, options: "doubleBuffer" or "adios" (ADIOS2-based), "mappedMemory" or "hdf5" (HDF5-based), the default value None indicates the PIC code default
     @param toml path to a TOML file for openPMD configuration. Replaces the JSON or keyword configuration.
     @param particle_io_chunk_size size of particle data chunks used in writing (in MiB), reduces host memory footprint for certain backends, default "None" indicates the PIC code default.
-    @param file_access file access mode for writing, options: "create" (new files), "append" (for checkpoint-restart workflows).
+    @param file_writing file writing mode for writing, options: "create" (new files), "append" (for checkpoint-restart workflows).
     """
 
     def check(self):
@@ -66,7 +66,7 @@ class OpenPMD:
         data_preparation_strategy: Optional[Literal["doubleBuffer", "adios", "mappedMemory", "hdf5"]] = None,
         toml: Optional[str] = None,
         particle_io_chunk_size: Optional[int] = None,
-        file_access: Optional[Literal["create", "append"]] = "create",
+        file_writing: Optional[Literal["create", "append"]] = "create",
     ):
         self.period = period
         self.source = source
@@ -79,7 +79,7 @@ class OpenPMD:
         self.data_preparation_strategy = data_preparation_strategy
         self.toml = toml
         self.particle_io_chunk_size = particle_io_chunk_size
-        self.file_access = file_access
+        self.file_writing = file_writing
 
         self.check()
 
@@ -103,6 +103,6 @@ class OpenPMD:
             data_preparation_strategy=self.data_preparation_strategy,
             toml=self.toml,
             particle_io_chunk_size=self.particle_io_chunk_size,
-            file_access=self.file_access,
+            file_writing=self.file_writing,
         )
         return pypicongpu_openpmd

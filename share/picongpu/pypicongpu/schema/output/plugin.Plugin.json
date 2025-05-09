@@ -53,10 +53,10 @@
       "description": "configuration data of plugin",
       "anyOf": [
         {
-          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.phase_space.PhaseSpace"
+          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.auto.Auto"
         },
         {
-          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.auto.Auto"
+          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.phase_space.PhaseSpace"
         },
         {
           "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.energy_histogram.EnergyHistogram"
