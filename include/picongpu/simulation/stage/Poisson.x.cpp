@@ -43,6 +43,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <tuple>
 
 #include <picongpu/param/particle.param>
 
@@ -263,8 +264,12 @@ namespace picongpu
 
             struct ForEachKernel
             {
-                DINLINE auto operator()(auto const& worker, auto fieldOut, auto const func, auto const mapper) const
-                    -> void
+                DINLINE auto operator()(
+                    auto const& worker,
+                    auto const& mapper,
+                    auto const& func,
+                    auto outBox,
+                    auto... boxes) const -> void
                 {
                     DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
                     DataSpace<simDim> superCellCellOffset = superCellIdx * SuperCellSize::toRT();
@@ -279,10 +284,20 @@ namespace picongpu
                             DataSpace<simDim> const cellIdx
                                 = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
                             DataSpace<simDim> const dataCellOffset = superCellCellOffset + cellIdx;
-                            fieldOut[dataCellOffset] = func(dataCellOffset);
+                            outBox[dataCellOffset] = func(outBox[dataCellOffset], boxes[dataCellOffset]...);
                         });
                 }
             };
+
+            inline void forEachCell(auto mapper, auto const& functor, auto& outBuffer, auto&... buffers)
+            {
+                PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
+                    .config(mapper.getGridDim(), SuperCellSize{})(
+                        mapper,
+                        DeviceLambda{functor},
+                        outBuffer.getDataBox(),
+                        buffers.getDataBox()...);
+            }
 
             void Poisson::preconditioner(
                 std::unique_ptr<GridBuffer<float_64, simDim>>& xBuffer,
@@ -323,42 +338,33 @@ namespace picongpu
 
                 auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
 
-                {
-                    auto bBox = bBuffer->getDeviceBuffer().getDataBox();
-                    auto zBox = zBuffer->getDeviceBuffer().getDataBox();
+                namespace poi = fields::poissonSolver;
 
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            zBox,
-                            DeviceLambda{
-                                [bBox, theta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return bBox[idx] / theta; }},
-                            coreBorderMapper);
+                forEachCell(
+                    coreBorderMapper,
+                    [theta] DEVICEONLY(auto, auto const bValue) -> float_64 { return bValue / theta; },
+                    zBuffer->getDeviceBuffer(),
+                    bBuffer->getDeviceBuffer());
 
-                    auto yBox = yBuffer->getDeviceBuffer().getDataBox();
+                poi::stencil(
+                    coreBorderMapper,
+                    poi::StencilFunc{},
+                    yBuffer->getDeviceBuffer(),
+                    bBuffer->getDeviceBuffer());
 
-                    // poisson stencil
-                    PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
-                        .config(
-                            coreBorderMapper.getGridDim(),
-                            SuperCellSize{})(coreBorderMapper, fields::poissonSolver::StencilFunc{}, yBox, bBox);
+                forEachCell(
+                    coreBorderMapper,
+                    [rhoCurrent, theta, delta] DEVICEONLY(auto const yValue) -> float_64
+                    { return -2.0 * rhoCurrent * yValue / theta / delta; },
+                    yBuffer->getDeviceBuffer());
 
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            yBox,
-                            DeviceLambda{
-                                [yBox, rhoCurrent, theta, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return -2.0 * rhoCurrent * yBox[idx] / theta / delta; }},
-                            coreBorderMapper);
+                forEachCell(
+                    coreBorderMapper,
+                    [rhoCurrent, delta] DEVICEONLY(auto const yValue, auto const bValue) -> float_64
+                    { return yValue + 4.0 * bValue * rhoCurrent / delta; },
+                    yBuffer->getDeviceBuffer(),
+                    bBuffer->getDeviceBuffer());
 
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            yBox,
-                            DeviceLambda{
-                                [bBox, yBox, rhoCurrent, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return yBox[idx] + 4.0 * bBox[idx] * rhoCurrent / delta; }},
-                            coreBorderMapper);
-                }
 
                 uint32_t iterMax = m_maxPreconditionerSteps;
                 for(uint32_t i = 2; i < iterMax; ++i)
@@ -367,60 +373,38 @@ namespace picongpu
                     rhoCurrent = 1. / (2. * sigma - rhoOld);
                     yBuffer->communication();
 
-                    {
-                        auto yBox = yBuffer->getDeviceBuffer().getDataBox();
-                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
-                            .config(
-                                coreBorderMapper.getGridDim(),
-                                SuperCellSize{})(coreBorderMapper, fields::poissonSolver::StencilFunc{}, wBox, yBox);
-                    }
-                    {
-                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                wBox,
-                                DeviceLambda{
-                                    [wBox, rhoCurrent, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return -2.0 * rhoCurrent * wBox[idx] / delta; }},
-                                coreBorderMapper);
-                    }
+                    poi::stencil(
+                        coreBorderMapper,
+                        poi::StencilFunc{},
+                        wBuffer->getDeviceBuffer(),
+                        yBuffer->getDeviceBuffer());
 
-                    {
-                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
-                        auto bBox = bBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                wBox,
-                                DeviceLambda{
-                                    [wBox, bBox, rhoCurrent, delta] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return wBox[idx] + 2.0 * rhoCurrent * bBox[idx] / delta; }},
-                                coreBorderMapper);
-                    }
+                    forEachCell(
+                        coreBorderMapper,
+                        [rhoCurrent, delta] DEVICEONLY(auto const wValue) -> float_64
+                        { return -2.0 * rhoCurrent * wValue / delta; },
+                        wBuffer->getDeviceBuffer());
 
-                    {
-                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
-                        auto yBox = yBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                wBox,
-                                DeviceLambda{
-                                    [wBox, yBox, rhoCurrent, sigma] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return wBox[idx] + 2.0 * rhoCurrent * sigma * yBox[idx]; }},
-                                coreBorderMapper);
-                    }
+                    forEachCell(
+                        coreBorderMapper,
+                        [rhoCurrent, delta] DEVICEONLY(auto const wValue, auto const bValue) -> float_64
+                        { return wValue + 2.0 * rhoCurrent * bValue / delta; },
+                        wBuffer->getDeviceBuffer(),
+                        bBuffer->getDeviceBuffer());
 
-                    {
-                        auto wBox = wBuffer->getDeviceBuffer().getDataBox();
-                        auto zBox = zBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                wBox,
-                                DeviceLambda{
-                                    [wBox, zBox, rhoCurrent, rhoOld] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return wBox[idx] - rhoCurrent * rhoOld * zBox[idx]; }},
-                                coreBorderMapper);
-                    }
+                    forEachCell(
+                        coreBorderMapper,
+                        [rhoCurrent, sigma] DEVICEONLY(auto const wValue, auto const yValue) -> float_64
+                        { return wValue + 2.0 * rhoCurrent * sigma * yValue; },
+                        wBuffer->getDeviceBuffer(),
+                        yBuffer->getDeviceBuffer());
+
+                    forEachCell(
+                        coreBorderMapper,
+                        [rhoCurrent, rhoOld] DEVICEONLY(auto const wValue, auto const zValue) -> float_64
+                        { return wValue - rhoCurrent * rhoOld * zValue; },
+                        wBuffer->getDeviceBuffer(),
+                        zBuffer->getDeviceBuffer());
 
                     zBuffer->getDeviceBuffer().copyFrom(yBuffer->getDeviceBuffer());
                     yBuffer->getDeviceBuffer().copyFrom(wBuffer->getDeviceBuffer());
@@ -430,6 +414,7 @@ namespace picongpu
 
             void Poisson::operator()(uint32_t const currentStep)
             {
+                namespace poi = fields::poissonSolver;
                 log<picLog::PHYSICS>("Poisson solver:");
                 if(!m_useSolver)
                 {
@@ -462,10 +447,10 @@ namespace picongpu
                 EventTask fieldTmpEvent = fieldRho.asyncCommunication(eventSystem::getTransactionEvent());
                 eventSystem::setTransactionEvent(fieldTmpEvent);
 
-                auto boundaryConditionsDirichlet = fields::poissonSolver::BoundaryConditionsDirichlet{};
+                auto boundaryConditionsDirichlet = poi::BoundaryConditionsDirichlet{};
                 boundaryConditionsDirichlet(*fieldV.get(), m_mappingDesc.value());
 
-                auto rightHandSideNormalization = fields::poissonSolver::RightHandSideNormalization{};
+                auto rightHandSideNormalization = poi::RightHandSideNormalization{};
                 rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc.value());
 
 
@@ -484,51 +469,34 @@ namespace picongpu
                 /* add results of all species that are still in GUARD to next GPUs BORDER */
                 eventSystem::setTransactionEvent(fieldRho.asyncCommunication(eventSystem::getTransactionEvent()));
 
-                // normalize rho
                 auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
-                {
-                    auto rhoBox = fieldRho.getDeviceDataBox();
 
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            rhoBox,
-                            DeviceLambda{
-                                [rhoBox, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return rhoBox[idx].x() / normRho; }},
-                            coreBorderMapper);
-                }
+                // normalize rho
+                forEachCell(
+                    coreBorderMapper,
+                    [normRho] DEVICEONLY(auto rhoValue) -> float_64 { return rhoValue.x() / normRho; },
+                    fieldRho.getGridBuffer().getDeviceBuffer());
 
-                {
-                    // normalize v
-                    auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc.value());
-                    auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(vMapper.getGridDim(), SuperCellSize{})(
-                            vField,
-                            DeviceLambda{
-                                [vField, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return vField[idx] / normRho; }},
-                            vMapper);
-                }
+                auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc.value());
 
-                {
-                    auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
-                    auto r0Box = r0Buffer->getDeviceBuffer().getDataBox();
-                    PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
-                        .config(
-                            coreBorderMapper.getGridDim(),
-                            SuperCellSize{})(coreBorderMapper, fields::poissonSolver::StencilFunc{}, r0Box, vField);
+                // normalize v
+                forEachCell(
+                    vMapper,
+                    [normRho] DEVICEONLY(auto const vValue) -> float_64 { return vValue / normRho; },
+                    fieldV->fieldVBuffer->getDeviceBuffer());
 
+                poi::stencil(
+                    coreBorderMapper,
+                    poi::StencilFunc{},
+                    r0Buffer->getDeviceBuffer(),
+                    fieldV->fieldVBuffer->getDeviceBuffer());
 
-                    auto rhoBox = fieldRho.getDeviceDataBox();
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            r0Box,
-                            DeviceLambda{
-                                [r0Box, rhoBox] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return rhoBox[idx].x() - r0Box[idx]; }},
-                            coreBorderMapper);
-                }
+                forEachCell(
+                    coreBorderMapper,
+                    [] DEVICEONLY(auto const r0Value, auto const rhoValue) -> float_64
+                    { return rhoValue.x() - r0Value; },
+                    r0Buffer->getDeviceBuffer(),
+                    fieldRho.getGridBuffer().getDeviceBuffer());
 
                 pkBuffer->getDeviceBuffer().copyFrom(r0Buffer->getDeviceBuffer());
                 rkBuffer->getDeviceBuffer().copyFrom(r0Buffer->getDeviceBuffer());
@@ -562,16 +530,11 @@ namespace picongpu
                     mpkBuffer->communication();
 
                     // w = Ap
-                    {
-                        auto mpkBox = mpkBuffer->getDeviceBuffer().getDataBox();
-                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                coreBorderMapper,
-                                fields::poissonSolver::StencilFunc{},
-                                ampkBox,
-                                mpkBox);
-                    }
+                    poi::stencil(
+                        coreBorderMapper,
+                        poi::StencilFunc{},
+                        ampkBuffer->getDeviceBuffer(),
+                        mpkBuffer->getDeviceBuffer());
 
                     float_64 totalSum1;
                     /* local p = rw */
@@ -590,19 +553,12 @@ namespace picongpu
                     }
                     float_64 alpha = rho0 / totalSum1;
                     // r = r - alpha * w
-                    {
-                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
-                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
-
-                        auto rhoBox = fieldRho.getDeviceDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                rkBox,
-                                DeviceLambda{
-                                    [rkBox, ampkBox, alpha] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return rkBox[idx] - alpha * ampkBox[idx]; }},
-                                coreBorderMapper);
-                    }
+                    forEachCell(
+                        coreBorderMapper,
+                        [alpha] DEVICEONLY(auto const rkValue, auto const ampkValue) -> float_64
+                        { return rkValue - alpha * ampkValue; },
+                        rkBuffer->getDeviceBuffer(),
+                        ampkBuffer->getDeviceBuffer());
 
                     // preconditioner
                     if(m_disablePreconditioner)
@@ -613,16 +569,11 @@ namespace picongpu
                     zkBuffer->communication();
 
                     // t = A * r
-                    {
-                        auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
-                        auto zkBox = zkBuffer->getDeviceBuffer().getDataBox();
-                        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                coreBorderMapper,
-                                fields::poissonSolver::StencilFunc{},
-                                azkBox,
-                                zkBox);
-                    }
+                    poi::stencil(
+                        coreBorderMapper,
+                        poi::StencilFunc{},
+                        azkBuffer->getDeviceBuffer(),
+                        zkBuffer->getDeviceBuffer());
 
                     /* totalSum1 = azk * rk */
                     {
@@ -653,37 +604,24 @@ namespace picongpu
                     }
 
                     float_64 omega = totalSum1 / totalSum2;
+
                     // v = v + alpha * mpk + omega * zk
-                    {
-                        auto vFieldBox = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
-                        auto mpkBox = mpkBuffer->getDeviceBuffer().getDataBox();
-                        auto zkBox = zkBuffer->getDeviceBuffer().getDataBox();
+                    forEachCell(
+                        coreBorderMapper,
+                        [alpha,
+                         omega] DEVICEONLY(auto const vValue, auto const mpkValue, auto const zkValue) -> float_64
+                        { return vValue + alpha * mpkValue + omega * zkValue; },
+                        fieldV->fieldVBuffer->getDeviceBuffer(),
+                        mpkBuffer->getDeviceBuffer(),
+                        zkBuffer->getDeviceBuffer());
 
-                        auto rhoBox = fieldRho.getDeviceDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                vFieldBox,
-                                DeviceLambda{
-                                    [vFieldBox, mpkBox, zkBox, alpha, omega] DEVICEONLY(
-                                        DataSpace<simDim> idx) -> float_64
-                                    { return vFieldBox[idx] + alpha * mpkBox[idx] + omega * zkBox[idx]; }},
-                                coreBorderMapper);
-                    }
                     // rk = rk -  omega * azk
-                    {
-                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
-                        auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
-
-
-                        auto rhoBox = fieldRho.getDeviceDataBox();
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                rkBox,
-                                DeviceLambda{
-                                    [rkBox, azkBox, omega] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return rkBox[idx] - omega * azkBox[idx]; }},
-                                coreBorderMapper);
-                    }
+                    forEachCell(
+                        coreBorderMapper,
+                        [omega] DEVICEONLY(auto const rkValue, auto const azkValue) -> float_64
+                        { return rkValue - omega * azkValue; },
+                        rkBuffer->getDeviceBuffer(),
+                        azkBuffer->getDeviceBuffer());
 
                     /* totalSum1 = r0 * rk */
                     {
@@ -722,44 +660,37 @@ namespace picongpu
                         break;
                     }
                     // pk = rk + beta * (pk - omega * ampk)
-                    {
-                        auto pkBox = pkBuffer->getDeviceBuffer().getDataBox();
-                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
-                        auto ampkBox = ampkBuffer->getDeviceBuffer().getDataBox();
+                    forEachCell(
+                        coreBorderMapper,
+                        [beta,
+                         omega] DEVICEONLY(auto const pkValue, auto const rkValue, auto const ampkValue) -> float_64
+                        { return rkValue + beta * (pkValue - omega * ampkValue); },
+                        pkBuffer->getDeviceBuffer(),
+                        rkBuffer->getDeviceBuffer(),
+                        ampkBuffer->getDeviceBuffer());
 
-                        PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                            .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                                pkBox,
-                                DeviceLambda{
-                                    [pkBox, rkBox, ampkBox, beta, omega] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                    { return rkBox[idx] + beta * (pkBox[idx] - omega * ampkBox[idx]); }},
-                                coreBorderMapper);
-                    }
                 } // for loop
 
                 if(foundSolution)
                 {
                     // normalize v back
-                    auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
-                    PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            vField,
-                            DeviceLambda{
-                                [vField, normRho] DEVICEONLY(DataSpace<simDim> idx) -> float_64
-                                { return vField[idx] * normRho / sim.pic.getEps0(); }},
-                            coreBorderMapper);
+                    forEachCell(
+                        coreBorderMapper,
+                        [normRho] DEVICEONLY(auto const vValue) -> float_64
+                        { return vValue * normRho / sim.pic.getEps0(); },
+                        fieldV->fieldVBuffer->getDeviceBuffer());
                     fieldV->fieldVBuffer->communication();
 
                     // compute fieldE
                     auto& eField = *dc.get<FieldE>(FieldE::getName());
-                    auto fieldEBox = eField.getDeviceDataBox();
-                    PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
-                        .config(coreBorderMapper.getGridDim(), SuperCellSize{})(
-                            coreBorderMapper,
-                            fields::poissonSolver::GetFieldEStencil{},
-                            fieldEBox,
-                            vField);
+
+                    poi::stencil(
+                        coreBorderMapper,
+                        poi::GetFieldEStencil{},
+                        eField.getGridBuffer().getDeviceBuffer(),
+                        fieldV->fieldVBuffer->getDeviceBuffer());
                     eField.asyncCommunication(eventSystem::getTransactionEvent());
+
                     eventSystem::getTransactionEvent().waitForFinished();
                 }
                 auto endT = std::chrono::high_resolution_clock::now();

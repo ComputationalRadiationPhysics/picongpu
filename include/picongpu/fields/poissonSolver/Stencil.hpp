@@ -135,4 +135,13 @@ namespace picongpu::fields::poissonSolver
                 });
         }
     };
+
+    inline void stencil(auto mapper, auto const& functor, auto& outBuffer, auto& inBuffer)
+    {
+        // poisson stencil
+        PMACC_LOCKSTEP_KERNEL(fields::poissonSolver::Stencil{})
+            .config(
+                mapper.getGridDim(),
+                SuperCellSize{})(mapper, functor, outBuffer.getDataBox(), inBuffer.getDataBox());
+    }
 } // namespace picongpu::fields::poissonSolver
