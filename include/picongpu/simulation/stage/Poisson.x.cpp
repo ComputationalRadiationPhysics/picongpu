@@ -116,56 +116,93 @@ namespace picongpu
             using SpeciesEligibleForChargeConservation = typename particles::traits::
                 SpeciesEligibleForSolver<T, deriveField::derivedAttributes::ChargeDensity>::type;
 
-            Poisson::Poisson(MappingDesc const mappingDesc)
-                : m_mappingDesc(mappingDesc)
-                , localReduce{std::make_unique<pmacc::device::Reduce>(1024)}
+            Poisson::Poisson() : localReduce{std::make_unique<pmacc::device::Reduce>(1024)}
             {
-                pkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                rkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                r0Buffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                mpkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                ampkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                zkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                azkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                fieldV = std::make_shared<fields::poissonSolver::FieldV>(m_mappingDesc);
+            }
 
-                yBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                wBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
-                zBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc.getGridLayout());
+            void Poisson::registerHelp(po::options_description& desc)
+            {
+                namespace po = boost::program_options;
+                po::options_description solverDesc("Poisson solver:");
 
-                auto const commTag0 = pmacc::traits::getUniqueId<uint32_t>();
-                auto const commTag1 = pmacc::traits::getUniqueId<uint32_t>();
-                auto const commTagPk = pmacc::traits::getUniqueId<uint32_t>();
-                auto const commTagRk = pmacc::traits::getUniqueId<uint32_t>();
-                auto const commTagFieldV = pmacc::traits::getUniqueId<uint32_t>();
+                solverDesc.add_options()(
+                    "poisson.activate",
+                    po::value<bool>(&m_useSolver)->zero_tokens(),
+                    "enable poisson solver");
+                solverDesc.add_options()(
+                    "poisson.maxSteps",
+                    po::value<uint32_t>(&m_maxSolverSteps)->default_value(2000),
+                    "maximum number of steps for the preconditioner");
+                solverDesc.add_options()(
+                    "poisson.epsilon",
+                    po::value<float_64>(&m_solverEpsilon)->default_value(1.0e-8),
+                    "maximal allowed error of the poisson solver");
+                // preconitioner
+                solverDesc.add_options()(
+                    "poisson.preconditioner.disable",
+                    po::value<bool>(&m_disablePreconditioner)->zero_tokens(),
+                    "disable poisson solver preconditioner");
+                solverDesc.add_options()(
+                    "poisson.preconditioner.maxSteps",
+                    po::value<uint32_t>(&m_maxPreconditionerSteps)->default_value(20),
+                    "maximum number of steps for the preconditioner");
+                desc.add(solverDesc);
+            }
 
-                auto const commTagY = pmacc::traits::getUniqueId<uint32_t>();
-                /*go over all directions*/
-                for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+            void Poisson::init(MappingDesc const mappingDesc)
+            {
+                m_mappingDesc = std::make_optional<MappingDesc>(mappingDesc);
+
+                if(m_useSolver)
                 {
-                    if(FRONT % i == 0)
+                    pkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    rkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    r0Buffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    mpkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    ampkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    zkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    azkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    fieldV = std::make_shared<fields::poissonSolver::FieldV>(m_mappingDesc.value());
+
+                    yBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    wBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+                    zBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
+
+                    auto const commTag0 = pmacc::traits::getUniqueId<uint32_t>();
+                    auto const commTag1 = pmacc::traits::getUniqueId<uint32_t>();
+                    auto const commTagPk = pmacc::traits::getUniqueId<uint32_t>();
+                    auto const commTagRk = pmacc::traits::getUniqueId<uint32_t>();
+                    auto const commTagFieldV = pmacc::traits::getUniqueId<uint32_t>();
+
+                    auto const commTagY = pmacc::traits::getUniqueId<uint32_t>();
+                    /*go over all directions*/
+                    for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
                     {
-                        DataSpace<simDim> relativeMask = Mask::getRelativeDirections<simDim>(i);
-                        /* guarding cells depend on direction
-                         * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
-                         * don't switch end and origin because this is a read buffer and no send buffer
-                         */
-                        auto guardingCells = DataSpace<simDim>::create(0);
-                        for(uint32_t d = 0; d < simDim; ++d)
-                            guardingCells[d] = (relativeMask[d] == 0 ? 0 : 1);
-                        mpkBuffer->addExchange(GUARD, i, guardingCells, commTag0);
-                        zkBuffer->addExchange(GUARD, i, guardingCells, commTag1);
-                        pkBuffer->addExchange(GUARD, i, guardingCells, commTagPk);
-                        rkBuffer->addExchange(GUARD, i, guardingCells, commTagRk);
-                        fieldV->fieldVBuffer->addExchange(GUARD, i, guardingCells, commTagFieldV);
+                        // set communication only for planes
+                        if(FRONT % i == 0)
+                        {
+                            DataSpace<simDim> relativeMask = Mask::getRelativeDirections<simDim>(i);
+                            /* guarding cells depend on direction
+                             * for negative direction use originGuard else endGuard (relative direction ZERO is
+                             * ignored) don't switch end and origin because this is a read buffer and no send buffer
+                             */
+                            auto guardingCells = DataSpace<simDim>::create(0);
+                            for(uint32_t d = 0; d < simDim; ++d)
+                                guardingCells[d] = (relativeMask[d] == 0 ? 0 : 1);
+                            mpkBuffer->addExchange(GUARD, i, guardingCells, commTag0);
+                            zkBuffer->addExchange(GUARD, i, guardingCells, commTag1);
+                            pkBuffer->addExchange(GUARD, i, guardingCells, commTagPk);
+                            rkBuffer->addExchange(GUARD, i, guardingCells, commTagRk);
+                            fieldV->fieldVBuffer->addExchange(GUARD, i, guardingCells, commTagFieldV);
 
-                        yBuffer->addExchange(GUARD, i, guardingCells, commTagY);
+                            yBuffer->addExchange(GUARD, i, guardingCells, commTagY);
+                        }
                     }
-                }
-                DataConnector& dc = Environment<>::get().DataConnector();
-                dc.share(fieldV);
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    dc.share(fieldV);
 
-                participate(true);
+                    participate(true);
+                }
             }
 
             template<typename T_TranformFunctor>
@@ -284,7 +321,7 @@ namespace picongpu
 
                 bBuffer->communication();
 
-                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc);
+                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
 
                 {
                     auto bBox = bBuffer->getDeviceBuffer().getDataBox();
@@ -323,7 +360,7 @@ namespace picongpu
                             coreBorderMapper);
                 }
 
-                constexpr uint32_t iterMax = 20;
+                uint32_t iterMax = m_maxPreconditionerSteps;
                 for(uint32_t i = 2; i < iterMax; ++i)
                 {
                     rhoOld = rhoCurrent;
@@ -393,6 +430,12 @@ namespace picongpu
 
             void Poisson::operator()(uint32_t const currentStep)
             {
+                log<picLog::PHYSICS>("Poisson solver:");
+                if(!m_useSolver)
+                {
+                    log<picLog::PHYSICS>("  - disabled");
+                    return;
+                }
                 eventSystem::getTransactionEvent().waitForFinished();
                 auto beginT = std::chrono::high_resolution_clock::now();
 
@@ -420,10 +463,10 @@ namespace picongpu
                 eventSystem::setTransactionEvent(fieldTmpEvent);
 
                 auto boundaryConditionsDirichlet = fields::poissonSolver::BoundaryConditionsDirichlet{};
-                boundaryConditionsDirichlet(*fieldV.get(), m_mappingDesc);
+                boundaryConditionsDirichlet(*fieldV.get(), m_mappingDesc.value());
 
                 auto rightHandSideNormalization = fields::poissonSolver::RightHandSideNormalization{};
-                rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc);
+                rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc.value());
 
 
                 float_64 normRho;
@@ -442,7 +485,7 @@ namespace picongpu
                 eventSystem::setTransactionEvent(fieldRho.asyncCommunication(eventSystem::getTransactionEvent()));
 
                 // normalize rho
-                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc);
+                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
                 {
                     auto rhoBox = fieldRho.getDeviceDataBox();
 
@@ -457,7 +500,7 @@ namespace picongpu
 
                 {
                     // normalize v
-                    auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc);
+                    auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc.value());
                     auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
                     PMACC_LOCKSTEP_KERNEL(ForEachKernel{})
                         .config(vMapper.getGridDim(), SuperCellSize{})(
@@ -505,18 +548,17 @@ namespace picongpu
 
                 float_64 rho1 = rho0;
 
-                constexpr int maxIterations = 2000;
-                constexpr float_64 epsilon = 1e-8;
+                int maxIterations = m_maxSolverSteps;
 
                 bool foundSolution = false;
                 for(int i = 0; i < maxIterations; ++i)
                 {
                     // preconditioner
-#if 0
-                    mpkBuffer->getDeviceBuffer().copyFrom(pkBuffer->getDeviceBuffer());
-#else
-                    preconditioner(mpkBuffer, pkBuffer);
-#endif
+                    if(m_disablePreconditioner)
+                        mpkBuffer->getDeviceBuffer().copyFrom(pkBuffer->getDeviceBuffer());
+                    else
+                        preconditioner(mpkBuffer, pkBuffer);
+
                     mpkBuffer->communication();
 
                     // w = Ap
@@ -563,11 +605,11 @@ namespace picongpu
                     }
 
                     // preconditioner
-#if 0
-                    zkBuffer->getDeviceBuffer().copyFrom(rkBuffer->getDeviceBuffer());
-#else
-                    preconditioner(zkBuffer, rkBuffer);
-#endif
+                    if(m_disablePreconditioner)
+                        zkBuffer->getDeviceBuffer().copyFrom(rkBuffer->getDeviceBuffer());
+                    else
+                        preconditioner(zkBuffer, rkBuffer);
+
                     zkBuffer->communication();
 
                     // t = A * r
@@ -672,11 +714,11 @@ namespace picongpu
                     rho1 = totalSum1;
                     float_64 beta = rho1 / rho0 * alpha / omega;
                     rho0 = rho1;
-                    if(std::sqrt(totalSum2) < epsilon)
+                    if(std::sqrt(totalSum2) < m_solverEpsilon)
                     {
                         foundSolution = true;
-                        std::cout << "Converged after " << i << " iterations with norm=" << normRho
-                                  << ", total sum2=" << std::sqrt(totalSum2) << std::endl;
+                        log<picLog::PHYSICS>("  - converged after %1%/%2% iterations with norm=%3%, total epsilon=%4%")
+                            % i % maxIterations % normRho % std::sqrt(totalSum2);
                         break;
                     }
                     // pk = rk + beta * (pk - omega * ampk)
@@ -722,13 +764,12 @@ namespace picongpu
                 }
                 auto endT = std::chrono::high_resolution_clock::now();
                 double duration = std::chrono::duration<double>(endT - beginT).count();
-                std::cout << "Time for poisson solver: " << duration << " seconds" << std::endl;
+                log<picLog::PHYSICS>("  - duration %1% sec") % duration;
 
                 if(!foundSolution)
                 {
-                    std::cout << "Poisson solver did not converge after " << maxIterations
-                              << " iterations with norm=" << normRho << ", total sum2=" << std::sqrt(rho1)
-                              << std::endl;
+                    log<picLog::PHYSICS>("  - did not converge after %1% iterations with norm=%2%, total epsilon=%3%")
+                        % maxIterations % normRho % std::sqrt(rho1);
                     throw std::runtime_error("Poisson solver did not converge after max iterations");
                 }
             }

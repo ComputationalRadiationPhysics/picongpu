@@ -154,6 +154,9 @@ namespace picongpu
             fieldBackground.registerHelp(desc);
             particleBoundaries.registerHelp(desc);
             runtimeDensityFile.registerHelp(desc);
+
+            poissonSolver = std::make_shared<simulation::stage::Poisson>();
+            poissonSolver->registerHelp(desc);
         }
 
         virtual void startSimulation() override
@@ -334,8 +337,6 @@ namespace picongpu
 
             synchrotronRadiation = std::make_shared<simulation::stage::SynchrotronRadiation>(*cellDescription);
 
-            poissonSolver = std::make_shared<simulation::stage::Poisson>(*cellDescription);
-
             initFields(dc);
 
             myFieldSolver = std::make_shared<fields::Solver>(*cellDescription);
@@ -350,6 +351,9 @@ namespace picongpu
 
             // initialize runtime density file paths
             runtimeDensityFile.init();
+
+            // create memory for poisson solver
+            poissonSolver->init(*cellDescription);
 
             // create factory for the random number generator
             uint32_t const userSeed = random::seed::ISeed<random::SeedGenerator>{}();
@@ -492,8 +496,8 @@ namespace picongpu
                 {
                     initialiserController->init();
                     simulation::stage::ParticleInit{}(step);
-                    (*poissonSolver)(step);
                     (*atomicPhysics).fixAtomicStateInit(*cellDescription);
+                    (*poissonSolver)(step);
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);
                 }

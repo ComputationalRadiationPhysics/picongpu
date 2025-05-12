@@ -38,6 +38,8 @@
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
 
+#include <boost/program_options.hpp>
+
 #include <cstdint>
 
 namespace picongpu::simulation::stage
@@ -45,6 +47,31 @@ namespace picongpu::simulation::stage
     //! Functor for the stage of the PIC loop performing charge deposition
     struct Poisson
     {
+        Poisson();
+
+        void init(picongpu::MappingDesc const mappingDesc);
+
+        void registerHelp(po::options_description& desc);
+
+        /** Compute the current created by particles and add it to the current
+         *  density
+         *
+         * @param currentStep index of time iteration
+         */
+        void operator()(uint32_t const currentStep);
+
+        void preconditioner(
+            std::unique_ptr<GridBuffer<float_64, simDim>>& xBuffer,
+            std::unique_ptr<GridBuffer<float_64, simDim>>& bBuffer);
+
+    private:
+        void participate(bool status)
+        {
+            mpiReduce.participate(status);
+        }
+
+        auto reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn);
+
         std::unique_ptr<GridBuffer<float_64, simDim>> pkBuffer;
         std::unique_ptr<GridBuffer<float_64, simDim>> rkBuffer;
         std::unique_ptr<GridBuffer<float_64, simDim>> r0Buffer;
@@ -59,30 +86,17 @@ namespace picongpu::simulation::stage
 
         std::shared_ptr<fields::poissonSolver::FieldV> fieldV;
 
-        picongpu::MappingDesc const m_mappingDesc;
+        std::optional<picongpu::MappingDesc> m_mappingDesc;
 
         mpi::MPIReduce mpiReduce;
         std::unique_ptr<pmacc::device::Reduce> localReduce;
 
+        // defaults will be overwritten by command line arguments
+        bool m_useSolver = false;
+        uint32_t m_maxSolverSteps = 20;
+        float_64 m_solverEpsilon = 1.0e-8;
 
-        Poisson(picongpu::MappingDesc const mappingDesc);
-        /** Compute the current created by particles and add it to the current
-         *  density
-         *
-         * @param currentStep index of time iteration
-         */
-        void operator()(uint32_t const currentStep);
-
-        void participate(bool status)
-        {
-            mpiReduce.participate(status);
-        }
-
-        void preconditioner(
-            std::unique_ptr<GridBuffer<float_64, simDim>>& xBuffer,
-            std::unique_ptr<GridBuffer<float_64, simDim>>& bBuffer);
-
-    private:
-        auto reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn);
+        bool m_disablePreconditioner = false;
+        uint32_t m_maxPreconditionerSteps = 20;
     };
 } // namespace picongpu::simulation::stage
