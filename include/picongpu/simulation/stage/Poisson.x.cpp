@@ -124,7 +124,7 @@ namespace picongpu
             void Poisson::registerHelp(po::options_description& desc)
             {
                 namespace po = boost::program_options;
-                po::options_description solverDesc("Poisson solver:");
+                po::options_description solverDesc("Poisson solver");
 
                 solverDesc.add_options()(
                     "poisson.activate",
