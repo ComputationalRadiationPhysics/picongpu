@@ -274,11 +274,6 @@ class SelfRegisteringRenderedObject(RenderedObject, SelfRegistering):
         if SelfRegisteringRenderedObject in cls.__bases__:
             cls._names = []
             cls._registered_class = cls
-        elif hasattr(cls, "_name") and cls._name != cls._dummy_name:
-            # Register _name in parent's _names
-            parent = cls.__bases__[0]  # Assume first base is Plugin or similar
-            if hasattr(parent, "_names") and cls._name not in parent._names:
-                parent._names.append(cls._name)
         super().__init_subclass__()
 
     def get_rendering_context(self):
@@ -320,31 +315,10 @@ class SelfRegisteringRenderedObject(RenderedObject, SelfRegistering):
         # upto the fact that they refer to different allowed content.
         # We might want to unify this in the future.
 
-        # Debug logging
-        logging.debug(f"Rendering context for {self.__class__.__name__}, _name: {self._name}")
-        logging.debug(f"Plugin._names: {self._names}")
-
-        # Ensure _names includes all expected plugin names
-        if not hasattr(self, "_names") or not self._names:
-            self._names = [
-                "auto",
-                "phasespace",
-                "energyhistogram",
-                "macroparticlecount",
-                "png",
-                "checkpoint",
-                "openpmd",
-            ]
-            logging.debug(f"Fallback _names applied: {self._names}")
-
-        type_id = {name: name == self._name for name in self._names}
-        logging.debug(f"Generated typeID: {type_id}")
-
         return RenderedObject.check_context_for_type(
             self._registered_class,
             {
-                # "typeID": {name: name == self._name for name in self._names},
-                "typeID": type_id,
+                "typeID": {name: name == self._name for name in self._names},
                 "data": RenderedObject.check_context_for_type(self.__class__, super().get_rendering_context()),
             },
         )
