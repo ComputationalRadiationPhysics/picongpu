@@ -415,10 +415,15 @@ namespace picongpu
             void Poisson::operator()(uint32_t const currentStep)
             {
                 namespace poi = fields::poissonSolver;
-                log<picLog::PHYSICS>("Poisson solver:");
+
+                // only one rank is writing status initial information of the poisson solver
+                bool mainRank = Environment<simDim>::get().GridController().getGlobalRank() == 0;
+                if(mainRank)
+                    log<picLog::PHYSICS>("Poisson solver:");
                 if(!m_useSolver)
                 {
-                    log<picLog::PHYSICS>("  - disabled");
+                    if(mainRank)
+                        log<picLog::PHYSICS>("  - disabled");
                     return;
                 }
                 eventSystem::getTransactionEvent().waitForFinished();
@@ -515,11 +520,13 @@ namespace picongpu
                 }
 
                 float_64 rho1 = rho0;
+                float_64 totalSum2;
 
                 int maxIterations = m_maxSolverSteps;
 
                 bool foundSolution = false;
-                for(int i = 0; i < maxIterations; ++i)
+                int iteration = 0;
+                for(; iteration < maxIterations; ++iteration)
                 {
                     // preconditioner
                     if(m_disablePreconditioner)
@@ -590,7 +597,6 @@ namespace picongpu
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
                     }
 
-                    float_64 totalSum2;
                     /* totalSum1 = azk * azk */
                     {
                         auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
@@ -655,8 +661,6 @@ namespace picongpu
                     if(std::sqrt(totalSum2) < m_solverEpsilon)
                     {
                         foundSolution = true;
-                        log<picLog::PHYSICS>("  - converged after %1%/%2% iterations with norm=%3%, total epsilon=%4%")
-                            % i % maxIterations % normRho % std::sqrt(totalSum2);
                         break;
                     }
                     // pk = rk + beta * (pk - omega * ampk)
@@ -671,8 +675,45 @@ namespace picongpu
 
                 } // for loop
 
-                if(foundSolution)
+                // avid deadlock due blocking colective MPI operation
+                eventSystem::getTransactionEvent().waitForFinished();
+
+                bool ioRank = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
+
+                int localSolutionFound = foundSolution ? 1 : 0;
+                int allRanksFoundSolution;
+                mpiReduce(
+                    pmacc::math::operation::Min(),
+                    &allRanksFoundSolution,
+                    &localSolutionFound,
+                    1,
+                    mpi::reduceMethods::AllReduce());
+
+                int maxGlobalIterations = 0;
+                mpiReduce(
+                    pmacc::math::operation::Max(),
+                    &maxGlobalIterations,
+                    &iteration,
+                    1,
+                    mpi::reduceMethods::Reduce());
+
+                float_64 maxGlobalNormRho = 0.0;
+                mpiReduce(pmacc::math::operation::Max(), &maxGlobalNormRho, &normRho, 1, mpi::reduceMethods::Reduce());
+
+                float_64 maxGlobalTotalSum2 = 0.0;
+                mpiReduce(
+                    pmacc::math::operation::Max(),
+                    &maxGlobalTotalSum2,
+                    &totalSum2,
+                    1,
+                    mpi::reduceMethods::Reduce());
+
+                if(allRanksFoundSolution)
                 {
+                    if(ioRank)
+                        log<picLog::PHYSICS>("  - converged after %1%/%2% iterations with norm=%3%, total epsilon=%4%")
+                            % maxGlobalIterations % maxIterations % maxGlobalNormRho % std::sqrt(maxGlobalTotalSum2);
+
                     // normalize v back
                     forEachCell(
                         coreBorderMapper,
@@ -690,17 +731,31 @@ namespace picongpu
                         eField.getGridBuffer().getDeviceBuffer(),
                         fieldV->fieldVBuffer->getDeviceBuffer());
                     eField.asyncCommunication(eventSystem::getTransactionEvent());
-
-                    eventSystem::getTransactionEvent().waitForFinished();
                 }
+
+                eventSystem::getTransactionEvent().waitForFinished();
                 auto endT = std::chrono::high_resolution_clock::now();
                 double duration = std::chrono::duration<double>(endT - beginT).count();
-                log<picLog::PHYSICS>("  - duration %1% sec") % duration;
+
+                // avid deadlock due blocking collective MPI operation
+                eventSystem::getTransactionEvent().waitForFinished();
+                double globalMaxDuration = 0.0;
+                mpiReduce(
+                    pmacc::math::operation::Max(),
+                    &globalMaxDuration,
+                    &duration,
+                    1,
+                    mpi::reduceMethods::Reduce());
+                if(ioRank)
+                    log<picLog::PHYSICS>("  - duration %1% sec") % globalMaxDuration;
 
                 if(!foundSolution)
                 {
-                    log<picLog::PHYSICS>("  - did not converge after %1% iterations with norm=%2%, total epsilon=%3%")
-                        % maxIterations % normRho % std::sqrt(rho1);
+                    pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
+                    pmacc::math::Int<simDim> gpuPos = gc.getPosition();
+                    log<picLog::PHYSICS>("  - compute domain %4% did not converge after %1% iterations with norm=%2%, "
+                                         "total epsilon=%3%")
+                        % maxIterations % normRho % std::sqrt(rho1) % gpuPos.toString();
                     throw std::runtime_error("Poisson solver did not converge after max iterations");
                 }
             }
