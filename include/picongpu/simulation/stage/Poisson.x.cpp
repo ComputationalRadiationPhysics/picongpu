@@ -41,6 +41,7 @@
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
 
+#include <chrono>
 #include <cstdint>
 
 #include <picongpu/param/particle.param>
@@ -392,6 +393,9 @@ namespace picongpu
 
             void Poisson::operator()(uint32_t const currentStep)
             {
+                eventSystem::getTransactionEvent().waitForFinished();
+                auto beginT = std::chrono::high_resolution_clock::now();
+
                 using namespace pmacc;
                 constexpr uint fieldRhoSlot = 0;
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -503,6 +507,8 @@ namespace picongpu
 
                 constexpr int maxIterations = 2000;
                 constexpr float_64 epsilon = 1e-8;
+
+                bool foundSolution = false;
                 for(int i = 0; i < maxIterations; ++i)
                 {
                     // preconditioner
@@ -668,6 +674,7 @@ namespace picongpu
                     rho0 = rho1;
                     if(std::sqrt(totalSum2) < epsilon)
                     {
+                        foundSolution = true;
                         std::cout << "Converged after " << i << " iterations with norm=" << normRho
                                   << ", total sum2=" << std::sqrt(totalSum2) << std::endl;
                         break;
@@ -688,6 +695,7 @@ namespace picongpu
                     }
                 } // for loop
 
+                if(foundSolution)
                 {
                     // normalize v back
                     auto vField = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox();
@@ -711,6 +719,17 @@ namespace picongpu
                             vField);
                     eField.asyncCommunication(eventSystem::getTransactionEvent());
                     eventSystem::getTransactionEvent().waitForFinished();
+                }
+                auto endT = std::chrono::high_resolution_clock::now();
+                double duration = std::chrono::duration<double>(endT - beginT).count();
+                std::cout << "Time for poisson solver: " << duration << " seconds" << std::endl;
+
+                if(!foundSolution)
+                {
+                    std::cout << "Poisson solver did not converge after " << maxIterations
+                              << " iterations with norm=" << normRho << ", total sum2=" << std::sqrt(rho1)
+                              << std::endl;
+                    throw std::runtime_error("Poisson solver did not converge after max iterations");
                 }
             }
         } // namespace stage
