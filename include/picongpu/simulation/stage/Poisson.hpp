@@ -31,6 +31,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/device/Reduce.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -70,7 +71,8 @@ namespace picongpu::simulation::stage
             mpiReduce.participate(status);
         }
 
-        auto reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn);
+        template<typename T_ReduceFunc = pmacc::math::operation::Add>
+        auto reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn, T_ReduceFunc reduceFunctor = T_ReduceFunc{});
 
         std::unique_ptr<GridBuffer<float_64, simDim>> pkBuffer;
         std::unique_ptr<GridBuffer<float_64, simDim>> rkBuffer;

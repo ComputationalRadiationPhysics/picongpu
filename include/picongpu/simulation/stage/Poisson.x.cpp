@@ -242,22 +242,20 @@ namespace picongpu
                 DataSpace<simDim> m_offset = DataSpace<simDim>::create(0);
             };
 
-            auto Poisson::reduceGlobal(DataSpace<simDim> fieldSize, auto dataBoxIn)
+            template<typename T_TranformFunctor>
+            inline auto Poisson::reduceGlobal(
+                DataSpace<simDim> fieldSize,
+                auto dataBoxIn,
+                T_TranformFunctor reduceFunctor)
             {
                 DataBoxDim1Access d1Access(dataBoxIn, fieldSize);
 
-                float_64 resultLocal
-                    = (*localReduce)(pmacc::math::operation::Add(), d1Access, fieldSize.productOfComponents());
+                float_64 resultLocal = (*localReduce)(reduceFunctor, d1Access, fieldSize.productOfComponents());
 
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
                 float_64 resultGlobal;
-                mpiReduce(
-                    pmacc::math::operation::Add(),
-                    &resultGlobal,
-                    &resultLocal,
-                    1,
-                    mpi::reduceMethods::AllReduce());
+                mpiReduce(reduceFunctor, &resultGlobal, &resultLocal, 1, mpi::reduceMethods::AllReduce());
 
                 return resultGlobal;
             }
@@ -680,15 +678,6 @@ namespace picongpu
 
                 bool ioRank = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
 
-                int localSolutionFound = foundSolution ? 1 : 0;
-                int allRanksFoundSolution;
-                mpiReduce(
-                    pmacc::math::operation::Min(),
-                    &allRanksFoundSolution,
-                    &localSolutionFound,
-                    1,
-                    mpi::reduceMethods::AllReduce());
-
                 int maxGlobalIterations = 0;
                 mpiReduce(
                     pmacc::math::operation::Max(),
@@ -708,7 +697,7 @@ namespace picongpu
                     1,
                     mpi::reduceMethods::Reduce());
 
-                if(allRanksFoundSolution)
+                if(foundSolution)
                 {
                     if(ioRank)
                         log<picLog::PHYSICS>("  - converged after %1%/%2% iterations with norm=%3%, total epsilon=%4%")
@@ -730,7 +719,7 @@ namespace picongpu
                         poi::GetFieldEStencil{},
                         eField.getGridBuffer().getDeviceBuffer(),
                         fieldV->fieldVBuffer->getDeviceBuffer());
-                    eField.asyncCommunication(eventSystem::getTransactionEvent());
+                    setTransactionEvent(eField.asyncCommunication(eventSystem::getTransactionEvent()));
                 }
 
                 eventSystem::getTransactionEvent().waitForFinished();
@@ -749,13 +738,10 @@ namespace picongpu
                 if(ioRank)
                     log<picLog::PHYSICS>("  - duration %1% sec") % globalMaxDuration;
 
-                if(!foundSolution)
+                if(ioRank && !foundSolution)
                 {
-                    pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
-                    pmacc::math::Int<simDim> gpuPos = gc.getPosition();
-                    log<picLog::PHYSICS>("  - compute domain %4% did not converge after %1% iterations with norm=%2%, "
-                                         "total epsilon=%3%")
-                        % maxIterations % normRho % std::sqrt(rho1) % gpuPos.toString();
+                    log<picLog::PHYSICS>("  - not converge after %1% iterations with norm=%2%, total epsilon=%3%")
+                        % maxIterations % normRho % std::sqrt(rho1);
                     throw std::runtime_error("Poisson solver did not converge after max iterations");
                 }
             }
