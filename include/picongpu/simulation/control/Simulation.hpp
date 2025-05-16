@@ -53,6 +53,7 @@
 #include "picongpu/simulation/stage/ParticleInit.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
+#include "picongpu/simulation/stage/Poisson.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
@@ -153,6 +154,9 @@ namespace picongpu
             fieldBackground.registerHelp(desc);
             particleBoundaries.registerHelp(desc);
             runtimeDensityFile.registerHelp(desc);
+
+            poissonSolver = std::make_shared<simulation::stage::Poisson>();
+            poissonSolver->registerHelp(desc);
         }
 
         virtual void startSimulation() override
@@ -348,6 +352,9 @@ namespace picongpu
             // initialize runtime density file paths
             runtimeDensityFile.init();
 
+            // create memory for poisson solver
+            poissonSolver->init(*cellDescription);
+
             // create factory for the random number generator
             uint32_t const userSeed = random::seed::ISeed<random::SeedGenerator>{}();
             uint32_t const seed = std::hash<std::string>{}(std::to_string(userSeed));
@@ -490,6 +497,7 @@ namespace picongpu
                     initialiserController->init();
                     simulation::stage::ParticleInit{}(step);
                     (*atomicPhysics).fixAtomicStateInit(*cellDescription);
+                    (*poissonSolver)(step);
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);
                 }
@@ -631,6 +639,8 @@ namespace picongpu
         // Runtime density file stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::RuntimeDensityFile runtimeDensityFile;
+
+        std::shared_ptr<simulation::stage::Poisson> poissonSolver;
 
         IInitPlugin* initialiserController{nullptr};
 

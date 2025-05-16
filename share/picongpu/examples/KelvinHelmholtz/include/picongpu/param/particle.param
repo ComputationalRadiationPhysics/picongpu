@@ -48,20 +48,20 @@ namespace picongpu
              *
              * Vector is automatically reduced to two dimensions for 2D (x,y) simulations.
              */
-            struct QuietParam
+            struct RandomParameter
             {
-                /** Count of macro-particles per cell per direction at initial state
+                /** Maximum number of macro-particles per cell during density profile evaluation.
                  *
-                 *  unit: none */
-                using numParticlesPerDimension = mCT::shrinkTo<
-                    mCT::Int<TYPICAL_PARTICLES_PER_CELL / 5, TYPICAL_PARTICLES_PER_CELL / 5, 1>,
-                    simDim>::type;
+                 * Determines the weighting of a macro particle as well as the number of
+                 * macro-particles which sample the evolution of the particle distribution
+                 * function in phase space.
+                 *
+                 * unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 25u;
             };
 
-            /** Definition of Quiet start position functor that positions macro-particles regularly on the grid.
-             * No random number generator used.
-             */
-            using Quiet = QuietImpl<QuietParam>;
+            using Random = RandomImpl<RandomParameter>;
 
         } // namespace startPosition
 

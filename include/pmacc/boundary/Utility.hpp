@@ -33,7 +33,7 @@ namespace pmacc
          *
          * @param exchangeType number characterizing exchange @see pmacc::type::ExchangeType
          */
-        HDINLINE bool isAxisAligned(uint32_t exchangeType)
+        constexpr bool isAxisAligned(uint32_t exchangeType)
         {
             return (FRONT % exchangeType == 0);
         }
