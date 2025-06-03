@@ -165,15 +165,15 @@ picongpu-header-compile-reduced-matrix:
 
 pypicongpu-generate-full-matrix:
   stage: generate
-  image: ubuntu:22.04
+  image: ubuntu:24.04
   variables:
     PIP_BREAK_SYSTEM_PACKAGES: 1
   script:
     - apt update
     - apt install -y python3 python3-pip
-    - pip3 install pyyaml requests typeguard
+    - pip3 install -r $CI_PROJECT_DIR/share/ci/pypicongpu_generator_requirements.txt
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
-    - python3 $CI_PROJECT_DIR/share/ci/pypicongpu_generator.py $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt $CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/requirements.txt > compile.yml
+    - python3 $CI_PROJECT_DIR/share/ci/pypicongpu_generator.py $CI_PROJECT_DIR/lib/python/pyproject.toml > compile.yml
     - cat compile.yml
   artifacts:
     paths:

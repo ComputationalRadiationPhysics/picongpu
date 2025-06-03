@@ -1,10 +1,11 @@
-import requests
-import sys
-import yaml
-import re
 from typing import List, Dict, Callable
-import pkg_resources
-import copy
+import sys
+import tomllib
+import re
+import packaging.requirements
+import packaging.version
+import requests
+import yaml
 import typeguard
 
 """
@@ -48,10 +49,7 @@ The number of combinations depends on:
 """
 
 
-# caches the parsed dependencies of the requirements.txt here
-req_versions: Dict[str, pkg_resources.Requirement] = {}
-
-
+@typeguard.typechecked
 def cs(text: str, color: str) -> str:
     """Print the text in a different color on the command line. The text after
        the function has the default color of the command line.
@@ -81,6 +79,36 @@ def cs(text: str, color: str) -> str:
     return output + text + "\033[0m"
 
 
+@typeguard.typechecked
+def exit_error(text: str):
+    """Print error message and exit application with error code 1.
+
+    Parameters
+    ----------
+        @param text (str): Error message
+    """
+    print(cs(f"ERROR: {text}", "Red"))
+    sys.exit(1)
+
+
+@typeguard.typechecked
+def get_all_pypy_releases(package_name: str, version_strategy: Callable[[str], List[str]]) -> List[str]:
+    """Return release version of given package depending on the version_strategy.
+
+    Parameters
+    ----------
+        @param package_name (str): Name of the package
+        @param version_strategy (Callable[[str], List[str]]): The version strategy decides which
+            release version are returned
+
+    Returns
+    -------
+        @return List[str]: List of versions
+    """
+    return version_strategy(package_name)
+
+
+@typeguard.typechecked
 def get_all_pypi_versions(package_name: str) -> List[str]:
     """Returns all release versions of a package registered on pypi.org
 
@@ -102,9 +130,10 @@ def get_all_pypi_versions(package_name: str) -> List[str]:
     # allows only version strings containing numbers and dots
     versions = [v for v in data["releases"] if re.match(r"^[0-9\.]*$", v)]
 
-    return sorted(versions, key=pkg_resources.parse_version, reverse=True)
+    return sorted(versions, key=packaging.version.parse, reverse=True)
 
 
+@typeguard.typechecked
 def get_all_major_pypi_versions(package_name):
     """Returns the latest release versions of each major release of a package
     registered on pypi.org
@@ -121,7 +150,7 @@ def get_all_major_pypi_versions(package_name):
     version_map = {}
 
     for version in all_versions:
-        parsed_version = pkg_resources.parse_version(version)
+        parsed_version = packaging.version.parse(version)
         # all versions are sorted from the highest to the lowest
         # therefore no complex comparison of the version is required
         # simply take the first appearance of a major version
@@ -132,89 +161,37 @@ def get_all_major_pypi_versions(package_name):
 
 
 @typeguard.typechecked
-def combine_requirements(one: pkg_resources.Requirement, two: pkg_resources.Requirement) -> pkg_resources.Requirement:
-    """combine two requirements for one dependency"""
-    if one.project_name != two.project_name:
-        print(f"requirements for {one.project_name} and {two.project_name} are incomparable!")
-        exit(1)
-
-    # accumulate all specs
-    specs: list = copy.deepcopy(one.specs)
-    specs.extend(two.specs)
-
-    if len(specs) != 0:
-        last_tuple = specs.pop()
-        #                                             operator        version
-        # example:           typeguard                ">="            "4.2.11"
-        requirement_string = one.project_name + " " + last_tuple[0] + last_tuple[1]
-        for entry in specs:
-            # further version restrictions, e.g. ", <=" + "4.3.0"
-            requirement_string += "," + entry[0] + entry[1]
-    else:
-        requirement_string = one.project_name
-
-    return pkg_resources.Requirement(requirement_string)
-
-
-@typeguard.typechecked
-def read_in_requirement_files(requirement_file_names: list[str]) -> dict[str, pkg_resources.Requirement]:
-    """read in requirements from list of requirement files"""
-    total_requirements = {}
-    for requirement_file_name in requirement_file_names:
-        with open(requirement_file_name, "r", encoding="utf-8") as requirement_file:
-            try:
-                # read in file
-                parsed_requirements = pkg_resources.parse_requirements(requirement_file)
-
-                # accumulate
-                for requirement in parsed_requirements:
-                    if requirement.project_name not in total_requirements:
-                        # does not exist yet
-                        total_requirements[requirement.project_name] = requirement
-                    else:
-                        # already exists
-                        total_requirements[requirement.project_name] = combine_requirements(
-                            requirement, total_requirements[requirement.project_name]
-                        )
-
-            except Exception:
-                # ignore all lines, which cannot be parsed
-                # e.g. `-r extra/requirements.txt`
-                pass
-    return total_requirements
-
-
-def get_supported_versions(package_name: str, versions: List[str]) -> List[str]:
-    """Take a list of package versions all removes all version, which are not
-    supported by the requirements.txt.
+def get_supported_versions(package_name: str, versions: List[str], pyproject_toml: Dict) -> List[str]:
+    """Take a list of package versions and remove all versions, which are not supported by the
+    pyproject.toml.
 
     Parameters
     ----------
         @param package_name (str): Name of the package.
         @param versions (List[str]): List to be filtered
+        @param pyproject_toml (Dict): The pyproject.toml
 
     Returns
     -------
         @return List[str]: filtered list
     """
-    # use global variable to cache parsed versions from the requirements.txt
-    global req_versions
-    filtered_versions = []
+    for dep in pyproject_toml["project"]["dependencies"]:
+        parsed_dep = packaging.requirements.Requirement(dep)
+        if parsed_dep.name == package_name:
+            supported_versions: List[str] = []
 
-    requirement_file_names = sys.argv[1:]
+            for release_version in versions:
+                if packaging.version.parse(release_version) in parsed_dep.specifier:
+                    supported_versions.append(release_version)
 
-    if not req_versions:
-        req_versions = read_in_requirement_files(requirement_file_names)
+            return supported_versions
 
-    if package_name not in req_versions:
-        print(cs(f"ERROR: {package_name} is not defined in {sys.argv[1:]}", "Red"))
-        exit(1)
+    exit_error(
+        f"{package_name} is not defined in dependency section.\n"
+        + f"{'\n'.join(pyproject_toml['project']['dependencies'])}"
+    )
 
-    for v in versions:
-        if str(v) in req_versions[package_name]:
-            filtered_versions.append(v)
-
-    return filtered_versions
+    return []
 
 
 class Job:
@@ -246,6 +223,7 @@ class Job:
         return yaml.dump({self.name: self.body})
 
 
+@typeguard.typechecked
 def extend_job_with_test_requirement(job: Job, package_name: str, package_version: str) -> Job:
     """Copies the input job, adds a new variable to the variables section of
     the copied job and return it.
@@ -268,6 +246,7 @@ def extend_job_with_test_requirement(job: Job, package_name: str, package_versio
     return job_copy
 
 
+@typeguard.typechecked
 def construct_job(
     job: Job,
     current_test_pkgs: List[str],
@@ -308,6 +287,7 @@ def construct_job(
             )
 
 
+@typeguard.typechecked
 def print_job_yaml(test_pkg_versions: Dict[str, List[str]]):
     """Prints all GitLab CI jobs on stdout.
 
@@ -349,14 +329,25 @@ PACKAGES_TO_TEST: Dict[str, Callable] = {
 }
 
 if __name__ == "__main__":
-    # note, script name is sys.argv[0] rest are bash inputs
     if len(sys.argv) < 2:
-        print(cs("ERROR: pass path(s) to one or more requirements.txt as arguments", "Red"))
-        exit(1)
+        exit_error("Pass path to Project.toml as first argument.")
 
+    # read pyproject.toml
+    with open(sys.argv[1], "rb") as f:
+        pyproject_toml = tomllib.load(f)
+
+    # the key is the name of the package and the value are all versions to be tested
     test_pkg_versions: Dict[str, List[str]] = {}
 
-    for pkg, version_func in PACKAGES_TO_TEST.items():
-        test_pkg_versions[pkg] = get_supported_versions(pkg, version_func(pkg))
+    # pull release versions from pypy.org
+    # depending on the version_strategy maybe all versions are crawled or less, like all major
+    # releases
+    for pkg, version_strategy in PACKAGES_TO_TEST.items():
+        test_pkg_versions[pkg] = get_all_pypy_releases(pkg, version_strategy)
+
+    # remove all release version, which are not supported by the version range configured in the
+    # pyproject.toml
+    for pkg in test_pkg_versions:
+        test_pkg_versions[pkg] = get_supported_versions(pkg, test_pkg_versions[pkg], pyproject_toml)
 
     print_job_yaml(test_pkg_versions)
