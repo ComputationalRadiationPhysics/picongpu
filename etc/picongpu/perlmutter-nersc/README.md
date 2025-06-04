@@ -3,7 +3,35 @@
 PIConGPU can be compiled on a login node, but remember to limit the number of used CPU cores. `pic-build -j 16` works fine; reduce the number if the compiler gets killed.
 
 ## Installing Dependencies
-Missing dependencies can be installed from source with `dependencies_autoinstall.sh`. Change the project number in the `gpu.profile`, source it, and execute the install script on a login node.
+
+Before you begin, update the following in the `gpu.profile` file:
+- Change the project number (`export proj` variable)
+  ```bash
+  export proj="m0000"
+  ```
+- Change path to PICONGPU repository (`PICSRC` variable)
+  ```bash
+  export PICSRC=$HOME/src/picongpu
+  ```
+
+First-Time Setup:
+1. Set the `PIC_PROFILE` environment variable to the path of your `gpu.profile` file:  
+   ```bash
+   export PIC_PROFILE=/path/to/gpu.profile
+   ```
+2. Install missing dependecies from source with `dependencies_autoinstall.sh` 
+   ```bash
+   source dependencies_autoinstall.sh
+   ```
+
+
+Subsequent Use:
+
+-  Simply source the `gpu.profile` each time before using PICONGPU:
+   ```bash
+   source gpu.profile
+   ```
+
 
 ## Preemptive Jobs
 When using preemptive queues, you should uncomment the `sleep 120` command at the end of the tpl file.
