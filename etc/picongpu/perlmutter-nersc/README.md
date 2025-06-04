@@ -19,7 +19,7 @@ First-Time Setup:
    ```bash
    export PIC_PROFILE=/path/to/gpu.profile
    ```
-2. Install missing dependecies from source with `dependencies_autoinstall.sh` 
+2. Install missing dependencies from source with `dependencies_autoinstall.sh` 
    ```bash
    source dependencies_autoinstall.sh
    ```
