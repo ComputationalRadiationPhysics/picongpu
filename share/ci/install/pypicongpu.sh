@@ -53,12 +53,12 @@ python3 $CI_PROJECT_DIR/share/ci/install/pyproject_toml_modifier.py \
 pip3 uninstall -y -r ${CI_PROJECT_DIR}/share/ci/install/pyproject_toml_modifier_requirments.txt
 
 echo "modified pyproject.toml: "
-cat $$PYPROJECT_TOML_PATH
+cat $PYPROJECT_TOML_PATH
 echo ""
 
 # install pypicongpu dependencies
 cd ${CI_PROJECT_DIR}/lib/python/
-pip3 install .
+pip3 install -e .
 
 # run quick tests
 cd $CI_PROJECT_DIR/test/python/picongpu
