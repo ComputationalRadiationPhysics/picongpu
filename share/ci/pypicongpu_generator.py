@@ -16,22 +16,21 @@ License: GPLv3+
 """
 
 """@file Generate different CI test jobs for different Python version and
-         depending on a requirement.txt.
+         depending on a pyproject.toml.
 
 Prints yaml code for a GitLab CI child pipeline to stdout. The test parameters
 are split in two kinds of inputs. The Python versions to test are defined in
 the script, also the names of dependencies to test and it's test strategy. The
 version range of the dependencies to test are defined in the passed
-requirements.txt files. The paths of the requirements.txt are set via the
+pyproject.toml files. The path of the pyproject.toml is set via the
 application arguments.
 
-First, the script reads the requirements.txt files. If a dependency is marked
+First, the script reads the pyproject.toml files. If a dependency is marked
 as to be tested in the script, it calculates the test versions.
 For this it downloads all available versions from pypi.org for each package.
 Afterwards it filters the versions via a filter strategy. For example, take
 all release versions or take each latest major version. Than the script
-removes all versions, which are not supported, as defined in the combined
-requirements.txt.
+removes all versions, which are not supported, as defined in the pyproject.toml.
 The result a complete list of all Python- and dependency- versions to test.
 
 In the second part, the script creates the full combination matrix for all test
@@ -42,10 +41,10 @@ The number of combinations depends on:
 - number of supported Python version
 - number of dependencies to test
 - the test strategy of each dependencies to test
-- versions restrictions in the requirements.txt
+- versions restrictions in the pyproject.toml
 - releases of the dependencies
 
-@param First application argument: Path to the requirements.txt
+@param First application argument: Path to the pyproject.toml
 """
 
 
@@ -318,7 +317,7 @@ PYTHON_VERSIONS: List[str] = ["3.10", "3.11", "3.12"]
 # Define, which dependencies should be explicit tests.
 # The key is the name of the package, and function returns the versions to
 # test.
-# If a package is not define in the list, but defined in the requirements.txt,
+# If a package is not define in the list, but defined in the pyproject.toml,
 # pip decides which version is used.
 PACKAGES_TO_TEST: Dict[str, Callable] = {
     "typeguard": get_all_major_pypi_versions,
