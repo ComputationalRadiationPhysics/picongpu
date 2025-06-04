@@ -41,28 +41,26 @@ cd $CI_PROJECT_DIR
 micromamba create -n pypicongpu python=${PYTHON_VERSION} --ssl-verify false
 micromamba activate pypicongpu
 python3 --version
-MODIFIED_REQUIREMENT_TXT_PICMI=$CI_PROJECT_DIR/lib/python/picongpu/picmi/modified_requirements.txt
-MODIFIED_REQUIREMENT_TXT_PYPICONGPU=$CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/modified_requirements.txt
-# The environment variables for changing the version of a dependency package are set globally.
-# Therefore, all calls of the requirements_txt_modfifier.py script are affected.
-# To avoid unexpected changes to dependencies, the list of ignored environment variables.
-python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py \
-    -i $CI_PROJECT_DIR/lib/python/picongpu/picmi/requirements.txt \
-    -o $MODIFIED_REQUIREMENT_TXT_PICMI \
-    --ignore_env_args PYPIC_DEP_VERSION_referencing PYPIC_DEP_VERSION_jsonschema
-python3 $CI_PROJECT_DIR/share/ci/install/requirements_txt_modifier.py \
-    -i $CI_PROJECT_DIR/lib/python/picongpu/pypicongpu/requirements.txt \
-    -o $MODIFIED_REQUIREMENT_TXT_PYPICONGPU \
-    --ignore_env_args PYPIC_DEP_VERSION_pydantic PYPIC_DEP_VERSION_picmistandard
+# install requirements of pyproject_toml_modifier.txt
+pip3 install -r ${CI_PROJECT_DIR}/share/ci/install/pyproject_toml_modifier_requirments.txt
+PYPROJECT_TOML_PATH=${CI_PROJECT_DIR}/lib/python/pyproject.toml
 
-echo "modified_requirements.txt: "
-cat $MODIFIED_REQUIREMENT_TXT_PICMI
-cat $MODIFIED_REQUIREMENT_TXT_PYPICONGPU
+python3 $CI_PROJECT_DIR/share/ci/install/pyproject_toml_modifier.py \
+    -i $PYPROJECT_TOML_PATH \
+    -o $PYPROJECT_TOML_PATH \
+
+# uninstall requirements of pyproject_toml_modifier.txt
+pip3 uninstall -y -r ${CI_PROJECT_DIR}/share/ci/install/pyproject_toml_modifier_requirments.txt
+
+echo "modified pyproject.toml: "
+cat $$PYPROJECT_TOML_PATH
 echo ""
 
+# install pypicongpu dependencies
+cd ${CI_PROJECT_DIR}/lib/python/
+pip3 install .
+
 # run quick tests
-pip3 install -r $MODIFIED_REQUIREMENT_TXT_PICMI
-pip3 install -r $MODIFIED_REQUIREMENT_TXT_PYPICONGPU
 cd $CI_PROJECT_DIR/test/python/picongpu
 python3 -m quick
 
