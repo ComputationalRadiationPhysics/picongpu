@@ -9,7 +9,7 @@ Before you begin, update the following in the `gpu.profile` file:
   ```bash
   export proj="m0000"
   ```
-- Change path to PICONGPU repository (`PICSRC` variable)
+- Change path to PIConGPU repository (`PICSRC` variable)
   ```bash
   export PICSRC=$HOME/src/picongpu
   ```
