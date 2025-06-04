@@ -27,7 +27,7 @@ First-Time Setup:
 
 Subsequent Use:
 
--  Simply source the `gpu.profile` each time before using PICONGPU:
+-  Simply source the `gpu.profile` each time before using PIConGPU:
    ```bash
    source gpu.profile
    ```
