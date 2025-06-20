@@ -145,6 +145,17 @@ namespace picongpu
 
         inline ::openPMD::Series& ThreadParams::openSeries(::openPMD::Access at)
         {
+            auto& openPMDSeries = *[&]()
+            {
+                if(at == ::openPMD::Access::READ_ONLY || at == ::openPMD::Access::READ_LINEAR)
+                {
+                    return &readOpenPMDSeries;
+                }
+                else
+                {
+                    return &writeOpenPMDSeries;
+                }
+            }();
             if(!openPMDSeries)
             {
                 std::string fullName = fileName + fileInfix + "." + fileExtension;
@@ -152,7 +163,7 @@ namespace picongpu
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 eventSystem::getTransactionEvent().waitForFinished();
-                openPMDSeries = std::make_unique<::openPMD::Series>(
+                openPMDSeries = std::make_optional<::openPMD::Series>(
                     fullName,
                     at,
                     communicator,
@@ -188,8 +199,19 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
         }
 
-        inline void ThreadParams::closeSeries()
+        inline void ThreadParams::closeSeries(::openPMD::Access at)
         {
+            auto& openPMDSeries = *[&]()
+            {
+                if(at == ::openPMD::Access::READ_ONLY || at == ::openPMD::Access::READ_LINEAR)
+                {
+                    return &readOpenPMDSeries;
+                }
+                else
+                {
+                    return &writeOpenPMDSeries;
+                }
+            }();
             if(openPMDSeries)
             {
                 log<picLog::INPUT_OUTPUT>("openPMD: close file: %1%") % fileName;
@@ -1164,7 +1186,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 rngProvider->synchronize();
                 auto const name = rngProvider->getName();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep];
+                ::openPMD::Iteration iteration = params->writeOpenPMDSeries->writeIterations()[currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 auto const unitDimension = std::vector<float_64>(7, 0.0);
@@ -1211,7 +1233,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mesh.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                params->writeOpenPMDSeries->flush(PreferredFlushTarget::Disk);
             }
 
             /** Implementation of loading random number generator states
@@ -1230,7 +1252,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 auto rngProvider = dc.get<RNGProvider>(RNGProvider::getName());
                 auto const name = rngProvider->getName();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->iterations[restartStep].open();
+                ::openPMD::Iteration iteration = params->readOpenPMDSeries->iterations[restartStep].open();
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
@@ -1551,7 +1573,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              *
              * @param series OpenPMD series which is used to load restart data.
              */
-            void checkIOFileVersionRestartCompatibility(std::unique_ptr<::openPMD::Series>& series) const
+            void checkIOFileVersionRestartCompatibility(std::optional<::openPMD::Series>& series) const
             {
                 /* Major version 0 and not having the attribute picongpuIOVersionMajor is handled equally later on.
                  * Major version 0 will never have any other minor version than 1.
@@ -1626,9 +1648,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 mThreadParams.openSeries(::openPMD::Access::READ_ONLY);
 
-                checkIOFileVersionRestartCompatibility(mThreadParams.openPMDSeries);
+                checkIOFileVersionRestartCompatibility(mThreadParams.readOpenPMDSeries);
 
-                ::openPMD::Iteration iteration = mThreadParams.openPMDSeries->iterations[restartStep].open();
+                ::openPMD::Iteration iteration = mThreadParams.readOpenPMDSeries->iterations[restartStep].open();
 
                 /* load number of slides to initialize MovingWindow */
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) read attr (%1% available)") % iteration.numAttributes();
@@ -1712,7 +1734,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 eventSystem::getTransactionEvent().waitForFinished();
 
                 // Finalize the openPMD Series by calling its destructor
-                mThreadParams.closeSeries();
+                mThreadParams.closeSeries(::openPMD::Access::READ_ONLY);
             }
 
         private:
@@ -2003,7 +2025,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             return mesh;
                         }
                     }();
-
                     params->initDataset<simDim>(mrc, openPMDType, recordGlobalSizeDims);
 
                     // define record component level attributes
@@ -2066,7 +2087,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                     eventSystem::getTransactionEvent().waitForFinished();
                     params->m_dumpTimes.now<std::chrono::milliseconds>("\tComponent " + std::to_string(d) + " flush");
-                    params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                    params->writeOpenPMDSeries->flush(PreferredFlushTarget::Disk);
                     params->m_dumpTimes.now<std::chrono::milliseconds>("\tComponent " + std::to_string(d) + " end");
                 }
             }
@@ -2132,7 +2153,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 bool dumpFields = plugins::misc::containsObject(vectorOfDataSourceNames, "fields_all");
 
-                if(threadParams->openPMDSeries)
+                if(threadParams->writeOpenPMDSeries)
                 {
                     log<picLog::INPUT_OUTPUT>("openPMD: Series still open, reusing");
                     // TODO check for same configuration
@@ -2146,8 +2167,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* attributes written here are pure meta data */
                 WriteMeta writeMetaAttributes;
                 writeMetaAttributes(
-                    *threadParams->openPMDSeries,
-                    (*threadParams->openPMDSeries).writeIterations()[currentStep],
+                    *threadParams->writeOpenPMDSeries,
+                    (*threadParams->writeOpenPMDSeries).writeIterations()[currentStep],
                     currentStep);
 
                 bool dumpAllParticles = plugins::misc::containsObject(vectorOfDataSourceNames, "species_all");
@@ -2278,7 +2299,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 eventSystem::getTransactionEvent().waitForFinished();
                 mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>(
                     "Closing iteration " + std::to_string(currentStep));
-                mThreadParams.openPMDSeries->writeIterations()[currentStep].close();
+                mThreadParams.writeOpenPMDSeries->writeIterations()[currentStep].close();
                 mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>("Done.");
                 mThreadParams.m_dumpTimes.flush();
 

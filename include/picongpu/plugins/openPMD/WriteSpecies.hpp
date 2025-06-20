@@ -337,7 +337,7 @@ namespace picongpu
                 auto speciesTmp = dc.get<ThisSpecies>(ThisSpecies::FrameType::getName());
                 std::string const speciesGroup(T_Species::getName());
 
-                ::openPMD::Series& series = *params->openPMDSeries;
+                ::openPMD::Series& series = *params->writeOpenPMDSeries;
                 ::openPMD::Iteration iteration = series.writeIterations()[currentStep];
 
                 auto idProvider = dc.get<IdProvider>("globalId");
@@ -508,7 +508,7 @@ namespace picongpu
                         eventSystem::getTransactionEvent().waitForFinished();
                         params->m_dumpTimes.now<std::chrono::milliseconds>(
                             "\tslice " + std::to_string(dumpIteration) + " flush");
-                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                        particleSpecies.seriesFlush(PreferredFlushTarget::Disk);
                         params->m_dumpTimes.now<std::chrono::milliseconds>(
                             "\tslice " + std::to_string(dumpIteration) + " end");
 
@@ -566,7 +566,7 @@ namespace picongpu
                     setParticleAttributes(particleSpecies, globalNumParticles);
                     params->m_dumpTimes.now<std::chrono::milliseconds>(
                         "\tFlush species " + T_SpeciesFilter::getName());
-                    params->openPMDSeries->flush(PreferredFlushTarget::Buffer);
+                    particleSpecies.seriesFlush(PreferredFlushTarget::Buffer);
                     params->m_dumpTimes.now<std::chrono::milliseconds>("\tFinished flush species");
                 }
 

@@ -77,7 +77,9 @@ namespace picongpu
         struct ThreadParams : PluginParameters
         {
 #if (ENABLE_OPENPMD == 1)
-            std::unique_ptr<::openPMD::Series> openPMDSeries; /* is null iff there is no series currently open */
+            // might be needed at the same time for load balancing purposes
+            std::optional<::openPMD::Series> writeOpenPMDSeries; /* is null iff there is no series currently open */
+            std::optional<::openPMD::Series> readOpenPMDSeries; /* is null iff there is no series currently open */
 #endif
             /** current dump is a checkpoint */
             bool isCheckpoint;
@@ -166,7 +168,7 @@ namespace picongpu
 #endif
             };
 
-            void closeSeries();
+            void closeSeries(::openPMD::Access);
 
             /** Read and validate all configuration that does not depend on the
              * current simulation step.

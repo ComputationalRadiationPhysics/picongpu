@@ -376,7 +376,7 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) load species: %1%") % speciesName;
                 DataConnector& dc = Environment<>::get().DataConnector();
 
-                ::openPMD::Series& series = *params->openPMDSeries;
+                ::openPMD::Series& series = *params->readOpenPMDSeries;
                 ::openPMD::Container<::openPMD::ParticleSpecies>& particles
                     = series.iterations[currentStep].open().particles;
                 ::openPMD::ParticleSpecies particleSpecies = particles[speciesName];
