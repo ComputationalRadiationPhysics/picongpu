@@ -125,7 +125,21 @@ namespace picongpu
             auto cBackend = ioBackends.find(checkpointBackendName);
             if(cBackend != ioBackends.end())
             {
-                cBackend->second->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename);
+                auto checkpointFuture = std::async(
+                    std::launch::async,
+                    [&cBackend, currentStep, cpDir = checkpointDirectory, cpFilename = checkpointFilename]()
+                    { cBackend->second->dumpCheckpoint(currentStep, cpDir, cpFilename); });
+                // maybe need to copy the plugin temporarily to avoid race conditions
+                auto restartFuture = std::async(
+                    std::launch::async,
+                    [&cBackend,
+                     currentStep,
+                     cpDir = checkpointDirectory,
+                     chunkSize = restartChunkSize,
+                     cpFilename = checkpointFilename]()
+                    { cBackend->second->doRestart(currentStep, cpDir, cpFilename, chunkSize); });
+                restartFuture.wait();
+                checkpointFuture.wait();
             }
         }
 
