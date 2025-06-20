@@ -125,19 +125,29 @@ namespace picongpu
             auto cBackend = ioBackends.find(checkpointBackendName);
             if(cBackend != ioBackends.end())
             {
+                // Must set PIC_USE_THREADED_MPI=MPI_THREAD_MULTIPLE for this
+                // verify this programmatically somehow
+                // maybe run one of these on the main thread
+                std::atomic<signed int> synchronization = 0;
                 auto checkpointFuture = std::async(
-                    std::launch::async,
-                    [&cBackend, currentStep, cpDir = checkpointDirectory, cpFilename = checkpointFilename]()
-                    { cBackend->second->dumpCheckpoint(currentStep, cpDir, cpFilename); });
-                // maybe need to copy the plugin temporarily to avoid race conditions
-                auto restartFuture = std::async(
                     std::launch::async,
                     [&cBackend,
                      currentStep,
                      cpDir = checkpointDirectory,
+                     cpFilename = checkpointFilename,
+                     sync = &synchronization]()
+                    { cBackend->second->dumpCheckpoint(currentStep, cpDir, cpFilename, {sync}); });
+                // need to copy the plugin temporarily to avoid race conditions
+                auto copiedBackend = cBackend;
+                auto restartFuture = std::async(
+                    std::launch::async,
+                    [&copiedBackend,
+                     currentStep,
+                     cpDir = checkpointDirectory,
                      chunkSize = restartChunkSize,
-                     cpFilename = checkpointFilename]()
-                    { cBackend->second->doRestart(currentStep, cpDir, cpFilename, chunkSize); });
+                     cpFilename = checkpointFilename,
+                     sync = &synchronization]()
+                    { copiedBackend->second->doRestart(currentStep, cpDir, cpFilename, chunkSize, {sync}); });
                 restartFuture.wait();
                 checkpointFuture.wait();
             }
@@ -148,7 +158,8 @@ namespace picongpu
             auto rBackend = ioBackends.find(restartBackendName);
             if(rBackend != ioBackends.end())
             {
-                rBackend->second->doRestart(restartStep, restartDirectory, restartFilename, restartChunkSize);
+                rBackend->second
+                    ->doRestart(restartStep, restartDirectory, restartFilename, restartChunkSize, std::nullopt);
             }
         }
 
