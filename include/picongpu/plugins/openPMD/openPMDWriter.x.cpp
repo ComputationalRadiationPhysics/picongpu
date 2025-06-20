@@ -1849,6 +1849,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 write(&mThreadParams, currentStep, mpiTransportParams, sync);
 
+                // TODO: add a better keepalive logic for in-situ-restarting,
+                // e.g. keep Series alive on writer AND reader and use proper streaming API
+                // for now, every load/balance step opens a new stream (and each reader additionally opens a new copy
+                // of the IO plugin to avoid race conditions
+
+                if(sync.has_value())
+                {
+                    mThreadParams.closeSeries(::openPMD::Access::CREATE);
+                }
+
                 endWrite();
                 timer.toggleEnd();
                 double interval = timer.getInterval();
