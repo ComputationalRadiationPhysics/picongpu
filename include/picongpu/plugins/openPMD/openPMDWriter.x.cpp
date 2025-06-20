@@ -1559,7 +1559,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {
                     return;
                 }
-                (**sync).store((signed int) nextState, std::memory_order::release);
+                auto oldVal = (**sync).exchange((signed int) nextState, std::memory_order::release);
+                if(oldVal > (signed int) nextState)
+                {
+                    std::cerr << "openPMD plugin, SyncState: Tried replacing newer state " << oldVal
+                              << " with older state " << (signed int) nextState
+                              << ". Will emplace the newer state again and go on." << std::endl;
+                    (**sync).store(oldVal, std::memory_order::relaxed);
+                }
                 (**sync).notify_all();
                 log<picLog::INPUT_OUTPUT>("openPMD: SYNC %1%: set state %2%") % writerOrReader % message;
             };
