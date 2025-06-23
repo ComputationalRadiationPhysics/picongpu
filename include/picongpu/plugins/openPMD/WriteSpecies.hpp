@@ -256,7 +256,9 @@ namespace picongpu
             using NewParticleDescription =
                 typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type;
 
-            void setParticleAttributes(::openPMD::ParticleSpecies& record, uint64_t const globalNumParticles)
+            static void setParticleAttributes(
+                ::openPMD::ParticleSpecies& record,
+                uint64_t const globalNumParticles)
             {
                 float_64 const particleShape(picongpu::traits::GetShape<ThisSpecies>::type::assignmentFunctionOrder);
                 record.setAttribute("particleShape", particleShape);
@@ -318,6 +320,67 @@ namespace picongpu
                     chargeRecord.setAttribute("weightingPower", float_64(1.0));
                     chargeRecord.setAttribute("timeOffset", float_64(0.0));
                 }
+            }
+
+            static void writeParticlePatches(
+                ThreadParams* params,
+                DataSpace<simDim> const& particleToTotalDomainOffset,
+                ::openPMD::Series& series,
+                ::openPMD::ParticleSpecies& particleSpecies,
+                std::string const& basename,
+                std::string const& speciesGroup,
+                uint64_t mpiSize,
+                uint64_t mpiRank,
+                size_t myParticleOffset,
+                size_t myNumParticles,
+                size_t globalNumParticles)
+            {
+                /* write species counter table to openPMD storage */
+                log<picLog::INPUT_OUTPUT>("openPMD: (begin) writing particle patches for %1%")
+                    % T_SpeciesFilter::getName();
+                using index_t = uint64_t;
+                ::openPMD::Datatype const datatype = ::openPMD::determineDatatype<index_t>();
+                // not const, we'll switch out the JSON config
+                ::openPMD::Dataset ds(datatype, {mpiSize});
+
+                ::openPMD::ParticlePatches particlePatches = particleSpecies.particlePatches;
+                ::openPMD::PatchRecordComponent numParticles = particlePatches["numParticles"];
+                ::openPMD::PatchRecordComponent numParticlesOffset = particlePatches["numParticlesOffset"];
+
+                numParticles.resetDataset(ds);
+                numParticlesOffset.resetDataset(ds);
+
+                /* It is safe to use the mpi rank to write the data even if the rank can differ between simulation
+                 * runs. During the restart the plugin is using patch information to find the corresponding data.
+                 */
+                numParticles.store<index_t>(mpiRank, myNumParticles);
+                numParticlesOffset.store<index_t>(mpiRank, myParticleOffset);
+
+                ::openPMD::PatchRecord offset = particlePatches["offset"];
+                ::openPMD::PatchRecord extent = particlePatches["extent"];
+                auto const patchExtent = params->window.localDimensions.size;
+
+                for(size_t d = 0; d < simDim; ++d)
+                {
+                    ::openPMD::PatchRecordComponent offset_x = offset[name_lookup[d]];
+                    ::openPMD::PatchRecordComponent extent_x = extent[name_lookup[d]];
+                    offset_x.resetDataset(ds);
+                    extent_x.resetDataset(ds);
+
+                    auto const totalPatchOffset
+                        = particleToTotalDomainOffset[d] + params->localWindowToDomainOffset[d];
+                    offset_x.store<index_t>(mpiRank, totalPatchOffset);
+                    extent_x.store<index_t>(mpiRank, patchExtent[d]);
+                }
+
+                /* openPMD ED-PIC: additional attributes */
+                setParticleAttributes(particleSpecies, globalNumParticles);
+                params->m_dumpTimes.now<std::chrono::milliseconds>("\tFlush species " + T_SpeciesFilter::getName());
+                particleSpecies.seriesFlush(PreferredFlushTarget::Buffer);
+                params->m_dumpTimes.now<std::chrono::milliseconds>("\tFinished flush species");
+
+                log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle patches for %1%")
+                    % T_SpeciesFilter::getName();
             }
 
             HINLINE void operator()(
@@ -523,55 +586,18 @@ namespace picongpu
 
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
 
-                /* write species counter table to openPMD storage */
-                log<picLog::INPUT_OUTPUT>("openPMD: (begin) writing particle patches for %1%")
-                    % T_SpeciesFilter::getName();
-                {
-                    using index_t = uint64_t;
-                    ::openPMD::Datatype const datatype = ::openPMD::determineDatatype<index_t>();
-                    // not const, we'll switch out the JSON config
-                    ::openPMD::Dataset ds(datatype, {mpiSize});
-
-                    ::openPMD::ParticlePatches particlePatches = particleSpecies.particlePatches;
-                    ::openPMD::PatchRecordComponent numParticles = particlePatches["numParticles"];
-                    ::openPMD::PatchRecordComponent numParticlesOffset = particlePatches["numParticlesOffset"];
-
-                    numParticles.resetDataset(ds);
-                    numParticlesOffset.resetDataset(ds);
-
-                    /* It is safe to use the mpi rank to write the data even if the rank can differ between simulation
-                     * runs. During the restart the plugin is using patch information to find the corresponding data.
-                     */
-                    numParticles.store<index_t>(mpiRank, myNumParticles);
-                    numParticlesOffset.store<index_t>(mpiRank, myParticleOffset);
-
-                    ::openPMD::PatchRecord offset = particlePatches["offset"];
-                    ::openPMD::PatchRecord extent = particlePatches["extent"];
-                    auto const patchExtent = params->window.localDimensions.size;
-
-                    for(size_t d = 0; d < simDim; ++d)
-                    {
-                        ::openPMD::PatchRecordComponent offset_x = offset[name_lookup[d]];
-                        ::openPMD::PatchRecordComponent extent_x = extent[name_lookup[d]];
-                        offset_x.resetDataset(ds);
-                        extent_x.resetDataset(ds);
-
-                        auto const totalPatchOffset
-                            = particleToTotalDomainOffset[d] + params->localWindowToDomainOffset[d];
-                        offset_x.store<index_t>(mpiRank, totalPatchOffset);
-                        extent_x.store<index_t>(mpiRank, patchExtent[d]);
-                    }
-
-                    /* openPMD ED-PIC: additional attributes */
-                    setParticleAttributes(particleSpecies, globalNumParticles);
-                    params->m_dumpTimes.now<std::chrono::milliseconds>(
-                        "\tFlush species " + T_SpeciesFilter::getName());
-                    particleSpecies.seriesFlush(PreferredFlushTarget::Buffer);
-                    params->m_dumpTimes.now<std::chrono::milliseconds>("\tFinished flush species");
-                }
-
-                log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle patches for %1%")
-                    % T_SpeciesFilter::getName();
+                writeParticlePatches(
+                    params,
+                    particleToTotalDomainOffset,
+                    series,
+                    particleSpecies,
+                    basename,
+                    speciesGroup,
+                    mpiSize,
+                    mpiRank,
+                    myParticleOffset,
+                    myNumParticles,
+                    globalNumParticles);
             }
         };
 
