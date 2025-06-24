@@ -20,7 +20,7 @@
 
 #pragma once
 
-#if(ENABLE_OPENPMD == 1)
+#if (ENABLE_OPENPMD == 1)
 
 #    include "picongpu/defines.hpp"
 #    include "picongpu/particles/traits/GetShape.hpp"
@@ -110,7 +110,8 @@ namespace picongpu
                 uint32_t const currentStep,
                 std::string name,
                 RunParameters,
-                std::optional<ChunkDescription> const& chunkDesc)
+                std::optional<ChunkDescription> const& chunkDesc,
+                bool verbose_log = true)
                 = 0;
 
             virtual ~Strategy() = default;
@@ -141,11 +142,15 @@ namespace picongpu
                 uint32_t const currentStep,
                 std::string name,
                 RunParameters rp,
-                std::optional<ChunkDescription> const& chunkDesc) override
+                std::optional<ChunkDescription> const& chunkDesc,
+                bool verbose_log) override
             {
-                log<picLog::INPUT_OUTPUT>("openPMD:   (begin) copy particle host (with hierarchy) to "
-                                          "host (without hierarchy): %1%")
-                    % name;
+                if(verbose_log)
+                {
+                    log<picLog::INPUT_OUTPUT>("openPMD:   (begin) copy particle host (with hierarchy) to "
+                                              "host (without hierarchy): %1%")
+                        % name;
+                }
 
                 int particlesProcessed = 0;
                 auto const areaMapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
@@ -156,7 +161,7 @@ namespace picongpu
 
                 pmacc::particles::operations::ConcatListOfFrames concatListOfFrames{};
 
-#    if(ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
+#    if (ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED)
                 auto mallocMCBuffer
                     = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
                 auto particlesBox = rp.speciesTmp->getHostParticlesBox(mallocMCBuffer->getOffset());
@@ -219,9 +224,13 @@ namespace picongpu
                 uint32_t currentStep,
                 std::string name,
                 RunParameters rp,
-                std::optional<ChunkDescription> const& chunkDesc) override
+                std::optional<ChunkDescription> const& chunkDesc,
+                bool verbose_log) override
             {
-                log<picLog::INPUT_OUTPUT>("openPMD:  (begin) copy particle to host: %1%") % name;
+                if(verbose_log)
+                {
+                    log<picLog::INPUT_OUTPUT>("openPMD:  (begin) copy particle to host: %1%") % name;
+                }
 
                 GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
                 auto const areaMapper = makeAreaMapper<CORE + BORDER>(*(rp.params.cellDescription));
@@ -509,7 +518,8 @@ namespace picongpu
                     myNumParticles,
                     globalNumParticles,
                     myParticleOffset,
-                    writtenBytes);
+                    writtenBytes,
+                    /* verbose_log = */ true);
 
                 description = std::stringstream();
                 description << ": " << writtenBytes << " bytes for " << myNumParticles << " particles from offset "
@@ -686,7 +696,8 @@ namespace picongpu
                         chunk.numberOfParticles,
                         globalNumParticles,
                         myParticleOffset + particleOffset,
-                        writtenBytes);
+                        writtenBytes,
+                        /* verbose_log = */ true);
 
                     description = std::stringstream();
                     description << ": " << writtenBytes << " bytes for " << chunk.numberOfParticles
@@ -728,6 +739,184 @@ namespace picongpu
                     myParticleOffset,
                     myNumParticles,
                     globalNumParticles);
+            }
+
+            template<typename AStrategy>
+            static void writeParticlesBySupercells(
+                ThreadParams* params,
+                uint32_t const currentStep,
+                ::openPMD::Series& series,
+                ::openPMD::ParticleSpecies& particleSpecies,
+                std::string const& basename,
+                std::string const& speciesGroup,
+                std::unique_ptr<AStrategy> strategy,
+                DataConnector& dc,
+                typename AStrategy::RunParameters::SpeciesType& speciesTmp,
+                particles::filter::IUnary<typename T_SpeciesFilter::Filter>& particleFilter,
+                DataSpace<simDim> const& particleToTotalDomainOffset)
+            {
+                uint64_t myNumParticles = 0;
+                uint64_t globalNumParticles = 0;
+                uint64_t myParticleOffset = 0;
+
+                GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                uint64_t mpiSize = gc.getGlobalSize();
+                uint64_t mpiRank = gc.getGlobalRank();
+
+                MyParticleFilter filter;
+                filter.setWindowPosition(params->localWindowToDomainOffset, params->window.localDimensions.size);
+
+                ParticleIoChunkInfo particleIoChunkInfo
+                    = createAChunkForEverySupercell(params, speciesTmp, particleFilter);
+                uint64_t const requiredDumpRounds = particleIoChunkInfo.ranges.size();
+
+                /* count total number of particles on the device */
+                constexpr size_t particleSizeInByte = AStrategy::FrameType::ParticleType::sizeInByte();
+                log<picLog::INPUT_OUTPUT>(
+                    "openPMD: species '%1%': particles=%2% in %3% supercells, largest supercell size %4% byte")
+                    % T_SpeciesFilter::getName() % particleIoChunkInfo.totalNumParticles % requiredDumpRounds
+                    % (particleIoChunkInfo.largestChunk * particleSizeInByte);
+
+                myNumParticles = particleIoChunkInfo.totalNumParticles;
+                std::vector<uint64_t> allNumParticles(mpiSize);
+
+                // avoid deadlock between not finished pmacc tasks and mpi blocking
+                // collectives
+                eventSystem::getTransactionEvent().waitForFinished();
+                MPI_CHECK(MPI_Allgather(
+                    &myNumParticles,
+                    1,
+                    MPI_UNSIGNED_LONG_LONG,
+                    allNumParticles.data(),
+                    1,
+                    MPI_UNSIGNED_LONG_LONG,
+                    gc.getCommunicator().getMPIComm()));
+
+                for(uint64_t i = 0; i < mpiSize; ++i)
+                {
+                    globalNumParticles += allNumParticles[i];
+                    if(i < mpiRank)
+                        myParticleOffset += allNumParticles[i];
+                }
+
+                // @todo combine this and the MPI_Gather above to a single gather for better scaling
+                std::vector<uint64_t> numRounds(mpiSize);
+
+                MPI_CHECK(MPI_Allgather(
+                    &requiredDumpRounds,
+                    1,
+                    MPI_UNSIGNED_LONG_LONG,
+                    numRounds.data(),
+                    1,
+                    MPI_UNSIGNED_LONG_LONG,
+                    gc.getCommunicator().getMPIComm()));
+
+                uint64_t globalNumDumpRounds = requiredDumpRounds;
+                for(uint64_t i = 0; i < mpiSize; ++i)
+                    globalNumDumpRounds = std::max(globalNumDumpRounds, numRounds[i]);
+
+
+                log<picLog::INPUT_OUTPUT>(
+                    "openPMD: species '%1%': global particle count=%2%, number of dumping iterations=%3%")
+                    % T_SpeciesFilter::getName() % globalNumParticles % globalNumDumpRounds;
+
+                auto hostFrame = strategy->malloc(T_SpeciesFilter::getName(), particleIoChunkInfo.largestChunk);
+
+                {
+                    meta::ForEach<
+                        typename NewParticleDescription::ValueTypeSeq,
+                        openPMD::InitParticleAttribute<boost::mpl::_1>>
+                        initParticleAttributes;
+                    initParticleAttributes(params, particleSpecies, basename, globalNumParticles);
+                }
+
+                /** Offset within our global chunk where we are allowed to write particles too.
+                 *  The offset is updated each dumping iteration.
+                 */
+                size_t particleOffset = 0u;
+
+                uint64_t dumpIteration = 0u;
+                // To write all metadata for particles we need to perform dumping once even if we have no
+                // particles
+
+                constexpr size_t log_granularity = 100;
+                do
+                {
+                    if(dumpIteration % log_granularity == 0)
+                    {
+                        log<picLog::INPUT_OUTPUT>("openPMD: (begin) write particle records for %1%, dumping round %2%")
+                            % T_SpeciesFilter::getName() % dumpIteration;
+                    }
+                    ChunkDescription chunk;
+                    if(dumpIteration < particleIoChunkInfo.ranges.size())
+                    {
+                        chunk = particleIoChunkInfo.ranges[dumpIteration];
+                    }
+
+                    using RunParameters = typename AStrategy::RunParameters;
+                    RunParameters runParameters(
+                        dc,
+                        *params,
+                        speciesTmp,
+                        filter,
+                        particleFilter,
+                        particleToTotalDomainOffset,
+                        globalNumParticles);
+
+                    if(chunk.numberOfParticles > 0)
+                    {
+                        strategy->prepare(
+                            currentStep,
+                            T_SpeciesFilter::getName(),
+                            runParameters,
+                            chunk,
+                            /* verbose_log = */ false);
+                    }
+
+                    std::stringstream description;
+                    description << "\tslice " << dumpIteration << " prepare";
+                    params->m_dumpTimes.now<std::chrono::milliseconds>(description.str());
+
+                    size_t writtenBytes = 0;
+
+                    meta::ForEach<
+                        typename NewParticleDescription::ValueTypeSeq,
+                        openPMD::ParticleAttribute<boost::mpl::_1>>
+                        writeToOpenPMD;
+                    writeToOpenPMD(
+                        params,
+                        hostFrame,
+                        particleSpecies,
+                        basename,
+                        chunk.numberOfParticles,
+                        globalNumParticles,
+                        myParticleOffset + particleOffset,
+                        writtenBytes,
+                        /* verbose_log = */ false);
+
+                    description = std::stringstream();
+                    description << ": " << writtenBytes << " bytes for " << chunk.numberOfParticles
+                                << " particles from offset " << (myParticleOffset + particleOffset);
+                    params->m_dumpTimes.append(description.str());
+
+                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                    eventSystem::getTransactionEvent().waitForFinished();
+                    params->m_dumpTimes.now<std::chrono::milliseconds>(
+                        "\tslice " + std::to_string(dumpIteration) + " flush");
+                    particleSpecies.seriesFlush(PreferredFlushTarget::Disk);
+                    params->m_dumpTimes.now<std::chrono::milliseconds>(
+                        "\tslice " + std::to_string(dumpIteration) + " end");
+
+
+                    particleOffset += chunk.numberOfParticles;
+                    ++dumpIteration;
+                } while(dumpIteration < globalNumDumpRounds);
+
+                strategy.reset();
+
+                log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
+
+                // TODO: Patches
             }
 
             HINLINE void operator()(
@@ -783,7 +972,7 @@ namespace picongpu
                     }
                 }
 
-                writeParticlesWithoutAnySubdividing(
+                writeParticlesBySupercells(
                     params,
                     currentStep,
                     series,
