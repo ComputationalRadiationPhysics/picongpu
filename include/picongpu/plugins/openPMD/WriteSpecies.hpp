@@ -838,7 +838,10 @@ namespace picongpu
                     for(uint32_t d = 0; d < simDim; ++d)
                     {
                         bufferExtent[d][i] = singlePatchExtent[d];
-                        bufferOffset[d][i] = totalPatchOffset[d] + index_t(singlePatchExtent[d] * superCellIdxND[d]);
+                        // No idea why the -1 is needed, but the results do not fit otherwise
+                        // Something weird going on in supercell indexing
+                        bufferOffset[d][i]
+                            = totalPatchOffset[d] + index_t(singlePatchExtent[d] * (superCellIdxND[d] - 1));
                     }
                 }
 
@@ -866,6 +869,7 @@ namespace picongpu
                     extent_x.resetDataset(ds);
 
                     offset_x.storeChunk(bufferOffset[d], {mpiRank * numPatches}, {numPatches});
+                    // TODO: Maybe use a constant record for this
                     extent_x.storeChunk(bufferExtent[d], {mpiRank * numPatches}, {numPatches});
                 }
 
