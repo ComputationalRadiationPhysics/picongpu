@@ -26,6 +26,7 @@
 #    include "picongpu/particles/traits/GetShape.hpp"
 #    include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #    include "picongpu/plugins/ISimulationPlugin.hpp"
+#    include "picongpu/plugins/common/MPIHelpers.hpp"
 #    include "picongpu/plugins/kernel/CopySpecies.kernel"
 #    include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.def"
@@ -53,6 +54,7 @@
 #    include <boost/mpl/placeholders.hpp>
 
 #    include <algorithm>
+#    include <exception>
 #    include <type_traits> // std::remove_reference_t
 #    include <vector>
 
@@ -741,6 +743,146 @@ namespace picongpu
                     globalNumParticles);
             }
 
+            static void writeParticlePatchesBySupercells(
+                ThreadParams* params,
+                DataSpace<simDim> const& particleToTotalDomainOffset,
+                ParticleIoChunkInfo particleIoChunkInfo,
+                ::openPMD::Series& series,
+                ::openPMD::ParticleSpecies& particleSpecies,
+                std::string const& basename,
+                std::string const& speciesGroup,
+                GridController<simDim>& gc,
+                uint64_t mpiSize,
+                uint64_t mpiRank,
+                size_t myParticleOffset,
+                size_t myNumParticles,
+                size_t globalNumParticles)
+            {
+                /* write species counter table to openPMD storage */
+                log<picLog::INPUT_OUTPUT>("openPMD: (begin) writing particle patches for %1%")
+                    % T_SpeciesFilter::getName();
+
+                size_t numPatches = particleIoChunkInfo.ranges.size();
+                { // Verify that each rank contributes the same number of patches
+                    size_t maximum, minimum;
+                    MPI_Allreduce(
+                        &numPatches,
+                        &minimum,
+                        1,
+                        MPI_Types<size_t>().value,
+                        MPI_MIN,
+                        gc.getCommunicator().getMPIComm());
+                    MPI_Allreduce(
+                        &numPatches,
+                        &maximum,
+                        1,
+                        MPI_Types<size_t>().value,
+                        MPI_MAX,
+                        gc.getCommunicator().getMPIComm());
+
+                    if(minimum != maximum)
+                    {
+                        throw std::runtime_error(
+                            "Ranks have different number of supercells: Minimum number = " + std::to_string(minimum)
+                            + ", maximum number: " + std::to_string(maximum) + ". Will abort.");
+                    }
+                }
+
+                auto const areaMapper = makeAreaMapper<CORE + BORDER>(*params->cellDescription);
+                auto const baseGridDim = areaMapper.getGridDim();
+                auto const rangeMapper = makeRangeMapper(areaMapper);
+
+                using index_t = uint64_t;
+                std::vector<index_t> bufferNumParticlesOffset(numPatches);
+                std::vector<index_t> bufferNumParticles(numPatches);
+                std::array<std::vector<index_t>, simDim> bufferOffset;
+                std::array<std::vector<index_t>, simDim> bufferExtent;
+                for(size_t d = 0; d < simDim; ++d)
+                {
+                    bufferOffset[d].resize(numPatches);
+                    bufferExtent[d].resize(numPatches);
+                }
+
+                ::openPMD::Datatype const datatype = ::openPMD::determineDatatype<index_t>();
+                // not const, we'll switch out the JSON config
+                ::openPMD::Dataset ds(datatype, {numPatches * mpiSize});
+
+                ::openPMD::ParticlePatches particlePatches = particleSpecies.particlePatches;
+                ::openPMD::PatchRecordComponent numParticles
+                    = particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR];
+                ::openPMD::PatchRecordComponent numParticlesOffset
+                    = particlePatches["numParticlesOffset"][::openPMD::RecordComponent::SCALAR];
+
+                auto const totalPatchOffset = particleToTotalDomainOffset + params->localWindowToDomainOffset;
+                auto const totalPatchExtent = params->window.localDimensions.size;
+                std::array<double, simDim> singlePatchExtent;
+                for(uint32_t d = 0; d < simDim; ++d)
+                {
+                    singlePatchExtent[d] = (double) totalPatchExtent[d] / baseGridDim[d];
+                }
+
+                size_t runningOffset = myParticleOffset;
+                for(size_t i = 0; i < numPatches; ++i)
+                {
+                    auto const& supercell = particleIoChunkInfo.ranges.at(i);
+                    if(supercell.endSupercellIdx != supercell.beginSupercellIdx + 1)
+                    {
+                        throw std::runtime_error(
+                            "Grouping of supercells for load balancing output currently not implemented.");
+                    }
+                    bufferNumParticlesOffset[i] = runningOffset;
+                    bufferNumParticles[i] = supercell.numberOfParticles;
+                    runningOffset += supercell.numberOfParticles;
+                    DataSpace<simDim> const superCellIdxND
+                        = rangeMapper.getSuperCellIndex(supercell.beginSupercellIdx);
+                    for(uint32_t d = 0; d < simDim; ++d)
+                    {
+                        bufferExtent[d][i] = singlePatchExtent[d];
+                        bufferOffset[d][i] = totalPatchOffset[d] + index_t(singlePatchExtent[d] * superCellIdxND[d]);
+                    }
+                }
+
+                ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticles");
+                numParticles.resetDataset(ds);
+                ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticlesOffset");
+                numParticlesOffset.resetDataset(ds);
+
+                /* It is safe to use the mpi rank to write the data even if the rank can differ between simulation
+                 * runs. During the restart the plugin is using patch information to find the corresponding data.
+                 */
+                numParticles.storeChunk(bufferNumParticles, {mpiRank * numPatches}, {numPatches});
+                numParticlesOffset.storeChunk(bufferNumParticlesOffset, {mpiRank * numPatches}, {numPatches});
+
+                ::openPMD::PatchRecord offset = particlePatches["offset"];
+                ::openPMD::PatchRecord extent = particlePatches["extent"];
+
+                for(uint32_t d = 0; d < simDim; ++d)
+                {
+                    ::openPMD::PatchRecordComponent offset_x = offset[name_lookup[d]];
+                    ::openPMD::PatchRecordComponent extent_x = extent[name_lookup[d]];
+                    ds.options = params->jsonMatcher->get(basename + "/particlePatches/offset/" + name_lookup[d]);
+                    offset_x.resetDataset(ds);
+                    ds.options = params->jsonMatcher->get(basename + "/particlePatches/extent/" + name_lookup[d]);
+                    extent_x.resetDataset(ds);
+
+                    offset_x.storeChunk(bufferOffset[d], {mpiRank * numPatches}, {numPatches});
+                    extent_x.storeChunk(bufferExtent[d], {mpiRank * numPatches}, {numPatches});
+                }
+
+                /* openPMD ED-PIC: additional attributes */
+                setParticleAttributes(
+                    particleSpecies,
+                    globalNumParticles,
+                    *params->jsonMatcher,
+                    series.particlesPath() + speciesGroup);
+                params->m_dumpTimes.now<std::chrono::milliseconds>("\tFlush species " + T_SpeciesFilter::getName());
+                particleSpecies.seriesFlush(PreferredFlushTarget::Buffer);
+                params->m_dumpTimes.now<std::chrono::milliseconds>("\tFinished flush species");
+
+                log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle patches for %1%")
+                    % T_SpeciesFilter::getName();
+            }
+
             template<typename AStrategy>
             static void writeParticlesBySupercells(
                 ThreadParams* params,
@@ -916,7 +1058,20 @@ namespace picongpu
 
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
 
-                // TODO: Patches
+                writeParticlePatchesBySupercells(
+                    params,
+                    particleToTotalDomainOffset,
+                    particleIoChunkInfo,
+                    series,
+                    particleSpecies,
+                    basename,
+                    speciesGroup,
+                    gc,
+                    mpiSize,
+                    mpiRank,
+                    myParticleOffset,
+                    myNumParticles,
+                    globalNumParticles);
             }
 
             HINLINE void operator()(
