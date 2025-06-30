@@ -158,6 +158,18 @@ namespace picongpu
                 if(elements == 0)
                 {
                     // accumulateWrittenBytes += 0;
+
+                    // Since Span-based storeChunk needs to interact with the openPMD backend (potentially opening it),
+                    // this cannot be skipped in parallel setups
+                    for(uint32_t d = 0; d < components; d++)
+                    {
+                        ::openPMD::RecordComponent recordComponent
+                            = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+
+                        recordComponent.storeChunk<ComponentType>(
+                            ::openPMD::Offset{globalOffset},
+                            ::openPMD::Extent{elements});
+                    }
                     return;
                 }
 
