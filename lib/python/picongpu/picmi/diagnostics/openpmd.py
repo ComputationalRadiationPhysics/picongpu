@@ -8,11 +8,11 @@ License: GPLv3+
 from ...pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
 from ...pypicongpu.output.openpmd_sources.source_base import SourceBase as PyPIConGPUSource
 from .timestepspec import TimeStepSpec
-
+from .rangespec import RangeSpec
 from .openpmd_sources.source_base import SourceBase
 
 import typeguard
-from typing import Optional, Dict, Union, List, Literal
+from typing import Optional, Dict, Union, List, Literal, Tuple
 
 
 @typeguard.typechecked
@@ -26,11 +26,14 @@ class OpenPMD:
     @param period specification of the time steps for data output, outputs will always be written at the end of a PIC time step.
     @param source list of data source objects to include in the dump (e.g., [ChargeDensity(filter="all")]),
         Setting this to None will cause an empty dump
-    @param range contiguous range of cells to dump the base- and derived field for
-        specification as comma-separated "begin:end" range for each dimension, i.e. "begin:end,begin:end,begin:end"
-        Notes: Values will be clipped to the simulation box. Begin and/or end may be omitted to indicate the limit of the simulation box in the dimension. The Default value ":,::,:" indicates that fields should be dumped for all cells.
+    @param range contiguous range of cells to dump the base- and derived field for, specified as a RangeSpec object
+        or a string in the format "brange clegin:end" (1D), "begin:end,begin:end" (2D), or "begin:end,begin:end,begin:end" (3D).
+        Example: "0:10,5:15,2:8" specifies cells 0 to 10 (x), 5 to 15 (y), 2 to 8 (z).
+        Notes: Values are clipped to the simulation box. Begin and/or end may be omitted (":") to indicate the full extent
+        of the dimension. Negative indices are supported (e.g., "-5:-1" for last 5 cells). The default ":,:,:," (3D),
+        ":,:" (2D), or ":" (1D) includes all cells in the simulation box.
     @param file relative or absolute file path prefix for openPMD output files. Relative paths are interpreted as relative to the simulation output directory, the default value None indicates the PIC code's default.
-    @param ext file extension controlling the openPMD backend, options are "bp" (default backend ADIOS2), "bp4" (bp4 backend ADIOS2), "bp5" (bp5 backend ADIOS2), "h5" (HDF5), "sst" (ADIOS2/SST for streaming).
+    @param ext file extension controlling the openPMD backend, options are "bp" (default backend ADIOS2), "h5" (HDF5), "sst" (ADIOS2/SST for streaming).
     @param infix filename infix for the iteration layout (e.g., "_%06T"), use "NULL" for the group-based layout, ext="sst" requires infix="NULL".
     @param json openPMD backend configuration as a JSON string, dictionary, or filename (filename must be prepended with "@").
     @param json_restart backend-specific parameters for restarting, as a JSON string, dictionary, or filename (filenames must be prepended with "@").
@@ -44,8 +47,6 @@ class OpenPMD:
         """
         Validate the provided parameters.
         """
-        if self.period is None:
-            raise ValueError("period is mandatory")
         if self.particle_io_chunk_size is not None and self.particle_io_chunk_size < 1:
             raise ValueError("particle_io_chunk_size (in MiB) must be positive")
         if self.ext == "sst" and self.infix is not None and self.infix != "NULL":
@@ -57,7 +58,7 @@ class OpenPMD:
         self,
         period: TimeStepSpec,
         source: Optional[List[SourceBase]] = None,
-        range: Optional[str] = ":,:,:",
+        range: Optional[Union[str, RangeSpec]] = ":,:,:",
         file: Optional[str] = None,
         ext: Optional[Literal["bp", "h5", "sst"]] = "bp",
         infix: Optional[str] = "NULL",
@@ -70,7 +71,7 @@ class OpenPMD:
     ):
         self.period = period
         self.source = source
-        self.range = range
+        self.range = RangeSpec(range) if isinstance(range, str) else range
         self.file = file
         self.ext = ext
         self.infix = infix
@@ -88,13 +89,14 @@ class OpenPMD:
         pypicongpu_by_picmi_species: Dict,
         time_step_size: float,
         num_steps: int,
+        simulation_box: Tuple[int, ...] = (0, 0, 0),  # Default for compatibility
     ) -> PyPIConGPUOpenPMD:
         self.check()
 
         pypicongpu_openpmd = PyPIConGPUOpenPMD(
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
             source=PyPIConGPUSource([s.get_as_pypicongpu() for s in self.source]) if self.source is not None else None,
-            range=self.range,
+            range=self.range.get_as_pypicongpu(simulation_box),
             file=self.file,
             ext=self.ext,
             infix=self.infix,

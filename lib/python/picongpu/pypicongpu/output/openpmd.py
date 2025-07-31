@@ -7,8 +7,9 @@ License: GPLv3+
 
 from .. import util
 from .timestepspec import TimeStepSpec
-from .openpmd_sources.source_base import SourceBase
+from .rangespec import RangeSpec
 from .plugin import Plugin
+from ..openpmd_sources.source_base import SourceBase
 
 import typeguard
 import typing
@@ -19,9 +20,9 @@ from typing import Optional, List, Literal, Dict, Union
 class OpenPMD(Plugin):
     period = util.build_typesafe_property(TimeStepSpec)
     source = util.build_typesafe_property(Optional[List[SourceBase]])
-    range = util.build_typesafe_property(Optional[str])
+    range = util.build_typesafe_property(Optional[RangeSpec])
     file = util.build_typesafe_property(Optional[str])
-    ext = util.build_typesafe_property(Optional[Literal["bp", "h5", "sst"]])
+    ext = util.build_typesafe_property(Optional[Literal["bp", "bp4", "bp5", "h5", "sst"]])
     infix = util.build_typesafe_property(Optional[str])
     json = util.build_typesafe_property(Union[str, Dict, None])
     json_restart = util.build_typesafe_property(Union[str, Dict, None])
@@ -38,9 +39,9 @@ class OpenPMD(Plugin):
         self,
         period: TimeStepSpec,
         source: Optional[List[SourceBase]] = None,
-        range: Optional[str] = ":,:,:",
+        range: Optional[RangeSpec] = None,
         file: Optional[str] = None,
-        ext: Optional[Literal["bp", "h5", "sst"]] = "bp",
+        ext: Optional[Literal["bp", "bp4", "bp5", "h5", "sst"]] = "bp",
         infix: Optional[str] = "NULL",
         json: Optional[Union[str, Dict]] = None,
         json_restart: Optional[Union[str, Dict]] = None,
@@ -64,9 +65,9 @@ class OpenPMD(Plugin):
         self.check()
 
     def check(self) -> None:
-        # Validate parameters
-        if self.period is None:
-            raise ValueError("period is mandatory")
+        """
+        Validate the provided parameters.
+        """
         if self.particle_io_chunk_size is not None and self.particle_io_chunk_size < 1:
             raise ValueError("particle_io_chunk_size (in MiB) must be positive")
         if self.ext == "sst" and self.infix is not None and self.infix != "NULL":
@@ -75,12 +76,14 @@ class OpenPMD(Plugin):
             raise ValueError("source must be a list of SourceBase objects")
 
     def _get_serialized(self) -> typing.Dict:
-        # Return serialized representation
+        """
+        Serialize the OpenPMD object to a JSON-compatible dictionary.
+        """
         self.check()
         return {
-            "period": self.period.get_rendering_context(),
+            "period": self.period._get_serialized(),
             "source": [s._get_serialized() for s in self.source] if self.source is not None else None,
-            "range": self.range,
+            "range": self.range._get_serialized() if self.range is not None else None,
             "file": self.file,
             "ext": self.ext,
             "infix": self.infix,
