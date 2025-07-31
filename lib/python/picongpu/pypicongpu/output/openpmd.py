@@ -9,7 +9,7 @@ from .. import util
 from .timestepspec import TimeStepSpec
 from .rangespec import RangeSpec
 from .plugin import Plugin
-from ..openpmd_sources.source_base import SourceBase
+from .openpmd_sources.source_base import SourceBase
 
 import typeguard
 import typing
