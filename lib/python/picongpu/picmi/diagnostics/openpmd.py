@@ -27,13 +27,13 @@ class OpenPMD:
     @param source list of data source objects to include in the dump (e.g., [ChargeDensity(filter="all")]),
         Setting this to None will cause an empty dump
     @param range contiguous range of cells to dump the base- and derived field for, specified as a RangeSpec object
-        or a string in the format "brange clegin:end" (1D), "begin:end,begin:end" (2D), or "begin:end,begin:end,begin:end" (3D).
+        or a string in the format "begin:end" (1D), "begin:end,begin:end" (2D), or "begin:end,begin:end,begin:end" (3D).
         Example: "0:10,5:15,2:8" specifies cells 0 to 10 (x), 5 to 15 (y), 2 to 8 (z).
         Notes: Values are clipped to the simulation box. Begin and/or end may be omitted (":") to indicate the full extent
         of the dimension. Negative indices are supported (e.g., "-5:-1" for last 5 cells). The default ":,:,:," (3D),
         ":,:" (2D), or ":" (1D) includes all cells in the simulation box.
     @param file relative or absolute file path prefix for openPMD output files. Relative paths are interpreted as relative to the simulation output directory, the default value None indicates the PIC code's default.
-    @param ext file extension controlling the openPMD backend, options are "bp" (default backend ADIOS2), "h5" (HDF5), "sst" (ADIOS2/SST for streaming).
+    @param ext file extension controlling the openPMD backend, options are "bp" (default backend ADIOS2), "bp4" (bp4 backend ADIOS2), "bp5" (bp5 backend ADIOS2), "h5" (HDF5), "sst" (ADIOS2/SST for streaming).
     @param infix filename infix for the iteration layout (e.g., "_%06T"), use "NULL" for the group-based layout, ext="sst" requires infix="NULL".
     @param json openPMD backend configuration as a JSON string, dictionary, or filename (filename must be prepended with "@").
     @param json_restart backend-specific parameters for restarting, as a JSON string, dictionary, or filename (filenames must be prepended with "@").
@@ -60,7 +60,7 @@ class OpenPMD:
         source: Optional[List[SourceBase]] = None,
         range: Optional[Union[str, RangeSpec]] = ":,:,:",
         file: Optional[str] = None,
-        ext: Optional[Literal["bp", "h5", "sst"]] = "bp",
+        ext: Optional[Literal["bp", "bp4", "bp5", "h5", "sst"]] = "bp",
         infix: Optional[str] = "NULL",
         json: Optional[Union[str, Dict]] = None,
         json_restart: Optional[Union[str, Dict]] = None,
@@ -89,10 +89,9 @@ class OpenPMD:
         pypicongpu_by_picmi_species: Dict,
         time_step_size: float,
         num_steps: int,
-        simulation_box: Tuple[int, ...] = (0, 0, 0),  # Default for compatibility
+        simulation_box: Tuple[int, ...],
     ) -> PyPIConGPUOpenPMD:
         self.check()
-
         pypicongpu_openpmd = PyPIConGPUOpenPMD(
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
             source=PyPIConGPUSource([s.get_as_pypicongpu() for s in self.source]) if self.source is not None else None,
