@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2025 PIConGPU contributors
-Authors: Pawel Ordyna
+Authors: Pawel Ordyna, Masoud Afshari
 License: GPLv3+
 """
 
@@ -42,6 +42,7 @@ class Auto:
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],
         time_step_size,
         num_steps,
+        simulation_box=None,  # Added to match OpenPMD signature, not used
     ) -> PyPIConGPUAuto:
         self.check()
         pypicongpu_auto = PyPIConGPUAuto()
