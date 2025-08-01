@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2025 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
+Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz, Masoud Afshari
 License: GPLv3+
 """
 
@@ -489,6 +489,12 @@ class Simulation(picmistandard.PICMI_Simulation):
             s.laser = None
 
         s.init_manager, pypicongpu_by_picmi_species = self.__get_init_manager()
+
+        # Extract simulation_box from grid
+        if isinstance(self.solver.grid, Cartesian3DGrid):
+            simulation_box = tuple(self.solver.grid.number_of_cells)
+        else:
+            raise ValueError("Grid must be a Cartesian3DGrid with defined number_of_cells")
 
         s.plugins = [
             entry.get_as_pypicongpu(pypicongpu_by_picmi_species, self.time_step_size, s.time_steps)
