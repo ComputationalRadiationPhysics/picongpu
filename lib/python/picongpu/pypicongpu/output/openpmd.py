@@ -22,7 +22,7 @@ class OpenPMD(Plugin):
     source = util.build_typesafe_property(Optional[List[SourceBase]])
     range = util.build_typesafe_property(Optional[RangeSpec])
     file = util.build_typesafe_property(Optional[str])
-    ext = util.build_typesafe_property(Optional[Literal["bp", "bp4", "bp5", "h5", "sst"]])
+    ext = util.build_typesafe_property(Optional[Literal["bp", "h5", "sst"]])
     infix = util.build_typesafe_property(Optional[str])
     json = util.build_typesafe_property(Union[str, Dict, None])
     json_restart = util.build_typesafe_property(Union[str, Dict, None])
@@ -41,7 +41,7 @@ class OpenPMD(Plugin):
         source: Optional[List[SourceBase]] = None,
         range: Optional[RangeSpec] = None,
         file: Optional[str] = None,
-        ext: Optional[Literal["bp", "bp4", "bp5", "h5", "sst"]] = "bp",
+        ext: Optional[Literal["bp", "h5", "sst"]] = "bp",
         infix: Optional[str] = "NULL",
         json: Optional[Union[str, Dict]] = None,
         json_restart: Optional[Union[str, Dict]] = None,
