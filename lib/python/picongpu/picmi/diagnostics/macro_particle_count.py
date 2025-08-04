@@ -49,6 +49,7 @@ class MacroParticleCount:
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],
         time_step_size,
         num_steps,
+        simulation_box=None,  # Added to match OpenPMD signature, not used
     ) -> PyPIConGPUMacroParticleCount:
         self.check()
 
