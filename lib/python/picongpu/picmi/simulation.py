@@ -487,7 +487,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError("Grid must be a Cartesian3DGrid with defined number_of_cells")
 
         s.plugins = [
-            entry.get_as_pypicongpu(pypicongpu_by_picmi_species, self.time_step_size, s.time_steps)
+            entry.get_as_pypicongpu(pypicongpu_by_picmi_species, self.time_step_size, s.time_steps, simulation_box)
             for entry in self.diagnostics
         ]
 
