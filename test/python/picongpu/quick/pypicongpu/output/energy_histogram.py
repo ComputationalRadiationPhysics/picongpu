@@ -26,19 +26,26 @@ class TestEnergyHistogram(unittest.TestCase):
     def test_empty(self):
         """Empty or incomplete configurations are handled correctly."""
         eh = EnergyHistogram()
-        # Unset attributes should raise an exception
-        with self.assertRaises(Exception):
+        # Unset species should raise an exception
+        with self.assertRaises(ValueError, match="species must be set"):
+            eh._get_serialized()
+
+        # Set species but not period
+        eh.species = create_species()
+        with self.assertRaises(ValueError, match="period must be set"):
+            eh._get_serialized()
+
+        # Set species and period but not bin_count
+        eh.period = TimeStepSpec([slice(0, None, 100)])
+        with self.assertRaises(ValueError, match="bin_count must be positive"):
             eh._get_serialized()
 
         # Set valid attributes
-        eh.species = create_species()
-        eh.period = TimeStepSpec([slice(0, None, 100)])
         eh.bin_count = 1024
         eh.min_energy = 0.0
         eh.max_energy = 1000.0
         # Should succeed
         serialized = eh._get_serialized()
-        # confirm the serialized dictionary has the correct values.
         self.assertEqual(serialized["bin_count"], 1024)
         self.assertEqual(serialized["min_energy"], 0.0)
         self.assertEqual(serialized["max_energy"], 1000.0)
@@ -97,14 +104,14 @@ class TestEnergyHistogram(unittest.TestCase):
         context = eh.get_rendering_context()
         self.assertTrue(context["typeID"]["energyhistogram"])
         context = context["data"]
-        self.assertEqual(100, context["period"]["specs"][0]["step"])
-        self.assertEqual(1024, context["bin_count"])
-        self.assertEqual(0.0, context["min_energy"])
-        self.assertEqual(1000.0, context["max_energy"])
+        self.assertEqual(context["period"]["specs"][0]["step"], 100)
+        self.assertEqual(context["bin_count"], 1024)
+        self.assertEqual(context["min_energy"], 0.0)
+        self.assertEqual(context["max_energy"], 1000.0)
 
         # Unset attributes should fail
         eh = EnergyHistogram()
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError, match="species must be set"):
             eh.get_rendering_context()
 
     def test_validation(self):
@@ -120,7 +127,7 @@ class TestEnergyHistogram(unittest.TestCase):
         with self.assertRaises(ValueError, match="bin_count must be positive"):
             eh.check()
         with self.assertRaises(ValueError, match="bin_count must be positive"):
-            eh._get_serialized()  # Should fail due to calls check() internally
+            eh._get_serialized()
 
         # Test negative bin_count
         eh.bin_count = -1
@@ -134,7 +141,7 @@ class TestEnergyHistogram(unittest.TestCase):
         with self.assertRaises(ValueError, match="min_energy must be less than max_energy"):
             eh.check()
         with self.assertRaises(ValueError, match="min_energy must be less than max_energy"):
-            eh._get_serialized()  # Should fail due to calls check() internally
+            eh._get_serialized()
 
         # Test equal energy range
         eh.min_energy = 500.0
@@ -159,3 +166,7 @@ class TestEnergyHistogram(unittest.TestCase):
         self.assertEqual(serialized["bin_count"], 1024)
         self.assertEqual(serialized["min_energy"], 0.0)
         self.assertEqual(serialized["max_energy"], 1000.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
