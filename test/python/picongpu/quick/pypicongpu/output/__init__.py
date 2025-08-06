@@ -5,3 +5,4 @@ from .timestepspec import *  # pyflakes.ignore
 from .energy_histogram import *  # pyflakes.ignore
 from .macro_particle_count import *  # pyflakes.ignore
 from .checkpoint import *  # pyflakes.ignore
+from .png import *  # pyflakes.ignore
