@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2025 PIConGPU contributors
+Copyright 2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -32,7 +32,18 @@ class Checkpoint(Plugin):
     _name = "checkpoint"
 
     def __init__(self):
-        "do nothing"
+        self.period = None
+        self.timePeriod = None
+        self.directory = None
+        self.file = None
+        self.restart = None
+        self.tryRestart = None
+        self.restartStep = None
+        self.restartDirectory = None
+        self.restartFile = None
+        self.restartChunkSize = None
+        self.restartLoop = None
+        self.openPMD = None
 
     def check(self):
         if self.period is None and self.timePeriod is None:

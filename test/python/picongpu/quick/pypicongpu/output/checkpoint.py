@@ -16,13 +16,13 @@ class TestCheckpoint(unittest.TestCase):
         """Empty or incomplete configurations are handled correctly."""
         cp = Checkpoint()
         # Neither period nor timePeriod set
-        with self.assertRaises(ValueError, match="At least one of period or timePeriod must be provided"):
+        with self.assertRaisesRegex(ValueError, "At least one of period or timePeriod must be provided"):
             cp._get_serialized()
 
         # Set period but test negative timePeriod
         cp.period = TimeStepSpec([slice(0, None, 100)])
         cp.timePeriod = -1
-        with self.assertRaises(ValueError, match="timePeriod must be non-negative"):
+        with self.assertRaisesRegex(ValueError, "timePeriod must be non-negative"):
             cp._get_serialized()
 
         # Set valid minimal configuration with period
@@ -164,7 +164,7 @@ class TestCheckpoint(unittest.TestCase):
 
         # Unset period and timePeriod should fail
         cp = Checkpoint()
-        with self.assertRaises(ValueError, match="At least one of period or timePeriod must be provided"):
+        with self.assertRaisesRegex(ValueError, "At least one of period or timePeriod must be provided"):
             cp.get_rendering_context()
 
     def test_validation(self):
@@ -172,33 +172,33 @@ class TestCheckpoint(unittest.TestCase):
         cp = Checkpoint()
 
         # Neither period nor timePeriod set
-        with self.assertRaises(ValueError, match="At least one of period or timePeriod must be provided"):
+        with self.assertRaisesRegex(ValueError, "At least one of period or timePeriod must be provided"):
             cp.check()
 
         # Negative timePeriod
         cp.timePeriod = -1
-        with self.assertRaises(ValueError, match="timePeriod must be non-negative"):
+        with self.assertRaisesRegex(ValueError, "timePeriod must be non-negative"):
             cp.check()
 
         # Negative restartStep
         cp = Checkpoint()
         cp.timePeriod = 100
         cp.restartStep = -1
-        with self.assertRaises(ValueError, match="restartStep must be non-negative"):
+        with self.assertRaisesRegex(ValueError, "restartStep must be non-negative"):
             cp.check()
 
         # Non-positive restartChunkSize
         cp = Checkpoint()
         cp.timePeriod = 100
         cp.restartChunkSize = 0
-        with self.assertRaises(ValueError, match="restartChunkSize must be positive"):
+        with self.assertRaisesRegex(ValueError, "restartChunkSize must be positive"):
             cp.check()
 
         # Negative restartLoop
         cp = Checkpoint()
         cp.timePeriod = 100
         cp.restartLoop = -1
-        with self.assertRaises(ValueError, match="restartLoop must be non-negative"):
+        with self.assertRaisesRegex(ValueError, "restartLoop must be non-negative"):
             cp.check()
 
         # Valid configuration

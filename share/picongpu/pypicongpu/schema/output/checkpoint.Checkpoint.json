@@ -110,6 +110,13 @@
       "description": "Additional options for openPMD IO-backend",
       "unevaluatedProperties": false,
       "properties": {
+        "backend": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Backend for openPMD IO (e.g., bp, h5)"
+        },
         "ext": {
           "type": [
             "string",

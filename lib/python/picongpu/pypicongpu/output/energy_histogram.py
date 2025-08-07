@@ -24,14 +24,18 @@ class EnergyHistogram(Plugin):
 
     _name = "energyhistogram"
 
-    def __init__(self):
-        "do nothing"
+    def __init__(self, species: Species, period: TimeStepSpec, bin_count: int, min_energy: float, max_energy: float):
+        self.species = species
+        self.period = period
+        self.bin_count = bin_count
+        self.min_energy = min_energy
+        self.max_energy = max_energy
 
     def check(self):
         """Validate attributes."""
-        if not hasattr(self, "bin_count") or self.bin_count <= 0:
+        if self.bin_count <= 0:
             raise ValueError(f"bin_count must be positive, got {self.bin_count}")
-        if not hasattr(self, "min_energy") or not hasattr(self, "max_energy") or self.min_energy >= self.max_energy:
+        if self.min_energy >= self.max_energy:
             raise ValueError(f"min_energy must be less than max_energy, got {self.min_energy} >= {self.max_energy}")
 
     def _get_serialized(self) -> typing.Dict:

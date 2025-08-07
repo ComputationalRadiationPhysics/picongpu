@@ -5,7 +5,7 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.output import Png, EMFieldScaleEnum, ColorScaleEnum
+from picongpu.pypicongpu.output.png import Png, EMFieldScaleEnum, ColorScaleEnum
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.species.attribute import Position, Momentum
