@@ -30,7 +30,7 @@ export PIC_BACKEND="omp2b:native" # running on cpu
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}
 
-export PICSRC=$HOME/src/picongpu
+export PICSRC=/home/afshar87/afshari/simulation/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 
 export PATH=$PICSRC/bin:$PATH
