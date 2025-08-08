@@ -143,14 +143,13 @@ class Png(Plugin):
             raise ValueError(f"preChannel2_opacity must be in [0, 1], got {self.preChannel2_opacity}")
         if self.preChannel3_opacity < 0 or self.preChannel3_opacity > 1:
             raise ValueError(f"preChannel3_opacity must be in [0, 1], got {self.preChannel3_opacity}")
-        valid_fields = ["E_x", "E_y", "E_z", "B_x", "B_y", "B_z", "J_x", "J_y", "J_z"]
         for channel, name in [
             (self.preChannel1, "preChannel1"),
             (self.preChannel2, "preChannel2"),
             (self.preChannel3, "preChannel3"),
         ]:
-            if channel not in valid_fields:
-                raise ValueError(f"{name} must be one of {valid_fields}, got {channel}")
+            if not isinstance(channel, str) or not channel.strip():
+                raise ValueError(f"{name} must be a non-empty string, got {channel}")
 
     def _get_serialized(self) -> typing.Dict:
         """Return the serialized representation of the object."""

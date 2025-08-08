@@ -5,98 +5,87 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.output.rangespec import RangeSpec
+from picongpu.pypicongpu.output.rangespec import RangeSpec as PyPIConGPURangeSpec
 
 import unittest
 
 
-# Mock PyPIConGPURangeSpec for testing
-class MockPyPIConGPURangeSpec:
-    def __init__(self, slices):
-        self.slices = slices
-
-
 class TestRangeSpec(unittest.TestCase):
     def test_empty(self):
-        """Minimal and default range strings are handled correctly."""
-        # Default ":" (1D, full range)
-        rs = RangeSpec(":")
-        self.assertEqual(rs.slices, (slice(None, None, 1),))
+        """Minimal and default range slices are handled correctly."""
+        # Default 1D full range
+        rs = PyPIConGPURangeSpec[:]
+        self.assertEqual(rs.ranges, [slice(None, None, None)])
 
-        # Default ":,:" (2D, full range)
-        rs = RangeSpec(":,:")
-        self.assertEqual(rs.slices, (slice(None, None, 1), slice(None, None, 1)))
+        # Default 2D full range
+        rs = PyPIConGPURangeSpec[:, :]
+        self.assertEqual(rs.ranges, [slice(None, None, None), slice(None, None, None)])
 
-        # Default ":,:,:," (3D, full range)
-        rs = RangeSpec(":,:,:")
-        self.assertEqual(rs.slices, (slice(None, None, 1), slice(None, None, 1), slice(None, None, 1)))
+        # Default 3D full range
+        rs = PyPIConGPURangeSpec[:, :, :]
+        self.assertEqual(rs.ranges, [slice(None, None, None), slice(None, None, None), slice(None, None, None)])
 
     def test_types(self):
-        """Type safety is ensured for range_str."""
-        # Invalid range_str types
-        invalid_inputs = [1, [], {}, None]
+        """Type safety is ensured for ranges."""
+        # Invalid inputs (non-slice)
+        invalid_inputs = [1, "0:10", {}, None, [0, 10]]
         for invalid in invalid_inputs:
             with self.assertRaises(TypeError):
-                RangeSpec(invalid)
+                PyPIConGPURangeSpec[invalid]
 
-        # Valid range_str
-        rs = RangeSpec("0:10")
-        self.assertEqual(rs.slices, (slice(0, 10, 1),))
+        # Invalid endpoint types (non-int, non-None)
+        invalid_endpoints = [slice(0.0, 10), slice(0, 10.0), slice("a", 10), slice(0, "b"), slice(None, [])]
+        for invalid in invalid_endpoints:
+            with self.assertRaises(TypeError):
+                PyPIConGPURangeSpec[invalid]
+
+        # Invalid step
+        with self.assertRaisesRegex(ValueError, "Step must be None"):
+            PyPIConGPURangeSpec[0:10:2]
+
+        # Valid ranges
+        rs = PyPIConGPURangeSpec[0:10]
+        self.assertEqual(rs.ranges, [slice(0, 10, None)])
+        rs = PyPIConGPURangeSpec[0:10, 5:15]
+        self.assertEqual(rs.ranges, [slice(0, 10, None), slice(5, 15, None)])
 
     def test_validation(self):
-        """Constraints on range format and slices are enforced."""
+        """Constraints on range format are enforced."""
         # More than 3 dimensions
-        with self.assertRaises(ValueError, match="Range must specify at most three dimensions"):
-            RangeSpec("0:10,0:10,0:10,0:10")
+        with self.assertRaisesRegex(ValueError, "RangeSpec must have at most 3 ranges"):
+            PyPIConGPURangeSpec[0:10, 0:10, 0:10, 0:10]
 
-        # Invalid format
-        invalid_formats = ["a:b", "0:10:2", "0-10", "0:", ":0"]
-        for fmt in invalid_formats:
-            with self.assertRaises(ValueError, match="Invalid range format"):
-                RangeSpec(fmt)
-
-        # Invalid step (step != 1)
-        rs = RangeSpec("0:10")
-        rs.slices = (slice(0, 10, 2),)
-        with self.assertRaises(ValueError, match="Step size must be 1"):
-            rs._validate()
-
-        # Invalid dimension size
-        with self.assertRaises(ValueError, match="Dimension size must be positive"):
-            rs.get_as_pypicongpu((0,))
+        # Empty ranges
+        with self.assertRaisesRegex(ValueError, "RangeSpec must have at least one range"):
+            PyPIConGPURangeSpec()
 
         # Valid configurations
-        rs = RangeSpec("0:10")
-        rs._validate()  # Should succeed
-        rs = RangeSpec("0:10,5:15,-2:8")
-        rs._validate()  # Should succeed
+        PyPIConGPURangeSpec[0:10]
+        PyPIConGPURangeSpec[0:10, 5:15, -2:8]
 
     def test_rendering(self):
-        """Conversion to PyPIConGPURangeSpec is correct."""
+        """Serialized data is correctly formatted for template consumption."""
         # 1D: Positive indices
-        rs = RangeSpec("2:10")
-        result = rs.get_as_pypicongpu((20,))
-        self.assertEqual(result.slices, (slice(2, 9, 1),))
+        rs = PyPIConGPURangeSpec[2:10]
+        serialized = rs._get_serialized()
+        self.assertEqual(serialized["ranges"], [{"begin": 2, "end": 10}])
 
         # 1D: Negative indices
-        rs = RangeSpec("-5:-1")
-        result = rs.get_as_pypicongpu((20,))
-        self.assertEqual(result.slices, (slice(15, 19, 1),))
+        rs = PyPIConGPURangeSpec[-5:-1]
+        serialized = rs._get_serialized()
+        self.assertEqual(serialized["ranges"], [{"begin": -5, "end": -1}])
 
         # 2D: Mixed indices
-        rs = RangeSpec("0:10,-5:15")
-        result = rs.get_as_pypicongpu((20, 30))
-        self.assertEqual(result.slices, (slice(0, 9, 1), slice(25, 15, 1)))
+        rs = PyPIConGPURangeSpec[0:10, -5:15]
+        serialized = rs._get_serialized()
+        self.assertEqual(serialized["ranges"], [{"begin": 0, "end": 10}, {"begin": -5, "end": 15}])
 
-        # 3D: Full range with None
-        rs = RangeSpec(":,:,:")
-        result = rs.get_as_pypicongpu((20, 30, 40))
-        self.assertEqual(result.slices, (slice(0, 19, 1), slice(0, 29, 1), slice(0, 39, 1)))
-
-        # Mismatched dimensions
-        rs = RangeSpec("0:10,0:10")
-        with self.assertRaises(ValueError, match="Number of range specifications"):
-            rs.get_as_pypicongpu((20,))
+        # 3D: Full range
+        rs = PyPIConGPURangeSpec[:, :, :]
+        serialized = rs._get_serialized()
+        self.assertEqual(
+            serialized["ranges"], [{"begin": 0, "end": -1}, {"begin": 0, "end": -1}, {"begin": 0, "end": -1}]
+        )
 
 
 if __name__ == "__main__":

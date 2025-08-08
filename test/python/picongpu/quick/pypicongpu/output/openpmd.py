@@ -144,21 +144,21 @@ class TestOpenPMD(unittest.TestCase):
 
         # Invalid particle_io_chunk_size
         openpmd.particle_io_chunk_size = 0
-        with self.assertRaises(ValueError, match="particle_io_chunk_size \(in MiB\) must be positive"):
+        with self.assertRaisesRegex(ValueError, "particle_io_chunk_size \(in MiB\) must be positive"):
             openpmd.check()
 
         # Invalid infix with ext="sst"
         openpmd.particle_io_chunk_size = None
         openpmd.ext = "sst"
         openpmd.infix = "prefix"
-        with self.assertRaises(ValueError, match="infix must be 'NULL' when ext is 'sst'"):
+        with self.assertRaisesRegex(ValueError, "infix must be 'NULL' when ext is 'sst'"):
             openpmd.check()
 
         # Invalid source
         openpmd.ext = "bp"
         openpmd.infix = "NULL"
         openpmd.source = ["invalid"]
-        with self.assertRaises(ValueError, match="source must be a list of SourceBase objects"):
+        with self.assertRaisesRegex(ValueError, "source must be a list of SourceBase objects"):
             openpmd.check()
 
         # Valid configuration

@@ -593,10 +593,13 @@ class TestPng(unittest.TestCase):
                     preChannel3="E_z",
                 )
 
-        # Invalid preChannel1
-        invalid_channels = [1, 1.0, {}]
-        for invalid in invalid_channels:
-            with self.assertRaises(typeguard.TypeCheckError):
+        # Test invalid preChannel inputs
+        invalid_non_strings = [1, 1.0, {}, None]
+        invalid_empty_string = [""]
+
+        # Test non-string inputs (caught by typeguard)
+        for invalid in invalid_non_strings:
+            with self.assertRaisesRegex(typeguard.TypeCheckError, "is not an instance of str"):
                 Png(
                     species=create_species(),
                     period=TimeStepSpec([slice(0, None, 100)]),
@@ -619,9 +622,39 @@ class TestPng(unittest.TestCase):
                     preChannel2_opacity=0.7,
                     preChannel3_opacity=0.8,
                     preChannel1=invalid,
-                    preChannel2="E_y",
-                    preChannel3="E_z",
+                    preChannel2="field_E.y()",
+                    preChannel3="-1.0_X * field_E.y()",
                 )
+
+        # Test empty string input (caught by custom validation)
+        for invalid in invalid_empty_string:
+            with self.assertRaisesRegex(ValueError, "preChannel1 must be a non-empty string"):
+                png = Png(
+                    species=create_species(),
+                    period=TimeStepSpec([slice(0, None, 100)]),
+                    axis="xy",
+                    slicePoint=0.5,
+                    folder="output",
+                    scale_image=0.5,
+                    scale_to_cellsize=True,
+                    white_box_per_GPU=False,
+                    em_field_scale_channel1=EMFieldScaleEnum.AUTO,
+                    em_field_scale_channel2=EMFieldScaleEnum.PLASMA_WAVE,
+                    em_field_scale_channel3=EMFieldScaleEnum.CUSTOM,
+                    preParticleDensCol=ColorScaleEnum.RED,
+                    preChannel1Col=ColorScaleEnum.GREEN,
+                    preChannel2Col=ColorScaleEnum.BLUE,
+                    preChannel3Col=ColorScaleEnum.GRAY,
+                    customNormalizationSI=[1.0, 2.0, 3.0],
+                    preParticleDens_opacity=0.5,
+                    preChannel1_opacity=0.6,
+                    preChannel2_opacity=0.7,
+                    preChannel3_opacity=0.8,
+                    preChannel1=invalid,
+                    preChannel2="field_E.y()",
+                    preChannel3="-1.0_X * field_E.y()",
+                )
+                png.check()
 
         # Test EMFieldScaleEnum string mapping
         png = Png(
@@ -846,7 +879,7 @@ class TestPng(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "preParticleDens_opacity must be in"):
             png.check()
 
-        # Invalid preChannel1
+        # Invalid preChannel1 (empty string)
         png = Png(
             species=create_species(),
             period=TimeStepSpec([slice(0, None, 100)]),
@@ -868,11 +901,11 @@ class TestPng(unittest.TestCase):
             preChannel1_opacity=0.6,
             preChannel2_opacity=0.7,
             preChannel3_opacity=0.8,
-            preChannel1="invalid",
-            preChannel2="E_y",
-            preChannel3="E_z",
+            preChannel1="",  # Invalid: empty string
+            preChannel2="field_E.y()",
+            preChannel3="-1.0_X * field_E.y()",
         )
-        with self.assertRaisesRegex(ValueError, "preChannel1 must be one of"):
+        with self.assertRaisesRegex(ValueError, "preChannel1 must be a non-empty string"):
             png.check()
 
         # Invalid EMFieldScaleEnum
@@ -940,7 +973,7 @@ class TestPng(unittest.TestCase):
 
     def test_channels(self):
         """Validate preChannel* field components."""
-        # Invalid preChannel1
+        # Invalid preChannel1 (empty string)
         png = Png(
             species=create_species(),
             period=TimeStepSpec([slice(0, None, 100)]),
@@ -962,42 +995,40 @@ class TestPng(unittest.TestCase):
             preChannel1_opacity=0.6,
             preChannel2_opacity=0.7,
             preChannel3_opacity=0.8,
-            preChannel1="invalid",
+            preChannel1="",
             preChannel2="E_y",
             preChannel3="E_z",
         )
-        with self.assertRaisesRegex(ValueError, "preChannel1 must be one of"):
+        with self.assertRaisesRegex(ValueError, "preChannel1 must be a non-empty string"):
             png.check()
 
         # Valid channels
-        valid_channels = ["E_x", "E_y", "E_z", "B_x", "B_y", "B_z", "J_x", "J_y", "J_z"]
-        for channel in valid_channels:
-            png = Png(
-                species=create_species(),
-                period=TimeStepSpec([slice(0, None, 100)]),
-                axis="xy",
-                slicePoint=0.5,
-                folder="output",
-                scale_image=0.5,
-                scale_to_cellsize=True,
-                white_box_per_GPU=False,
-                em_field_scale_channel1=EMFieldScaleEnum.AUTO,
-                em_field_scale_channel2=EMFieldScaleEnum.PLASMA_WAVE,
-                em_field_scale_channel3=EMFieldScaleEnum.CUSTOM,
-                preParticleDensCol=ColorScaleEnum.RED,
-                preChannel1Col=ColorScaleEnum.GREEN,
-                preChannel2Col=ColorScaleEnum.BLUE,
-                preChannel3Col=ColorScaleEnum.GRAY,
-                customNormalizationSI=[1.0, 2.0, 3.0],
-                preParticleDens_opacity=0.5,
-                preChannel1_opacity=0.6,
-                preChannel2_opacity=0.7,
-                preChannel3_opacity=0.8,
-                preChannel1=channel,
-                preChannel2=channel,
-                preChannel3=channel,
-            )
-            png.check()  # Should succeed
+        png = Png(
+            species=create_species(),
+            period=TimeStepSpec([slice(0, None, 100)]),
+            axis="xy",
+            slicePoint=0.5,
+            folder="output",
+            scale_image=0.5,
+            scale_to_cellsize=True,
+            white_box_per_GPU=False,
+            em_field_scale_channel1=EMFieldScaleEnum.AUTO,
+            em_field_scale_channel2=EMFieldScaleEnum.PLASMA_WAVE,
+            em_field_scale_channel3=EMFieldScaleEnum.CUSTOM,
+            preParticleDensCol=ColorScaleEnum.RED,
+            preChannel1Col=ColorScaleEnum.GREEN,
+            preChannel2Col=ColorScaleEnum.BLUE,
+            preChannel3Col=ColorScaleEnum.GRAY,
+            customNormalizationSI=[1.0, 2.0, 3.0],
+            preParticleDens_opacity=0.5,
+            preChannel1_opacity=0.6,
+            preChannel2_opacity=0.7,
+            preChannel3_opacity=0.8,
+            preChannel1="field_E.x()",
+            preChannel2="field_E.y() * field_E.y()",
+            preChannel3="-1.0_X * field_B.z()",
+        )
+        png.check()  # Should succeed
 
 
 if __name__ == "__main__":
