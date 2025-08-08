@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
@@ -22,6 +22,7 @@ class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
     def get_as_pypicongpu(self) -> solver.Solver:
         solver_by_method = {
             "Yee": solver.YeeSolver(),
+            "Lehe": solver.LeheSolver(),
         }
 
         if self.method not in solver_by_method:
@@ -30,8 +31,8 @@ class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
         # todo: stencil order, cfl
         util.unsupported("stencil order", self.stencil_order)
         util.unsupported("field smoother", self.field_smoother)
-        if self.method != "Yee":
-            # for yee the cfl will be respected -- this behavior is coordinated
+        if self.method != "Yee" and self.method != "Lehe":
+            # for yee and Lehe the cfl will be respected -- this behavior is coordinated
             # at the simulation class though
             util.unsupported("cfl", self.cfl)
 

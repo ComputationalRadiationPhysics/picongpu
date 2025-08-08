@@ -107,7 +107,11 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
         ## throw if both cfl & delta_t are set
-        if self.solver is not None and "Yee" == self.solver.method and isinstance(self.solver.grid, Cartesian3DGrid):
+        if (
+            self.solver is not None
+            and self.solver.method in ["Yee", "Lehe"]
+            and isinstance(self.solver.grid, Cartesian3DGrid)
+        ):
             self.__yee_compute_cfl_or_delta_t()
 
         # checks on picongpu specific stuff
@@ -124,7 +128,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         use delta_t or cfl to compute the other
 
         needs grid parameters for computation
-        Only works if method is Yee.
+        Only works if method is Yee or Lehe.
 
         :throw AssertionError: if grid (of solver) is not 3D cartesian grid
         :throw AssertionError: if solver is None
@@ -146,7 +150,7 @@ class Simulation(picmistandard.PICMI_Simulation):
           nop (do nothing)
         """
         assert self.solver is not None
-        assert "Yee" == self.solver.method
+        assert self.solver.method in ["Yee", "Lehe"]
         assert isinstance(self.solver.grid, Cartesian3DGrid)
 
         delta_x = (

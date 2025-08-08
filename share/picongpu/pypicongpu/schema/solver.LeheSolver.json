@@ -1,0 +1,13 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.solver.LeheSolver",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "unevaluatedProperties": false
+}

@@ -33,3 +33,18 @@ class YeeSolver(Solver, RenderedObject):
         return {
             "name": "Yee",
         }
+
+
+@typeguard.typechecked
+class LeheSolver(Solver, RenderedObject):
+    """
+    Lehe solver as defined by PIConGPU
+
+    note: has no parameters
+    """
+
+    def _get_serialized(self) -> dict:
+        # @todo + "<>" needs to be fixed later
+        return {
+            "name": "Lehe" + "<>",
+        }
