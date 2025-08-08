@@ -1,16 +1,14 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
 
 from .. import util
 from ..species import Species
-
 from .plugin import Plugin
 from .timestepspec import TimeStepSpec
-
 
 import typeguard
 import typing
@@ -77,15 +75,87 @@ class Png(Plugin):
 
     _name = "png"
 
-    def __init__(self):
-        "do nothing"
+    def __init__(
+        self,
+        species: Species,
+        period: TimeStepSpec,
+        axis: str,
+        slicePoint: float,
+        folder: str,
+        scale_image: float,
+        scale_to_cellsize: bool,
+        white_box_per_GPU: bool,
+        em_field_scale_channel1: EMFieldScaleEnum,
+        em_field_scale_channel2: EMFieldScaleEnum,
+        em_field_scale_channel3: EMFieldScaleEnum,
+        preParticleDensCol: ColorScaleEnum,
+        preChannel1Col: ColorScaleEnum,
+        preChannel2Col: ColorScaleEnum,
+        preChannel3Col: ColorScaleEnum,
+        customNormalizationSI: typing.List[float],
+        preParticleDens_opacity: float,
+        preChannel1_opacity: float,
+        preChannel2_opacity: float,
+        preChannel3_opacity: float,
+        preChannel1: str,
+        preChannel2: str,
+        preChannel3: str,
+    ):
+        self.species = species
+        self.period = period
+        self.axis = axis
+        self.slicePoint = slicePoint
+        self.folder = folder
+        self.scale_image = scale_image
+        self.scale_to_cellsize = scale_to_cellsize
+        self.white_box_per_GPU = white_box_per_GPU
+        self.EM_FIELD_SCALE_CHANNEL1 = em_field_scale_channel1
+        self.EM_FIELD_SCALE_CHANNEL2 = em_field_scale_channel2
+        self.EM_FIELD_SCALE_CHANNEL3 = em_field_scale_channel3
+        self.preParticleDensCol = preParticleDensCol
+        self.preChannel1Col = preChannel1Col
+        self.preChannel2Col = preChannel2Col
+        self.preChannel3Col = preChannel3Col
+        self.customNormalizationSI = customNormalizationSI
+        self.preParticleDens_opacity = preParticleDens_opacity
+        self.preChannel1_opacity = preChannel1_opacity
+        self.preChannel2_opacity = preChannel2_opacity
+        self.preChannel3_opacity = preChannel3_opacity
+        self.preChannel1 = preChannel1
+        self.preChannel2 = preChannel2
+        self.preChannel3 = preChannel3
+
+    def check(self):
+        """Validate attributes."""
+        if self.axis not in ["xy", "xz", "yz"]:
+            raise ValueError(f"axis must be 'xy', 'xz', or 'yz', got {self.axis}")
+        if self.slicePoint < 0.0 or self.slicePoint > 1.0:
+            raise ValueError(f"slicePoint must be in [0, 1], got {self.slicePoint}")
+        if self.scale_image <= 0:
+            raise ValueError(f"scale_image must be positive, got {self.scale_image}")
+        if self.scale_to_cellsize and self.scale_image == 1.0:
+            raise ValueError(f"scale_image must not be 1.0 when scale_to_cellsize is True, got {self.scale_image}")
+        if self.preParticleDens_opacity < 0 or self.preParticleDens_opacity > 1:
+            raise ValueError(f"preParticleDens_opacity must be in [0, 1], got {self.preParticleDens_opacity}")
+        if self.preChannel1_opacity < 0 or self.preChannel1_opacity > 1:
+            raise ValueError(f"preChannel1_opacity must be in [0, 1], got {self.preChannel1_opacity}")
+        if self.preChannel2_opacity < 0 or self.preChannel2_opacity > 1:
+            raise ValueError(f"preChannel2_opacity must be in [0, 1], got {self.preChannel2_opacity}")
+        if self.preChannel3_opacity < 0 or self.preChannel3_opacity > 1:
+            raise ValueError(f"preChannel3_opacity must be in [0, 1], got {self.preChannel3_opacity}")
+        valid_fields = ["E_x", "E_y", "E_z", "B_x", "B_y", "B_z", "J_x", "J_y", "J_z"]
+        for channel, name in [
+            (self.preChannel1, "preChannel1"),
+            (self.preChannel2, "preChannel2"),
+            (self.preChannel3, "preChannel3"),
+        ]:
+            if channel not in valid_fields:
+                raise ValueError(f"{name} must be one of {valid_fields}, got {channel}")
 
     def _get_serialized(self) -> typing.Dict:
         """Return the serialized representation of the object."""
-
-        # Transform customNormalizationSI into a list of dictionaries
+        self.check()
         custom_normalization_si_serialized = [{"value": val} for val in self.customNormalizationSI]
-
         return {
             "species": self.species.get_rendering_context(),
             "period": self.period.get_rendering_context(),

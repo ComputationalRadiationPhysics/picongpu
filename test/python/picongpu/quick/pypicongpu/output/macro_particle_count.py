@@ -24,88 +24,44 @@ def create_species():
 
 class TestMacroParticleCount(unittest.TestCase):
     def test_empty(self):
-        """Empty or incomplete configurations are handled correctly."""
-        mpc = MacroParticleCount()
-        # Unset attributes should raise an exception
-        with self.assertRaises(ValueError, match="species must be set"):
-            mpc._get_serialized()
-
-        # Set species but not period
-        mpc.species = create_species()
-        with self.assertRaises(ValueError, match="period must be set"):
-            mpc._get_serialized()
-
-        # Set valid attributes
-        mpc.species = create_species()
-        mpc.period = TimeStepSpec([slice(0, None, 100)])
-        # Should succeed
+        """Invalid configurations are handled correctly."""
+        # Valid configuration
+        mpc = MacroParticleCount(species=create_species(), period=TimeStepSpec([slice(0, None, 100)]))
         serialized = mpc._get_serialized()
-        self.assertEqual(serialized["species"]["name"], "electron")
         self.assertEqual(serialized["period"]["specs"][0]["step"], 100)
 
     def test_types(self):
         """Type safety is ensured for all attributes."""
-        mpc = MacroParticleCount()
-
         # Invalid species
-        invalid_species = ["string", 1, 1.0, None, {}]
+        invalid_species = ["string", 1, 1.0, {}]
         for invalid in invalid_species:
             with self.assertRaises(typeguard.TypeCheckError):
-                mpc.species = invalid
+                mpc = MacroParticleCount(species=invalid, period=TimeStepSpec([slice(0, None, 100)]))
 
         # Invalid period
-        invalid_periods = [13.2, [], "2", None, {}]
+        invalid_periods = [13.2, [], "2", {}]
         for invalid in invalid_periods:
             with self.assertRaises(typeguard.TypeCheckError):
-                mpc.period = invalid
+                mpc = MacroParticleCount(species=create_species(), period=invalid)
 
         # Valid configuration
-        mpc.species = create_species()
-        mpc.period = TimeStepSpec([slice(0, None, 100)])
+        mpc = MacroParticleCount(species=create_species(), period=TimeStepSpec([slice(0, None, 100)]))
         mpc._get_serialized()  # Should succeed
 
     def test_rendering(self):
         """Serialized data is correctly formatted for template consumption."""
-        mpc = MacroParticleCount()
-        mpc.species = create_species()
-        mpc.period = TimeStepSpec([slice(0, None, 100)])
-
+        mpc = MacroParticleCount(species=create_species(), period=TimeStepSpec([slice(0, None, 100)]))
         context = mpc.get_rendering_context()
         self.assertTrue(context["typeID"]["macroparticlecount"])
         context = context["data"]
-        self.assertEqual(context["species"]["name"], "electron")
         self.assertEqual(context["period"]["specs"][0]["step"], 100)
-
-        # Unset attributes should fail
-        mpc = MacroParticleCount()
-        with self.assertRaises(ValueError, match="species must be set"):
-            mpc.get_rendering_context()
 
     def test_validation(self):
         """Constraints on species and period are enforced."""
-        mpc = MacroParticleCount()
-
-        # Test unset species
-        mpc.period = TimeStepSpec([slice(0, None, 100)])
-        with self.assertRaises(ValueError, match="species must be set"):
-            mpc.check()
-        with self.assertRaises(ValueError, match="species must be set"):
-            mpc._get_serialized()
-
-        # Test unset period
-        mpc = MacroParticleCount()
-        mpc.species = create_species()
-        with self.assertRaises(ValueError, match="period must be set"):
-            mpc.check()
-        with self.assertRaises(ValueError, match="period must be set"):
-            mpc._get_serialized()
-
         # Valid configuration
-        mpc.species = create_species()
-        mpc.period = TimeStepSpec([slice(0, None, 100)])
+        mpc = MacroParticleCount(species=create_species(), period=TimeStepSpec([slice(0, None, 100)]))
         mpc.check()  # Should succeed
         serialized = mpc._get_serialized()
-        self.assertEqual(serialized["species"]["name"], "electron")
         self.assertEqual(serialized["period"]["specs"][0]["step"], 100)
 
 

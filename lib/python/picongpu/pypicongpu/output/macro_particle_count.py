@@ -22,11 +22,20 @@ class MacroParticleCount(Plugin):
 
     _name = "macroparticlecount"
 
-    def __init__(self):
-        "do nothing"
+    def __init__(self, species: Species, period: TimeStepSpec):
+        self.species = species
+        self.period = period
+
+    def check(self):
+        """Validate attributes."""
+        if not self.species:
+            raise ValueError("species must be set")
+        if not self.period:
+            raise ValueError("period must be set")
 
     def _get_serialized(self) -> typing.Dict:
         """Return the serialized representation of the object."""
+        self.check()
         return {
             "species": self.species.get_rendering_context(),
             "period": self.period.get_rendering_context(),
