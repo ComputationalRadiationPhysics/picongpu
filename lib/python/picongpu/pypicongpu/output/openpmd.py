@@ -84,8 +84,8 @@ class OpenPMD(Plugin):
         # Convert RangeSpec to string format
         range_context = self.range._get_serialized() if self.range is not None else None
         if range_context:
-            specs = range_context["specs"]
-            range_str = ",".join(f"{spec['start']}:{spec['stop']}" for spec in specs)
+            specs = range_context["ranges"]
+            range_str = ",".join(f"{spec['begin']}:{spec['end']}" for spec in specs)
         else:
             range_str = None
 
