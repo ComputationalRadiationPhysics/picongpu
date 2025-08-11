@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.field_solver import Solver, YeeSolver
+from picongpu.pypicongpu.field_solver import Solver, YeeSolver, LeheSolver
 
 import unittest
 
@@ -25,3 +25,12 @@ class TestYeeSolver(unittest.TestCase):
         self.assertTrue(isinstance(yee, Solver))
 
         self.assertEqual("Yee", yee.get_rendering_context()["name"])
+
+
+class TestLeheSolver(unittest.TestCase):
+    def test_basic(self):
+        # basically only check the type -- which actually happens automatically
+        lehe = LeheSolver()
+        self.assertTrue(isinstance(lehe, Solver))
+
+        self.assertEqual("Lehe<>", lehe.get_rendering_context()["name"])
