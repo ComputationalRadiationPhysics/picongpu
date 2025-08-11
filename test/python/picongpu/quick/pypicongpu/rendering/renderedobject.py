@@ -7,7 +7,7 @@ License: GPLv3+
 
 from picongpu.pypicongpu.rendering import RenderedObject
 
-from picongpu.pypicongpu.solver import YeeSolver
+from picongpu.pypicongpu.field_solver import YeeSolver
 from picongpu.pypicongpu import Simulation
 
 import unittest
@@ -61,7 +61,7 @@ class TestRenderedObject(unittest.TestCase):
         self.assertEqual(
             RenderedObject._registry.contents(uri),
             {
-                "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.solver.YeeSolver",
+                "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.field_solver.Yee.YeeSolver",
                 "type": "object",
                 "properties": {"name": {"type": "string"}},
                 "required": ["name"],

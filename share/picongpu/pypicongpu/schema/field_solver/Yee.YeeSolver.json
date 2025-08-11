@@ -1,5 +1,5 @@
 {
-  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.solver.YeeSolver",
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.field_solver.Yee.YeeSolver",
   "type": "object",
   "properties": {
     "name": {

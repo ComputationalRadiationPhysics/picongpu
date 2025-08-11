@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
-from ..pypicongpu import util, solver
+from ..pypicongpu import util, field_solver
 
 import picmistandard
 import typeguard
@@ -19,10 +19,10 @@ class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
     See PICMI spec for full documentation.
     """
 
-    def get_as_pypicongpu(self) -> solver.Solver:
+    def get_as_pypicongpu(self) -> field_solver.Solver:
         solver_by_method = {
-            "Yee": solver.YeeSolver(),
-            "Lehe": solver.LeheSolver(),
+            "Yee": field_solver.YeeSolver(),
+            "Lehe": field_solver.LeheSolver(),
         }
 
         if self.method not in solver_by_method:

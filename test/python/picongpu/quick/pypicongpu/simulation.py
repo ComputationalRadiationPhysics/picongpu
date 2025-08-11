@@ -7,7 +7,7 @@ License: GPLv3+
 
 from picongpu.pypicongpu.simulation import Simulation
 from picongpu.pypicongpu.laser import GaussianLaser
-from picongpu.pypicongpu import grid, solver, species, customuserinput
+from picongpu.pypicongpu import grid, YeeSolver, species, customuserinput
 from picongpu.pypicongpu import rendering
 from picongpu.pypicongpu.species.operation.layout import Random
 
@@ -45,7 +45,7 @@ class TestSimulation(unittest.TestCase):
         self.s.grid.boundary_condition_z = grid.BoundaryCondition.PERIODIC
         self.s.grid.super_cell_size = (8, 8, 4)
         self.s.grid.grid_dist = None
-        self.s.solver = solver.YeeSolver()
+        self.s.solver = YeeSolver()
         self.s.laser = None
         self.s.custom_user_input = None
         self.s.moving_window = None

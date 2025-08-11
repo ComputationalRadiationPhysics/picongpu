@@ -9,11 +9,13 @@ from .output.energy_histogram import EnergyHistogram
 from .output.macro_particle_count import MacroParticleCount
 from .output.png import Png
 from .output.checkpoint import Checkpoint
+from .field_solver.DefaultSolver import Solver
+from .field_solver.Yee import YeeSolver
+from .field_solver.Lehe import LeheSolver
 
 from . import laser
 from . import grid
 from . import rendering
-from . import solver
 from . import species
 from . import util
 from . import output
@@ -25,7 +27,9 @@ __all__ = [
     "laser",
     "output",
     "rendering",
-    "solver",
+    "Solver",
+    "YeeSolver",
+    "LeheSolver",
     "species",
     "util",
     "grid",

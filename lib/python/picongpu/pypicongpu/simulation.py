@@ -8,7 +8,7 @@ License: GPLv3+
 from .grid import Grid3D
 from .laser import GaussianLaser
 from .movingwindow import MovingWindow
-from .solver import Solver
+from .field_solver.DefaultSolver import Solver
 from . import species
 from . import util
 from . import output

@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.solver import Solver, YeeSolver
+from picongpu.pypicongpu.field_solver import Solver, YeeSolver
 
 import unittest
 
