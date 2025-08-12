@@ -60,7 +60,7 @@ class TestSimulation(unittest.TestCase):
         sim.laser = None
         sim.custom_user_input = None
         sim.moving_window = None
-        sim.solver = pypicongpu.solver.YeeSolver()
+        sim.solver = pypicongpu.field_solver.Yee.YeeSolver()
         sim.plugins = "auto"
         sim.init_manager = pypicongpu.species.InitManager()
         sim.base_density = 1.0e25
