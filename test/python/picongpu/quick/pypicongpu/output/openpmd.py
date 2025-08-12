@@ -32,7 +32,8 @@ import typing
 # Mock Species class for testing
 class MockSpecies(Species):
     def __init__(self):
-        pass
+        self.name = "electron"
+        self.constants = []
 
     def get_rendering_context(self) -> typing.Dict:
         return {}  # Minimal context to avoid schema conflicts
