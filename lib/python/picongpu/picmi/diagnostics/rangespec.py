@@ -6,7 +6,6 @@ License: GPLv3+
 """
 
 from ...pypicongpu.output.rangespec import RangeSpec as PyPIConGPURangeSpec
-import re
 
 
 class _RangeSpecMeta(type):
@@ -55,45 +54,6 @@ class RangeSpec(metaclass=_RangeSpecMeta):
             if s.stop is not None and not isinstance(s.stop, int):
                 raise TypeError(f"End in dimension {i+1} must be int or None, got {type(s.stop)}")
         self.ranges = list(args)
-
-    @classmethod
-    def from_string(cls, range_str: str) -> "RangeSpec":
-        """
-        Create a RangeSpec from a string (e.g., "0:10", "0:10,5:15").
-
-        :param range_str: A string specifying cell ranges for 1 to 3 dimensions.
-        :return: RangeSpec instance with parsed ranges.
-        :raises TypeError: If range_str is not a string.
-        :raises ValueError: If the string format is invalid or contains non-integer bounds.
-        """
-        if not isinstance(range_str, str):
-            raise TypeError(f"range_str must be a string, got {type(range_str)}")
-        if not range_str.strip():
-            raise ValueError("range_str cannot be empty")
-
-        # Split the string into dimension parts
-        parts = range_str.split(",")
-        if len(parts) > 3:
-            raise ValueError(f"Range must specify at most three dimensions, got {len(parts)}")
-
-        ranges = []
-        for i, part in enumerate(parts):
-            part = part.strip()
-            if part == ":":
-                ranges.append(slice(None, None, None))
-                continue
-
-            # Match "begin:end" using regex, allowing negative integers
-            match = re.match(r"^([-]?\d+)?(:([-]?\d+)?)?$", part)
-            if not match:
-                raise ValueError(f"Invalid range format for dimension {i+1}: {part}. Expected 'begin:end' or ':'")
-
-            begin, _, end = match.groups()
-            begin = int(begin) if begin is not None else None
-            end = int(end) if end is not None else None
-            ranges.append(slice(begin, end, None))
-
-        return cls(*ranges)
 
     def _interpret_nones(self, spec: slice, dim_size: int) -> slice:
         """
