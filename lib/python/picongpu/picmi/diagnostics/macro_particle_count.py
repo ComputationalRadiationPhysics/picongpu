@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -9,11 +9,11 @@ from ...pypicongpu.output.macro_particle_count import (
     MacroParticleCount as PyPIConGPUMacroParticleCount,
 )
 from ...pypicongpu.species.species import Species as PyPIConGPUSpecies
-
 from ..species import Species as PICMISpecies
 from .timestepspec import TimeStepSpec
 
 import typeguard
+import warnings
 
 
 @typeguard.typechecked
@@ -26,23 +26,29 @@ class MacroParticleCount:
 
     Parameters
     ----------
-    species: string
-        Name of the particle species to count (e.g., "electron", "proton").
+    species: PICMISpecies
+        Particle species to count (e.g., an instance with name="electron" or "proton").
 
-    period: int
-        Number of simulation steps between consecutive counts.
+    period: int or TimeStepSpec
+        Number of simulation steps between consecutive counts (e.g., 10 for every 10 steps).
+        Use 0 to disable counting.
+        Alternatively, a TimeStepSpec can be provided for PIConGPU-specific step selection
+        (e.g., TimeStepSpec[5, 10], TimeStepSpec[-10:]).
         Unit: steps (simulation time steps).
-
-    name: string, optional
-        Optional name for the macro particle count plugin.
     """
 
     def check(self):
-        pass
+        if not self.period.get_as_pypicongpu(1.0, 100).get_rendering_context().get("specs", []):
+            warnings.warn("MacroParticleCount is disabled because period is set to 0 or an empty TimeStepSpec")
 
-    def __init__(self, species: PICMISpecies, period: TimeStepSpec):
+    def __init__(self, species: PICMISpecies, period: int | TimeStepSpec):
         self.species = species
-        self.period = period
+        if isinstance(period, int):
+            if period < 0:
+                raise ValueError("period must be non-negative")
+            self.period = TimeStepSpec[::period] if period > 0 else TimeStepSpec()
+        else:
+            self.period = period
 
     def get_as_pypicongpu(
         self,

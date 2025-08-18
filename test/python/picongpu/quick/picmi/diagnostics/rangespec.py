@@ -15,9 +15,15 @@ import unittest
 TESTCASES_VALID = [
     (RangeSpec[0:10], [slice(0, 10, None)], (20,), [slice(0, 10, None)], [{"begin": 0, "end": 10}]),
     (RangeSpec[:], [slice(None, None, None)], (20,), [slice(0, 19, None)], [{"begin": 0, "end": 19}]),
-    (RangeSpec[-5:10], [slice(-5, 10, None)], (20,), [slice(10, 10, None)], [{"begin": 10, "end": 10}]),
+    (
+        RangeSpec[-5:10],
+        [slice(-5, 10, None)],
+        (20,),
+        [slice(15, 15, None)],  # Fixed: empty range due to begin > end
+        [{"begin": 15, "end": 15}],  # Fixed: serialized empty range
+    ),
     (RangeSpec[5:-2], [slice(5, -2, None)], (20,), [slice(5, 18, None)], [{"begin": 5, "end": 18}]),
-    (RangeSpec[10:5], [slice(10, 5, None)], (20,), [slice(5, 10, None)], [{"begin": 5, "end": 10}]),
+    (RangeSpec[10:5], [slice(10, 5, None)], (20,), [slice(10, 10, None)], [{"begin": 10, "end": 10}]),
     (
         RangeSpec[0:10, 5:15],
         [slice(0, 10, None), slice(5, 15, None)],
@@ -39,31 +45,62 @@ TESTCASES_VALID = [
         [slice(15, 18, None), slice(0, 29, None), slice(0, 3, None)],
         [{"begin": 15, "end": 18}, {"begin": 0, "end": 29}, {"begin": 0, "end": 3}],
     ),
+    (
+        RangeSpec[10:5, 15:5],
+        [slice(10, 5, None), slice(15, 5, None)],
+        (20, 30),
+        [slice(10, 10, None), slice(15, 15, None)],
+        [{"begin": 10, "end": 10}, {"begin": 15, "end": 15}],
+    ),
 ]
 
 # Invalid test cases for instantiation
 TESTCASES_INVALID = [
-    (RangeSpec(), "RangeSpec must have at least one range"),
-    (RangeSpec[0:10, 5:15, 2:8, 1:2], "RangeSpec must have at most 3 ranges"),
-    (RangeSpec[0:10:2], "Step must be None in dimension 1"),
-    (RangeSpec["0:10"], "All elements must be slice objects"),
-    (RangeSpec[0.5:10], "Begin in dimension 1 must be int or None"),
-    (RangeSpec[0:10.5], "End in dimension 1 must be int or None"),
+    (
+        (),  # Empty args for RangeSpec()
+        "RangeSpec must have at least one range",
+    ),
+    (
+        (slice(0, 10, None), slice(5, 15, None), slice(2, 8, None), slice(1, 2, None)),  # Too many ranges
+        "RangeSpec must have at most 3 ranges",
+    ),
+    (
+        (slice(0, 10, 2),),  # Non-None step
+        "Step must be None in dimension 1",
+    ),
+    (
+        (slice("0", 10, None),),  # Invalid slice start type
+        "Begin in dimension 1 must be int or None",
+    ),
+    (
+        (slice(0, 10.5, None),),  # Invalid slice stop type
+        "End in dimension 1 must be int or None",
+    ),
+]
+
+# Test cases for warning when range is empty
+TESTCASES_WARNING = [
+    (RangeSpec[10:5], "RangeSpec has begin > end in dimension 1, resulting in an empty range after processing"),
+    (
+        RangeSpec[10:5, 15:5],
+        "RangeSpec has begin > end in dimension [1-2], resulting in an empty range after processing",
+    ),
+    (RangeSpec[-5:10], "RangeSpec has an empty range in dimension 1, disabling output for this dimension"),
 ]
 
 
-class TestRangeSpec(unittest.TestCase):
+class PICMI_TestRangeSpec(unittest.TestCase):
     def test_rangespec_instantiation(self):
         """Test RangeSpec instantiation and validation."""
         for rs, expected_ranges, _, _, _ in TESTCASES_VALID:
             with self.subTest(rs=rs, expected_ranges=expected_ranges):
                 self.assertEqual(rs.ranges, expected_ranges)
-                rs.check()  # Should not raise
+                rs.check()  # Warnings tested separately
 
         for rs_args, expected_error in TESTCASES_INVALID:
             with self.subTest(rs_args=rs_args, expected_error=expected_error):
                 with self.assertRaisesRegex((ValueError, TypeError), expected_error):
-                    rs_args.check() if isinstance(rs_args, RangeSpec) else RangeSpec(rs_args)
+                    RangeSpec(*rs_args)  # Test instantiation failure
 
     def test_rangespec_serialization(self):
         """Test RangeSpec serialization to PyPIConGPURangeSpec."""
@@ -74,6 +111,13 @@ class TestRangeSpec(unittest.TestCase):
                 self.assertEqual(pypicongpu_rs.ranges, expected_pypicongpu_ranges)
                 serialized = pypicongpu_rs.get_rendering_context()
                 self.assertEqual(serialized["ranges"], expected_serialized)
+
+    def test_rangespec_warning(self):
+        """Test warnings for empty ranges or begin > end."""
+        for rs, expected_warning in TESTCASES_WARNING:
+            with self.subTest(rs=rs, expected_warning=expected_warning):
+                with self.assertWarnsRegex(UserWarning, expected_warning):
+                    rs.check()
 
     def test_rangespec_invalid_simulation_box(self):
         """Test invalid simulation box dimensions."""
@@ -92,3 +136,7 @@ class TestRangeSpec(unittest.TestCase):
         self.assertEqual(pypicongpu_rs.ranges, [slice(0, 19, None), slice(20, 29, None)])
         serialized = pypicongpu_rs.get_rendering_context()
         self.assertEqual(serialized["ranges"], [{"begin": 0, "end": 19}, {"begin": 20, "end": 29}])
+
+
+if __name__ == "__main__":
+    unittest.main()

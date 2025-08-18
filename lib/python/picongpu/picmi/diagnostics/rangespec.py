@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 from ...pypicongpu.output.rangespec import RangeSpec as PyPIConGPURangeSpec
+import warnings
 
 
 class _RangeSpecMeta(type):
@@ -30,6 +31,8 @@ class RangeSpec(metaclass=_RangeSpecMeta):
         - 2D: RangeSpec[0:10, 5:15] specifies cells 0 to 10 (x), 5 to 15 (y).
         - 3D: RangeSpec[0:10, 5:15, 2:8] specifies cells 0 to 10 (x), 5 to 15 (y), 2 to 8 (z).
     The default RangeSpec[:] includes all cells in the simulation box for 1D.
+    Ranges where begin > end (e.g., RangeSpec[10:5]) result in an empty range after processing,
+    disabling output for that dimension.
     """
 
     def __init__(self, *args):
@@ -55,6 +58,31 @@ class RangeSpec(metaclass=_RangeSpecMeta):
                 raise TypeError(f"End in dimension {i+1} must be int or None, got {type(s.stop)}")
         self.ranges = list(args)
 
+    def check(self):
+        """
+        Validate the RangeSpec and warn if any range is empty or has begin > end.
+
+        :raises ValueError: If any validation fails (handled in __init__).
+        """
+        # Check for begin > end in raw slices
+        for i, s in enumerate(self.ranges):
+            start = s.start if s.start is not None else 0
+            stop = s.stop if s.stop is not None else 0
+            if start > stop:
+                warnings.warn(
+                    f"RangeSpec has begin > end in dimension {i+1}, resulting in an empty range after processing"
+                )
+
+        # Check for empty ranges after processing
+        dummy_sim_box = tuple(20 for _ in range(len(self.ranges)))  # Match number of dimensions
+        processed_ranges = [
+            self._interpret_negatives(self._interpret_nones(s, dim_size), dim_size)
+            for s, dim_size in zip(self.ranges, dummy_sim_box)
+        ]
+        for i, s in enumerate(processed_ranges):
+            if s.start >= s.stop:
+                warnings.warn(f"RangeSpec has an empty range in dimension {i+1}, disabling output for this dimension")
+
     def _interpret_nones(self, spec: slice, dim_size: int) -> slice:
         """
         Replace None in slice bounds with simulation box limits (0 for begin, dim_size-1 for end).
@@ -75,7 +103,7 @@ class RangeSpec(metaclass=_RangeSpecMeta):
 
         :param spec: Input slice.
         :param dim_size: Size of the simulation box in the dimension.
-        :return: Slice with non-negative bounds, clipped to [0, dim_size-1].
+        :return: Slice with non-negative bounds, clipped to [0, dim_size-1], empty if begin > end.
         """
         if dim_size <= 0:
             raise ValueError(f"Dimension size must be positive. Got {dim_size}")
@@ -91,9 +119,9 @@ class RangeSpec(metaclass=_RangeSpecMeta):
         begin = max(0, min(begin, dim_size - 1))
         end = max(0, min(end, dim_size - 1))
 
-        # Ensure begin <= end for a valid range
+        # Ensure empty range if begin > end
         if begin > end:
-            begin, end = end, begin
+            end = begin
 
         return slice(begin, end, None)
 

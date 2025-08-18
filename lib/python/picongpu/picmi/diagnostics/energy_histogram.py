@@ -1,20 +1,19 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from .timestepspec import TimeStepSpec
 from ...pypicongpu.output.energy_histogram import (
     EnergyHistogram as PyPIConGPUEnergyHistogram,
 )
 from ...pypicongpu.species.species import Species as PyPIConGPUSpecies
-
-
 from ..species import Species as PICMISpecies
+from .timestepspec import TimeStepSpec
 
 import typeguard
+import warnings
 
 
 @typeguard.typechecked
@@ -27,30 +26,26 @@ class EnergyHistogram:
 
     Parameters
     ----------
-    species: string
-        Name of the particle species to track (e.g., "electron", "proton").
+    species: PICMISpecies
+        Particle species to count (e.g., an instance with name="electron" or "proton").
 
-    period: int
-        Number of simulation steps between consecutive outputs.
-        If set to a non-zero value, the energy histogram of all electrons is computed.
-        By default, the value is 0 and no histogram for the electrons is computed.
+    period: int or TimeStepSpec
+        Number of simulation steps between consecutive counts (e.g., 10 for every 10 steps).
+        Use 0 to disable counting.
+        Alternatively, a TimeStepSpec can be provided for PIConGPU-specific step selection
+        (e.g., TimeStepSpec[5, 10], TimeStepSpec[-10:]).
         Unit: steps (simulation time steps).
 
     bin_count: int
-        Number of bins for the energy histogram.
+        Number of bins for the energy histogram. Must be positive.
 
     min_energy: float
         Minimum value for the energy histogram range.
         Unit: keV
-        Default is 0, meaning 0 keV.
 
     max_energy: float
-        Maximum value for the energy histogram range.
+        Maximum value for the energy histogram range. Must be greater than min_energy.
         Unit: keV
-        There is no default value.
-
-    name: string, optional
-        Optional name for the energy histogram plugin.
     """
 
     def check(self):
@@ -58,24 +53,31 @@ class EnergyHistogram:
             raise ValueError("min_energy must be less than max_energy")
         if self.bin_count <= 0:
             raise ValueError("bin_count must be > 0")
+        if not self.period.get_as_pypicongpu(1.0, 100).get_rendering_context().get("specs", []):
+            warnings.warn("EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec")
 
     def __init__(
         self,
         species: PICMISpecies,
-        period: TimeStepSpec,
+        period: int | TimeStepSpec,
         bin_count: int,
         min_energy: float,
         max_energy: float,
     ):
         self.species = species
-        self.period = period
+        if isinstance(period, int):
+            if period < 0:
+                raise ValueError("period must be non-negative")
+            self.period = TimeStepSpec[::period] if period > 0 else TimeStepSpec()
+        else:
+            self.period = period
         self.bin_count = bin_count
         self.min_energy = min_energy
         self.max_energy = max_energy
 
     def get_as_pypicongpu(
-        # to get the corresponding PyPIConGPUSpecies instance for the given PICMISpecies.
         self,
+        # to get the corresponding PyPIConGPUSpecies instance for the given PICMISpecies.
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],
         time_step_size,
         num_steps,
@@ -86,7 +88,8 @@ class EnergyHistogram:
         if self.species not in dict_species_picmi_to_pypicongpu.keys():
             raise ValueError(f"Species {self.species} is not known to Simulation")
 
-        # checks if PICMISpecies instance exists in the dictionary. If yes, it returns the corresponding PyPIConGPUSpecies instance.
+        # checks if PICMISpecies instance exists in the dictionary. If yes, it returns the corresponding
+        # PyPIConGPUSpecies instance.
         pypicongpu_species = dict_species_picmi_to_pypicongpu.get(self.species)
 
         if pypicongpu_species is None:

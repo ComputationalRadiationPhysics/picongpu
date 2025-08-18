@@ -1,0 +1,35 @@
+{
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.rangespec.RangeSpec",
+  "type": "object",
+  "description": "Range specification for PIConGPU simulation output in 1D, 2D, or 3D",
+  "unevaluatedProperties": false,
+  "required": [
+    "ranges"
+  ],
+  "properties": {
+    "ranges": {
+      "type": "array",
+      "description": "List of ranges for each dimension (1 to 3)",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "begin": {
+            "type": "integer",
+            "description": "Start index of the range (inclusive)"
+          },
+          "end": {
+            "type": "integer",
+            "description": "End index of the range (inclusive)"
+          }
+        },
+        "required": [
+          "begin",
+          "end"
+        ],
+        "unevaluatedProperties": false
+      }
+    }
+  }
+}

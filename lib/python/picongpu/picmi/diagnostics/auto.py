@@ -5,14 +5,13 @@ Authors: Pawel Ordyna, Masoud Afshari
 License: GPLv3+
 """
 
-
 from ...pypicongpu.output.auto import Auto as PyPIConGPUAuto
 from ...pypicongpu.species.species import Species as PyPIConGPUSpecies
-
 from ..species import Species as PICMISpecies
 from .timestepspec import TimeStepSpec
 
 import typeguard
+import warnings
 
 
 @typeguard.typechecked
@@ -22,23 +21,28 @@ class Auto:
 
     Parameters
     ----------
-    period: int
-        Number of simulation steps between consecutive outputs.
+    period: int or TimeStepSpec
+        Number of simulation steps between consecutive outputs (e.g., 10 for every 10 steps).
+        Use 0 to disable output.
+        Alternatively, a TimeStepSpec can be provided for PIConGPU-specific step selection
+        (e.g., TimeStepSpec[5, 10], TimeStepSpec[-10:]).
         Unit: steps (simulation time steps).
     """
 
-    period: TimeStepSpec
-    """Number of simulation steps between consecutive outputs. Unit: steps (simulation time steps)."""
-
-    def __init__(self, period: TimeStepSpec) -> None:
-        self.period = period
+    def __init__(self, period: int | TimeStepSpec) -> None:
+        if isinstance(period, int):
+            if period < 0:
+                raise ValueError("period must be non-negative")
+            self.period = TimeStepSpec[::period] if period > 0 else TimeStepSpec()
+        else:
+            self.period = period
 
     def check(self):
-        pass
+        if not self.period.get_as_pypicongpu(1.0, 100).get_rendering_context().get("specs", []):
+            warnings.warn("Auto output is disabled because period is set to 0 or an empty TimeStepSpec")
 
     def get_as_pypicongpu(
         self,
-        # not used here, but needed for the interface
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],
         time_step_size,
         num_steps,

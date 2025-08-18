@@ -10,6 +10,7 @@ from .timestepspec import TimeStepSpec
 
 import typeguard
 from typing import Optional, Dict
+import warnings
 
 
 @typeguard.typechecked
@@ -20,17 +21,20 @@ class Checkpoint:
     This plugin saves simulation state snapshots at specified intervals,
     allowing for simulation restarts or analysis.
 
-    Attention: ** At least one of period or timePeriod must be provided.**
+    Attention: ** At least one of period or timePeriod must be provided to enable checkpointing.**
 
     Parameters
     ----------
-    period: TimeStepSpec, optional
-        Specify on which time steps to create checkpoints.
-        Unit: steps (simulation time steps). Required if timePeriod is not provided.
+    period: int or TimeStepSpec, optional
+        Number of simulation steps between consecutive checkpoints (e.g., 10 for every 10 steps).
+        Use 0 to disable checkpointing.
+        Alternatively, a TimeStepSpec can be provided for PIConGPU-specific step selection
+        (e.g., TimeStepSpec[5, 10], TimeStepSpec[-10:]).
+        Unit: steps (simulation time steps).
 
     timePeriod: int, optional
-        Specify the interval in minutes for creating checkpoints.
-        Unit: minutes (must be a non-negative integer). Required if period is not provided.
+        Interval in minutes for creating checkpoints.
+        Unit: minutes (must be a non-negative integer).
 
     directory: str, optional
         Directory inside simOutput for writing checkpoints (default: "checkpoints").
@@ -45,7 +49,7 @@ class Checkpoint:
         If True, restart from the latest checkpoint if available, else start from scratch.
 
     restartStep: int, optional
-        Specific checkpoint step to restart from.
+        Specific checkpoint step to restart from (must be non-negative).
 
     restartDirectory: str, optional
         Directory inside simOutput containing checkpoints for restart (default: "checkpoints").
@@ -54,10 +58,10 @@ class Checkpoint:
         Relative or absolute fileset prefix for reading checkpoints.
 
     restartChunkSize: int, optional
-        Number of particles processed in one kernel call during restart.
+        Number of particles processed in one kernel call during restart (must be positive).
 
     restartLoop: int, optional
-        Number of times to restart the simulation after it finishes.
+        Number of times to restart the simulation after it finishes (must be non-negative).
 
     openPMD: Dict, optional
         Dictionary of openPMD-specific settings (e.g., ext, json, infix).
@@ -65,7 +69,7 @@ class Checkpoint:
 
     def check(self):
         if self.period is None and self.timePeriod is None:
-            raise ValueError("At least one of period or timePeriod must be provided")
+            raise ValueError("At least one of period or timePeriod must be provided to enable checkpointing")
         if self.timePeriod is not None and self.timePeriod < 0:
             raise ValueError("timePeriod must be a non-negative integer")
         if self.restartStep is not None and self.restartStep < 0:
@@ -74,10 +78,18 @@ class Checkpoint:
             raise ValueError("restartChunkSize must be positive")
         if self.restartLoop is not None and self.restartLoop < 0:
             raise ValueError("restartLoop must be non-negative")
+        if (
+            self.period is not None
+            and not self.period.get_as_pypicongpu(1.0, 100).get_rendering_context().get("specs", [])
+            and (self.timePeriod is None or self.timePeriod == 0)
+        ):
+            warnings.warn(
+                "Checkpoint is disabled because period is set to 0 or an empty TimeStepSpec and timePeriod is None or 0"
+            )
 
     def __init__(
         self,
-        period: Optional[TimeStepSpec] = None,
+        period: Optional[int | TimeStepSpec] = None,
         timePeriod: Optional[int] = None,
         directory: Optional[str] = None,
         file: Optional[str] = None,
@@ -90,7 +102,12 @@ class Checkpoint:
         restartLoop: Optional[int] = None,
         openPMD: Optional[Dict] = None,
     ):
-        self.period = period
+        if isinstance(period, int):
+            if period < 0:
+                raise ValueError("period must be non-negative")
+            self.period = TimeStepSpec[::period] if period > 0 else TimeStepSpec()
+        else:
+            self.period = period
         self.timePeriod = timePeriod
         self.directory = directory
         self.file = file

@@ -14,21 +14,30 @@ import unittest
 
 # Test cases for valid Auto inputs
 TESTCASES_VALID = [
+    (10, [{"start": 0, "stop": -1, "step": 10}]),
+    (0, []),
     (TimeStepSpec[::10], [{"start": 0, "stop": -1, "step": 10}]),
     (TimeStepSpec[5, 10], [{"start": 5, "stop": 5, "step": 1}, {"start": 10, "stop": 10, "step": 1}]),
-    (TimeStepSpec(), []),  # Empty TimeStepSpec
+    (TimeStepSpec[-10:], [{"start": 90, "stop": 99, "step": 1}]),
+    (TimeStepSpec(), []),
 ]
 
 # Invalid test cases for instantiation
 TESTCASES_INVALID = [
-    (10, "period must be a TimeStepSpec"),
-    ("invalid", "period must be a TimeStepSpec"),
+    ("invalid", "period must be an integer or TimeStepSpec"),
+    (-10, "period must be non-negative"),
 ]
 
 # Invalid test cases for TimeStepSpec with negative steps
 TESTCASES_INVALID_TIMESTEPS = [
     (TimeStepSpec[::-10], "Step size must be >= 1"),
     (TimeStepSpec[5:10:-2], "Step size must be >= 1"),
+]
+
+# Test cases for warning when period is disabled
+TESTCASES_WARNING = [
+    (0, "Auto output is disabled because period is set to 0 or an empty TimeStepSpec"),
+    (TimeStepSpec(), "Auto output is disabled because period is set to 0 or an empty TimeStepSpec"),
 ]
 
 
@@ -38,13 +47,29 @@ class TestAuto(unittest.TestCase):
         for period, _ in TESTCASES_VALID:
             with self.subTest(period=period):
                 auto = Auto(period=period)
-                self.assertEqual(auto.period, period)
-                auto.check()  # Should not raise
+                if isinstance(period, int):
+                    expected = (
+                        TimeStepSpec[::period] if period > 0 else TimeStepSpec()
+                    )  # TimeStepSpec(), creating an empty TimeStepSpec
+                    self.assertEqual(
+                        auto.period.get_as_pypicongpu(0.5, 100).get_rendering_context(),
+                        expected.get_as_pypicongpu(0.5, 100).get_rendering_context(),
+                    )
+                else:
+                    self.assertEqual(auto.period, period)
+                if not period or (
+                    isinstance(period, TimeStepSpec)
+                    and not period.get_as_pypicongpu(0.5, 100).get_rendering_context().get("specs", [])
+                ):
+                    with self.assertWarnsRegex(UserWarning, "Auto output is disabled"):
+                        auto.check()
+                else:
+                    auto.check()  # Should not raise or warn
 
         for period, expected_error in TESTCASES_INVALID:
             with self.subTest(period=period, expected_error=expected_error):
-                with self.assertRaisesRegex(TypeError, expected_error):
-                    Auto(period=period)
+                with self.assertRaisesRegex((ValueError, TypeError), expected_error):
+                    Auto(period=period).check()
 
     def test_auto_serialization(self):
         """Test Auto serialization to PyPIConGPUAuto."""
@@ -57,6 +82,14 @@ class TestAuto(unittest.TestCase):
                 serialized = pypicongpu_auto.get_rendering_context()
                 self.assertEqual(serialized["period"]["specs"], expected_specs)
 
+    def test_auto_warning(self):
+        """Test warning for disabled Auto output."""
+        for period, expected_warning in TESTCASES_WARNING:
+            with self.subTest(period=period, expected_warning=expected_warning):
+                auto = Auto(period=period)
+                with self.assertWarnsRegex(UserWarning, expected_warning):
+                    auto.check()
+
     def test_auto_invalid_timestepspec(self):
         """Test invalid TimeStepSpec with negative steps."""
         for period, expected_error in TESTCASES_INVALID_TIMESTEPS:
@@ -67,7 +100,7 @@ class TestAuto(unittest.TestCase):
 
     def test_auto_invalid_simulation_parameters(self):
         """Test invalid simulation parameters in get_as_pypicongpu."""
-        auto = Auto(period=TimeStepSpec[::10])
+        auto = Auto(period=10)
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
             auto.get_as_pypicongpu({}, -0.5, 100)
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
