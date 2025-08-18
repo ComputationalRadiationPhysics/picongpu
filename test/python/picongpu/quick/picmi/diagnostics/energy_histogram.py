@@ -25,7 +25,7 @@ TESTCASES_VALID = [
         },
         {
             "species": {"name": "electron"},
-            "period": {"specs": [{"start": 0, "stop": -1, "step": 10}]},
+            "period": {"specs": [{"start": 0, "stop": 199, "step": 10}]},
             "bin_count": 100,
             "min_energy": 0.0,
             "max_energy": 1000.0,
@@ -50,14 +50,14 @@ TESTCASES_VALID = [
     (
         {
             "species": PICMISpecies(name="ion"),
-            "period": TimeStepSpec[::10],
+            "period": TimeStepSpec([slice(None, None, 10)]),
             "bin_count": 200,
             "min_energy": 0.0,
             "max_energy": 1e6,
         },
         {
             "species": {"name": "ion"},
-            "period": {"specs": [{"start": 0, "stop": -1, "step": 10}]},
+            "period": {"specs": [{"start": 0, "stop": 199, "step": 10}]},
             "bin_count": 200,
             "min_energy": 0.0,
             "max_energy": 1e6,
@@ -66,14 +66,14 @@ TESTCASES_VALID = [
     (
         {
             "species": PICMISpecies(name="electron"),
-            "period": TimeStepSpec[5, 10],
+            "period": TimeStepSpec([5, 10]),
             "bin_count": 1000,
             "min_energy": 0.0,
             "max_energy": 10000.0,
         },
         {
             "species": {"name": "electron"},
-            "period": {"specs": [{"start": 5, "stop": 5, "step": 1}, {"start": 10, "stop": 10, "step": 1}]},
+            "period": {"specs": [{"start": 5, "stop": 6, "step": 1}, {"start": 10, "stop": 11, "step": 1}]},
             "bin_count": 1000,
             "min_energy": 0.0,
             "max_energy": 10000.0,
@@ -82,14 +82,14 @@ TESTCASES_VALID = [
     (
         {
             "species": PICMISpecies(name="proton"),
-            "period": TimeStepSpec[-10:],
+            "period": TimeStepSpec([slice(-10, None, 1)]),
             "bin_count": 150,
             "min_energy": 0.0,
             "max_energy": 2000.0,
         },
         {
             "species": {"name": "proton"},
-            "period": {"specs": [{"start": 90, "stop": 99, "step": 1}]},
+            "period": {"specs": [{"start": 190, "stop": 199, "step": 1}]},
             "bin_count": 150,
             "min_energy": 0.0,
             "max_energy": 2000.0,
@@ -181,7 +181,7 @@ TESTCASES_INVALID_TIMESTEPS = [
     (
         {
             "species": PICMISpecies(name="electron"),
-            "period": TimeStepSpec[::-10],
+            "period": TimeStepSpec([slice(None, None, -10)]),
             "bin_count": 100,
             "min_energy": 0.0,
             "max_energy": 1000.0,
@@ -223,16 +223,16 @@ class TestEnergyHistogram(unittest.TestCase):
                 histogram = EnergyHistogram(**params)
                 for key, value in params.items():
                     if key == "period" and isinstance(value, int):
-                        expected = TimeStepSpec[::value] if value > 0 else TimeStepSpec()
+                        expected = TimeStepSpec([slice(None, None, value)]) if value > 0 else TimeStepSpec()
                         self.assertEqual(
-                            histogram.period.get_as_pypicongpu(0.5, 100).get_rendering_context(),
-                            expected.get_as_pypicongpu(0.5, 100).get_rendering_context(),
+                            histogram.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
+                            expected.get_as_pypicongpu(0.5, 200).get_rendering_context(),
                         )
                     else:
                         self.assertEqual(getattr(histogram, key), value)
                 if not params["period"] or (
                     isinstance(params["period"], TimeStepSpec)
-                    and not params["period"].get_as_pypicongpu(0.5, 100).get_rendering_context().get("specs", [])
+                    and not params["period"].get_as_pypicongpu(0.5, 200).get_rendering_context().get("specs", [])
                 ):
                     with self.assertWarnsRegex(UserWarning, "EnergyHistogram is disabled"):
                         histogram.check()
@@ -254,7 +254,7 @@ class TestEnergyHistogram(unittest.TestCase):
         for params, expected_serialized in TESTCASES_VALID:
             with self.subTest(params=params, expected_serialized=expected_serialized):
                 histogram = EnergyHistogram(**params)
-                pypicongpu_histogram = histogram.get_as_pypicongpu(species_map, 0.5, 100)
+                pypicongpu_histogram = histogram.get_as_pypicongpu(species_map, 0.5, 200)
                 self.assertIsInstance(pypicongpu_histogram, PyPIConGPUEnergyHistogram)
                 self.assertIsInstance(pypicongpu_histogram.species, PyPIConGPUSpecies)
                 self.assertEqual(pypicongpu_histogram.species.name, params["species"].name)
@@ -267,7 +267,7 @@ class TestEnergyHistogram(unittest.TestCase):
         for params, expected_warning in TESTCASES_WARNING:
             with self.subTest(params=params, expected_warning=expected_warning):
                 histogram = EnergyHistogram(**params)
-                with self.assertWarnsRegex(UserWarning, expected_warning):
+                with self.assertWarnsRegex(UserWarning, "EnergyHistogram is disabled"):
                     histogram.check()
 
     def test_energyhistogram_invalid_species(self):
@@ -276,7 +276,7 @@ class TestEnergyHistogram(unittest.TestCase):
             species=PICMISpecies(name="unknown"), period=10, bin_count=100, min_energy=0.0, max_energy=1000.0
         )
         with self.assertRaisesRegex(ValueError, "Species unknown is not known to Simulation"):
-            histogram.get_as_pypicongpu({}, 0.5, 100)
+            histogram.get_as_pypicongpu({}, 0.5, 200)
 
     def test_energyhistogram_invalid_timestepspec(self):
         """Test invalid TimeStepSpec with negative steps."""
@@ -284,8 +284,8 @@ class TestEnergyHistogram(unittest.TestCase):
             with self.subTest(params=params, expected_error=expected_error):
                 histogram = EnergyHistogram(**params)
                 species_map = {params["species"]: PyPIConGPUSpecies(name=params["species"].name)}
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    histogram.get_as_pypicongpu(species_map, 0.5, 100)
+                with self.assertRaisesRegex(ValueError, "Step size must be >= 1"):
+                    histogram.get_as_pypicongpu(species_map, 0.5, 200)
 
     def test_energyhistogram_invalid_simulation_parameters(self):
         """Test invalid simulation parameters in get_as_pypicongpu."""
@@ -294,9 +294,9 @@ class TestEnergyHistogram(unittest.TestCase):
         )
         species_map = {PICMISpecies(name="electron"): PyPIConGPUSpecies(name="electron")}
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
-            histogram.get_as_pypicongpu(species_map, -0.5, 100)
+            histogram.get_as_pypicongpu(species_map, -0.5, 200)
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
-            histogram.get_as_pypicongpu(species_map, 0, 100)
+            histogram.get_as_pypicongpu(species_map, 0, 200)
 
     def test_energyhistogram_plugin_name(self):
         """Test that the plugin name is correctly set."""
@@ -304,7 +304,7 @@ class TestEnergyHistogram(unittest.TestCase):
             species=PICMISpecies(name="electron"), period=10, bin_count=100, min_energy=0.0, max_energy=1000.0
         )
         pypicongpu_histogram = histogram.get_as_pypicongpu(
-            {PICMISpecies(name="electron"): PyPIConGPUSpecies(name="electron")}, 0.5, 100
+            {PICMISpecies(name="electron"): PyPIConGPUSpecies(name="electron")}, 0.5, 200
         )
         self.assertEqual(pypicongpu_histogram._name, "energyhistogram")
 

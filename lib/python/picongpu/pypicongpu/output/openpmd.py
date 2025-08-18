@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2025-2025 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -18,6 +18,10 @@ from typing import Optional, List, Literal, Dict, Union
 
 @typeguard.typechecked
 class OpenPMD(Plugin):
+    """
+    PIConGPU OpenPMD output configuration.
+    """
+
     period = util.build_typesafe_property(TimeStepSpec)
     source = util.build_typesafe_property(Optional[List[SourceBase]])
     range = util.build_typesafe_property(Optional[RangeSpec])
@@ -80,24 +84,19 @@ class OpenPMD(Plugin):
         Serialize the OpenPMD object to a JSON-compatible dictionary.
         """
         self.check()
-
-        # Convert RangeSpec to string format
         range_context = self.range._get_serialized() if self.range is not None else None
-        if range_context:
-            specs = range_context["ranges"]
-            range_str = ",".join(f"{spec['begin']}:{spec['end']}" for spec in specs)
-        else:
-            range_str = None
-
+        range_specs = range_context["ranges"] if range_context else []
+        period_specs = self.period._get_serialized()["specs"]
+        period_dict = period_specs[0] if period_specs else {"start": 0, "stop": 0, "step": 1}
         return {
-            "period": self.period._get_serialized(),
-            "source": [s._get_serialized() for s in self.source] if self.source is not None else None,
-            "range": range_str,
+            "period": period_dict,
+            "source": [s._get_serialized() for s in self.source] if self.source else None,
+            "range": range_specs,
             "file": self.file,
             "ext": self.ext,
             "infix": self.infix,
-            "json": self.json,
-            "json_restart": self.json_restart,
+            "json": self.json if self.json is not None else {},
+            "json_restart": self.json_restart if self.json_restart is not None else {},
             "data_preparation_strategy": self.data_preparation_strategy,
             "toml": self.toml,
             "particle_io_chunk_size": self.particle_io_chunk_size,

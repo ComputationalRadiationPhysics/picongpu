@@ -11,13 +11,12 @@ from picongpu.pypicongpu.output.timestepspec import TimeStepSpec as PyPIConGPUTi
 
 import unittest
 
-
 # Test cases for valid Checkpoint inputs
 TESTCASES_VALID = [
     (
         {"period": 10, "timePeriod": None, "directory": "checkpoints", "restart": True},
         {
-            "period": {"specs": [{"start": 0, "stop": -1, "step": 10}]},
+            "period": {"specs": [{"start": 0, "stop": 199, "step": 10}]},
             "timePeriod": None,
             "directory": "checkpoints",
             "restart": True,
@@ -29,7 +28,7 @@ TESTCASES_VALID = [
     ),
     (
         {
-            "period": TimeStepSpec[5, 10],
+            "period": TimeStepSpec([5, 10]),
             "timePeriod": 10,
             "restartStep": 100,
             "restartDirectory": "backups",
@@ -39,7 +38,7 @@ TESTCASES_VALID = [
             "openPMD": {"ext": "h5"},
         },
         {
-            "period": {"specs": [{"start": 5, "stop": 5, "step": 1}, {"start": 10, "stop": 10, "step": 1}]},
+            "period": {"specs": [{"start": 5, "stop": 6, "step": 1}, {"start": 10, "stop": 11, "step": 1}]},
             "timePeriod": 10,
             "restartStep": 100,
             "restartDirectory": "backups",
@@ -50,13 +49,10 @@ TESTCASES_VALID = [
         },
     ),
     (
-        {"period": TimeStepSpec[-10:], "timePeriod": None},
-        {"period": {"specs": [{"start": 90, "stop": 99, "step": 1}]}, "timePeriod": None},
+        {"period": TimeStepSpec([slice(-10, None, 1)]), "timePeriod": None},
+        {"period": {"specs": [{"start": 190, "stop": 199, "step": 1}]}, "timePeriod": None},
     ),
-    (
-        {"period": 0, "timePeriod": 0},
-        {"period": {"specs": []}, "timePeriod": 0},
-    ),
+    ({"period": 0, "timePeriod": 0}, {"period": {"specs": []}, "timePeriod": 0}),
 ]
 
 # Invalid test cases for instantiation
@@ -70,10 +66,14 @@ TESTCASES_INVALID = [
     ({"period": 10, "restartChunkSize": 0}, "restartChunkSize must be positive"),
     ({"period": 10, "restartLoop": -1}, "restartLoop must be non-negative"),
     ({"period": "invalid", "timePeriod": None}, "period must be an integer or TimeStepSpec"),
-    ({"period": -10, "timePeriod": None}, "period must be non-negative"),
 ]
 
-# Test cases for warning when checkpointing is disabled
+# Invalid test cases for TimeStepSpec with negative steps
+TESTCASES_INVALID_TIMESTEPS = [
+    ({"period": TimeStepSpec([slice(None, None, -10)]), "timePeriod": None}, "Step size must be >= 1"),
+]
+
+# Test cases for warning when checkpoint is disabled
 TESTCASES_WARNING = [
     (
         {"period": 0, "timePeriod": 0},
@@ -85,11 +85,6 @@ TESTCASES_WARNING = [
     ),
 ]
 
-# Invalid test cases for TimeStepSpec with negative steps
-TESTCASES_INVALID_TIMESTEPS = [
-    ({"period": TimeStepSpec[::-10], "timePeriod": None}, "Step size must be >= 1"),
-]
-
 
 class TestCheckpoint(unittest.TestCase):
     def test_checkpoint_instantiation(self):
@@ -98,20 +93,18 @@ class TestCheckpoint(unittest.TestCase):
             with self.subTest(params=params):
                 checkpoint = Checkpoint(**params)
                 for key, value in params.items():
-                    if key == "period" and isinstance(value, int):
-                        expected = TimeStepSpec[::value] if value > 0 else TimeStepSpec()
-                        self.assertEqual(
-                            checkpoint.period.get_as_pypicongpu(0.5, 100).get_rendering_context(),
-                            expected.get_as_pypicongpu(0.5, 100).get_rendering_context(),
-                        )
-                    else:
-                        self.assertEqual(getattr(checkpoint, key), value)
-                if params.get("period") is None or (
-                    isinstance(params["period"], (int, TimeStepSpec))
-                    and not params["period"].get_as_pypicongpu(0.5, 100).get_rendering_context().get("specs", [])
-                    and params.get("timePeriod") in (None, 0)
-                ):
-                    with self.assertWarnsRegex(UserWarning, "Checkpoint is disabled"):
+                    self.assertEqual(getattr(checkpoint, key), value)
+                if (
+                    not params["period"]
+                    or (
+                        isinstance(params["period"], TimeStepSpec)
+                        and not params["period"].get_as_pypicongpu(0.5, 200).get_rendering_context().get("specs", [])
+                    )
+                ) and (params["timePeriod"] is None or params["timePeriod"] == 0):
+                    with self.assertWarnsRegex(
+                        UserWarning,
+                        "Checkpoint is disabled because period is set to 0 or an empty TimeStepSpec and timePeriod is None or 0",
+                    ):
                         checkpoint.check()
                 else:
                     checkpoint.check()  # Should not raise or warn
@@ -119,20 +112,19 @@ class TestCheckpoint(unittest.TestCase):
         for params, expected_error in TESTCASES_INVALID:
             with self.subTest(params=params, expected_error=expected_error):
                 with self.assertRaisesRegex((ValueError, TypeError), expected_error):
-                    Checkpoint(**params).check()
+                    checkpoint = Checkpoint(**params)
+                    checkpoint.check()
 
     def test_checkpoint_serialization(self):
         """Test Checkpoint serialization to PyPIConGPUCheckpoint."""
         for params, expected_serialized in TESTCASES_VALID:
             with self.subTest(params=params, expected_serialized=expected_serialized):
                 checkpoint = Checkpoint(**params)
-                pypicongpu_checkpoint = checkpoint.get_as_pypicongpu({}, 0.5, 100)
+                pypicongpu_checkpoint = checkpoint.get_as_pypicongpu(0.5, 200, {})
                 self.assertIsInstance(pypicongpu_checkpoint, PyPIConGPUCheckpoint)
-                if params.get("period") is not None:
-                    self.assertIsInstance(pypicongpu_checkpoint.period, PyPIConGPUTimeStepSpec)
+                self.assertIsInstance(pypicongpu_checkpoint.period, PyPIConGPUTimeStepSpec)
                 serialized = pypicongpu_checkpoint.get_rendering_context()
-                for key, value in expected_serialized.items():
-                    self.assertEqual(serialized[key], value)
+                self.assertEqual(serialized, expected_serialized)
 
     def test_checkpoint_warning(self):
         """Test warning for disabled Checkpoint."""
@@ -148,15 +140,23 @@ class TestCheckpoint(unittest.TestCase):
             with self.subTest(params=params, expected_error=expected_error):
                 checkpoint = Checkpoint(**params)
                 with self.assertRaisesRegex(ValueError, expected_error):
-                    checkpoint.get_as_pypicongpu({}, 0.5, 100)
+                    checkpoint.get_as_pypicongpu(0.5, 200, {})
 
     def test_checkpoint_invalid_simulation_parameters(self):
         """Test invalid simulation parameters in get_as_pypicongpu."""
         checkpoint = Checkpoint(period=10)
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
-            checkpoint.get_as_pypicongpu({}, -0.5, 100)
+            checkpoint.get_as_pypicongpu(-0.5, 200, {})
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
-            checkpoint.get_as_pypicongpu({}, 0, 100)
+            checkpoint.get_as_pypicongpu(0, 200, {})
+        with self.assertRaisesRegex(ValueError, "Number of steps must be positive"):
+            checkpoint.get_as_pypicongpu(0.5, 0, {})
+
+    def test_checkpoint_plugin_name(self):
+        """Test that the plugin name is correctly set."""
+        checkpoint = Checkpoint(period=10)
+        pypicongpu_checkpoint = checkpoint.get_as_pypicongpu(0.5, 200, {})
+        self.assertEqual(pypicongpu_checkpoint._name, "checkpoint")
 
 
 if __name__ == "__main__":

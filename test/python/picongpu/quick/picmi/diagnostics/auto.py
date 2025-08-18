@@ -14,11 +14,11 @@ import unittest
 
 # Test cases for valid Auto inputs
 TESTCASES_VALID = [
-    (10, [{"start": 0, "stop": -1, "step": 10}]),
+    (10, [{"start": 0, "stop": 199, "step": 10}]),
     (0, []),
-    (TimeStepSpec[::10], [{"start": 0, "stop": -1, "step": 10}]),
-    (TimeStepSpec[5, 10], [{"start": 5, "stop": 5, "step": 1}, {"start": 10, "stop": 10, "step": 1}]),
-    (TimeStepSpec[-10:], [{"start": 90, "stop": 99, "step": 1}]),
+    (TimeStepSpec([slice(None, None, 10)]), [{"start": 0, "stop": 199, "step": 10}]),
+    (TimeStepSpec([5, 10]), [{"start": 5, "stop": 6, "step": 1}, {"start": 10, "stop": 11, "step": 1}]),
+    (TimeStepSpec([slice(-10, None, 1)]), [{"start": 190, "stop": 199, "step": 1}]),
     (TimeStepSpec(), []),
 ]
 
@@ -30,8 +30,8 @@ TESTCASES_INVALID = [
 
 # Invalid test cases for TimeStepSpec with negative steps
 TESTCASES_INVALID_TIMESTEPS = [
-    (TimeStepSpec[::-10], "Step size must be >= 1"),
-    (TimeStepSpec[5:10:-2], "Step size must be >= 1"),
+    (TimeStepSpec([slice(None, None, -10)]), "Step size must be >= 1"),
+    (TimeStepSpec([slice(5, 10, -2)]), "Step size must be >= 1"),
 ]
 
 # Test cases for warning when period is disabled
@@ -48,18 +48,16 @@ class TestAuto(unittest.TestCase):
             with self.subTest(period=period):
                 auto = Auto(period=period)
                 if isinstance(period, int):
-                    expected = (
-                        TimeStepSpec[::period] if period > 0 else TimeStepSpec()
-                    )  # TimeStepSpec(), creating an empty TimeStepSpec
+                    expected = TimeStepSpec(period) if period > 0 else TimeStepSpec()
                     self.assertEqual(
-                        auto.period.get_as_pypicongpu(0.5, 100).get_rendering_context(),
-                        expected.get_as_pypicongpu(0.5, 100).get_rendering_context(),
+                        auto.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
+                        expected.get_as_pypicongpu(0.5, 200).get_rendering_context(),
                     )
                 else:
                     self.assertEqual(auto.period, period)
                 if not period or (
                     isinstance(period, TimeStepSpec)
-                    and not period.get_as_pypicongpu(0.5, 100).get_rendering_context().get("specs", [])
+                    and not period.get_as_pypicongpu(0.5, 200).get_rendering_context().get("specs", [])
                 ):
                     with self.assertWarnsRegex(UserWarning, "Auto output is disabled"):
                         auto.check()
@@ -76,7 +74,7 @@ class TestAuto(unittest.TestCase):
         for period, expected_specs in TESTCASES_VALID:
             with self.subTest(period=period, expected_specs=expected_specs):
                 auto = Auto(period=period)
-                pypicongpu_auto = auto.get_as_pypicongpu({}, 0.5, 100)
+                pypicongpu_auto = auto.get_as_pypicongpu({}, 0.5, 200)
                 self.assertIsInstance(pypicongpu_auto, PyPIConGPUAuto)
                 self.assertIsInstance(pypicongpu_auto.period, PyPIConGPUTimeStepSpec)
                 serialized = pypicongpu_auto.get_rendering_context()
@@ -96,15 +94,15 @@ class TestAuto(unittest.TestCase):
             with self.subTest(period=period, expected_error=expected_error):
                 auto = Auto(period=period)
                 with self.assertRaisesRegex(ValueError, expected_error):
-                    auto.get_as_pypicongpu({}, 0.5, 100)
+                    auto.get_as_pypicongpu({}, 0.5, 200)
 
     def test_auto_invalid_simulation_parameters(self):
         """Test invalid simulation parameters in get_as_pypicongpu."""
         auto = Auto(period=10)
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
-            auto.get_as_pypicongpu({}, -0.5, 100)
+            auto.get_as_pypicongpu({}, -0.5, 200)
         with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
-            auto.get_as_pypicongpu({}, 0, 100)
+            auto.get_as_pypicongpu({}, 0, 200)
 
 
 if __name__ == "__main__":

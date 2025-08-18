@@ -9,6 +9,7 @@ from picongpu.pypicongpu.output import Checkpoint
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 import unittest
 import typeguard
+from picongpu.picmi.diagnostics import TimeStepSpec as PicmiTimeStepSpec
 
 
 class TestCheckpoint(unittest.TestCase):
@@ -28,16 +29,18 @@ class TestCheckpoint(unittest.TestCase):
         # Set valid minimal configuration with period
         cp = Checkpoint()
         cp.period = TimeStepSpec([slice(0, None, 100)])
-        serialized = cp._get_serialized()
-        self.assertEqual(serialized["period"]["specs"][0]["step"], 100)
-        self.assertIsNone(serialized["timePeriod"])
+        serialized = cp.get_rendering_context()
+        self.assertTrue(serialized["typeID"]["checkpoint"])
+        self.assertEqual(serialized["data"]["period"]["specs"][0]["step"], 100)
+        self.assertIsNone(serialized["data"]["timePeriod"])
 
         # Set valid minimal configuration with timePeriod
         cp = Checkpoint()
         cp.timePeriod = 100
-        serialized = cp._get_serialized()
-        self.assertEqual(serialized["timePeriod"], 100)
-        self.assertIsNone(serialized["period"])
+        serialized = cp.get_rendering_context()
+        self.assertTrue(serialized["typeID"]["checkpoint"])
+        self.assertEqual(serialized["data"]["timePeriod"], 100)
+        self.assertIsNone(serialized["data"]["period"])
 
     def test_types(self):
         """Type safety is ensured for all attributes."""
@@ -128,7 +131,7 @@ class TestCheckpoint(unittest.TestCase):
         cp.restartChunkSize = 1
         cp.restartLoop = 0
         cp.openPMD = {"backend": "bp"}
-        cp._get_serialized()  # Should succeed
+        cp.get_rendering_context()  # Should succeed
 
     def test_rendering(self):
         """Serialized data is correctly formatted for template consumption."""
@@ -161,6 +164,21 @@ class TestCheckpoint(unittest.TestCase):
         self.assertEqual(context["restartChunkSize"], 1)
         self.assertEqual(context["restartLoop"], 0)
         self.assertEqual(context["openPMD"], {"backend": "bp"})
+
+        # Test negative index resolution
+        cp = Checkpoint()
+        cp.period = PicmiTimeStepSpec([slice(-10, None, 1)])
+        context = cp.get_rendering_context()
+        self.assertEqual(context["data"]["period"]["specs"][0]["start"], 190)
+        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], 199)
+
+        # Test integer period
+        cp = Checkpoint()
+        cp.period = PicmiTimeStepSpec(10)
+        context = cp.get_rendering_context()
+        self.assertEqual(context["data"]["period"]["specs"][0]["start"], 0)
+        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], 199)
+        self.assertEqual(context["data"]["period"]["specs"][0]["step"], 10)
 
         # Unset period and timePeriod should fail
         cp = Checkpoint()
@@ -201,6 +219,12 @@ class TestCheckpoint(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "restartLoop must be non-negative"):
             cp.check()
 
+        # Invalid TimeStepSpec
+        cp = Checkpoint()
+        cp.period = PicmiTimeStepSpec([slice(0, None, -1)])
+        with self.assertRaisesRegex(ValueError, "Step size must be >= 1"):
+            cp.get_rendering_context()
+
         # Valid configuration
         cp = Checkpoint()
         cp.period = TimeStepSpec([slice(0, None, 100)])
@@ -216,7 +240,7 @@ class TestCheckpoint(unittest.TestCase):
         cp.restartLoop = 0
         cp.openPMD = {"backend": "bp"}
         cp.check()  # Should succeed
-        serialized = cp._get_serialized()
+        serialized = cp.get_rendering_context()["data"]
         self.assertEqual(serialized["period"]["specs"][0]["step"], 100)
         self.assertEqual(serialized["timePeriod"], 100)
 

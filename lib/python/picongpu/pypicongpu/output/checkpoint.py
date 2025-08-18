@@ -48,6 +48,8 @@ class Checkpoint(Plugin):
     def check(self):
         if self.period is None and self.timePeriod is None:
             raise ValueError("At least one of period or timePeriod must be provided")
+        if self.period is not None:
+            self.period.check()
         if self.timePeriod is not None and self.timePeriod < 0:
             raise ValueError("timePeriod must be non-negative")
         if self.restartStep is not None and self.restartStep < 0:

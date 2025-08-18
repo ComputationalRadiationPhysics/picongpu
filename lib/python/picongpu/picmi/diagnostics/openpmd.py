@@ -1,12 +1,11 @@
 """
 This file is part of PIConGPU.
-Copyright 2025-2025 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
 
 from ...pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
-from ...pypicongpu.output.openpmd_sources.source_base import SourceBase as PyPIConGPUSource
 from .timestepspec import TimeStepSpec
 from .rangespec import RangeSpec
 from .openpmd_sources.source_base import SourceBase
@@ -23,24 +22,45 @@ class OpenPMD:
     This diagnostic writes simulation data (base fields, derived fields and/or particles) to disk using the openPMD
     standard, with configurable periods, data sources and backend settings.
 
-    @param period specification of the time steps for data output, outputs will always be written at the end of a PIC time step.
-    @param source list of data source objects to include in the dump (e.g., [ChargeDensity(filter="all")]),
-        Setting this to None will cause an empty dump
-    @param range contiguous range of cells to dump the base- and derived field for, specified as a RangeSpec object
+    Parameters
+    ----------
+    period: TimeStepSpec
+        Specification of the time steps for data output, outputs will always be written at the end of a PIC time step.
+    source: List[SourceBase], optional
+        List of data source objects to include in the dump (e.g., [ChargeDensity(filter="all")]).
+        Setting to None will cause an empty dump.
+    range: str or RangeSpec, optional
+        Contiguous range of cells to dump the base- and derived field for, specified as a RangeSpec object
         or a string in the format "begin:end" (1D), "begin:end,begin:end" (2D), or "begin:end,begin:end,begin:end" (3D).
         Example: "0:10,5:15,2:8" specifies cells 0 to 10 (x), 5 to 15 (y), 2 to 8 (z).
         Notes: Values are clipped to the simulation box. Begin and/or end may be omitted (":") to indicate the full extent
         of the dimension. Negative indices are supported (e.g., "-5:-1" for last 5 cells). The default ":,:,:," (3D),
         ":,:" (2D), or ":" (1D) includes all cells in the simulation box.
-    @param file relative or absolute file path prefix for openPMD output files. Relative paths are interpreted as relative to the simulation output directory, the default value None indicates the PIC code's default.
-    @param ext file extension controlling the openPMD backend, options are "bp" (default backend ADIOS2), "h5" (HDF5), "sst" (ADIOS2/SST for streaming).
-    @param infix filename infix for the iteration layout (e.g., "_%06T"), use "NULL" for the group-based layout, ext="sst" requires infix="NULL".
-    @param json openPMD backend configuration as a JSON string, dictionary, or filename (filename must be prepended with "@").
-    @param json_restart backend-specific parameters for restarting, as a JSON string, dictionary, or filename (filenames must be prepended with "@").
-    @param data_preparation_strategy strategy for particle data preparation, options: "doubleBuffer" or "adios" (ADIOS2-based), "mappedMemory" or "hdf5" (HDF5-based), the default value None indicates the PIC code default
-    @param toml path to a TOML file for openPMD configuration. Replaces the JSON or keyword configuration.
-    @param particle_io_chunk_size size of particle data chunks used in writing (in MiB), reduces host memory footprint for certain backends, default "None" indicates the PIC code default.
-    @param file_writing file writing mode for writing, options: "create" (new files), "append" (for checkpoint-restart workflows).
+    file: str, optional
+        Relative or absolute file path prefix for openPMD output files. Relative paths are interpreted as relative to the
+        simulation output directory, the default value None indicates the PIC code's default.
+    ext: str, optional
+        File extension controlling the openPMD backend, options are "bp" (default backend ADIOS2), "h5" (HDF5),
+        "sst" (ADIOS2/SST for streaming). Default: "bp".
+    infix: str, optional
+        Filename infix for the iteration layout (e.g., "_%06T"), use "NULL" for the group-based layout,
+        ext="sst" requires infix="NULL". Default: "NULL".
+    json: str or dict, optional
+        openPMD backend configuration as a JSON string, dictionary, or filename (filename must be prepended with "@").
+    json_restart: str or dict, optional
+        Backend-specific parameters for restarting, as a JSON string, dictionary, or filename (filenames must be
+        prepended with "@").
+    data_preparation_strategy: str, optional
+        Strategy for particle data preparation, options: "doubleBuffer" or "adios" (ADIOS2-based),
+        "mappedMemory" or "hdf5" (HDF5-based), the default value None indicates the PIC code default.
+    toml: str, optional
+        Path to a TOML file for openPMD configuration. Replaces the JSON or keyword configuration.
+    particle_io_chunk_size: int, optional
+        Size of particle data chunks used in writing (in MiB), reduces host memory footprint for certain backends,
+        default "None" indicates the PIC code default.
+    file_writing: str, optional
+        File writing mode for writing, options: "create" (new files), "append" (for checkpoint-restart workflows).
+        Default: "create".
     """
 
     def check(self):
@@ -53,6 +73,10 @@ class OpenPMD:
             raise ValueError("infix must be 'NULL' when ext is 'sst'")
         if self.source is not None and not all(isinstance(s, SourceBase) for s in self.source):
             raise ValueError("source must be a list of SourceBase objects")
+        if not isinstance(self.period, TimeStepSpec):
+            raise TypeError("period must be a TimeStepSpec")
+        if not isinstance(self.range, RangeSpec):
+            raise TypeError("range must be a RangeSpec or string")
 
     def __init__(
         self,
@@ -81,7 +105,6 @@ class OpenPMD:
         self.toml = toml
         self.particle_io_chunk_size = particle_io_chunk_size
         self.file_writing = file_writing
-
         self.check()
 
     def get_as_pypicongpu(
@@ -92,9 +115,11 @@ class OpenPMD:
         simulation_box: Tuple[int, ...],
     ) -> PyPIConGPUOpenPMD:
         self.check()
+        if len(simulation_box) != len(self.range):
+            raise ValueError("Number of range specifications must match simulation box dimensions")
         pypicongpu_openpmd = PyPIConGPUOpenPMD(
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
-            source=PyPIConGPUSource([s.get_as_pypicongpu() for s in self.source]) if self.source is not None else None,
+            source=self.source,
             range=self.range.get_as_pypicongpu(simulation_box),
             file=self.file,
             ext=self.ext,

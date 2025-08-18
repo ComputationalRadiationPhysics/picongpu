@@ -14,6 +14,7 @@ from .timestepspec import TimeStepSpec
 
 import typeguard
 import warnings
+from typing import Optional, Dict, Union
 
 
 @typeguard.typechecked
@@ -28,47 +29,54 @@ class MacroParticleCount:
     ----------
     species: PICMISpecies
         Particle species to count (e.g., an instance with name="electron" or "proton").
-
-    period: int or TimeStepSpec
+    period: int or TimeStepSpec, optional
         Number of simulation steps between consecutive counts (e.g., 10 for every 10 steps).
         Use 0 to disable counting.
         Alternatively, a TimeStepSpec can be provided for PIConGPU-specific step selection
-        (e.g., TimeStepSpec[5, 10], TimeStepSpec[-10:]).
-        Unit: steps (simulation time steps).
+        (e.g., TimeStepSpec([5, 10]), TimeStepSpec([slice(-10, None, 1)])).
+        Unit: steps or seconds (via TimeStepSpec unit).
     """
 
     def check(self):
-        if not self.period.get_as_pypicongpu(1.0, 100).get_rendering_context().get("specs", []):
+        if not isinstance(self.species, PICMISpecies):
+            raise TypeError("species must be a Species")
+        if (
+            self.period is not None
+            and isinstance(self.period, TimeStepSpec)
+            and not self.period.get_as_pypicongpu(1.0, 200).get_rendering_context().get("specs", [])
+        ):
             warnings.warn("MacroParticleCount is disabled because period is set to 0 or an empty TimeStepSpec")
 
-    def __init__(self, species: PICMISpecies, period: int | TimeStepSpec):
-        self.species = species
+    def __init__(
+        self,
+        species: PICMISpecies,
+        period: Optional[Union[int, TimeStepSpec]] = None,
+    ):
+        if period is not None and not isinstance(period, (int, TimeStepSpec)):
+            raise TypeError("period must be an integer or TimeStepSpec")
         if isinstance(period, int):
             if period < 0:
                 raise ValueError("period must be non-negative")
-            self.period = TimeStepSpec[::period] if period > 0 else TimeStepSpec()
+            self.period = TimeStepSpec([slice(None, None, period)]) if period > 0 else TimeStepSpec()
         else:
-            self.period = period
+            self.period = period if period is not None else TimeStepSpec()
+        self.species = species
+        self.check()
 
     def get_as_pypicongpu(
         self,
-        dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],
-        time_step_size,
-        num_steps,
+        dict_species_picmi_to_pypicongpu: Dict[PICMISpecies, PyPIConGPUSpecies],
+        time_step_size: float,
+        num_steps: int,
         simulation_box=None,  # Added to match OpenPMD signature, not used
     ) -> PyPIConGPUMacroParticleCount:
         self.check()
-
-        if self.species not in dict_species_picmi_to_pypicongpu.keys():
-            raise ValueError(f"Species {self.species} is not known to Simulation")
-
-        pypicongpu_species = dict_species_picmi_to_pypicongpu.get(self.species)
-
-        if pypicongpu_species is None:
-            raise ValueError(f"Species {self.species} is not mapped to a PyPIConGPUSpecies.")
+        if self.species not in dict_species_picmi_to_pypicongpu:
+            raise ValueError(f"Species {self.species.name} is not known to Simulation")
 
         pypicongpu_macro_count = PyPIConGPUMacroParticleCount()
-        pypicongpu_macro_count.species = pypicongpu_species
+        pypicongpu_macro_count.species = dict_species_picmi_to_pypicongpu[self.species]
         pypicongpu_macro_count.period = self.period.get_as_pypicongpu(time_step_size, num_steps)
+        pypicongpu_macro_count._name = "macroparticlecount"
 
         return pypicongpu_macro_count
