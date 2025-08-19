@@ -8,9 +8,7 @@ License: GPLv3+
 from picongpu.picmi.diagnostics import Auto, TimeStepSpec
 from picongpu.pypicongpu.output.auto import Auto as PyPIConGPUAuto
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec as PyPIConGPUTimeStepSpec
-
 import unittest
-
 
 # Test cases for valid Auto inputs
 TESTCASES_VALID = [
@@ -48,7 +46,7 @@ class TestAuto(unittest.TestCase):
             with self.subTest(period=period):
                 auto = Auto(period=period)
                 if isinstance(period, int):
-                    expected = TimeStepSpec(period) if period > 0 else TimeStepSpec()
+                    expected = TimeStepSpec[::period]("steps") if period > 0 else TimeStepSpec()("steps")
                     self.assertEqual(
                         auto.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
                         expected.get_as_pypicongpu(0.5, 200).get_rendering_context(),
@@ -99,9 +97,9 @@ class TestAuto(unittest.TestCase):
     def test_auto_invalid_simulation_parameters(self):
         """Test invalid simulation parameters in get_as_pypicongpu."""
         auto = Auto(period=10)
-        with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
+        with self.assertRaisesRegex(ValueError, "time_step_size must be positive"):
             auto.get_as_pypicongpu({}, -0.5, 200)
-        with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive"):
+        with self.assertRaisesRegex(ValueError, "time_step_size must be positive"):
             auto.get_as_pypicongpu({}, 0, 200)
 
 

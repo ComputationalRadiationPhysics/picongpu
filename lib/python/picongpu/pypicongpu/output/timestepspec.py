@@ -1,71 +1,41 @@
 """
 This file is part of PIConGPU.
-Copyright 2025 PIConGPU contributors
-Authors: Julian Lenz, Masoud Afshari
+Copyright 2021-2025 PIConGPU contributors
+Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz, Masoud Afshari
 License: GPLv3+
 """
-
-from ..rendering.renderedobject import RenderedObject
-from ..util import build_typesafe_property
 
 import typeguard
 
 
-def _serialize(spec):
-    return {
-        "start": spec.start if spec.start is not None else 0,
-        "stop": spec.stop if spec.stop is not None else -1,
-        "step": spec.step if spec.step is not None else 1,
-    }
-
-
 @typeguard.typechecked
-class TimeStepSpec(RenderedObject):
-    specs = build_typesafe_property(list[slice])
+class TimeStepSpec:
+    """
+    Specification for time steps to perform output at in PIConGPU.
+
+    Contains a list of slices which define at which time steps to perform output.
+    Slices are expected to be normalized (i.e., non-negative, step > 0).
+    """
+
+    specs = None
 
     def __init__(self, specs: list[slice]):
         self.specs = specs
-        self.check()
 
-    def check(self):
-        for spec in self.specs:
-            if spec.step is not None and spec.step < 1:
-                raise ValueError("Step size must be >= 1")
-
-    def get_as_pypicongpu(self, time_step_size: float, num_steps: int) -> "TimeStepSpec":
+    def get_rendering_context(self) -> dict:
         """
-        Convert to a pypicongpu TimeStepSpec object with resolved indices.
+        Get the rendering context as expected by the PIConGPU backend.
 
-        :param time_step_size: Size of one time step in seconds (must be positive).
-        :param num_steps: Total number of simulation steps (must be positive).
-        :return: A new TimeStepSpec with resolved indices.
+        :return: dict with specs as list of dicts, each containing start, stop, step
         """
-        if time_step_size <= 0:
-            raise ValueError("Time step size must be strictly positive")
-        if num_steps <= 0:
-            raise ValueError("Number of steps must be positive")
-
-        self.check()
-        resolved_specs = []
-        for spec in self.specs:
-            start = spec.start if spec.start is not None else 0
-            stop = spec.stop if spec.stop is not None else num_steps - 1
-            step = spec.step if spec.step is not None else 1
-
-            # Resolve negative indices
-            if start < 0:
-                start = max(0, num_steps + start)
-            if stop < 0:
-                stop = max(0, num_steps + stop)
-
-            # Ensure start <= stop
-            if start > stop:
-                start, stop = stop, start
-
-            resolved_specs.append(slice(start, stop + 1, step))
-
-        return TimeStepSpec(resolved_specs)
-
-    def _get_serialized(self):
-        self.check()
-        return {"specs": list(map(_serialize, self.specs))}
+        return {
+            "specs": [
+                {
+                    "start": spec.start,
+                    "stop": spec.stop if spec.stop == spec.start + 1 and spec.step == 1 else spec.stop - 1,
+                    "step": spec.step,
+                }
+                for spec in self.specs
+                if spec.start < spec.stop
+            ]
+        }

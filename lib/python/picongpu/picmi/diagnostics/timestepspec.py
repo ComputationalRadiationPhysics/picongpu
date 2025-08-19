@@ -1,108 +1,190 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2025 PIConGPU contributors
-Authors: Masoud Afshari
+Authors: Julian Lenz, Masoud Afshari
 License: GPLv3+
 """
 
-import math
-from typing import List, Union, Optional
-from ...pypicongpu.output.timestepspec import TimeStepSpec as PyPIConGPUTimeStepSpec
+from enum import Enum, EnumMeta
+from math import ceil, floor
+from ...pypicongpu.output import TimeStepSpec as PyPIConGPUTimeStepSpec
 import typeguard
 
 
+class CustomStrEnumMeta(EnumMeta):
+    """
+    Provides StrEnum-like functionality for Python < 3.12.
+    """
+
+    def __contains__(cls, val):
+        try:
+            cls(val)
+        except ValueError:
+            return False
+        else:
+            return True
+
+
+class TimeStepUnits(Enum, metaclass=CustomStrEnumMeta):
+    """
+    Units allowed in TimeStepSpec.
+    """
+
+    STEPS = "steps"
+    SECONDS = "seconds"
+
+    @classmethod
+    def _missing_(cls, value):
+        value = str(value).lower()
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError("Unknown unit in TimeStepSpec")
+
+
+class _TimeStepSpecMeta(type):
+    """
+    Custom metaclass providing the [] operator for TimeStepSpec.
+    """
+
+    def __getitem__(cls, args):
+        if not isinstance(args, tuple):
+            args = (args,)
+        return cls(*args)
+
+
 @typeguard.typechecked
-class TimeStepSpec:
+class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     """
-    Defines specific simulation time steps for PIConGPU diagnostics.
+    Specify time steps for simulation output using slices or indices.
 
-    Allows specification of time steps for diagnostic output, either as individual steps,
-    step ranges, or in seconds (converted to steps based on time step size).
-    Supports negative indexing and addition of TimeStepSpec objects.
-
-    Parameters
-    ----------
-    specs: List[Union[int, slice]], optional
-        List of time step specifications. Each spec can be:
-        - An integer for a specific step (e.g., 5 for step 5).
-        - A slice for a range of steps (e.g., slice(0, 100, 10) for every 10 steps from 0 to 99).
-        Default is an empty list, meaning no steps are selected.
-    unit: str, optional
-        Unit of the time steps, either "steps" or "seconds". Default is "steps".
+    Use as: TimeStepSpec[:12:2, 7]("steps") or TimeStepSpec[1e-15:5e-15:2e-16]("seconds").
+    Supports negative indices, inclusive slices, and addition of TimeStepSpec objects.
     """
 
-    def __init__(self, specs: Optional[List[Union[int, slice]]] = None, unit: str = "steps"):
-        self.specs = specs if specs is not None else []
-        if unit not in ["steps", "seconds"]:
-            raise ValueError("Unit must be 'steps' or 'seconds'")
-        self.unit = unit
+    unit_system = None
+
+    def __init__(self, *args, specs_in_seconds=tuple()):
+        self.specs = tuple()
+        self.specs_in_seconds = tuple()
+
+        if len(args) == 1 and isinstance(args[0], TimeStepSpec):
+            self.specs = args[0].specs
+            self.specs_in_seconds = args[0].specs_in_seconds
+            self.unit_system = args[0].unit_system
+            return
+
+        if len(args) == 1 and isinstance(args[0], list):
+            args = tuple(args[0])
+
+        for spec in args:
+            if not isinstance(spec, (slice, int, float)):
+                raise TypeError(f"Invalid spec type: {type(spec)}")
+
+        self.specs = tuple(spec if isinstance(spec, slice) else slice(spec, spec + 1, 1) for spec in args)
+        self.specs_in_seconds = tuple(
+            spec if isinstance(spec, slice) else slice(spec, spec + 1, 1) for spec in specs_in_seconds
+        )
+
+    def __call__(self, unit_system="steps"):
+        if unit_system not in TimeStepUnits:
+            raise ValueError("Unknown unit in TimeStepSpec")
+        if self.unit_system is not None and self.unit_system != unit_system:
+            raise ValueError(f"Cannot reset unit to {unit_system}, already set to {self.unit_system}")
+        self.unit_system = unit_system
+        if unit_system == "seconds":
+            self.specs_in_seconds = self.specs
+            self.specs = tuple()
+        return self
 
     def __add__(self, other: "TimeStepSpec") -> "TimeStepSpec":
-        """
-        Combine two TimeStepSpec objects by merging their specs lists.
-
-        Parameters
-        ----------
-        other: TimeStepSpec
-            The other TimeStepSpec to add.
-
-        Returns
-        -------
-        TimeStepSpec
-            A new TimeStepSpec with combined specs, maintaining the unit of the first object.
-        """
         if not isinstance(other, TimeStepSpec):
-            raise TypeError("Can only add TimeStepSpec to another TimeStepSpec")
-        if self.unit != other.unit:
+            raise TypeError(f"unsupported operand type(s) for +: TimeStepSpec and {type(other)}")
+        if self.unit_system != other.unit_system and self.unit_system is not None and other.unit_system is not None:
             raise ValueError("Cannot add TimeStepSpec objects with different units")
-        combined_specs = self.specs + other.specs
-        return TimeStepSpec(combined_specs, self.unit)
+        ts = TimeStepSpec(
+            *self.specs,
+            *other.specs,
+            specs_in_seconds=(*self.specs_in_seconds, *other.specs_in_seconds),
+        )
+        ts.unit_system = self.unit_system or other.unit_system or "steps"
+        return ts
+
+    def _interpret_nones(self, spec, num_steps):
+        """
+        Replace None in slice bounds with simulation limits (0 for start, num_steps for stop).
+        """
+        return slice(
+            0 if spec.start is None else spec.start,
+            num_steps if spec.stop is None else spec.stop,
+            spec.step if spec.step is not None else 1,
+        )
+
+    def _interpret_negatives(self, spec, num_steps):
+        """
+        Convert negative indices to positive, clipping to [0, num_steps].
+        """
+        if num_steps <= 0:
+            raise ValueError("num_steps must be positive")
+        step = spec.step if spec.step is not None else 1
+        if self.unit_system != "seconds" and step < 1:
+            raise ValueError("Step size must be >= 1")
+        start = spec.start if spec.start >= 0 else max(0, num_steps + spec.start)
+        stop = spec.stop if spec.stop >= 0 else max(0, num_steps + spec.stop)
+        return slice(start, stop, step)  # Exclusive stop
 
     def get_as_pypicongpu(self, time_step_size: float, num_steps: int) -> PyPIConGPUTimeStepSpec:
         """
-        Convert TimeStepSpec to PyPIConGPUTimeStepSpec for rendering.
+        Convert to PyPIConGPU TimeStepSpec with resolved indices.
 
-        Parameters
-        ----------
-        time_step_size: float
-            The size of a single time step in seconds (must be positive).
-        num_steps: int
-            The total number of simulation steps (must be positive).
-
-        Returns
-        -------
-        PyPIConGPUTimeStepSpec
-            The equivalent PyPIConGPUTimeStepSpec object with resolved time steps.
+        :param time_step_size: Size of one time step in seconds (must be positive).
+        :param num_steps: Total number of simulation steps (must be positive).
+        :return: PyPIConGPUTimeStepSpec with clipped, exclusive ranges.
         """
         if time_step_size <= 0:
-            raise ValueError("Time step size must be strictly positive")
+            raise ValueError("time_step_size must be positive")
         if num_steps <= 0:
-            raise ValueError("Number of steps must be positive")
+            raise ValueError("num_steps must be positive")
 
+        specs = self.specs if self.unit_system == "steps" else self.specs_in_seconds
         resolved_specs = []
-        for spec in self.specs:
-            if isinstance(spec, int):
-                step = spec
-                if step < 0:
-                    step = num_steps + step
-                if 0 <= step < num_steps:
-                    resolved_specs.append(slice(step, step + 1, 1))
-            elif isinstance(spec, slice):
-                start = spec.start if spec.start is not None else 0
-                stop = spec.stop if spec.stop is not None else num_steps
-                step = spec.step if spec.step is not None else 1
-                if step <= 0:
-                    raise ValueError("Step size must be >= 1")
-                if start < 0:
-                    start = num_steps + start
-                if stop < 0:
-                    stop = num_steps + stop
-                if start < 0 or stop > num_steps or start >= num_steps:
+
+        for spec in specs:
+            # Handle single time points
+            if not isinstance(spec, slice) or (
+                spec.start is not None and spec.stop is not None and spec.start + 1 == spec.stop and spec.step == 1
+            ):
+                index = spec.start if isinstance(spec, slice) else spec
+                if self.unit_system == "seconds":
+                    index = floor(index / time_step_size)
+                if index < 0:
+                    index = max(0, num_steps + index)
+                if index >= num_steps:
                     continue
-                if self.unit == "seconds":
-                    start = math.floor(start / time_step_size)
-                    stop = math.ceil(stop / time_step_size)
+                resolved_specs.append(slice(index, index + 1, 1))
+                continue
+
+            # Process slices
+            spec = self._interpret_nones(spec, num_steps)
+            spec = self._interpret_negatives(spec, num_steps)
+
+            start = spec.start
+            stop = spec.stop
+            step = spec.step
+
+            if self.unit_system == "seconds":
+                start = floor(start / time_step_size)
+                stop = ceil(stop / time_step_size)
+                step = max(1, ceil(step / time_step_size))
+
+            if step < 1:
+                raise ValueError("Step size must be >= 1")
+
+            # Clip to valid range
+            start = max(0, min(start, num_steps - 1))
+            stop = max(start, min(stop, num_steps))  # Exclusive stop
+
+            if start < stop:
                 resolved_specs.append(slice(start, stop, step))
 
-        pypicongpu_spec = PyPIConGPUTimeStepSpec(specs=resolved_specs)
-        return pypicongpu_spec
+        return PyPIConGPUTimeStepSpec(specs=resolved_specs)
