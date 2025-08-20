@@ -15,3 +15,4 @@ from .rangespec import *  # pyflakes.ignore
 from .auto import *  # pyflakes.ignore
 from .timestepspec import *  # pyflakes.ignore
 from .rangespec import *  # pyflakes.ignore
+from .energy_histogram import *  # pyflakes.ignore

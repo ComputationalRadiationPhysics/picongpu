@@ -127,7 +127,7 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
         if num_steps <= 0:
             raise ValueError("num_steps must be positive")
         step = spec.step if spec.step is not None else 1
-        if self.unit_system != "seconds" and step < 1:
+        if self.unit_system == "steps" and step < 1:
             raise ValueError("Step size must be >= 1")
         start = spec.start if spec.start >= 0 else max(0, num_steps + spec.start)
         stop = spec.stop if spec.stop >= 0 else max(0, num_steps + spec.stop)
@@ -175,14 +175,15 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
             if self.unit_system == "seconds":
                 start = floor(start / time_step_size)
                 stop = ceil(stop / time_step_size)
-                step = max(1, ceil(step / time_step_size))
-
-            if step < 1:
-                raise ValueError("Step size must be >= 1")
+                step = ceil(step / time_step_size)
+                if step < 1:
+                    raise ValueError("Step size must be >= 1")
 
             # Clip to valid range
             start = max(0, min(start, num_steps - 1))
-            stop = max(start, min(stop, num_steps))  # Exclusive stop
+            stop = max(
+                start, min(stop, num_steps)
+            )  # Exclusive stop ie the range includes indices up to but not including stop.
 
             if start < stop:
                 resolved_specs.append(slice(start, stop, step))

@@ -1,0 +1,37 @@
+test_energyhistogram_instantiation_invalid (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test EnergyHistogram instantiation and validation for invalid inputs. ... ok
+test_energyhistogram_instantiation_valid (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test EnergyHistogram instantiation and validation for valid inputs. ... /home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/auto.py:44: UserWarning: Auto output is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("Auto output is disabled because period is set to 0 or an empty TimeStepSpec")
+/home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/energy_histogram.py:87: UserWarning: EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec")
+/home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/auto.py:44: UserWarning: Auto output is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("Auto output is disabled because period is set to 0 or an empty TimeStepSpec")
+/home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/energy_histogram.py:87: UserWarning: EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec")
+ok
+test_energyhistogram_invalid_simulation_parameters (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test invalid simulation parameters in get_as_pypicongpu. ... ok
+test_energyhistogram_invalid_species (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test invalid species in get_as_pypicongpu. ... ok
+test_energyhistogram_invalid_timestepspec (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test invalid TimeStepSpec with negative steps. ... ok
+test_energyhistogram_plugin_name (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test that the plugin name is correctly set. ... ok
+test_energyhistogram_serialization (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test EnergyHistogram serialization to PyPIConGPUEnergyHistogram. ... /home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/auto.py:44: UserWarning: Auto output is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("Auto output is disabled because period is set to 0 or an empty TimeStepSpec")
+/home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/energy_histogram.py:87: UserWarning: EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec")
+ok
+test_energyhistogram_warning (quick.picmi.diagnostics.energy_histogram.TestEnergyHistogram)
+Test warning for disabled EnergyHistogram. ... /home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/auto.py:44: UserWarning: Auto output is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("Auto output is disabled because period is set to 0 or an empty TimeStepSpec")
+/home/afshar87/afshari/simulation/picongpu/lib/python/picongpu/picmi/diagnostics/energy_histogram.py:87: UserWarning: EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec
+  warnings.warn("EnergyHistogram is disabled because period is set to 0 or an empty TimeStepSpec")
+ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.555s
+
+OK

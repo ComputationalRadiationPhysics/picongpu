@@ -54,4 +54,5 @@ class Auto:
         self.check()
         pypicongpu_auto = PyPIConGPUAuto()
         pypicongpu_auto.period = self.period.get_as_pypicongpu(time_step_size, num_steps)
+
         return pypicongpu_auto
