@@ -34,6 +34,7 @@ class MacroParticleCount:
         Use 0 to disable counting.
         Alternatively, a TimeStepSpec can be provided for PIConGPU-specific step selection
         (e.g., TimeStepSpec([5, 10]), TimeStepSpec([slice(-10, None, 1)])).
+        If None, defaults to every step (TimeStepSpec([slice(0, None, 1)])).
         Unit: steps or seconds (via TimeStepSpec unit).
     """
 
@@ -57,9 +58,11 @@ class MacroParticleCount:
         if isinstance(period, int):
             if period < 0:
                 raise ValueError("period must be non-negative")
-            self.period = TimeStepSpec([slice(None, None, period)]) if period > 0 else TimeStepSpec()
+            self.period = (
+                TimeStepSpec([slice(None, None, period)])("steps") if period > 0 else TimeStepSpec([])("steps")
+            )
         else:
-            self.period = period if period is not None else TimeStepSpec()
+            self.period = period if period is not None else TimeStepSpec([slice(0, None, 1)])("steps")
         self.species = species
         self.check()
 
@@ -77,6 +80,4 @@ class MacroParticleCount:
         pypicongpu_macro_count = PyPIConGPUMacroParticleCount()
         pypicongpu_macro_count.species = dict_species_picmi_to_pypicongpu[self.species]
         pypicongpu_macro_count.period = self.period.get_as_pypicongpu(time_step_size, num_steps)
-        pypicongpu_macro_count._name = "macroparticlecount"
-
         return pypicongpu_macro_count
