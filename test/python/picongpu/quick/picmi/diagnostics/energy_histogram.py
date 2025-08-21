@@ -377,7 +377,7 @@ TESTCASES_WARNING = [
 ]
 
 
-class TestEnergyHistogram(unittest.TestCase):
+class PICMI_TestEnergyHistogram(unittest.TestCase):
     def test_energyhistogram_instantiation_valid(self):
         """Test EnergyHistogram instantiation and validation for valid inputs."""
         for params, _ in TESTCASES_VALID:

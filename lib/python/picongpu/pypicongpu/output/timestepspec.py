@@ -22,20 +22,24 @@ class TimeStepSpec:
     def __init__(self, specs: list[slice]):
         self.specs = specs
 
-    def get_rendering_context(self) -> dict:
+    def get_rendering_context(self, num_steps=200) -> dict:
         """
         Get the rendering context as expected by the PIConGPU backend.
 
+        :param num_steps: Total number of simulation steps (default: 200).
         :return: dict with specs as list of dicts, each containing start, stop, step
         """
-        return {
-            "specs": [
-                {
-                    "start": spec.start,
-                    "stop": spec.stop if spec.stop == spec.start + 1 and spec.step == 1 else spec.stop - 1,
-                    "step": spec.step,
-                }
-                for spec in self.specs
-                if spec.start < spec.stop
-            ]
-        }
+        specs = []
+        for spec in self.specs:
+            start = spec.start if spec.start is not None else 0
+            stop = spec.stop if spec.stop is not None else num_steps
+            step = spec.step if spec.step is not None else 1
+            if start < stop:
+                specs.append(
+                    {
+                        "start": start,
+                        "stop": stop if stop == start + 1 and step == 1 else stop - 1,
+                        "step": step,
+                    }
+                )
+        return {"specs": specs}
