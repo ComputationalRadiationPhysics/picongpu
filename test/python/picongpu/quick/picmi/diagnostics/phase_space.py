@@ -15,14 +15,12 @@ import typeguard
 
 
 def create_picmi_species():
-    """Create a valid PICMI Species for testing."""
     species = PICMISpecies()
     species.name = "electron"
     return species
 
 
 def create_pypicongpu_species():
-    """Create a valid PyPIConGPU Species for testing."""
     species = PyPIConGPUSpecies()
     species.name = "electron"
     species.attributes = [Position(), Momentum()]
@@ -32,13 +30,11 @@ def create_pypicongpu_species():
 
 class PICMI_TestPhaseSpace(unittest.TestCase):
     def setUp(self):
-        """Set up common test data."""
         self.species = create_picmi_species()
         self.pypicongpu_species = create_pypicongpu_species()
         self.species_map = {self.species: self.pypicongpu_species}
 
     def test_instantiation_valid(self):
-        """Test instantiation and validation for valid inputs."""
         TESTCASES_VALID = [
             (
                 {
@@ -54,11 +50,22 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
             (
                 {
                     "species": self.species,
-                    "period": TimeStepSpec(),  # Empty period
+                    "period": 10,
                     "spatial_coordinate": "y",
                     "momentum_coordinate": "py",
                     "min_momentum": -1.0,
                     "max_momentum": 1.0,
+                },
+                None,
+            ),
+            (
+                {
+                    "species": self.species,
+                    "period": 0,
+                    "spatial_coordinate": "z",
+                    "momentum_coordinate": "pz",
+                    "min_momentum": 0.0,
+                    "max_momentum": 2.0,
                 },
                 "PhaseSpace is disabled",
             ),
@@ -68,8 +75,12 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
             with self.subTest(params=params):
                 ps = PhaseSpace(**params)
                 for key, value in params.items():
-                    if key == "period" and isinstance(value, TimeStepSpec):
-                        expected = value
+                    if key == "period" and isinstance(value, int):
+                        expected = (
+                            TimeStepSpec([slice(None, None, value)])("steps")
+                            if value > 0
+                            else TimeStepSpec([])("steps")
+                        )
                         expected_context = expected.get_as_pypicongpu(0.5, 200).get_rendering_context()
                         self.assertEqual(
                             ps.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
@@ -81,10 +92,9 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                     with self.assertWarnsRegex(UserWarning, warning_msg):
                         ps.get_as_pypicongpu(self.species_map, 0.5, 200)
                 else:
-                    ps.get_as_pypicongpu(self.species_map, 0.5, 200)  # Should not warn
+                    ps.get_as_pypicongpu(self.species_map, 0.5, 200)
 
     def test_types(self):
-        """Test type safety for all parameters."""
         invalid_species = ["string", 1, 1.0, None, {}]
         for invalid in invalid_species:
             with self.assertRaises(typeguard.TypeCheckError):
@@ -97,7 +107,7 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                     max_momentum=1.0,
                 )
 
-        invalid_periods = [13.2, [], "2", None, {}]
+        invalid_periods = [[], "2", {}]
         for invalid in invalid_periods:
             with self.assertRaises(typeguard.TypeCheckError):
                 PhaseSpace(
@@ -158,7 +168,6 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                 )
 
     def test_rendering(self):
-        """Test that get_as_pypicongpu produces correct PyPIConGPUPhaseSpace."""
         ps = PhaseSpace(
             species=self.species,
             period=TimeStepSpec([slice(0, None, 42)]),
@@ -170,22 +179,39 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
 
         pypicongpu_ps = ps.get_as_pypicongpu(self.species_map, 0.5, 200)
         context = pypicongpu_ps.get_rendering_context()
-
         self.assertTrue(context["typeID"]["phasespace"])
         context = context["data"]
         self.assertEqual(42, context["period"]["specs"][0]["step"])
+        self.assertEqual(0, context["period"]["specs"][0]["start"])
+        self.assertEqual(199, context["period"]["specs"][0]["stop"])
         self.assertEqual("x", context["spatial_coordinate"])
         self.assertEqual("px", context["momentum_coordinate"])
         self.assertEqual(0.0, context["min_momentum"])
         self.assertEqual(1.0, context["max_momentum"])
         self.assertEqual("electron", context["species"]["name"])
 
+        # Integer period
+        ps = PhaseSpace(
+            species=self.species,
+            period=10,
+            spatial_coordinate="x",
+            momentum_coordinate="px",
+            min_momentum=0.0,
+            max_momentum=1.0,
+        )
+        pypicongpu_ps = ps.get_as_pypicongpu(self.species_map, 0.5, 200)
+        context = pypicongpu_ps.get_rendering_context()
+        self.assertTrue(context["typeID"]["phasespace"])
+        context = context["data"]
+        self.assertEqual(10, context["period"]["specs"][0]["step"])
+        self.assertEqual(0, context["period"]["specs"][0]["start"])
+        self.assertEqual(199, context["period"]["specs"][0]["stop"])
+
         # Test invalid species mapping
         with self.assertRaises(ValueError):
             ps.get_as_pypicongpu({}, 0.5, 200)
 
     def test_momentum_values(self):
-        """Test that min_momentum and max_momentum are validated."""
         ps = PhaseSpace(
             species=self.species,
             period=TimeStepSpec([slice(0, None, 1)]),
@@ -202,10 +228,9 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
             ps.get_as_pypicongpu(self.species_map, 0.5, 200)
 
     def test_period_warning(self):
-        """Test that empty TimeStepSpec triggers warning."""
         ps = PhaseSpace(
             species=self.species,
-            period=TimeStepSpec(),
+            period=0,
             spatial_coordinate="x",
             momentum_coordinate="px",
             min_momentum=0.0,
