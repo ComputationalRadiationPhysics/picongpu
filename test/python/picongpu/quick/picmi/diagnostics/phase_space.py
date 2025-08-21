@@ -69,6 +69,16 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                 },
                 "PhaseSpace is disabled",
             ),
+            (
+                {
+                    "species": self.species,
+                    "spatial_coordinate": "x",
+                    "momentum_coordinate": "px",
+                    "min_momentum": 0.0,
+                    "max_momentum": 1.0,
+                },
+                None,
+            ),
         ]
 
         for params, warning_msg in TESTCASES_VALID:
@@ -81,6 +91,13 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                             if value > 0
                             else TimeStepSpec([])("steps")
                         )
+                        expected_context = expected.get_as_pypicongpu(0.5, 200).get_rendering_context()
+                        self.assertEqual(
+                            ps.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
+                            expected_context,
+                        )
+                    elif key == "period" and value is None:
+                        expected = TimeStepSpec([slice(0, None, 1)])("steps")
                         expected_context = expected.get_as_pypicongpu(0.5, 200).get_rendering_context()
                         self.assertEqual(
                             ps.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
@@ -204,6 +221,22 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
         self.assertTrue(context["typeID"]["phasespace"])
         context = context["data"]
         self.assertEqual(10, context["period"]["specs"][0]["step"])
+        self.assertEqual(0, context["period"]["specs"][0]["start"])
+        self.assertEqual(199, context["period"]["specs"][0]["stop"])
+
+        # Default period
+        ps = PhaseSpace(
+            species=self.species,
+            spatial_coordinate="x",
+            momentum_coordinate="px",
+            min_momentum=0.0,
+            max_momentum=1.0,
+        )
+        pypicongpu_ps = ps.get_as_pypicongpu(self.species_map, 0.5, 200)
+        context = pypicongpu_ps.get_rendering_context()
+        self.assertTrue(context["typeID"]["phasespace"])
+        context = context["data"]
+        self.assertEqual(1, context["period"]["specs"][0]["step"])
         self.assertEqual(0, context["period"]["specs"][0]["start"])
         self.assertEqual(199, context["period"]["specs"][0]["stop"])
 

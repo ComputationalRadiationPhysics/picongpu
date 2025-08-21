@@ -68,13 +68,12 @@ class PhaseSpace:
                 TimeStepSpec([slice(None, None, period)])("steps") if period > 0 else TimeStepSpec([])("steps")
             )
         else:
-            self.period = period if period is not None else TimeStepSpec([])("steps")
+            self.period = period if period is not None else TimeStepSpec([slice(0, None, 1)])("steps")
         self.species = species
         self.spatial_coordinate = spatial_coordinate
         self.momentum_coordinate = momentum_coordinate
         self.min_momentum = min_momentum
         self.max_momentum = max_momentum
-        self.check()
 
     def get_as_pypicongpu(
         self,

@@ -10,6 +10,7 @@ from picongpu.pypicongpu.output.auto import Auto as PyPIConGPUAuto
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec as PyPIConGPUTimeStepSpec
 import unittest
 
+
 # Test cases for valid Auto inputs
 TESTCASES_VALID = [
     (10, [{"start": 0, "stop": 199, "step": 10}]),
@@ -39,7 +40,7 @@ TESTCASES_WARNING = [
 ]
 
 
-class TestAuto(unittest.TestCase):
+class PICMI_TestAuto(unittest.TestCase):
     def test_auto_instantiation(self):
         """Test Auto instantiation and validation."""
         for period, _ in TESTCASES_VALID:
@@ -76,7 +77,9 @@ class TestAuto(unittest.TestCase):
                 self.assertIsInstance(pypicongpu_auto, PyPIConGPUAuto)
                 self.assertIsInstance(pypicongpu_auto.period, PyPIConGPUTimeStepSpec)
                 serialized = pypicongpu_auto.get_rendering_context()
-                self.assertEqual(serialized["period"]["specs"], expected_specs)
+                self.assertTrue(serialized["typeID"]["auto"])
+                self.assertEqual(serialized["data"]["period"]["specs"], expected_specs)
+                self.assertEqual(serialized["data"]["png_axis"], [{"axis": "yx"}, {"axis": "yz"}])
 
     def test_auto_warning(self):
         """Test warning for disabled Auto output."""

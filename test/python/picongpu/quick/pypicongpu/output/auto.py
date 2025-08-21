@@ -1,13 +1,12 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2025 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
+Authors: Masoud Afshari
 License: GPLv3+
 """
 
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.output import Auto
-
 import unittest
 import typeguard
 
@@ -28,9 +27,8 @@ class TestAuto(unittest.TestCase):
         """data transformed to template-consumable version"""
         a = Auto()
         a.period = TimeStepSpec([slice(0, None, 17)])
-
-        # normal rendering
         context = a.get_rendering_context()
         self.assertTrue(context["typeID"]["auto"])
         context = context["data"]
         self.assertEqual(17, context["period"]["specs"][0]["step"])
+        self.assertEqual([{"axis": "yx"}, {"axis": "yz"}], context["png_axis"])

@@ -42,9 +42,3 @@ class Auto(Plugin):
                 {"axis": "yz"},
             ],
         }
-
-    def get_rendering_context(self) -> dict:
-        """
-        Override parent class method to return serialized data directly.
-        """
-        return self._get_serialized()
