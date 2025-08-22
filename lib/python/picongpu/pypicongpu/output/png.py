@@ -85,9 +85,9 @@ class Png(Plugin):
         scale_image: float,
         scale_to_cellsize: bool,
         white_box_per_GPU: bool,
-        em_field_scale_channel1: EMFieldScaleEnum,
-        em_field_scale_channel2: EMFieldScaleEnum,
-        em_field_scale_channel3: EMFieldScaleEnum,
+        EM_FIELD_SCALE_CHANNEL1: EMFieldScaleEnum,
+        EM_FIELD_SCALE_CHANNEL2: EMFieldScaleEnum,
+        EM_FIELD_SCALE_CHANNEL3: EMFieldScaleEnum,
         preParticleDensCol: ColorScaleEnum,
         preChannel1Col: ColorScaleEnum,
         preChannel2Col: ColorScaleEnum,
@@ -109,9 +109,9 @@ class Png(Plugin):
         self.scale_image = scale_image
         self.scale_to_cellsize = scale_to_cellsize
         self.white_box_per_GPU = white_box_per_GPU
-        self.EM_FIELD_SCALE_CHANNEL1 = em_field_scale_channel1
-        self.EM_FIELD_SCALE_CHANNEL2 = em_field_scale_channel2
-        self.EM_FIELD_SCALE_CHANNEL3 = em_field_scale_channel3
+        self.EM_FIELD_SCALE_CHANNEL1 = EM_FIELD_SCALE_CHANNEL1
+        self.EM_FIELD_SCALE_CHANNEL2 = EM_FIELD_SCALE_CHANNEL2
+        self.EM_FIELD_SCALE_CHANNEL3 = EM_FIELD_SCALE_CHANNEL3
         self.preParticleDensCol = preParticleDensCol
         self.preChannel1Col = preChannel1Col
         self.preChannel2Col = preChannel2Col
@@ -127,6 +127,14 @@ class Png(Plugin):
 
     def check(self):
         """Validate attributes."""
+        try:
+            _ = self.species
+        except AttributeError:
+            raise ValueError("species must be set") from None
+        try:
+            _ = self.period
+        except AttributeError:
+            raise ValueError("period must be set") from None
         if self.axis not in ["xy", "xz", "yz"]:
             raise ValueError(f"axis must be 'xy', 'xz', or 'yz', got {self.axis}")
         if self.slicePoint < 0.0 or self.slicePoint > 1.0:
@@ -150,6 +158,33 @@ class Png(Plugin):
         ]:
             if not isinstance(channel, str) or not channel.strip():
                 raise ValueError(f"{name} must be a non-empty string, got {channel}")
+        if len(self.customNormalizationSI) != 3:
+            raise ValueError(
+                f"customNormalizationSI must contain exactly 3 floats, got {len(self.customNormalizationSI)}"
+            )
+        for val in self.customNormalizationSI:
+            if not isinstance(val, float):
+                raise ValueError(f"customNormalizationSI values must be floats, got {val}")
+        if not isinstance(self.EM_FIELD_SCALE_CHANNEL1, EMFieldScaleEnum):
+            raise ValueError(
+                f"EM_FIELD_SCALE_CHANNEL1 must be in {list(EMFieldScaleEnum)}, got {self.EM_FIELD_SCALE_CHANNEL1}"
+            )
+        if not isinstance(self.EM_FIELD_SCALE_CHANNEL2, EMFieldScaleEnum):
+            raise ValueError(
+                f"EM_FIELD_SCALE_CHANNEL2 must be in {list(EMFieldScaleEnum)}, got {self.EM_FIELD_SCALE_CHANNEL2}"
+            )
+        if not isinstance(self.EM_FIELD_SCALE_CHANNEL3, EMFieldScaleEnum):
+            raise ValueError(
+                f"EM_FIELD_SCALE_CHANNEL3 must be in {list(EMFieldScaleEnum)}, got {self.EM_FIELD_SCALE_CHANNEL3}"
+            )
+        if not isinstance(self.preParticleDensCol, ColorScaleEnum):
+            raise ValueError(f"preParticleDensCol must be in {list(ColorScaleEnum)}, got {self.preParticleDensCol}")
+        if not isinstance(self.preChannel1Col, ColorScaleEnum):
+            raise ValueError(f"preChannel1Col must be in {list(ColorScaleEnum)}, got {self.preChannel1Col}")
+        if not isinstance(self.preChannel2Col, ColorScaleEnum):
+            raise ValueError(f"preChannel2Col must be in {list(ColorScaleEnum)}, got {self.preChannel2Col}")
+        if not isinstance(self.preChannel3Col, ColorScaleEnum):
+            raise ValueError(f"preChannel3Col must be in {list(ColorScaleEnum)}, got {self.preChannel3Col}")
 
     def _get_serialized(self) -> typing.Dict:
         """Return the serialized representation of the object."""

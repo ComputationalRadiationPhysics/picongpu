@@ -13,6 +13,7 @@ import typeguard
 import warnings
 
 
+@typeguard.typechecked
 class Auto:
     """
     Specifies the parameters for the Auto output.
@@ -43,7 +44,6 @@ class Auto:
         if not self.period.get_as_pypicongpu(1.0, 100).get_rendering_context().get("specs", []):
             warnings.warn("Auto output is disabled because period is set to 0 or an empty TimeStepSpec")
 
-    @typeguard.typechecked
     def get_as_pypicongpu(
         self,
         dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],

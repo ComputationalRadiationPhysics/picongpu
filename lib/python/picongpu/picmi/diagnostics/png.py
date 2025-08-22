@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -8,18 +8,17 @@ License: GPLv3+
 from ...pypicongpu.output.png import Png as PyPIConGPUPNG
 from ...pypicongpu.species.species import Species as PyPIConGPUSpecies
 from ...pypicongpu.output.png import EMFieldScaleEnum, ColorScaleEnum
-
 from ..species import Species as PICMISpecies
 from .timestepspec import TimeStepSpec
 
 import typeguard
-from typing import List
+from typing import List, Dict, Optional
 
 
 @typeguard.typechecked
 class Png:
     """
-    Specifies the parameters for PNG output in PIConGPU.
+    Specifies the parameters for PNG output in PIConGPU via PICMI interface.
 
     This plugin generates 2D PNG images of field and particle data.
 
@@ -30,21 +29,21 @@ class Png:
         Unit: steps (simulation time steps).
 
     axis: string
-        Axis combination for the 2D slice (e.g., "yx").
+        Axis combination for the 2D slice (e.g., "xy", "xz", "yz").
 
     slice_point: float
-        Ratio for the slice position in the dimension not used in axis (e.g., "z") (0.0 to 1.0).
-        [unit: dimensionless]
+        Ratio for the slice position in the dimension not used in axis (0.0 to 1.0).
+        Unit: dimensionless.
 
-    species: string
-        Name of the particle species to count (e.g., "electron", "proton").
+    species: PICMISpecies
+        Particle species to include in the PNG output (e.g., electron, proton).
 
-    folder_name: string
-        Folder name where the PNGs will be stored.
+    folder: string
+        Folder where the PNGs will be stored.
 
     scale_image: float
         Scaling factor applied to the image before writing to file.
-        [unit: dimensionless]
+        Unit: dimensionless.
 
     scale_to_cellsize: bool
         Whether to scale the image to account for non-quadratic cell sizes.
@@ -73,84 +72,53 @@ class Png:
     pre_channel3_color_scales: ColorScaleEnum
         Color scale for channel 3.
 
-    custom_normalization_si: list of 3 floats
-        Custom normalization factors for B (T), E (V/m), and current (A) (when using scale mode 6).
-        [unit: T, V/m, A]
+    custom_normalization_si: List[float]
+        Custom normalization factors for B (T), E (V/m), and current (A) when using EMFieldScaleEnum.CUSTOM.
+        Unit: T, V/m, A.
 
     pre_particle_density_opacity: float
         Opacity of the particle density overlay (0.0 to 1.0).
-        [unit: dimensionless]
+        Unit: dimensionless.
 
     pre_channel1_opacity: float
         Opacity for channel 1 data (0.0 to 1.0).
-        [unit: dimensionless]
+        Unit: dimensionless.
 
     pre_channel2_opacity: float
         Opacity for channel 2 data (0.0 to 1.0).
-        [unit: dimensionless]
+        Unit: dimensionless.
 
     pre_channel3_opacity: float
         Opacity for channel 3 data (0.0 to 1.0).
-        [unit: dimensionless]
+        Unit: dimensionless.
 
     pre_channel1: string
-        Custom expression for channel 1.
+        Field component for channel 1 (e.g., "E_x").
 
     pre_channel2: string
-        Custom expression for channel 2.
+        Field component for channel 2 (e.g., "E_y").
 
     pre_channel3: string
-        Custom expression for channel 3.
+        Field component for channel 3 (e.g., "E_z").
     """
-
-    def check(self):
-        if not (0.0 <= self.slice_point <= 1.0):
-            raise ValueError("Slice point must be between 0.0 and 1.0")
-
-        if not (0.0 <= self.pre_particle_density_opacity <= 1.0):
-            raise ValueError("pre particle density opacity must be between 0.0 and 1.0")
-        if not (0.0 <= self.pre_channel1_opacity <= 1.0):
-            raise ValueError("Pre channel 1 opacity must be between 0.0 and 1.0")
-        if not (0.0 <= self.pre_channel2_opacity <= 1.0):
-            raise ValueError("Pre channel 2 opacity must be between 0.0 and 1.0")
-        if not (0.0 <= self.pre_channel3_opacity <= 1.0):
-            raise ValueError("Pre channel 3 opacity must be between 0.0 and 1.0")
-
-        # Validate EM field scaling for channels
-        if self.em_field_scale_channel1 not in EMFieldScaleEnum:
-            raise ValueError(f"Invalid EM field scale for channel 1. Valid options are {list(EMFieldScaleEnum)}.")
-        if self.em_field_scale_channel2 not in EMFieldScaleEnum:
-            raise ValueError(f"Invalid EM field scale for channel 2. Valid options are {list(EMFieldScaleEnum)}.")
-        if self.em_field_scale_channel3 not in EMFieldScaleEnum:
-            raise ValueError(f"Invalid EM field scale for channel 3. Valid options are {list(EMFieldScaleEnum)}.")
-
-        # Validate color scales for particle density and channels
-        if self.pre_particle_density_color_scales not in ColorScaleEnum:
-            raise ValueError(f"Invalid color scale for particle density. Valid options are {list(ColorScaleEnum)}.")
-        if self.pre_channel1_color_scales not in ColorScaleEnum:
-            raise ValueError(f"Invalid color scale for channel 1. Valid options are {list(ColorScaleEnum)}.")
-        if self.pre_channel2_color_scales not in ColorScaleEnum:
-            raise ValueError(f"Invalid color scale for channel 2. Valid options are {list(ColorScaleEnum)}.")
-        if self.pre_channel3_color_scales not in ColorScaleEnum:
-            raise ValueError(f"Invalid color scale for channel 3. Valid options are {list(ColorScaleEnum)}.")
 
     def __init__(
         self,
-        species: PICMISpecies,
         period: TimeStepSpec,
         axis: str,
         slice_point: float,
-        folder_name: str,
+        species: PICMISpecies,
+        folder: str,
         scale_image: float,
         scale_to_cellsize: bool,
         white_box_per_gpu: bool,
-        em_field_scale_channel1: EMFieldScaleEnum,
-        em_field_scale_channel2: EMFieldScaleEnum,
-        em_field_scale_channel3: EMFieldScaleEnum,
-        pre_particle_density_color_scales: ColorScaleEnum,
-        pre_channel1_color_scales: ColorScaleEnum,
-        pre_channel2_color_scales: ColorScaleEnum,
-        pre_channel3_color_scales: ColorScaleEnum,
+        em_field_scale_channel1: Optional[EMFieldScaleEnum],
+        em_field_scale_channel2: Optional[EMFieldScaleEnum],
+        em_field_scale_channel3: Optional[EMFieldScaleEnum],
+        pre_particle_density_color_scales: Optional[ColorScaleEnum],
+        pre_channel1_color_scales: Optional[ColorScaleEnum],
+        pre_channel2_color_scales: Optional[ColorScaleEnum],
+        pre_channel3_color_scales: Optional[ColorScaleEnum],
         custom_normalization_si: List[float],
         pre_particle_density_opacity: float,
         pre_channel1_opacity: float,
@@ -164,7 +132,7 @@ class Png:
         self.axis = axis
         self.slice_point = slice_point
         self.species = species
-        self.folder_name = folder_name
+        self.folder = folder
         self.scale_image = scale_image
         self.scale_to_cellsize = scale_to_cellsize
         self.white_box_per_gpu = white_box_per_gpu
@@ -184,46 +152,127 @@ class Png:
         self.pre_channel2 = pre_channel2
         self.pre_channel3 = pre_channel3
 
+    def check(self):
+        """
+        Check if the parameters are valid.
+
+        Raises
+        ------
+        ValueError
+            If any parameter is invalid.
+        """
+        if self.species is None:
+            raise ValueError("species must be set")
+        if self.period is None:
+            raise ValueError("period must be set")
+        if self.axis not in ["xy", "xz", "yz"]:
+            raise ValueError(f"axis must be 'xy', 'xz', or 'yz', got {self.axis}")
+        if self.slice_point < 0.0 or self.slice_point > 1.0:
+            raise ValueError(f"slice_point must be in [0, 1], got {self.slice_point}")
+        if self.scale_image <= 0:
+            raise ValueError(f"scale_image must be positive, got {self.scale_image}")
+        if self.scale_to_cellsize and self.scale_image == 1.0:
+            raise ValueError(f"scale_image must not be 1.0 when scale_to_cellsize is True, got {self.scale_image}")
+        if self.pre_particle_density_opacity < 0 or self.pre_particle_density_opacity > 1:
+            raise ValueError(f"pre_particle_density_opacity must be in [0, 1], got {self.pre_particle_density_opacity}")
+        if self.pre_channel1_opacity < 0 or self.pre_channel1_opacity > 1:
+            raise ValueError(f"pre_channel1_opacity must be in [0, 1], got {self.pre_channel1_opacity}")
+        if self.pre_channel2_opacity < 0 or self.pre_channel2_opacity > 1:
+            raise ValueError(f"pre_channel2_opacity must be in [0, 1], got {self.pre_channel2_opacity}")
+        if self.pre_channel3_opacity < 0 or self.pre_channel3_opacity > 1:
+            raise ValueError(f"pre_channel3_opacity must be in [0, 1], got {self.pre_channel3_opacity}")
+        for channel, name in [
+            (self.pre_channel1, "pre_channel1"),
+            (self.pre_channel2, "pre_channel2"),
+            (self.pre_channel3, "pre_channel3"),
+        ]:
+            if not isinstance(channel, str) or not channel.strip():
+                raise ValueError(f"{name} must be a non-empty string, got {channel}")
+        if len(self.custom_normalization_si) != 3:
+            raise ValueError(
+                f"custom_normalization_si must contain exactly 3 floats, got {len(self.custom_normalization_si)}"
+            )
+        for val in self.custom_normalization_si:
+            if not isinstance(val, float):
+                raise ValueError(f"custom_normalization_si values must be floats, got {val}")
+        if not isinstance(self.em_field_scale_channel1, EMFieldScaleEnum):
+            raise ValueError(
+                f"em_field_scale_channel1 must be in {list(EMFieldScaleEnum)}, got {self.em_field_scale_channel1}"
+            )
+        if not isinstance(self.em_field_scale_channel2, EMFieldScaleEnum):
+            raise ValueError(
+                f"em_field_scale_channel2 must be in {list(EMFieldScaleEnum)}, got {self.em_field_scale_channel2}"
+            )
+        if not isinstance(self.em_field_scale_channel3, EMFieldScaleEnum):
+            raise ValueError(
+                f"em_field_scale_channel3 must be in {list(EMFieldScaleEnum)}, got {self.em_field_scale_channel3}"
+            )
+        if not isinstance(self.pre_particle_density_color_scales, ColorScaleEnum):
+            raise ValueError(
+                f"pre_particle_density_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_particle_density_color_scales}"
+            )
+        if not isinstance(self.pre_channel1_color_scales, ColorScaleEnum):
+            raise ValueError(
+                f"pre_channel1_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_channel1_color_scales}"
+            )
+        if not isinstance(self.pre_channel2_color_scales, ColorScaleEnum):
+            raise ValueError(
+                f"pre_channel2_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_channel2_color_scales}"
+            )
+        if not isinstance(self.pre_channel3_color_scales, ColorScaleEnum):
+            raise ValueError(
+                f"pre_channel3_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_channel3_color_scales}"
+            )
+
     def get_as_pypicongpu(
         self,
-        dict_species_picmi_to_pypicongpu: dict[PICMISpecies, PyPIConGPUSpecies],
-        time_step_size,
-        num_steps,
-        simulation_box=None,  # Added to match OpenPMD signature, not used
+        species_to_pypicongpu_map: Dict[PICMISpecies, PyPIConGPUSpecies],
+        time_step_size: float,
+        num_steps: int,
+        simulation_box=None,
     ) -> PyPIConGPUPNG:
+        """
+        Convert this object to its PyPIConGPU equivalent.
+
+        species_to_pypicongpu_map: Dict[PICMISpecies, PyPIConGPUSpecies]
+            Dictionary mapping PICMI species to PyPIConGPU species.
+        time_step_size: float
+            Size of a single time step in seconds.
+        num_steps: int
+            Total number of time steps in the simulation.
+        simulation_box: None
+            Simulation box parameters (not used, included for OpenPMD compatibility).
+
+        """
         self.check()
+        if self.species not in species_to_pypicongpu_map:
+            raise ValueError(f"Species {self.species} not found in species_to_pypicongpu_map")
+        pypicongpu_species = species_to_pypicongpu_map[self.species]
+        pypicongpu_period = self.period.get_as_pypicongpu(time_step_size, num_steps)
 
-        if self.species not in dict_species_picmi_to_pypicongpu.keys():
-            raise ValueError(f"Species {self.species} is not known to Simulation")
-
-        pypicongpu_species = dict_species_picmi_to_pypicongpu.get(self.species)
-
-        if pypicongpu_species is None:
-            raise ValueError(f"Species {self.species} is not mapped to a PyPIConGPUSpecies.")
-
-        pypicongpu_png = PyPIConGPUPNG()
-        pypicongpu_png.period = self.period.get_as_pypicongpu(time_step_size, num_steps)
-        pypicongpu_png.axis = self.axis
-        pypicongpu_png.slicePoint = self.slice_point
-        pypicongpu_png.species = pypicongpu_species
-        pypicongpu_png.folder = self.folder_name
-        pypicongpu_png.scale_image = self.scale_image
-        pypicongpu_png.scale_to_cellsize = self.scale_to_cellsize
-        pypicongpu_png.white_box_per_GPU = self.white_box_per_gpu
-        pypicongpu_png.EM_FIELD_SCALE_CHANNEL1 = self.em_field_scale_channel1
-        pypicongpu_png.EM_FIELD_SCALE_CHANNEL2 = self.em_field_scale_channel2
-        pypicongpu_png.EM_FIELD_SCALE_CHANNEL3 = self.em_field_scale_channel3
-        pypicongpu_png.preParticleDensCol = self.pre_particle_density_color_scales
-        pypicongpu_png.preChannel1Col = self.pre_channel1_color_scales
-        pypicongpu_png.preChannel2Col = self.pre_channel2_color_scales
-        pypicongpu_png.preChannel3Col = self.pre_channel3_color_scales
-        pypicongpu_png.customNormalizationSI = self.custom_normalization_si
-        pypicongpu_png.preParticleDens_opacity = self.pre_particle_density_opacity
-        pypicongpu_png.preChannel1_opacity = self.pre_channel1_opacity
-        pypicongpu_png.preChannel2_opacity = self.pre_channel2_opacity
-        pypicongpu_png.preChannel3_opacity = self.pre_channel3_opacity
-        pypicongpu_png.preChannel1 = self.pre_channel1
-        pypicongpu_png.preChannel2 = self.pre_channel2
-        pypicongpu_png.preChannel3 = self.pre_channel3
-
+        pypicongpu_png = PyPIConGPUPNG(
+            species=pypicongpu_species,
+            period=pypicongpu_period,
+            axis=self.axis,
+            slicePoint=self.slice_point,
+            folder=self.folder,
+            scale_image=self.scale_image,
+            scale_to_cellsize=self.scale_to_cellsize,
+            white_box_per_GPU=self.white_box_per_gpu,
+            EM_FIELD_SCALE_CHANNEL1=self.em_field_scale_channel1,
+            EM_FIELD_SCALE_CHANNEL2=self.em_field_scale_channel2,
+            EM_FIELD_SCALE_CHANNEL3=self.em_field_scale_channel3,
+            preParticleDensCol=self.pre_particle_density_color_scales,
+            preChannel1Col=self.pre_channel1_color_scales,
+            preChannel2Col=self.pre_channel2_color_scales,
+            preChannel3Col=self.pre_channel3_color_scales,
+            customNormalizationSI=self.custom_normalization_si,
+            preParticleDens_opacity=self.pre_particle_density_opacity,
+            preChannel1_opacity=self.pre_channel1_opacity,
+            preChannel2_opacity=self.pre_channel2_opacity,
+            preChannel3_opacity=self.pre_channel3_opacity,
+            preChannel1=self.pre_channel1,
+            preChannel2=self.pre_channel2,
+            preChannel3=self.pre_channel3,
+        )
         return pypicongpu_png

@@ -9,7 +9,7 @@ from picongpu.picmi.diagnostics import Auto, TimeStepSpec
 from picongpu.pypicongpu.output.auto import Auto as PyPIConGPUAuto
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec as PyPIConGPUTimeStepSpec
 import unittest
-
+import typeguard
 
 # Test cases for valid Auto inputs
 TESTCASES_VALID = [
@@ -65,8 +65,13 @@ class PICMI_TestAuto(unittest.TestCase):
 
         for period, expected_error in TESTCASES_INVALID:
             with self.subTest(period=period, expected_error=expected_error):
-                with self.assertRaisesRegex((ValueError, TypeError), expected_error):
-                    Auto(period=period).check()
+                if isinstance(period, str):
+                    # typeguard raises its own message, just check exception type
+                    with self.assertRaises(typeguard.TypeCheckError):
+                        Auto(period=period)
+                else:
+                    with self.assertRaisesRegex((ValueError, TypeError), expected_error):
+                        Auto(period=period)
 
     def test_auto_serialization(self):
         """Test Auto serialization to PyPIConGPUAuto."""
