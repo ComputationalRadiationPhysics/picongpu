@@ -9,7 +9,6 @@ from picongpu.pypicongpu.output import Checkpoint
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 import unittest
 import typeguard
-from picongpu.picmi.diagnostics import TimeStepSpec as PicmiTimeStepSpec
 
 
 class TestCheckpoint(unittest.TestCase):
@@ -32,7 +31,7 @@ class TestCheckpoint(unittest.TestCase):
         serialized = cp.get_rendering_context()
         self.assertTrue(serialized["typeID"]["checkpoint"])
         self.assertEqual(serialized["data"]["period"]["specs"][0]["step"], 100)
-        self.assertIsNone(serialized["data"]["timePeriod"])
+        self.assertIsNone(serialized["data"].get("timePeriod"))
 
         # Set valid minimal configuration with timePeriod
         cp = Checkpoint()
@@ -40,7 +39,7 @@ class TestCheckpoint(unittest.TestCase):
         serialized = cp.get_rendering_context()
         self.assertTrue(serialized["typeID"]["checkpoint"])
         self.assertEqual(serialized["data"]["timePeriod"], 100)
-        self.assertIsNone(serialized["data"]["period"])
+        self.assertIsNone(serialized["data"].get("period"))
 
     def test_types(self):
         """Type safety is ensured for all attributes."""
@@ -167,14 +166,14 @@ class TestCheckpoint(unittest.TestCase):
 
         # Test negative index resolution
         cp = Checkpoint()
-        cp.period = PicmiTimeStepSpec([slice(-10, None, 1)])
+        cp.period = TimeStepSpec([slice(-10, None, 1)])
         context = cp.get_rendering_context()
-        self.assertEqual(context["data"]["period"]["specs"][0]["start"], 190)
+        self.assertEqual(context["data"]["period"]["specs"][0]["start"], -10)
         self.assertEqual(context["data"]["period"]["specs"][0]["stop"], 199)
 
         # Test integer period
         cp = Checkpoint()
-        cp.period = PicmiTimeStepSpec(10)
+        cp.period = TimeStepSpec([slice(None, None, 10)])
         context = cp.get_rendering_context()
         self.assertEqual(context["data"]["period"]["specs"][0]["start"], 0)
         self.assertEqual(context["data"]["period"]["specs"][0]["stop"], 199)
@@ -221,7 +220,7 @@ class TestCheckpoint(unittest.TestCase):
 
         # Invalid TimeStepSpec
         cp = Checkpoint()
-        cp.period = PicmiTimeStepSpec([slice(0, None, -1)])
+        cp.period = TimeStepSpec([slice(0, None, -1)])
         with self.assertRaisesRegex(ValueError, "Step size must be >= 1"):
             cp.get_rendering_context()
 

@@ -77,7 +77,9 @@ class MacroParticleCount:
         if self.species not in dict_species_picmi_to_pypicongpu:
             raise ValueError(f"Species {self.species.name} is not known to Simulation")
 
+        pypicongpu_species = dict_species_picmi_to_pypicongpu.get(self.species)
+
         pypicongpu_macro_count = PyPIConGPUMacroParticleCount()
-        pypicongpu_macro_count.species = dict_species_picmi_to_pypicongpu[self.species]
+        pypicongpu_macro_count.species = pypicongpu_species
         pypicongpu_macro_count.period = self.period.get_as_pypicongpu(time_step_size, num_steps)
         return pypicongpu_macro_count

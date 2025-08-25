@@ -26,7 +26,7 @@ def _indices(ts: TimeStepSpec, num_steps: int) -> set:
     return indices
 
 
-class TestTimeStepSpec(unittest.TestCase):
+class PICMI_TestTimeStepSpec(unittest.TestCase):
     def test_parse(self):
         """Test parsing of slice and index specifications."""
         test_cases = [

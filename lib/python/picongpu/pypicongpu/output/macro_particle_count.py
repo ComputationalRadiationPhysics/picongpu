@@ -43,9 +43,9 @@ class MacroParticleCount(Plugin):
     def _get_serialized(self) -> dict:
         """Return the serialized representation of the object."""
         self.check()
-        if not self.period.get_rendering_context(200).get("specs", []):
+        if not self.period.get_rendering_context().get("specs", []):
             warnings.warn("MacroParticleCount is disabled because period is empty")
         return {
             "species": self.species.get_rendering_context(),
-            "period": self.period.get_rendering_context(200),
+            "period": self.period.get_rendering_context(),
         }

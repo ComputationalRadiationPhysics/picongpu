@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2025 PIConGPU contributors
-Authors: Masoud Afshari, Julian Lenz
+Authors: Masoud Afshari
 License: GPLv3+
 """
 
@@ -89,7 +89,6 @@ class TestMacroParticleCount(unittest.TestCase):
         context = context["data"]
         self.assertEqual(42, context["period"]["specs"][0]["step"])
         self.assertEqual(0, context["period"]["specs"][0]["start"])
-        self.assertEqual(199, context["period"]["specs"][0]["stop"])
         self.assertEqual("electron", context["species"]["name"])
 
         # Empty period

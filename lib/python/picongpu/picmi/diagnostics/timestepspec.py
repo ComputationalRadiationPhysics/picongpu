@@ -116,21 +116,30 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
         """
         return slice(
             0 if spec.start is None else spec.start,
-            num_steps if spec.stop is None else spec.stop,
+            -1 if spec.stop is None else spec.stop,
             spec.step if spec.step is not None else 1,
         )
 
     def _interpret_negatives(self, spec, num_steps):
-        """
-        Convert negative indices to positive, clipping to [0, num_steps].
-        """
-        if num_steps <= 0:
-            raise ValueError("num_steps must be positive")
         step = spec.step if spec.step is not None else 1
         if self.unit_system == "steps" and step < 1:
             raise ValueError("Step size must be >= 1")
-        start = spec.start if spec.start >= 0 else max(0, num_steps + spec.start)
-        stop = spec.stop if spec.stop >= 0 else max(0, num_steps + spec.stop)
+
+        start = spec.start if spec.start is None or spec.start >= 0 else num_steps + spec.start
+
+        # Only convert stop if it's not None and not -1
+        if spec.stop is None:
+            stop = -1
+        elif spec.stop < 0:
+            stop = num_steps + spec.stop
+        else:
+            stop = spec.stop
+
+        if stop == -1:
+            stop = num_steps
+        else:
+            stop = max(start, min(stop, num_steps))
+
         return slice(start, stop, step)
 
     def get_as_pypicongpu(self, time_step_size: float, num_steps: int) -> PyPIConGPUTimeStepSpec:
@@ -181,7 +190,11 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
 
             # Clip to valid range
             start = max(0, min(start, num_steps))
-            stop = max(start, min(stop, num_steps))
+
+            if stop == -1:
+                stop = num_steps
+            else:
+                stop = max(start, min(stop, num_steps))
 
             if start < stop:
                 resolved_specs.append(slice(start, stop, step))

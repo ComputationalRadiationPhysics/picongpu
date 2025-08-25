@@ -1,15 +1,14 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2025 PIConGPU contributors
-Authors: Julian Lenz, Masoud Afshari
+Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
 from .. import util
 from ..species import Species
-from .timestepspec import TimeStepSpec
 from .plugin import Plugin
-
+from .timestepspec import TimeStepSpec
 import typeguard
 import typing
 import warnings
@@ -33,22 +32,25 @@ class PhaseSpace(Plugin):
     _name = "phasespace"
 
     def __init__(self):
-        """Do nothing"""
+        """do nothing"""
         pass
 
     def check(self):
         """Validate attributes."""
         if self.min_momentum >= self.max_momentum:
-            raise ValueError("min_momentum must be less than max_momentum")
+            raise ValueError(
+                "PhaseSpace's min_momentum should be smaller than max_momentum. "
+                f"You gave: {self.min_momentum=} and {self.max_momentum=}."
+            )
 
-    def _get_serialized(self) -> dict:
+    def _get_serialized(self) -> typing.Dict:
         """Return the serialized representation of the object."""
         self.check()
-        if not self.period.get_rendering_context(200).get("specs", []):
+        if not self.period.get_rendering_context().get("specs", []):
             warnings.warn("PhaseSpace is disabled because period is empty")
         return {
             "species": self.species.get_rendering_context(),
-            "period": self.period.get_rendering_context(200),
+            "period": self.period.get_rendering_context(),
             "spatial_coordinate": self.spatial_coordinate,
             "momentum_coordinate": self.momentum_coordinate,
             "min_momentum": self.min_momentum,

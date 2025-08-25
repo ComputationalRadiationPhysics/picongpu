@@ -1,15 +1,15 @@
 """
 This file is part of PIConGPU.
 Copyright 2025 PIConGPU contributors
-Authors: Julian Lenz
+Authors: Julian Lenz, Masoud Afshari
 License: GPLv3+
 
 # flake8: noqa
 
-
-
-
 from .checkpoint import *  # pyflakes.ignore
+
+
+
 
 from .openpmd import *  # pyflakes.ignore
 

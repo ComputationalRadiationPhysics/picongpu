@@ -8,6 +8,7 @@ License: GPLv3+
 from ...pypicongpu.output.checkpoint import Checkpoint as PyPIConGPUCheckpoint
 from .timestepspec import TimeStepSpec
 import typeguard
+import warnings
 from typing import Optional, Union, Dict
 
 
@@ -16,7 +17,10 @@ class Checkpoint:
     """
     Specifies the parameters for creating checkpoints in PIConGPU simulations.
 
-    Checkpoints allow saving the simulation state for restarting or analysis.
+    This plugin saves simulation state snapshots at specified intervals,
+    allowing for simulation restarts or analysis.
+
+    Attention: ** At least one of period or timePeriod must be provided.**
 
     Parameters
     ----------
@@ -34,9 +38,9 @@ class Checkpoint:
     file: str, optional
         Base name for checkpoint files. Default: None.
     restart: bool, optional
-        Enable restarting from checkpoints. Default: True.
+        Enable restarting from checkpoints. Default: None.
     tryRestart: bool, optional
-        Attempt to restart from existing checkpoints. Default: False.
+        Attempt to restart from existing checkpoints. Default: None.
     restartStep: int, optional
         Specific step to restart from. Default: None.
     restartDirectory: str, optional
@@ -51,37 +55,14 @@ class Checkpoint:
         Configuration for openPMD output (e.g., {"ext": "h5"}). Default: None.
     """
 
-    def check(self):
-        if self.period is None and self.timePeriod is None:
-            raise ValueError("At least one of period or timePeriod must be provided to enable checkpointing")
-        if self.timePeriod is not None and (not isinstance(self.timePeriod, int) or self.timePeriod < 0):
-            raise ValueError("timePeriod must be a non-negative integer")
-        if self.restartStep is not None and self.restartStep < 0:
-            raise ValueError("restartStep must be non-negative")
-        if self.restartChunkSize is not None and self.restartChunkSize <= 0:
-            raise ValueError("restartChunkSize must be positive")
-        if self.restartLoop is not None and self.restartLoop < 0:
-            raise ValueError("restartLoop must be non-negative")
-        if (
-            self.period is not None
-            and isinstance(self.period, TimeStepSpec)
-            and not self.period.get_as_pypicongpu(1.0, 200).get_rendering_context().get("specs", [])
-            and (self.timePeriod is None or self.timePeriod == 0)
-        ):
-            import warnings
-
-            warnings.warn(
-                "Checkpoint is disabled because period is set to 0 or an empty TimeStepSpec and timePeriod is None or 0"
-            )
-
     def __init__(
         self,
         period: Optional[Union[int, TimeStepSpec]] = None,
         timePeriod: Optional[int] = None,
         directory: Optional[str] = "checkpoints",
         file: Optional[str] = None,
-        restart: Optional[bool] = True,
-        tryRestart: Optional[bool] = False,
+        restart: Optional[bool] = None,
+        tryRestart: Optional[bool] = None,
         restartStep: Optional[int] = None,
         restartDirectory: Optional[str] = None,
         restartFile: Optional[str] = None,
@@ -89,14 +70,16 @@ class Checkpoint:
         restartLoop: Optional[int] = None,
         openPMD: Optional[Dict] = None,
     ):
+        if period is None and timePeriod is None:
+            raise ValueError("At least one of period or timePeriod must be provided to enable checkpointing")
         if period is not None and not isinstance(period, (int, TimeStepSpec)):
             raise TypeError("period must be an integer or TimeStepSpec")
         if isinstance(period, int):
             if period < 0:
                 raise ValueError("period must be non-negative")
-            self.period = TimeStepSpec([slice(None, None, period)]) if period > 0 else TimeStepSpec()
+            self.period = TimeStepSpec([slice(None, None, period)] if period > 0 else [])("steps")
         else:
-            self.period = period if period is not None else TimeStepSpec()
+            self.period = period if period is not None else TimeStepSpec([])("steps")
         self.timePeriod = timePeriod
         self.directory = directory
         self.file = file
@@ -110,16 +93,29 @@ class Checkpoint:
         self.openPMD = openPMD
         self.check()
 
+    def check(self):
+        if self.timePeriod is not None and (not isinstance(self.timePeriod, int) or self.timePeriod < 0):
+            raise ValueError("timePeriod must be a non-negative integer")
+        if self.restartStep is not None and self.restartStep < 0:
+            raise ValueError("restartStep must be non-negative")
+        if self.restartChunkSize is not None and self.restartChunkSize <= 0:
+            raise ValueError("restartChunkSize must be positive")
+        if self.restartLoop is not None and self.restartLoop < 0:
+            raise ValueError("restartLoop must be non-negative")
+        if not self.period.specs and (self.timePeriod is None or self.timePeriod == 0):
+            warnings.warn(
+                "Checkpoint is disabled because period is set to 0 or an empty TimeStepSpec and timePeriod is None or 0"
+            )
+
     def get_as_pypicongpu(
         self,
         time_step_size: float,
         num_steps: int,
-        species_map: Dict = {},
         simulation_box=None,  # Added to match OpenPMD signature, not used
     ) -> PyPIConGPUCheckpoint:
         self.check()
         pypicongpu_checkpoint = PyPIConGPUCheckpoint()
-        pypicongpu_checkpoint.period = self.period.get_as_pypicongpu(time_step_size, num_steps)
+        pypicongpu_checkpoint.period = self.period.get_as_pypicongpu(time_step_size, num_steps) if self.period else None
         pypicongpu_checkpoint.timePeriod = self.timePeriod
         pypicongpu_checkpoint.directory = self.directory
         pypicongpu_checkpoint.file = self.file
@@ -131,5 +127,4 @@ class Checkpoint:
         pypicongpu_checkpoint.restartChunkSize = self.restartChunkSize
         pypicongpu_checkpoint.restartLoop = self.restartLoop
         pypicongpu_checkpoint.openPMD = self.openPMD
-        pypicongpu_checkpoint._name = "checkpoint"
         return pypicongpu_checkpoint

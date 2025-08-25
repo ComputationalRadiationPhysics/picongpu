@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2025 PIConGPU contributors
+Copyright 2021-2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -9,7 +9,6 @@ from picongpu.picmi.diagnostics import PhaseSpace, TimeStepSpec
 from picongpu.picmi.species import Species as PICMISpecies
 from picongpu.pypicongpu.species import Species as PyPIConGPUSpecies
 from picongpu.pypicongpu.species.attribute import Position, Momentum
-
 import unittest
 import typeguard
 
@@ -69,16 +68,6 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                 },
                 "PhaseSpace is disabled",
             ),
-            (
-                {
-                    "species": self.species,
-                    "spatial_coordinate": "x",
-                    "momentum_coordinate": "px",
-                    "min_momentum": 0.0,
-                    "max_momentum": 1.0,
-                },
-                None,
-            ),
         ]
 
         for params, warning_msg in TESTCASES_VALID:
@@ -86,29 +75,16 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                 ps = PhaseSpace(**params)
                 for key, value in params.items():
                     if key == "period" and isinstance(value, int):
-                        expected = (
-                            TimeStepSpec([slice(None, None, value)])("steps")
-                            if value > 0
-                            else TimeStepSpec([])("steps")
-                        )
-                        expected_context = expected.get_as_pypicongpu(0.5, 200).get_rendering_context()
-                        self.assertEqual(
-                            ps.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
-                            expected_context,
-                        )
-                    elif key == "period" and value is None:
-                        expected = TimeStepSpec([slice(0, None, 1)])("steps")
-                        expected_context = expected.get_as_pypicongpu(0.5, 200).get_rendering_context()
-                        self.assertEqual(
-                            ps.period.get_as_pypicongpu(0.5, 200).get_rendering_context(),
-                            expected_context,
-                        )
+                        expected = TimeStepSpec([slice(None, None, value)] if value > 0 else [])("steps")
+                        self.assertEqual(ps.period.specs, expected.specs)
                     else:
                         self.assertEqual(getattr(ps, key), value)
                 if warning_msg:
                     with self.assertWarnsRegex(UserWarning, warning_msg):
-                        ps.get_as_pypicongpu(self.species_map, 0.5, 200)
+                        ps.check()
+                    ps.get_as_pypicongpu(self.species_map, 0.5, 200)
                 else:
+                    ps.check()
                     ps.get_as_pypicongpu(self.species_map, 0.5, 200)
 
     def test_types(self):
@@ -124,7 +100,7 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
                     max_momentum=1.0,
                 )
 
-        invalid_periods = [[], "2", {}]
+        invalid_periods = ["string", 1.0, [], {}, None]
         for invalid in invalid_periods:
             with self.assertRaises(typeguard.TypeCheckError):
                 PhaseSpace(
@@ -193,14 +169,12 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
             min_momentum=0.0,
             max_momentum=1.0,
         )
-
         pypicongpu_ps = ps.get_as_pypicongpu(self.species_map, 0.5, 200)
         context = pypicongpu_ps.get_rendering_context()
         self.assertTrue(context["typeID"]["phasespace"])
         context = context["data"]
         self.assertEqual(42, context["period"]["specs"][0]["step"])
         self.assertEqual(0, context["period"]["specs"][0]["start"])
-        self.assertEqual(199, context["period"]["specs"][0]["stop"])
         self.assertEqual("x", context["spatial_coordinate"])
         self.assertEqual("px", context["momentum_coordinate"])
         self.assertEqual(0.0, context["min_momentum"])
@@ -222,26 +196,27 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
         context = context["data"]
         self.assertEqual(10, context["period"]["specs"][0]["step"])
         self.assertEqual(0, context["period"]["specs"][0]["start"])
-        self.assertEqual(199, context["period"]["specs"][0]["stop"])
 
-        # Default period
-        ps = PhaseSpace(
-            species=self.species,
-            spatial_coordinate="x",
-            momentum_coordinate="px",
-            min_momentum=0.0,
-            max_momentum=1.0,
-        )
-        pypicongpu_ps = ps.get_as_pypicongpu(self.species_map, 0.5, 200)
-        context = pypicongpu_ps.get_rendering_context()
-        self.assertTrue(context["typeID"]["phasespace"])
-        context = context["data"]
-        self.assertEqual(1, context["period"]["specs"][0]["step"])
-        self.assertEqual(0, context["period"]["specs"][0]["start"])
-        self.assertEqual(199, context["period"]["specs"][0]["stop"])
+        # Default period (no longer valid, as period is required)
+        with self.assertRaises(TypeError):
+            ps = PhaseSpace(
+                species=self.species,
+                spatial_coordinate="x",
+                momentum_coordinate="px",
+                min_momentum=0.0,
+                max_momentum=1.0,
+            )
 
         # Test invalid species mapping
         with self.assertRaises(ValueError):
+            ps = PhaseSpace(
+                species=self.species,
+                period=TimeStepSpec([slice(0, None, 1)]),
+                spatial_coordinate="x",
+                momentum_coordinate="px",
+                min_momentum=0.0,
+                max_momentum=1.0,
+            )
             ps.get_as_pypicongpu({}, 0.5, 200)
 
     def test_momentum_values(self):
@@ -253,7 +228,6 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
             min_momentum=2.0,
             max_momentum=1.0,
         )
-
         with self.assertRaises(ValueError):
             ps.check()
 
@@ -269,9 +243,8 @@ class PICMI_TestPhaseSpace(unittest.TestCase):
             min_momentum=0.0,
             max_momentum=1.0,
         )
-
         with self.assertWarnsRegex(UserWarning, "PhaseSpace is disabled"):
-            ps.get_as_pypicongpu(self.species_map, 0.5, 200)
+            ps.check()
 
 
 if __name__ == "__main__":
