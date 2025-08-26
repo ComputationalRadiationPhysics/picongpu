@@ -22,9 +22,13 @@
       "description": "List of data source objects to include in the dump (e.g., ChargeDensity, Auto)."
     },
     "range": {
-      "type": [
-        "string",
-        "null"
+      "anyOf": [
+        {
+          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.rangespec.RangeSpec"
+        },
+        {
+          "type": "null"
+        }
       ],
       "description": "Contiguous range of cells to dump fields, in 'begin:end,begin:end,begin:end' format."
     },

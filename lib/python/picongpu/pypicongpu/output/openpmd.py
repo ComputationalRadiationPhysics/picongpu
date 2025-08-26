@@ -18,10 +18,6 @@ from typing import Optional, List, Literal, Dict, Union
 
 @typeguard.typechecked
 class OpenPMD(Plugin):
-    """
-    PIConGPU OpenPMD output configuration.
-    """
-
     period = util.build_typesafe_property(TimeStepSpec)
     source = util.build_typesafe_property(Optional[List[SourceBase]])
     range = util.build_typesafe_property(Optional[RangeSpec])
@@ -80,23 +76,17 @@ class OpenPMD(Plugin):
             raise ValueError("source must be a list of SourceBase objects")
 
     def _get_serialized(self) -> typing.Dict:
-        """
-        Serialize the OpenPMD object to a JSON-compatible dictionary.
-        """
         self.check()
-        range_context = self.range._get_serialized() if self.range is not None else None
-        range_specs = range_context["ranges"] if range_context else []
-        period_specs = self.period._get_serialized()["specs"]
-        period_dict = period_specs[0] if period_specs else {"start": 0, "stop": 0, "step": 1}
+
         return {
-            "period": period_dict,
+            "period": self.period.get_rendering_context(),
             "source": [s._get_serialized() for s in self.source] if self.source else None,
-            "range": range_specs,
+            "range": self.range._get_serialized() if self.range else None,
             "file": self.file,
             "ext": self.ext,
             "infix": self.infix,
-            "json": self.json if self.json is not None else {},
-            "json_restart": self.json_restart if self.json_restart is not None else {},
+            "json": self.json,
+            "json_restart": self.json_restart,
             "data_preparation_strategy": self.data_preparation_strategy,
             "toml": self.toml,
             "particle_io_chunk_size": self.particle_io_chunk_size,

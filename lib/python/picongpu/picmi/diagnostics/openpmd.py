@@ -31,11 +31,7 @@ class OpenPMD:
         Setting to None will cause an empty dump.
     range: str or RangeSpec, optional
         Contiguous range of cells to dump the base- and derived field for, specified as a RangeSpec object
-        or a string in the format "begin:end" (1D), "begin:end,begin:end" (2D), or "begin:end,begin:end,begin:end" (3D).
-        Example: "0:10,5:15,2:8" specifies cells 0 to 10 (x), 5 to 15 (y), 2 to 8 (z).
-        Notes: Values are clipped to the simulation box. Begin and/or end may be omitted (":") to indicate the full extent
-        of the dimension. Negative indices are supported (e.g., "-5:-1" for last 5 cells). The default ":,:,:," (3D),
-        ":,:" (2D), or ":" (1D) includes all cells in the simulation box.
+        Use RangeSpec[start:stop,...] style to specify dimensions (e.g., RangeSpec[0:10, 5:15], RangeSpec[:, :, :])
     file: str, optional
         Relative or absolute file path prefix for openPMD output files. Relative paths are interpreted as relative to the
         simulation output directory, the default value None indicates the PIC code's default.
@@ -76,13 +72,13 @@ class OpenPMD:
         if not isinstance(self.period, TimeStepSpec):
             raise TypeError("period must be a TimeStepSpec")
         if not isinstance(self.range, RangeSpec):
-            raise TypeError("range must be a RangeSpec or string")
+            raise TypeError("range must be a RangeSpec")
 
     def __init__(
         self,
         period: TimeStepSpec,
         source: Optional[List[SourceBase]] = None,
-        range: Optional[Union[str, RangeSpec]] = ":,:,:",
+        range: Optional[RangeSpec] = RangeSpec[:, :, :],  # default
         file: Optional[str] = None,
         ext: Optional[Literal["bp", "h5", "sst"]] = "bp",
         infix: Optional[str] = "NULL",
@@ -95,7 +91,7 @@ class OpenPMD:
     ):
         self.period = period
         self.source = source
-        self.range = RangeSpec(range) if isinstance(range, str) else range
+        self.range = range
         self.file = file
         self.ext = ext
         self.infix = infix

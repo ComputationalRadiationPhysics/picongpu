@@ -9,9 +9,9 @@ from picongpu.picmi.diagnostics.openpmd import OpenPMD
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.diagnostics.rangespec import RangeSpec
 from picongpu.pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
-from picongpu.pypicongpu.output.openpmd_sources.source_base import SourceBase
+from picongpu.picmi.diagnostics.openpmd_sources.source_base import SourceBase
+
 import unittest
-import unittest.mock
 
 
 # Mock SourceBase for testing
@@ -35,9 +35,9 @@ TESTCASES_VALID = [
     (
         # Basic case: period, default range, no source
         {
-            "period": TimeStepSpec("1:100:2"),
+            "period": TimeStepSpec([slice(1, 100, 2)]),
             "source": None,
-            "range": ":,:,:",
+            "range": RangeSpec[:, :, :],
             "file": None,
             "ext": "bp",
             "infix": "NULL",
@@ -69,9 +69,9 @@ TESTCASES_VALID = [
     (
         # With source, string range, custom file and ext
         {
-            "period": TimeStepSpec("0::1"),
+            "period": TimeStepSpec([slice(0, None, 1)]),
             "source": [MockSource("chargeDensity"), MockSource("energyHistogram")],
-            "range": "0:10,5:15,2:8",
+            "range": RangeSpec[0:10, 5:15, 2:8],
             "file": "output/data",
             "ext": "h5",
             "infix": "_%06T",
@@ -103,9 +103,9 @@ TESTCASES_VALID = [
     (
         # RangeSpec object, minimal parameters
         {
-            "period": TimeStepSpec("10"),
+            "period": TimeStepSpec(10),
             "source": [MockSource("field")],
-            "range": RangeSpec([slice(0, 5), slice(10, 20)]),
+            "range": RangeSpec[slice(0, 10), slice(5, 15)],
             "file": None,
             "ext": "sst",
             "infix": "NULL",
@@ -139,29 +139,29 @@ TESTCASES_VALID = [
 # Invalid test cases for instantiation
 TESTCASES_INVALID = [
     (
-        {"period": TimeStepSpec("1"), "particle_io_chunk_size": 0},
+        {"period": TimeStepSpec([slice(0, 10, 1)]), "particle_io_chunk_size": 0},
         "particle_io_chunk_size.*must be positive",
     ),
     (
-        {"period": TimeStepSpec("1"), "ext": "sst", "infix": "_%06T"},
+        {"period": TimeStepSpec([slice(0, 10, 1)]), "ext": "sst", "infix": "_%06T"},
         "infix must be 'NULL' when ext is 'sst'",
     ),
     (
-        {"period": TimeStepSpec("1"), "source": [MockSource(), "invalid"]},
+        {"period": TimeStepSpec([slice(0, 10, 1)]), "source": [MockSource(), "invalid"]},
         "source must be a list of SourceBase objects",
     ),
     (
-        {"period": TimeStepSpec("1"), "ext": "invalid"},
+        {"period": TimeStepSpec([slice(0, 10, 1)]), "ext": "invalid"},
         "ext.*must be one of.*bp.*h5.*sst",
     ),
     (
-        {"period": TimeStepSpec("1"), "file_writing": "invalid"},
+        {"period": TimeStepSpec([slice(0, 10, 1)]), "file_writing": "invalid"},
         "file_writing.*must be one of.*create.*append",
     ),
 ]
 
 
-class TestOpenPMD(unittest.TestCase):
+class PICMI_TestOpenPMD(unittest.TestCase):
     def test_openpmd_instantiation(self):
         """Test OpenPMD instantiation and validation."""
         for params, sim_box, time_step_size, num_steps, _ in TESTCASES_VALID:
@@ -174,7 +174,7 @@ class TestOpenPMD(unittest.TestCase):
 
         for params, expected_error in TESTCASES_INVALID:
             with self.subTest(params=params, expected_error=expected_error):
-                with self.assertRaisesRegex(ValueError, expected_error):
+                with self.assertRaisesRegex((ValueError, TypeError), expected_error):
                     OpenPMD(**params)
 
     def test_openpmd_serialization(self):
@@ -185,15 +185,25 @@ class TestOpenPMD(unittest.TestCase):
                 pypicongpu_openpmd = openpmd.get_as_pypicongpu({}, time_step_size, num_steps, sim_box)
                 self.assertIsInstance(pypicongpu_openpmd, PyPIConGPUOpenPMD)
                 serialized = pypicongpu_openpmd.get_rendering_context()
-                self.assertEqual(serialized, expected_serialized)
+                self.assertDictEqual(serialized, expected_serialized)
 
     def test_openpmd_invalid_simulation_box(self):
         """Test invalid simulation box dimensions."""
-        openpmd = OpenPMD(period=TimeStepSpec("1"), range=RangeSpec([slice(0, 10), slice(5, 15)]))
+        openpmd = OpenPMD(period=TimeStepSpec([slice(0, 10, 1)]), range=RangeSpec[slice(0, 10), slice(5, 15)])
         with self.assertRaisesRegex(ValueError, "Number of range specifications"):
             openpmd.get_as_pypicongpu({}, 0.001, 100, (20,))  # Too few dimensions
         with self.assertRaisesRegex(ValueError, "Number of range specifications"):
             openpmd.get_as_pypicongpu({}, 0.001, 100, (20, 30, 40))  # Too many dimensions
+
+    def test_range_spec_len(self):
+        r1 = RangeSpec[0:10]
+        assert len(r1) == 1
+
+        r2 = RangeSpec[0:10, 5:15]
+        assert len(r2) == 2
+
+        r3 = RangeSpec[0:10, 5:15, 2:8]
+        assert len(r3) == 3
 
 
 if __name__ == "__main__":

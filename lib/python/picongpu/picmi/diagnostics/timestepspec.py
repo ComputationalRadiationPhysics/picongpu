@@ -58,9 +58,37 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     """
     Specify time steps for simulation output using slices or indices.
 
+
     Use as: TimeStepSpec[:12:2, 7]("steps") or TimeStepSpec[1e-15:5e-15:2e-16]("seconds").
     Supports negative indices, inclusive slices, and addition of TimeStepSpec objects.
+
     Defaults to 'steps' unit unless explicitly set to 'seconds' via __call__('seconds').
+
+
+    Examples for how TimeStepSpec is interpreted:
+
+    Specific steps:
+        TimeStepSpec([5, 10])
+         [slice(5, 6, 1), slice(10, 11, 1)]
+         steps: 5, 10
+
+    Uniform interval:
+        TimeStepSpec([slice(0, 100, 10)])
+         steps: 0, 10, 20, ..., 90
+
+    Infinite step range:
+        TimeStepSpec([slice(0, None, 5)])
+         steps: 0, 5, 10, 15, ...
+
+    Negative start or stop:
+        TimeStepSpec([slice(-10, -1, 1)])
+         steps: -10, -9, ..., -2
+
+    Mixed entries:
+        TimeStepSpec([5, slice(20, 25, 2)])
+         steps: 5, 20, 22, 24
+
+
     """
 
     def __init__(self, *args, specs_in_seconds=tuple()):

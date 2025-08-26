@@ -58,6 +58,12 @@ class RangeSpec(metaclass=_RangeSpecMeta):
                 raise TypeError(f"End in dimension {i+1} must be int or None, got {type(s.stop)}")
         self.ranges = list(args)
 
+    def __len__(self):
+        """
+        Return the number of dimensions specified in the range.
+        """
+        return len(self.ranges)
+
     def check(self):
         """
         Validate the RangeSpec and warn if any range is empty or has begin > end.

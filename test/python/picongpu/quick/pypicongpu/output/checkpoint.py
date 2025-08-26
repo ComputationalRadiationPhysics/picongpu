@@ -169,14 +169,14 @@ class TestCheckpoint(unittest.TestCase):
         cp.period = TimeStepSpec([slice(-10, None, 1)])
         context = cp.get_rendering_context()
         self.assertEqual(context["data"]["period"]["specs"][0]["start"], -10)
-        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], 199)
+        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], -1)
 
         # Test integer period
         cp = Checkpoint()
         cp.period = TimeStepSpec([slice(None, None, 10)])
         context = cp.get_rendering_context()
         self.assertEqual(context["data"]["period"]["specs"][0]["start"], 0)
-        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], 199)
+        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], -1)
         self.assertEqual(context["data"]["period"]["specs"][0]["step"], 10)
 
         # Unset period and timePeriod should fail

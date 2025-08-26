@@ -231,19 +231,6 @@ class Png:
         num_steps: int,
         simulation_box=None,
     ) -> PyPIConGPUPNG:
-        """
-        Convert this object to its PyPIConGPU equivalent.
-
-        species_to_pypicongpu_map: Dict[PICMISpecies, PyPIConGPUSpecies]
-            Dictionary mapping PICMI species to PyPIConGPU species.
-        time_step_size: float
-            Size of a single time step in seconds.
-        num_steps: int
-            Total number of time steps in the simulation.
-        simulation_box: None
-            Simulation box parameters (not used, included for OpenPMD compatibility).
-
-        """
         self.check()
         if self.species not in species_to_pypicongpu_map:
             raise ValueError(f"Species {self.species} not found in species_to_pypicongpu_map")

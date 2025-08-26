@@ -109,6 +109,7 @@ class Checkpoint:
 
     def get_as_pypicongpu(
         self,
+        pypicongpu_by_picmi_species: Dict,
         time_step_size: float,
         num_steps: int,
         simulation_box=None,  # Added to match OpenPMD signature, not used

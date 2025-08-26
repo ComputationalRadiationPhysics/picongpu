@@ -213,7 +213,7 @@ class TestOpenPMD(unittest.TestCase):
         context = context["data"]
         self.assertEqual(context["period"]["specs"][0]["step"], 100)
         self.assertIsNone(context["source"])
-        self.assertEqual(context["range"], "0:10")
+        self.assertEqual(context["range"], {"ranges": [{"begin": 0, "end": 10}]})
         self.assertEqual(context["file"], "output")
         self.assertEqual(context["ext"], "h5")
         self.assertEqual(context["infix"], "prefix")
