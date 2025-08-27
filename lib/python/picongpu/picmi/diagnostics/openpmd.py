@@ -9,6 +9,7 @@ from ...pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
 from .timestepspec import TimeStepSpec
 from .rangespec import RangeSpec
 from .openpmd_sources.source_base import SourceBase
+from ..species import Species as PICMISpecies
 
 import typeguard
 from typing import Optional, Dict, Union, List, Literal, Tuple
@@ -59,21 +60,6 @@ class OpenPMD:
         Default: "create".
     """
 
-    def check(self):
-        """
-        Validate the provided parameters.
-        """
-        if self.particle_io_chunk_size is not None and self.particle_io_chunk_size < 1:
-            raise ValueError("particle_io_chunk_size (in MiB) must be positive")
-        if self.ext == "sst" and self.infix is not None and self.infix != "NULL":
-            raise ValueError("infix must be 'NULL' when ext is 'sst'")
-        if self.source is not None and not all(isinstance(s, SourceBase) for s in self.source):
-            raise ValueError("source must be a list of SourceBase objects")
-        if not isinstance(self.period, TimeStepSpec):
-            raise TypeError("period must be a TimeStepSpec")
-        if not isinstance(self.range, RangeSpec):
-            raise TypeError("range must be a RangeSpec")
-
     def __init__(
         self,
         period: TimeStepSpec,
@@ -103,19 +89,55 @@ class OpenPMD:
         self.file_writing = file_writing
         self.check()
 
+    def check(self):
+        # particle_io_chunk_size must be positive
+        if self.particle_io_chunk_size is not None and self.particle_io_chunk_size < 1:
+            raise ValueError("particle_io_chunk_size (in MiB) must be positive")
+
+        # infix must be NULL when using sst backend
+        if self.ext == "sst" and self.infix is not None and self.infix != "NULL":
+            raise ValueError("infix must be 'NULL' when ext is 'sst'")
+
+        # validate sources
+        if self.source is not None:
+            if not all(isinstance(s, SourceBase) for s in self.source):
+                raise ValueError("source must be a list of SourceBase objects")
+            # validate species in sources
+            for src in self.source:
+                if hasattr(src, "species") and src.species is not None:
+                    if not isinstance(src.species, PICMISpecies):
+                        raise ValueError(f"Species {src.species} is not known to Simulation")
+
+        # validate period
+        if not isinstance(self.period, TimeStepSpec):
+            raise TypeError("period must be a TimeStepSpec")
+        for s in self.period.specs:
+            if isinstance(s.step, (int, float)) and s.step < 1:
+                raise ValueError("Step size must be >= 1")
+
+        # validate range
+        if not isinstance(self.range, RangeSpec):
+            raise TypeError("range must be a RangeSpec")
+
     def get_as_pypicongpu(
         self,
-        pypicongpu_by_picmi_species: Dict,
+        dict_species_picmi_to_pypicongpu: Dict,
         time_step_size: float,
         num_steps: int,
         simulation_box: Tuple[int, ...],
     ) -> PyPIConGPUOpenPMD:
         self.check()
+
         if len(simulation_box) != len(self.range):
             raise ValueError("Number of range specifications must match simulation box dimensions")
+
+        sources = None
+        if self.source is not None:
+            sources = [src.get_as_pypicongpu(dict_species_picmi_to_pypicongpu) for src in self.source]
+
         pypicongpu_openpmd = PyPIConGPUOpenPMD(
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
-            source=self.source,
+            source=sources,
             range=self.range.get_as_pypicongpu(simulation_box),
             file=self.file,
             ext=self.ext,

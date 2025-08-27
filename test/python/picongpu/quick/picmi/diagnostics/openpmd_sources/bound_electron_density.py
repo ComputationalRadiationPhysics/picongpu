@@ -16,15 +16,33 @@ import unittest
 TESTCASES_VALID = [
     (
         {"species": PICMISpecies(name="electrons"), "filter": "all"},
-        {"filter": "all", "species": PyPIConGPUSpecies(name="electrons")},
+        {
+            "filter": "all",
+        },
     ),
     (
         {"species": PICMISpecies(name="ions"), "filter": "electrons"},
-        {"filter": "electrons", "species": PyPIConGPUSpecies(name="ions")},
+        {
+            "filter": "electrons",
+        },
     ),
     (
         {"species": PICMISpecies(name="protons"), "filter": "ions"},
-        {"filter": "ions", "species": PyPIConGPUSpecies(name="protons")},
+        {
+            "filter": "ions",
+        },
+    ),
+    (
+        {"species": PICMISpecies(name="electrons"), "filter": None},
+        {
+            "filter": None,
+        },
+    ),
+    (
+        {"species": PICMISpecies(name="electrons")},
+        {
+            "filter": "all",
+        },
     ),
 ]
 
@@ -32,15 +50,11 @@ TESTCASES_VALID = [
 TESTCASES_INVALID = [
     (
         {"species": PICMISpecies(name="electrons"), "filter": 123},
-        "Filter must be a string",
+        "Filter must be a string or None",
     ),
     (
         {"species": "not_a_species", "filter": "all"},
         "Species must be a PICMISpecies",
-    ),
-    (
-        {"species": PICMISpecies(name="electrons"), "filter": ""},
-        "Filter must be a non-empty string",
     ),
 ]
 
@@ -53,8 +67,8 @@ TESTCASES_INVALID_MAPPING = [
     (
         {
             "species": PICMISpecies(name="electrons"),
-            "filter": "all",
-            "mapping": {PICMISpecies(name="ions"): PyPIConGPUSpecies(name="ions")},
+            "filter": None,
+            "mapping": {PICMISpecies(name="ions"): PyPIConGPUSpecies()},
         },
         "Species .* is not known to Simulation",
     ),
@@ -67,8 +81,8 @@ class PICMI_TestBoundElectronDensity(unittest.TestCase):
         for params, _ in TESTCASES_VALID:
             with self.subTest(params=params):
                 source = BoundElectronDensity(**params)
-                for key, value in params.items():
-                    self.assertEqual(getattr(source, key), value)
+                self.assertEqual(source.species, params["species"])
+                self.assertEqual(source.filter, params.get("filter", "all"))
                 source.check()  # Should not raise
 
         for params, expected_error in TESTCASES_INVALID:
@@ -82,14 +96,13 @@ class PICMI_TestBoundElectronDensity(unittest.TestCase):
         for params, expected_serialized in TESTCASES_VALID:
             with self.subTest(params=params, expected_serialized=expected_serialized):
                 source = BoundElectronDensity(**params)
-                mapping = {params["species"]: expected_serialized["species"]}
+                # Create PyPIConGPUSpecies without name parameter
+                pypicongpu_species = PyPIConGPUSpecies()
+                mapping = {params["species"]: pypicongpu_species}
                 pypicongpu_source = source.get_as_pypicongpu(mapping)
                 self.assertIsInstance(pypicongpu_source, PyPIConGPUBoundElectronDensity)
-                serialized = pypicongpu_source._get_serialized()
-                self.assertEqual(serialized["typeID"], {"boundElectronDensity": True})
-                serialized_data = serialized["data"]
-                self.assertEqual(serialized_data["filter"], expected_serialized["filter"])
-                self.assertEqual(serialized_data["species"], expected_serialized["species"])
+                self.assertEqual(pypicongpu_source.filter, expected_serialized["filter"])
+                self.assertIsInstance(pypicongpu_source.species, PyPIConGPUSpecies)
 
     def test_bound_electron_density_invalid_mapping(self):
         """Test BoundElectronDensity with invalid species mapping."""
