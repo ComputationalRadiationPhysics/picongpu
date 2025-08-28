@@ -19,36 +19,43 @@ import typeguard
 import typing
 
 
-# Mock SourceBase for testing
 class MockSource(SourceBase):
-    def __init__(self, name="mock"):
+    def __init__(self, name="mock", filter_value="species_all"):
         self.name = name
+        self._filter = filter_value
 
     @property
     def filter(self) -> str:
-        return "all"
+        return self._filter
 
     def check(self) -> None:
-        pass
+        valid_filters = ["species_all", "fields_all", "custom_filter"]
+        if not isinstance(self._filter, str):
+            raise ValueError(f"Filter must be a string, got {type(self._filter)}")
+        if self._filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
 
     def get_as_pypicongpu(self, mapping: typing.Dict[PICMISpecies, typing.Any] = None) -> typing.Any:
         class MockPyPIConGPUSource(PyPIConGPUSourceBase):
-            def __init__(self, name):
+            def __init__(self, name, filter_value):
                 self.name = name
+                self.filter = filter_value
 
             def _get_serialized(self):
-                return {"name": self.name}
+                return {"name": self.name, "filter": self.filter}
 
             def check(self):
-                pass
+                valid_filters = ["species_all", "fields_all", "custom_filter"]
+                if not isinstance(self.filter, str):
+                    raise ValueError(f"Filter must be a string, got {type(self.filter)}")
+                if self.filter not in valid_filters:
+                    raise ValueError(f"Filter must be one of {valid_filters}, got {self.filter}")
 
-        return MockPyPIConGPUSource(self.name)
+        return MockPyPIConGPUSource(self.name, self._filter)
 
 
-# Valid test cases for OpenPMD instantiation and serialization
 TESTCASES_VALID = [
     (
-        # Basic case: period, default range, no source
         {
             "period": TimeStepSpec([slice(1, 100, 2)]),
             "source": None,
@@ -63,9 +70,9 @@ TESTCASES_VALID = [
             "particle_io_chunk_size": None,
             "file_writing": "create",
         },
-        (20, 30, 40),  # simulation_box
-        0.001,  # time_step_size
-        1000,  # num_steps
+        (20, 30, 40),
+        0.001,
+        1000,
         {
             "period": {"specs": [{"start": 1, "stop": 100, "step": 2}]},
             "source": None,
@@ -73,8 +80,8 @@ TESTCASES_VALID = [
             "file": None,
             "ext": "bp",
             "infix": "NULL",
-            "json": None,
-            "json_restart": None,
+            "json": {},
+            "json_restart": {},
             "data_preparation_strategy": None,
             "toml": None,
             "particle_io_chunk_size": None,
@@ -82,10 +89,9 @@ TESTCASES_VALID = [
         },
     ),
     (
-        # With mock source, custom range, file, and ext
         {
             "period": TimeStepSpec([slice(0, None, 1)]),
-            "source": [MockSource("chargeDensity"), MockSource("energyHistogram")],
+            "source": [MockSource("chargeDensity", "species_all"), MockSource("energyHistogram", "fields_all")],
             "range": RangeSpec[0:10, 5:15, 2:8],
             "file": "output/data",
             "ext": "h5",
@@ -102,7 +108,10 @@ TESTCASES_VALID = [
         1000,
         {
             "period": {"specs": [{"start": 0, "stop": 999, "step": 1}]},
-            "source": [{"name": "chargeDensity"}, {"name": "energyHistogram"}],
+            "source": [
+                {"name": "chargeDensity", "filter": "species_all"},
+                {"name": "energyHistogram", "filter": "fields_all"},
+            ],
             "range": {"ranges": [{"begin": 0, "end": 10}, {"begin": 5, "end": 15}, {"begin": 2, "end": 8}]},
             "file": "output/data",
             "ext": "h5",
@@ -116,11 +125,10 @@ TESTCASES_VALID = [
         },
     ),
     (
-        # With TimeStepSpec in seconds, no source
         {
             "period": TimeStepSpec([slice(0.0, 0.1, 0.02)])("seconds"),
-            "source": None,
-            "range": RangeSpec[slice(0, 10), slice(5, 15), slice(2, 8)],
+            "source": [MockSource("density", "custom_filter")],
+            "range": RangeSpec[0:10, 5:15, 2:8],
             "file": "output/ions",
             "ext": "bp",
             "infix": "_%06T",
@@ -136,13 +144,13 @@ TESTCASES_VALID = [
         200,
         {
             "period": {"specs": [{"start": 0, "stop": 100, "step": 20}]},
-            "source": None,
+            "source": [{"name": "density", "filter": "custom_filter"}],
             "range": {"ranges": [{"begin": 0, "end": 10}, {"begin": 5, "end": 15}, {"begin": 2, "end": 8}]},
             "file": "output/ions",
             "ext": "bp",
             "infix": "_%06T",
-            "json": None,
-            "json_restart": None,
+            "json": {},
+            "json_restart": {},
             "data_preparation_strategy": "adios",
             "toml": None,
             "particle_io_chunk_size": 256,
@@ -151,7 +159,6 @@ TESTCASES_VALID = [
     ),
 ]
 
-# Invalid test cases for instantiation
 TESTCASES_INVALID = [
     (
         {"period": TimeStepSpec([slice(0, 10, 1)]), "particle_io_chunk_size": 0},
@@ -188,7 +195,6 @@ TESTCASES_INVALID = [
     ),
 ]
 
-# Invalid test cases for TimeStepSpec
 TESTCASES_INVALID_TIMESTEPS = [
     (
         {"period": TimeStepSpec([slice(0, 10, -1)])},
@@ -196,12 +202,11 @@ TESTCASES_INVALID_TIMESTEPS = [
     ),
 ]
 
-# Invalid test cases for species mapping
 TESTCASES_INVALID_MAPPING = [
     (
         {
             "period": TimeStepSpec([slice(0, 10, 1)]),
-            "source": [BoundElectronDensity(species=PICMISpecies(name="electrons"))],
+            "source": [BoundElectronDensity(species=PICMISpecies(name="electrons"), filter="species_all")],
             "range": RangeSpec[:, :],
         },
         {},
@@ -210,7 +215,7 @@ TESTCASES_INVALID_MAPPING = [
     (
         {
             "period": TimeStepSpec([slice(0, 10, 1)]),
-            "source": [BoundElectronDensity(species=PICMISpecies(name="electrons"))],
+            "source": [BoundElectronDensity(species=PICMISpecies(name="electrons"), filter="species_all")],
             "range": RangeSpec[:, :],
         },
         {PICMISpecies(name="ions"): (lambda s=PyPIConGPUSpecies(): (setattr(s, "name", "ions"), s)[1])()},
@@ -218,11 +223,10 @@ TESTCASES_INVALID_MAPPING = [
     ),
 ]
 
-# Invalid test cases for simulation box
 TESTCASES_INVALID_SIMBOX = [
     (
         {"period": TimeStepSpec([slice(0, 10, 1)]), "range": RangeSpec[slice(0, 10), slice(5, 15)]},
-        (20,),  # simulation_box
+        (20,),
         r"Number of range specifications must match simulation box dimensions",
     ),
     (
@@ -304,17 +308,15 @@ class PICMI_TestOpenPMD(unittest.TestCase):
                 typeguard.TypeCheckError,
                 r"argument \"species\" \(str\) is not an instance of picongpu\.picmi\.species\.Species",
             ):
-                openpmd = OpenPMD(**params, source=[BoundElectronDensity(species="invalid")])
+                openpmd = OpenPMD(**params, source=[BoundElectronDensity(species="invalid", filter="species_all")])
                 openpmd.check()
 
     def test_range_spec_len(self):
         """Test RangeSpec length property."""
         r1 = RangeSpec[0:10]
         self.assertEqual(len(r1), 1)
-
         r2 = RangeSpec[0:10, 5:15]
         self.assertEqual(len(r2), 2)
-
         r3 = RangeSpec[0:10, 5:15, 2:8]
         self.assertEqual(len(r3), 3)
 

@@ -9,36 +9,47 @@ from picongpu.pypicongpu.output import OpenPMD
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.output.openpmd_sources.source_base import SourceBase
 from picongpu.pypicongpu.output.openpmd_sources.auto import Auto
-
 import unittest
+import typeguard
 
 
 class TestSourceBase(unittest.TestCase):
     def test_source_base_abstract(self):
         """Test SourceBase cannot be instantiated and Auto implements required methods."""
-        # Test that SourceBase cannot be instantiated
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "Can't instantiate abstract class"):
             SourceBase()
 
-        # Test Auto as a concrete subclass
-        source = Auto(filter="custom")
-        self.assertEqual(source.filter, "custom")
-        source.check()  # Should not raise
+        source = Auto(filter="custom_filter")
+        self.assertEqual(source.filter, "custom_filter")
+        source.check()
 
-        # Test invalid filter type
-        with self.assertRaises(ValueError):
-            Auto(filter=123).check()
+        source = Auto(filter="species_all")
+        self.assertEqual(source.filter, "species_all")
+        source.check()
 
-        # Test serialization
-        openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[Auto(filter="custom")])
+        source = Auto(filter="fields_all")
+        self.assertEqual(source.filter, "fields_all")
+        source.check()
+
+        with self.assertRaisesRegex(
+            ValueError, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"
+        ):
+            Auto(filter="invalid").check()
+
+        with self.assertRaisesRegex(typeguard.TypeCheckError, r"argument \"filter\" \(int\) is not an instance of str"):
+            Auto(filter=123)
+
+        openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[Auto(filter="custom_filter")])
         context = openpmd.get_rendering_context()
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
-        self.assertEqual(len(context["source"], 1))
-        self.assertTrue(isinstance(context["source"][0], dict))
-        self.assertEqual(context["source"][0]["filter"], "custom")
+        self.assertEqual(len(context["source"]), 1)
+        self.assertEqual(context["source"][0]["filter"], "custom_filter")
 
-        # Test serialization with default filter
         openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[Auto()])
         context = openpmd.get_rendering_context()
-        self.assertEqual(context["data"]["source"][0]["filter"], None)
+        self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
+
+
+if __name__ == "__main__":
+    unittest.main()

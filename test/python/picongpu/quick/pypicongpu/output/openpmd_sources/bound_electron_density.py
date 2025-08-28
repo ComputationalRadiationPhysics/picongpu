@@ -10,12 +10,11 @@ from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.output.openpmd_sources.bound_electron_density import BoundElectronDensity
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Momentum
-
 import unittest
+import typeguard
 import typing
 
 
-# Mock Species class for testing
 class MockSpecies(Species):
     def __init__(self):
         self.name = "electron"
@@ -32,42 +31,50 @@ class MockSpecies(Species):
 class TestBoundElectronDensity(unittest.TestCase):
     def test_source_bound_electron_density(self):
         """Test BoundElectronDensity instantiation and serialization."""
-        # Test instantiation with default filter
-        source = BoundElectronDensity(species=MockSpecies())
+        source = BoundElectronDensity(species=MockSpecies(), filter="species_all")
         self.assertIsInstance(source.species, MockSpecies)
-        self.assertEqual(source.filter, "all")
+        self.assertEqual(source.filter, "species_all")
         source.check()
 
-        # Test instantiation with custom filter
-        source = BoundElectronDensity(species=MockSpecies(), filter="custom")
-        self.assertEqual(source.filter, "custom")
+        source = BoundElectronDensity(species=MockSpecies(), filter="fields_all")
+        self.assertEqual(source.filter, "fields_all")
         source.check()
 
-        # Test invalid filter type
-        with self.assertRaises(ValueError):
-            BoundElectronDensity(species=MockSpecies(), filter=123).check()
+        source = BoundElectronDensity(species=MockSpecies(), filter="custom_filter")
+        self.assertEqual(source.filter, "custom_filter")
+        source.check()
 
-        # Test invalid species type
-        with self.assertRaises(ValueError):
-            BoundElectronDensity(species="invalid").check()
+        with self.assertRaisesRegex(
+            ValueError, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"
+        ):
+            BoundElectronDensity(species=MockSpecies(), filter="invalid").check()
 
-        # Test serialization
+        with self.assertRaisesRegex(typeguard.TypeCheckError, r"argument \"filter\" \(int\) is not an instance of str"):
+            BoundElectronDensity(species=MockSpecies(), filter=123)
+
+        with self.assertRaisesRegex(
+            typeguard.TypeCheckError,
+            r"argument \"species\" \(str\) is not an instance of picongpu.pypicongpu.species.species.Species",
+        ):
+            BoundElectronDensity(species="invalid")
+
         openpmd = OpenPMD(
             period=TimeStepSpec([slice(0, None, 100)]),
-            source=[BoundElectronDensity(species=MockSpecies(), filter="custom")],
+            source=[BoundElectronDensity(species=MockSpecies(), filter="custom_filter")],
         )
         context = openpmd.get_rendering_context()
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
-        self.assertEqual(len(context["source"], 1))
-        self.assertTrue(isinstance(context["source"][0], dict))
-        self.assertEqual(context["source"][0]["filter"], "custom")
-        self.assertEqual(context["source"][0]["species"], {})
+        self.assertEqual(len(context["source"]), 1)
+        self.assertEqual(context["source"][0]["filter"], "custom_filter")
 
-        # Test serialization with default filter
         openpmd = OpenPMD(
-            period=TimeStepSpec([slice(0, None, 100)]), source=[BoundElectronDensity(species=MockSpecies())]
+            period=TimeStepSpec([slice(0, None, 100)]),
+            source=[BoundElectronDensity(species=MockSpecies())],
         )
         context = openpmd.get_rendering_context()
-        self.assertEqual(context["data"]["source"][0]["filter"], "all")
-        self.assertEqual(context["data"]["source"][0]["species"], {})
+        self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
+
+
+if __name__ == "__main__":
+    unittest.main()

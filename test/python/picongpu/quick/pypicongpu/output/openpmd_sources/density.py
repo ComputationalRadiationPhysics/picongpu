@@ -23,7 +23,7 @@ class MockSpecies(Species):
         self.constants = []
 
     def get_rendering_context(self) -> typing.Dict:
-        return {}  # Minimal context to avoid schema conflicts
+        return {}
 
     def check(self) -> None:
         pass
@@ -58,7 +58,7 @@ class TestDensity(unittest.TestCase):
         context = openpmd.get_rendering_context()
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
-        self.assertEqual(len(context["source"], 1))
+        self.assertEqual(len(context["source"]), 1)
         self.assertTrue(isinstance(context["source"][0], dict))
         self.assertEqual(context["source"][0]["filter"], "custom")
         self.assertEqual(context["source"][0]["species"], {})

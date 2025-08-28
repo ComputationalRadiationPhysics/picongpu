@@ -23,8 +23,11 @@ class MockSource(SourceBase):
         return self._filter
 
     def check(self) -> None:
+        valid_filters = ["all", "custom_filter"]
         if self._filter is not None and not isinstance(self._filter, str):
             raise ValueError(f"Filter must be a string or None, got {type(self._filter)}")
+        if self._filter is not None and self._filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
 
     def get_as_pypicongpu(self) -> typing.Any:
         return {"mock_source": {"filter": self._filter}}
@@ -51,9 +54,9 @@ class PICMI_TestSourceBase(unittest.TestCase):
         self.assertEqual(source.filter, "custom_filter")
         source.check()  # Should not raise
 
-        # Invalid filter type
-        with self.assertRaises(ValueError, msg="Filter must be a string or None"):
-            source = MockSource(filter_value=123)
+        # Invalid filter value
+        with self.assertRaisesRegex(ValueError, r"Filter must be one of \['all', 'custom_filter'\], got invalid"):
+            source = MockSource(filter_value="invalid")
             source.check()
 
     def test_mock_source_get_as_pypicongpu(self):
@@ -68,7 +71,9 @@ class PICMI_TestSourceBase(unittest.TestCase):
 
     def test_typeguard_enforcement(self):
         """Test that typeguard enforces filter type."""
-        with self.assertRaises(typeguard.TypeCheckError, msg="filter is not an instance of"):
+        with self.assertRaisesRegex(
+            typeguard.TypeCheckError, r"argument \"filter_value\" \(int\) did not match any element in the union"
+        ):
             MockSource(filter_value=123)  # Should raise before check()
 
 

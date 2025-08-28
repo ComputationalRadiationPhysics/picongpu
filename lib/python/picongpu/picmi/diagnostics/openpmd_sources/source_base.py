@@ -36,15 +36,11 @@ class SourceBase(metaclass=ABCMeta):
 
     @abstractmethod
     def check(self) -> None:
-        """
-        Validate the data source parameters.
-
-        Raises
-        ------
-        ValueError
-            If the parameters (e.g., filter) are invalid.
-        """
-        pass
+        valid_filters = ["all", "custom_filter"]
+        if self._filter is not None and not isinstance(self._filter, str):
+            raise ValueError(f"Filter must be a string or None, got {type(self._filter)}")
+        if self._filter is not None and self._filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
 
     @abstractmethod
     def get_as_pypicongpu(self) -> typing.Any:

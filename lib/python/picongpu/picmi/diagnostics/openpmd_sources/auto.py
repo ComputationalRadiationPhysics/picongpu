@@ -8,7 +8,6 @@ License: GPLv3+
 from .source_base import SourceBase
 from ....pypicongpu.output.openpmd_sources import Auto as PyPIConGPUAuto
 import typeguard
-import typing
 
 
 @typeguard.typechecked
@@ -19,31 +18,29 @@ class Auto(SourceBase):
     This class provides a convenient way to dump default simulation data (e.g., all
     particle species and fields) using the openPMD standard, with defaults determined
     by the PIC code in particle-in-cell simulations.
-
-    @param filter Name of a filter to select data contributing to the source.
-        Default: None (PIC code-dependent).
     """
 
-    # filter = util.build_typesafe_property(typing.Optional[str])
-
-    def __init__(self, filter: typing.Optional[str] = None):
-        self.filter = filter
+    def __init__(self, filter: str = "species_all"):
+        self._filter = filter
         self.check()
+
+    @property
+    def filter(self) -> str:
+        return self._filter
 
     def check(self) -> None:
         """
         Validate the filter parameter.
-
-        @throw ValueError If the filter is not a string or None.
         """
-        if self.filter is not None and not isinstance(self.filter, str):
-            raise ValueError(f"Filter must be a string or None, got {type(self.filter)}")
+        valid_filters = ["species_all", "fields_all", "custom_filter"]
+        if not isinstance(self._filter, str):
+            raise ValueError(f"Filter must be a string, got {type(self._filter)}")
+        if self._filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
 
     def get_as_pypicongpu(self) -> PyPIConGPUAuto:
         """
         Convert this Auto source to a PyPIConGPU Auto source.
-
-        @return A PyPIConGPU Auto instance with the same filter.
         """
         self.check()
-        return PyPIConGPUAuto(filter=self.filter)
+        return PyPIConGPUAuto(filter=self._filter)

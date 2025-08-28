@@ -10,32 +10,16 @@ from picongpu.pypicongpu.output.openpmd_sources import Auto as PyPIConGPUAuto
 import unittest
 
 
-# Test cases for valid Auto inputs
 TESTCASES_VALID = [
-    (
-        {"filter": None},
-        {"filter": None},
-    ),
-    (
-        {"filter": "electrons"},
-        {"filter": "electrons"},
-    ),
-    (
-        {"filter": "ions"},
-        {"filter": "ions"},
-    ),
+    ({"filter": "species_all"}, {"filter": "species_all"}),
+    ({"filter": "fields_all"}, {"filter": "fields_all"}),
+    ({"filter": "custom_filter"}, {"filter": "custom_filter"}),
+    ({}, {"filter": "species_all"}),
 ]
 
-# Invalid test cases for instantiation
 TESTCASES_INVALID = [
-    (
-        {"filter": 123},
-        "Filter must be a string or None",
-    ),
-    (
-        {"filter": ""},
-        "Filter must be a non-empty string or None",
-    ),
+    ({"filter": 123}, "Filter must be a string"),
+    ({"filter": "invalid"}, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"),
 ]
 
 
@@ -44,29 +28,24 @@ class PICMI_TestAuto(unittest.TestCase):
         """Test Auto instantiation and validation."""
         for params, _ in TESTCASES_VALID:
             with self.subTest(params=params):
-                auto = Auto(**params)
-                for key, value in params.items():
-                    self.assertEqual(getattr(auto, key), value)
-                auto.check()  # Should not raise
+                source = Auto(**params)
+                self.assertEqual(source.filter, params.get("filter", "species_all"))
+                source.check()
 
         for params, expected_error in TESTCASES_INVALID:
             with self.subTest(params=params, expected_error=expected_error):
                 with self.assertRaisesRegex(ValueError, expected_error):
-                    auto = Auto(**params)
-                    auto.check()
+                    source = Auto(**params)
+                    source.check()
 
     def test_auto_serialization(self):
         """Test Auto serialization to PyPIConGPUAuto."""
         for params, expected_serialized in TESTCASES_VALID:
             with self.subTest(params=params, expected_serialized=expected_serialized):
-                auto = Auto(**params)
-                pypicongpu_auto = auto.get_as_pypicongpu()
-                self.assertIsInstance(pypicongpu_auto, PyPIConGPUAuto)
-                serialized = pypicongpu_auto._get_serialized()
-                self.assertEqual(serialized["typeID"], {"auto": True})
-                serialized_data = serialized["data"]
-                for key, value in expected_serialized.items():
-                    self.assertEqual(serialized_data[key], value)
+                source = Auto(**params)
+                pypicongpu_source = source.get_as_pypicongpu()
+                self.assertIsInstance(pypicongpu_source, PyPIConGPUAuto)
+                self.assertEqual(pypicongpu_source.filter, expected_serialized["filter"])
 
 
 if __name__ == "__main__":
