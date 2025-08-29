@@ -1,12 +1,12 @@
 """
 This file is part of PIConGPU.
-Copyright 2025-2025 PIConGPU contributors
+Copyright 2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
 
 from .source_base import SourceBase
-from ....pypicongpu.output.openpmd_sources import ChargeDensity as PyPIConGPUChargeDensity
+from picongpu.pypicongpu.output.openpmd_sources import ChargeDensity as PyPIConGPUChargeDensity
 from ...species import Species as PICMISpecies
 import typeguard
 import typing
@@ -15,51 +15,38 @@ import typing
 @typeguard.typechecked
 class ChargeDensity(SourceBase):
     """
-    Charge density data source for openPMD output
+    Charge density data source for openPMD output in PIConGPU.
 
-    This source calculates the charge density from a specified particle species, optionally
+    Calculates the charge density from a specified particle species, optionally
     filtered by a selection criterion, for particle-in-cell simulations.
-
-    @param species Particle species contributing to the charge density (e.g., electrons, protons).
-    @param filter Name of a filter to select particles contributing to the source.
-        Default: "all" (includes all particles of the specified species).
     """
 
-    def __init__(self, species: PICMISpecies, filter: str = "all"):
+    def __init__(self, species: PICMISpecies, filter: str = "species_all"):
         self.species = species
-        self.filter = filter
+        self._filter = filter
         self.check()
 
-    def check(self) -> None:
-        """
-        Validate the parameters.
+    @property
+    def filter(self) -> str:
+        return self._filter
 
-        @throw ValueError If filter is not a string or species is not a PICMISpecies.
-        """
-        if not isinstance(self.filter, str):
-            raise ValueError(f"Filter must be a string, got {type(self.filter)}")
+    def check(self) -> None:
+        valid_filters = ["species_all", "fields_all", "custom_filter"]
         if not isinstance(self.species, PICMISpecies):
-            raise ValueError(f"Species must be a PICMISpecies, got {type(self.species)}")
+            raise TypeError(f"Species must be a PICMISpecies, got {type(self.species)}")
+        if not isinstance(self._filter, str):
+            raise TypeError(f"Filter must be a string, got {type(self._filter)}")
+        if self._filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
 
     def get_as_pypicongpu(
         self,
-        dict_species_picmi_to_pypicongpu: dict[PICMISpecies, typing.Any],
+        dict_species_picmi_to_pypicongpu: typing.Dict[PICMISpecies, typing.Any],
+        time_step_size: float = 0.0,
+        num_steps: int = 0,
+        simulation_box=None,
     ) -> PyPIConGPUChargeDensity:
-        """
-        Convert this ChargeDensity source to a PyPIConGPU ChargeDensity source.
-
-        @param dict_species_picmi_to_pypicongpu Mapping of PICMI species to PyPIConGPU species.
-        @return A PyPIConGPU ChargeDensity instance with the same filter and species.
-        @throw ValueError If the species is not known to the simulation or not mapped to a PyPIConGPUSpecies.
-        """
         self.check()
-
-        if self.species not in dict_species_picmi_to_pypicongpu.keys():
-            raise ValueError(f"Species {self.species} is not known to Simulation")
-
-        pypicongpu_species = dict_species_picmi_to_pypicongpu.get(self.species)
-
-        if pypicongpu_species is None:
-            raise ValueError(f"Species {self.species} is not mapped to a PyPIConGPUSpecies.")
-
-        return PyPIConGPUChargeDensity(filter=self.filter, species=pypicongpu_species)
+        if self.species not in dict_species_picmi_to_pypicongpu:
+            raise ValueError(f"Species {self.species.name} is not known to Simulation")
+        return PyPIConGPUChargeDensity(filter=self._filter, species=dict_species_picmi_to_pypicongpu[self.species])

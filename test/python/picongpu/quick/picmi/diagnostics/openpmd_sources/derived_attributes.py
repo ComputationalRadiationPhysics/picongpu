@@ -8,37 +8,24 @@ License: GPLv3+
 from picongpu.picmi.diagnostics.openpmd_sources import DerivedAttributes
 from picongpu.pypicongpu.output.openpmd_sources import DerivedAttributes as PyPIConGPUDerivedAttributes
 import unittest
+import typeguard
 
 
-# Test cases for valid DerivedAttributes inputs
 TESTCASES_VALID = [
-    (
-        {"filter": None},
-        {"filter": None},
-    ),
-    (
-        {"filter": "all"},
-        {"filter": "all"},
-    ),
-    (
-        {"filter": "electrons"},
-        {"filter": "electrons"},
-    ),
-    (
-        {"filter": "ions"},
-        {"filter": "ions"},
-    ),
-    (
-        {},  # Default filter
-        {"filter": None},
-    ),
+    ({"filter": "species_all"}, {"filter": "species_all"}),
+    ({"filter": "fields_all"}, {"filter": "fields_all"}),
+    ({"filter": "custom_filter"}, {"filter": "custom_filter"}),
+    ({}, {"filter": "species_all"}),
 ]
 
-# Invalid test cases for instantiation
 TESTCASES_INVALID = [
     (
+        {"filter": "invalid"},
+        r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid",
+    ),
+    (
         {"filter": 123},
-        "Filter must be a string or None",
+        r'argument "filter" \(int\) is not an instance of str',
     ),
 ]
 
@@ -49,14 +36,13 @@ class PICMI_TestDerivedAttributes(unittest.TestCase):
         for params, _ in TESTCASES_VALID:
             with self.subTest(params=params):
                 source = DerivedAttributes(**params)
-                self.assertEqual(source.filter, params.get("filter", None))
-                source.check()  # Should not raise
+                self.assertEqual(source.filter, params.get("filter", "species_all"))
+                source.check()
 
         for params, expected_error in TESTCASES_INVALID:
             with self.subTest(params=params, expected_error=expected_error):
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    source = DerivedAttributes(**params)
-                    source.check()
+                with self.assertRaisesRegex((ValueError, typeguard.TypeCheckError), expected_error):
+                    DerivedAttributes(**params)
 
     def test_derived_attributes_serialization(self):
         """Test DerivedAttributes serialization to PyPIConGPUDerivedAttributes."""

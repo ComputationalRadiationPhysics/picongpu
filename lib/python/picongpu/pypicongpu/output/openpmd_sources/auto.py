@@ -28,6 +28,6 @@ class Auto(SourceBase):
 
     def _get_serialized(self) -> typing.Dict:
         self.check()
-        return {
-            "filter": self.filter,
-        }
+        result = super()._get_serialized()
+        result["filter"] = self.filter
+        return result

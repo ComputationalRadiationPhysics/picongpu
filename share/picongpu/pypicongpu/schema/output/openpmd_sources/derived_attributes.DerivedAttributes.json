@@ -1,15 +1,25 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.derived_attributes.DerivedAttributes",
   "type": "object",
-  "description": "Derived attributes data source for openPMD output in PIConGPU, enabling custom derived attributes with an optional filter.",
+  "description": "Derived attributes data source for openPMD output in PIConGPU, enabling derived attributes with an optional filter.",
   "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "filter"
+  ],
   "properties": {
+    "type": {
+      "type": "string",
+      "const": "derivedattributes",
+      "description": "Type of the data source."
+    },
     "filter": {
       "type": [
         "string",
         "null"
       ],
-      "description": "Name of a filter to select particles contributing to the data source."
+      "description": "Name of a filter to select particles contributing to the data source.",
+      "default": "species_all"
     }
   }
 }

@@ -1,76 +1,64 @@
 """
 This file is part of PIConGPU.
-Copyright 2025-2025 PIConGPU contributors
+Copyright 2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
 
 from .source_base import SourceBase
-from ....pypicongpu.output.openpmd_sources import Momentum as PyPIConGPUMomentum
-from ...species import Species as PICMISpecies
-import typeguard
+from picongpu.pypicongpu.output.openpmd_sources import Momentum as PyPIConGPUMomentum
+from picongpu.picmi.species import Species as PICMISpecies
 import typing
+import typeguard
 
 
 @typeguard.typechecked
 class Momentum(SourceBase):
     """
-    Momentum component data source for openPMD output
+    Momentum component data source for openPMD output in PIConGPU.
 
-    Derives a scalar field of a specified momentum component (in kg·m/s, direction x=0, y=1, z=2)
-    for a specified particle species, optionally filtered, in particle-in-cell simulations. Uses
-    position and momentum attributes, mapped to cells by the PIC code's spatial shape.
-
-    @param species Particle species to calculate momentum for (e.g., electrons, ions).
-        Must have position and momentum attributes.
-    @param filter Name of a filter to select particles. Default: "all".
-    @param direction Momentum component direction (0=x, 1=y, 2=z).
+    Derives a scalar field of momentum (in kg·m/s) in a specified direction (x, y, z)
+    for a specified particle species, optionally filtered, in particle-in-cell simulations.
+    Uses weighting and momentum attributes, mapped to cells by the PIC code's spatial shape.
+    Intended for debugging or analyzing particle dynamics.
     """
 
-    def __init__(self, species: PICMISpecies, filter: str = "all", direction: int = 0):
+    def __init__(self, species: PICMISpecies, filter: str = "species_all", direction: str = "x"):
         self.species = species
-        self.filter = filter
+        self._filter = filter
         self.direction = direction
         self.check()
 
-    def check(self) -> None:
-        """
-        Validate the parameters.
+    @property
+    def filter(self) -> str:
+        return self._filter
 
-        @throw ValueError If filter is not a string, species is not a PICMISpecies, or direction is invalid.
-        """
-        if not isinstance(self.filter, str):
-            raise ValueError(f"Filter must be a string, got {type(self.filter)}")
+    def check(self) -> None:
+        valid_filters = ["species_all", "fields_all", "custom_filter"]
+        valid_directions = ["x", "y", "z"]
         if not isinstance(self.species, PICMISpecies):
-            raise ValueError(f"Species must be a PICMISpecies, got {type(self.species)}")
-        if not isinstance(self.direction, int):
-            raise ValueError(f"Direction must be an integer, got {type(self.direction)}")
-        if self.direction not in [0, 1, 2]:
-            raise ValueError(f"Direction must be 0 (x), 1 (y), or 2 (z), got {self.direction}")
+            raise TypeError(f"Species must be a PICMISpecies, got {type(self.species)}")
+        if not isinstance(self._filter, str):
+            raise TypeError(f"Filter must be a string, got {type(self._filter)}")
+        if self._filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
+        if not isinstance(self.direction, str):
+            raise TypeError(f"Direction must be a string, got {type(self.direction)}")
+        if self.direction not in valid_directions:
+            raise ValueError(f"Direction must be 'x', 'y', or 'z', got {self.direction}")
 
     def get_as_pypicongpu(
         self,
-        dict_species_picmi_to_pypicongpu: dict[PICMISpecies, typing.Any],
+        dict_species_picmi_to_pypicongpu: typing.Dict[PICMISpecies, typing.Any],
+        time_step_size: float = 0.0,
+        num_steps: int = 0,
+        simulation_box=None,
     ) -> PyPIConGPUMomentum:
-        """
-        Convert to a PyPIConGPU Momentum source.
-
-        @param dict_species_picmi_to_pypicongpu Mapping of PICMI to PyPIConGPU species.
-        @return A PyPIConGPU Momentum instance with the same filter, species, and direction.
-        @throw ValueError If species is unknown or unmapped to a PyPIConGPUSpecies.
-        """
         self.check()
-
-        if self.species not in dict_species_picmi_to_pypicongpu.keys():
-            raise ValueError(f"Species {self.species} is not known to Simulation")
-
-        pypicongpu_species = dict_species_picmi_to_pypicongpu.get(self.species)
-
-        if pypicongpu_species is None:
-            raise ValueError(f"Species {self.species} is not mapped to a PyPIConGPUSpecies.")
-
+        if self.species not in dict_species_picmi_to_pypicongpu:
+            raise ValueError(f"Species {self.species.name} is not known to Simulation")
         return PyPIConGPUMomentum(
-            filter=self.filter,
-            species=pypicongpu_species,
+            filter=self._filter,
+            species=dict_species_picmi_to_pypicongpu[self.species],
             direction=self.direction,
         )

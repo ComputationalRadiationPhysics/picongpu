@@ -8,6 +8,7 @@ License: GPLv3+
 from picongpu.picmi.diagnostics.openpmd_sources import Auto
 from picongpu.pypicongpu.output.openpmd_sources import Auto as PyPIConGPUAuto
 import unittest
+import typeguard
 
 
 TESTCASES_VALID = [
@@ -18,8 +19,14 @@ TESTCASES_VALID = [
 ]
 
 TESTCASES_INVALID = [
-    ({"filter": 123}, "Filter must be a string"),
-    ({"filter": "invalid"}, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"),
+    (
+        {"filter": "invalid"},
+        r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid",
+    ),
+    (
+        {"filter": 123},
+        r"argument \"filter\" \(int\) is not an instance of str",
+    ),
 ]
 
 
@@ -34,9 +41,8 @@ class PICMI_TestAuto(unittest.TestCase):
 
         for params, expected_error in TESTCASES_INVALID:
             with self.subTest(params=params, expected_error=expected_error):
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    source = Auto(**params)
-                    source.check()
+                with self.assertRaisesRegex((ValueError, typeguard.TypeCheckError), expected_error):
+                    Auto(**params).check()
 
     def test_auto_serialization(self):
         """Test Auto serialization to PyPIConGPUAuto."""

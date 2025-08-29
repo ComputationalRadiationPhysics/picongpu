@@ -1,15 +1,22 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.auto.Auto",
   "type": "object",
-  "description": "Auto data source for openPMD output in PIConGPU, enabling automatic derived attributes with an optional filter.",
+  "description": "Auto data source for openPMD output in PIConGPU, enabling automatic derived attributes with a mandatory filter.",
   "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "filter"
+  ],
   "properties": {
+    "type": {
+      "type": "string",
+      "const": "auto",
+      "description": "Type of the data source."
+    },
     "filter": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "Name of a filter to select particles contributing to the data source."
+      "type": "string",
+      "description": "Name of a filter to select particles contributing to the data source.",
+      "default": "species_all"
     }
   }
 }

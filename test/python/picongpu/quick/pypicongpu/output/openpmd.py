@@ -35,10 +35,22 @@ class MockSpecies(Species):
         self.attributes = []
 
     def get_rendering_context(self) -> typing.Dict:
-        return {}
+        return {
+            "name": self.name,
+            "typename": self.__class__.__name__,
+            "attributes": [{"picongpu_name": attr.__class__.__name__.lower()} for attr in self.attributes],
+            "constants": {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        }
 
     def check(self) -> None:
-        pass
+        if not self.name:
+            raise ValueError("Species name must not be empty or None")
 
 
 class TestOpenPMD(unittest.TestCase):
@@ -279,8 +291,11 @@ class TestOpenPMD(unittest.TestCase):
         source = EnergyDensityCutoff(species=MockSpecies(), cutoff_max_energy=1.0, filter="species_all")
         openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[source])
         openpmd.check()
-        context = openpmd.get_rendering_context()
-        self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
+        context = openpmd._get_serialized()
+        self.assertEqual(context["source"][0]["filter"], "species_all")
+        self.assertEqual(context["source"][0]["type"], "energydensitycutoff")
+        self.assertEqual(context["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["source"][0]["cutoff_max_energy"], 1.0)
 
     def test_source_larmor_power(self):
         """Test LarmorPower instantiation and filter."""

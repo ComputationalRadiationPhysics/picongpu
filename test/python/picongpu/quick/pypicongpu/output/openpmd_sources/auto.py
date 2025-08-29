@@ -8,23 +8,8 @@ License: GPLv3+
 from picongpu.pypicongpu.output import OpenPMD
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.output.openpmd_sources.auto import Auto
-from picongpu.pypicongpu.species import Species
-from picongpu.pypicongpu.species.attribute import Position, Momentum
 import unittest
-import typing
-
-
-class MockSpecies(Species):
-    def __init__(self):
-        self.name = "electron"
-        self.attributes = [Position(), Momentum()]
-        self.constants = []
-
-    def get_rendering_context(self) -> typing.Dict:
-        return {}
-
-    def check(self) -> None:
-        pass
+import typeguard
 
 
 class TestAuto(unittest.TestCase):
@@ -47,7 +32,7 @@ class TestAuto(unittest.TestCase):
         ):
             Auto(filter="invalid").check()
 
-        with self.assertRaisesRegex(TypeError, r"argument \"filter\" \(int\) is not an instance of str"):
+        with self.assertRaisesRegex(typeguard.TypeCheckError, r"argument \"filter\" \(int\) is not an instance of str"):
             Auto(filter=123)
 
         openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[Auto(filter="custom_filter")])
@@ -55,10 +40,12 @@ class TestAuto(unittest.TestCase):
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
         self.assertEqual(len(context["source"]), 1)
+        self.assertEqual(context["source"][0]["type"], "auto")
         self.assertEqual(context["source"][0]["filter"], "custom_filter")
 
         openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[Auto()])
         context = openpmd.get_rendering_context()
+        self.assertEqual(context["data"]["source"][0]["type"], "auto")
         self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
 
 

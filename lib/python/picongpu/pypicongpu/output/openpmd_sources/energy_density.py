@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2025-2025 PIConGPU contributors
+Copyright 2025 PIConGPU contributors
 Authors: Masoud Afshari
 License: GPLv3+
 """
@@ -17,22 +17,22 @@ class EnergyDensity(SourceBase):
     species = util.build_typesafe_property(Species)
     filter = util.build_typesafe_property(str)
 
-    def __init__(self, species: Species, filter: str = "all"):
+    def __init__(self, species: Species, filter: str = "species_all"):
         self.species = species
         self.filter = filter
         self.check()
 
     def check(self) -> None:
-        # Validate parameters
+        valid_filters = ["species_all", "fields_all", "custom_filter"]
         if not isinstance(self.filter, str):
             raise ValueError(f"Filter must be a string, got {type(self.filter)}")
+        if self.filter not in valid_filters:
+            raise ValueError(f"Filter must be one of {valid_filters}, got {self.filter}")
         if not isinstance(self.species, Species):
             raise ValueError(f"Species must be a Species, got {type(self.species)}")
 
     def _get_serialized(self) -> typing.Dict:
-        # Return serialized representation
         self.check()
-        return {
-            "species": self.species.get_rendering_context(),
-            "filter": self.filter,
-        }
+        result = super()._get_serialized()
+        result.update({"species": self.species.get_rendering_context(), "filter": self.filter})
+        return result

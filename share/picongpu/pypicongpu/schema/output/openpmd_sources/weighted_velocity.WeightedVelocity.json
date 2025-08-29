@@ -1,22 +1,28 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.weighted_velocity.WeightedVelocity",
   "type": "object",
-  "description": "Weighted velocity data source for openPMD output in PIConGPU, calculating weighted velocity along a specified direction for a species.",
+  "description": "Weighted velocity data source for openPMD output in PIConGPU, calculating weighted velocity component for a specified species and direction.",
   "unevaluatedProperties": false,
   "required": [
+    "type",
     "species",
     "filter",
     "direction"
   ],
   "properties": {
+    "type": {
+      "type": "string",
+      "const": "weightedvelocity",
+      "description": "Type of the data source."
+    },
     "species": {
       "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
-      "description": "Particle species to calculate weighted velocity for."
+      "description": "Particle species to calculate weighted velocity component for."
     },
     "filter": {
       "type": "string",
       "description": "Name of a filter to select particles contributing to the data source.",
-      "default": "all"
+      "default": "species_all"
     },
     "direction": {
       "type": "string",
@@ -25,7 +31,7 @@
         "y",
         "z"
       ],
-      "description": "Direction (x, y, or z) for the weighted velocity component.",
+      "description": "Direction of the weighted velocity component (x, y, or z).",
       "default": "x"
     }
   }

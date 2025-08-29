@@ -22,7 +22,18 @@ class MockSpecies(Species):
         self.constants = []
 
     def get_rendering_context(self) -> typing.Dict:
-        return {}
+        return {
+            "name": self.name,
+            "typename": "Electron",
+            "attributes": [{"picongpu_name": attr.__class__.__name__.lower()} for attr in self.attributes],
+            "constants": {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        }
 
     def check(self) -> None:
         pass
@@ -66,14 +77,42 @@ class TestBoundElectronDensity(unittest.TestCase):
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
         self.assertEqual(len(context["source"]), 1)
+        self.assertEqual(context["source"][0]["type"], "boundelectrondensity")
         self.assertEqual(context["source"][0]["filter"], "custom_filter")
+        self.assertEqual(context["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["source"][0]["species"]["typename"], "Electron")
+        self.assertEqual(len(context["source"][0]["species"]["attributes"]), 2)
+        self.assertEqual(
+            context["source"][0]["species"]["constants"],
+            {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        )
 
         openpmd = OpenPMD(
             period=TimeStepSpec([slice(0, None, 100)]),
             source=[BoundElectronDensity(species=MockSpecies())],
         )
         context = openpmd.get_rendering_context()
+        self.assertEqual(context["data"]["source"][0]["type"], "boundelectrondensity")
         self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
+        self.assertEqual(context["data"]["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["data"]["source"][0]["species"]["typename"], "Electron")
+        self.assertEqual(len(context["data"]["source"][0]["species"]["attributes"]), 2)
+        self.assertEqual(
+            context["data"]["source"][0]["species"]["constants"],
+            {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        )
 
 
 if __name__ == "__main__":

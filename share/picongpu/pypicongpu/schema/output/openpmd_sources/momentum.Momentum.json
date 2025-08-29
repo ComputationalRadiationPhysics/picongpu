@@ -1,22 +1,28 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.momentum.Momentum",
   "type": "object",
-  "description": "Momentum data source for openPMD output in PIConGPU, calculating momentum along a specified direction for a species.",
+  "description": "Momentum data source for openPMD output in PIConGPU, calculating momentum component for a specified species and direction.",
   "unevaluatedProperties": false,
   "required": [
+    "type",
     "species",
     "filter",
     "direction"
   ],
   "properties": {
+    "type": {
+      "type": "string",
+      "const": "momentum",
+      "description": "Type of the data source."
+    },
     "species": {
       "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
-      "description": "Particle species to calculate momentum for."
+      "description": "Particle species to calculate momentum component for."
     },
     "filter": {
       "type": "string",
       "description": "Name of a filter to select particles contributing to the data source.",
-      "default": "all"
+      "default": "species_all"
     },
     "direction": {
       "type": "string",
@@ -25,7 +31,7 @@
         "y",
         "z"
       ],
-      "description": "Direction (x, y, or z) for the momentum component.",
+      "description": "Direction of the momentum component (x, y, or z).",
       "default": "x"
     }
   }

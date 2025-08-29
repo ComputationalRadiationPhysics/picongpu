@@ -10,12 +10,11 @@ from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.output.openpmd_sources.charge_density import ChargeDensity
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Momentum
-
 import unittest
+import typeguard
 import typing
 
 
-# Mock Species class for testing
 class MockSpecies(Species):
     def __init__(self):
         self.name = "electron"
@@ -23,7 +22,18 @@ class MockSpecies(Species):
         self.constants = []
 
     def get_rendering_context(self) -> typing.Dict:
-        return {}  # Minimal context to avoid schema conflicts
+        return {
+            "name": self.name,
+            "typename": "Electron",
+            "attributes": [{"picongpu_name": attr.__class__.__name__.lower()} for attr in self.attributes],
+            "constants": {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        }
 
     def check(self) -> None:
         pass
@@ -32,39 +42,75 @@ class MockSpecies(Species):
 class TestChargeDensity(unittest.TestCase):
     def test_source_charge_density(self):
         """Test ChargeDensity instantiation and serialization."""
-        # Test instantiation with default filter
         source = ChargeDensity(species=MockSpecies())
         self.assertIsInstance(source.species, MockSpecies)
-        self.assertEqual(source.filter, "all")
+        self.assertEqual(source.filter, "species_all")
         source.check()
 
-        # Test instantiation with custom filter
-        source = ChargeDensity(species=MockSpecies(), filter="custom")
-        self.assertEqual(source.filter, "custom")
+        source = ChargeDensity(species=MockSpecies(), filter="custom_filter")
+        self.assertEqual(source.filter, "custom_filter")
         source.check()
 
-        # Test invalid filter type
-        with self.assertRaises(ValueError):
-            ChargeDensity(species=MockSpecies(), filter=123).check()
+        source = ChargeDensity(species=MockSpecies(), filter="fields_all")
+        self.assertEqual(source.filter, "fields_all")
+        source.check()
 
-        # Test invalid species type
-        with self.assertRaises(ValueError):
-            ChargeDensity(species="invalid").check()
+        with self.assertRaisesRegex(
+            ValueError, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"
+        ):
+            ChargeDensity(species=MockSpecies(), filter="invalid").check()
 
-        # Test serialization
+        with self.assertRaisesRegex(typeguard.TypeCheckError, r"argument \"filter\" \(int\) is not an instance of str"):
+            ChargeDensity(species=MockSpecies(), filter=123)
+
+        with self.assertRaisesRegex(
+            typeguard.TypeCheckError,
+            r"argument \"species\" \(str\) is not an instance of picongpu.pypicongpu.species.species.Species",
+        ):
+            ChargeDensity(species="invalid")
+
         openpmd = OpenPMD(
-            period=TimeStepSpec([slice(0, None, 100)]), source=[ChargeDensity(species=MockSpecies(), filter="custom")]
+            period=TimeStepSpec([slice(0, None, 100)]),
+            source=[ChargeDensity(species=MockSpecies(), filter="custom_filter")],
         )
         context = openpmd.get_rendering_context()
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
-        self.assertEqual(len(context["source"], 1))
-        self.assertTrue(isinstance(context["source"][0], dict))
-        self.assertEqual(context["source"][0]["filter"], "custom")
-        self.assertEqual(context["source"][0]["species"], {})
+        self.assertEqual(len(context["source"]), 1)
+        self.assertEqual(context["source"][0]["type"], "chargedensity")
+        self.assertEqual(context["source"][0]["filter"], "custom_filter")
+        self.assertEqual(context["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["source"][0]["species"]["typename"], "Electron")
+        self.assertEqual(len(context["source"][0]["species"]["attributes"]), 2)
+        self.assertEqual(
+            context["source"][0]["species"]["constants"],
+            {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        )
 
-        # Test serialization with default filter
         openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[ChargeDensity(species=MockSpecies())])
         context = openpmd.get_rendering_context()
-        self.assertEqual(context["data"]["source"][0]["filter"], "all")
-        self.assertEqual(context["data"]["source"][0]["species"], {})
+        self.assertEqual(context["data"]["source"][0]["type"], "chargedensity")
+        self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
+        self.assertEqual(context["data"]["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["data"]["source"][0]["species"]["typename"], "Electron")
+        self.assertEqual(len(context["data"]["source"][0]["species"]["attributes"]), 2)
+        self.assertEqual(
+            context["data"]["source"][0]["species"]["constants"],
+            {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

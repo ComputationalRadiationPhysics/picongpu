@@ -33,6 +33,6 @@ class BoundElectronDensity(SourceBase):
 
     def _get_serialized(self) -> typing.Dict:
         self.check()
-        return {
-            "filter": self.filter,
-        }
+        result = super()._get_serialized()
+        result.update({"species": self.species.get_rendering_context(), "filter": self.filter})
+        return result

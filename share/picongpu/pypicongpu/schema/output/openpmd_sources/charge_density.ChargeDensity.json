@@ -4,10 +4,16 @@
   "description": "Charge density data source for openPMD output in PIConGPU, calculating charge density for a specified species.",
   "unevaluatedProperties": false,
   "required": [
+    "type",
     "species",
     "filter"
   ],
   "properties": {
+    "type": {
+      "type": "string",
+      "const": "chargedensity",
+      "description": "Type of the data source."
+    },
     "species": {
       "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
       "description": "Particle species to calculate charge density for."
@@ -15,7 +21,7 @@
     "filter": {
       "type": "string",
       "description": "Name of a filter to select particles contributing to the data source.",
-      "default": "all"
+      "default": "species_all"
     }
   }
 }

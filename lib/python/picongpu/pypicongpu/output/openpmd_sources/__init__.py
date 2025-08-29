@@ -1,17 +1,6 @@
 from .auto import Auto
 from .bound_electron_density import BoundElectronDensity
 from .source_base import SourceBase
-
-__all__ = [
-    "Auto",
-    "BoundElectronDensity",
-    "SourceBase",
-]
-
-"""
-
-from .auto import Auto
-from .bound_electron_density import BoundElectronDensity
 from .charge_density import ChargeDensity
 from .counter import Counter
 from .density import Density
@@ -26,10 +15,10 @@ from .momentum import Momentum
 from .momentum_density import MomentumDensity
 from .weighted_velocity import WeightedVelocity
 
-
 __all__ = [
     "Auto",
     "BoundElectronDensity",
+    "SourceBase",
     "ChargeDensity",
     "Counter",
     "Density",
@@ -44,4 +33,3 @@ __all__ = [
     "MomentumDensity",
     "WeightedVelocity",
 ]
-"""

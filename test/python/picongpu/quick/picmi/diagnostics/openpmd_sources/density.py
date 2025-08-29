@@ -10,53 +10,55 @@ from picongpu.pypicongpu.output.openpmd_sources import Density as PyPIConGPUDens
 from picongpu.picmi.species import Species as PICMISpecies
 from picongpu.pypicongpu.species import Species as PyPIConGPUSpecies
 import unittest
+import typeguard
 
 
-# Test cases for valid Density inputs
 TESTCASES_VALID = [
     (
-        {"species": PICMISpecies(name="electrons"), "filter": "all"},
-        {"filter": "all"},
+        {"species": PICMISpecies(name="electrons"), "filter": "species_all"},
+        {"filter": "species_all"},
     ),
     (
-        {"species": PICMISpecies(name="ions"), "filter": "electrons"},
-        {"filter": "electrons"},
+        {"species": PICMISpecies(name="ions"), "filter": "fields_all"},
+        {"filter": "fields_all"},
     ),
     (
-        {"species": PICMISpecies(name="protons"), "filter": "ions"},
-        {"filter": "ions"},
+        {"species": PICMISpecies(name="protons"), "filter": "custom_filter"},
+        {"filter": "custom_filter"},
     ),
     (
         {"species": PICMISpecies(name="electrons")},
-        {"filter": "all"},
+        {"filter": "species_all"},
     ),
 ]
 
-# Invalid test cases for instantiation
 TESTCASES_INVALID = [
     (
-        {"species": PICMISpecies(name="electrons"), "filter": 123},
-        "Filter must be a string",
+        {"species": PICMISpecies(name="electrons"), "filter": "invalid"},
+        r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid",
     ),
     (
-        {"species": "not_a_species", "filter": "all"},
-        "Species must be a PICMISpecies",
+        {"species": PICMISpecies(name="electrons"), "filter": 123},
+        r"argument \"filter\" \(int\) is not an instance of str",
+    ),
+    (
+        {"species": "not_a_species", "filter": "species_all"},
+        r"argument \"species\" \(str\) is not an instance of picongpu.picmi.species.Species",
     ),
 ]
 
-# Invalid test cases for unmapped species
 TESTCASES_INVALID_MAPPING = [
     (
-        {"species": PICMISpecies(name="electrons"), "filter": "all", "mapping": {}},
-        "Species .* is not known to Simulation",
+        {"species": PICMISpecies(name="electrons"), "filter": "species_all", "mapping": {}},
+        r"Species .* is not known to Simulation",
     ),
     (
         {
             "species": PICMISpecies(name="electrons"),
-            "filter": "all",
+            "filter": "species_all",
             "mapping": {PICMISpecies(name="ions"): PyPIConGPUSpecies()},
         },
-        "Species .* is not known to Simulation",
+        r"Species .* is not known to Simulation",
     ),
 ]
 
@@ -68,14 +70,13 @@ class PICMI_TestDensity(unittest.TestCase):
             with self.subTest(params=params):
                 source = Density(**params)
                 self.assertEqual(source.species, params["species"])
-                self.assertEqual(source.filter, params.get("filter", "all"))
-                source.check()  # Should not raise
+                self.assertEqual(source.filter, params.get("filter", "species_all"))
+                source.check()
 
         for params, expected_error in TESTCASES_INVALID:
             with self.subTest(params=params, expected_error=expected_error):
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    source = Density(**params)
-                    source.check()
+                with self.assertRaisesRegex((ValueError, typeguard.TypeCheckError), expected_error):
+                    Density(**params).check()
 
     def test_density_serialization(self):
         """Test Density serialization to PyPIConGPUDensity."""

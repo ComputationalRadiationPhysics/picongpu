@@ -19,14 +19,14 @@ class SourceBase(RenderedObject, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def filter(self) -> typing.Optional[str]:
+    def filter(self) -> str:
         """
         Filter name for particle selection.
 
         Returns
         -------
-        str or None
-            Filter name, or None if no filter is applied.
+        str
+            Filter name.
         """
         pass
 
@@ -44,6 +44,6 @@ class SourceBase(RenderedObject, metaclass=ABCMeta):
         Returns
         -------
         dict
-            Serialized representation including at least 'name'.
+            Serialized representation with plugin type.
         """
-        return {"name": self.__class__.__name__.lower()}
+        return {"type": self.__class__.__name__.lower()}

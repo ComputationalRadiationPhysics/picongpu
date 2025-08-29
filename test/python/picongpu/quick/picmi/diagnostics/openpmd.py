@@ -39,17 +39,21 @@ class MockSource(SourceBase):
         class MockPyPIConGPUSource(PyPIConGPUSourceBase):
             def __init__(self, name, filter_value):
                 self.name = name
-                self.filter = filter_value
+                self._filter = filter_value
+
+            @property
+            def filter(self) -> str:
+                return self._filter
 
             def _get_serialized(self):
-                return {"name": self.name, "filter": self.filter}
+                return {"name": self.name, "filter": self._filter}
 
             def check(self):
                 valid_filters = ["species_all", "fields_all", "custom_filter"]
-                if not isinstance(self.filter, str):
-                    raise ValueError(f"Filter must be a string, got {type(self.filter)}")
-                if self.filter not in valid_filters:
-                    raise ValueError(f"Filter must be one of {valid_filters}, got {self.filter}")
+                if not isinstance(self._filter, str):
+                    raise ValueError(f"Filter must be a string, got {type(self._filter)}")
+                if self._filter not in valid_filters:
+                    raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
 
         return MockPyPIConGPUSource(self.name, self._filter)
 
@@ -80,8 +84,8 @@ TESTCASES_VALID = [
             "file": None,
             "ext": "bp",
             "infix": "NULL",
-            "json": {},
-            "json_restart": {},
+            "json": None,
+            "json_restart": None,
             "data_preparation_strategy": None,
             "toml": None,
             "particle_io_chunk_size": None,
@@ -149,8 +153,8 @@ TESTCASES_VALID = [
             "file": "output/ions",
             "ext": "bp",
             "infix": "_%06T",
-            "json": {},
-            "json_restart": {},
+            "json": None,
+            "json_restart": None,
             "data_preparation_strategy": "adios",
             "toml": None,
             "particle_io_chunk_size": 256,

@@ -10,12 +10,11 @@ from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.output.openpmd_sources.momentum_density import MomentumDensity
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Momentum as MomentumAttr
-
 import unittest
+import typeguard
 import typing
 
 
-# Mock Species class for testing
 class MockSpecies(Species):
     def __init__(self):
         self.name = "electron"
@@ -23,7 +22,18 @@ class MockSpecies(Species):
         self.constants = []
 
     def get_rendering_context(self) -> typing.Dict:
-        return {}  # Minimal context to avoid schema conflicts
+        return {
+            "name": self.name,
+            "typename": "Electron",
+            "attributes": [{"picongpu_name": attr.__class__.__name__.lower()} for attr in self.attributes],
+            "constants": {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        }
 
     def check(self) -> None:
         pass
@@ -32,48 +42,85 @@ class MockSpecies(Species):
 class TestMomentumDensity(unittest.TestCase):
     def test_source_momentum_density(self):
         """Test MomentumDensity instantiation and serialization."""
-        # Test instantiation with default filter and direction
         source = MomentumDensity(species=MockSpecies())
         self.assertIsInstance(source.species, MockSpecies)
-        self.assertEqual(source.filter, "all")
+        self.assertEqual(source.filter, "species_all")
         self.assertEqual(source.direction, "x")
         source.check()
 
-        # Test instantiation with custom filter and direction
-        source = MomentumDensity(species=MockSpecies(), filter="custom", direction="y")
-        self.assertEqual(source.filter, "custom")
+        source = MomentumDensity(species=MockSpecies(), filter="custom_filter", direction="y")
+        self.assertEqual(source.filter, "custom_filter")
         self.assertEqual(source.direction, "y")
         source.check()
 
-        # Test invalid filter type
-        with self.assertRaises(ValueError):
-            MomentumDensity(species=MockSpecies(), filter=123).check()
+        source = MomentumDensity(species=MockSpecies(), filter="fields_all", direction="z")
+        self.assertEqual(source.filter, "fields_all")
+        self.assertEqual(source.direction, "z")
+        source.check()
 
-        # Test invalid species type
-        with self.assertRaises(ValueError):
-            MomentumDensity(species="invalid").check()
+        with self.assertRaisesRegex(
+            ValueError, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"
+        ):
+            MomentumDensity(species=MockSpecies(), filter="invalid").check()
 
-        # Test invalid direction
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(typeguard.TypeCheckError, r"argument \"filter\" \(int\) is not an instance of str"):
+            MomentumDensity(species=MockSpecies(), filter=123)
+
+        with self.assertRaisesRegex(
+            typeguard.TypeCheckError,
+            r"argument \"species\" \(str\) is not an instance of picongpu.pypicongpu.species.species.Species",
+        ):
+            MomentumDensity(species="invalid")
+
+        with self.assertRaisesRegex(
+            typeguard.TypeCheckError, r"argument \"direction\" \(str\) is not any of \('x', 'y', 'z'\)"
+        ):
             MomentumDensity(species=MockSpecies(), direction="invalid").check()
 
-        # Test serialization
         openpmd = OpenPMD(
             period=TimeStepSpec([slice(0, None, 100)]),
-            source=[MomentumDensity(species=MockSpecies(), filter="custom", direction="z")],
+            source=[MomentumDensity(species=MockSpecies(), filter="custom_filter", direction="z")],
         )
         context = openpmd.get_rendering_context()
         self.assertTrue(context["typeID"]["openpmd"])
         context = context["data"]
-        self.assertEqual(len(context["source"], 1))
-        self.assertTrue(isinstance(context["source"][0], dict))
-        self.assertEqual(context["source"][0]["filter"], "custom")
-        self.assertEqual(context["source"][0]["species"], {})
+        self.assertEqual(len(context["source"]), 1)
+        self.assertEqual(context["source"][0]["type"], "momentumdensity")
+        self.assertEqual(context["source"][0]["filter"], "custom_filter")
         self.assertEqual(context["source"][0]["direction"], "z")
+        self.assertEqual(context["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["source"][0]["species"]["typename"], "Electron")
+        self.assertEqual(len(context["source"][0]["species"]["attributes"]), 2)
+        self.assertEqual(
+            context["source"][0]["species"]["constants"],
+            {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        )
 
-        # Test serialization with default filter and direction
         openpmd = OpenPMD(period=TimeStepSpec([slice(0, None, 100)]), source=[MomentumDensity(species=MockSpecies())])
         context = openpmd.get_rendering_context()
-        self.assertEqual(context["data"]["source"][0]["filter"], "all")
-        self.assertEqual(context["data"]["source"][0]["species"], {})
+        self.assertEqual(context["data"]["source"][0]["type"], "momentumdensity")
+        self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
         self.assertEqual(context["data"]["source"][0]["direction"], "x")
+        self.assertEqual(context["data"]["source"][0]["species"]["name"], "electron")
+        self.assertEqual(context["data"]["source"][0]["species"]["typename"], "Electron")
+        self.assertEqual(len(context["data"]["source"][0]["species"]["attributes"]), 2)
+        self.assertEqual(
+            context["data"]["source"][0]["species"]["constants"],
+            {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "ground_state_ionization": None,
+                "element_properties": None,
+            },
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
