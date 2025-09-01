@@ -165,8 +165,8 @@ class Png:
             raise ValueError("species must be set")
         if self.period is None:
             raise ValueError("period must be set")
-        if self.axis not in ["xy", "xz", "yz"]:
-            raise ValueError(f"axis must be 'xy', 'xz', or 'yz', got {self.axis}")
+        if self.axis not in ["xy", "yx", "xz", "zx", "yz", "zy"]:
+            raise ValueError(f"axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy', got {self.axis}")
         if self.slice_point < 0.0 or self.slice_point > 1.0:
             raise ValueError(f"slice_point must be in [0, 1], got {self.slice_point}")
         if self.scale_image <= 0:

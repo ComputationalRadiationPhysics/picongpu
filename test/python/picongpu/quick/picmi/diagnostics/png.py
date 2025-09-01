@@ -147,7 +147,7 @@ class PICMI_TestPng(unittest.TestCase):
     def test_validation(self):
         """Test validation of constraints in check()."""
         # Invalid axis
-        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'xz', or 'yz'"):
+        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy'"):
             png = Png(
                 period=self.period,
                 axis="xx",

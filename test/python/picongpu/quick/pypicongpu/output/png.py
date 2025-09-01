@@ -56,7 +56,7 @@ class TestPng(unittest.TestCase):
     def test_empty(self):
         """Invalid configurations are handled correctly."""
         # Invalid axis
-        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'xz', or 'yz'"):
+        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy'"):
             png = Png(
                 species=self.species,
                 period=self.period,
@@ -355,7 +355,7 @@ class TestPng(unittest.TestCase):
         # Invalid axis (invalid strings)
         invalid_axes_strings = ["x", "xyz", "xx"]
         for invalid in invalid_axes_strings:
-            with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'xz', or 'yz'"):
+            with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy'"):
                 png = Png(
                     species=self.species,
                     period=self.period,
@@ -840,7 +840,7 @@ class TestPng(unittest.TestCase):
             preChannel2="E_y",
             preChannel3="E_z",
         )
-        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'xz', or 'yz'"):
+        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy'"):
             png.check()
 
         # Invalid slicePoint
@@ -1192,7 +1192,7 @@ class TestPng(unittest.TestCase):
             preChannel2="E_y",
             preChannel3="E_z",
         )
-        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'xz', or 'yz'"):
+        with self.assertRaisesRegex(ValueError, "axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy'"):
             png.check()
 
         # Invalid slicePoint
