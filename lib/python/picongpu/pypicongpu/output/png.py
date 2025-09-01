@@ -135,8 +135,8 @@ class Png(Plugin):
             _ = self.period
         except AttributeError:
             raise ValueError("period must be set") from None
-        if self.axis not in ["xy", "xz", "yz"]:
-            raise ValueError(f"axis must be 'xy', 'xz', or 'yz', got {self.axis}")
+        if self.axis not in ["xy", "yx", "xz", "zx", "yz", "zy"]:
+            raise ValueError(f"axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy', got {self.axis}")
         if self.slicePoint < 0.0 or self.slicePoint > 1.0:
             raise ValueError(f"slicePoint must be in [0, 1], got {self.slicePoint}")
         if self.scale_image <= 0:
