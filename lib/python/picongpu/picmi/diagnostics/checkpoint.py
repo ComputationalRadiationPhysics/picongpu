@@ -34,17 +34,17 @@ class Checkpoint:
         Time interval between checkpoints in simulation time steps.
         Use 0 or None to disable time-based checkpointing.
     directory: str, optional
-        Directory to store checkpoint files. Default: "checkpoints".
+         Directory inside simOutput for writing checkpoints (default: "checkpoints").
     file: str, optional
-        Base name for checkpoint files. Default: None.
+        Relative or absolute fileset prefix for checkpoint files. Default: None.
     restart: bool, optional
         Enable restarting from checkpoints. Default: None.
     tryRestart: bool, optional
-        Attempt to restart from existing checkpoints. Default: None.
+        If True, restart from the latest checkpoint if available, else start from scratch. Default: None.
     restartStep: int, optional
         Specific step to restart from. Default: None.
     restartDirectory: str, optional
-        Directory to look for restart files. Default: None.
+        Directory inside simOutput containing checkpoints for restart.
     restartFile: str, optional
         Specific file to restart from. Default: None.
     restartChunkSize: int, optional
