@@ -1,36 +1,34 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.energy_density_cutoff.EnergyDensityCutoff",
-  "type": "object",
-  "description": "Energy density cutoff data source for openPMD output in PIConGPU, calculating energy density for a specified species with an optional maximum energy cutoff.",
-  "unevaluatedProperties": false,
-  "required": [
-    "type",
-    "species",
-    "filter"
-  ],
-  "properties": {
-    "type": {
-      "type": "string",
-      "const": "energydensitycutoff",
-      "description": "Type of the data source."
+  "allOf": [
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.source_base.SourceBase"
     },
-    "species": {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
-      "description": "Particle species to calculate energy density for."
-    },
-    "filter": {
-      "type": "string",
-      "description": "Name of a filter to select particles contributing to the data source.",
-      "default": "species_all"
-    },
-    "cutoff_max_energy": {
-      "type": [
-        "number",
-        "null"
+    {
+      "type": "object",
+      "description": "Energy density cutoff data source for openPMD output in PIConGPU, calculating energy density for a specified species with an optional maximum energy cutoff.",
+      "unevaluatedProperties": false,
+      "required": [
+        "type",
+        "species",
+        "cutoff_max_energy"
       ],
-      "description": "Maximum energy cutoff for the calculation (optional, in appropriate units).",
-      "minimum": 0,
-      "exclusiveMinimum": true
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "energydensitycutoff",
+          "description": "Type of the data source."
+        },
+        "cutoff_max_energy": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Maximum energy cutoff for the calculation (optional, in appropriate units).",
+          "minimum": 0,
+          "exclusiveMinimum": true
+        }
+      }
     }
-  }
+  ]
 }

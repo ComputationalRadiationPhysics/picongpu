@@ -4,8 +4,7 @@
   "description": "Derived attributes data source for openPMD output in PIConGPU, enabling derived attributes with an optional filter.",
   "unevaluatedProperties": false,
   "required": [
-    "type",
-    "filter"
+    "type"
   ],
   "properties": {
     "type": {

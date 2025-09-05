@@ -1,38 +1,35 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.momentum_density.MomentumDensity",
-  "type": "object",
-  "description": "Momentum density data source for openPMD output in PIConGPU, calculating momentum density component for a specified species and direction.",
-  "unevaluatedProperties": false,
-  "required": [
-    "type",
-    "species",
-    "filter",
-    "direction"
-  ],
-  "properties": {
-    "type": {
-      "type": "string",
-      "const": "momentumdensity",
-      "description": "Type of the data source."
+  "allOf": [
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.source_base.SourceBase"
     },
-    "species": {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
-      "description": "Particle species to calculate momentum density component for."
-    },
-    "filter": {
-      "type": "string",
-      "description": "Name of a filter to select particles contributing to the data source.",
-      "default": "species_all"
-    },
-    "direction": {
-      "type": "string",
-      "enum": [
-        "x",
-        "y",
-        "z"
+    {
+      "type": "object",
+      "description": "Momentum density data source for openPMD output in PIConGPU, calculating momentum density component for a specified species and direction.",
+      "unevaluatedProperties": false,
+      "required": [
+        "type",
+        "species",
+        "direction"
       ],
-      "description": "Direction of the momentum density component (x, y, or z).",
-      "default": "x"
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "momentumdensity",
+          "description": "Type of the data source."
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ],
+          "description": "Direction of the momentum density component (x, y, or z).",
+          "default": "x"
+        }
+      }
     }
-  }
+  ]
 }

@@ -5,7 +5,6 @@
   "unevaluatedProperties": false,
   "required": [
     "type",
-    "filter",
     "species"
   ],
   "properties": {

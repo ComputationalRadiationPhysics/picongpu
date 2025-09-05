@@ -7,7 +7,7 @@ License: GPLv3+
 
 from picongpu.pypicongpu.output import OpenPMD
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
-from picongpu.pypicongpu.output.openpmd_sources.larmor_power import LarmorPower
+from picongpu.pypicongpu.output.openpmd_sources import LarmorPower
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Momentum
 import unittest

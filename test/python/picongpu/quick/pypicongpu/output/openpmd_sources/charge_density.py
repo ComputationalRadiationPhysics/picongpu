@@ -7,7 +7,7 @@ License: GPLv3+
 
 from picongpu.pypicongpu.output import OpenPMD
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
-from picongpu.pypicongpu.output.openpmd_sources.charge_density import ChargeDensity
+from picongpu.pypicongpu.output.openpmd_sources import ChargeDensity
 from picongpu.pypicongpu.species import Species
 from picongpu.pypicongpu.species.attribute import Position, Momentum
 import unittest

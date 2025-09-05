@@ -25,102 +25,61 @@ class TestMacroParticleCount(unittest.TestCase):
     def setUp(self):
         self.species = create_species()
 
-    def test_instantiation_valid(self):
-        """Test instantiation and validation for valid inputs."""
-        TESTCASES_VALID = [
-            (
-                {
-                    "species": self.species,
-                    "period": TimeStepSpec([slice(0, None, 17)]),
-                },
-                None,
-            ),
-            (
-                {
-                    "species": self.species,
-                    "period": TimeStepSpec([]),
-                },
-                "MacroParticleCount is disabled",
-            ),
-        ]
-
-        for params, warning_msg in TESTCASES_VALID:
-            with self.subTest(params=params):
-                mpc = MacroParticleCount()
-                for key, value in params.items():
-                    setattr(mpc, key, value)
-                for key, value in params.items():
-                    self.assertEqual(getattr(mpc, key), value)
-                mpc.check()  # Ensure attributes are set correctly
-                if warning_msg:
-                    with self.assertWarnsRegex(UserWarning, warning_msg):
-                        mpc._get_serialized()
-                else:
-                    mpc._get_serialized()
-
-    def test_types(self):
-        """Type safety is ensured."""
-        mpc = MacroParticleCount()
-
-        invalid_species = ["string", 1, 1.0, None, {}]
-        for invalid in invalid_species:
-            with self.assertRaises(typeguard.TypeCheckError):
-                mpc.species = invalid
-
-        invalid_periods = [13.2, [], "2", None, {}]
-        for invalid in invalid_periods:
-            with self.assertRaises(typeguard.TypeCheckError):
-                mpc.period = invalid
-
+    def test_instantiation_and_types(self):
+        """Test instantiation, type safety, and valid serialization."""
         # Valid case
+        mpc = MacroParticleCount()
         mpc.species = self.species
         mpc.period = TimeStepSpec([slice(0, None, 17)])
         mpc.check()
-        mpc._get_serialized()
+        context = mpc.get_rendering_context()  # Use public API
+        self.assertTrue(context["typeID"]["macroparticlecount"])
+        self.assertEqual(context["data"]["species"]["name"], "electron")
+        self.assertEqual(context["data"]["period"]["specs"][0]["step"], 17)
 
-    def test_rendering(self):
-        """Data transformed to template-consumable version."""
+        # Type safety for species
+        invalid_species = ["string", 1, 1.0, None, {}]
+        for invalid in invalid_species:
+            with self.subTest(invalid_species=invalid):
+                mpc = MacroParticleCount()
+                with self.assertRaises(typeguard.TypeCheckError):
+                    mpc.species = invalid  # Expect error during assignment
+
+        # Type safety for period
+        invalid_periods = [13.2, [], "2", None, {}]
+        for invalid in invalid_periods:
+            with self.subTest(invalid_period=invalid):
+                mpc = MacroParticleCount()
+                mpc.species = self.species  # Set valid species first
+                with self.assertRaises(typeguard.TypeCheckError):
+                    mpc.period = invalid  # Expect error during assignment
+
+    def test_rendering_and_validation(self):
+        """Test serialization output, disabled state, and validation errors."""
+        # Valid serialization
         mpc = MacroParticleCount()
         mpc.species = self.species
         mpc.period = TimeStepSpec([slice(0, None, 42)])
-
-        context = mpc.get_rendering_context()
+        context = mpc.get_rendering_context()  # Use public API
         self.assertTrue(context["typeID"]["macroparticlecount"])
         context = context["data"]
         self.assertEqual(42, context["period"]["specs"][0]["step"])
         self.assertEqual(0, context["period"]["specs"][0]["start"])
         self.assertEqual("electron", context["species"]["name"])
 
-        # Empty period
+        # Empty period warning
         mpc.period = TimeStepSpec([])
         with self.assertWarnsRegex(UserWarning, "MacroParticleCount is disabled"):
-            mpc.get_rendering_context()
+            mpc.get_rendering_context()  # Use public API
 
-        # Invalid attributes
+        # Validation errors
         mpc = MacroParticleCount()
-        with self.assertRaises(ValueError, msg="species must be set"):
-            mpc.get_rendering_context()
-
-    def test_validation(self):
-        """Test validation for unset attributes."""
-        mpc = MacroParticleCount()
-        with self.assertRaises(ValueError, msg="species must be set"):
-            mpc.check()
+        with self.assertRaisesRegex(ValueError, "species must be set"):
+            mpc.get_rendering_context()  # Calls check() internally
 
         mpc.species = self.species
-        with self.assertRaises(ValueError, msg="period must be set"):
-            mpc.check()
-
-        mpc.period = TimeStepSpec([slice(0, None, 1)])
-        mpc.check()  # Should pass
-
-    def test_period_warning(self):
-        """Test warning for disabled MacroParticleCount output."""
-        mpc = MacroParticleCount()
-        mpc.species = self.species
-        mpc.period = TimeStepSpec([])
-        with self.assertWarnsRegex(UserWarning, "MacroParticleCount is disabled"):
-            mpc._get_serialized()
+        with self.assertRaisesRegex(ValueError, "period must be set"):
+            mpc.get_rendering_context()  # Calls check() internally
 
 
 if __name__ == "__main__":

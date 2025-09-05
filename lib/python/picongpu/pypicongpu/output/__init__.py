@@ -7,7 +7,7 @@ from .timestepspec import TimeStepSpec
 from .rangespec import RangeSpec
 from .checkpoint import Checkpoint
 from .openpmd import OpenPMD
-from .openpmd_sources.source_base import SourceBase
+from .openpmd_sources import SourceBase
 
 __all__ = [
     "Auto",

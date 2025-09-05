@@ -3,9 +3,6 @@
   "type": "object",
   "description": "Abstract base class for openPMD data sources in PIConGPU, defining common properties for derived attributes.",
   "unevaluatedProperties": false,
-  "required": [
-    "type"
-  ],
   "properties": {
     "type": {
       "type": "string",

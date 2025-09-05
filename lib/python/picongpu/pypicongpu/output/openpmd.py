@@ -65,9 +65,8 @@ class OpenPMD(Plugin):
         self.check()
 
     def check(self) -> None:
-        """
-        Validate the provided parameters.
-        """
+        if self.file is not None and len(self.file.strip()) == 0:
+            raise ValueError("file must be a non-empty string")
         if self.particle_io_chunk_size is not None and self.particle_io_chunk_size < 1:
             raise ValueError("particle_io_chunk_size (in MiB) must be positive")
         if self.ext == "sst" and self.infix is not None and self.infix != "NULL":
@@ -80,7 +79,7 @@ class OpenPMD(Plugin):
 
         return {
             "period": self.period.get_rendering_context(),
-            "source": [s._get_serialized() for s in self.source] if self.source else None,
+            "source": [s._get_serialized() for s in self.source] if self.source is not None else None,
             "range": self.range._get_serialized() if self.range else None,
             "file": self.file,
             "ext": self.ext,

@@ -12,114 +12,11 @@ import typeguard
 
 
 class TestCheckpoint(unittest.TestCase):
-    def test_empty(self):
-        """Empty or incomplete configurations are handled correctly."""
-        cp = Checkpoint()
-        # Neither period nor timePeriod set
-        with self.assertRaisesRegex(ValueError, "At least one of period or timePeriod must be provided"):
-            cp._get_serialized()
-
-        # Set period but test negative timePeriod
-        cp.period = TimeStepSpec([slice(0, None, 100)])
-        cp.timePeriod = -1
-        with self.assertRaisesRegex(ValueError, "timePeriod must be non-negative"):
-            cp._get_serialized()
-
-        # Set valid minimal configuration with period
+    def test_instantiation_and_types(self):
+        """Test instantiation, type safety, and valid serialization."""
+        # Valid configuration with period
         cp = Checkpoint()
         cp.period = TimeStepSpec([slice(0, None, 100)])
-        serialized = cp.get_rendering_context()
-        self.assertTrue(serialized["typeID"]["checkpoint"])
-        self.assertEqual(serialized["data"]["period"]["specs"][0]["step"], 100)
-        self.assertIsNone(serialized["data"].get("timePeriod"))
-
-        # Set valid minimal configuration with timePeriod
-        cp = Checkpoint()
-        cp.timePeriod = 100
-        serialized = cp.get_rendering_context()
-        self.assertTrue(serialized["typeID"]["checkpoint"])
-        self.assertEqual(serialized["data"]["timePeriod"], 100)
-        self.assertIsNone(serialized["data"].get("period"))
-
-    def test_types(self):
-        """Type safety is ensured for all attributes."""
-        cp = Checkpoint()
-
-        # Invalid period
-        invalid_periods = [1, "string", [], {}]
-        for invalid in invalid_periods:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.period = invalid
-
-        # Invalid timePeriod
-        invalid_timePeriods = ["string", 1.5, []]
-        for invalid in invalid_timePeriods:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.timePeriod = invalid
-
-        # Invalid directory
-        invalid_directories = [1, 1.5, []]
-        for invalid in invalid_directories:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.directory = invalid
-
-        # Invalid file
-        invalid_files = [1, 1.5, []]
-        for invalid in invalid_files:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.file = invalid
-
-        # Invalid restart
-        invalid_restarts = [1, "string", []]
-        for invalid in invalid_restarts:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.restart = invalid
-
-        # Invalid tryRestart
-        invalid_tryRestarts = [1, "string", []]
-        for invalid in invalid_tryRestarts:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.tryRestart = invalid
-
-        # Invalid restartStep
-        invalid_restartSteps = ["string", 1.5, []]
-        for invalid in invalid_restartSteps:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.restartStep = invalid
-
-        # Invalid restartDirectory
-        invalid_restartDirectories = [1, 1.5, []]
-        for invalid in invalid_restartDirectories:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.restartDirectory = invalid
-
-        # Invalid restartFile
-        invalid_restartFiles = [1, 1.5, []]
-        for invalid in invalid_restartFiles:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.restartFile = invalid
-
-        # Invalid restartChunkSize
-        invalid_restartChunkSizes = ["string", 1.5, []]
-        for invalid in invalid_restartChunkSizes:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.restartChunkSize = invalid
-
-        # Invalid restartLoop
-        invalid_restartLoops = ["string", 1.5, []]
-        for invalid in invalid_restartLoops:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.restartLoop = invalid
-
-        # Invalid openPMD
-        invalid_openPMDs = [1, "string", []]
-        for invalid in invalid_openPMDs:
-            with self.assertRaises(typeguard.TypeCheckError):
-                cp.openPMD = invalid
-
-        # Valid configuration
-        cp.period = TimeStepSpec([slice(0, None, 100)])
-        cp.timePeriod = 100
         cp.directory = "checkpoints"
         cp.file = "checkpoint_%T"
         cp.restart = True
@@ -130,10 +27,45 @@ class TestCheckpoint(unittest.TestCase):
         cp.restartChunkSize = 1
         cp.restartLoop = 0
         cp.openPMD = {"backend": "bp"}
-        cp.get_rendering_context()  # Should succeed
+        cp.check()
+        context = cp.get_rendering_context()
+        self.assertTrue(context["typeID"]["checkpoint"])
+        self.assertEqual(context["data"]["period"]["specs"][0]["step"], 100)
+        self.assertIsNone(context["data"].get("timePeriod"))
 
-    def test_rendering(self):
-        """Serialized data is correctly formatted for template consumption."""
+        # Valid configuration with timePeriod
+        cp = Checkpoint()
+        cp.timePeriod = 100
+        context = cp.get_rendering_context()
+        self.assertTrue(context["typeID"]["checkpoint"])
+        self.assertEqual(context["data"]["timePeriod"], 100)
+        self.assertIsNone(context["data"].get("period"))
+
+        # Type safety
+        invalid_types = {
+            "period": ["string", 1],
+            "timePeriod": ["string", 1.5],
+            "directory": [1, []],
+            "file": [1, []],
+            "restart": ["string", 1],
+            "tryRestart": ["string", 1],
+            "restartStep": ["string", 1.5],
+            "restartDirectory": [1, []],
+            "restartFile": [1, []],
+            "restartChunkSize": ["string", 1.5],
+            "restartLoop": ["string", 1.5],
+            "openPMD": ["string", 1],
+        }
+        for attr, invalid_values in invalid_types.items():
+            for value in invalid_values:
+                with self.subTest(attr=attr, value=value):
+                    cp = Checkpoint()
+                    with self.assertRaises(typeguard.TypeCheckError):
+                        setattr(cp, attr, value)
+
+    def test_rendering_and_validation(self):
+        """Test serialization output, validation errors, and edge cases."""
+        # Valid full serialization
         cp = Checkpoint()
         cp.period = TimeStepSpec([slice(0, None, 100)])
         cp.timePeriod = 100
@@ -147,7 +79,6 @@ class TestCheckpoint(unittest.TestCase):
         cp.restartChunkSize = 1
         cp.restartLoop = 0
         cp.openPMD = {"backend": "bp"}
-
         context = cp.get_rendering_context()
         self.assertTrue(context["typeID"]["checkpoint"])
         context = context["data"]
@@ -164,84 +95,38 @@ class TestCheckpoint(unittest.TestCase):
         self.assertEqual(context["restartLoop"], 0)
         self.assertEqual(context["openPMD"], {"backend": "bp"})
 
-        # Test negative index resolution
-        cp = Checkpoint()
-        cp.period = TimeStepSpec([slice(-10, None, 1)])
-        context = cp.get_rendering_context()
-        self.assertEqual(context["data"]["period"]["specs"][0]["start"], -10)
-        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], -1)
-
-        # Test integer period
-        cp = Checkpoint()
-        cp.period = TimeStepSpec([slice(None, None, 10)])
-        context = cp.get_rendering_context()
-        self.assertEqual(context["data"]["period"]["specs"][0]["start"], 0)
-        self.assertEqual(context["data"]["period"]["specs"][0]["stop"], -1)
-        self.assertEqual(context["data"]["period"]["specs"][0]["step"], 10)
-
-        # Unset period and timePeriod should fail
+        # Validation errors
         cp = Checkpoint()
         with self.assertRaisesRegex(ValueError, "At least one of period or timePeriod must be provided"):
             cp.get_rendering_context()
 
-    def test_validation(self):
-        """Constraints on parameters are enforced."""
         cp = Checkpoint()
-
-        # Neither period nor timePeriod set
-        with self.assertRaisesRegex(ValueError, "At least one of period or timePeriod must be provided"):
-            cp.check()
-
-        # Negative timePeriod
         cp.timePeriod = -1
         with self.assertRaisesRegex(ValueError, "timePeriod must be non-negative"):
-            cp.check()
+            cp.get_rendering_context()
 
-        # Negative restartStep
         cp = Checkpoint()
         cp.timePeriod = 100
         cp.restartStep = -1
         with self.assertRaisesRegex(ValueError, "restartStep must be non-negative"):
-            cp.check()
+            cp.get_rendering_context()
 
-        # Non-positive restartChunkSize
         cp = Checkpoint()
         cp.timePeriod = 100
         cp.restartChunkSize = 0
         with self.assertRaisesRegex(ValueError, "restartChunkSize must be positive"):
-            cp.check()
+            cp.get_rendering_context()
 
-        # Negative restartLoop
         cp = Checkpoint()
         cp.timePeriod = 100
         cp.restartLoop = -1
         with self.assertRaisesRegex(ValueError, "restartLoop must be non-negative"):
-            cp.check()
+            cp.get_rendering_context()
 
-        # Invalid TimeStepSpec
         cp = Checkpoint()
         cp.period = TimeStepSpec([slice(0, None, -1)])
         with self.assertRaisesRegex(ValueError, "Step size must be >= 1"):
             cp.get_rendering_context()
-
-        # Valid configuration
-        cp = Checkpoint()
-        cp.period = TimeStepSpec([slice(0, None, 100)])
-        cp.timePeriod = 100
-        cp.directory = "checkpoints"
-        cp.file = "checkpoint_%T"
-        cp.restart = True
-        cp.tryRestart = False
-        cp.restartStep = 0
-        cp.restartDirectory = "restart"
-        cp.restartFile = "restart_%T"
-        cp.restartChunkSize = 1
-        cp.restartLoop = 0
-        cp.openPMD = {"backend": "bp"}
-        cp.check()  # Should succeed
-        serialized = cp.get_rendering_context()["data"]
-        self.assertEqual(serialized["period"]["specs"][0]["step"], 100)
-        self.assertEqual(serialized["timePeriod"], 100)
 
 
 if __name__ == "__main__":

@@ -1,38 +1,35 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.mid_current_density_component.MidCurrentDensityComponent",
-  "type": "object",
-  "description": "Mid current density component data source for openPMD output in PIConGPU, calculating current density component for a specified species and direction.",
-  "unevaluatedProperties": false,
-  "required": [
-    "type",
-    "species",
-    "filter",
-    "direction"
-  ],
-  "properties": {
-    "type": {
-      "type": "string",
-      "const": "midcurrentdensitycomponent",
-      "description": "Type of the data source."
+  "allOf": [
+    {
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.source_base.SourceBase"
     },
-    "species": {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
-      "description": "Particle species to calculate current density component for."
-    },
-    "filter": {
-      "type": "string",
-      "description": "Name of a filter to select particles contributing to the data source.",
-      "default": "species_all"
-    },
-    "direction": {
-      "type": "string",
-      "enum": [
-        "x",
-        "y",
-        "z"
+    {
+      "type": "object",
+      "description": "Mid current density component data source for openPMD output in PIConGPU, calculating current density component for a specified species and direction.",
+      "unevaluatedProperties": false,
+      "required": [
+        "type",
+        "species",
+        "direction"
       ],
-      "description": "Direction of the current density component (x, y, or z).",
-      "default": "x"
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "midcurrentdensitycomponent",
+          "description": "Type of the data source."
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ],
+          "description": "Direction of the current density component (x, y, or z).",
+          "default": "x"
+        }
+      }
     }
-  }
+  ]
 }

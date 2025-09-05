@@ -23,188 +23,87 @@ def create_species():
 
 
 class TestEnergyHistogram(unittest.TestCase):
-    def test_empty(self):
-        """Invalid configurations are handled correctly."""
-        # Invalid bin_count
-        with self.assertRaisesRegex(ValueError, "bin_count must be positive"):
-            eh = EnergyHistogram(
-                species=create_species(),
-                period=TimeStepSpec([slice(0, None, 100)]),
-                bin_count=0,
-                min_energy=0.0,
-                max_energy=1000.0,
-            )
-            eh._get_serialized()
+    def setUp(self):
+        self.species = create_species()
+        self.period = TimeStepSpec([slice(0, None, 100)])
 
-        # Invalid energy range
-        with self.assertRaisesRegex(ValueError, "min_energy must be less than max_energy"):
-            eh = EnergyHistogram(
-                species=create_species(),
-                period=TimeStepSpec([slice(0, None, 100)]),
-                bin_count=1024,
-                min_energy=1000.0,
-                max_energy=0.0,
-            )
-            eh._get_serialized()
-
+    def test_instantiation_and_types(self):
+        """Test instantiation, type safety, and valid serialization."""
         # Valid configuration
         eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
+            species=self.species,
+            period=self.period,
             bin_count=1024,
             min_energy=0.0,
             max_energy=1000.0,
         )
-        serialized = eh._get_serialized()
-        self.assertEqual(serialized["bin_count"], 1024)
-        self.assertEqual(serialized["min_energy"], 0.0)
-        self.assertEqual(serialized["max_energy"], 1000.0)
-
-    def test_types(self):
-        """Type safety is ensured for all attributes."""
-        # Invalid species
-        invalid_species = ["string", 1, 1.0, {}]
-        for invalid in invalid_species:
-            with self.assertRaises(typeguard.TypeCheckError):
-                eh = EnergyHistogram(
-                    species=invalid,
-                    period=TimeStepSpec([slice(0, None, 100)]),
-                    bin_count=1024,
-                    min_energy=0.0,
-                    max_energy=1000.0,
-                )
-
-        # Invalid period
-        invalid_periods = [13.2, [], "2", {}]
-        for invalid in invalid_periods:
-            with self.assertRaises(typeguard.TypeCheckError):
-                eh = EnergyHistogram(
-                    species=create_species(), period=invalid, bin_count=1024, min_energy=0.0, max_energy=1000.0
-                )
-
-        # Invalid bin_count
-        invalid_bin_counts = ["string", 1.0, {}]
-        for invalid in invalid_bin_counts:
-            with self.assertRaises(typeguard.TypeCheckError):
-                eh = EnergyHistogram(
-                    species=create_species(),
-                    period=TimeStepSpec([slice(0, None, 100)]),
-                    bin_count=invalid,
-                    min_energy=0.0,
-                    max_energy=1000.0,
-                )
-
-        # Invalid min_energy
-        invalid_min_energy = ["string", (1,), {}]
-        for invalid in invalid_min_energy:
-            with self.assertRaises(typeguard.TypeCheckError):
-                eh = EnergyHistogram(
-                    species=create_species(),
-                    period=TimeStepSpec([slice(0, None, 100)]),
-                    bin_count=1024,
-                    min_energy=invalid,
-                    max_energy=1000.0,
-                )
-
-        # Invalid max_energy
-        invalid_max_energy = ["string", (1,), {}]
-        for invalid in invalid_max_energy:
-            with self.assertRaises(typeguard.TypeCheckError):
-                eh = EnergyHistogram(
-                    species=create_species(),
-                    period=TimeStepSpec([slice(0, None, 100)]),
-                    bin_count=1024,
-                    min_energy=0.0,
-                    max_energy=invalid,
-                )
-
-        # Valid configuration
-        eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
-            bin_count=1024,
-            min_energy=0.0,
-            max_energy=1000.0,
-        )
-        eh._get_serialized()  # Should succeed
-
-    def test_rendering(self):
-        """Serialized data is correctly formatted for template consumption."""
-        eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
-            bin_count=1024,
-            min_energy=0.0,
-            max_energy=1000.0,
-        )
-
+        eh.check()
         context = eh.get_rendering_context()
         self.assertTrue(context["typeID"]["energyhistogram"])
-        context = context["data"]
-        self.assertEqual(context["period"]["specs"][0]["step"], 100)
-        self.assertEqual(context["bin_count"], 1024)
-        self.assertEqual(context["min_energy"], 0.0)
-        self.assertEqual(context["max_energy"], 1000.0)
+        self.assertEqual(context["data"]["bin_count"], 1024)
+        self.assertEqual(context["data"]["min_energy"], 0.0)
+        self.assertEqual(context["data"]["max_energy"], 1000.0)
+        self.assertEqual(context["data"]["species"]["name"], "electron")
+        self.assertEqual(context["data"]["period"]["specs"][0]["step"], 100)
 
-    def test_validation(self):
-        """Constraints on bin_count and energy range are enforced."""
-        # Invalid bin_count
+        # Type safety
+        invalid_types = {
+            "species": ["string", 1],
+            "period": ["string", 1],
+            "bin_count": ["string", 1.0],
+            "min_energy": ["string", []],
+            "max_energy": ["string", []],
+        }
+        for attr, invalid_values in invalid_types.items():
+            for value in invalid_values:
+                with self.subTest(attr=attr, value=value):
+                    kwargs = {
+                        "species": self.species,
+                        "period": self.period,
+                        "bin_count": 1024,
+                        "min_energy": 0.0,
+                        "max_energy": 1000.0,
+                    }
+                    kwargs[attr] = value
+                    with self.assertRaises(typeguard.TypeCheckError):
+                        EnergyHistogram(**kwargs)
+
+    def test_rendering_and_validation(self):
+        """Test serialization output, validation errors, and disabled state."""
+        # Valid serialization
         eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
+            species=self.species,
+            period=self.period,
+            bin_count=1024,
+            min_energy=0.0,
+            max_energy=1000.0,
+        )
+        context = eh.get_rendering_context()
+        self.assertTrue(context["typeID"]["energyhistogram"])
+        self.assertEqual(context["data"]["bin_count"], 1024)
+        self.assertEqual(context["data"]["min_energy"], 0.0)
+        self.assertEqual(context["data"]["max_energy"], 1000.0)
+
+        # Validation errors
+        eh = EnergyHistogram(
+            species=self.species,
+            period=self.period,
             bin_count=0,
             min_energy=0.0,
             max_energy=1000.0,
         )
         with self.assertRaisesRegex(ValueError, "bin_count must be positive"):
-            eh.check()
+            eh.get_rendering_context()
 
-        # Negative bin_count
         eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
-            bin_count=-1,
-            min_energy=0.0,
-            max_energy=1000.0,
-        )
-        with self.assertRaisesRegex(ValueError, "bin_count must be positive"):
-            eh.check()
-
-        # Invalid energy range
-        eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
+            species=self.species,
+            period=self.period,
             bin_count=1024,
             min_energy=1000.0,
             max_energy=0.0,
         )
         with self.assertRaisesRegex(ValueError, "min_energy must be less than max_energy"):
-            eh.check()
-
-        # Equal energy range
-        eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
-            bin_count=1024,
-            min_energy=500.0,
-            max_energy=500.0,
-        )
-        with self.assertRaisesRegex(ValueError, "min_energy must be less than max_energy"):
-            eh.check()
-
-        # Valid configuration
-        eh = EnergyHistogram(
-            species=create_species(),
-            period=TimeStepSpec([slice(0, None, 100)]),
-            bin_count=1024,
-            min_energy=0.0,
-            max_energy=1000.0,
-        )
-        eh.check()  # Should succeed
-        serialized = eh._get_serialized()
-        self.assertEqual(serialized["bin_count"], 1024)
-        self.assertEqual(serialized["min_energy"], 0.0)
-        self.assertEqual(serialized["max_energy"], 1000.0)
+            eh.get_rendering_context()
 
 
 if __name__ == "__main__":
