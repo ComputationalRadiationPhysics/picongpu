@@ -49,8 +49,45 @@ namespace picongpu
     {
         using namespace pmacc;
 
+#    if false
+        struct RedistributeFilteredParticlesKernel
+        {
+            template<typename T_Worker, typename T_DataBox>
+            HDINLINE void operator()(T_Worker const& worker, T_DataBox data, uint32_t size) const
+            {
+                constexpr uint32_t blockDomSize = T_Worker::blockDomSize();
+                auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
+
+                uint32_t* s_mem = ::alpaka::getDynSharedMem<uint32_t>(worker.getAcc());
+
+                // grid-strided loop over the chunked data
+                for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
+                {
+                    auto dataBlockOffset = dataBlock * blockDomSize;
+                    auto forEach = pmacc::lockstep::makeForEach(worker);
+                    forEach(
+                        [&](uint32_t const inBlockIdx)
+                        {
+                            auto idx = dataBlockOffset + inBlockIdx;
+                            s_mem[inBlockIdx] = idx;
+                            if(idx < size)
+                            {
+                                // ensure that each block is not overwriting data from other blocks
+                                PMACC_DEVICE_VERIFY_MSG(
+                                    data[idx] == 0u,
+                                    "%s\n",
+                                    "Result buffer not valid initialized!");
+                                data[idx] = s_mem[inBlockIdx];
+                            }
+                        });
+                }
+            }
+        };
+#    endif
+
         template<typename T_Identifier>
         struct RedistributeFilteredParticles
+
         {
             template<typename FrameType, typename FilterType>
             HINLINE void operator()(
@@ -64,6 +101,10 @@ namespace picongpu
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
                 using ComponentType = typename GetComponentsType<ValueType>::type;
+
+
+                constexpr uint32_t = decltype(lockstep::makeBlockCfg<DIM1>())::blockDomSize();
+
 
                 ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 
@@ -120,55 +161,6 @@ namespace picongpu
                                     signed long long patch_bottom = patchTotalOffset[d];
                                     signed long long patch_up = patchUpperCorner[d];
                                     if(p < patch_bottom - o || p >= patch_up - o)
-                                    {
-                                        filterCurrent = filterRemove;
-                                        break;
-                                    }
-                                }
-                                filterOut[idx] = filterCurrent;
-                            }
-                        });
-                }
-            }
-        };
-
-        struct KernelFilterParticles
-        {
-            template<typename T_Worker, typename FrameType, typename FilterType>
-            DINLINE void operator()(
-                T_Worker const& worker,
-                FrameType&& loadedData,
-                MemIdxType size,
-                DataSpace<simDim> patchTotalOffset,
-                DataSpace<simDim> patchUpperCorner,
-                char const filterKeep,
-                char const filterRemove,
-                FilterType&& filterOut) const
-            {
-                // DataSpace<1> particleIndex = worker.blockDomIdxND();
-                constexpr uint32_t blockDomSize = T_Worker::blockDomSize();
-                auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
-                auto position_ = loadedData.getIdentifier(position()).getPointer();
-                auto positionOffset = loadedData.getIdentifier(totalCellIdx()).getPointer();
-
-                // grid-strided loop over the chunked data
-                for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
-                {
-                    auto dataBlockOffset = dataBlock * blockDomSize;
-                    auto forEach = pmacc::lockstep::makeForEach(worker);
-                    forEach(
-                        [&](uint32_t const inBlockIdx)
-                        {
-                            auto idx = dataBlockOffset + inBlockIdx;
-                            if(idx < size)
-                            {
-                                auto& positionVec = position_[idx];
-                                auto& positionOffsetVec = positionOffset[idx];
-                                char filterCurrent = filterKeep;
-                                for(size_t d = 0; d < simDim; ++d)
-                                {
-                                    auto positionInD = positionVec[d] + positionOffsetVec[d];
-                                    if(positionInD < patchTotalOffset[d] || positionInD > patchUpperCorner[d])
                                     {
                                         filterCurrent = filterRemove;
                                         break;

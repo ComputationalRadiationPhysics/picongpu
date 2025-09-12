@@ -1131,6 +1131,7 @@ namespace picongpu
                     }
                 }
 
+                // writeParticlesByChunks(
                 writeParticlesBySupercells(
                     params,
                     currentStep,
