@@ -132,6 +132,55 @@ namespace picongpu
             }
         };
 
+        struct KernelFilterParticles
+        {
+            template<typename T_Worker, typename FrameType, typename FilterType>
+            DINLINE void operator()(
+                T_Worker const& worker,
+                FrameType&& loadedData,
+                MemIdxType size,
+                DataSpace<simDim> patchTotalOffset,
+                DataSpace<simDim> patchUpperCorner,
+                char const filterKeep,
+                char const filterRemove,
+                FilterType&& filterOut) const
+            {
+                // DataSpace<1> particleIndex = worker.blockDomIdxND();
+                constexpr uint32_t blockDomSize = T_Worker::blockDomSize();
+                auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
+                auto position_ = loadedData.getIdentifier(position()).getPointer();
+                auto positionOffset = loadedData.getIdentifier(totalCellIdx()).getPointer();
+
+                // grid-strided loop over the chunked data
+                for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
+                {
+                    auto dataBlockOffset = dataBlock * blockDomSize;
+                    auto forEach = pmacc::lockstep::makeForEach(worker);
+                    forEach(
+                        [&](uint32_t const inBlockIdx)
+                        {
+                            auto idx = dataBlockOffset + inBlockIdx;
+                            if(idx < size)
+                            {
+                                auto& positionVec = position_[idx];
+                                auto& positionOffsetVec = positionOffset[idx];
+                                char filterCurrent = filterKeep;
+                                for(size_t d = 0; d < simDim; ++d)
+                                {
+                                    auto positionInD = positionVec[d] + positionOffsetVec[d];
+                                    if(positionInD < patchTotalOffset[d] || positionInD > patchUpperCorner[d])
+                                    {
+                                        filterCurrent = filterRemove;
+                                        break;
+                                    }
+                                }
+                                filterOut[idx] = filterCurrent;
+                            }
+                        });
+                }
+            }
+        };
+
         /** Load species from openPMD checkpoint storage
          *
          * @tparam T_Species type of species
