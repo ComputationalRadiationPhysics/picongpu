@@ -5,15 +5,14 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from picongpu.picmi.diagnostics.openpmd import OpenPMD
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.diagnostics.rangespec import RangeSpec
+from picongpu.picmi.diagnostics.openpmd import OpenPMD
 from picongpu.pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
-from picongpu.picmi.diagnostics.openpmd_sources.source_base import SourceBase
-from picongpu.picmi.diagnostics.openpmd_sources.bound_electron_density import BoundElectronDensity
 from picongpu.picmi.species import Species as PICMISpecies
 from picongpu.pypicongpu.species import Species as PyPIConGPUSpecies
-from picongpu.pypicongpu.output.openpmd_sources.source_base import SourceBase as PyPIConGPUSourceBase
+from picongpu.picmi.diagnostics.openpmd_sources import BoundElectronDensity, SourceBase
+from picongpu.pypicongpu.output.openpmd_sources import SourceBase as PyPIConGPUSourceBase
 import unittest
 import typeguard
 import typing

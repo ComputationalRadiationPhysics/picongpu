@@ -14,3 +14,4 @@ from .mid_current_density_component import *  # pyflakes.ignore
 from .momentum import *  # pyflakes.ignore
 from .momentum_density import *  # pyflakes.ignore
 from .source_base import *  # pyflakes.ignore
+from .weighted_velocity import *  # pyflakes.ignore
