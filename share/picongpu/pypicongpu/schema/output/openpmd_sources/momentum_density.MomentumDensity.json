@@ -1,35 +1,40 @@
 {
   "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.momentum_density.MomentumDensity",
-  "allOf": [
-    {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.openpmd_sources.source_base.SourceBase"
+  "type": "object",
+  "description": "Momentum density data source for openPMD output in PIConGPU, calculating momentum density component for a specified species and direction.",
+  "unevaluatedProperties": false,
+  "required": [
+    "type",
+    "species",
+    "direction"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "momentumdensity",
+      "description": "Type of the data source."
     },
-    {
-      "type": "object",
-      "description": "Momentum density data source for openPMD output in PIConGPU, calculating momentum density component for a specified species and direction.",
-      "unevaluatedProperties": false,
-      "required": [
-        "type",
-        "species",
-        "direction"
+    "filter": {
+      "type": "string",
+      "description": "Name of a filter to select particles contributing to the data source."
+    },
+    "species": {
+      "type": [
+        "object",
+        "null"
       ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "momentumdensity",
-          "description": "Type of the data source."
-        },
-        "direction": {
-          "type": "string",
-          "enum": [
-            "x",
-            "y",
-            "z"
-          ],
-          "description": "Direction of the momentum density component (x, y, or z).",
-          "default": "x"
-        }
-      }
+      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
+      "description": "Particle species for the data source, if applicable."
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "x",
+        "y",
+        "z"
+      ],
+      "description": "Direction of the momentum density component (x, y, or z).",
+      "default": "x"
     }
-  ]
+  }
 }

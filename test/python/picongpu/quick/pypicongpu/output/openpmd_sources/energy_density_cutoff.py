@@ -42,10 +42,16 @@ class MockSpecies(Species):
 class TestEnergyDensityCutoff(unittest.TestCase):
     def test_source_energy_density_cutoff(self):
         """Test EnergyDensityCutoff instantiation and serialization."""
-        source = EnergyDensityCutoff(species=MockSpecies())
+
+        # Must provide cutoff_max_energy, otherwise error
+        with self.assertRaisesRegex(ValueError, "cutoff_max_energy is required"):
+            EnergyDensityCutoff(species=MockSpecies())
+
+        # Valid case: required field provided
+        source = EnergyDensityCutoff(species=MockSpecies(), cutoff_max_energy=100.0)
         self.assertIsInstance(source.species, MockSpecies)
         self.assertEqual(source.filter, "species_all")
-        self.assertIsNone(source.cutoff_max_energy)
+        self.assertEqual(source.cutoff_max_energy, 100.0)
         source.check()
 
         source = EnergyDensityCutoff(species=MockSpecies(), filter="custom_filter", cutoff_max_energy=100.0)
@@ -61,10 +67,10 @@ class TestEnergyDensityCutoff(unittest.TestCase):
         with self.assertRaisesRegex(
             ValueError, r"Filter must be one of \['species_all', 'fields_all', 'custom_filter'\], got invalid"
         ):
-            EnergyDensityCutoff(species=MockSpecies(), filter="invalid").check()
+            EnergyDensityCutoff(species=MockSpecies(), filter="invalid", cutoff_max_energy=1.0).check()
 
         with self.assertRaisesRegex(typeguard.TypeCheckError, r"argument \"filter\" \(int\) is not an instance of str"):
-            EnergyDensityCutoff(species=MockSpecies(), filter=123)
+            EnergyDensityCutoff(species=MockSpecies(), filter=123, cutoff_max_energy=1.0)
 
         with self.assertRaisesRegex(
             typeguard.TypeCheckError,
@@ -106,12 +112,13 @@ class TestEnergyDensityCutoff(unittest.TestCase):
         )
 
         openpmd = OpenPMD(
-            period=TimeStepSpec([slice(0, None, 100)]), source=[EnergyDensityCutoff(species=MockSpecies())]
+            period=TimeStepSpec([slice(0, None, 100)]),
+            source=[EnergyDensityCutoff(species=MockSpecies(), cutoff_max_energy=50.0)],
         )
         context = openpmd.get_rendering_context()
         self.assertEqual(context["data"]["source"][0]["type"], "energydensitycutoff")
         self.assertEqual(context["data"]["source"][0]["filter"], "species_all")
-        self.assertIsNone(context["data"]["source"][0]["cutoff_max_energy"])
+        self.assertEqual(context["data"]["source"][0]["cutoff_max_energy"], 50.0)
         self.assertEqual(context["data"]["source"][0]["species"]["name"], "electron")
         self.assertEqual(context["data"]["source"][0]["species"]["typename"], "Electron")
         self.assertEqual(len(context["data"]["source"][0]["species"]["attributes"]), 2)

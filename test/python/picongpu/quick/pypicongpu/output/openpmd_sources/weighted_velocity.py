@@ -72,9 +72,7 @@ class TestWeightedVelocity(unittest.TestCase):
         ):
             WeightedVelocity(species="invalid")
 
-        with self.assertRaisesRegex(
-            typeguard.TypeCheckError, r"argument \"direction\" \(str\) is not any of \('x', 'y', 'z'\)"
-        ):
+        with self.assertRaisesRegex(ValueError, r"Direction must be 'x', 'y', or 'z', got invalid"):
             WeightedVelocity(species=MockSpecies(), direction="invalid").check()
 
         openpmd = OpenPMD(

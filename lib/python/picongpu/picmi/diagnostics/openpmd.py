@@ -135,7 +135,7 @@ class OpenPMD:
         if self.source is not None:
             sources = [src.get_as_pypicongpu(dict_species_picmi_to_pypicongpu) for src in self.source]
 
-        pypicongpu_openpmd = PyPIConGPUOpenPMD(
+        return PyPIConGPUOpenPMD(
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
             source=sources,
             range=self.range.get_as_pypicongpu(simulation_box),
@@ -149,4 +149,3 @@ class OpenPMD:
             particle_io_chunk_size=self.particle_io_chunk_size,
             file_writing=self.file_writing,
         )
-        return pypicongpu_openpmd

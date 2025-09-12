@@ -10,8 +10,6 @@ from ...species import Species
 from .source_base import SourceBase
 import typeguard
 import typing
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # Base classes
@@ -127,17 +125,19 @@ class DerivedAttributes(SourceBaseFilterOnly):
 
 @typeguard.typechecked
 class EnergyDensityCutoff(SourceBaseSpeciesFilter):
-    cutoff_max_energy = util.build_typesafe_property(Optional[float])
+    cutoff_max_energy = util.build_typesafe_property(float)
 
-    def __init__(self, species: Species, filter: str = "species_all", cutoff_max_energy: Optional[float] = None):
+    def __init__(self, species: Species, filter: str = "species_all", cutoff_max_energy: typing.Optional[float] = None):
+        if cutoff_max_energy is None:
+            raise ValueError("cutoff_max_energy is required and must be a positive number")
         self.cutoff_max_energy = cutoff_max_energy
         super().__init__(species, filter)
 
     def check(self) -> None:
         super().check()
-        if self.cutoff_max_energy is not None and not isinstance(self.cutoff_max_energy, (int, float)):
-            raise ValueError(f"cutoff_max_energy must be a number or None, got {type(self.cutoff_max_energy)}")
-        if self.cutoff_max_energy is not None and self.cutoff_max_energy <= 0:
+        if not isinstance(self.cutoff_max_energy, (int, float)):
+            raise ValueError(f"cutoff_max_energy must be a number, got {type(self.cutoff_max_energy)}")
+        if self.cutoff_max_energy <= 0:
             raise ValueError(f"cutoff_max_energy must be positive, got {self.cutoff_max_energy}")
 
     def _get_serialized(self) -> typing.Dict:
