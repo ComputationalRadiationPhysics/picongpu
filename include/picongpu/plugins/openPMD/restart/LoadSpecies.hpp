@@ -49,53 +49,67 @@ namespace picongpu
     {
         using namespace pmacc;
 
-#    if false
         struct RedistributeFilteredParticlesKernel
         {
-            template<typename T_Worker, typename T_DataBox>
-            HDINLINE void operator()(T_Worker const& worker, T_DataBox data, uint32_t size) const
+            template<typename T_Worker, typename ValueType, typename FilterType, typename RemapType>
+            HDINLINE void operator()(
+                T_Worker const& worker,
+                ValueType* dataPtr,
+                FilterType&& filter,
+                RemapType&& remap,
+                MemIdxType const size,
+                char const filterRemove) const
             {
                 constexpr uint32_t blockDomSize = T_Worker::blockDomSize();
                 auto numDataBlocks = (size + blockDomSize - 1u) / blockDomSize;
 
-                uint32_t* s_mem = ::alpaka::getDynSharedMem<uint32_t>(worker.getAcc());
+                ValueType* s_mem = ::alpaka::getDynSharedMem<ValueType>(worker.getAcc());
 
                 // grid-strided loop over the chunked data
                 for(int dataBlock = worker.blockDomIdx(); dataBlock < numDataBlocks; dataBlock += worker.gridDomSize())
                 {
                     auto dataBlockOffset = dataBlock * blockDomSize;
                     auto forEach = pmacc::lockstep::makeForEach(worker);
+                    // read
                     forEach(
                         [&](uint32_t const inBlockIdx)
                         {
                             auto idx = dataBlockOffset + inBlockIdx;
-                            s_mem[inBlockIdx] = idx;
                             if(idx < size)
                             {
-                                // ensure that each block is not overwriting data from other blocks
-                                PMACC_DEVICE_VERIFY_MSG(
-                                    data[idx] == 0u,
-                                    "%s\n",
-                                    "Result buffer not valid initialized!");
-                                data[idx] = s_mem[inBlockIdx];
+                                s_mem[inBlockIdx] = dataPtr[idx];
                             }
                         });
+                    worker.sync();
+
+                    // write
+                    forEach(
+                        [&](uint32_t const inBlockIdx)
+                        {
+                            auto idx = dataBlockOffset + inBlockIdx;
+                            if(idx < size && filter[idx] != filterRemove)
+                            {
+                                dataPtr[remap[idx]] = s_mem[inBlockIdx];
+                            }
+                        });
+
+                    // The next Iteration of the outer for loop does not depend on the data overwritten until now.
+                    // Filtering moves data only to lower indexes and each of the outer loop's iterations deals with a
+                    // contiguous chunk of data.
                 }
             }
         };
-#    endif
 
         template<typename T_Identifier>
         struct RedistributeFilteredParticles
 
         {
-            template<typename FrameType, typename FilterType>
+            template<typename FrameType, typename FilterType, typename RemapType>
             HINLINE void operator()(
                 FrameType& frame,
                 FilterType const& filter,
+                RemapType const& remap,
                 uint64_t const numParticlesCurrentBatch,
-                // becomes numParticlesAfterFiltering after this function call
-                MemIdxType& particleIndexTarget,
                 char const filterRemove)
             {
                 using Identifier = T_Identifier;
@@ -103,20 +117,18 @@ namespace picongpu
                 using ComponentType = typename GetComponentsType<ValueType>::type;
 
 
-                constexpr uint32_t = decltype(lockstep::makeBlockCfg<DIM1>())::blockDomSize();
-
+                constexpr uint32_t blockDomSize = decltype(lockstep::makeBlockCfg<DIM1>())::blockDomSize();
+                constexpr size_t requiredSharedMemBytes = blockDomSize * sizeof(ValueType);
 
                 ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 
-                particleIndexTarget = 0;
-                for(MemIdxType particleIndexSrc = 0; particleIndexSrc < numParticlesCurrentBatch; ++particleIndexSrc)
-                {
-                    if(filter[particleIndexSrc] == filterRemove)
-                    {
-                        continue;
-                    }
-                    dataPtr[particleIndexTarget++] = dataPtr[particleIndexSrc];
-                }
+                PMACC_LOCKSTEP_KERNEL(RedistributeFilteredParticlesKernel{})
+                    .configSMem<DIM1>(pmacc::math::Vector{numParticlesCurrentBatch}, requiredSharedMemBytes)(
+                        dataPtr,
+                        alpaka::getPtrNative(filter),
+                        alpaka::getPtrNative(remap),
+                        numParticlesCurrentBatch,
+                        filterRemove);
             }
         };
 
@@ -338,13 +350,17 @@ namespace picongpu
                         manager::Device<HostDevice>::get().current(),
                         manager::Device<ComputeDevice>::get().getPlatform(),
                         MemSpace<DIM1>(maxChunkSize).toAlpakaMemVec());
+                    auto remap = alpaka::allocMappedBuf<MemIdxType, MemIdxType>(
+                        manager::Device<HostDevice>::get().current(),
+                        manager::Device<ComputeDevice>::get().getPlatform(),
+                        MemSpace<DIM1>(maxChunkSize).toAlpakaMemVec());
 
                     loadMatchesGeneric(
                         partialMatches,
                         threadParams,
                         totalNumParticles,
                         maxChunkSize, /* forEachPatch = */
-                        [this, threadParams, &filter, &patchTotalOffset, &patchExtent, &patchUpperCorner](
+                        [this, threadParams, &filter, &remap, &patchTotalOffset, &patchExtent, &patchUpperCorner](
                             uint64_t loadRound,
                             uint64_t numParticlesCurrentBatch,
                             FrameType& mappedFrame,
@@ -373,7 +389,21 @@ namespace picongpu
                                     alpaka::getPtrNative(filter));
                             eventSystem::getTransactionEvent().waitForFinished();
 
-                            MemIdxType numParticlesAfterFiltering = 0;
+                            // This part is inherently sequential, keep it on CPU
+                            // (maybe run also this on GPU to avoid multiple data copies)
+                            MemIdxType remapCurrent = 0;
+                            for(size_t particleIndex = 0; particleIndex < numParticlesCurrentBatch; ++particleIndex)
+                            {
+                                if(filter[particleIndex] == filterKeep)
+                                {
+                                    remap[particleIndex] = remapCurrent++;
+                                }
+                                else
+                                {
+                                    remap[particleIndex] = std::numeric_limits<MemIdxType>::max();
+                                }
+                            }
+
                             meta::ForEach<
                                 typename NewParticleDescription::ValueTypeSeq,
                                 RedistributeFilteredParticles<boost::mpl::_1>>
@@ -381,21 +411,20 @@ namespace picongpu
                             redistributeFilteredParticles(
                                 mappedFrame,
                                 filter,
+                                remap,
                                 numParticlesCurrentBatch,
-                                numParticlesAfterFiltering,
                                 filterRemove);
 
                             log<picLog::INPUT_OUTPUT>(
                                 "openPMD: Keeping %1% of the current batch's %2% particles after filtering.")
-                                % numParticlesAfterFiltering % numParticlesCurrentBatch;
+                                % remapCurrent % numParticlesCurrentBatch;
 
-                            if(numParticlesAfterFiltering > 0)
+                            if(remapCurrent > 0)
                             {
                                 pmacc::particles::operations::splitIntoListOfFrames(
                                     *speciesTmp,
                                     mappedFrame,
-                                    // @attention not numParticlesCurrentBatch, filtered vs. unfiltered number
-                                    numParticlesAfterFiltering,
+                                    remapCurrent,
                                     cellOffsetToTotalDomain,
                                     totalCellIdx_,
                                     *threadParams->cellDescription,
