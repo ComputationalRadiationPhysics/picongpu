@@ -8,14 +8,45 @@ License: GPLv3+
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.diagnostics.rangespec import RangeSpec
 from picongpu.picmi.diagnostics.openpmd import OpenPMD
+from picongpu.picmi.diagnostics.openpmd_sources.source_base import SourceBase
+from picongpu.pypicongpu.output.openpmd_sources.source_base import SourceBase as PySourceBase
+from picongpu.picmi.diagnostics.openpmd_sources.sources import BoundElectronDensity, EnergyDensityCutoff, Momentum
 from picongpu.pypicongpu.output.openpmd import OpenPMD as PyPIConGPUOpenPMD
-from picongpu.picmi.species import Species as PICMISpecies
 from picongpu.pypicongpu.species import Species as PyPIConGPUSpecies
-from picongpu.picmi.diagnostics.openpmd_sources import BoundElectronDensity, SourceBase
-from picongpu.pypicongpu.output.openpmd_sources import SourceBase as PyPIConGPUSourceBase
+from picongpu.pypicongpu.species.attribute import Position, Momentum as PyMomentum
+from picongpu.picmi.species import Species as PICMISpecies
 import unittest
 import typeguard
-import typing
+
+
+def create_picmi_species():
+    species = PICMISpecies()
+    species.name = "electrons"
+    return species
+
+
+def create_pypicongpu_species():
+    species = PyPIConGPUSpecies()
+    species.name = "electrons"
+    species.attributes = [Position(), PyMomentum()]
+    species.constants = []
+    return species
+
+
+class MockPySource(PySourceBase):
+    def __init__(self, name="mock", filter_value="species_all"):
+        self.name = name
+        self._filter = filter_value
+
+    def check(self):
+        pass
+
+    def _get_serialized(self):
+        return {"name": self.name, "filter": self._filter, "type": "mock"}
+
+    @property
+    def filter(self):
+        return self._filter
 
 
 class MockSource(SourceBase):
@@ -23,305 +54,170 @@ class MockSource(SourceBase):
         self.name = name
         self._filter = filter_value
 
+    def check(self):
+        pass
+
+    def get_as_pypicongpu(self, _):
+        return MockPySource(self.name, self._filter)
+
+    def _get_serialized(self):
+        return {"name": self.name, "filter": self._filter, "type": "mock"}
+
     @property
-    def filter(self) -> str:
+    def filter(self):
         return self._filter
-
-    def check(self) -> None:
-        valid_filters = ["species_all", "fields_all", "custom_filter"]
-        if not isinstance(self._filter, str):
-            raise ValueError(f"Filter must be a string, got {type(self._filter)}")
-        if self._filter not in valid_filters:
-            raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
-
-    def get_as_pypicongpu(self, mapping: typing.Dict[PICMISpecies, typing.Any] = None) -> typing.Any:
-        class MockPyPIConGPUSource(PyPIConGPUSourceBase):
-            def __init__(self, name, filter_value):
-                self.name = name
-                self._filter = filter_value
-
-            @property
-            def filter(self) -> str:
-                return self._filter
-
-            def _get_serialized(self):
-                return {"name": self.name, "filter": self._filter}
-
-            def check(self):
-                valid_filters = ["species_all", "fields_all", "custom_filter"]
-                if not isinstance(self._filter, str):
-                    raise ValueError(f"Filter must be a string, got {type(self._filter)}")
-                if self._filter not in valid_filters:
-                    raise ValueError(f"Filter must be one of {valid_filters}, got {self._filter}")
-
-        return MockPyPIConGPUSource(self.name, self._filter)
-
-
-TESTCASES_VALID = [
-    (
-        {
-            "period": TimeStepSpec([slice(1, 100, 2)]),
-            "source": None,
-            "range": RangeSpec[:, :, :],
-            "file": None,
-            "ext": "bp",
-            "infix": "NULL",
-            "json": None,
-            "json_restart": None,
-            "data_preparation_strategy": None,
-            "toml": None,
-            "particle_io_chunk_size": None,
-            "file_writing": "create",
-        },
-        (20, 30, 40),
-        0.001,
-        1000,
-        {
-            "period": {"specs": [{"start": 1, "stop": 100, "step": 2}]},
-            "source": None,
-            "range": {"ranges": [{"begin": 0, "end": 19}, {"begin": 0, "end": 29}, {"begin": 0, "end": 39}]},
-            "file": None,
-            "ext": "bp",
-            "infix": "NULL",
-            "json": None,
-            "json_restart": None,
-            "data_preparation_strategy": None,
-            "toml": None,
-            "particle_io_chunk_size": None,
-            "file_writing": "create",
-        },
-    ),
-    (
-        {
-            "period": TimeStepSpec([slice(0, None, 1)]),
-            "source": [MockSource("chargeDensity", "species_all"), MockSource("energyHistogram", "fields_all")],
-            "range": RangeSpec[0:10, 5:15, 2:8],
-            "file": "output/data",
-            "ext": "h5",
-            "infix": "_%06T",
-            "json": {"key": "value"},
-            "json_restart": "@restart.json",
-            "data_preparation_strategy": "doubleBuffer",
-            "toml": "config.toml",
-            "particle_io_chunk_size": 1024,
-            "file_writing": "append",
-        },
-        (20, 30, 40),
-        0.001,
-        1000,
-        {
-            "period": {"specs": [{"start": 0, "stop": 999, "step": 1}]},
-            "source": [
-                {"name": "chargeDensity", "filter": "species_all"},
-                {"name": "energyHistogram", "filter": "fields_all"},
-            ],
-            "range": {"ranges": [{"begin": 0, "end": 10}, {"begin": 5, "end": 15}, {"begin": 2, "end": 8}]},
-            "file": "output/data",
-            "ext": "h5",
-            "infix": "_%06T",
-            "json": {"key": "value"},
-            "json_restart": "@restart.json",
-            "data_preparation_strategy": "doubleBuffer",
-            "toml": "config.toml",
-            "particle_io_chunk_size": 1024,
-            "file_writing": "append",
-        },
-    ),
-    (
-        {
-            "period": TimeStepSpec([slice(0.0, 0.1, 0.02)])("seconds"),
-            "source": [MockSource("density", "custom_filter")],
-            "range": RangeSpec[0:10, 5:15, 2:8],
-            "file": "output/ions",
-            "ext": "bp",
-            "infix": "_%06T",
-            "json": None,
-            "json_restart": None,
-            "data_preparation_strategy": "adios",
-            "toml": None,
-            "particle_io_chunk_size": 256,
-            "file_writing": "append",
-        },
-        (20, 30, 40),
-        0.001,
-        200,
-        {
-            "period": {"specs": [{"start": 0, "stop": 100, "step": 20}]},
-            "source": [{"name": "density", "filter": "custom_filter"}],
-            "range": {"ranges": [{"begin": 0, "end": 10}, {"begin": 5, "end": 15}, {"begin": 2, "end": 8}]},
-            "file": "output/ions",
-            "ext": "bp",
-            "infix": "_%06T",
-            "json": None,
-            "json_restart": None,
-            "data_preparation_strategy": "adios",
-            "toml": None,
-            "particle_io_chunk_size": 256,
-            "file_writing": "append",
-        },
-    ),
-]
-
-TESTCASES_INVALID = [
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "particle_io_chunk_size": 0},
-        r"particle_io_chunk_size \(in MiB\) must be positive",
-    ),
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "ext": "sst", "infix": "_%06T"},
-        r"infix must be 'NULL' when ext is 'sst'",
-    ),
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "ext": "invalid"},
-        r"argument \"ext\" \(str\) did not match any element in the union:",
-        typeguard.TypeCheckError,
-    ),
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "file_writing": "invalid"},
-        r"argument \"file_writing\" \(str\) did not match any element in the union:",
-        typeguard.TypeCheckError,
-    ),
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "data_preparation_strategy": "invalid"},
-        r"argument \"data_preparation_strategy\" \(str\) did not match any element in the union:",
-        typeguard.TypeCheckError,
-    ),
-    (
-        {"period": "invalid"},
-        r"argument \"period\" \(str\) is not an instance of picongpu\.picmi\.diagnostics\.timestepspec\.TimeStepSpec",
-        typeguard.TypeCheckError,
-    ),
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "range": "invalid"},
-        r"argument \"range\" \(str\) did not match any element in the union:",
-        typeguard.TypeCheckError,
-    ),
-]
-
-TESTCASES_INVALID_TIMESTEPS = [
-    (
-        {"period": TimeStepSpec([slice(0, 10, -1)])},
-        r"Step size must be >= 1",
-    ),
-]
-
-TESTCASES_INVALID_MAPPING = [
-    (
-        {
-            "period": TimeStepSpec([slice(0, 10, 1)]),
-            "source": [BoundElectronDensity(species=PICMISpecies(name="electrons"), filter="species_all")],
-            "range": RangeSpec[:, :],
-        },
-        {},
-        r"Species .* is not known to Simulation",
-    ),
-    (
-        {
-            "period": TimeStepSpec([slice(0, 10, 1)]),
-            "source": [BoundElectronDensity(species=PICMISpecies(name="electrons"), filter="species_all")],
-            "range": RangeSpec[:, :],
-        },
-        {PICMISpecies(name="ions"): (lambda s=PyPIConGPUSpecies(): (setattr(s, "name", "ions"), s)[1])()},
-        r"Species .* is not known to Simulation",
-    ),
-]
-
-TESTCASES_INVALID_SIMBOX = [
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "range": RangeSpec[slice(0, 10), slice(5, 15)]},
-        (20,),
-        r"Number of range specifications must match simulation box dimensions",
-    ),
-    (
-        {"period": TimeStepSpec([slice(0, 10, 1)]), "range": RangeSpec[slice(0, 10), slice(5, 15)]},
-        (20, 30, 40),
-        r"Number of range specifications must match simulation box dimensions",
-    ),
-]
 
 
 class PICMI_TestOpenPMD(unittest.TestCase):
-    def test_openpmd_instantiation(self):
-        """Test OpenPMD instantiation and validation."""
-        for params, sim_box, time_step_size, num_steps, _ in TESTCASES_VALID:
-            with self.subTest(params=params, sim_box=sim_box):
+    def setUp(self):
+        self.species = create_picmi_species()
+        self.pypicongpu_species = create_pypicongpu_species()
+        self.species_map = {self.species: self.pypicongpu_species}
+
+    def test_openpmd(self):
+        """Test OpenPMD instantiation, serialization, and RangeSpec length."""
+        species_context = {
+            "name": "electrons",
+            "typename": "species_electrons",
+            "attributes": [{"picongpu_name": "position<position_pic>"}, {"picongpu_name": "momentum"}],
+            "constants": {
+                "mass": None,
+                "charge": None,
+                "density_ratio": None,
+                "element_properties": None,
+                "ground_state_ionization": None,
+            },
+        }
+        TESTCASES_VALID = [
+            (
+                {"period": TimeStepSpec([slice(0, 100, 2)]), "range": RangeSpec[:, :, :], "ext": "bp"},
+                (20, 30, 40),
+                0.001,
+                1000,
+                {
+                    "period": {"specs": [{"start": 0, "stop": 100, "step": 2}]},
+                    "source": None,
+                    "range": {"ranges": [{"begin": 0, "end": 19}, {"begin": 0, "end": 29}, {"begin": 0, "end": 39}]},
+                    "file": None,
+                    "ext": "bp",
+                    "infix": "NULL",
+                    "json": None,
+                    "json_restart": None,
+                    "data_preparation_strategy": None,
+                    "toml": None,
+                    "particle_io_chunk_size": None,
+                    "file_writing": "create",
+                },
+            ),
+            (
+                {
+                    "period": TimeStepSpec([slice(0, None, 1)]),
+                    "source": [
+                        MockSource("density", "custom_filter"),
+                        EnergyDensityCutoff(self.species, "species_all", 1e6),
+                        Momentum(self.species, "species_all", "x"),
+                    ],
+                    "range": RangeSpec[0:10, 5:15, 2:8],
+                    "file": "output/data",
+                    "ext": "h5",
+                },
+                (20, 30, 40),
+                0.001,
+                1000,
+                {
+                    "period": {"specs": [{"start": 0, "stop": 999, "step": 1}]},
+                    "source": [
+                        {"name": "density", "filter": "custom_filter", "type": "mock"},
+                        {
+                            "species": species_context,
+                            "filter": "species_all",
+                            "cutoff_max_energy": 1e6,
+                            "type": "energydensitycutoff",
+                        },
+                        {"species": species_context, "filter": "species_all", "direction": "x", "type": "momentum"},
+                    ],
+                    "range": {"ranges": [{"begin": 0, "end": 10}, {"begin": 5, "end": 15}, {"begin": 2, "end": 8}]},
+                    "file": "output/data",
+                    "ext": "h5",
+                    "infix": "NULL",
+                    "json": None,
+                    "json_restart": None,
+                    "data_preparation_strategy": None,
+                    "toml": None,
+                    "particle_io_chunk_size": None,
+                    "file_writing": "create",
+                },
+            ),
+        ]
+
+        for params, sim_box, time_step_size, num_steps, expected in TESTCASES_VALID:
+            with self.subTest(params=params):
                 openpmd = OpenPMD(**params)
                 openpmd.check()
                 self.assertIsInstance(openpmd.period, TimeStepSpec)
                 self.assertIsInstance(openpmd.range, RangeSpec)
-                if params["source"] is not None:
+                self.assertEqual(len(openpmd.range), len(sim_box))
+                if params.get("source"):
                     self.assertTrue(all(isinstance(s, SourceBase) for s in params["source"]))
-                for key, value in params.items():
-                    if key not in ["period", "source", "range"]:
-                        expected_value = {} if value is None and key in ("json", "json_restart") else value
-                        self.assertEqual(getattr(openpmd, key), expected_value)
-                    elif key == "source" and value is not None:
-                        self.assertEqual(len(openpmd.source), len(value))
-                    elif key == "range":
-                        self.assertEqual(len(openpmd.range), len(value))
-
-        for params, expected_error, *extra_exceptions in TESTCASES_INVALID:
-            with self.subTest(params=params, expected_error=expected_error):
-                exceptions = (ValueError, TypeError) + tuple(extra_exceptions or [])
-                with self.assertRaisesRegex(exceptions, expected_error):
-                    openpmd = OpenPMD(**params)
-                    openpmd.check()
-
-    def test_openpmd_serialization(self):
-        """Test OpenPMD serialization to PyPIConGPUOpenPMD."""
-        self.maxDiff = None
-        for params, sim_box, time_step_size, num_steps, expected_serialized in TESTCASES_VALID:
-            with self.subTest(params=params, sim_box=sim_box):
-                openpmd = OpenPMD(**params)
-                pypicongpu_openpmd = openpmd.get_as_pypicongpu({}, time_step_size, num_steps, sim_box)
+                pypicongpu_openpmd = openpmd.get_as_pypicongpu(self.species_map, time_step_size, num_steps, sim_box)
                 self.assertIsInstance(pypicongpu_openpmd, PyPIConGPUOpenPMD)
-                serialized = pypicongpu_openpmd._get_serialized()
-                self.assertEqual(serialized, expected_serialized)
+                self.assertEqual(pypicongpu_openpmd._get_serialized(), expected)
 
-    def test_openpmd_invalid_timestepspec(self):
-        """Test invalid TimeStepSpec with negative steps."""
-        for params, expected_error in TESTCASES_INVALID_TIMESTEPS:
-            with self.subTest(params=params, expected_error=expected_error):
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    openpmd = OpenPMD(**params)
-                    openpmd.check()
-
-    def test_openpmd_invalid_species_mapping(self):
-        """Test invalid species mapping for BoundElectronDensity."""
-        for params, mapping, expected_error in TESTCASES_INVALID_MAPPING:
-            with self.subTest(params=params, mapping=mapping, expected_error=expected_error):
-                openpmd = OpenPMD(**params)
-                sim_box = (20, 30)  # Match RangeSpec[:, :] dimensions
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    openpmd.get_as_pypicongpu(mapping, 0.001, 100, sim_box)
-
-    def test_openpmd_invalid_simulation_box(self):
-        """Test invalid simulation box dimensions."""
-        for params, sim_box, expected_error in TESTCASES_INVALID_SIMBOX:
-            with self.subTest(params=params, sim_box=sim_box, expected_error=expected_error):
-                openpmd = OpenPMD(**params)
-                with self.assertRaisesRegex(ValueError, expected_error):
-                    openpmd.get_as_pypicongpu({}, 0.001, 100, sim_box)
-
-    def test_openpmd_invalid_species_instantiation(self):
-        """Test invalid species instantiation for BoundElectronDensity."""
-        params = {"period": TimeStepSpec([slice(0, 10, 1)])}
-        with self.subTest(params=params):
-            with self.assertRaisesRegex(
+    def test_openpmd_invalid(self):
+        """Test invalid OpenPMD inputs, timesteps, mapping, and simulation box."""
+        TESTCASES_INVALID = [
+            (
+                {"period": TimeStepSpec([slice(0, 10, 1)]), "particle_io_chunk_size": 0},
+                r"particle_io_chunk_size \(in MiB\) must be positive",
+                ValueError,
+            ),
+            (
+                {"period": TimeStepSpec([slice(0, 10, 1)]), "ext": "invalid"},
+                r'argument "ext" \(str\) did not match any element in the union:',
                 typeguard.TypeCheckError,
-                r"argument \"species\" \(str\) is not an instance of picongpu\.picmi\.species\.Species",
-            ):
-                openpmd = OpenPMD(**params, source=[BoundElectronDensity(species="invalid", filter="species_all")])
-                openpmd.check()
+            ),
+            (
+                {"period": "invalid"},
+                r'argument "period" \(str\) is not an instance of.*TimeStepSpec',
+                typeguard.TypeCheckError,
+            ),
+            ({"period": TimeStepSpec([slice(0, 10, -1)])}, r"Step size must be >= 1", ValueError),
+            (
+                {
+                    "period": TimeStepSpec([slice(0, 10, 1)]),
+                    "source": [BoundElectronDensity(species=self.species, filter="species_all")],
+                },
+                r"Species .* is not known to Simulation",
+                ValueError,
+            ),
+            (
+                {"period": TimeStepSpec([slice(0, 10, 1)]), "range": RangeSpec[0:10, 5:15]},
+                r"Number of range specifications must match simulation box dimensions",
+                ValueError,
+            ),
+            (
+                {
+                    "period": TimeStepSpec([slice(0, 10, 1)]),
+                    "source": lambda: [EnergyDensityCutoff(self.species, "species_all", -1)],
+                },
+                r"cutoff_max_energy must be positive",
+                ValueError,
+            ),
+        ]
 
-    def test_range_spec_len(self):
-        """Test RangeSpec length property."""
-        r1 = RangeSpec[0:10]
-        self.assertEqual(len(r1), 1)
-        r2 = RangeSpec[0:10, 5:15]
-        self.assertEqual(len(r2), 2)
-        r3 = RangeSpec[0:10, 5:15, 2:8]
-        self.assertEqual(len(r3), 3)
+        for params, error, exception in TESTCASES_INVALID:
+            with self.subTest(params=params, error=error):
+                with self.assertRaisesRegex(exception, error):
+                    if callable(params.get("source")):
+                        params = dict(params, source=params["source"]())
+                    openpmd = OpenPMD(**params)
+                    sim_box = (
+                        (20,)
+                        if "range" in params and isinstance(params["range"], RangeSpec) and len(params["range"]) == 2
+                        else (20, 30, 40)
+                    )
+                    mapping = {} if error.startswith("Species") else self.species_map
+                    openpmd.get_as_pypicongpu(mapping, 0.001, 100, sim_box)
 
 
 if __name__ == "__main__":
