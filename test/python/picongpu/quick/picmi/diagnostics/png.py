@@ -94,7 +94,7 @@ class PICMI_TestPng(unittest.TestCase):
                     "em_field_scale_channel1": EMFieldScaleEnum.PLASMA_WAVE,
                     "em_field_scale_channel2": EMFieldScaleEnum.AUTO,
                     "em_field_scale_channel3": EMFieldScaleEnum.CUSTOM,
-                    "pre_particle_density_color_scales": ColorScaleEnum("red"),
+                    "pre_particle_density_color_scales": ColorScaleEnum.RED,
                     "pre_channel1_color_scales": ColorScaleEnum.BLUE,
                     "pre_channel2_color_scales": ColorScaleEnum.GRAY,
                     "pre_channel3_color_scales": ColorScaleEnum.GREEN,
@@ -178,7 +178,11 @@ class PICMI_TestPng(unittest.TestCase):
                 {"period": "invalid"},
                 r'argument "period" \(str\) is not an instance of picongpu\.picmi\.diagnostics\.timestepspec\.TimeStepSpec',
             ),
-            ({"period": TimeStepSpec([slice(None, None, -10)])}, "Step size must be >= 1", True),
+            (
+                {"period": TimeStepSpec([slice(None, None, -10)])},
+                r"Step size must be >= 1 in TimeStepSpec. You gave -10.",
+                True,
+            ),
             ({"axis": "xx"}, r"axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy'"),
             ({"slice_point": 1.5}, r"slice_point must be in \[0, 1\]"),
             ({"species": "invalid"}, r'argument "species" .* is not an instance of picongpu\.picmi\.species\.Species'),
@@ -239,11 +243,8 @@ class PICMI_TestPng(unittest.TestCase):
                                 setattr(self, k, v)
 
                     png = PngNoTypeguard(**kwargs)
-                    if "Step size" in expected_error:
-                        png.check()  # TimeStepSpec doesn't raise
-                    else:
-                        with self.assertRaisesRegex(ValueError, expected_error):
-                            png.check()
+                    with self.assertRaisesRegex(ValueError, expected_error):
+                        png.check()
                 else:
                     with self.assertRaisesRegex((ValueError, TypeError, typeguard.TypeCheckError), expected_error):
                         png = Png(**kwargs)

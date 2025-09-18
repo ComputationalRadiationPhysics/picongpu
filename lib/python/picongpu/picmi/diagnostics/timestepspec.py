@@ -58,12 +58,10 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     """
     Specify time steps for simulation output using slices or indices.
 
-
     Use as: TimeStepSpec[:12:2, 7]("steps") or TimeStepSpec[1e-15:5e-15:2e-16]("seconds").
     Supports negative indices, inclusive slices, and addition of TimeStepSpec objects.
 
     Defaults to 'steps' unit unless explicitly set to 'seconds' via __call__('seconds').
-
 
     Examples for how TimeStepSpec is interpreted:
 
@@ -87,8 +85,6 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     Mixed entries:
         TimeStepSpec([5, slice(20, 25, 2)])
          steps: 5, 20, 22, 24
-
-
     """
 
     def __init__(self, *args, specs_in_seconds=tuple()):
@@ -138,6 +134,24 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
         ts.unit_system = self.unit_system or other.unit_system
         return ts
 
+    def check(self):
+        """
+        Validate TimeStepSpec parameters.
+
+        Raises
+        ------
+        ValueError
+            If any step size is less than 1 (for steps) or less than 0 (for seconds).
+        """
+        specs = self.specs if self.unit_system == "steps" else self.specs_in_seconds
+        for spec in specs:
+            step = spec.step if isinstance(spec, slice) else 1
+            if step is not None:
+                if self.unit_system == "steps" and step < 1:
+                    raise ValueError(f"Step size must be >= 1 in TimeStepSpec. You gave {step}.")
+                if self.unit_system == "seconds" and step <= 0:
+                    raise ValueError(f"Step size must be > 0 in TimeStepSpec. You gave {step}.")
+
     def _interpret_nones(self, spec, num_steps):
         """
         Replace None in slice bounds with simulation limits (0 for start, num_steps for stop).
@@ -151,7 +165,7 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     def _interpret_negatives(self, spec, num_steps):
         step = spec.step if spec.step is not None else 1
         if self.unit_system == "steps" and step < 1:
-            raise ValueError("Step size must be >= 1")
+            raise ValueError(f"Step size must be >= 1 in TimeStepSpec. You gave {step}.")
 
         start = spec.start if spec.start is None or spec.start >= 0 else num_steps + spec.start
 
@@ -214,7 +228,7 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
                 stop = ceil(stop / time_step_size)
                 step = ceil(step / time_step_size)
                 if step < 1:
-                    raise ValueError("Step size must be >= 1")
+                    raise ValueError(f"Step size must be >= 1 in TimeStepSpec. You gave {step}.")
 
             # Clip to valid range
             start = max(0, min(start, num_steps))

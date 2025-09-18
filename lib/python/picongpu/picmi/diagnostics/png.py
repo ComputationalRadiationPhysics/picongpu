@@ -12,7 +12,7 @@ from ..species import Species as PICMISpecies
 from .timestepspec import TimeStepSpec
 
 import typeguard
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 
 @typeguard.typechecked
@@ -104,21 +104,21 @@ class Png:
 
     def __init__(
         self,
+        species: PICMISpecies,
         period: TimeStepSpec,
         axis: str,
         slice_point: float,
-        species: PICMISpecies,
         folder: str,
         scale_image: float,
         scale_to_cellsize: bool,
         white_box_per_gpu: bool,
-        em_field_scale_channel1: Optional[EMFieldScaleEnum],
-        em_field_scale_channel2: Optional[EMFieldScaleEnum],
-        em_field_scale_channel3: Optional[EMFieldScaleEnum],
-        pre_particle_density_color_scales: Optional[ColorScaleEnum],
-        pre_channel1_color_scales: Optional[ColorScaleEnum],
-        pre_channel2_color_scales: Optional[ColorScaleEnum],
-        pre_channel3_color_scales: Optional[ColorScaleEnum],
+        em_field_scale_channel1: EMFieldScaleEnum,
+        em_field_scale_channel2: EMFieldScaleEnum,
+        em_field_scale_channel3: EMFieldScaleEnum,
+        pre_particle_density_color_scales: ColorScaleEnum,
+        pre_channel1_color_scales: ColorScaleEnum,
+        pre_channel2_color_scales: ColorScaleEnum,
+        pre_channel3_color_scales: ColorScaleEnum,
         custom_normalization_si: List[float],
         pre_particle_density_opacity: float,
         pre_channel1_opacity: float,
@@ -165,6 +165,7 @@ class Png:
             raise ValueError("species must be set")
         if self.period is None:
             raise ValueError("period must be set")
+        self.period.check()  # Validate TimeStepSpec
         if self.axis not in ["xy", "yx", "xz", "zx", "yz", "zy"]:
             raise ValueError(f"axis must be 'xy', 'yx', 'xz', 'zx', 'yz', or 'zy', got {self.axis}")
         if self.slice_point < 0.0 or self.slice_point > 1.0:
@@ -195,34 +196,20 @@ class Png:
         for val in self.custom_normalization_si:
             if not isinstance(val, float):
                 raise ValueError(f"custom_normalization_si values must be floats, got {val}")
-        if not isinstance(self.em_field_scale_channel1, EMFieldScaleEnum):
-            raise ValueError(
-                f"em_field_scale_channel1 must be in {list(EMFieldScaleEnum)}, got {self.em_field_scale_channel1}"
-            )
-        if not isinstance(self.em_field_scale_channel2, EMFieldScaleEnum):
-            raise ValueError(
-                f"em_field_scale_channel2 must be in {list(EMFieldScaleEnum)}, got {self.em_field_scale_channel2}"
-            )
-        if not isinstance(self.em_field_scale_channel3, EMFieldScaleEnum):
-            raise ValueError(
-                f"em_field_scale_channel3 must be in {list(EMFieldScaleEnum)}, got {self.em_field_scale_channel3}"
-            )
-        if not isinstance(self.pre_particle_density_color_scales, ColorScaleEnum):
-            raise ValueError(
-                f"pre_particle_density_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_particle_density_color_scales}"
-            )
-        if not isinstance(self.pre_channel1_color_scales, ColorScaleEnum):
-            raise ValueError(
-                f"pre_channel1_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_channel1_color_scales}"
-            )
-        if not isinstance(self.pre_channel2_color_scales, ColorScaleEnum):
-            raise ValueError(
-                f"pre_channel2_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_channel2_color_scales}"
-            )
-        if not isinstance(self.pre_channel3_color_scales, ColorScaleEnum):
-            raise ValueError(
-                f"pre_channel3_color_scales must be in {list(ColorScaleEnum)}, got {self.pre_channel3_color_scales}"
-            )
+        if self.em_field_scale_channel1 is None:
+            raise ValueError("em_field_scale_channel1 must be set")
+        if self.em_field_scale_channel2 is None:
+            raise ValueError("em_field_scale_channel2 must be set")
+        if self.em_field_scale_channel3 is None:
+            raise ValueError("em_field_scale_channel3 must be set")
+        if self.pre_particle_density_color_scales is None:
+            raise ValueError("pre_particle_density_color_scales must be set")
+        if self.pre_channel1_color_scales is None:
+            raise ValueError("pre_channel1_color_scales must be set")
+        if self.pre_channel2_color_scales is None:
+            raise ValueError("pre_channel2_color_scales must be set")
+        if self.pre_channel3_color_scales is None:
+            raise ValueError("pre_channel3_color_scales must be set")
 
     def get_as_pypicongpu(
         self,
