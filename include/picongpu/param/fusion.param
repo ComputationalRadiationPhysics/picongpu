@@ -1,0 +1,192 @@
+/* Copyright 2025 Filip Optolowicz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/particleFilters.param"
+#include "picongpu/particles/fusion/fusion.def"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
+
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace fusion
+        {
+            //! ===================================================================
+            //! PRECISION SETTINGS
+            //! ===================================================================
+            namespace precision
+            {
+                //! Use double precision for fusion collision calculations
+                using float_COLL = float_64;
+            } // namespace precision
+
+            using namespace picongpu::plugins;
+
+            //! ===================================================================
+            //! FUSION REACTION DEFINITIONS
+            //! ===================================================================
+
+            /** Deuterium-Tritium Fusion Reaction
+             *
+             * This defines the D + T -> n + He4 fusion reaction
+             *
+             * USAGE: Uncomment this struct to enable D-T fusion in your simulation
+             *
+             * The cross-section parameters are based on the Bosch-Hale
+             * parameterization from experimental data.
+             * Source: https://hdl.handle.net/11858/00-001M-0000-0027-6535-1 (page 29)
+             */
+            // struct DT
+            // {
+            //     //! Reactant species: Deuterium and Tritium
+            //     using reactants = pmacc::mp_list<Pair<PIC_Tritons, PIC_Deuterons>>;
+            //
+            //     //! Product species: Neutron and Helium-4
+            //     using products = pmacc::mp_list<Pair<PIC_Neutrons, PIC_He4>>;
+            //
+            //     /** Cross-section parameters for D-T fusion */
+            //     struct Params
+            //     {
+            //         //! Gamov constant: BG = pi*alpha*Z1*Z2*sqrt(2*mu*c^2) in keV^(1/2)
+            //         //! where alpha is fine structure constant, Z1,Z2 are charges, mu is reduced mass
+            //         static constexpr float_X BG = 34.3827_X;
+            //
+            //         //! Bosch-Hale parameterization coefficients for D-T cross-section
+            //         //! These coefficients fit experimental cross-section data
+            //         static constexpr float_X A1 = 6.927e4_X;
+            //         static constexpr float_X A2 = 7.454e8_X;
+            //         static constexpr float_X A3 = 2.050e6_X;
+            //         static constexpr float_X A4 = 5.2002e4_X;
+            //         static constexpr float_X A5 = 0.0_X;
+            //
+            //         //! Additional Bosch-Hale coefficients
+            //         static constexpr float_X B1 = 6.38e1_X;
+            //         static constexpr float_X B2 = -9.95e-1_X;
+            //         static constexpr float_X B3 = 6.981e-5_X;
+            //         static constexpr float_X B4 = 1.728e-4_X;
+            //     };
+            //     //! For now it's the only cross-section interpolator available
+            //     //! Cross-section calculation using Bosch-Hale parameterization.
+            //     //! Returns cross-section in milli-barns.
+            //     using CrossSectionInterpolator = relativistic::FusionFunctor<Params>;
+            // };
+
+            // empty pipeline - no fusion
+            using FusionPipeline = pmacc::mp_list<>;
+
+            //! ===================================================================
+            //! FUSION PIPELINE CONFIGURATION
+            //! ===================================================================
+
+            /** FusionPipeline: Defines the sequence of fusion reactions
+             *
+             * This controls which fusion reactions occur and in what order.
+             * Each reaction is processed sequentially from first to last.
+             *
+             * USAGE EXAMPLES:
+             *
+             * 1. Single D-T reaction:
+             *    using FusionPipeline = pmacc::mp_list<ColliderFromStruct<DT>>;
+             *
+             * 2. Multiple reactions (processed in order):
+             *    using FusionPipeline = pmacc::mp_list<
+             *        ColliderFromStruct<DT>,
+             *        ColliderFromStruct<DD>,
+             *        ColliderFromStruct<DHe3>
+             *    >;
+             *
+             * 3. Manual collider specification:
+             *    using FusionPipeline = pmacc::mp_list<
+             *        Collider<DT::CrossSectionInterpolator,
+             *                DT::reactants,
+             *                DT::products,
+             *                OneFilter<filter::All>>
+             *    >;
+             */
+
+
+            //! Method 1: Using ColliderFromStruct (recommended - cleaner syntax)
+            // using FusionPipeline = pmacc::mp_list<ColliderFromStruct<DT>>;
+
+            //! Method 2: Manual collider specification
+            // using FusionPipeline = pmacc::mp_list<
+            //     Collider<DT::CrossSectionInterpolator, DT::reactants, DT::products, OneFilter<filter::All>>
+            // >;
+
+            // empty pipeline - no fusion
+            using FusionPipeline = pmacc::mp_list<>;
+
+            //! ===================================================================
+            //! SIMULATION PARAMETERS
+            //! ===================================================================
+
+            /** Memory Management Parameters */
+
+            /** Cell list chunk size for memory allocation
+             *
+             * Controls memory allocation strategy for collision algorithm.
+             * The algorithm allocates multiples of this value to store
+             * particle ID lists, reducing memory fragmentation on GPUs.
+             *
+             * Larger values = less fragmentation but more memory overhead
+             */
+            constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
+
+            /** Product Weighting Parameters */
+
+            /** Minimum weighting threshold for fusion products
+             *
+             * When fusion product weighting <= productMinWeighting, the
+             * multiplication factor is set to:
+             * Fmult = max(1, productWeighting/productMinWeighting)
+             *
+             * Fmult is then used to scale the fusion probability:
+             * larger Fmult means we produce more products with smaller weighting.
+             *
+             * note: This does not ensure that the product weighting is always above this threshold - see docs "Fusion
+             * Particle Creation Algorithm"
+             */
+            constexpr float_X productMinWeighting = 16.1;
+
+            /** Maximum multiplication factor for products
+             * the algorithm tries to use this multiplier and if the product weighting is smaller than
+             * productMinWeighting, Fusion multiplier will be reduced.
+             *
+             * Usually set to a value ~10~100x less than the typical particle weighting in a cell.
+             */
+            constexpr uint32_t maxFmult = 1e6;
+
+            /** Debug and Control Flags */
+
+            /** Enable detailed fusion debugging output
+             * When true: Prints detailed information about fusion events - warning: large output!
+             */
+            constexpr bool debugFusion = false;
+
+            /** Force fusion probability to 100%
+             * All collision attempts result in fusion
+             */
+            constexpr bool alwaysFuseQ = false;
+        } // namespace fusion
+    } // namespace particles
+} // namespace picongpu

@@ -400,6 +400,24 @@ namespace picongpu
             }
         };
 
+        /**
+         * @brief Units related to fusion simulations.
+         */
+        struct FusionUnits
+        {
+            /**
+             * @brief Electron rest mass in atomic mass units (amu).
+             *
+             * It can be used in `speciesDefinition.param` to define mass ratios.
+             * For example, for neutrons:
+             * `constexpr float_X amu = 1.0_X/sim.fusion.electronMassAMU;`
+             * `value_identifier(float_X, MassRatioNeutrons, 1.0087*amu);`
+             *
+             *  2022 CODATA value, https://physics.nist.gov/cgi-bin/cuu/Value?meu
+             */
+            static constexpr float_X electronMassAMU = 5.485799090441e-4_X;
+        };
+
         /** units of the atomic in SI unit system */
         struct AtomicUnits
         {
@@ -500,6 +518,7 @@ namespace picongpu
         static constexpr SiUnits si{};
         static constexpr Units unit{};
         static constexpr AtomicUnits atomicUnit{};
+        static constexpr FusionUnits fusion{};
     };
 
     constexpr auto sim = Sim{};
