@@ -166,6 +166,18 @@
           ],
           "description": "Chunk size for particle IO in openPMD",
           "minimum": 1
+        },
+        "file_writing": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "create",
+            "append",
+            null
+          ],
+          "description": "File access mode for writing (create=new files, append=checkpoint-restart)."
         }
       }
     }

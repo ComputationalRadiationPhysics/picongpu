@@ -37,10 +37,10 @@ class BaseLaser:
         return length_of_cross_product < 1.0e-5
 
     def _compute_E0_and_a0(self, k0, E0, a0):
-        if E0 is not None or a0 is not None:
-            raise ValueError(f"One of E0 or a0 must be speficied. You gave {E0=} and {a0=}.")
+        if E0 is None and a0 is None:
+            raise ValueError(f"One of E0 or a0 must be specified. You gave {E0=} and {a0=}.")
         if E0 is not None and a0 is not None:
-            raise ValueError("At least one of E0 or a0 must be specified.")
+            raise ValueError("Only one of E0 or a0 must be specified, not both.")
 
         if E0 is None:
             E0 = a0 * constants.m_e * constants.c**2 * k0 / constants.q_e
