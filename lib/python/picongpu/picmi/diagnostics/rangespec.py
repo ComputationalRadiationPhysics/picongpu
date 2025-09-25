@@ -1,0 +1,127 @@
+"""
+This file is part of PIConGPU.
+Copyright 2025 PIConGPU contributors
+Authors: Masoud Afshari
+License: GPLv3+
+"""
+
+from picongpu.picmi.diagnostics.util import diagnostic_converts_to
+from ...pypicongpu.output.rangespec import RangeSpec as PyPIConGPURangeSpec
+import warnings
+import typeguard
+
+
+@diagnostic_converts_to(PyPIConGPURangeSpec)
+@typeguard.typechecked
+class _RangeSpecMeta(type):
+    """
+    Custom metaclass providing the [] operator for RangeSpec.
+    """
+
+    def __getitem__(cls, args):
+        if not isinstance(args, tuple):
+            args = (args,)
+        return cls(*args)
+
+
+class RangeSpec(metaclass=_RangeSpecMeta):
+    """
+    A class to specify a contiguous range of cells for simulation output in 1D, 2D, or 3D.
+
+    This class stores a list of slices representing inclusive cell ranges for each dimension.
+    Slices must have step=None (contiguous ranges) and integer or None endpoints. Use the []
+    operator for concise syntax, e.g., RangeSpec[0:10, 5:15]. For example:
+        - 1D: RangeSpec[0:10] specifies cells 0 to 10 (x).
+        - 3D: RangeSpec[0:10, 5:15, 2:8] specifies cells 0 to 10 (x), 5 to 15 (y), 2 to 8 (z).
+
+    The default RangeSpec[:] includes all cells in the simulation box for 1D.
+
+    Ranges where begin > end (e.g., RangeSpec[10:5]) result in an empty range after processing,
+    disabling output for that dimension.
+    """
+
+    def __init__(self, *args):
+        """
+        Initialize a RangeSpec with a list of slices.
+        :param args: 1 to 3 slice objects, e.g., slice(0, 10), slice(5, 15).
+        """
+        if not args:
+            raise ValueError("RangeSpec must have at least one range")
+        if len(args) > 3:
+            raise ValueError(f"RangeSpec must have at most 3 ranges, got {len(args)}")
+        if not all(isinstance(s, slice) for s in args):
+            raise TypeError("All elements must be slice objects")
+        for i, s in enumerate(args):
+            if s.step is not None:
+                raise ValueError(f"Step must be None in dimension {i + 1}, got {s.step}")
+            if s.start is not None and not isinstance(s.start, int):
+                raise TypeError(f"Begin in dimension {i + 1} must be int or None, got {type(s.start)}")
+            if s.stop is not None and not isinstance(s.stop, int):
+                raise TypeError(f"End in dimension {i + 1} must be int or None, got {type(s.stop)}")
+        self.ranges = list(args)
+
+    def __len__(self):
+        """
+        Return the number of dimensions specified in the range.
+        """
+        return len(self.ranges)
+
+    def check(self):
+        """
+        Validate the RangeSpec and warn if any range is empty or has begin > end.
+        """
+        # Check for begin > end in raw slices
+        for i, s in enumerate(self.ranges):
+            start = s.start if s.start is not None else 0
+            stop = s.stop if s.stop is not None else 0
+            if start > stop:
+                warnings.warn(
+                    f"RangeSpec has begin > end in dimension {i + 1}, resulting in an empty range after processing"
+                )
+
+        # Check for empty ranges after processing
+        dummy_sim_box = tuple(20 for _ in range(len(self.ranges)))  # Match number of dimensions
+        processed_ranges = [
+            self._interpret_negatives(self._interpret_nones(s, dim_size), dim_size)
+            for s, dim_size in zip(self.ranges, dummy_sim_box)
+        ]
+        for i, s in enumerate(processed_ranges):
+            if s.start >= s.stop:
+                warnings.warn(f"RangeSpec has an empty range in dimension {i + 1}, disabling output for this dimension")
+
+    def _interpret_nones(self, spec: slice, dim_size: int) -> slice:
+        """
+        :param spec: Input slice.
+        :param dim_size: Size of the simulation box in the dimension.
+        :return: Slice with non-negative bounds, clipped to [0, dim_size-1], empty if begin > end.
+        Replace None in slice bounds with simulation box limits (0 for begin, dim_size-1 for end).
+        """
+        return slice(
+            0 if spec.start is None else spec.start,
+            dim_size - 1 if spec.stop is None else spec.stop,
+            None,
+        )
+
+    def _interpret_negatives(self, spec: slice, dim_size: int) -> slice:
+        """
+        Convert negative indices to positive, clipping to simulation box.
+        """
+        if dim_size <= 0:
+            raise ValueError(f"Dimension size must be positive. Got {dim_size}")
+
+        begin = spec.start if spec.start is not None else 0
+        end = spec.stop if spec.stop is not None else dim_size - 1
+
+        # Convert negative indices
+        begin = dim_size + begin if begin < 0 else begin
+        end = dim_size + end if end < 0 else end
+
+        # Clip to simulation box
+        begin = max(0, min(begin, dim_size - 1))
+        end = max(0, min(end, dim_size - 1))
+
+        # Ensure empty range if begin > end
+        if begin > end:
+            end = begin
+
+        return slice(begin, end, None)
