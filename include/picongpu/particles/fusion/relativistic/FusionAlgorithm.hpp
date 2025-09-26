@@ -66,7 +66,7 @@ namespace picongpu::particles::fusion::relativistic
 
         //! Stores some precalculated values used in the fusion algorithm - also:
         //! calculates momenta of outgoing particles if needed
-        struct Variables
+        struct FusionKinematics
         {
             PMACC_ALIGN(labMomentum0, float3_COLL);
             PMACC_ALIGN(labMomentum1, float3_COLL);
@@ -82,7 +82,7 @@ namespace picongpu::particles::fusion::relativistic
             PMACC_ALIGN(V_rel_mag, float_COLL); // Magnitude of relative velocity for cross-section
 
             /**
-             * @brief Constructs the Variables struct and calculates key values for a fusion reaction.
+             * @brief Constructs the FusionKinematics struct and calculates key values for a fusion reaction.
              *
              * @tparam T_Par0 The type of the first reactant particle.
              * @tparam T_Par1 The type of the second reactant particle.
@@ -90,7 +90,7 @@ namespace picongpu::particles::fusion::relativistic
              * @param par1 The second reactant particle.
              */
             template<typename T_Par0, typename T_Par1>
-            DINLINE Variables(T_Par0 const& par0, T_Par1 const& par1)
+            DINLINE FusionKinematics(T_Par0 const& par0, T_Par1 const& par1)
                 : labMomentum0(precisionCast<float_COLL>(par0[momentum_]) / par0[weighting_])
                 , labMomentum1(precisionCast<float_COLL>(par1[momentum_]) / par1[weighting_])
                 , mass0(precisionCast<float_COLL>(picongpu::traits::attribute::getMass(1, par0)))
@@ -306,8 +306,8 @@ namespace picongpu::particles::fusion::relativistic
                 float_COLL rngValue1 = rng(worker);
 
 
-                // calculate boost and relative energy
-                Variables v{par0, par1};
+                // calculate relative velocity and relative energy
+                FusionKinematics fusionVar{par0, par1};
 
 
                 // Convert energy from PIC units to keV
@@ -322,8 +322,8 @@ namespace picongpu::particles::fusion::relativistic
                 constexpr float_COLL m2_to_picArea = 1.0 / (picLength_to_m * picLength_to_m);
                 constexpr float_COLL millibarn_to_picArea = millibarn_to_m2 * m2_to_picArea;
 
-                float_X sigma_picArea = crossSection(v.E_r * convToKeV) * millibarn_to_picArea;
-                float_X P = probabilityFactor * sigma_picArea * v.V_rel_mag * v.gamma_cm;
+                float_X sigma_picArea = crossSection(fusionVar.E_r * convToKeV) * millibarn_to_picArea;
+                float_X P = probabilityFactor * sigma_picArea * fusionVar.V_rel_mag * fusionVar.gamma_cm;
 
 
                 // print with probability 1e-8
@@ -334,51 +334,51 @@ namespace picongpu::particles::fusion::relativistic
                         constexpr float_COLL picVelocity_to_m_per_s = sim.unit.length() / sim.unit.time();
 
                         // Apply conversions
-                        float_X sigma_milibarns = crossSection(v.E_r * convToKeV);
+                        float_X sigma_milibarns = crossSection(fusionVar.E_r * convToKeV);
                         // print particle id
                         printf("Particle 1 ID: %lu, Particle 2 ID: %lu\n", par0[particleId_], par1[particleId_]);
 
                         printf(
                             "Worker %d,millibarn_to_picArea: %e, sigma_milibarns: %e, probabilityFactor: %e, "
-                            "v.V_rel [m/s]: %e, v.gamma_cm: %e, P: %e\n",
+                            "fusionVar.V_rel [m/s]: %e, fusionVar.gamma_cm: %e, P: %e\n",
                             worker.workerIdx(),
                             millibarn_to_picArea,
                             sigma_milibarns,
                             probabilityFactor,
-                            v.V_rel_mag * picVelocity_to_m_per_s,
-                            v.gamma_cm,
+                            fusionVar.V_rel_mag * picVelocity_to_m_per_s,
+                            fusionVar.gamma_cm,
                             P);
-                        printf("E_r [keV]: %f, sigma [mb]: %f\n", v.E_r * convToKeV, sigma_milibarns);
+                        printf("E_r [keV]: %f, sigma [mb]: %f\n", fusionVar.E_r * convToKeV, sigma_milibarns);
                         // print momenta
                         printf(
                             "  Reactant 1: weight: %f, mass: %f, momentum: %f, %f, %f, energy: %f\n",
                             weightingR1,
-                            v.mass0,
+                            fusionVar.mass0,
                             par0[momentum_][0],
                             par0[momentum_][1],
                             par0[momentum_][2],
-                            energy<float_X>(par0[momentum_], v.mass0));
+                            energy<float_X>(par0[momentum_], fusionVar.mass0));
                         printf(
                             "  Reactant 2: weight: %f, mass: %f, momentum: %f, %f, %f, energy: %f\n",
                             weightingR2,
-                            v.mass1,
+                            fusionVar.mass1,
                             par1[momentum_][0],
                             par1[momentum_][1],
                             par1[momentum_][2],
-                            energy<float_X>(par1[momentum_], v.mass1));
+                            energy<float_X>(par1[momentum_], fusionVar.mass1));
                     }
 
                 if constexpr(alwaysFuseQ)
                     P = 1.0_COLL; // always fuse if this is set to true
 
 
-                if(v.E_r <= 0.0_COLL)
+                if(fusionVar.E_r <= 0.0_COLL)
                 {
                     // print Er
                     if constexpr(debugFusion)
                         if(worker.workerIdx() == 0 && rng(worker) < 1e-8)
                         {
-                            printf("Warning: Relative kinetic energy E_r is non-positive: %f\n", v.E_r);
+                            printf("Warning: Relative kinetic energy E_r is non-positive: %f\n", fusionVar.E_r);
                         }
                     // No relative kinetic energy, no reaction possible
                     return;
@@ -409,9 +409,9 @@ namespace picongpu::particles::fusion::relativistic
                     // returns momentum of one particle - not multiplied by weighting.
                     // Multiplication by weighting is later in creation of particles
                     float3_COLL const dir = float3_COLL(x, y, z);
-                    v.P<T_Product0Box, T_Product1Box>(dir);
-                    mom0 = v.P0();
-                    mom1 = v.P1();
+                    fusionVar.P<T_Product0Box, T_Product1Box>(dir);
+                    mom0 = fusionVar.P0();
+                    mom1 = fusionVar.P1();
                 }
                 else
                 {
