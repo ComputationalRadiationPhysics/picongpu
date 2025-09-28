@@ -21,11 +21,7 @@
 #include "picongpu/defines.hpp"
 
 #if (SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
-
-// clang-format of
 #    include "picongpu/param/shadowgraphy.param"
-// clang-format on
-
 #    include "picongpu/fields/FieldB.hpp"
 #    include "picongpu/fields/FieldE.hpp"
 #    include "picongpu/plugins/PluginRegistry.hpp"
