@@ -4,9 +4,13 @@ import sympy
 import json
 
 
-class cpp_fct_reader:
+class CppFctReader:
     """class that alllows to evalute the PIConGPU free density
     from a c++ code string
+
+    BE AWARE: the code assumes that:
+      1.) a free formular density profile was used in PICMI
+      2.) if sympy.Piecewise was used, that the c++ code first case, will not branch
     """
 
     def __init__(self, s, debug=False):
@@ -55,7 +59,7 @@ class cpp_fct_reader:
             return res
 
     def eval_cases(self, s, x, symbol):
-        """handle c++ cases o form cond ? case1 ? case 2
+        """handle c++ cases of form condition ? case1 : case 2
         s ... string code
         x ... float value to evalute
         symbol ... symbol to replace in string s
@@ -117,6 +121,7 @@ class cpp_fct_reader:
 
 if __name__ == "__main__":
     # load pypicongpu.json, convert json to dict and extract equation for density
+    # a pypicongpu.json is created for every PICMI call
     file = open("pypicongpu.json")
     sim_dict = json.load(file)
     density_fct_str = sim_dict["species_initmanager"]["operations"]["simple_density"][0]["profile"]["data"][
@@ -124,7 +129,7 @@ if __name__ == "__main__":
     ]
 
     # create cpp_fct_reader class for later evaluation
-    reader = cpp_fct_reader(density_fct_str)
+    reader = CppFctReader(density_fct_str)
 
     # define positions where to evaluate the density
     x_array = np.linspace(0.0, 5.0e-3, 1000)
@@ -137,6 +142,6 @@ if __name__ == "__main__":
     # plot density
     plt.plot(x_array, n_array)
     plt.xlabel(r"$y \, \mathrm{[m]}$")
-    plt.xlabel(r"$n \, \mathrm{[m^-3]}$")
+    plt.ylabel(r"$n \, \mathrm{[m^-3]}$")
     plt.yscale("log")
     plt.show()
