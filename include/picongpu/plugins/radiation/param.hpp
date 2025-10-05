@@ -20,7 +20,6 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/radiationObserver.param"
 #include "picongpu/unitless/radiation.unitless"

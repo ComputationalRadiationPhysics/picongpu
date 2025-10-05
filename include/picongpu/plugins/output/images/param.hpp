@@ -20,9 +20,6 @@
 #pragma once
 
 #include "picongpu/defines.hpp"
-
-
-#include "picongpu/param/pngColorScales.param"
 #include "picongpu/param/png.param"
-
+#include "picongpu/param/pngColorScales.param"
 #include "picongpu/unitless/png.unitless"

@@ -21,9 +21,9 @@
 #include "picongpu/defines.hpp"
 
 #if (SIMDIM == DIM3 && PIC_ENABLE_FFTW3 == 1 && ENABLE_OPENPMD == 1)
-#    include "picongpu/param/shadowgraphy.param"
 #    include "picongpu/fields/FieldB.hpp"
 #    include "picongpu/fields/FieldE.hpp"
+#    include "picongpu/param/shadowgraphy.param"
 #    include "picongpu/plugins/PluginRegistry.hpp"
 #    include "picongpu/plugins/common/openPMDAttributes.hpp"
 #    include "picongpu/plugins/common/openPMDDefaultExtension.hpp"
