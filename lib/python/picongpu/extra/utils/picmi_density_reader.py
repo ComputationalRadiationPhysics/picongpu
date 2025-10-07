@@ -98,8 +98,7 @@ class CppFctReader:
         if self.debug:
             print("clean before:", s)
         s = s.replace("^", "**")
-        s = s.replace("pmacc::math::exp", "exp")
-        s = s.replace("pmacc::math::pow", "pow")
+        s = s.replace("pmacc::math::", " ")
         if self.debug:
             print("clean after:", s)
         return s
@@ -108,13 +107,11 @@ class CppFctReader:
         """clean any substrings from cases from paraneties and whitespace
         s ... string
         """
-        while s[0].isspace():
-            s = s[1:]
+        s.strip()
 
-        while s[-1].isspace():
-            s = s[:-1]
-
-        if s[0] == "(" and s[-1] == ")":
+        while s.startswith("("):
+            if not s.endswith(")"):
+                raise ValueError(f"Missing closing parenthesis in {s=}.")
             s = s[1:-1]
         return s
 
