@@ -5,13 +5,11 @@ Authors: Masoud Afshari
 License: GPLv3+
 """
 
-from picongpu.picmi.diagnostics.util import diagnostic_converts_to
 from ...pypicongpu.output.rangespec import RangeSpec as PyPIConGPURangeSpec
 import warnings
 import typeguard
 
 
-@diagnostic_converts_to(PyPIConGPURangeSpec)
 @typeguard.typechecked
 class _RangeSpecMeta(type):
     """
@@ -66,7 +64,7 @@ class RangeSpec(metaclass=_RangeSpecMeta):
         """
         return len(self.ranges)
 
-    def check(self):
+    def check(self, simulation_box: tuple[int, ...]):
         """
         Validate the RangeSpec and warn if any range is empty or has begin > end.
         """
@@ -80,11 +78,11 @@ class RangeSpec(metaclass=_RangeSpecMeta):
                 )
 
         # Check for empty ranges after processing
-        dummy_sim_box = tuple(20 for _ in range(len(self.ranges)))  # Match number of dimensions
         processed_ranges = [
             self._interpret_negatives(self._interpret_nones(s, dim_size), dim_size)
-            for s, dim_size in zip(self.ranges, dummy_sim_box)
+            for s, dim_size in zip(self.ranges, simulation_box)
         ]
+
         for i, s in enumerate(processed_ranges):
             if s.start >= s.stop:
                 warnings.warn(f"RangeSpec has an empty range in dimension {i + 1}, disabling output for this dimension")
@@ -125,3 +123,25 @@ class RangeSpec(metaclass=_RangeSpecMeta):
             end = begin
 
         return slice(begin, end, None)
+
+    def get_as_pypicongpu(self, simulation_box: tuple[int, ...], **kwargs) -> PyPIConGPURangeSpec:
+        """
+        Convert to a PyPIConGPURangeSpec object, applying simulation box clipping.
+
+        :param simulation_box: tuple of dimension sizes (1 to 3 dimensions).
+        :return: PyPIConGPURangeSpec object with clipped, non-negative ranges.
+        :raises ValueError: If the number of ranges does not match the simulation box dimensions.
+        """
+        if len(self.ranges) != len(simulation_box):
+            raise ValueError(
+                f"Number of range specifications ({len(self.ranges)}) must match "
+                f"simulation box dimensions ({len(simulation_box)})"
+            )
+
+        # Process each dimension
+        processed_ranges = [
+            self._interpret_negatives(self._interpret_nones(s, dim_size), dim_size)
+            for s, dim_size in zip(self.ranges, simulation_box)
+        ]
+
+        return PyPIConGPURangeSpec(processed_ranges)

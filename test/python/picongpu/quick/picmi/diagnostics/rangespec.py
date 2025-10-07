@@ -40,7 +40,9 @@ class PICMI_TestRangeSpec(unittest.TestCase):
         for rs, ranges in TESTCASES_VALID:
             with self.subTest(rs=rs):
                 self.assertEqual(rs.ranges, ranges)
-                rs.check()
+                # Pass simulation_box based on number of dimensions
+                simulation_box = tuple([128] * len(rs.ranges))
+                rs.check(simulation_box)
 
     def test_rangespec_invalid(self):
         """Test invalid RangeSpec inputs."""
@@ -53,8 +55,10 @@ class PICMI_TestRangeSpec(unittest.TestCase):
         """Test warnings for empty or invalid ranges."""
         for rs, warning in TESTCASES_WARNING:
             with self.subTest(rs=rs, warning=warning):
+                # Pass simulation_box for 1D
+                simulation_box = (128,)
                 with self.assertWarnsRegex(UserWarning, warning):
-                    rs.check()
+                    rs.check(simulation_box)
 
 
 if __name__ == "__main__":
