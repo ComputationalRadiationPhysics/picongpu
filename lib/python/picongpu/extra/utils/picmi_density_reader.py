@@ -122,11 +122,11 @@ class CppFctReader:
 if __name__ == "__main__":
     # load pypicongpu.json, convert json to dict and extract equation for density
     # a pypicongpu.json is created for every PICMI call
-    file = open("pypicongpu.json")
-    sim_dict = json.load(file)
-    density_fct_str = sim_dict["species_initmanager"]["operations"]["simple_density"][0]["profile"]["data"][
-        "function_body"
-    ]
+    with open("pypicongpu.json") as file:
+        sim_dict = json.load(file)
+        density_fct_str = sim_dict["species_initmanager"]["operations"]["simple_density"][0]["profile"]["data"][
+            "function_body"
+        ]
 
     # create cpp_fct_reader class for later evaluation
     reader = CppFctReader(density_fct_str)
