@@ -32,7 +32,18 @@ class Checkpoint(Plugin):
     _name = "checkpoint"
 
     def __init__(self):
-        "do nothing"
+        self.period = None
+        self.timePeriod = None
+        self.directory = None
+        self.file = None
+        self.restart = None
+        self.tryRestart = None
+        self.restartStep = None
+        self.restartDirectory = None
+        self.restartFile = None
+        self.restartChunkSize = None
+        self.restartLoop = None
+        self.openPMD = None
 
     def check(self):
         if self.period is None and self.timePeriod is None:
@@ -49,18 +60,31 @@ class Checkpoint(Plugin):
     def _get_serialized(self) -> typing.Dict:
         """Return the serialized representation of the object."""
         self.check()
-        serialized = {
-            "period": self.period.get_rendering_context() if self.period is not None else None,
-            "timePeriod": self.timePeriod,
-            "directory": self.directory,
-            "file": self.file,
-            "restart": self.restart,
-            "tryRestart": self.tryRestart,
-            "restartStep": self.restartStep,
-            "restartDirectory": self.restartDirectory,
-            "restartFile": self.restartFile,
-            "restartChunkSize": self.restartChunkSize,
-            "restartLoop": self.restartLoop,
-            "openPMD": self.openPMD,
-        }
+        serialized = {}
+
+        if self.period is not None:
+            serialized["period"] = self.period.get_rendering_context()
+        if self.timePeriod is not None:
+            serialized["timePeriod"] = self.timePeriod
+        if self.directory is not None:
+            serialized["directory"] = self.directory
+        if self.file is not None:
+            serialized["file"] = self.file
+        if self.restart is not None:
+            serialized["restart"] = self.restart
+        if self.tryRestart is not None:
+            serialized["tryRestart"] = self.tryRestart
+        if self.restartStep is not None:
+            serialized["restartStep"] = self.restartStep
+        if self.restartDirectory is not None:
+            serialized["restartDirectory"] = self.restartDirectory
+        if self.restartFile is not None:
+            serialized["restartFile"] = self.restartFile
+        if self.restartChunkSize is not None:
+            serialized["restartChunkSize"] = self.restartChunkSize
+        if self.restartLoop is not None:
+            serialized["restartLoop"] = self.restartLoop
+        if self.openPMD is not None:
+            serialized["openPMD"] = self.openPMD
+
         return serialized

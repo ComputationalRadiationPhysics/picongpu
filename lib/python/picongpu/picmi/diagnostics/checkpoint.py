@@ -5,7 +5,7 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import typeguard
 
@@ -28,7 +28,7 @@ class Checkpoint:
 
     Parameters
     ----------
-    period: TimeStepSpec, optional
+    period: int or TimeStepSpec, optional
         Specify on which time steps to create checkpoints.
         Unit: steps (simulation time steps). Required if timePeriod is not provided.
 
@@ -68,9 +68,7 @@ class Checkpoint:
     """
 
     def check(self, *args, **kwargs):
-        if self.period is None and self.timePeriod is None:
-            raise ValueError("At least one of period or timePeriod must be provided")
-        if self.timePeriod is not None and self.timePeriod < 0:
+        if self.timePeriod is not None and (not isinstance(self.timePeriod, int) or self.timePeriod < 0):
             raise ValueError("timePeriod must be a non-negative integer")
         if self.restartStep is not None and self.restartStep < 0:
             raise ValueError("restartStep must be non-negative")
@@ -81,9 +79,9 @@ class Checkpoint:
 
     def __init__(
         self,
-        period: Optional[TimeStepSpec] = None,
+        period: Optional[Union[int, TimeStepSpec]] = None,
         timePeriod: Optional[int] = None,
-        directory: Optional[str] = None,
+        directory: Optional[str] = "checkpoints",
         file: Optional[str] = None,
         restart: Optional[bool] = None,
         tryRestart: Optional[bool] = None,
@@ -94,8 +92,23 @@ class Checkpoint:
         restartLoop: Optional[int] = None,
         openPMD: Optional[Dict] = None,
     ):
-        self.period = period
+        if period is not None and not isinstance(period, (int, TimeStepSpec)):
+            raise TypeError("period must be an integer or TimeStepSpec")
+        if isinstance(period, int):
+            if period < 0:
+                raise ValueError("period must be non-negative")
+            if period == 0:
+                self.period = TimeStepSpec()("steps")
+            else:
+                self.period = TimeStepSpec(slice(None, None, period))("steps")
+        else:
+            self.period = period if period is not None else TimeStepSpec()("steps")
+
         self.timePeriod = timePeriod
+        if (self.timePeriod is None or self.timePeriod <= 0) and (self.period is None or not self.period.specs):
+            raise ValueError(
+                "At least one of period or timePeriod must be provided and active (period with steps or timePeriod > 0)"
+            )
         self.directory = directory
         self.file = file
         self.restart = restart
@@ -106,3 +119,4 @@ class Checkpoint:
         self.restartChunkSize = restartChunkSize
         self.restartLoop = restartLoop
         self.openPMD = openPMD
+        self.check()
