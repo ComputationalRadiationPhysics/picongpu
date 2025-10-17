@@ -5,6 +5,7 @@
   "unevaluatedProperties": false,
   "required": [
     "name",
+    "unit_dimension",
     "functor_preamble",
     "functor_expression",
     "return_type"
@@ -13,6 +14,10 @@
     "name": {
       "type": "string",
       "description": "Name of the functor"
+    },
+    "unit_dimension": {
+      "type": "string",
+      "description": "c++ code for unit dimension vector"
     },
     "functor_preamble": {
       "type": "array",

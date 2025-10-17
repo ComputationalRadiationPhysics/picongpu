@@ -73,12 +73,26 @@ def translate_to_cpp_type(return_type):
     raise ValueError(f"Cannot translate {return_type=} to a C++ type.")
 
 
+def translate_to_cpp_unitDimVec(unit_dimension):
+    if (isinstance(unit_dimension, list) and
+        len(unit_dimension) == 7 and
+        all(isinstance(item, float) for item in unit_dimension)):
+        result = "std::array<double, 7>{ "
+        for num in unit_dimension:
+            result += f"{num}, "
+        result += "}"
+        return result
+    else:
+        raise ValueError(f"The input {unit_dimension} is not a list of 7 floats.")
+
+
 class BinningFunctor(RenderedObject):
-    def __init__(self, name, functor_expression, attribute_mapping, return_type):
+    def __init__(self, name, functor_expression, attribute_mapping, return_type, unit_dimension=[0., 0., 0., 0., 0., 0., 0.]):
         self.name = name
         self.functor_expression = functor_expression
         self.attribute_mapping = attribute_mapping
         self.return_type = return_type
+        self.unit_dimension = unit_dimension
 
     def _get_serialized(self):
         return {
@@ -86,6 +100,7 @@ class BinningFunctor(RenderedObject):
             "functor_expression": PMAccPrinter().doprint(self.functor_expression),
             "functor_preamble": generate_preamble(self.attribute_mapping),
             "return_type": translate_to_cpp_type(self.return_type),
+            "unit_dimension": translate_to_cpp_unitDimVec(self.unit_dimension),
         }
 
 

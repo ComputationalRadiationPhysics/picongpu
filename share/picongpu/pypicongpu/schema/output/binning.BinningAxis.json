@@ -17,7 +17,7 @@
     "axis_functor": {
       "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.binning.BinningFunctor"
     },
-    "use_overflow_bins": {
+   "use_overflow_bins": {
       "type": "boolean"
     },
     "bin_spec": {
