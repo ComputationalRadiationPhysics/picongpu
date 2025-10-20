@@ -67,7 +67,8 @@ namespace picongpu::plugins::binning
             {{/deposition_functor.functor_preamble}}
             return {{{deposition_functor.functor_expression}}};
           },
-          "{{{deposition_functor.name}}}"
+          "{{{deposition_functor.name}}}",
+	{{{deposition_functor.unit_dimension}}}
       );
 
       binningCreator.addParticleBinner(
