@@ -16,6 +16,7 @@ from .checkpoint import Checkpoint
 from .particle_dump import ParticleDump
 from .field_dump import FieldDump
 from .backend_config import BackendConfig, OpenPMDConfig
+from .unit import Unit
 
 __all__ = [
     "Auto",
@@ -30,4 +31,5 @@ __all__ = [
     "Png",
     "TimeStepSpec",
     "Checkpoint",
+    "Unit",
 ]
