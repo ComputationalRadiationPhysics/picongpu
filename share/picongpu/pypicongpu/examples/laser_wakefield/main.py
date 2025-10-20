@@ -8,11 +8,14 @@ License: GPLv3+
 from picongpu import picmi
 from picongpu import pypicongpu
 import numpy as np
-from scipy.constants import c
+from scipy.constants import c, elementary_charge
+import sympy
 import logging
 import datetime
 
 from picongpu.pypicongpu.output.png import EMFieldScaleEnum, ColorScaleEnum
+from picongpu.picmi.diagnostics import binning
+from picongpu.picmi.diagnostics.unit import L, M, T, I
 
 # set log level:
 # options (in ascending order) are: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -149,7 +152,46 @@ sim = picmi.Simulation(
 for species, layout in species_list:
     sim.add_species(species, layout=layout)
 
+
+# define e-spec binning plugin
+def computeEnergy(particle):
+    return particle.get("kinetic energy")
+
+def computeAngle(particle):
+    px, py, pz = particle.get("momentum")
+    return sympy.atan2(px, py)
+
+def computeCharge(particle):
+    return particle.get("charge")
+
+energyFunctor = binning.BinningFunctor(name="energy", functor=computeEnergy, return_type=float,
+                                       unit_dimension=L**2 * M * T**-2)
+thetaFunctor = binning.BinningFunctor(name="theta", functor=computeAngle, return_type=float, )
+
+maxEnergy_MeV = 100.0
+energyRange = binning.BinSpec("linear", 0.0, maxEnergy_MeV * 1e6 * elementary_charge, 800)  # convert MeV to Joule
+thetaRange = binning.BinSpec("linear", -0.250, +0.250, 256)  # in rad
+
+energyAxis = binning.BinningAxis(functor=energyFunctor, bin_spec=energyRange, name="energy")
+thetaAxis = binning.BinningAxis(functor=thetaFunctor, bin_spec=thetaRange, name="theta")
+
+eSpec_deposition_functor = binning.BinningFunctor(
+    name="eSpec",
+    functor=computeCharge,
+    return_type=float,
+    unit_dimension=I * T)
+
+eSPec_binning = binning.Binning(
+    name="eSpec",
+    deposition_functor=eSpec_deposition_functor,
+    axes=[energyAxis, thetaAxis],
+    species=species,
+    period=picmi.diagnostics.TimeStepSpec[::100],
+)
+
+
 sim.diagnostics = [
+    eSPec_binning,
     picmi.diagnostics.PhaseSpace(
         species=electrons,
         # Resulting values for period:
