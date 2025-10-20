@@ -74,6 +74,10 @@ def translate_to_cpp_type(return_type):
 
 
 def translate_to_cpp_unitDimVec(unit_dimension):
+    if unit_dimension == None:
+        # catch picmi default input
+        unit_dimension = [0., 0., 0., 0., 0., 0., 0.]
+
     if (isinstance(unit_dimension, list) and
         len(unit_dimension) == 7 and
         all(isinstance(item, float) for item in unit_dimension)):

@@ -88,10 +88,12 @@ class BinningFunctor:
         name: str,
         functor: Callable[[BinningParticle], Any],
         return_type: type | str,
+        unit_dimension: list[float] | None = None,
     ):
         self.name = name
         self.functor = functor
         self.return_type = return_type
+        self.unit_dimension = unit_dimension
 
     def get_as_pypicongpu(self) -> PyPIConGPUBinningFunctor:
         self.check()
@@ -102,6 +104,7 @@ class BinningFunctor:
             functor_expression=functor_expression,
             attribute_mapping=particle.get_attribute_map(),
             return_type=self.return_type,
+            unit_dimension=self.unit_dimension,
         )
 
 
