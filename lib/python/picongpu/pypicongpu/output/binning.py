@@ -15,6 +15,7 @@ from ..rendering.pmaccprinter import PMAccPrinter
 from ..species import Species
 from .. import util
 from .plugin import Plugin
+from ...picmi.diagnostics.unit import Unit
 
 import typeguard
 
@@ -76,22 +77,20 @@ def translate_to_cpp_type(return_type):
 def translate_to_cpp_unitDimVec(unit_dimension):
     if unit_dimension == None:
         # catch picmi default input
-        unit_dimension = [0., 0., 0., 0., 0., 0., 0.]
+        unit_dimension = Unit()
 
-    if (isinstance(unit_dimension, list) and
-        len(unit_dimension) == 7 and
-        all(isinstance(item, float) for item in unit_dimension)):
+    if isinstance(unit_dimension, type(Unit())):
         result = "std::array<double, 7>{ "
         for num in unit_dimension:
             result += f"{num}, "
         result += "}"
         return result
     else:
-        raise ValueError(f"The input {unit_dimension} is not a list of 7 floats.")
+        raise ValueError(f"The input {unit_dimension} is not a unit class.")
 
 
 class BinningFunctor(RenderedObject):
-    def __init__(self, name, functor_expression, attribute_mapping, return_type, unit_dimension=[0., 0., 0., 0., 0., 0., 0.]):
+    def __init__(self, name, functor_expression, attribute_mapping, return_type, unit_dimension=Unit()):
         self.name = name
         self.functor_expression = functor_expression
         self.attribute_mapping = attribute_mapping

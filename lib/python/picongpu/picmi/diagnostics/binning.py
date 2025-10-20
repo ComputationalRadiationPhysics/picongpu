@@ -19,6 +19,7 @@ from ...pypicongpu.output.binning import (
 from ...pypicongpu.species.species import Species as PyPIConGPUSpecies
 from ..species import Species as PICMISpecies
 from .timestepspec import TimeStepSpec
+from .unit import Unit
 
 _COORDINATE_SYSTEM = {
     (
@@ -88,7 +89,7 @@ class BinningFunctor:
         name: str,
         functor: Callable[[BinningParticle], Any],
         return_type: type | str,
-        unit_dimension: list[float] | None = None,
+        unit_dimension: type(Unit()) | None = None,
     ):
         self.name = name
         self.functor = functor
