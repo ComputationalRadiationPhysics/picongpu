@@ -83,6 +83,56 @@ Configure fusion reactions in ``include/picongpu/param/fusion.param``.
 
          using products = pmacc::mp_list<Pair<PIC_He4, PIC_He4>>;
 
+Complete Example: D-T Fusion Reaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here is a complete example for the Deuterium-Tritium fusion reaction (D + T → n + He⁴).
+This is the easiest fusion reaction to achieve and is commonly used in fusion energy research.
+
+The cross-section parameters are based on the Bosch-Hale parameterization from experimental data
+(Source: https://hdl.handle.net/11858/00-001M-0000-0027-6535-1, page 29).
+
+.. code-block:: cpp
+
+    struct DT
+    {
+        //! Reactant species: Deuterium and Tritium
+        using reactants = pmacc::mp_list<Pair<PIC_Tritons, PIC_Deuterons>>;
+        
+        //! Filter for reactants (mandatory for ColliderFromStruct)
+        //! Use filter::All to include all particles, or define custom filters
+        using FilterPair = OneFilter<filter::All>;
+        
+        //! Product species: Neutron and Helium-4
+        using products = pmacc::mp_list<Pair<PIC_Neutrons, PIC_He4>>;
+        
+        /** Cross-section parameters for D-T fusion */
+        struct Params
+        {
+            //! Gamow constant: BG = π·α·Z₁·Z₂·√(2·μ·c²) in keV^(1/2)
+            //! where α is the fine structure constant, Z₁,Z₂ are charges, μ is reduced mass
+            static constexpr float_X BG = 34.3827_X;
+            
+            //! Bosch-Hale parameterization coefficients for D-T cross-section
+            //! These coefficients fit experimental cross-section data
+            static constexpr float_X A1 = 6.927e4_X;
+            static constexpr float_X A2 = 7.454e8_X;
+            static constexpr float_X A3 = 2.050e6_X;
+            static constexpr float_X A4 = 5.2002e4_X;
+            static constexpr float_X A5 = 0.0_X;
+            
+            //! Additional Bosch-Hale coefficients
+            static constexpr float_X B1 = 6.38e1_X;
+            static constexpr float_X B2 = -9.95e-1_X;
+            static constexpr float_X B3 = 6.981e-5_X;
+            static constexpr float_X B4 = 1.728e-4_X;
+        };
+        
+        //! Cross-section calculation using Bosch-Hale parameterization
+        //! Returns cross-section in milli-barns
+        using CrossSectionInterpolator = relativistic::FusionFunctor<Params>;
+    };
+
 2) Configure the fusion pipeline
 
 .. code-block:: cpp

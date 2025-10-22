@@ -33,10 +33,7 @@ namespace picongpu
 
                 /** Host side binary collision functor for using a constant coulomb logarithm value
                  *
-                 * @tparam T_Param param class with a static constexpr member coulombLog
-                 * @tparam ifDebug if true the simulation output will include a file (or files, one for each collided
-                 *      pair of species) with an average coulomb log and s parameter (averaged over all collisions
-                 *      in the whole simulation, for each timestep)
+                 * @tparam T_Param param class with a static constexpr member 'CalcCrossSection'
                  */
                 template<typename T_Param>
                 using FusionFunctor = FusionFunctorImpl<T_Param>;
