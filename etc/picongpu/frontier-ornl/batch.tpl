@@ -32,6 +32,7 @@
 #SBATCH --ntasks-per-gpu=1
 #SBATCH --gpu-bind=closest
 #SBATCH --gres=gpu:!TBG_devicesPerNode
+#SBATCH --exclusive
 
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
