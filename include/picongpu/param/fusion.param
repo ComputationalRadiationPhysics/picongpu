@@ -19,9 +19,7 @@
 
 #pragma once
 
-#include "picongpu/param/particleFilters.param"
 #include "picongpu/particles/fusion/fusion.def"
-#include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
 #include <pmacc/meta/conversion/MakeSeq.hpp>
 
@@ -41,13 +39,61 @@ namespace picongpu
             /** Define your fusion reactions here.
              * See documentation: https://picongpu.readthedocs.io/en/latest/usage/workflows/fusionReactions.html
              */
-
             using FusionPipeline = pmacc::mp_list<>;
 
+            /** Memory allocation control: chunk size for cell list storage.
+             *
+             * Sets the memory allocation chunk size for the cell-based particle lists
+             * used during fusion collision detection. Should typically be set to
+             * TYPICAL_PARTICLES_PER_CELL to match the expected particle density.
+             */
             constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
+
+            /** Minimum weighting threshold for fusion product macro-particles.
+             *
+             * Sets the minimum allowed weighting (statistical weight) for newly created
+             * product macro-particles. When the fusion production multiplier (Fmult) would
+             * create products lighter than this threshold, Fmult is reduced to ensure
+             * products have at least this weighting. Lower values allow more, lighter products
+             * but increase memory usage and computation time.
+             */
             constexpr float_X productMinWeighting = 16.1;
-            constexpr uint32_t maxFmult = 1e6;
+
+            /** Maximum fusion production multiplier (Fmult).
+             *
+             * Controls how the consumed reactant weight is split into multiple product
+             * macro-particles. Higher values create more, lighter products (down to the
+             * productMinWeighting threshold). Lower values create fewer, heavier products.
+             *
+             * Algorithm per fused pair:
+             * - Start with Fmult = maxFmult
+             * - Compute productWeighting = minWeighting / Fmult
+             * - If productWeighting < productMinWeighting, reduce Fmult to
+             *   max(1, minWeighting / productMinWeighting) and recompute
+             *
+             * The base productWeighting is then distributed across reactant sites and
+             * product species while conserving total weight.
+             *
+             * Note: This distribution can result in creation of product particles with
+             * weighting smaller than productMinWeighting.
+             */
+            constexpr uint32_t maxFmult = 1'000'000;
+
+            /** Enable debug output for fusion processes.
+             *
+             * When true, enables detailed debugging information for fusion reactions
+             * including collision pair information, cross-sections, and product creation.
+             * If enabled, may create enormous amounts of output data if using gpu.
+             */
             constexpr bool debugFusion = false;
+
+            /** Force 100% fusion probability (debug flag).
+             *
+             * When true, forces all eligible reactant pairs to fuse regardless of the
+             * calculated fusion cross-section probability. This is a debug/test feature
+             * and should be false for realistic physics simulations. Useful for testing
+             * fusion product creation and energy conservation.
+             */
             constexpr bool alwaysFuseQ = false;
         } // namespace fusion
     } // namespace particles

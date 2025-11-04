@@ -22,7 +22,6 @@
 
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/particles/fusion/fieldSlots.hpp"
 #include "picongpu/particles/fusion/fusion.hpp"
 #include "picongpu/particles/param.hpp"
 #include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"

@@ -312,14 +312,14 @@ namespace picongpu::particles::fusion::relativistic
 
                 // Convert energy from PIC units to keV
                 constexpr float_COLL picEnergy_to_Joule = sim.unit.energy();
-                constexpr float_COLL joule_to_eV = 1.0 / sim.si.get_eV();
-                constexpr float_COLL eV_to_keV = 1e-3;
+                constexpr float_COLL joule_to_eV = 1.0_COLL / sim.si.get_eV();
+                constexpr float_COLL eV_to_keV = 1e-3_COLL;
                 constexpr float_COLL convToKeV = picEnergy_to_Joule * joule_to_eV * eV_to_keV;
 
                 // Convert cross section from millibarns to PIC area units
-                constexpr float_COLL millibarn_to_m2 = 1e-31; // 1 millibarn = 1e-31 m²
+                constexpr float_COLL millibarn_to_m2 = 1e-31_COLL; // 1 millibarn = 1e-31 m²
                 constexpr float_COLL picLength_to_m = sim.unit.length(); // [m/UNIT_LENGTH]
-                constexpr float_COLL m2_to_picArea = 1.0 / (picLength_to_m * picLength_to_m);
+                constexpr float_COLL m2_to_picArea = 1.0_COLL / (picLength_to_m * picLength_to_m);
                 constexpr float_COLL millibarn_to_picArea = millibarn_to_m2 * m2_to_picArea;
 
                 float_X sigma_picArea = crossSection(fusionVar.E_r * convToKeV) * millibarn_to_picArea;
@@ -328,7 +328,7 @@ namespace picongpu::particles::fusion::relativistic
 
                 // print with probability 1e-8
                 if constexpr(debugFusion)
-                    if(rng(worker) < 1e-8)
+                    if(rng(worker) < 1e-8_COLL)
                     {
                         // get pic velocity to m/s -> debug
                         constexpr float_COLL picVelocity_to_m_per_s = sim.unit.length() / sim.unit.time();
@@ -376,7 +376,7 @@ namespace picongpu::particles::fusion::relativistic
                 {
                     // print Er
                     if constexpr(debugFusion)
-                        if(worker.workerIdx() == 0 && rng(worker) < 1e-8)
+                        if(worker.workerIdx() == 0 && rng(worker) < 1e-8_COLL)
                         {
                             printf("Warning: Relative kinetic energy E_r is non-positive: %f\n", fusionVar.E_r);
                         }

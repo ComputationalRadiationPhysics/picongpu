@@ -30,6 +30,7 @@
 #include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/math/functions/Round.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -64,13 +65,13 @@ namespace picongpu::particles::fusion
             T truncated = static_cast<long long>(x);
             T fraction = x - truncated;
 
-            if(fraction >= 0.5)
+            if(fraction >= T{0.5})
             {
-                return truncated + 1.0;
+                return truncated + T{1.0};
             }
-            if(fraction <= -0.5)
+            if(fraction <= T{-0.5})
             {
-                return truncated - 1.0;
+                return truncated - T{1.0};
             }
             return truncated;
         }
@@ -85,10 +86,10 @@ namespace picongpu::particles::fusion
             float_COLL c4)
         {
             // clang-format off
-            return (W1 >= 0.0_X && W1 <= c3 &&
-                    W3 >= 0.0_X && W3 <= c3 &&
-                    W2 >= 0.0_X && W2 <= c4 &&
-                    W4 >= 0.0_X && W4 <= c4);
+            return (W1 >= 0.0_COLL && W1 <= c3 &&
+                    W3 >= 0.0_COLL && W3 <= c3 &&
+                    W2 >= 0.0_COLL && W2 <= c4 &&
+                    W4 >= 0.0_COLL && W4 <= c4);
             // clang-format on
         }
 
@@ -118,8 +119,7 @@ namespace picongpu::particles::fusion
             float_COLL q4,
             float_COLL m4)
         {
-            constexpr float_COLL tolerance
-                = static_cast<precision::float_COLL>(10) * std::numeric_limits<float_COLL>::epsilon();
+            constexpr float_COLL tolerance = 10.0_COLL * std::numeric_limits<float_COLL>::epsilon();
 
             float_COLL const Q = q1 + q2;
             float_COLL const M = m1 + m2;
@@ -130,7 +130,7 @@ namespace picongpu::particles::fusion
             {
                 float_COLL const c3 = (Q * m4 - q4 * M) / det;
                 float_COLL const c4 = (q3 * M - Q * m3) / det;
-                bool const ok = (c3 >= 0.0_X && c4 >= 0.0_X);
+                bool const ok = (c3 >= 0.0_COLL && c4 >= 0.0_COLL);
                 return StoichiometryCaps{c3, c4, ok};
             }
 
@@ -140,7 +140,7 @@ namespace picongpu::particles::fusion
             if(std::abs(sQ) > tolerance)
             {
                 float_COLL const c = Q / sQ; // c3=c4 ensures global charge; mass follows when q/m are identical
-                return StoichiometryCaps{c, c, c >= 0.0_X};
+                return StoichiometryCaps{c, c, c >= 0.0_COLL};
             }
 
             // If both products are effectively neutral, rely on mass-only symmetric split
@@ -148,9 +148,9 @@ namespace picongpu::particles::fusion
             if(std::abs(sM) > tolerance)
             {
                 float_COLL const c = M / sM;
-                return StoichiometryCaps{c, c, c >= 0.0_X};
+                return StoichiometryCaps{c, c, c >= 0.0_COLL};
             }
-            return StoichiometryCaps{0.0_X, 0.0_X, false};
+            return StoichiometryCaps{0.0_COLL, 0.0_COLL, false};
         }
 
         // New: local mass+charge solver under caps. Solve site-1 2x2 and derive site-2 via caps.
@@ -166,12 +166,11 @@ namespace picongpu::particles::fusion
             float_COLL c3,
             float_COLL c4)
         {
-            constexpr float_COLL tolerance
-                = static_cast<precision::float_COLL>(10) * std::numeric_limits<float_COLL>::epsilon();
+            constexpr float_COLL tolerance = 10.0_COLL * std::numeric_limits<float_COLL>::epsilon();
 
             float_COLL const det = q3 * m4 - q4 * m3;
             if(std::abs(det) < tolerance)
-                return WeightResult{0.0_X, 0.0_X, 0.0_X, 0.0_X, false};
+                return WeightResult{0.0_COLL, 0.0_COLL, 0.0_COLL, 0.0_COLL, false};
 
             // Solve for site-1 weights (W1,W2)
             float_COLL const W1 = (q1 * m4 - q4 * m1) / det;
@@ -181,7 +180,7 @@ namespace picongpu::particles::fusion
 
             // Check bounds
             if(!areWeightsValidWithCaps(W1, W2, W3, W4, c3, c4))
-                return WeightResult{0.0_X, 0.0_X, 0.0_X, 0.0_X, false};
+                return WeightResult{0.0_COLL, 0.0_COLL, 0.0_COLL, 0.0_COLL, false};
 
             // Verify site-2 consistency
             float_COLL const q2_chk = W3 * q3 + W4 * q4;
@@ -199,13 +198,12 @@ namespace picongpu::particles::fusion
             float_COLL c3,
             float_COLL c4)
         {
-            constexpr float_COLL tolerance
-                = static_cast<precision::float_COLL>(10) * std::numeric_limits<float_COLL>::epsilon();
+            constexpr float_COLL tolerance = 10.0_COLL * std::numeric_limits<float_COLL>::epsilon();
 
             // Both neutral: minimize macro creation -> put all at site 2
             if(std::abs(q3) < tolerance && std::abs(q4) < tolerance)
             {
-                return WeightResult{0.0_X, 0.0_X, c3, c4, true};
+                return WeightResult{0.0_COLL, 0.0_COLL, c3, c4, true};
             }
 
             // Second product neutral
@@ -214,7 +212,7 @@ namespace picongpu::particles::fusion
                 float_COLL const W1 = q1 / q3;
                 float_COLL const W3 = c3 - W1;
                 // Place all neutral at site 2
-                float_COLL const W2 = 0.0_X;
+                float_COLL const W2 = 0.0_COLL;
                 float_COLL const W4 = c4;
                 bool const ok = areWeightsValidWithCaps(W1, W2, W3, W4, c3, c4)
                                 && (std::abs(q1 - (W1 * q3 + W2 * q4)) < tolerance);
@@ -226,7 +224,7 @@ namespace picongpu::particles::fusion
             {
                 float_COLL const W2 = q1 / q4;
                 float_COLL const W4 = c4 - W2;
-                float_COLL const W1 = 0.0_X;
+                float_COLL const W1 = 0.0_COLL;
                 float_COLL const W3 = c3;
                 bool const ok = areWeightsValidWithCaps(W1, W2, W3, W4, c3, c4)
                                 && (std::abs(q1 - (W1 * q3 + W2 * q4)) < tolerance);
@@ -236,18 +234,18 @@ namespace picongpu::particles::fusion
             // Both charged: try single-product split first
             {
                 float_COLL const W1a = q1 / q3;
-                if(W1a >= 0.0_X && W1a <= c3)
+                if(W1a >= 0.0_COLL && W1a <= c3)
                 {
                     float_COLL const W1 = W1a;
-                    float_COLL const W2 = 0.0_X;
+                    float_COLL const W2 = 0.0_COLL;
                     float_COLL const W3 = c3 - W1;
                     float_COLL const W4 = c4;
                     return WeightResult{W1, W2, W3, W4, true};
                 }
                 float_COLL const W2a = q1 / q4;
-                if(W2a >= 0.0_X && W2a <= c4)
+                if(W2a >= 0.0_COLL && W2a <= c4)
                 {
-                    float_COLL const W1 = 0.0_X;
+                    float_COLL const W1 = 0.0_COLL;
                     float_COLL const W2 = W2a;
                     float_COLL const W3 = c3;
                     float_COLL const W4 = c4 - W2;
@@ -261,7 +259,7 @@ namespace picongpu::particles::fusion
             {
                 float_COLL const W1 = c3;
                 float_COLL const W2 = (q1 - q3 * W1) / q4;
-                float_COLL const W3 = 0.0_X;
+                float_COLL const W3 = 0.0_COLL;
                 float_COLL const W4 = c4 - W2;
                 bool const ok = areWeightsValidWithCaps(W1, W2, W3, W4, c3, c4);
                 return WeightResult{W1, W2, W3, W4, ok};
@@ -271,7 +269,7 @@ namespace picongpu::particles::fusion
                 float_COLL const W2 = c4;
                 float_COLL const W1 = (q1 - q4 * W2) / q3;
                 float_COLL const W3 = c3 - W1;
-                float_COLL const W4 = 0.0_X;
+                float_COLL const W4 = 0.0_COLL;
                 bool const ok = areWeightsValidWithCaps(W1, W2, W3, W4, c3, c4);
                 return WeightResult{W1, W2, W3, W4, ok};
             }
@@ -334,9 +332,9 @@ namespace picongpu::particles::fusion
                 IdGenerator& idGen,
                 T_ParAccessor0 const& r1,
                 T_ParAccessor1 const& r2,
-                float_X& productWeighting,
-                float3_X& mom1,
-                float3_X& mom2,
+                float_X const productWeighting,
+                float3_X const& mom1,
+                float3_X const& mom2,
                 T_ParAccessor2& p1r1, // product 1 at pos 1
                 T_ParAccessor2& p1r2, // product 1 at pos 2
                 T_ParAccessor3& p2r1, // product 2 at pos 1
@@ -357,11 +355,10 @@ namespace picongpu::particles::fusion
                 targetClone5.derive(worker, idGen, r2);
 
 
-                static constexpr float_COLL tolerance
-                    = static_cast<float_COLL>(10) * std::numeric_limits<float_COLL>::epsilon();
+                static constexpr float_COLL tolerance = 10.0_COLL * std::numeric_limits<float_COLL>::epsilon();
                 // Charges must be non-negative
                 static_assert(
-                    q1 >= 0.0_X && q2 >= 0.0_X && q3 >= 0.0_X && q4 >= 0.0_X,
+                    q1 >= 0.0_COLL && q2 >= 0.0_COLL && q3 >= 0.0_COLL && q4 >= 0.0_COLL,
                     "All charges must be non-negative");
 
                 // Compute stoichiometric caps from species (can be fractional)
