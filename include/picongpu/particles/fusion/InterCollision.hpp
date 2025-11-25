@@ -183,11 +183,7 @@ namespace picongpu::particles::fusion
             worker.sync();
             detail::maxArrayDestroy<false>(worker, nppc, numCellsPerSuperCell);
             // now in nppc[0] we have the maximum number of particles in the supercell
-            onlyMaster(
-                [&]()
-                {
-                    maxNumParticlesInCell = nppc[0];
-                });
+            onlyMaster([&]() { maxNumParticlesInCell = nppc[0]; });
             // don't need sync
 
             // --- 4. Shuffle Particle Lists ---
@@ -480,7 +476,7 @@ namespace picongpu::particles::fusion
                 for(uint32_t chunkStart = 0; chunkStart < maxNumParticles; chunkStart += numPairsAtOnce)
                 {
                     // Parallel grid-stride loop over the current chunk
-                    constexpr uint32_t step = std::min(worker.numWorkers(), numPairsAtOnce);
+                    uint32_t step = std::min(worker.numWorkers(), numPairsAtOnce);
                     for(int i = chunkStart + worker.workerIdx();
                         i < chunkStart + numPairsAtOnce && i < maxNumParticles;
                         i += step)
@@ -499,7 +495,7 @@ namespace picongpu::particles::fusion
                         // P = n_min * n_a / n_ba * minWeighting * dt * (Fmult*sigma*v_rel*gamma_cm) <- inside fuse()
                         float_X const probabilityCorrectionFactor
                             = minReactantDensity * correctionFactor[cellIdx] * sim.pic.getDt();
-                        
+
                         // Fusion multiplier - can be changed inside fuse() if probability > 1
                         float_X Fmult = maxFmult;
 
@@ -525,7 +521,7 @@ namespace picongpu::particles::fusion
                         {
                             // because we could change Fmult inside fuser (because the probability might have been >1)
                             float_X productWeighting = minWeighting / Fmult;
-                            
+
                             weightingArray[i] = productWeighting; // no atomic needed because i is unique per thread
 
                             uint32_t freeIndex = alpaka::atomicAdd(
@@ -614,17 +610,25 @@ namespace picongpu::particles::fusion
                         // no fusion happened for this pair
                         if(weightingArray[i] == 0._X)
                             continue;
-                            
+
                         if constexpr(debugFusion)
-                            if(weightingArray[i] < 0._X){
-                                printf("Error: negative weighting in fusion reaction! weightingArray[%d] = %f\n", i, weightingArray[i]);
+                            if(weightingArray[i] < 0._X)
+                            {
+                                printf(
+                                    "Error: negative weighting in fusion reaction! weightingArray[%d] = %f\n",
+                                    i,
+                                    weightingArray[i]);
                                 // print fmult and weightingR1 and weightingR2
                                 float_X weightingR1 = accessor1[i % size1][weighting_];
                                 float_X weightingR2 = accessor2[i % size2][weighting_];
                                 printf("weightingR1 = %f, weightingR2 = %f\n", weightingR1, weightingR2);
                                 printf("Fmult = %f\n", maxFmult);
                                 // print the number of particles in longer list
-                                printf("size1 = %d, size2 = %d, weightingArraySize = %d\n", size1, size2, weightingArraySize);
+                                printf(
+                                    "size1 = %d, size2 = %d, weightingArraySize = %d\n",
+                                    size1,
+                                    size2,
+                                    weightingArraySize);
                                 continue;
                             }
                         float_X const oldWeighting1 = accessor1[i % size1][weighting_];
@@ -642,32 +646,35 @@ namespace picongpu::particles::fusion
                         accessor1[i % size1][multiMask_] = (accessor1[i % size1][weighting_] > 1e-6_X);
                         accessor2[i % size2][multiMask_] = (accessor2[i % size2][weighting_] > 1e-6_X);
 
-                        
+
                         // print i and weighting array
                         if constexpr(debugFusion)
-                            if((((i==0 && alwaysFuseQ) || !alwaysFuseQ) || accessor1[i % size1][multiMask_]==0 || accessor2[i % size2][multiMask_]==0)){
+                            if((((i == 0 && alwaysFuseQ) || !alwaysFuseQ) || accessor1[i % size1][multiMask_] == 0
+                                || accessor2[i % size2][multiMask_] == 0))
+                            {
+                                printf(
+                                    "worker %d: cell %d, i %d, weightingArray %f, new weighting1 %f, new weighting2 "
+                                    "%f, old weighting1 %f, old weighting2 %f, difference 1 %f, difference 2 %f\n",
+                                    worker.workerIdx(),
+                                    cellIdx,
+                                    i,
+                                    weightingArray[i],
+                                    accessor1[i % size1][weighting_],
+                                    accessor2[i % size2][weighting_],
+                                    oldWeighting1,
+                                    oldWeighting2,
+                                    oldWeighting1 - accessor1[i % size1][weighting_],
+                                    oldWeighting2 - accessor2[i % size2][weighting_]);
 
-                            printf("worker %d: cell %d, i %d, weightingArray %f, new weighting1 %f, new weighting2 %f, old weighting1 %f, old weighting2 %f, difference 1 %f, difference 2 %f\n",
-                                worker.workerIdx(),
-                                cellIdx,
-                                i,
-                                weightingArray[i],
-                                accessor1[i % size1][weighting_],
-                                accessor2[i % size2][weighting_],
-                                oldWeighting1,
-                                oldWeighting2,
-                                oldWeighting1 - accessor1[i % size1][weighting_],
-                                oldWeighting2 - accessor2[i % size2][weighting_]);
-                                
                                 // print the multimask as well
-                                printf("worker %d: cell %d, i %d, multiMask1 %d, multiMask2 %d\n",
+                                printf(
+                                    "worker %d: cell %d, i %d, multiMask1 %d, multiMask2 %d\n",
                                     worker.workerIdx(),
                                     cellIdx,
                                     i,
                                     accessor1[i % size1][multiMask_],
                                     accessor2[i % size2][multiMask_]);
-                                
-                        }
+                            }
                     }
                     worker.sync();
                 }

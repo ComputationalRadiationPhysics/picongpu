@@ -11,28 +11,21 @@ Species Definition Requirements
 -------------------------------
 All species participating in fusion reactions must be defined with ``massRatio`` and ``chargeRatio`` flags. These are mandatory for the fusion algorithms to function correctly.
 
-To simplify defining particle masses relative to the electron mass, PIConGPU provides a constant for the atomic mass unit (``amu``). This constant is the ratio of one atomic mass unit to the electron rest mass. You can use it in ``speciesDefinition.param`` as follows:
+To simplify defining particle masses relative to the electron mass, you can define an atomic mass unit (``amu``) constant. This constant is the ratio of one atomic mass unit to the electron rest mass:
 
-.. code-block:: cpp
+.. literalinclude:: ../../../../share/picongpu/tests/Fusion/include/picongpu/param/speciesDefinition.param
+   :language: cpp
+   :start-after: doc-include-start: amu-definition
+   :end-before: doc-include-end: amu-definition
+   :dedent:
 
-    #include "picongpu/unitless/simulation.unitless"
+Example species definition for deuterons:
 
-    // Atomic mass unit in electron masses (amu/me)
-    constexpr float_X amu = 1.0_X / sim.fusion.electronMassAMU;
-
-    // Deuteron species
-    value_identifier(float_X, MassRatioDeuterons, 2.013553212745*amu);
-    value_identifier(float_X, ChargeRatioDeuterons, 1.0);
-
-    using ParticleFlagsDeuterons = MakeSeq_t<
-        particlePusher<UsedParticlePusher>,
-        shape<UsedParticleShape>,
-        interpolation<UsedField2Particle>,
-        massRatio<MassRatioDeuterons>,        // Required for fusion
-        chargeRatio<ChargeRatioDeuterons>     // Required for fusion
-    >;
-
-    using PIC_Deuterons = Particles<PMACC_CSTRING("d"), ParticleFlagsDeuterons, DefaultParticleAttributes>;
+.. literalinclude:: ../../../../share/picongpu/tests/Fusion/include/picongpu/param/speciesDefinition.param
+   :language: cpp
+   :start-after: doc-include-start: deuteron-definition
+   :end-before: doc-include-end: deuteron-definition
+   :dedent:
 
 Important: Mass ratios must be as precise as possible since fusion energy release is calculated from the mass deficit between reactants and products.
 
@@ -92,92 +85,34 @@ This is the easiest fusion reaction to achieve and is commonly used in fusion en
 The cross-section parameters are based on the Bosch-Hale parameterization from experimental data
 (Source: https://hdl.handle.net/11858/00-001M-0000-0027-6535-1, page 29).
 
-.. code-block:: cpp
-
-    struct DT
-    {
-        //! Reactant species: Deuterium and Tritium
-        using reactants = pmacc::mp_list<Pair<PIC_Tritons, PIC_Deuterons>>;
-        
-        //! Filter for reactants (mandatory for ColliderFromStruct)
-        //! Use filter::All to include all particles, or define custom filters
-        using FilterPair = OneFilter<filter::All>;
-        
-        //! Product species: Neutron and Helium-4
-        using products = pmacc::mp_list<Pair<PIC_Neutrons, PIC_He4>>;
-        
-        /** Cross-section parameters for D-T fusion */
-        struct Params
-        {
-            //! Gamow constant: BG = π·α·Z₁·Z₂·√(2·μ·c²) in keV^(1/2)
-            //! where α is the fine structure constant, Z₁,Z₂ are charges, μ is reduced mass
-            static constexpr float_X BG = 34.3827_X;
-            
-            //! Bosch-Hale parameterization coefficients for D-T cross-section
-            //! These coefficients fit experimental cross-section data
-            static constexpr float_X A1 = 6.927e4_X;
-            static constexpr float_X A2 = 7.454e8_X;
-            static constexpr float_X A3 = 2.050e6_X;
-            static constexpr float_X A4 = 5.2002e4_X;
-            static constexpr float_X A5 = 0.0_X;
-            
-            //! Additional Bosch-Hale coefficients
-            static constexpr float_X B1 = 6.38e1_X;
-            static constexpr float_X B2 = -9.95e-1_X;
-            static constexpr float_X B3 = 6.981e-5_X;
-            static constexpr float_X B4 = 1.728e-4_X;
-        };
-        
-        //! Cross-section calculation using Bosch-Hale parameterization
-        //! Returns cross-section in milli-barns
-        using CrossSectionInterpolator = relativistic::FusionFunctor<Params>;
-    };
+.. literalinclude:: ../../../../share/picongpu/tests/Fusion/include/picongpu/param/fusion.param
+   :language: cpp
+   :start-after: doc-include-start: DT-reaction
+   :end-before: doc-include-end: DT-reaction
+   :dedent:
 
 2) Configure the fusion pipeline
 
-.. code-block:: cpp
+.. literalinclude:: ../../../../share/picongpu/tests/Fusion/include/picongpu/param/fusion.param
+   :language: cpp
+   :start-after: doc-include-start: fusion-pipeline
+   :end-before: doc-include-end: fusion-pipeline
+   :dedent:
 
-    // Single reaction
-    using FusionPipeline = pmacc::mp_list<ColliderFromStruct<DT>>;
-    
-    // Multiple reactions (processed sequentially)
-    using FusionPipeline = pmacc::mp_list<
-        ColliderFromStruct<DT>,
-        ColliderFromStruct<DD_branch1>,
-        ColliderFromStruct<DD_branch2>
-    >;
+.. note:: Multiple reactions
 
-.. note:: Alternative explicit form
-
-   You can also define the fusion pipeline using the explicit ``Collider`` template:
-
-   .. code-block:: cpp
-
-      using FusionPipeline = pmacc::mp_list<
-          Collider<DT_He4n::CrossSectionInterpolator, DT_He4n::reactants, DT_He4n::products, OneFilter<filter::All>>,
-          Collider<DD_Tp::CrossSectionInterpolator, DD_Tp::reactants, DD_Tp::products, OneFilter<filter::All>>,
-          Collider<DD_He3n::CrossSectionInterpolator, DD_He3n::reactants, DD_He3n::products, OneFilter<filter::All>>,
-          Collider<He3D_He4p::CrossSectionInterpolator, He3D_He4p::reactants, He3D_He4p::products, OneFilter<filter::All>>,
-          Collider<He3T_He4D::CrossSectionInterpolator, He3T_He4D::reactants, He3T_He4D::products, OneFilter<filter::All>>,
-          Collider<TT_He4nn::CrossSectionInterpolator, TT_He4nn::reactants, TT_He4nn::products, OneFilter<filter::All>>,
-          Collider<Bp_He4He4::CrossSectionInterpolator, Bp_He4He4::reactants, Bp_He4He4::products, OneFilter<filter::All>>
-          >;
+   You can add multiple reactions to the pipeline by defining additional reaction structs
+   and adding them to the ``FusionPipeline`` list. The reactions are processed sequentially
+   in the order they appear.
 
 Simulation Parameters
 ---------------------
 
-.. code-block:: cpp
-
-    // Memory allocation control
-    constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
-    
-    // Product weighting thresholds
-    constexpr float_X productMinWeighting = 16.1;
-    constexpr uint32_t maxFmult = 1e6;
-    
-    // Debug flags
-    constexpr bool debugFusion = false;
-    constexpr bool alwaysFuseQ = false;  // Force 100% fusion probability
+.. literalinclude:: ../../../../share/picongpu/tests/Fusion/include/picongpu/param/fusion.param
+   :language: cpp
+   :start-after: doc-include-start: simulation-parameters
+   :end-before: doc-include-end: simulation-parameters
+   :dedent:
 
 .. note:: Fusion production multiplier (Fmult)
 

@@ -1,0 +1,122 @@
+/* Copyright 2019-2024 Rene Widera, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/particleFilters.param"
+#include "picongpu/particles/fusion/fusion.def"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
+
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
+
+#ifndef PARAM_DYNAMIC_LOG
+#    define PARAM_DYNAMIC_LOG 0
+#endif
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace fusion
+        {
+            namespace precision
+            {
+                using float_COLL = float_64;
+            } // namespace precision
+
+            using namespace picongpu::plugins;
+
+            // doc-include-start: DT-reaction
+            struct DT
+            {
+                //! Reactant species: Deuterium and Tritium
+                using reactants = pmacc::mp_list<Pair<PIC_Deuterons, PIC_Tritons>>;
+
+                //! Product species: Neutron and Helium-4
+                using products = pmacc::mp_list<Pair<PIC_Neutrons, PIC_He4>>;
+
+                /** Cross-section parameters for D-T fusion
+                 *
+                 * Source: https://hdl.handle.net/11858/00-001M-0000-0027-6535-1
+                 * Bosch-Hale parameterization, page 29
+                 */
+                struct Params
+                {
+                    //! Gamow constant: BG = pi*alpha*Z1*Z2*sqrt(2*mu*c^2) in keV^(1/2)
+                    //! where alpha is the fine structure constant, Z1,Z2 are charges, mu is reduced mass
+                    static constexpr float_X BG = 34.3827_X;
+
+                    //! Bosch-Hale parameterization coefficients for D-T cross-section
+                    //! These coefficients fit experimental cross-section data
+                    static constexpr float_X A1 = 6.927e4_X;
+                    static constexpr float_X A2 = 7.454e8_X;
+                    static constexpr float_X A3 = 2.050e6_X;
+                    static constexpr float_X A4 = 5.2002e4_X;
+                    static constexpr float_X A5 = 0.0_X;
+
+                    //! Additional Bosch-Hale coefficients
+                    static constexpr float_X B1 = 6.38e1_X;
+                    static constexpr float_X B2 = -9.95e-1_X;
+                    static constexpr float_X B3 = 6.981e-5_X;
+                    static constexpr float_X B4 = 1.728e-4_X;
+                };
+
+                //! Cross-section calculation using Bosch-Hale parameterization
+                //! Returns cross-section in milli-barns
+                using CrossSectionInterpolator = relativistic::FusionFunctor<Params>;
+            };
+
+            // doc-include-end: DT-reaction
+
+
+            // doc-include-start: fusion-pipeline
+            /** FusionPipeline defines in which order species interact with each other
+             *
+             * The functors are called in order (from first to last functor).
+             * Multiple reactions can be added to the pipeline.
+             */
+            using FusionPipeline = pmacc::mp_list<
+                Collider<DT::CrossSectionInterpolator, DT::reactants, DT::products, OneFilter<filter::All>>>;
+            // doc-include-end: fusion-pipeline
+
+            // doc-include-start: simulation-parameters
+            /** Chunk size used for cell list allocations.
+             *
+             * To reduce the fragmentation of the heap memory on accelerators the collision algorithm is allocating a
+             * multiple of this value to store a cell list of particle IDs. The value must be non zero.
+             */
+            constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
+
+            /** Maximum allowed fusion reaction rate multiplier per time step.
+             *
+             * This is used to increase the number of product particles while simultaneously decreasing the weight of
+             * each product particle to improve statistics of fusion products.
+             */
+            constexpr float_X maxFmult = 1e5_X;
+
+            /** Debug flag to enable additional fusion debug output */
+            constexpr bool debugFusion = false;
+
+            /** Force 100% fusion probability (for testing purposes only) */
+            constexpr bool alwaysFuseQ = false;
+            // doc-include-end: simulation-parameters
+        } // namespace fusion
+    } // namespace particles
+} // namespace picongpu

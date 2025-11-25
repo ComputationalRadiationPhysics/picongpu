@@ -52,13 +52,13 @@ namespace picongpu::particles::fusion::detail
 
     template<bool debug = false, typename T_worker, typename T_arr>
     DINLINE void maxArrayDestroy(T_worker const& worker, T_arr& arr, int const& size)
-    {   
+    {
         if(worker.workerIdx() == 0)
         {
             auto maxVal = arr[0];
             for(int i = 1; i < size; ++i)
             {
-                if (arr[i] > maxVal)
+                if(arr[i] > maxVal)
                 {
                     maxVal = arr[i];
                 }

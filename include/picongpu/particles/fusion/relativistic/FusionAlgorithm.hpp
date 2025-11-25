@@ -309,18 +309,18 @@ namespace picongpu::particles::fusion::relativistic
 
                 float_X sigma_picArea = crossSection(fusionVar.E_r * convToKeV) * millibarn_to_picArea;
                 float_X P = probabilityFactor * sigma_picArea * fusionVar.V_rel_mag * fusionVar.gamma_cm;
-                
-                if(P > 1.0_COLL){
+
+                if(P > 1.0_COLL)
+                {
                     // print warning
-                    printf(
-                        "Warning: Fusion probability exceeds 1.0 (P: %e) the process will be underestimated.\n",
-                        P);
-                    P= 1.0_COLL;
+                    printf("Warning: Fusion probability exceeds 1.0 (P: %e) the process will be underestimated.\n", P);
+                    P = 1.0_COLL;
                     Fmult = 1.0_COLL;
                 }
-                else if(P>0._COLL){
-                // limit P to not more than 0.99_COLL
-                    float_X const maxFmult = 0.99_COLL/P;
+                else if(P > 0._COLL)
+                {
+                    // limit P to not more than 0.99_COLL
+                    float_X const maxFmult = 0.99_COLL / P;
                     Fmult = std::min(Fmult, maxFmult);
                     P *= Fmult;
                 }
@@ -412,15 +412,14 @@ namespace picongpu::particles::fusion::relativistic
                     fusionVar.P<T_Product0Box, T_Product1Box>(dir);
                     mom0 = fusionVar.P0();
                     mom1 = fusionVar.P1();
-                    
+
                     if constexpr(debugFusion)
                     {
-                        if((mom0 == float3_X{0.0_X, 0.0_X, 0.0_X})
-                        || (mom1 == float3_X{0.0_X, 0.0_X, 0.0_X})){
+                        if((mom0 == float3_X{0.0_X, 0.0_X, 0.0_X}) || (mom1 == float3_X{0.0_X, 0.0_X, 0.0_X}))
+                        {
                             printf("Error: Fusion produced zero momentum products.\n");
                         }
                     }
-                        
                 }
                 else
                 {

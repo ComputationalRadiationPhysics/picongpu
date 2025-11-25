@@ -49,35 +49,12 @@ namespace picongpu
              */
             constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
 
-            /** Minimum weighting threshold for fusion product macro-particles.
+            /** Maximum allowed fusion reaction rate multiplier per time step.
              *
-             * Sets the minimum allowed weighting (statistical weight) for newly created
-             * product macro-particles. When the fusion production multiplier (Fmult) would
-             * create products lighter than this threshold, Fmult is reduced to ensure
-             * products have at least this weighting. Lower values allow more, lighter products
-             * but increase memory usage and computation time.
+             * This is used to increase the number of product particles while simultaneously decreasing the weight of
+             * each product particle to improve statistics of fusion products.
              */
-            constexpr float_X productMinWeighting = 16.1;
-
-            /** Maximum fusion production multiplier (Fmult).
-             *
-             * Controls how the consumed reactant weight is split into multiple product
-             * macro-particles. Higher values create more, lighter products (down to the
-             * productMinWeighting threshold). Lower values create fewer, heavier products.
-             *
-             * Algorithm per fused pair:
-             * - Start with Fmult = maxFmult
-             * - Compute productWeighting = minWeighting / Fmult
-             * - If productWeighting < productMinWeighting, reduce Fmult to
-             *   max(1, minWeighting / productMinWeighting) and recompute
-             *
-             * The base productWeighting is then distributed across reactant sites and
-             * product species while conserving total weight.
-             *
-             * Note: This distribution can result in creation of product particles with
-             * weighting smaller than productMinWeighting.
-             */
-            constexpr uint32_t maxFmult = 1'000'000;
+            constexpr float_X maxFmult = 1e6;
 
             /** Enable debug output for fusion processes.
              *
