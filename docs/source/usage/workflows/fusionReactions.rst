@@ -181,21 +181,30 @@ Simulation Parameters
 
 .. note:: Fusion production multiplier (Fmult)
 
-   Increasing ``maxFmult`` allows more, lighter products to be created, down to
-   the ``productMinWeighting`` threshold. Decreasing ``maxFmult`` results in fewer,
-   heavier products. ``Fmult`` controls how the consumed reactant weight (the
+   The ``Fmult`` parameter controls how the consumed reactant weight (the
    minimum of the two reactant weights in a pair) is split into multiple product
-   macro-particles while keeping total weight conserved.
+   macro-particles while keeping total weight conserved. Increasing ``maxFmult`` 
+   allows more, lighter products to be created. Decreasing ``maxFmult`` results 
+   in fewer, heavier products.
 
    Algorithm (per fused pair):
 
-   - Start with ``Fmult = maxFmult``
-   - Compute ``productWeighting = minWeighting / Fmult``
-   - If ``productWeighting < productMinWeighting``, reduce ``Fmult`` to
-     ``max(1, minWeighting / productMinWeighting)`` and recompute ``productWeighting``
+   1. Start with ``Fmult = maxFmult``
+   2. Calculate the base fusion probability ``P``
+   3. Adjust ``Fmult`` to ensure valid Monte Carlo sampling:
 
-   The base ``productWeighting`` is then distributed across the two reactant
-   sites and product species using the site fractions ``W₁…W₄``.
+      - If ``P > 1.0``: Set ``Fmult = 1.0`` and ``P = 1.0`` (a warning is issued)
+      - If ``0 < P ≤ 1.0``: Calculate the maximum allowed multiplier as 
+        ``Fmult = min(maxFmult, 0.99/P)`` to ensure ``P * Fmult ≤ 0.99``
+
+   4. Update the fusion probability: ``P = P * Fmult``
+   5. Compute ``productWeighting = minWeighting / Fmult``
+   6. Distribute the ``productWeighting`` across the two reactant sites and 
+      product species using the site fractions ``W₁…W₄``
+
+   This approach ensures that the fusion probability remains below 1.0 (required
+   for proper Monte Carlo sampling) while maximizing the number of product 
+   particles created per fusion event.
 
 See also
 --------

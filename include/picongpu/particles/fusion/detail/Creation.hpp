@@ -399,8 +399,8 @@ namespace picongpu::particles::fusion
 
                 // Assign multiMask to indicate these are product particles
                 p1r1[multiMask_] = (W1 > tolerance) ? 1u : 0u;
-                p1r2[multiMask_] = (W3 > tolerance) ? 1u : 0u;
                 p2r1[multiMask_] = (W2 > tolerance) ? 1u : 0u;
+                p1r2[multiMask_] = (W3 > tolerance) ? 1u : 0u;
                 p2r2[multiMask_] = (W4 > tolerance) ? 1u : 0u;
 
                 // Assign momentum (weighted with weights) and weights to product particles
@@ -422,7 +422,7 @@ namespace picongpu::particles::fusion
                     using UniformFloat = pmacc::random::distributions::Uniform<
                         pmacc::random::distributions::uniform::ExcludeOne<precision::float_COLL>::Reduced>;
                     auto rng = rngHandle.template applyDistribution<UniformFloat>();
-                    if(worker.workerIdx() == 0 && rng(worker) < 1e-6)
+                    if(worker.workerIdx() == 0 && rng(worker) < 1e-8)
                     {
                         printf("Charges: %f, %f, %f, %f\n", q1, q2, q3, q4);
                         printf("Masses (A): %f, %f, %f, %f\n", m1, m2, m3, m4);

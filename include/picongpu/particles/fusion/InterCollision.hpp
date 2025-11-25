@@ -94,7 +94,7 @@ namespace picongpu::particles::fusion
             T_Reactant2ParBox reactant2Box,
             T_Product1ParBox product1Box,
             T_Product2ParBox product2Box,
-            IdGenerator& idGen,
+            IdGenerator idGen,
             T_Mapping const mapper,
             T_DeviceHeapHandle deviceHeapHandle,
             T_RngHandle rngHandle,
@@ -187,11 +187,6 @@ namespace picongpu::particles::fusion
                 [&]()
                 {
                     maxNumParticlesInCell = nppc[0];
-
-                    if constexpr(debugFusion)
-                    {
-                        printf("worker %d: maxNumParticlesInCell = %d\n", worker.workerIdx(), maxNumParticlesInCell);
-                    }
                 });
             // don't need sync
 
@@ -500,24 +495,17 @@ namespace picongpu::particles::fusion
                         bool const isWeightingR1Greater = (weightingR1 >= weightingR2);
                         float_X const minWeighting = isWeightingR1Greater ? weightingR2 : weightingR1;
 
-                        // Fusion multiplier logic
-                        float_X Fmult = maxFmult;
-                        float_X productWeighting = minWeighting / Fmult;
-                        if(productWeighting < productMinWeighting)
-                        {
-                            Fmult = std::max(1._X, minWeighting / productMinWeighting);
-                            productWeighting = minWeighting / Fmult;
-                        }
-
-                        float3_X product1Momentum{0._X};
-                        float3_X product2Momentum{0._X};
-
                         // WU: doi.org/10.1063/5.0051178
-                        // P = n_min * n_a / n_ba * Fmult * minWeighting * dt * (sigma*v_rel*gamma_cm) <- inside fuse()
+                        // P = n_min * n_a / n_ba * minWeighting * dt * (Fmult*sigma*v_rel*gamma_cm) <- inside fuse()
                         float_X const probabilityCorrectionFactor
-                            = minReactantDensity * correctionFactor[cellIdx] * Fmult * sim.pic.getDt();
+                            = minReactantDensity * correctionFactor[cellIdx] * sim.pic.getDt();
+                        
+                        // Fusion multiplier - can be changed inside fuse() if probability > 1
+                        float_X Fmult = maxFmult;
 
                         // The actual fusion physics calculation
+                        float3_X product1Momentum{0._X};
+                        float3_X product2Momentum{0._X};
                         T_SrcCollisionFunctor fuser = collisionFunctor;
                         fuser().template fuse<T_Product1ParBox, T_Product2ParBox>(
                             worker,
@@ -526,14 +514,19 @@ namespace picongpu::particles::fusion
                             weightingR1,
                             weightingR2,
                             probabilityCorrectionFactor,
+                            Fmult,
                             product1Momentum,
                             product2Momentum,
                             rngHandle);
 
+
                         // If a reaction occurred, create the product particles
                         if(product1Momentum != float3_X{0._X} || product2Momentum != float3_X{0._X})
                         {
-                            weightingArray[i] += productWeighting; // no atomic needed because i is unique per thread
+                            // because we could change Fmult inside fuser (because the probability might have been >1)
+                            float_X productWeighting = minWeighting / Fmult;
+                            
+                            weightingArray[i] = productWeighting; // no atomic needed because i is unique per thread
 
                             uint32_t freeIndex = alpaka::atomicAdd(
                                 worker.getAcc(),
@@ -618,6 +611,22 @@ namespace picongpu::particles::fusion
                         i < chunkStart + minNumParticles && i < maxNumParticles;
                         i += step)
                     {
+                        // no fusion happened for this pair
+                        if(weightingArray[i] == 0._X)
+                            continue;
+                            
+                        if constexpr(debugFusion)
+                            if(weightingArray[i] < 0._X){
+                                printf("Error: negative weighting in fusion reaction! weightingArray[%d] = %f\n", i, weightingArray[i]);
+                                // print fmult and weightingR1 and weightingR2
+                                float_X weightingR1 = accessor1[i % size1][weighting_];
+                                float_X weightingR2 = accessor2[i % size2][weighting_];
+                                printf("weightingR1 = %f, weightingR2 = %f\n", weightingR1, weightingR2);
+                                printf("Fmult = %f\n", maxFmult);
+                                // print the number of particles in longer list
+                                printf("size1 = %d, size2 = %d, weightingArraySize = %d\n", size1, size2, weightingArraySize);
+                                continue;
+                            }
                         float_X const oldWeighting1 = accessor1[i % size1][weighting_];
                         float_X const oldWeighting2 = accessor2[i % size2][weighting_];
 
@@ -630,9 +639,37 @@ namespace picongpu::particles::fusion
                         accessor2[i % size2][momentum_] *= accessor2[i % size2][weighting_] / oldWeighting2;
 
                         // if the weighting is too low or negative we remove the particle with fillGaps()
-                        accessor1[i % size1][multiMask_] = (accessor1[i % size1][weighting_] > 1e-6);
-                        accessor2[i % size2][multiMask_] = (accessor2[i % size2][weighting_] > 1e-6);
+                        accessor1[i % size1][multiMask_] = (accessor1[i % size1][weighting_] > 1e-6_X);
+                        accessor2[i % size2][multiMask_] = (accessor2[i % size2][weighting_] > 1e-6_X);
+
+                        
+                        // print i and weighting array
+                        if constexpr(debugFusion)
+                            if((((i==0 && alwaysFuseQ) || !alwaysFuseQ) || accessor1[i % size1][multiMask_]==0 || accessor2[i % size2][multiMask_]==0)){
+
+                            printf("worker %d: cell %d, i %d, weightingArray %f, new weighting1 %f, new weighting2 %f, old weighting1 %f, old weighting2 %f, difference 1 %f, difference 2 %f\n",
+                                worker.workerIdx(),
+                                cellIdx,
+                                i,
+                                weightingArray[i],
+                                accessor1[i % size1][weighting_],
+                                accessor2[i % size2][weighting_],
+                                oldWeighting1,
+                                oldWeighting2,
+                                oldWeighting1 - accessor1[i % size1][weighting_],
+                                oldWeighting2 - accessor2[i % size2][weighting_]);
+                                
+                                // print the multimask as well
+                                printf("worker %d: cell %d, i %d, multiMask1 %d, multiMask2 %d\n",
+                                    worker.workerIdx(),
+                                    cellIdx,
+                                    i,
+                                    accessor1[i % size1][multiMask_],
+                                    accessor2[i % size2][multiMask_]);
+                                
+                        }
                     }
+                    worker.sync();
                 }
                 worker.sync();
 

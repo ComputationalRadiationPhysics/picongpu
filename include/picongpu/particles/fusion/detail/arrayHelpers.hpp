@@ -52,24 +52,20 @@ namespace picongpu::particles::fusion::detail
 
     template<bool debug = false, typename T_worker, typename T_arr>
     DINLINE void maxArrayDestroy(T_worker const& worker, T_arr& arr, int const& size)
-    {
-        uint32_t pow = 1;
-        while(pow < size)
+    {   
+        if(worker.workerIdx() == 0)
         {
-            for(uint32_t i = worker.workerIdx(); pow * (2 * i + 1) < size; i += 2 * pow * worker.numWorkers())
+            auto maxVal = arr[0];
+            for(int i = 1; i < size; ++i)
             {
-                arr[2 * i * pow] = std::max(arr[2 * i * pow], arr[pow * (2 * i + 1)]);
+                if (arr[i] > maxVal)
+                {
+                    maxVal = arr[i];
+                }
             }
-            pow <<= 1; //*2
-            worker.sync();
-            if constexpr(debug)
-            {
-                if(worker.workerIdx() == 0)
-                    printArray(arr);
-                worker.sync();
-            }
+            arr[0] = maxVal;
         }
-        // max is now at arr[0];
+        worker.sync();
     }
 
     template<std::size_t... Is, std::size_t N>

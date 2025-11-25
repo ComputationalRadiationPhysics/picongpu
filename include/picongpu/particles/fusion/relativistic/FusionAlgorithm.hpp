@@ -199,23 +199,6 @@ namespace picongpu::particles::fusion::relativistic
                 float3_COLL const u1_cm = p1_cm / mP1;
                 float3_COLL const u1_lab = u1_cm + (math::dot(V_cm, u1_cm) * factorA + gamma_cm * gamma_p1_cm) * V_cm;
                 labMomentum1 = u1_lab * mP1;
-                if constexpr(debugFusion)
-                {
-                    printf(
-                        "  Product 1: mass: %f, momentum: %f, %f, %f, energy: %f\n",
-                        mP0,
-                        labMomentum0[0],
-                        labMomentum0[1],
-                        labMomentum0[2],
-                        energy<float_X>(labMomentum0, mP0));
-                    printf(
-                        "  Product 2: mass: %f, momentum: %f, %f, %f, energy: %f\n",
-                        mP1,
-                        labMomentum1[0],
-                        labMomentum1[1],
-                        labMomentum1[2],
-                        energy<float_X>(labMomentum1, mP1));
-                }
             }
 
             /**
@@ -272,6 +255,7 @@ namespace picongpu::particles::fusion::relativistic
              * @param weightingR1 The weighting factor of the first reactant.
              * @param weightingR2 The weighting factor of the second reactant.
              * @param probabilityFactor A factor to adjust the fusion probability.
+             * @param Fmult A reference to a fusion multiplier.
              * @param mom0 The output parameter for the momentum of the first product.
              * @param mom1 The output parameter for the momentum of the second product.
              * @param rngHandle The random number generator handle.
@@ -290,6 +274,7 @@ namespace picongpu::particles::fusion::relativistic
                 float_X weightingR1,
                 float_X weightingR2,
                 float_X probabilityFactor,
+                float_X& Fmult,
                 float3_X& mom0,
                 float3_X& mom1,
                 T_RngHandle& rngHandle)
@@ -324,6 +309,21 @@ namespace picongpu::particles::fusion::relativistic
 
                 float_X sigma_picArea = crossSection(fusionVar.E_r * convToKeV) * millibarn_to_picArea;
                 float_X P = probabilityFactor * sigma_picArea * fusionVar.V_rel_mag * fusionVar.gamma_cm;
+                
+                if(P > 1.0_COLL){
+                    // print warning
+                    printf(
+                        "Warning: Fusion probability exceeds 1.0 (P: %e) the process will be underestimated.\n",
+                        P);
+                    P= 1.0_COLL;
+                    Fmult = 1.0_COLL;
+                }
+                else if(P>0._COLL){
+                // limit P to not more than 0.99_COLL
+                    float_X const maxFmult = 0.99_COLL/P;
+                    Fmult = std::min(Fmult, maxFmult);
+                    P *= Fmult;
+                }
 
 
                 // print with probability 1e-8
@@ -412,6 +412,15 @@ namespace picongpu::particles::fusion::relativistic
                     fusionVar.P<T_Product0Box, T_Product1Box>(dir);
                     mom0 = fusionVar.P0();
                     mom1 = fusionVar.P1();
+                    
+                    if constexpr(debugFusion)
+                    {
+                        if((mom0 == float3_X{0.0_X, 0.0_X, 0.0_X})
+                        || (mom1 == float3_X{0.0_X, 0.0_X, 0.0_X})){
+                            printf("Error: Fusion produced zero momentum products.\n");
+                        }
+                    }
+                        
                 }
                 else
                 {
