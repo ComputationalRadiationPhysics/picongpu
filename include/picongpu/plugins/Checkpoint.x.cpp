@@ -123,9 +123,37 @@ namespace picongpu
         void checkpoint(uint32_t currentStep, std::string const checkpointDirectory) override
         {
             auto cBackend = ioBackends.find(checkpointBackendName);
-            if(cBackend != ioBackends.end())
+            if(cBackend == ioBackends.end())
             {
-                cBackend->second->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename);
+                return;
+            }
+
+            int mpiInitialized;
+            MPI_CHECK(MPI_Query_thread(&mpiInitialized));
+
+            if(mpiInitialized < MPI_THREAD_MULTIPLE)
+            {
+                cBackend->second->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename, std::nullopt);
+            }
+            else
+            {
+                std::atomic<signed int> synchronization = 0;
+
+                // need to copy the plugin temporarily to avoid race conditions
+                auto restartFuture = std::async(
+                    std::launch::async,
+                    [this, copiedBackend = cBackend, currentStep, &checkpointDirectory, &synchronization]()
+                    {
+                        copiedBackend->second->doRestart(
+                            currentStep,
+                            checkpointDirectory,
+                            this->checkpointFilename,
+                            this->restartChunkSize,
+                            {&synchronization});
+                    });
+                cBackend->second
+                    ->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename, {&synchronization});
+                restartFuture.wait();
             }
         }
 
@@ -134,7 +162,8 @@ namespace picongpu
             auto rBackend = ioBackends.find(restartBackendName);
             if(rBackend != ioBackends.end())
             {
-                rBackend->second->doRestart(restartStep, restartDirectory, restartFilename, restartChunkSize);
+                rBackend->second
+                    ->doRestart(restartStep, restartDirectory, restartFilename, restartChunkSize, std::nullopt);
             }
         }
 

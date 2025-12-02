@@ -107,7 +107,7 @@ namespace picongpu
                      *  (this is collective call in many methods of openPMD
                      * backends)
                      */
-                    params->openPMDSeries->flush();
+                    record.seriesFlush();
 
                     uint64_t globalNumElements = 1;
                     for(auto ext : rc.getExtent())

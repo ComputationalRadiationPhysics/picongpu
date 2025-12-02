@@ -135,6 +135,47 @@ namespace picongpu
          * @return chunk information
          */
         template<typename T_IOParameters, typename T_SpeciesPtr, typename T_ParticleFilter>
+        inline ParticleIoChunkInfo createAChunkForEverySupercell(
+            T_IOParameters* params,
+            T_SpeciesPtr& speciesPtr,
+            T_ParticleFilter particleFilter)
+        {
+            auto const areaMapper = makeAreaMapper<CORE + BORDER>(*(params->cellDescription));
+            auto rangeMapper = makeRangeMapper(areaMapper);
+
+            // buffer accessible from device and host to store the number of particles within each supercell.
+            auto superCellHistogram = alpaka::allocMappedBufIfSupported<uint32_t, MemIdxType>(
+                manager::Device<HostDevice>::get().current(),
+                manager::Device<ComputeDevice>::get().getPlatform(),
+                MemSpace<DIM1>(rangeMapper.size()).toAlpakaMemVec());
+            uint32_t* histData = alpaka::getPtrNative(superCellHistogram);
+
+            using UsedPositionFilters = mp_list<typename GetPositionFilter<simDim>::type>;
+            using MyParticleFilter = typename FilterFactory<UsedPositionFilters>::FilterType;
+            MyParticleFilter posFilter;
+            posFilter.setWindowPosition(params->localWindowToDomainOffset, params->window.localDimensions.size);
+
+            PMACC_LOCKSTEP_KERNEL(KernelSuperCellHistogram{})
+                .config(rangeMapper.getGridDim(), *speciesPtr)(
+                    speciesPtr->getDeviceParticlesBox(),
+                    histData,
+                    particleFilter,
+                    posFilter,
+                    rangeMapper);
+            eventSystem::getTransactionEvent().waitForFinished();
+
+            ParticleIoChunkInfo particleIoChunkInfo;
+
+            for(size_t supercellIdx = 0u; supercellIdx < rangeMapper.size(); ++supercellIdx)
+            {
+                particleIoChunkInfo.emplace(supercellIdx, supercellIdx + 1, histData[supercellIdx]);
+                particleIoChunkInfo.totalNumParticles += histData[supercellIdx];
+            }
+
+            return particleIoChunkInfo;
+        }
+
+        template<typename T_IOParameters, typename T_SpeciesPtr, typename T_ParticleFilter>
         inline ParticleIoChunkInfo createSupercellRangeChunks(
             T_IOParameters* params,
             T_SpeciesPtr& speciedPtr,

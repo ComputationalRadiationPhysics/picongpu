@@ -89,7 +89,7 @@ namespace picongpu
                     localDomainOffset[d] = Environment<simDim>::get().GridController().getPosition()[d];
                 }
 
-                ::openPMD::Series& series = *params.openPMDSeries;
+                ::openPMD::Series& series = *params.writeOpenPMDSeries;
                 ::openPMD::MeshRecordComponent mrc
                     = series.writeIterations()[currentStep].meshes[baseName + "_" + group][dataset];
 
@@ -125,7 +125,7 @@ namespace picongpu
                     std::make_shared<T_Scalar>(value),
                     std::move(std::get<1>(tuple)),
                     std::move(std::get<2>(tuple)));
-                params.openPMDSeries->flush(PreferredFlushTarget::Buffer);
+                std::get<0>(tuple).seriesFlush(PreferredFlushTarget::Buffer);
             }
 
         private:
@@ -162,7 +162,7 @@ namespace picongpu
 
 
                 auto datasetName = baseName + "/" + group + "/" + dataset;
-                ::openPMD::Series& series = *params.openPMDSeries;
+                ::openPMD::Series& series = *params.readOpenPMDSeries;
                 ::openPMD::MeshRecordComponent mrc
                     = series.iterations[currentStep].open().meshes[baseName + "_" + group][dataset];
                 auto ndim = mrc.getDimensionality();
@@ -174,11 +174,12 @@ namespace picongpu
                 DataSpace<simDim> gridPos = Environment<simDim>::get().GridController().getPosition();
                 ::openPMD::Offset start;
                 ::openPMD::Extent count;
+                ::openPMD::Extent extent = mrc.getExtent();
                 start.reserve(ndim);
                 count.reserve(ndim);
                 for(int d = 0; d < ndim; ++d)
                 {
-                    start.push_back(gridPos.revert()[d]);
+                    start.push_back(gridPos.revert()[d] % extent[d]); // well well well, TODO fix this but how
                     count.push_back(1);
                 }
 
