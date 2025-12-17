@@ -99,25 +99,6 @@ namespace picongpu::fields::incidentField::profiles
              * unit: s^3
              */
             static constexpr float_64 TOD_SI = 0.0;
-
-            template<typename My = DispersivePulseParam>
-            static nlohmann::json metadata()
-            {
-                auto baseMetadata = BaseParam::metadata<My>();
-                auto dispersiveMetadata = nlohmann::json::object();
-
-                // Adding units to Gaussian-specific parameters
-                dispersiveMetadata["W0"] = {{"value", My::W0_SI}, {"unit", "m"}};
-                dispersiveMetadata["PULSE_INIT"] = {{"value", My::PULSE_INIT}, {"unit", "none"}};
-                dispersiveMetadata["SPECTRAL_SUPPORT"] = {{"value", My::SPECTRAL_SUPPORT}, {"unit", "none"}};
-                dispersiveMetadata["SD"] = {{"value", My::SD_SI}, {"unit", "m*s"}};
-                dispersiveMetadata["AD"] = {{"value", My::AD_SI}, {"unit", "rad*s"}};
-                dispersiveMetadata["GDD"] = {{"value", My::GDD_SI}, {"unit", "s^2"}};
-                dispersiveMetadata["TOD"] = {{"value", My::TOD_SI}, {"unit", "s^3"}};
-
-                baseMetadata["Dispersive Gaussian parameters"] = dispersiveMetadata;
-                return baseMetadata;
-            }
         };
     } // namespace defaults
 

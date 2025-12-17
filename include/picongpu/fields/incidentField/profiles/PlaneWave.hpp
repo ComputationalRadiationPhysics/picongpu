@@ -42,11 +42,6 @@ namespace picongpu
                     {
                         return "PlaneWave";
                     }
-
-                    static nlohmann::json metadata()
-                    {
-                        return T_Params::metadata();
-                    }
                 };
 
                 namespace detail

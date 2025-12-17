@@ -24,7 +24,6 @@
 #include "picongpu/fields/incidentField/traits/GetAmplitude.hpp"
 #include "picongpu/fields/incidentField/traits/GetFunctor.hpp"
 #include "picongpu/fields/incidentField/traits/GetPhaseVelocity.hpp"
-#include "picongpu/traits/GetMetadata.hpp"
 
 #include <cstdint>
 #include <string>
@@ -47,32 +46,6 @@ namespace picongpu
                     HINLINE static std::string getName()
                     {
                         return "Free";
-                    }
-
-                    static nlohmann::json metadata()
-                    {
-                        auto result = nlohmann::json::object();
-                        result["name"] = "Free";
-                        result["B field"] = functorMetadata<T_FunctorIncidentB>();
-                        result["E field"] = functorMetadata<T_FunctorIncidentE>();
-                        return result;
-                    }
-
-                private:
-                    template<
-                        typename Functor,
-                        std::enable_if_t<picongpu::traits::providesMetadataAtCT<Functor>, bool> = true>
-                    static auto functorMetadata()
-                    {
-                        return Functor::metadata();
-                    }
-
-                    template<
-                        typename Functor,
-                        std::enable_if_t<!picongpu::traits::providesMetadataAtCT<Functor>, bool> = true>
-                    static nlohmann::json functorMetadata()
-                    {
-                        return "no metadata available";
                     }
                 };
             } // namespace profiles

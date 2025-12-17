@@ -45,11 +45,6 @@ namespace picongpu
                     {
                         return "None";
                     }
-
-                    static nlohmann::json metadata()
-                    {
-                        return nlohmann::json::object();
-                    }
                 };
             } // namespace profiles
 

@@ -217,49 +217,6 @@ namespace picongpu
                     {
                         return origin == Origin::Zero ? "zero" : "center";
                     }
-
-                    template<typename T_Self = BaseParam>
-                    static nlohmann::json metadata()
-                    {
-                        // We make this a function template in order to gain control over the type we are applying this
-                        // to. A derived class of the BaseParam should similarly make their own `.metadata()` member a
-                        // `template<typename T_Self =Derived>` and should use `BaseParam::metadata<T_Self>()` as a
-                        // starting point for customisation.
-
-                        auto result = nlohmann::json::object();
-
-                        result["wavelength"] = {{"value", T_Self::WAVE_LENGTH_SI}, {"unit", "m"}};
-                        result["amplitude"] = {{"value", T_Self::AMPLITUDE_SI}, {"unit", "V/m"}};
-                        result["pulse_duration"] = {{"value", T_Self::PULSE_DURATION_SI}, {"unit", "s"}};
-                        result["laser_phase"] = {{"value", T_Self::LASER_PHASE}, {"unit", "rad"}};
-                        result["direction"]
-                            = {{"value",
-                                vector<float_64>{{T_Self::DIRECTION_X, T_Self::DIRECTION_Y, T_Self::DIRECTION_Z}}},
-                               {"unit", "none"}};
-                        result["focus_position"]
-                            = {{"value",
-                                vector<float_64>{
-                                    {T_Self::FOCUS_POSITION_X_SI,
-                                     T_Self::FOCUS_POSITION_Y_SI,
-                                     T_Self::FOCUS_POSITION_Z_SI}}},
-                               {"unit", "m"}};
-                        result["focus_origin"]
-                            = {{"type",
-                                vector<std::string>{
-                                    originToString(T_Self::FOCUS_ORIGIN_X),
-                                    originToString(T_Self::FOCUS_ORIGIN_Y),
-                                    originToString(T_Self::FOCUS_ORIGIN_Z)}}};
-                        result["time_delay"] = {{"value", GetTimeDelay<T_Self>::value}, {"unit", "s"}};
-                        result["polarisation"]
-                            = {{"direction",
-                                vector<float_64>{
-                                    {T_Self::POLARISATION_DIRECTION_X,
-                                     T_Self::POLARISATION_DIRECTION_Y,
-                                     T_Self::POLARISATION_DIRECTION_Z}}},
-                               {"type", T_Self::Polarisation == PolarisationType::Linear ? "linear" : "circular"}};
-
-                        return result;
-                    }
                 };
             } // namespace profiles
         } // namespace incidentField

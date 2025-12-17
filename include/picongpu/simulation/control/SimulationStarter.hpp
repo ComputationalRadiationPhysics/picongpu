@@ -20,8 +20,6 @@
 #pragma once
 
 #include "picongpu/ArgsParser.hpp"
-#include "picongpu/MetadataAggregator.hpp"
-#include "picongpu/MetadataRegisteredAtCT.hpp"
 #include "picongpu/defines.hpp"
 #include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/plugins/PluginController.hpp"
@@ -42,16 +40,6 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    /**
-     * Add the compiletime metadata at runtime.
-     *
-     * This function runs over the CT list `MetadataRegisteredAtCT` and adds all of them to the MetadataAggregator.
-     */
-    void addMetadataRegisteredAtCT()
-    {
-        pmacc::meta::ForEach<MetadataRegisteredAtCT, AddMetadataOf<boost::mpl::_1>>{}();
-    }
-
     class SimulationStarter : public IPlugin
     {
     private:
@@ -59,7 +47,6 @@ namespace picongpu
         Simulation simulationClass{};
         InitialiserController initClass{};
         PluginController pluginClass{};
-        MetadataAggregator metadataClass{};
 
         MappingDesc* mappingDesc{nullptr};
 
@@ -79,7 +66,6 @@ namespace picongpu
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.loadPlugins();
             log<picLog::SIMULATION_STATE>("Startup");
-            metadataClass.dump();
             simulationClass.startSimulation();
         }
 
@@ -108,10 +94,6 @@ namespace picongpu
             pluginClass.pluginRegisterHelp(pluginDesc);
             ap.addOptions(pluginDesc);
 
-            po::options_description metadataDesc(metadataClass.pluginGetName());
-            metadataClass.pluginRegisterHelp(metadataDesc);
-            ap.addOptions(metadataDesc);
-
             // setup all boost::program_options and add to ArgsParser
             BoostOptionsList options = pluginConnector.registerHelp();
 
@@ -139,8 +121,6 @@ namespace picongpu
         void pluginLoad() override
         {
             simulationClass.load();
-            metadataClass.load();
-            addMetadataRegisteredAtCT();
             mappingDesc = simulationClass.getMappingDescription();
             pluginClass.setMappingDescription(mappingDesc);
             initClass.setMappingDescription(mappingDesc);
@@ -152,7 +132,6 @@ namespace picongpu
             pluginConnector.unloadPlugins();
             initClass.unload();
             pluginClass.unload();
-            metadataClass.unload();
             simulationClass.unload();
         }
 
