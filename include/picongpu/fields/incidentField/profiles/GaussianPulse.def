@@ -23,8 +23,6 @@
 
 #include "picongpu/fields/incidentField/profiles/BaseParam.def"
 
-#include <nlohmann/json.hpp>
-
 namespace picongpu::fields::incidentField::profiles
 {
     namespace defaults

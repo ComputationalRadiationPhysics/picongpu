@@ -50,34 +50,6 @@ find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../i
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/catch2 ${CMAKE_BINARY_DIR}/catch2)
 
-###############################################################################
-# JSON
-###############################################################################
-
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
-set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
-set(JSON_Install OFF CACHE INTERNAL "") # only used PRIVATE
-
-add_subdirectory(
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/nlohmann_json"
-    "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json"
-)
-
-################################################################################
-# Find Boost
-################################################################################
-
-list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
-
-find_package(Boost 1.74.0 REQUIRED COMPONENTS program_options)
-if(TARGET Boost::boost)
-    list(PREPEND HOST_LIBS Boost::boost Boost::program_options)
-else()
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    list(PREPEND HOST_LIBS ${Boost_LIBRARIES})
-endif()
-
 ################################################################################
 # MPI
 ################################################################################
@@ -96,19 +68,8 @@ endif()
 # CTest
 enable_testing()
 
-# We need to build and link this to check CLI aspects.
-add_library(
-    argparser
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/ArgsParser.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/picongpu/versionFormat.x.cpp"
-)
-
 target_link_libraries(argparser PRIVATE ${HOST_LIBS})
 target_link_libraries(argparser PRIVATE pmacc::pmacc)
-
-# Workaround for this bug https://github.com/nlohmann/json/issues/3907
-# We don't need ranges in <nlohmann/json.hpp>
-target_compile_definitions(argparser PRIVATE JSON_HAS_RANGES=0)
 
 # Add subdirectories for tests
 add_subdirectory(dimensional_tests)

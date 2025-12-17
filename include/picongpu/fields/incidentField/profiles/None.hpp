@@ -28,8 +28,6 @@
 #include <cstdint>
 #include <string>
 
-#include <nlohmann/json.hpp>
-
 namespace picongpu
 {
     namespace fields

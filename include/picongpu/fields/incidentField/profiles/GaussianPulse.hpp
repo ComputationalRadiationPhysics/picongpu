@@ -33,8 +33,6 @@
 #include <string>
 #include <type_traits>
 
-#include <nlohmann/json.hpp>
-
 namespace picongpu::fields::incidentField
 {
     namespace profiles

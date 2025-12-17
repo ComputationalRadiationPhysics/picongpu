@@ -21,8 +21,6 @@
 
 #include "picongpu/defines.hpp"
 
-#include <nlohmann/json.hpp>
-
 namespace picongpu
 {
     using std::vector;

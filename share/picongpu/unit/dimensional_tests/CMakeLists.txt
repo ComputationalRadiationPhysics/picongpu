@@ -8,21 +8,12 @@ foreach(dim 2 3)
         alpaka_add_executable(${testExe} ${testCaseFilepath})
         target_include_directories(${testExe} PRIVATE BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include")
         target_include_directories(${testExe} PRIVATE BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-        # Workaround for this bug https://github.com/nlohmann/json/issues/3907
-        # We don't need ranges in <nlohmann/json.hpp>
-        target_compile_definitions(${testExe} PRIVATE JSON_HAS_RANGES=0)
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
         if(${testExe} MATCHES ".*CLI.*")
             target_link_libraries(${testExe} PUBLIC argparser)
         endif()
-        target_include_directories(
-            ${testExe}
-            SYSTEM
-            PRIVATE $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>
-        )
-        target_link_libraries(${testExe} PRIVATE nlohmann_json::nlohmann_json)
         add_test(
             NAME "${testCase}-${dim}D"
             COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe}
