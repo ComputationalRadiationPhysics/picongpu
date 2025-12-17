@@ -187,12 +187,6 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
 
                 /** @} */
-
-                template<typename My = PlaneWaveParams>
-                static nlohmann::json metadata()
-                {
-                    return profiles::BaseParam::metadata<My>();
-                }
             };
 
             /**@{*/

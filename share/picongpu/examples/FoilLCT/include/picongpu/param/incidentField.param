@@ -203,12 +203,6 @@ namespace picongpu
                 static constexpr float_64 POLARISATION_DIRECTION_Z = 0.0;
 
                 /** @} */
-
-                template<typename My = PlaneWaveParams>
-                static nlohmann::json metadata()
-                {
-                    return profiles::BaseParam::metadata<My>();
-                }
             };
 
             using PlaneWaveBeam = profiles::PlaneWave<PlaneWaveParams>;
@@ -244,14 +238,6 @@ namespace picongpu
                 static constexpr auto laguerrePhases = floatN_X<numModes + 1>(0.0);
 
                 /** @} */
-
-                template<typename T_Self = GaussianPulseParam>
-                static auto metadata()
-                {
-                    // static member functions do not bind to the derived type when inherited, so we have to refer to
-                    // our type explicitly
-                    return profiles::defaults::GaussianPulseParam::metadata<T_Self>();
-                };
             };
 
             using GaussianBeam = profiles::GaussianPulse<GaussianPulseParam>;
