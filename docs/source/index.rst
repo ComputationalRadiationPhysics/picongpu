@@ -69,7 +69,6 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    usage/tests
    usage/workflows
    usage/crosscompile
-   usage/metadata
    usage/parameter_scans
 
 .. toctree::
