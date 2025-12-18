@@ -11,9 +11,6 @@ foreach(dim 2 3)
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
-        if(${testExe} MATCHES ".*CLI.*")
-            target_link_libraries(${testExe} PUBLIC argparser)
-        endif()
         add_test(
             NAME "${testCase}-${dim}D"
             COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe}

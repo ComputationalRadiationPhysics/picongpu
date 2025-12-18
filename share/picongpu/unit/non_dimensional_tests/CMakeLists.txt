@@ -8,9 +8,6 @@ foreach(testCaseFilepath ${NON_DIMENSIONAL_TESTS})
     target_include_directories(${testExe} PRIVATE BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include")
     target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
     target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
-    if(${testExe} MATCHES ".*CLI.*")
-        target_link_libraries(${testExe} PUBLIC argparser)
-    endif()
     add_test(
         NAME "${testCase}"
         COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe}

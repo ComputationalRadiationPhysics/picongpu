@@ -68,9 +68,6 @@ endif()
 # CTest
 enable_testing()
 
-target_link_libraries(argparser PRIVATE ${HOST_LIBS})
-target_link_libraries(argparser PRIVATE pmacc::pmacc)
-
 # Add subdirectories for tests
 add_subdirectory(dimensional_tests)
 add_subdirectory(non_dimensional_tests)
