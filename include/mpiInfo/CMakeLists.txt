@@ -102,7 +102,7 @@ find_package(MPI REQUIRED)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.66.0 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.74.0 REQUIRED CONFIG COMPONENTS program_options)
 if(TARGET Boost::program_options)
     set(MPIINFO_LIBS ${MPIINFO_LIBS} Boost::boost Boost::program_options)
 else()

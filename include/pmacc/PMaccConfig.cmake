@@ -309,7 +309,7 @@ endif()
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.74 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.74 REQUIRED CONFIG COMPONENTS program_options)
 if(TARGET Boost::boost)
     target_link_libraries(pmacc PUBLIC Boost::boost)
     target_link_libraries(pmacc PUBLIC Boost::program_options)
