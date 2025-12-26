@@ -20,10 +20,10 @@ class FieldIonization:
 
     # dictionary of atomic units (AU) - values in SI units
     atomic_unit = {
-        "electric field": sc.m_e**2 * sc.e**5 / (sc.hbar**4 * (4 * sc.pi * sc.epsilon_0) ** 3),
-        "intensity": sc.m_e**4 / (8 * sc.pi * sc.alpha * sc.hbar**9) * sc.e**12 / (4 * sc.pi * sc.epsilon_0) ** 6,
-        "energy": sc.m_e * sc.e**4 / (sc.hbar**2 * (4 * sc.pi * sc.epsilon_0) ** 2),
-        "time": sc.hbar**3 * (4 * sc.pi * sc.epsilon_0) ** 2 / sc.m_e / sc.e**4,
+        "electric field": sc.physical_constants["atomic unit of electric field"][0],
+        "intensity": sc.c * sc.epsilon_0 / 2.0 * sc.physical_constants["atomic unit of electric field"][0] ** 2,
+        "energy": sc.physical_constants["atomic unit of energy"][0],
+        "time": sc.physical_constants["atomic unit of time"][0],
     }
 
     def F_crit_BSI(self, Z, E_Ip):
