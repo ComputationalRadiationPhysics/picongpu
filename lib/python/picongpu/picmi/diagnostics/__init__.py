@@ -5,15 +5,16 @@ Authors: Julian Lenz, Masoud Afshari
 License: GPLv3+
 """
 
-from .binning import Binning, BinningAxis, BinSpec
-from .phase_space import PhaseSpace
-from .energy_histogram import EnergyHistogram
-from .macro_particle_count import MacroParticleCount
-from .timestepspec import TimeStepSpec
-from .checkpoint import Checkpoint
-from .particle_dump import ParticleDump
-from .field_dump import FieldDump
 from .backend_config import BackendConfig, OpenPMDConfig
+from .binning import Binning, BinningAxis, BinSpec
+from .checkpoint import Checkpoint
+from .energy_histogram import EnergyHistogram
+from .field_dump import DerivedFieldDump, NativeFieldDump
+from .macro_particle_count import MacroParticleCount
+from .particle_dump import ParticleDump
+from .particle_functor import ParticleFunctor
+from .phase_space import PhaseSpace
+from .timestepspec import TimeStepSpec
 from .unit_dimension import UnitDimension
 from .radiation import Radiation
 
@@ -27,7 +28,9 @@ __all__ = [
     "EnergyHistogram",
     "MacroParticleCount",
     "ParticleDump",
-    "FieldDump",
+    "ParticleFunctor",
+    "NativeFieldDump",
+    "DerivedFieldDump",
     "TimeStepSpec",
     "Checkpoint",
     "UnitDimension",

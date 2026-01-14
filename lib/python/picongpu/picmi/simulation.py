@@ -19,7 +19,8 @@ import picmistandard
 import typeguard
 from pydantic import BaseModel
 
-from picongpu.picmi.diagnostics import FieldDump, ParticleDump
+from picongpu.picmi.diagnostics.particle_dump import ParticleDump
+from picongpu.picmi.diagnostics.field_dump import _FieldDump, NativeFieldDump
 from picongpu.picmi.interaction import Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
@@ -107,7 +108,7 @@ def _normalise_template_dir(directory: None | PathLike | typing.Iterable[PathLik
 
 
 def handled_via_openpmd(diagnostic):
-    return isinstance(diagnostic, (ParticleDump, FieldDump))
+    return isinstance(diagnostic, (ParticleDump, _FieldDump))
 
 
 def _validate_collisional_physics_setup(interactions):
@@ -358,7 +359,12 @@ class Simulation(picmistandard.PICMI_Simulation):
                         diagnostic.period.get_as_pypicongpu(time_step_size=self.time_step_size, num_steps=num_steps),
                         diagnostic.species.get_as_pypicongpu()
                         if isinstance(diagnostic, ParticleDump)
-                        else PyPIConGPUFieldDump(name=diagnostic.fieldname),
+                        else PyPIConGPUFieldDump(
+                            name=diagnostic.fieldname,
+                            functor=None
+                            if isinstance(diagnostic, NativeFieldDump)
+                            else diagnostic.functor.get_as_pypicongpu(),
+                        ),
                     )
                     for diagnostic in filter(lambda x: x.options == options, diagnostics)
                 ],

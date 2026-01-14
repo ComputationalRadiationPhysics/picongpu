@@ -22,9 +22,13 @@ from pydantic import (
     model_serializer,
 )
 
+from picongpu.pypicongpu.output.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.species.species import Species
+from picongpu.pypicongpu.util import unique
+
+NATIVE_FIELDS = ["E", "B", "J"]
 
 
 class RangeSpecEntry(BaseModel):
@@ -90,6 +94,7 @@ def to_string(timestepspec: TimeStepSpec):
 
 class FieldDump(BaseModel):
     name: str
+    functor: ParticleFunctor | None = None
 
     def get_rendering_context(self) -> dict:
         return self.model_dump(mode="json")
@@ -151,7 +156,14 @@ class OpenPMDPlugin(Plugin):
     @model_serializer(mode="plain")
     def _get_serialized(self) -> dict | None:
         content = self._generate_config_file()
-        return {"config_filename": str(self.config_filename(content, context="runtime"))}
+        return {
+            "config_filename": str(self.config_filename(content, context="runtime")),
+            "derived_fields": unique(
+                source[1].functor.model_dump(mode="json")
+                for source in self.sources
+                if isinstance(source[1], FieldDump) and source[1].functor is not None
+            ),
+        }
 
     class Config:
         arbitrary_types_allowed = True

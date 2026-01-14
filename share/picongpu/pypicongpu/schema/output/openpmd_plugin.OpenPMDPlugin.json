@@ -4,11 +4,13 @@
   "description": "OpenPMD plugin",
   "unevaluatedProperties": false,
   "required": [
-    "config_filename"
+    "config_filename",
+    "derived_fields"
   ],
   "properties": {
     "config_filename": {
       "type": "string"
-    }
+    },
+    "derived_fields": {}
   }
 }
