@@ -9,14 +9,17 @@ from pathlib import Path
 import numpy as np
 import openpmd_api as opmd
 import pandas as pd
-from picongpu.picmi.diagnostics import ParticleDump
+from picongpu.picmi.diagnostics import ParticleDump, Binning
 from .arbitrary_parameters import CELL_SIZE
+from openpmd_api.openpmd_api_cxx import ErrorWrongAPIUsage
 
 
 def load_diagnostic_result(diagnostic, result_path):
     path = Path(str(diagnostic.result_path(result_path)).replace("%06T", 6 * "0"))
     if isinstance(diagnostic, ParticleDump):
         return read_particles(path).loc(axis=0)[*diagnostic.species.name.split("_", maxsplit=1)]
+    if isinstance(diagnostic, Binning):
+        return read_fields(path, ["Binning"])["Binning"]
     return read_fields(path, [diagnostic.fieldname])[diagnostic.fieldname]
 
 
@@ -39,7 +42,12 @@ def apply_range(particles, range):
 
 def read_fields(series_name, names=("E", "B")):
     series = opmd.Series(str(series_name), opmd.Access.read_only)
-    tmp = {name: [series.iterations[0].meshes[name][c].load_chunk() for c in "xyz"] for name in names}
+    tmp = {}
+    for name in names:
+        try:
+            tmp[name] = [series.iterations[0].meshes[name][c].load_chunk() for c in "xyz"]
+        except ErrorWrongAPIUsage:
+            tmp[name] = series.iterations[0].meshes[name].load_chunk()
     series.flush()
     return {key: np.array(value) for key, value in tmp.items()}
 

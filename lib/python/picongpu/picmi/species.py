@@ -34,7 +34,7 @@ class ParticleShape(Enum):
     TSC = "quadratic"
     PQS = "cubic"
     PCS = "quartic"
-    counter = "counter"
+    Counter = "counter"
 
 
 class PusherMethod(Enum):
@@ -135,7 +135,7 @@ class Species(BaseModel):
         return PyPIConGPUSpecies(
             name=self.name,
             **self._evaluate_species_requirements(),
-            shape=Shape[self.particle_shape.name],
+            shape=Shape(self.particle_shape.name),
             pusher=Pusher[self.method.name],
         )
 
