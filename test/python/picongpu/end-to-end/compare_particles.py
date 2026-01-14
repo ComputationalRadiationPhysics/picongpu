@@ -10,6 +10,7 @@ import numpy as np
 import openpmd_api as opmd
 import pandas as pd
 from picongpu.picmi.diagnostics import ParticleDump
+from .arbitrary_parameters import CELL_SIZE
 
 
 def load_diagnostic_result(diagnostic, result_path):
@@ -17,6 +18,23 @@ def load_diagnostic_result(diagnostic, result_path):
     if isinstance(diagnostic, ParticleDump):
         return read_particles(path).loc(axis=0)[*diagnostic.species.name.split("_", maxsplit=1)]
     return read_fields(path, [diagnostic.fieldname])[diagnostic.fieldname]
+
+
+def _normalize_range_spec_entry(data):
+    if data.data is None:
+        return (-np.inf, np.inf)
+    if isinstance(data.data, int):
+        return (data.data, data.data + 1)
+    return data.data
+
+
+def apply_range(particles, range):
+    lower_bound, upper_bound = zip(*map(_normalize_range_spec_entry, range.data))
+    cells = np.round(
+        particles[["positionOffset_x", "positionOffset_y", "positionOffset_z"]].to_numpy() / CELL_SIZE
+    ).astype(int)
+    mask = np.all((cells >= lower_bound) * (cells < upper_bound), axis=1)
+    return particles.loc(axis=0)[mask]
 
 
 def read_fields(series_name, names=("E", "B")):

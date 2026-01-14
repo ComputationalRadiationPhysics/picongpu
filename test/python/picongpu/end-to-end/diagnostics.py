@@ -14,7 +14,7 @@ from .arbitrary_parameters import (
     NUMBER_OF_CELLS,
     UPPER_BOUNDARY,
 )
-from .compare_particles import load_diagnostic_result, read_particles, sort_particles, read_fields
+from .compare_particles import apply_range, load_diagnostic_result, read_particles, sort_particles, read_fields
 from .distributions import Gaussian, SphereFlanks
 from picongpu.picmi import (
     Cartesian3DGrid,
@@ -67,7 +67,9 @@ def basic_simulation():
 
 
 def generate_diagnostics(species):
-    options = OpenPMDConfig(file="other_name", ext=".h5", infix="", data_preparation_strategy="doubleBuffer")
+    options = OpenPMDConfig(
+        file="other_name", ext=".h5", infix="", data_preparation_strategy="doubleBuffer", range=[17, (25, 40), None]
+    )
     particles = [ParticleDump(species=s) for s in species] + [
         ParticleDump(species=species[0], options=options),
     ]
@@ -113,7 +115,10 @@ class TestDiagnostics(TestCase):
         for diag in self.sim.diagnostics:
             if isinstance(diag, ParticleDump):
                 from_checkpoint = sort_particles(
-                    read_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5")
+                    apply_range(
+                        read_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5"),
+                        diag.options.range,
+                    )
                 ).loc(axis=0)[*diag.species.name.split("_", maxsplit=1)]
                 from_diagnostics = sort_particles(load_diagnostic_result(diag, self.result_path))
                 np.testing.assert_allclose(from_checkpoint, from_diagnostics)
