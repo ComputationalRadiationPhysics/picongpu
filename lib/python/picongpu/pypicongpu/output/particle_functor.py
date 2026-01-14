@@ -83,7 +83,7 @@ class UnitDimension(BaseModel):
 
     @model_serializer(mode="plain")
     def translate_to_cpp(self) -> str:
-        return f"std::array<double, {self._num_unit_dimensions}>{{{','.join(map(str, self.unit_dimension))}}}"
+        return f"std::array<double, {self._num_unit_dimensions}u>{{{','.join(map(str, self.unit_dimension))}}}"
 
 
 class _PreambleStatement(BaseModel):
@@ -97,4 +97,15 @@ class ParticleFunctor(RenderedObject, BaseModel):
         alias="attribute_mapping"
     )
     return_type: Annotated[str, BeforeValidator(lambda x: translate_to_cpp_type(x))]
-    unit_dimension: UnitDimension = UnitDimension()
+    unit_dimension: UnitDimension | None = UnitDimension()
+
+    @model_validator(mode="after")
+    def _validate(self):
+        if "int" in self.return_type:
+            if self.unit_dimension == UnitDimension():
+                self.unit_dimension = None
+            if self.unit_dimension is not None:
+                raise ValueError(
+                    f"unit_dimension is not supported for integral types. You gave {self.unit_dimension=}."
+                )
+        return self

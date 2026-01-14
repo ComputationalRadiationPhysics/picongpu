@@ -51,8 +51,11 @@ namespace picongpu::plugins::binning
                 {{/axis_functor.functor_preamble}}
                 return {{{axis_functor.functor_expression}}};
               },
-            "{{{axis_name}}}",
+            "{{{axis_name}}}"
+      {{#axis_functor.unit_dimension}}
+            ,
       {{{axis_functor.unit_dimension}}}
+      {{/axis_functor.unit_dimension}}
         )
       );
       {{/axes}}
@@ -67,8 +70,11 @@ namespace picongpu::plugins::binning
             {{/deposition_functor.functor_preamble}}
             return {{{deposition_functor.functor_expression}}};
           },
-          "{{{deposition_functor.name}}}",
+          "{{{deposition_functor.name}}}"
+    {{#deposition_functor.unit_dimension}}
+    ,
     {{{deposition_functor.unit_dimension}}}
+    {{/deposition_functor.unit_dimension}}
       );
 
       binningCreator.addParticleBinner(

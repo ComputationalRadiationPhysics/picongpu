@@ -15,10 +15,7 @@
       "type": "string",
       "description": "Name of the functor"
     },
-    "unit_dimension": {
-      "type": "string",
-      "description": "c++ code for unit dimension vector"
-    },
+    "unit_dimension": {},
     "functor_preamble": {
       "type": "array",
       "description": "array of preamble statements defining the variables used in the functor_expression",
