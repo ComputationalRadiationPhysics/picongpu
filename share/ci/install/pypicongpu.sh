@@ -95,3 +95,34 @@ if [ ! -z ${PYTHON_COMPILING_TEST+x} ]; then
     # execute the compiling test
     python3 -m compiling -v
 fi
+
+# openmpi is available without extra work
+if [ ! -z ${PYTHON_END_TO_END_TEST+x} ]; then
+    export PIC_BACKEND=omp2b
+    # setup cmake
+    if [ ! -z ${CMAKE_VERSION+x} ]; then
+        if agc-manager -e cmake@${CMAKE_VERSION} ; then
+            export PATH=$(agc-manager -b cmake@${CMAKE_VERSION})/bin:$PATH
+        else
+            script_error "No implementation to install cmake ${CMAKE_VERSION}"
+        fi
+    else
+        script_error "CMAKE_VERSION is not defined"
+    fi
+
+    # setup boost
+    if [ ! -z ${BOOST_VERSION+x} ]; then
+        if agc-manager -e boost@${BOOST_VERSION} ; then
+            export CMAKE_PREFIX_PATH=$(agc-manager -b boost@${BOOST_VERSION}):$CMAKE_PREFIX_PATH
+        else
+            script_error "No implementation to install boost ${BOOST_VERSION}"
+        fi
+    else
+        script_error "BOOST_VERSION is not defined"
+    fi
+
+    # set C++ compiler
+    export CXX=$CXX_VERSION
+    # execute the compiling test
+    python3 -m end-to-end -v
+fi
