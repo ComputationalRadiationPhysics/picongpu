@@ -98,7 +98,7 @@ fi
 
 # openmpi is available without extra work
 if [ ! -z ${PYTHON_END_TO_END_TEST+x} ]; then
-    export PIC_BACKEND=omp2b
+    export PIC_BACKEND=serial
     # setup cmake
     if [ ! -z ${CMAKE_VERSION+x} ]; then
         if agc-manager -e cmake@${CMAKE_VERSION} ; then
