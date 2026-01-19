@@ -132,6 +132,36 @@ namespace picongpu::atomicPhysics::debug
         };
     } // namespace scFlyComparison
 
+    namespace fixedRateMatrix
+    {
+        /** disables the standard rate calculation and uses a here defined function instead
+         *
+         * the function replaces the excitation and deexcitation rate calculation,
+         *  - all other rates are set to zero
+         *  - deactivates the suggested changes accounting to avoid triggering over subscription check
+         *  - deactivates the accepted changes accounting in the recordChanges kernel
+         *
+         * @attention **do not use outside debug!**
+         * @attention should be combined with NoIPD IPD-model
+         */
+        constexpr bool USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION = false;
+
+        //! example use of this feature
+        struct FixedRateMatrix
+        {
+            /** get replacement rate for collisional de-/excitation
+             *
+             * @tparam T_excitation true =^= excitation, false =^= deexcitation
+             *
+             * @param transitionCollectionIndex collection index of the transition
+             *
+             * @return unit: 1/sim.unit.time
+             */
+            template<bool T_excitation>
+            HDINLINE static float_X rate(uint32_t const transitionCollectionIndex);
+        };
+    } // namespace fixedRateMatrix
+
     namespace kernel::calculateTimeStep
     {
         //! @attention performance relevant

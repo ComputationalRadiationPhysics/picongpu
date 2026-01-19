@@ -197,6 +197,11 @@ namespace picongpu::particles::atomicPhysics::kernel
                         ion,
                         newAtomicStateCollectionIndex);
 
+                    // no energy accounting if using fixed matrix
+                    if constexpr(picongpu::atomicPhysics::debug::fixedRateMatrix::
+                                     USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION)
+                        return;
+
                     // record used energy
                     if constexpr(isCollisional)
                         electronHistogram.addDeltaEnergy(worker, ion[binIndex_], deltaEnergy);

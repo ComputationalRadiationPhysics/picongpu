@@ -29,6 +29,7 @@
 #include "picongpu/particles/atomicPhysics/ConvertEnum.hpp"
 #include "picongpu/particles/atomicPhysics/DeltaEnergyTransition.hpp"
 #include "picongpu/particles/atomicPhysics/atomicData/AtomicData.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/CollisionalRate.hpp"
 #include "picongpu/particles/atomicPhysics/rateCalculation/Multiplicities.hpp"
 
@@ -320,6 +321,11 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             T_AtomicStateDataBox const atomicStateDataBox,
             T_BoundBoundTransitionDataBox const boundBoundTransitionDataBox)
         {
+            if constexpr(picongpu::atomicPhysics::debug::fixedRateMatrix::USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION)
+                return picongpu::atomicPhysics::debug::fixedRateMatrix::FixedRateMatrix::rate<T_excitation>(
+                           transitionCollectionIndex)
+                       / float_X(picongpu::atomicPhysics::ElectronHistogram::numberBins);
+
             float_X const sigma = collisionalBoundBoundCrossSection<
                 T_AtomicStateDataBox,
                 T_BoundBoundTransitionDataBox,
@@ -363,6 +369,9 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             T_AtomicStateDataBox const atomicStateDataBox,
             T_BoundBoundTransitionDataBox const boundBoundTransitionDataBox)
         {
+            if constexpr(picongpu::atomicPhysics::debug::fixedRateMatrix::USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION)
+                return 0._X;
+
             using S_ConfigNumber = typename T_AtomicStateDataBox::ConfigNumber;
 
             // short hands for constants in SI

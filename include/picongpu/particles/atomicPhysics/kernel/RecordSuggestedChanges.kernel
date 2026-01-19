@@ -85,6 +85,10 @@ namespace picongpu::particles::atomicPhysics::kernel
             T_IonBox const ionBox,
             T_IPDInput const... ipdInput) const
         {
+            // no accounting for fixed rate matrix
+            if constexpr(picongpu::atomicPhysics::debug::fixedRateMatrix::USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION)
+                return;
+
             auto const superCellIdx = KernelIndexation::getSuperCellIndex(worker, areaMapping);
             auto const superCellFieldIdx
                 = KernelIndexation::getSuperCellFieldIndexFromSuperCellIndex(areaMapping, superCellIdx);

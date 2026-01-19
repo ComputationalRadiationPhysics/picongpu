@@ -37,6 +37,7 @@
  */
 
 #include "picongpu/defines.hpp"
+#include "picongpu/particles/atomicPhysics/debug/param.hpp"
 
 namespace picongpu::particles::atomicPhysics::rateCalculation
 {
@@ -56,6 +57,9 @@ namespace picongpu::particles::atomicPhysics::rateCalculation
             uint32_t const transitionCollectionIndex,
             T_AutonomousTransitionDataBox const autonomousTransitionDataBox)
         {
+            if constexpr(picongpu::atomicPhysics::debug::fixedRateMatrix::USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION)
+                return 0._X;
+
             // 1/sim.unit.time
             return autonomousTransitionDataBox.rate(transitionCollectionIndex);
         }
