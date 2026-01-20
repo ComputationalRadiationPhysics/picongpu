@@ -13,6 +13,7 @@ from typeguard import typechecked
 from picongpu.pypicongpu.output.particle_functor import (
     ParticleFunctor as PyPIConGPUParticleFunctor,
     UnitDimension as PyPIConGPUUnitDimension,
+    generate_preamble,
 )
 from picongpu.picmi.particle_functor.unit_dimension import UnitDimension
 
@@ -28,6 +29,7 @@ _COORDINATE_SYSTEM = {
         ("LOCAL", ("xl", "yl", "zl")),
         ("MOVING_WINDOW", ("xmw", "ymw", "zmw")),
         ("LOCAL_WITH_GUARDS", ("xlg", "ylg", "zlg")),
+        ("CELL", ("xc", "yc", "zc")),
     )
     for precision in ("CELL", "SUB_CELL")
     for unit in ("CELL", "PIC", "SI")
@@ -38,9 +40,14 @@ class Particle:
     def get(self, attribute, **kwargs) -> Expr | Iterable[Expr]:
         NotImplementedError()
 
+    def finalize(self, expression, name=None, return_type=None):
+        return expression
+
 
 @typechecked
 class AbstractParticle(Particle):
+    needs_total_position = False
+
     def __init__(self):
         self.used_attributes = {}
 
@@ -52,6 +59,7 @@ class AbstractParticle(Particle):
             origin = kwargs.get("origin", "total")
             precision = kwargs.get("precision", "cell")
             unit = kwargs.get("unit", "cell")
+            self.needs_total_position = self.needs_total_position or (origin.lower() not in ["cell", "local"])
             my_symbols = _COORDINATE_SYSTEM[(origin, precision, unit)]
             self.used_attributes |= {my_symbols: ("position", origin, precision, unit)}
 
@@ -91,9 +99,6 @@ class AbstractParticle(Particle):
 
 @typechecked
 class ParticleFunctor:
-    def check(self):
-        pass
-
     def __init__(
         self,
         name: str,
@@ -106,16 +111,16 @@ class ParticleFunctor:
         self.return_type = return_type
         self.unit_dimension = unit_dimension or UnitDimension()
 
-    def get_as_pypicongpu(self) -> PyPIConGPUParticleFunctor:
-        self.check()
+    def get_as_pypicongpu(self, mode) -> PyPIConGPUParticleFunctor:
         particle = AbstractParticle()
         functor_expression = self(particle)
         return PyPIConGPUParticleFunctor(
             name=self.name,
             functor_expression=functor_expression,
-            attribute_mapping=particle.get_attribute_map(),
+            functor_preamble=generate_preamble(particle.get_attribute_map(), mode=mode),
             return_type=self.return_type,
             unit_dimension=PyPIConGPUUnitDimension(unit_dimension=self.unit_dimension.unit_vector.tolist()),
+            needs_total_position=particle.needs_total_position,
         )
 
     def __call__(self, particle):

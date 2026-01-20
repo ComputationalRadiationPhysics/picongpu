@@ -50,7 +50,12 @@ namespace picongpu
                 static constexpr bool isDeterministic = true;
 
                 template<typename T_Particle>
-                HDINLINE bool operator()(T_Particle const& particle)
+                HDINLINE bool operator()(
+                {{#needs_total_position}}
+                  DataSpace< simDim > const & particleOffsetToTotalOrigin,
+                {{/needs_total_position}}
+                  T_Particle const& particle
+                )
                 {
                   {{#functor_preamble}}
                   {{{statement}}}
@@ -63,7 +68,12 @@ namespace picongpu
 
             using AllParticleFilters = MakeSeq_t<
             {{#particle_filters}}
-              generic::Free<Functor_{{{name}}}_{{{_idx}}}>,
+              {{#needs_total_position}}
+                generic::FreeTotalCellOffset<Functor_{{{name}}}_{{{_idx}}}>,
+              {{/needs_total_position}}
+              {{^needs_total_position}}
+                generic::Free<Functor_{{{name}}}_{{{_idx}}}>,
+              {{/needs_total_position}}
             {{/particle_filters}}
               All
             >;

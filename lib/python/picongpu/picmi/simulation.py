@@ -362,7 +362,7 @@ class Simulation(picmistandard.PICMI_Simulation):
                             name=diagnostic.fieldname,
                             functor=None
                             if isinstance(diagnostic, NativeFieldDump)
-                            else diagnostic.functor.get_as_pypicongpu(),
+                            else diagnostic.functor.get_as_pypicongpu(mode="DerivedField"),
                         ),
                     )
                     for diagnostic in filter(lambda x: x.options == options, diagnostics)

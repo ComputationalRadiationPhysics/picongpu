@@ -43,7 +43,7 @@ class BinningAxis:
     def get_as_pypicongpu(self) -> PyPIConGPUBinningAxis:
         return PyPIConGPUBinningAxis(
             name=self.name,
-            functor=self.functor.get_as_pypicongpu(),
+            functor=self.functor.get_as_pypicongpu(mode="Binning"),
             bin_spec=self.bin_spec.get_as_pypicongpu(),
             use_overflow_bins=self.use_overflow_bins,
         )
@@ -86,7 +86,7 @@ class Binning:
     ) -> PyPIConGPUBinning:
         return PyPIConGPUBinning(
             name=self.name,
-            deposition_functor=self.deposition_functor.get_as_pypicongpu(),
+            deposition_functor=self.deposition_functor.get_as_pypicongpu(mode="Binning"),
             axes=list(map(BinningAxis.get_as_pypicongpu, self.axes)),
             species=[s.get_as_pypicongpu() for s in self.species],
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),

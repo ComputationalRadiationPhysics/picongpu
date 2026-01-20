@@ -131,23 +131,32 @@ def in_range_expression(p, r):
 
 
 def range_filter(particle, range):
-    pos = particle.get("position", unit="cell", origin="global")
+    # Technically speaking, the origin should be "global"
+    # to match what the range argument of the openPMD plugin does.
+    # But that's not implemented for filters.
+    # "total" is identical because we don't have moving window active.
+    pos = particle.get("position", unit="cell", origin="total")
     return And(*(in_range_expression(p, r) for p, r in zip(pos, range.data)))
 
 
-def generate_particle_dumps(species):
+def generate_range_restricted_particle_dumps(species):
     options = OpenPMDConfig(
         file="other_name", ext=".h5", infix="", data_preparation_strategy="doubleBuffer", range=[17, (25, 40), None]
     )
-    return [ParticleDump(species=s) for s in species] + [
+    return [
         ParticleDump(species=species[0], options=options),
         ParticleDump(
             species=FilteredSpecies(
                 species=species[0],
                 functor=ParticleFilter(name="rangeFilter", functor=partial(range_filter, range=options.range)),
-            )
+            ),
+            options=OpenPMDConfig(file="filtered"),
         ),
     ]
+
+
+def generate_particle_dumps(species):
+    return [ParticleDump(species=s) for s in species]
 
 
 def generate_native_field_dumps():
@@ -189,6 +198,7 @@ def generate_derived_field_dumps_as_binnings(species, functors):
 def generate_diagnostics(species, functors):
     return (
         generate_particle_dumps(species)
+        + generate_range_restricted_particle_dumps(species)
         + generate_native_field_dumps()
         + generate_derived_field_dumps(species, functors)
         + generate_derived_field_dumps_as_binnings(species, functors)
@@ -229,16 +239,15 @@ class TestDiagnostics(TestCase):
         return self._result_path
 
     def test_particle_dump(self):
-        for diag in self.sim.diagnostics:
-            if isinstance(diag, ParticleDump):
-                from_checkpoint = sort_particles(
-                    apply_range(
-                        read_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5"),
-                        diag.options.range,
-                    )
-                ).loc(axis=0)[*diag.species.name.split("_", maxsplit=1)]
-                from_diagnostics = sort_particles(load_diagnostic_result(diag, self.result_path))
-                np.testing.assert_allclose(from_checkpoint, from_diagnostics)
+        for diag in generate_particle_dumps(SPECIES):
+            from_checkpoint = sort_particles(
+                apply_range(
+                    read_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5"),
+                    diag.options.range,
+                )
+            ).loc(axis=0)[*diag.species.name.split("_", maxsplit=1)]
+            from_diagnostics = sort_particles(load_diagnostic_result(diag, self.result_path))
+            np.testing.assert_allclose(from_checkpoint, from_diagnostics)
 
     def test_native_field_dump(self):
         for diag in self.sim.diagnostics:
@@ -257,6 +266,13 @@ class TestDiagnostics(TestCase):
             np.testing.assert_allclose(
                 load_diagnostic_result(dump, self.result_path), load_diagnostic_result(binning, self.result_path)
             )
+
+    def test_compare_filtered_and_range(self):
+        range_arg, filtered = generate_range_restricted_particle_dumps(SPECIES)
+        np.testing.assert_allclose(
+            sort_particles(load_diagnostic_result(range_arg, self.result_path)),
+            sort_particles(load_diagnostic_result(filtered, self.result_path)),
+        )
 
 
 if __name__ == "__main__":

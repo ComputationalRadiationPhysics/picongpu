@@ -17,6 +17,9 @@ class ParticleFilter(ParticleFunctor):
     def __init__(self, name: str, functor: Callable[[Particle], Any]):
         return super().__init__(name=name, functor=functor, return_type=bool, unit_dimension=None)
 
+    def get_as_pypicongpu(self, mode="Filter"):
+        return super().get_as_pypicongpu(mode=mode)
+
 
 class FilteredSpecies(BaseModel):
     species: Species
