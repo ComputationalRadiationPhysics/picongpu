@@ -10,7 +10,8 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from picongpu.picmi.species import FilteredSpecies, Species
+from picongpu.picmi.species import Species
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 
 from .backend_config import BackendConfig, OpenPMDConfig
 from .timestepspec import TimeStepSpec

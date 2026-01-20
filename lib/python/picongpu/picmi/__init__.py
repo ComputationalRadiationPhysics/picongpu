@@ -38,10 +38,10 @@ from .lasers import (
     TWTSLaser,
 )
 from .layout import GriddedLayout, PseudoRandomLayout
-from .particle_functor import ParticleFunctor
+from .particle_functor import ParticleFunctor, FilteredSpecies, ParticleFilter
 from .simulation import Simulation
 from .solver import ElectromagneticSolver
-from .species import FilteredSpecies, ParticleFilter, Species
+from .species import Species
 
 assert sys.version_info.major > 3 or sys.version_info.minor >= 11, "Python 3.11 is required for PIConGPU PICMI"
 

@@ -19,11 +19,16 @@ import picmistandard
 import typeguard
 from pydantic import BaseModel
 
+from picongpu import pypicongpu
+from picongpu.picmi import constants
+from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
-from picongpu.picmi.diagnostics.field_dump import _FieldDump, NativeFieldDump
-from picongpu.picmi.interaction import Synchrotron
+from picongpu.picmi.grid import Cartesian3DGrid
+from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
+from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
     SimpleMomentumOperation,
@@ -38,12 +43,6 @@ from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.util import unique
 from picongpu.pypicongpu.walltime import Walltime
-
-from .. import pypicongpu
-from . import constants
-from .grid import Cartesian3DGrid
-from .interaction import Interaction
-from .species import FilteredSpecies, Species
 
 
 class _DensityImpl(BaseModel):
