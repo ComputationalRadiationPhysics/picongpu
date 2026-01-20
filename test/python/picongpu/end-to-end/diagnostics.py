@@ -17,7 +17,7 @@ from picongpu.picmi import (
     GriddedLayout,
     Simulation,
 )
-from picongpu.picmi import Species, FilteredSpecies, ParticleFilter
+from picongpu.picmi import Species, FilteredSpecies, ParticleFilter, ParticleFunctor
 from picongpu.picmi.diagnostics import (
     Binning,
     BinningAxis,
@@ -27,7 +27,6 @@ from picongpu.picmi.diagnostics import (
     NativeFieldDump,
     OpenPMDConfig,
     ParticleDump,
-    ParticleFunctor,
     TimeStepSpec,
 )
 from sympy import Eq, Piecewise, And

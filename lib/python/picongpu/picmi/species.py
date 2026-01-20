@@ -13,7 +13,7 @@ from pydantic import BaseModel, PrivateAttr, computed_field, model_validator, fi
 
 from picongpu.picmi.distribution import AnyDistribution
 from picongpu.picmi.species_requirements import resolving_add, evaluate_requirements, run_construction
-from picongpu.picmi.diagnostics.particle_functor import ParticleFunctor, Particle
+from picongpu.picmi.particle_functor import ParticleFunctor, Particle
 from picongpu.pypicongpu.species.attribute import Momentum, Position
 from picongpu.pypicongpu.species.attribute.attribute import Attribute
 from picongpu.pypicongpu.species.attribute.weighting import Weighting

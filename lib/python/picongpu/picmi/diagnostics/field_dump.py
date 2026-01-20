@@ -15,7 +15,7 @@ from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.openpmd_plugin import NATIVE_FIELDS
 from .backend_config import BackendConfig, OpenPMDConfig
 from .timestepspec import TimeStepSpec
-from picongpu.picmi.diagnostics.particle_functor import ParticleFunctor
+from picongpu.picmi.particle_functor import ParticleFunctor
 
 
 class _FieldDump(BaseModel):

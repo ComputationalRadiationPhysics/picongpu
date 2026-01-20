@@ -6,16 +6,15 @@ License: GPLv3+
 """
 
 from pathlib import Path
-from ..copy_attributes import default_converts_to
-
 
 from picongpu.picmi.diagnostics.backend_config import OpenPMDConfig
+from picongpu.picmi.particle_functor import ParticleFunctor as BinningFunctor
+from picongpu.picmi.species import Species
+from picongpu.pypicongpu.output.binning import Binning as PyPIConGPUBinning
+from picongpu.pypicongpu.output.binning import BinningAxis as PyPIConGPUBinningAxis
+from picongpu.pypicongpu.output.binning import BinSpec as PyPIConGPUBinSpec
 
-from ...pypicongpu.output.binning import Binning as PyPIConGPUBinning
-from ...pypicongpu.output.binning import BinningAxis as PyPIConGPUBinningAxis
-from ...pypicongpu.output.binning import BinSpec as PyPIConGPUBinSpec
-from ..species import Species as Species
-from .particle_functor import ParticleFunctor as BinningFunctor
+from ..copy_attributes import default_converts_to
 from .timestepspec import TimeStepSpec
 
 

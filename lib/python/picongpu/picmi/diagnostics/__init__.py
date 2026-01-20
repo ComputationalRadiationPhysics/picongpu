@@ -12,11 +12,10 @@ from .energy_histogram import EnergyHistogram
 from .field_dump import DerivedFieldDump, NativeFieldDump
 from .macro_particle_count import MacroParticleCount
 from .particle_dump import ParticleDump
-from .particle_functor import ParticleFunctor
 from .phase_space import PhaseSpace
+from .radiation import Radiation
 from .timestepspec import TimeStepSpec
 from .unit_dimension import UnitDimension
-from .radiation import Radiation
 
 __all__ = [
     "BackendConfig",
@@ -28,7 +27,6 @@ __all__ = [
     "EnergyHistogram",
     "MacroParticleCount",
     "ParticleDump",
-    "ParticleFunctor",
     "NativeFieldDump",
     "DerivedFieldDump",
     "TimeStepSpec",

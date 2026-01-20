@@ -10,11 +10,11 @@ from typing import Any, Callable, Iterable
 from sympy import Expr, Symbol, symbols
 from typeguard import typechecked
 
-from ...pypicongpu.output.particle_functor import (
+from picongpu.pypicongpu.output.particle_functor import (
     ParticleFunctor as PyPIConGPUParticleFunctor,
     UnitDimension as PyPIConGPUUnitDimension,
 )
-from .unit_dimension import UnitDimension
+from picongpu.picmi.particle_functor.unit_dimension import UnitDimension
 
 _COORDINATE_SYSTEM = {
     (

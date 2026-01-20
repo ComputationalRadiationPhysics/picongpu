@@ -2,42 +2,52 @@
 PICMI for PIConGPU
 """
 
-from .simulation import Simulation
-from .grid import Cartesian3DGrid
-from .solver import ElectromagneticSolver
-from .lasers import DispersivePulseLaser, GaussianLaser, PlaneWaveLaser, FromOpenPMDPulseLaser, TWTSLaser
-from .species import Species, FilteredSpecies, ParticleFilter
-from .layout import PseudoRandomLayout, GriddedLayout
-from . import constants
-
-from . import diagnostics
-
-from .distribution import (
-    FoilDistribution,
-    UniformDistribution,
-    GaussianDistribution,
-    CylindricalDistribution,
-    AnalyticDistribution,
-)
-
-from .interaction import Interaction, Synchrotron, Collision, ConstLogCollision, DynamicLogCollision
-from .interaction.ionization.fieldionization import (
-    ADK,
-    ADKVariant,
-    BSI,
-    BSIExtension,
-    Keldysh,
-)
-from .interaction.ionization.electroniccollisionalequilibrium import ThomasFermi
+import sys
 
 import picmistandard
 
-import sys
+from . import constants, diagnostics
+from .distribution import (
+    AnalyticDistribution,
+    CylindricalDistribution,
+    FoilDistribution,
+    GaussianDistribution,
+    UniformDistribution,
+)
+from .grid import Cartesian3DGrid
+from .interaction import (
+    Collision,
+    ConstLogCollision,
+    DynamicLogCollision,
+    Interaction,
+    Synchrotron,
+)
+from .interaction.ionization.electroniccollisionalequilibrium import ThomasFermi
+from .interaction.ionization.fieldionization import (
+    ADK,
+    BSI,
+    ADKVariant,
+    BSIExtension,
+    Keldysh,
+)
+from .lasers import (
+    DispersivePulseLaser,
+    FromOpenPMDPulseLaser,
+    GaussianLaser,
+    PlaneWaveLaser,
+    TWTSLaser,
+)
+from .layout import GriddedLayout, PseudoRandomLayout
+from .particle_functor import ParticleFunctor
+from .simulation import Simulation
+from .solver import ElectromagneticSolver
+from .species import FilteredSpecies, ParticleFilter, Species
 
 assert sys.version_info.major > 3 or sys.version_info.minor >= 11, "Python 3.11 is required for PIConGPU PICMI"
 
 __all__ = [
     "Simulation",
+    "ParticleFunctor",
     "Cartesian3DGrid",
     "ElectromagneticSolver",
     "DispersivePulseLaser",
