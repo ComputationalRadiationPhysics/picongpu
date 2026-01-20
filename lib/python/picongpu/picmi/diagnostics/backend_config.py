@@ -29,6 +29,8 @@ class RangeSpecUnit(Enum):
 
 
 def _apply_units(iterable, unit):
+    if unit != RangeSpecUnit.CELLS:
+        raise ValueError(f"Unknown RangeSpecUnit. You gave: {unit=}.")
     return tuple(iterable)
 
 
