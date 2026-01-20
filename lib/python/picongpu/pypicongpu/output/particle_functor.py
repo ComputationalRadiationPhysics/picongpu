@@ -56,12 +56,12 @@ def generate_preamble(attribute_mapping):
 
 def translate_to_cpp_type(return_type):
     try:
+        if issubclass(return_type, bool):
+            return "bool"
         if issubclass(return_type, numbers.Integral):
             return "int"
         if issubclass(return_type, numbers.Real):
             return "float_X"
-        if issubclass(return_type, bool):
-            return "bool"
     except TypeError:
         pass
     if isinstance(return_type, str):

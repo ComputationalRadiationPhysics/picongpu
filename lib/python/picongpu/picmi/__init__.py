@@ -6,7 +6,7 @@ from .simulation import Simulation
 from .grid import Cartesian3DGrid
 from .solver import ElectromagneticSolver
 from .lasers import DispersivePulseLaser, GaussianLaser, PlaneWaveLaser, FromOpenPMDPulseLaser, TWTSLaser
-from .species import Species
+from .species import Species, FilteredSpecies, ParticleFilter
 from .layout import PseudoRandomLayout, GriddedLayout
 from . import constants
 
@@ -46,6 +46,8 @@ __all__ = [
     "TWTSLaser",
     "PlaneWaveLaser",
     "Species",
+    "FilteredSpecies",
+    "ParticleFilter",
     "PseudoRandomLayout",
     "GriddedLayout",
     "constants",

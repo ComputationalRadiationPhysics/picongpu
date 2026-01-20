@@ -43,7 +43,7 @@ from .. import pypicongpu
 from . import constants
 from .grid import Cartesian3DGrid
 from .interaction import Interaction
-from .species import Species
+from .species import FilteredSpecies, Species
 
 
 class _DensityImpl(BaseModel):
@@ -392,6 +392,18 @@ class Simulation(picmistandard.PICMI_Simulation):
         if self.max_steps is None and self.max_time is None:
             raise ValueError("runtime not specified (neither as step count nor max time)")
 
+    def _collect_particle_filters(self):
+        def extract_filtered_species(diagnostics):
+            return map(
+                lambda d: d.species,
+                filter(lambda d: hasattr(d, "species") and isinstance(d.species, FilteredSpecies), diagnostics),
+            )
+
+        return [
+            get_as_pypicongpu(filtered_species.functor)
+            for filtered_species in extract_filtered_species(self.diagnostics)
+        ]
+
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
         self._check_compatibility()
@@ -444,6 +456,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
             output=self._generate_plugins(time_steps),
+            particle_filters=self._collect_particle_filters(),
             base_density=self._get_base_density(),
             synchrotron_params=synchrotron_params[0],
             collisional_physics=collisions[0].get_as_pypicongpu(),

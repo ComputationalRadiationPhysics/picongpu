@@ -7,12 +7,13 @@ License: GPLv3+
 
 from enum import Enum
 import re
-from typing import Any
+from typing import Any, Callable
 
 from pydantic import BaseModel, PrivateAttr, computed_field, model_validator, field_validator
 
 from picongpu.picmi.distribution import AnyDistribution
 from picongpu.picmi.species_requirements import resolving_add, evaluate_requirements, run_construction
+from picongpu.picmi.diagnostics.particle_functor import ParticleFunctor, Particle
 from picongpu.pypicongpu.species.attribute import Momentum, Position
 from picongpu.pypicongpu.species.attribute.attribute import Attribute
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
@@ -180,3 +181,21 @@ def particle_type_requirements(particle_type):
 
 class DependsOn(BaseModel):
     species: Species
+
+
+class ParticleFilter(ParticleFunctor):
+    def __init__(self, name: str, functor: Callable[[Particle], Any]):
+        return super().__init__(name=name, functor=functor, return_type=bool, unit_dimension=None)
+
+
+class FilteredSpecies(BaseModel):
+    species: Species
+    functor: ParticleFilter
+
+    def get_as_pypicongpu(self):
+        tmp = self.species.get_as_pypicongpu()
+        tmp.name = f"{tmp.name}_{self.functor.name}"
+        return tmp
+
+    class Config:
+        arbitrary_types_allowed = True

@@ -11,6 +11,7 @@ from typing import Annotated
 from pydantic import BaseModel, PlainSerializer, field_serializer, field_validator
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
+from picongpu.pypicongpu.output.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.output.radiation import RadiationPlugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
@@ -89,6 +90,7 @@ class Simulation(RenderedObject, BaseModel):
     init_operations: Annotated[list[Operation], PlainSerializer(_serialize)]
     synchrotron_params: SynchrotronParams = SynchrotronParams()
     collisional_physics: CollisionalPhysicsSetup = CollisionalPhysicsSetup()
+    particle_filters: list[ParticleFunctor] = Field(default_factory=list)
 
     @field_validator("output", mode="after")
     @classmethod

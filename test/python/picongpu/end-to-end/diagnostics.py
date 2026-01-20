@@ -17,7 +17,7 @@ from picongpu.picmi import (
     GriddedLayout,
     Simulation,
 )
-from picongpu.picmi import Species as Species
+from picongpu.picmi import Species, FilteredSpecies, ParticleFilter
 from picongpu.picmi.diagnostics import (
     Binning,
     BinningAxis,
@@ -30,7 +30,7 @@ from picongpu.picmi.diagnostics import (
     ParticleFunctor,
     TimeStepSpec,
 )
-from sympy import Piecewise
+from sympy import Eq, Piecewise, And
 
 from .arbitrary_parameters import (
     CELL_SIZE,
@@ -123,11 +123,32 @@ FUNCTORS = [
 ]
 
 
+def in_range_expression(p, r):
+    if r.data is None:
+        return True
+    if isinstance(r.data, int):
+        return Eq(p, r.data)
+    return And(p >= r.data[0], p < r.data[1])
+
+
+def range_filter(particle, range):
+    pos = particle.get("position", unit="cell", origin="global")
+    return And(*(in_range_expression(p, r) for p, r in zip(pos, range.data)))
+
+
 def generate_particle_dumps(species):
     options = OpenPMDConfig(
         file="other_name", ext=".h5", infix="", data_preparation_strategy="doubleBuffer", range=[17, (25, 40), None]
     )
-    return [ParticleDump(species=s) for s in species] + [ParticleDump(species=species[0], options=options)]
+    return [ParticleDump(species=s) for s in species] + [
+        ParticleDump(species=species[0], options=options),
+        ParticleDump(
+            species=FilteredSpecies(
+                species=species[0],
+                functor=ParticleFilter(name="rangeFilter", functor=partial(range_filter, range=options.range)),
+            )
+        ),
+    ]
 
 
 def generate_native_field_dumps():

@@ -10,14 +10,14 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from picongpu.picmi.species import Species as Species
+from picongpu.picmi.species import FilteredSpecies, Species
 
 from .backend_config import BackendConfig, OpenPMDConfig
 from .timestepspec import TimeStepSpec
 
 
 class ParticleDump(BaseModel):
-    species: Species
+    species: Species | FilteredSpecies
     period: TimeStepSpec = TimeStepSpec[:]("steps")
     options: BackendConfig = OpenPMDConfig(file="simData")
 
