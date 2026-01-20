@@ -7,21 +7,13 @@ License: GPLv3+
 
 from enum import Enum
 
-from picongpu.pypicongpu.output.openpmd_plugin import (
-    OpenPMDConfig as PyPIConGPUOpenPMDConfig,
-)
+from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDConfig
 from picongpu.pypicongpu.output.openpmd_plugin import RangeSpec as PyPIConGPURangeSpec
 from picongpu.pypicongpu.output.openpmd_plugin import RangeSpecEntry
 
-
-class BackendConfig:
-    def result_path(self, prefix_path):
-        raise NotImplementedError()
-
-
-class OpenPMDConfig(PyPIConGPUOpenPMDConfig, BackendConfig):
-    def __init__(self, *args, **kwargs):
-        super(PyPIConGPUOpenPMDConfig, self).__init__(*args, **kwargs)
+# If there should ever be another option,
+# this type alias could be expanded via type union.
+BackendConfig = OpenPMDConfig
 
 
 class RangeSpecUnit(Enum):

@@ -96,11 +96,13 @@ def compute_densities_per_setup_and_impl(data):
     ].sum()
 
 
-def compute_densities_from_particles(series_name):
+def compute_densities_from_particles(data_or_filename):
     """
     This density is not normalised by volume yet.
     """
-    return compute_densities_per_setup_and_impl(read_particles(series_name))
+    return compute_densities_per_setup_and_impl(
+        read_particles(data_or_filename) if isinstance(data_or_filename, Path) else data_or_filename
+    )
 
 
 def _density_into_mesh(df, number_of_cells, cell_size):
@@ -109,9 +111,9 @@ def _density_into_mesh(df, number_of_cells, cell_size):
     return from_particles / np.prod(cell_size)
 
 
-def read_densities_into_mesh(filename, number_of_cells, cell_size):
+def read_densities_into_mesh(data_or_filename, number_of_cells, cell_size):
     df = (
-        compute_densities_from_particles(filename)
+        compute_densities_from_particles(data_or_filename)
         .reset_index(drop=False)
         .rename({"positionOffset_" + key: key for key in "xyz"}, axis=1)
     )

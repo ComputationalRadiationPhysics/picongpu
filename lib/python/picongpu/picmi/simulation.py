@@ -360,6 +360,7 @@ class Simulation(picmistandard.PICMI_Simulation):
                         if isinstance(diagnostic, ParticleDump)
                         else PyPIConGPUFieldDump(
                             name=diagnostic.fieldname,
+                            filtername=diagnostic.filtername,
                             functor=None
                             if isinstance(diagnostic, NativeFieldDump)
                             else diagnostic.functor.get_as_pypicongpu(mode="DerivedField"),
@@ -398,10 +399,10 @@ class Simulation(picmistandard.PICMI_Simulation):
                 filter(lambda d: hasattr(d, "species") and isinstance(d.species, FilteredSpecies), diagnostics),
             )
 
-        return [
+        return unique(
             get_as_pypicongpu(filtered_species.functor)
             for filtered_species in extract_filtered_species(self.diagnostics)
-        ]
+        )
 
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""

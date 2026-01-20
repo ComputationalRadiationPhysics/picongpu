@@ -64,16 +64,21 @@ namespace picongpu
                 }
 
               };
+
+              using {{{name}}} =
+              {{#needs_total_position}}
+                generic::FreeTotalCellOffset<Functor_{{{name}}}_{{{_idx}}}>
+              {{/needs_total_position}}
+              {{^needs_total_position}}
+                generic::Free<Functor_{{{name}}}_{{{_idx}}}>
+              {{/needs_total_position}}
+              ;
+
             {{/particle_filters}}
 
             using AllParticleFilters = MakeSeq_t<
             {{#particle_filters}}
-              {{#needs_total_position}}
-                generic::FreeTotalCellOffset<Functor_{{{name}}}_{{{_idx}}}>,
-              {{/needs_total_position}}
-              {{^needs_total_position}}
-                generic::Free<Functor_{{{name}}}_{{{_idx}}}>,
-              {{/needs_total_position}}
+            {{{name}}},
             {{/particle_filters}}
               All
             >;

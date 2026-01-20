@@ -14,10 +14,13 @@ import numpy as np
 from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
+    FilteredSpecies,
     GriddedLayout,
+    ParticleFilter,
+    ParticleFunctor,
     Simulation,
+    Species,
 )
-from picongpu.picmi import Species, FilteredSpecies, ParticleFilter, ParticleFunctor
 from picongpu.picmi.diagnostics import (
     Binning,
     BinningAxis,
@@ -29,7 +32,8 @@ from picongpu.picmi.diagnostics import (
     ParticleDump,
     TimeStepSpec,
 )
-from sympy import Eq, Piecewise, And
+from picongpu.picmi.diagnostics.backend_config import RangeSpec
+from sympy import And, Eq, Piecewise
 
 from .arbitrary_parameters import (
     CELL_SIZE,
@@ -39,6 +43,7 @@ from .arbitrary_parameters import (
 from .compare_particles import (
     apply_range,
     load_diagnostic_result,
+    read_densities_into_mesh,
     read_fields,
     read_particles,
     sort_particles,
@@ -155,6 +160,23 @@ def generate_range_restricted_particle_dumps(species):
     ]
 
 
+def generate_range_restricted_derived_field_dumps(species, functors):
+    return [
+        DerivedFieldDump(
+            species=FilteredSpecies(
+                species=species[0],
+                functor=ParticleFilter(
+                    name="rangeFilter", functor=partial(range_filter, range=RangeSpec(17, (25, 40), None))
+                ),
+            ),
+            functor=f,
+            options={"file": "filtered_density"},
+        )
+        for f in functors
+        if f.name == "density"
+    ]
+
+
 def generate_particle_dumps(species):
     return [ParticleDump(species=s) for s in species]
 
@@ -201,6 +223,7 @@ def generate_diagnostics(species, functors):
         + generate_range_restricted_particle_dumps(species)
         + generate_native_field_dumps()
         + generate_derived_field_dumps(species, functors)
+        + generate_range_restricted_derived_field_dumps(species, functors)
         + generate_derived_field_dumps_as_binnings(species, functors)
     )
 
@@ -273,6 +296,17 @@ class TestDiagnostics(TestCase):
             sort_particles(load_diagnostic_result(range_arg, self.result_path)),
             sort_particles(load_diagnostic_result(filtered, self.result_path)),
         )
+
+    def test_compare_filtered_particles_and_derived_density(self):
+        _, particle_diagnostic = generate_range_restricted_particle_dumps(SPECIES)
+        name = particle_diagnostic.species.species.name + "_" + particle_diagnostic.species.functor.name
+        for density in generate_range_restricted_derived_field_dumps(SPECIES, FUNCTORS):
+            np.testing.assert_allclose(
+                read_densities_into_mesh(
+                    load_diagnostic_result(particle_diagnostic, self.result_path), NUMBER_OF_CELLS, CELL_SIZE
+                )[*name.split("_", maxsplit=1)].swapaxes(0, -1),
+                load_diagnostic_result(density, self.result_path),
+            )
 
 
 if __name__ == "__main__":

@@ -95,6 +95,7 @@ def to_string(timestepspec: TimeStepSpec):
 class FieldDump(BaseModel):
     name: str
     functor: ParticleFunctor | None = None
+    filtername: None | str
 
     def get_rendering_context(self) -> dict:
         return self.model_dump(mode="json")
@@ -159,7 +160,7 @@ class OpenPMDPlugin(Plugin):
         return {
             "config_filename": str(self.config_filename(content, context="runtime")),
             "derived_fields": unique(
-                source[1].functor.model_dump(mode="json")
+                source[1].model_dump(mode="json")
                 for source in self.sources
                 if isinstance(source[1], FieldDump) and source[1].functor is not None
             ),
