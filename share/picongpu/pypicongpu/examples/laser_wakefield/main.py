@@ -10,7 +10,7 @@ import logging
 
 import numpy as np
 import sympy
-from picongpu import picmi, pypicongpu
+from picongpu import picmi
 from picongpu.picmi.diagnostics import binning
 from picongpu.picmi.diagnostics.radiation import RadiationObserverConfiguration
 from picongpu.picmi.diagnostics.unit_dimension import I, L, M, T
@@ -230,25 +230,6 @@ sim.diagnostics = [
 ]
 
 sim.add_laser(laser, None)
-
-# additional non standardized custom user input
-# only active if custom templates are used
-
-# for generating setup with custom input see standard implementation,
-#  see https://picongpu.readthedocs.io/en/latest/usage/picmi/custom_template.html
-if ADD_CUSTOM_INPUT:
-    min_weight_input = pypicongpu.customuserinput.CustomUserInput()
-    min_weight_input.addToCustomInput({"minimum_weight": 10.0}, "minimum_weight")
-    sim.picongpu_add_custom_user_input(min_weight_input)
-
-    output_configuration = pypicongpu.customuserinput.CustomUserInput()
-
-    output_configuration.addToCustomInput(
-        {"openPMD_period": 100, "openPMD_file": "simData", "openPMD_extension": "bp"},
-        "openPMD plugin configuration",
-    )
-
-    sim.picongpu_add_custom_user_input(output_configuration)
 
 if __name__ == "__main__":
     sim.write_input_file(OUTPUT_DIRECTORY_PATH)
