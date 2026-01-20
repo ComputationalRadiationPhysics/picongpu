@@ -75,4 +75,5 @@ name of this PICMI implementation
 required by PICMI interface
 """
 
+picmistandard.register_codename(codename)
 picmistandard.register_constants(constants)
