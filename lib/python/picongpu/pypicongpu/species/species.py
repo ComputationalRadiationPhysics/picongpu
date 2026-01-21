@@ -133,6 +133,10 @@ class Species(RenderedObject, BaseModel):
         return "all"
 
     @computed_field
+    def filter_typename(self) -> str:
+        return "All"
+
+    @computed_field
     def typename(self) -> str:
         """
         get (standalone) C++ name for this species

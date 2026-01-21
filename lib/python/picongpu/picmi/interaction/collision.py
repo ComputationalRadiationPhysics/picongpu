@@ -20,7 +20,7 @@ from picongpu.pypicongpu.collisions import DynamicLogCollision as DynamicLogColl
 
 
 class Collision(BaseModel):
-    species_pairs: list[tuple[Species, Species]]
+    species_pairs: list[tuple[Species | FilteredSpecies, Species | FilteredSpecies]]
     functor: CollisionFunctor
 
     @classmethod

@@ -5,9 +5,17 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from itertools import chain
 from typing import Literal
 
-from pydantic import BaseModel, Field, PrivateAttr, computed_field, field_serializer
+from pydantic import (
+    BaseModel,
+    Field,
+    PrivateAttr,
+    computed_field,
+    field_serializer,
+    field_validator,
+)
 
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.rendering.renderedobject import SelfRegisteringRenderedObject
@@ -40,12 +48,32 @@ CollisionFunctor = ConstLogCollision | DynamicLogCollision
 
 
 class Collision(BaseModel):
-    species_pairs: list[tuple[Species, Species]]
+    species_pairs: list[tuple[Species | FilteredSpecies, Species | FilteredSpecies]]
     functor: CollisionFunctor
+
+    @field_validator("species_pairs", mode="after")
+    @classmethod
+    def _validate_species_pairs(cls, pairs):
+        invalid_pairs = [
+            pair
+            for pair in pairs
+            if pair[0].species_name == pair[1].species_name
+            and sum(isinstance(s, FilteredSpecies) for s in pair) == 1
+            or (sum(isinstance(s, FilteredSpecies) for s in pair) == 2 and pair[0].functor != pair[1].functor)
+        ]
+        if invalid_pairs:
+            raise ValueError(
+                f"Intra-species collisions with differently filtered species are not supported by PIConGPU. You gave: {invalid_pairs=}."
+            )
+        return pairs
 
     @computed_field
     def species(self) -> list[Species]:
         return unique(sum(self.species_pairs, tuple()))
+
+    @computed_field
+    def has_filters(self) -> bool:
+        return any(isinstance(s, FilteredSpecies) for p in self.species_pairs for s in p)
 
     @field_serializer("species_pairs", mode="plain")
     def _species_pairs_serializer(self, value):
@@ -65,10 +93,22 @@ class CollisionNumericsConfig(BaseModel):
     debug_screening_length: bool = False
 
 
+def split_into_single(collision):
+    return (Collision(species_pairs=[pair], functor=collision.functor) for pair in collision.species_pairs)
+
+
 class CollisionalPhysicsSetup(BaseModel):
     collisions: list[Collision] = Field(default_factory=list)
     screening_species: list[Species | FilteredSpecies] = Field(default_factory=list)
     numerics_config: CollisionNumericsConfig = CollisionNumericsConfig()
+
+    @field_validator("collisions", mode="after")
+    @classmethod
+    def _validate_collisions(cls, collisions):
+        # Applying filters inside of the collision pipeline has a weird syntax
+        # which makes it pretty hard to apply arbitrary filters to individual pairs.
+        # What we do instead is that we split each collision to only hold a single pair.
+        return list(chain(*map(split_into_single, collisions)))
 
     @computed_field
     def num_tmp_field_slots(self) -> int:

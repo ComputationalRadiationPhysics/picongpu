@@ -91,6 +91,15 @@ namespace picongpu
                        {{/species_pairs}}
                        MakeSeq_t<>
                     >
+                    {{#has_filters}}
+                    ,
+                    {{#species_pairs}}
+                    FilterPair<
+                      picongpu::particles::filter::{{{species_lhs.filter_typename}}},
+                      picongpu::particles::filter::{{{species_rhs.filter_typename}}}
+                    >
+                    {{/species_pairs}}
+                    {{/has_filters}}
                 >,
 {{/collisional_physics.collisions}}
                 MakeSeq_t<>

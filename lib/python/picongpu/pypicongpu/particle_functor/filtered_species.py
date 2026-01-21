@@ -29,6 +29,14 @@ class FilteredSpecies(BaseModel, RenderedObject):
         return self.functor.name
 
     @computed_field
+    def filter_typename(self) -> str:
+        return self.filter_name
+
+    @computed_field
+    def typename(self) -> str:
+        return self.species.typename
+
+    @computed_field
     def name(self) -> str:
         return self.name_with_filter
 
