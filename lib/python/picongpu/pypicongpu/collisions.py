@@ -20,7 +20,7 @@ from pydantic import (
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.rendering.renderedobject import SelfRegisteringRenderedObject
 from picongpu.pypicongpu.species.species import Species
-from picongpu.pypicongpu.util import unique
+from picongpu.pypicongpu.util import unique, alt
 
 
 class _CollisionFunctor(SelfRegisteringRenderedObject, BaseModel):
@@ -47,6 +47,14 @@ class DynamicLogCollision(_CollisionFunctor):
 CollisionFunctor = ConstLogCollision | DynamicLogCollision
 
 
+def species(s: Species | FilteredSpecies):
+    return alt(lambda: s.species, lambda: s)
+
+
+def functor(s: Species | FilteredSpecies):
+    return alt(lambda: s.functor, None)
+
+
 class Collision(BaseModel):
     species_pairs: list[tuple[Species | FilteredSpecies, Species | FilteredSpecies]]
     functor: CollisionFunctor
@@ -55,11 +63,7 @@ class Collision(BaseModel):
     @classmethod
     def _validate_species_pairs(cls, pairs):
         invalid_pairs = [
-            pair
-            for pair in pairs
-            if pair[0].species_name == pair[1].species_name
-            and sum(isinstance(s, FilteredSpecies) for s in pair) == 1
-            or (sum(isinstance(s, FilteredSpecies) for s in pair) == 2 and pair[0].functor != pair[1].functor)
+            pair for pair in pairs if species(pair[0]) == species(pair[1]) and functor(pair[0]) != functor(pair[1])
         ]
         if invalid_pairs:
             raise ValueError(
