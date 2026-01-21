@@ -9,6 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, PrivateAttr, computed_field, field_serializer
 
+from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.rendering.renderedobject import SelfRegisteringRenderedObject
 from picongpu.pypicongpu.species.species import Species
 from picongpu.pypicongpu.util import unique
@@ -25,6 +26,14 @@ class ConstLogCollision(_CollisionFunctor):
 
 class DynamicLogCollision(_CollisionFunctor):
     _name: str = PrivateAttr("dynamiclog")
+
+    # Our current context validation doesn't like empty leafs.
+    # This puts some unused content into the context.
+    # Ain't pretty but was the fastest solution.
+    # General overhaul of rendering is on the agenda anyways.
+    @computed_field
+    def unused(self) -> str:
+        return ""
 
 
 CollisionFunctor = ConstLogCollision | DynamicLogCollision
@@ -58,5 +67,13 @@ class CollisionNumericsConfig(BaseModel):
 
 class CollisionalPhysicsSetup(BaseModel):
     collisions: list[Collision] = Field(default_factory=list)
-    screening_species: list[Species] = Field(default_factory=list)
+    screening_species: list[Species | FilteredSpecies] = Field(default_factory=list)
     numerics_config: CollisionNumericsConfig = CollisionNumericsConfig()
+
+    @computed_field
+    def num_tmp_field_slots(self) -> int:
+        if len(self.screening_species) == 0:
+            return 1
+        if len(self.screening_species) == 1:
+            return 2
+        return 3

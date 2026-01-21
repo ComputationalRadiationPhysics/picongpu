@@ -7,9 +7,10 @@ License: GPLv3+
 
 from itertools import combinations, combinations_with_replacement
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 
 from picongpu.picmi.species import Species
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 from picongpu.pypicongpu.collisions import Collision as PyPIConGPUCollision
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup as PyPIConGPUCollisionalPhysicsSetup
 from picongpu.pypicongpu.collisions import CollisionFunctor
@@ -47,7 +48,7 @@ class Collision(BaseModel):
 
 class CollisionalPhysicsSetup(BaseModel):
     collisions: list[Collision] = Field(default_factory=list)
-    screening_species: list[Species] = Field(default_factory=list)
+    screening_species: list[Species | FilteredSpecies] = Field(default_factory=list)
     numerics_config: CollisionNumericsConfig = CollisionNumericsConfig()
 
     def __init__(self, *args, **kwargs):
@@ -58,6 +59,13 @@ class CollisionalPhysicsSetup(BaseModel):
             else:
                 raise ValueError(f"Duplicated collisions argument given: You gave {args=} and {kwargs=}.")
         return super().__init__(*args, **kwargs)
+
+    @field_validator("collisions", mode="before")
+    @classmethod
+    def _validate_collisions(cls, value):
+        if isinstance(value, Collision):
+            return [value]
+        return value
 
     @model_validator(mode="after")
     def _validate(self):

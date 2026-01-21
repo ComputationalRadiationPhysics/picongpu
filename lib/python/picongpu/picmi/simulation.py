@@ -399,10 +399,34 @@ class Simulation(picmistandard.PICMI_Simulation):
                 filter(lambda d: hasattr(d, "species") and isinstance(d.species, FilteredSpecies), diagnostics),
             )
 
-        return unique(
-            get_as_pypicongpu(filtered_species.functor)
-            for filtered_species in extract_filtered_species(self.diagnostics)
+        # This does not necessarily work on Binning plugin
+        # because that might have a list of species.
+        # But that's fine because the Binning plugin uses it's own mechanism
+        # and we don't need their filters to register
+        # unless they are used somewhere else as well.
+        from_diagnostics = (
+            get_as_pypicongpu(diagnostic.species.functor)
+            for diagnostic in self.diagnostics
+            if hasattr(diagnostic, "species") and isinstance(diagnostic.species, FilteredSpecies)
         )
+        from_collision_screening_species = (
+            get_as_pypicongpu(filtered_species.functor)
+            for interaction in self.picongpu_interaction
+            if isinstance(interaction, CollisionalPhysicsSetup)
+            for filtered_species in interaction.screening_species
+            if isinstance(filtered_species, FilteredSpecies)
+        )
+        from_collision_pairs = (
+            get_as_pypicongpu(filtered_species.functor)
+            for interaction in self.picongpu_interaction
+            if isinstance(interaction, CollisionalPhysicsSetup)
+            for collision in interaction.collisions
+            for pair in collision.species_pairs
+            for filtered_species in pair
+            if isinstance(filtered_species, FilteredSpecies)
+        )
+
+        return unique(chain(from_diagnostics, from_collision_screening_species, from_collision_pairs))
 
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
