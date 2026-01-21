@@ -7,9 +7,8 @@ License: GPLv3+
 
 from enum import Enum
 
-from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDConfig
+from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDConfig, RangeSpecEntry
 from picongpu.pypicongpu.output.openpmd_plugin import RangeSpec as PyPIConGPURangeSpec
-from picongpu.pypicongpu.output.openpmd_plugin import RangeSpecEntry
 
 # If there should ever be another option,
 # this type alias could be expanded via type union.

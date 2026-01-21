@@ -22,9 +22,9 @@ from pydantic import (
     model_serializer,
 )
 
-from picongpu.pypicongpu.output.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.species.species import Species
 from picongpu.pypicongpu.util import unique
 

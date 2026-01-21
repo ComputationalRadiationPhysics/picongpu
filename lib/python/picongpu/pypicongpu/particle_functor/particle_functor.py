@@ -8,10 +8,11 @@ License: GPLv3+
 import numbers
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, PrivateAttr, model_serializer, model_validator, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, model_validator
 
-from ..rendering.pmaccprinter import PMAccPrinter
-from ..rendering.renderedobject import RenderedObject
+from picongpu.pypicongpu.particle_functor.unit_dimension import UnitDimension
+from picongpu.pypicongpu.rendering.pmaccprinter import PMAccPrinter
+from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
 
 
 def by_bracket(attribute):
@@ -110,23 +111,6 @@ def translate_to_cpp_type(return_type):
     if isinstance(return_type, str):
         return return_type
     raise ValueError(f"Cannot translate {return_type=} to a C++ type.")
-
-
-class UnitDimension(BaseModel):
-    _num_unit_dimensions: int = PrivateAttr(7)
-    unit_dimension: list = _num_unit_dimensions.default * [0.0]
-
-    @model_validator(mode="after")
-    def check(self):
-        if len(self.unit_dimension) != self._num_unit_dimensions:
-            raise ValueError(
-                f"Unit dimension vector has {len(self.unit_dimension)=} but {self._num_unit_dimensions=}. They must match."
-            )
-        return self
-
-    @model_serializer(mode="plain")
-    def translate_to_cpp(self) -> str:
-        return f"std::array<double, {self._num_unit_dimensions}u>{{{','.join(map(str, self.unit_dimension))}}}"
 
 
 class _PreambleStatement(BaseModel):

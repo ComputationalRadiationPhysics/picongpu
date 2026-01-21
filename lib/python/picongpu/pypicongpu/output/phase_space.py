@@ -9,9 +9,9 @@ from typing import Literal
 
 from pydantic import BaseModel, PrivateAttr, model_validator
 
-from ..species import Species
-from .plugin import Plugin
-from .timestepspec import TimeStepSpec
+from picongpu.pypicongpu.output.plugin import Plugin
+from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.species import Species
 
 
 class PhaseSpace(Plugin, BaseModel):

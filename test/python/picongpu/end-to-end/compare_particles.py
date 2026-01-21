@@ -6,13 +6,15 @@ License: GPLv3+
 """
 
 from pathlib import Path
+
 import numpy as np
 import openpmd_api as opmd
 import pandas as pd
-from picongpu.picmi.diagnostics import ParticleDump, Binning
-from picongpu.picmi.species import Species
-from .arbitrary_parameters import CELL_SIZE
 from openpmd_api.openpmd_api_cxx import ErrorWrongAPIUsage
+from picongpu.picmi.diagnostics import Binning, ParticleDump
+from picongpu.picmi.species import Species
+
+from .arbitrary_parameters import CELL_SIZE
 
 
 def load_diagnostic_result(diagnostic, result_path):

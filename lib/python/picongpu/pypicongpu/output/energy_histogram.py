@@ -7,9 +7,9 @@ License: GPLv3+
 
 from pydantic import BaseModel, PrivateAttr
 
-from ..species import Species
-from .plugin import Plugin
-from .timestepspec import TimeStepSpec
+from picongpu.pypicongpu.output.plugin import Plugin
+from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.species import Species
 
 
 class EnergyHistogram(Plugin, BaseModel):

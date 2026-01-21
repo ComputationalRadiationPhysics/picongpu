@@ -5,8 +5,6 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .particle_filter import FilteredSpecies as FilteredSpecies
-from .particle_filter import ParticleFilter as ParticleFilter
-from .particle_functor import Particle as Particle
 from .particle_functor import ParticleFunctor as ParticleFunctor
+from .particle_functor import generate_preamble as generate_preamble
 from .unit_dimension import UnitDimension as UnitDimension

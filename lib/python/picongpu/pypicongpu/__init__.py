@@ -2,22 +2,15 @@
 internal representation of params to generate PIConGPU input files
 """
 
-from .simulation import Simulation
-from .runner import Runner
-from .output.phase_space import PhaseSpace
+from . import customuserinput, grid, laser, output, rendering, species, util
+from .field_solver.Lehe import LeheSolver
+from .field_solver.Yee import YeeSolver
+from .output.checkpoint import Checkpoint
 from .output.energy_histogram import EnergyHistogram
 from .output.macro_particle_count import MacroParticleCount
-from .output.checkpoint import Checkpoint
-from .field_solver.Yee import YeeSolver
-from .field_solver.Lehe import LeheSolver
-
-from . import laser
-from . import grid
-from . import rendering
-from . import species
-from . import util
-from . import output
-from . import customuserinput
+from .output.phase_space import PhaseSpace
+from .runner import Runner
+from .simulation import Simulation
 
 __all__ = [
     "Simulation",
