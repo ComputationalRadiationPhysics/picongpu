@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, PlainSerializer, PrivateAttr
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
+from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
 from picongpu.pypicongpu.species import Species
 
@@ -35,7 +36,7 @@ class Binning(Plugin, BaseModel):
     binner_name: str = Field(alias="name")
     deposition_functor: ParticleFunctor
     axes: list[BinningAxis]
-    species: list[Species]
+    species: list[Species | FilteredSpecies]
     period: TimeStepSpec
     openPMD: Annotated[dict | None, PlainSerializer(lambda x: json.dumps(x) if x is not None else x)]
     openPMDExtension: str | None = Field(alias="openPMDExt")

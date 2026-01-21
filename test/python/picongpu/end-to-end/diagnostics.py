@@ -160,20 +160,16 @@ def generate_range_restricted_particle_dumps(species):
     ]
 
 
-def generate_range_restricted_derived_field_dumps(species, functors):
+def generate_range_filtered_densities(species, functors):
+    filtered_species = FilteredSpecies(
+        species=species[0],
+        functor=ParticleFilter(name="rangeFilter", functor=partial(range_filter, range=RangeSpec(17, (25, 40), None))),
+    )
+
+    density = next(f for f in functors if f.name == "density")
     return [
-        DerivedFieldDump(
-            species=FilteredSpecies(
-                species=species[0],
-                functor=ParticleFilter(
-                    name="rangeFilter", functor=partial(range_filter, range=RangeSpec(17, (25, 40), None))
-                ),
-            ),
-            functor=f,
-            options={"file": "filtered_density"},
-        )
-        for f in functors
-        if f.name == "density"
+        DerivedFieldDump(species=filtered_species, functor=density, options={"file": "filtered_density"}),
+        Binning(name="filtered_binning", deposition_functor=density, axes=POSITION_AXES, species=filtered_species),
     ]
 
 
@@ -223,7 +219,7 @@ def generate_diagnostics(species, functors):
         + generate_range_restricted_particle_dumps(species)
         + generate_native_field_dumps()
         + generate_derived_field_dumps(species, functors)
-        + generate_range_restricted_derived_field_dumps(species, functors)
+        + generate_range_filtered_densities(species, functors)
         + generate_derived_field_dumps_as_binnings(species, functors)
     )
 
@@ -300,7 +296,7 @@ class TestDiagnostics(TestCase):
     def test_compare_filtered_particles_and_derived_density(self):
         _, particle_diagnostic = generate_range_restricted_particle_dumps(SPECIES)
         name = particle_diagnostic.species.species.name + "_" + particle_diagnostic.species.functor.name
-        for density in generate_range_restricted_derived_field_dumps(SPECIES, FUNCTORS):
+        for density in generate_range_filtered_densities(SPECIES, FUNCTORS):
             np.testing.assert_allclose(
                 read_densities_into_mesh(
                     load_diagnostic_result(particle_diagnostic, self.result_path), NUMBER_OF_CELLS, CELL_SIZE

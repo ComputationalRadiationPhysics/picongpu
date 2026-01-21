@@ -7,12 +7,11 @@ License: GPLv3+
 
 from typing import Any, Callable
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
-from picongpu.picmi.copy_attributes import default_converts_to
 from picongpu.picmi.particle_functor.particle_functor import Particle, ParticleFunctor
 from picongpu.picmi.species import Species
-from picongpu.pypicongpu.particle_functor import FilteredSpecies as PyPIConGPUFiltereSpecies
+from picongpu.pypicongpu.particle_functor import FilteredSpecies as PyPIConGPUFilteredSpecies
 
 
 class ParticleFilter(ParticleFunctor):
@@ -23,10 +22,26 @@ class ParticleFilter(ParticleFunctor):
         return super().get_as_pypicongpu(mode=mode)
 
 
-@default_converts_to(PyPIConGPUFiltereSpecies)
 class FilteredSpecies(BaseModel):
     species: Species
     functor: ParticleFilter
 
     class Config:
         arbitrary_types_allowed = True
+
+    @computed_field
+    def name_with_filter(self) -> str:
+        return f"{self.species.name}_{self.functor.name}"
+
+    @computed_field
+    def species_name(self) -> str:
+        return self.species.name
+
+    @computed_field
+    def name(self) -> str:
+        return self.name_with_filter
+
+    def get_as_pypicongpu(self, mode="Filter"):
+        return PyPIConGPUFilteredSpecies(
+            species=self.species.get_as_pypicongpu(), functor=self.functor.get_as_pypicongpu(mode=mode)
+        )

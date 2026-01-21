@@ -9,6 +9,7 @@ from pathlib import Path
 
 from picongpu.picmi.diagnostics.backend_config import OpenPMDConfig
 from picongpu.picmi.particle_functor import ParticleFunctor as BinningFunctor
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.binning import Binning as PyPIConGPUBinning
 from picongpu.pypicongpu.output.binning import BinningAxis as PyPIConGPUBinningAxis
@@ -65,7 +66,7 @@ class Binning:
         self.name = name
         self.deposition_functor = deposition_functor
         self.axes = axes
-        if isinstance(species, Species):
+        if isinstance(species, Species) or isinstance(species, FilteredSpecies):
             species = [species]
         self.species = species
         self.period = period or TimeStepSpec[:]
@@ -88,7 +89,7 @@ class Binning:
             name=self.name,
             deposition_functor=self.deposition_functor.get_as_pypicongpu(mode="Binning"),
             axes=list(map(BinningAxis.get_as_pypicongpu, self.axes)),
-            species=[s.get_as_pypicongpu() for s in self.species],
+            species=[s.get_as_pypicongpu(mode="Binning") for s in self.species],
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
             openPMD=self.openPMD,
             openPMDExt=self.openPMDExt,

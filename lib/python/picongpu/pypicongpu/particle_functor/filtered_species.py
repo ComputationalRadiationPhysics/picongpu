@@ -27,3 +27,7 @@ class FilteredSpecies(BaseModel, RenderedObject):
     @computed_field
     def name(self) -> str:
         return self.name_with_filter
+
+    @computed_field
+    def type_filtered(self) -> bool:
+        return True

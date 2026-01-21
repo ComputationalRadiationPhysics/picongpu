@@ -29,9 +29,29 @@ namespace picongpu::plugins::binning
   {{#data}}
   inline void {{{binner_name}}}(BinningCreator& binningCreator)
   {
+
+  {{#species}}{{#type_filtered}}{{#functor}}
+    auto {{{name_with_filter}}}_filter
+       = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> bool {
+              {{#functor_preamble}}
+              {{{statement}}}
+              {{/functor_preamble}}
+              return {{{functor_expression}}};
+        };
+  {{/functor}}{{/type_filtered}}{{/species}}
+
       auto speciesTuple = createSpeciesTuple(
           {{#species}}
-          PMACC_CSTRING("{{{name}}}"){}{{^_last}},{{/_last}}
+          {{^type_filtered}}
+          PMACC_CSTRING("{{{name}}}"){}
+          {{/type_filtered}}
+          {{#type_filtered}}
+          FilteredSpecies{
+            PMACC_CSTRING("{{{species.name}}}"){},
+            {{{name_with_filter}}}_filter
+          }
+          {{/type_filtered}}
+          {{^_last}},{{/_last}}
           {{/species}}
       );
 
