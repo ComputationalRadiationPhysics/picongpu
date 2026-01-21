@@ -14,10 +14,7 @@
       "minLength": 1,
       "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
     },
-    "ionization_electron_species": {
-      "description": "Electron species spawned by ionization.",
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
-    },
+    "ionization_electron_species": {},
     "ionization_current": {
       "anyOf": [
         {

@@ -8,13 +8,10 @@ License: GPLv3+
 from pydantic import BaseModel
 
 from picongpu.picmi.copy_attributes import default_converts_to
-
-
-from ...pypicongpu.output.energy_histogram import (
-    EnergyHistogram as PyPIConGPUEnergyHistogram,
-)
-from ..species import Species as Species
-from .timestepspec import TimeStepSpec
+from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
+from picongpu.picmi.species import Species
+from picongpu.pypicongpu.output.energy_histogram import EnergyHistogram as PyPIConGPUEnergyHistogram
 
 
 @default_converts_to(PyPIConGPUEnergyHistogram)
@@ -59,7 +56,7 @@ class EnergyHistogram(BaseModel):
         if self.bin_count <= 0:
             raise ValueError("bin_count must be > 0")
 
-    species: Species
+    species: Species | FilteredSpecies
     period: TimeStepSpec
     bin_count: int
     min_energy: float

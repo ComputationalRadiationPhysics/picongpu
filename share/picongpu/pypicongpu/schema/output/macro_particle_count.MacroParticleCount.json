@@ -8,9 +8,7 @@
     "period"
   ],
   "properties": {
-    "species": {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
-    },
+    "species": {},
     "period": {}
   }
 }

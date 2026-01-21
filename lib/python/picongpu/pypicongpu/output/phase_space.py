@@ -11,11 +11,12 @@ from pydantic import BaseModel, PrivateAttr, model_validator
 
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.species import Species
 
 
 class PhaseSpace(Plugin, BaseModel):
-    species: Species
+    species: Species | FilteredSpecies
     period: TimeStepSpec
     spatial_coordinate: Literal["x", "y", "z"]
     momentum_coordinate: Literal["px", "py", "pz"]

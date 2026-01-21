@@ -12,9 +12,7 @@
     "max_momentum"
   ],
   "properties": {
-    "species": {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
-    },
+    "species": {},
     "period": {},
     "spatial_coordinate": {
       "type": "string",

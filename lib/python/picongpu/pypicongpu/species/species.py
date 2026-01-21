@@ -125,6 +125,14 @@ class Species(RenderedObject, BaseModel):
     shape: Shape = Shape["TSC"]
 
     @computed_field
+    def species_name(self) -> str:
+        return self.name
+
+    @computed_field
+    def filter_name(self) -> str:
+        return "all"
+
+    @computed_field
     def typename(self) -> str:
         """
         get (standalone) C++ name for this species

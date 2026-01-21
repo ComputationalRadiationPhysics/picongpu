@@ -8,10 +8,7 @@
     "charge_state"
   ],
   "properties": {
-    "species": {
-      "description": "species to set bound electrons for",
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
-    },
+    "species": {},
     "charge_state": {
       "description": "charge state to set boundElectrons attribute for",
       "type": "integer",
