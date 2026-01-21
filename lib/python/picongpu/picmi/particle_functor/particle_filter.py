@@ -9,8 +9,10 @@ from typing import Any, Callable
 
 from pydantic import BaseModel
 
+from picongpu.picmi.copy_attributes import default_converts_to
 from picongpu.picmi.particle_functor.particle_functor import Particle, ParticleFunctor
 from picongpu.picmi.species import Species
+from picongpu.pypicongpu.particle_functor import FilteredSpecies as PyPIConGPUFiltereSpecies
 
 
 class ParticleFilter(ParticleFunctor):
@@ -21,14 +23,10 @@ class ParticleFilter(ParticleFunctor):
         return super().get_as_pypicongpu(mode=mode)
 
 
+@default_converts_to(PyPIConGPUFiltereSpecies)
 class FilteredSpecies(BaseModel):
     species: Species
     functor: ParticleFilter
-
-    def get_as_pypicongpu(self):
-        tmp = self.species.get_as_pypicongpu()
-        tmp.name = f"{tmp.name}_{self.functor.name}"
-        return tmp
 
     class Config:
         arbitrary_types_allowed = True

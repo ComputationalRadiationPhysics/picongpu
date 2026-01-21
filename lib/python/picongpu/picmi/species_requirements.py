@@ -14,7 +14,6 @@ from pydantic import BaseModel, Field
 from picongpu.pypicongpu.species.attribute.attribute import Attribute
 from picongpu.pypicongpu.species.constant.constant import Constant
 from picongpu.pypicongpu.species.constant.groundstateionization import GroundStateIonization
-from picongpu.pypicongpu.species.constant.mass import Mass
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronConstant
 from picongpu.pypicongpu.species.operation.momentum.temperature import Temperature
 from picongpu.pypicongpu.species.operation.setchargestate import SetChargeState
@@ -261,7 +260,7 @@ class SimpleMomentumOperation(DelayedConstruction):
     def __init__(self, /, species):
         def constructor(self):
             species = self.metadata.kwargs["species"].get_as_pypicongpu()
-            particle_mass_si = species.get_constant_by_type(Mass).mass_si
+            particle_mass_si = species.constants.mass.mass_si
             rms_velocity_si_squared = np.linalg.norm(self.metadata.kwargs["rms_velocity"]) ** 2
             temperature_kev = particle_mass_si * rms_velocity_si_squared / 3 * electron_volt**-1 * 10**-3
             temperature = Temperature(temperature_kev=temperature_kev) if temperature_kev > 0 else None

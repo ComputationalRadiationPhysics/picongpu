@@ -24,6 +24,7 @@ from pydantic import (
 
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.species.species import Species
 from picongpu.pypicongpu.util import unique
@@ -102,7 +103,7 @@ class FieldDump(BaseModel):
 
 
 class OpenPMDPlugin(Plugin):
-    sources: list[tuple[TimeStepSpec, Species | FieldDump]]
+    sources: list[tuple[TimeStepSpec, Species | FieldDump | FilteredSpecies]]
     config: OpenPMDConfig = OpenPMDConfig(file="simData")
 
     _name: str = PrivateAttr("openPMD")

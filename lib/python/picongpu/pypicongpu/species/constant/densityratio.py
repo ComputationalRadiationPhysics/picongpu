@@ -6,7 +6,8 @@ License: GPLv3+
 """
 
 from pydantic import Field
-from .constant import Constant
+
+from picongpu.pypicongpu.species.constant import Constant
 
 
 class DensityRatio(Constant):

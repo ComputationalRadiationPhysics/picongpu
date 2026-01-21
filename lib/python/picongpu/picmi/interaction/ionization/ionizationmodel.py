@@ -5,14 +5,18 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from picongpu.pypicongpu.species.util import Element
-from picongpu.picmi.species_requirements import GroundStateIonizationConstruction, SetChargeStateOperation
-from picongpu.picmi.species import DependsOn, Species
-from picongpu.pypicongpu.species.attribute.boundelectrons import BoundElectrons
-from .... import pypicongpu
-
-from pydantic import BaseModel, model_validator
 import typeguard
+from pydantic import BaseModel, model_validator
+
+from picongpu.picmi.species import DependsOn, Species
+from picongpu.picmi.species_requirements import (
+    GroundStateIonizationConstruction,
+    SetChargeStateOperation,
+)
+from picongpu.pypicongpu.species.attribute.boundelectrons import BoundElectrons
+from picongpu.pypicongpu.species.util import Element
+
+from picongpu import pypicongpu
 
 
 @typeguard.typechecked

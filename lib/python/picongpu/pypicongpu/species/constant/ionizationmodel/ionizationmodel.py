@@ -5,11 +5,12 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ..constant import Constant
-from pydantic import Field, model_validator
-from ..ionizationcurrent import IonizationCurrent
-
 import typing
+
+from pydantic import Field
+
+from picongpu.pypicongpu.species.constant import Constant
+from picongpu.pypicongpu.species.constant.ionizationcurrent import IonizationCurrent
 
 
 class IonizationModel(Constant):
@@ -32,22 +33,3 @@ class IonizationModel(Constant):
 
     ionization_current: typing.Optional[IonizationCurrent] = None
     """ionization current implementation to use"""
-
-    @model_validator(mode="after")
-    def check(self):
-        """check internal consistency"""
-
-        # import here to avoid circular import
-        from ...species import Species
-        from ..groundstateionization import GroundStateIonization
-
-        # check ionization electron species is actually pypicongpu species instance
-        if not isinstance(self.ionization_electron_species, Species):
-            raise TypeError("ionization_electron_species must be of type pypicongpu Species")
-
-        # electron species must not be an ionizable
-        if self.ionization_electron_species.has_constant_of_type(GroundStateIonization):
-            raise ValueError(
-                "used electron species {} must not be ionizable itself".format(self.ionization_electron_species.name)
-            )
-        return self
