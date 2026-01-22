@@ -12,7 +12,7 @@ import logging
 attr_cnt = 0
 
 
-def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError)):
+def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError)):
     """Try to evaluate the expression and return the first valid.
 
     This basically allows for runtime SFINAE ("substitution failure is not an error")

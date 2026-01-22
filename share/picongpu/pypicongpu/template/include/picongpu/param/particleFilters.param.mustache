@@ -37,6 +37,7 @@
 
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
+#include <bit>
 
 namespace picongpu
 {
@@ -44,11 +45,50 @@ namespace picongpu
     {
         namespace filter
         {
-            {{#particle_filters}}
-            struct Functor_{{{name}}}_{{{_idx}}} {
-                static constexpr char const* name = "{{{name}}}";
-                static constexpr bool isDeterministic = true;
+            template<typename T_RNG>
+            typename std::remove_cvref_t<decltype(std::declval<T_RNG>().m_rng)>::result_type
+            random_number(T_RNG& rng, auto loc, auto scale) {
+              using result_type = typename std::remove_cvref_t<decltype(std::declval<T_RNG>().m_rng)>::result_type;
 
+              // This only applies to uniform distributions:
+              if constexpr(std::is_integral_v<result_type>) {
+                // Doing just a modulo would skew the distribution.
+                // Instead, we drop any bits greater or equal to the next higher power of two
+                // and afterwards discard values that are too large.
+                // On average, we draw at most twice as much.
+
+                using u_result_type = std::make_unsigned_t<result_type>;
+
+                // This assumes that scale >= 0 which is ensured by PyPIConGPU.
+                const u_result_type mask = std::bit_ceil(static_cast<u_result_type>(scale)) - 1u;
+                auto result = result_type{};
+                do {
+                    result = static_cast<result_type>(static_cast<u_result_type>(rng()) & mask);
+                } while (result >= scale);
+                return result + loc;
+              }
+              else {
+                return scale * rng() + loc;
+              }
+            }
+
+            {{#particle_filters}}
+            struct {{{typename}}} {
+                static constexpr char const* name = "{{{name}}}";
+                static constexpr bool isDeterministic =
+                {{#rng_info}}
+                false
+                {{/rng_info}}
+                {{^rng_info}}
+                true
+                {{/rng_info}}
+                ;
+
+                {{#rng_info}}
+                template< typename T_Rng, typename T_Particle >
+                HDINLINE bool operator()( T_Rng& rng, T_Particle& particle )
+                {{/rng_info}}
+                {{^rng_info}}
                 template<typename T_Particle>
                 HDINLINE bool operator()(
                 {{#needs_total_position}}
@@ -56,7 +96,11 @@ namespace picongpu
                 {{/needs_total_position}}
                   T_Particle const& particle
                 )
+                {{/rng_info}}
                 {
+                {{#rng_info}}
+                using RNGType = typename std::remove_cvref_t<decltype(rng.m_rng)>;
+                {{/rng_info}}
                   {{#functor_preamble}}
                   {{{statement}}}
                   {{/functor_preamble}}
@@ -66,13 +110,23 @@ namespace picongpu
               };
 
               using {{{name}}} =
+              {{#rng_info}}
+                generic::FreeRng<
+              {{/rng_info}}
+              {{^rng_info}}
               {{#needs_total_position}}
-                generic::FreeTotalCellOffset<Functor_{{{name}}}_{{{_idx}}}>
+                generic::FreeTotalCellOffset<
               {{/needs_total_position}}
               {{^needs_total_position}}
-                generic::Free<Functor_{{{name}}}_{{{_idx}}}>
+                generic::Free<
               {{/needs_total_position}}
-              ;
+              {{/rng_info}}
+                  {{{typename}}}
+              {{#rng_info}}
+                  ,
+                  {{{rng_info.typename}}}< {{{rng_info.return_type}}} >
+              {{/rng_info}}
+                >;
 
             {{/particle_filters}}
 

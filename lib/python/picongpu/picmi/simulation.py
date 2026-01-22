@@ -41,7 +41,7 @@ from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
-from picongpu.pypicongpu.util import unique
+from picongpu.pypicongpu.util import alt, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
@@ -396,7 +396,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         def extract_filtered_species(diagnostics):
             return map(
                 lambda d: d.species,
-                filter(lambda d: hasattr(d, "species") and isinstance(d.species, FilteredSpecies), diagnostics),
+                filter(lambda d: alt(lambda: isinstance(d.species, FilteredSpecies), False), diagnostics),
             )
 
         # This does not necessarily work on Binning plugin
@@ -412,15 +412,13 @@ class Simulation(picmistandard.PICMI_Simulation):
         from_collision_screening_species = (
             get_as_pypicongpu(filtered_species.functor)
             for interaction in self.picongpu_interaction
-            if isinstance(interaction, CollisionalPhysicsSetup)
-            for filtered_species in interaction.screening_species
+            for filtered_species in alt(lambda: interaction.screening_species, [])
             if isinstance(filtered_species, FilteredSpecies)
         )
         from_collision_pairs = (
             get_as_pypicongpu(filtered_species.functor)
             for interaction in self.picongpu_interaction
-            if isinstance(interaction, CollisionalPhysicsSetup)
-            for collision in interaction.collisions
+            for collision in alt(lambda: interaction.collisions, [])
             for pair in collision.species_pairs
             for filtered_species in pair
             if isinstance(filtered_species, FilteredSpecies)

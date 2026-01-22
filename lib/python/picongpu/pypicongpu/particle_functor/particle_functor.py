@@ -5,14 +5,17 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-import numbers
 from typing import Annotated, Literal
+from uuid import uuid4 as uuid
 
-from pydantic import BaseModel, BeforeValidator, model_validator
+from pydantic import BaseModel, BeforeValidator, computed_field, model_validator
 
+from picongpu.pypicongpu.particle_functor.translate_to_cpp_type import translate_to_cpp_type
+from picongpu.pypicongpu.particle_functor.rng_info import RNGInfo
 from picongpu.pypicongpu.particle_functor.unit_dimension import UnitDimension
 from picongpu.pypicongpu.rendering.pmaccprinter import PMAccPrinter
 from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
+from picongpu.pypicongpu.util import alt
 
 
 def by_bracket(attribute):
@@ -33,17 +36,21 @@ COMMON_ACCESSORS = {
     "timestep_size": "sim.pic.getDt()",
 }
 
-BINNING_ACCESSORS = COMMON_ACCESSORS | {
-    (
-        "position",
-        origin.lower(),
-        precision.lower(),
-        unit.lower(),
-    ): f"getParticlePosition<DomainOrigin::{origin}, PositionPrecision::{precision}, PositionUnits::{unit}>(domainInfo, particle)"
-    for origin in ("TOTAL", "GLOBAL", "LOCAL", "MOVING_WINDOW", "LOCAL_WITH_GUARDS")
-    for precision in ("CELL", "SUB_CELL")
-    for unit in ("CELL", "PIC", "SI")
-}
+BINNING_ACCESSORS = (
+    COMMON_ACCESSORS
+    | {
+        (
+            "position",
+            origin.lower(),
+            precision.lower(),
+            unit.lower(),
+        ): f"getParticlePosition<DomainOrigin::{origin}, PositionPrecision::{precision}, PositionUnits::{unit}>(domainInfo, particle)"
+        for origin in ("TOTAL", "GLOBAL", "LOCAL", "MOVING_WINDOW", "LOCAL_WITH_GUARDS")
+        for precision in ("CELL", "SUB_CELL")
+        for unit in ("CELL", "PIC", "SI")
+    }
+    | {"random_number": NotImplemented}
+)
 
 _ORIGINS = [
     ("local", f"static_cast<float3_X>({by_bracket('localCellIdx')}"),
@@ -53,23 +60,51 @@ _ORIGINS = [
 _PRECISIONS = [("cell", ""), ("sub_cell", " + " + by_bracket("position"))]
 _UNITS = [("cell", ""), ("si", "* sim.si.getCellSize()"), ("pic", "* sim.pic.getCellSize()")]
 
-DERIVED_FIELD_ACCESSORS = COMMON_ACCESSORS | {
-    ("position", origin, precision, unit): f"({o_expr}{p_expr}){u_expr}"
-    for origin, o_expr in _ORIGINS
-    if origin != "total"
-    for precision, p_expr in _PRECISIONS
-    for unit, u_expr in _UNITS
-}
+DERIVED_FIELD_ACCESSORS = (
+    COMMON_ACCESSORS
+    | {
+        ("position", origin, precision, unit): f"({o_expr}{p_expr}){u_expr}"
+        for origin, o_expr in _ORIGINS
+        if origin != "total"
+        for precision, p_expr in _PRECISIONS
+        for unit, u_expr in _UNITS
+    }
+    | {"random_number": NotImplemented}
+)
 
-FILTER_ACCESSORS = DERIVED_FIELD_ACCESSORS | {
-    ("position", origin, precision, unit): f"({o_expr}{p_expr}){u_expr}"
-    for origin, o_expr in _ORIGINS
-    if origin == "total"
-    for precision, p_expr in _PRECISIONS
-    for unit, u_expr in _UNITS
-}
+FILTER_ACCESSORS = (
+    DERIVED_FIELD_ACCESSORS
+    | {
+        ("position", origin, precision, unit): f"({o_expr}{p_expr}){u_expr}"
+        for origin, o_expr in _ORIGINS
+        if origin == "total"
+        for precision, p_expr in _PRECISIONS
+        for unit, u_expr in _UNITS
+    }
+    | {"random_number": "rng()"}
+)
 
-ACCESSORS = {"Binning": BINNING_ACCESSORS, "DerivedField": DERIVED_FIELD_ACCESSORS, "Filter": FILTER_ACCESSORS}
+
+def random_number_command(**kwargs):
+    scale = kwargs.get("scale", 1)
+    if scale < 0:
+        raise ValueError(f"{scale=} must be >= 0.")
+    return f"random_number(rng, static_cast<typename RNGType::result_type>({kwargs.get('loc', 0)}), static_cast<typename RNGType::result_type>({scale}))"
+
+
+def filter_access(name, default):
+    if name in FILTER_ACCESSORS:
+        return FILTER_ACCESSORS[name]
+    if alt(lambda: name[0] == "random_number", False):
+        return random_number_command(**dict(name[1]))
+    return default
+
+
+ACCESSORS = {
+    "Binning": lambda name, default: BINNING_ACCESSORS.get(name, default),
+    "DerivedField": lambda name, default: DERIVED_FIELD_ACCESSORS.get(name, default),
+    "Filter": filter_access,
+}
 
 
 def symbol_to_string(symbol):
@@ -77,40 +112,15 @@ def symbol_to_string(symbol):
 
 
 def generate_preamble(attribute_mapping, mode: Literal["Binning", "Filter", "DerivedField"]):
-    # Positions are special in that not all functors have access to all kinds of positions.
-    # We only allow the ones we explicitly know how to access.
-    if unknown_position_requests := [
-        pos
-        for pos in attribute_mapping.values()
-        if isinstance(pos, tuple) and pos[0] == "position" and pos not in ACCESSORS[mode]
-    ]:
-        raise ValueError(
-            "You requested information about a particle position that PIConGPU can't provide for "
-            f"{mode=}. You gave: {unknown_position_requests=}."
-        )
-
+    statements = {
+        symbol: ACCESSORS[mode](attribute, by_bracket(attribute)) for symbol, attribute in attribute_mapping.items()
+    }
+    if unsupported_synbols := [symbol for symbol, statement in statements.items() if statement is NotImplemented]:
+        raise ValueError(f"Found {unsupported_synbols=} trying to generate C++ code for one of your functors.")
     return [
-        {
-            "statement": f"auto const {symbol_to_string(symbol)} = {ACCESSORS[mode].get(attribute, by_bracket(attribute))};"
-        }
-        for symbol, attribute in attribute_mapping.items()
+        {"statement": f"auto const {symbol_to_string(symbol)} = {statement};"}
+        for symbol, statement in statements.items()
     ]
-
-
-def translate_to_cpp_type(return_type):
-    try:
-        # Ordering is important here because issubclass(bool, int) is True in Python world
-        if issubclass(return_type, bool):
-            return "bool"
-        if issubclass(return_type, numbers.Integral):
-            return "int"
-        if issubclass(return_type, numbers.Real):
-            return "float_X"
-    except TypeError:
-        pass
-    if isinstance(return_type, str):
-        return return_type
-    raise ValueError(f"Cannot translate {return_type=} to a C++ type.")
 
 
 class _PreambleStatement(BaseModel):
@@ -119,11 +129,16 @@ class _PreambleStatement(BaseModel):
 
 class ParticleFunctor(RenderedObject, BaseModel):
     name: str
-    functor_expression: Annotated[str, BeforeValidator(lambda x: PMAccPrinter().doprint(x))]
+    functor_expression: Annotated[str, BeforeValidator(PMAccPrinter().doprint)]
     functor_preamble: list[_PreambleStatement]
-    return_type: Annotated[str, BeforeValidator(lambda x: translate_to_cpp_type(x))]
+    return_type: Annotated[str, BeforeValidator(translate_to_cpp_type)]
     unit_dimension: UnitDimension | None = UnitDimension()
     needs_total_position: bool = False
+    rng_info: RNGInfo | None = None
+
+    @computed_field
+    def typename(self) -> str:
+        return f"{self.name}_{uuid().hex}"
 
     @model_validator(mode="after")
     def _validate(self):
@@ -134,4 +149,8 @@ class ParticleFunctor(RenderedObject, BaseModel):
                 raise ValueError(
                     f"unit_dimension is not supported for integral types. You gave {self.unit_dimension=}."
                 )
+        if self.needs_total_position and self.rng_info is not None:
+            raise ValueError(
+                f"PIConGPU does not support particle functors that need total position and random numbers. You gave: {self.rng_info=}."
+            )
         return self

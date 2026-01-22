@@ -14,9 +14,7 @@
       "type": "string",
       "description": "Name of the binner"
     },
-    "deposition_functor": {
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.output.particle_functor.ParticleFunctor"
-    },
+    "deposition_functor": {},
     "axes": {
       "type": "array",
       "items": {

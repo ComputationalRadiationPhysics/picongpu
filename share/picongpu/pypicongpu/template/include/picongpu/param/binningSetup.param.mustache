@@ -31,7 +31,7 @@ namespace picongpu::plugins::binning
   {
 
   {{#species}}{{#type_filtered}}{{#functor}}
-    auto {{{name_with_filter}}}_filter
+    auto {{{typename}}}
        = [] ALPAKA_FN_ACC(auto const& worker, auto const& domainInfo, auto const& particle) -> bool {
               {{#functor_preamble}}
               {{{statement}}}
@@ -48,7 +48,7 @@ namespace picongpu::plugins::binning
           {{#type_filtered}}
           FilteredSpecies{
             PMACC_CSTRING("{{{species.name}}}"){},
-            {{{name_with_filter}}}_filter
+            {{{functor.typename}}}
           }
           {{/type_filtered}}
           {{^_last}},{{/_last}}

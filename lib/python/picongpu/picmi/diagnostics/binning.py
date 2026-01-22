@@ -56,7 +56,7 @@ class Binning:
         name: str,
         deposition_functor: BinningFunctor,
         axes: list[BinningAxis],
-        species: Species | list[Species],
+        species: Species | FilteredSpecies | list[Species | FilteredSpecies],
         period: TimeStepSpec | None = None,
         openPMD: dict | None = None,
         openPMDExt: str | None = None,

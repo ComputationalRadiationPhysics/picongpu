@@ -14,6 +14,12 @@ from picongpu import picmi
 from picongpu.picmi.diagnostics import binning
 from picongpu.picmi.diagnostics.radiation import RadiationObserverConfiguration
 from picongpu.picmi.diagnostics.unit_dimension import I, L, M, T
+from picongpu.picmi.interaction.collision import (
+    Collision,
+    CollisionalPhysicsSetup,
+    DynamicLogCollision,
+)
+from picongpu.picmi.particle_functor import FilteredSpecies, ParticleFilter
 from scipy.constants import c, elementary_charge
 
 # set log level:
@@ -128,8 +134,21 @@ else:
         ionization_electron_species=electrons,
         ionization_current=None,
     )
-
-    interaction = [adk_ionization_model, bsi_effectiveZ_ionization_model]
+    all_species = next(zip(*species_list))
+    screening_species = [
+        FilteredSpecies(
+            species=all_species[0],
+            functor=ParticleFilter(name="massFilter", functor=lambda particle: particle.get("mass") > 0.5),
+        )
+    ] + list(all_species[1:])
+    interaction = [
+        adk_ionization_model,
+        bsi_effectiveZ_ionization_model,
+        CollisionalPhysicsSetup(
+            collisions=Collision.construct_all_to_all(screening_species, functor=DynamicLogCollision()),
+            screening_species=screening_species,
+        ),
+    ]
 sim = picmi.Simulation(
     solver=solver,
     max_steps=4000,

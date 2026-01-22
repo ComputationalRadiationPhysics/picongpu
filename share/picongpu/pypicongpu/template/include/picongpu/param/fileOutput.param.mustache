@@ -35,7 +35,7 @@ namespace picongpu
     namespace particles::particleToGrid::derivedAttributes {
 {{#output}} {{#typeID.openPMD}} {{#data.derived_fields}} {{#functor}}
 
-    struct {{{name}}}_{{{_idx}}} {
+    struct {{{typename}}} {
          HDINLINE float1_64 getUnit() const
          {
              return 1.;
@@ -64,22 +64,22 @@ namespace picongpu
     };
 
     template<>
-    struct IsWeighted<{{{name}}}_{{{_idx}}}> : std::true_type {};
+    struct IsWeighted<{{{typename}}}> : std::true_type {};
 {{/functor}} {{/data.derived_fields}} {{/typeID.openPMD}} {{/output}}
     }
 
 {{#output}} {{#typeID.openPMD}} {{#data.derived_fields}} {{#functor}}
-    using {{{name}}}_{{{_idx}}}_Seq
+    using {{{typename}}}_Seq
         = deriveField::CreateEligible_t<
             VectorAllSpecies,
-            deriveField::derivedAttributes::{{{name}}}_{{{_idx}}}
+            deriveField::derivedAttributes::{{{typename}}}
             {{#filtername}},picongpu::particles::filter::{{{filtername}}}{{/filtername}}
         >;
 {{/functor}} {{/data.derived_fields}} {{/typeID.openPMD}} {{/output}}
 
     using FieldTmpSolvers = MakeSeq_t<
     {{#output}}{{#typeID.openPMD}}{{#data.derived_fields}}{{#functor}}
-      {{{name}}}_{{{_idx}}}_Seq,
+      {{{typename}}}_Seq,
     {{/functor}}{{/data.derived_fields}}{{/typeID.openPMD}}{{/output}}
       MakeSeq_t<>
     >;
