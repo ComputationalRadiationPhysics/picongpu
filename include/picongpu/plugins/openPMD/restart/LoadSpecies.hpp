@@ -454,8 +454,7 @@ namespace picongpu
             {
                 std::string const name_lookup[] = {"x", "y", "z"};
 
-                size_t patches = particleSpecies.particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR]
-                                     .getExtent()[0];
+                size_t patches = particleSpecies.particlePatches["numParticles"].getExtent()[0];
 
                 std::vector<DataSpace<simDim>> offsets(patches);
                 std::vector<DataSpace<simDim>> extents(patches);

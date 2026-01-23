@@ -130,7 +130,6 @@ namespace picongpu
                  * Write the histogram
                  */
                 ::openPMD::Mesh mesh = iteration.meshes["Binning"];
-                ::openPMD::MeshRecordComponent record = mesh[::openPMD::RecordComponent::SCALAR];
 
                 // Call the user defined OpenPMD
                 if(binningData.writeOpenPMDFunctor)
@@ -171,7 +170,7 @@ namespace picongpu
                  * Just use the center.
                  */
                 std::vector<float> positionVector(binningData.getNAxes(), 0.5f);
-                record.setPosition(positionVector);
+                mesh.setPosition(positionVector);
 
                 ::openPMD::Offset histOffset;
                 ::openPMD::Extent histExtent;
@@ -184,9 +183,9 @@ namespace picongpu
                     histOffset.emplace_back(static_cast<size_t>(0));
                 }
 
-                record.setUnitSI(getConversionFactor(binningData.depositionData.units));
+                mesh.setUnitSI(getConversionFactor(binningData.depositionData.units));
 
-                record.resetDataset({::openPMD::determineDatatype<Type>(), histExtent});
+                mesh.resetDataset({::openPMD::determineDatatype<Type>(), histExtent});
                 auto base_ptr = hReducedBuffer->data();
                 ::openPMD::UniquePtrWithLambda<Type> data(
                     base_ptr,
@@ -195,7 +194,7 @@ namespace picongpu
                     {
                         /* no-op, destroy data via destructor of captured hReducedBuffer */
                     });
-                record.storeChunk<Type>(std::move(data), histOffset, histExtent);
+                mesh.storeChunk<Type>(std::move(data), histOffset, histExtent);
                 iteration.setAttribute("reduceCounter", reduceCounter);
 
                 iteration.close();
