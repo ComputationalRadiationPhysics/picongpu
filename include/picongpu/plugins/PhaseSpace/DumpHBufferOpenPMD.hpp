@@ -149,11 +149,11 @@ namespace picongpu
             /** write local domain ********************************************/
 
             ::openPMD::Mesh mesh = iteration.meshes[dataSetName.str()];
-            ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
+            // ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
-            dataset.resetDataset({::openPMD::determineDatatype<Type>(), globalPhaseSpace_extent});
+            mesh.resetDataset({::openPMD::determineDatatype<Type>(), globalPhaseSpace_extent});
             std::shared_ptr<Type> data(hBuffer.data(), [](auto const&) {});
-            dataset.storeChunk<Type>(data, localPhaseSpace_offset, localPhaseSpace_extent);
+            mesh.storeChunk<Type>(data, localPhaseSpace_offset, localPhaseSpace_extent);
 
             /** meta attributes for the data set: unit, range, moving window **/
 
@@ -186,7 +186,7 @@ namespace picongpu
             mesh.setAttribute("_global_size", globalPhaseSpace_extent);
             mesh.setAxisLabels({axis_element.spaceAsString(), axis_element.momentumAsString()});
             mesh.setAttribute("sim_unit", unit);
-            dataset.setUnitSI(unit);
+            mesh.setUnitSI(unit);
             {
                 using UD = ::openPMD::UnitDimension;
                 mesh.setUnitDimension({{UD::I, 1.0}, {UD::T, 1.0}, {UD::L, -3.0}}); // charge density
@@ -208,7 +208,7 @@ namespace picongpu
              * The value represents an aggregation over one cell, so any value is correct for the mesh position.
              * Just use the center.
              */
-            dataset.setPosition(std::vector<float>{0.5, 0.5});
+            mesh.setPosition(std::vector<float>{0.5, 0.5});
 
             // avoid deadlock between not finished pmacc tasks and mpi calls in openPMD
             eventSystem::getTransactionEvent().waitForFinished();
