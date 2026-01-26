@@ -119,7 +119,7 @@ namespace picongpu::atomicPhysics::debug
     {
         /** resamples electron momentum every atomicPhysics step
          *
-         * @attention this creating unphysical currents, **do not use outside debug!**
+         * @attention this creates unphysical currents, **do not use outside debug!**
          */
         constexpr bool FORCE_CONSTANT_ELECTRON_TEMPERATURE = false;
 
@@ -137,7 +137,9 @@ namespace picongpu::atomicPhysics::debug
          *
          * the function replaces the excitation and deexcitation rate calculation,
          *  - all other rates are set to zero
-         *  - deactivates the suggested changes accounting to avoid triggering over subscription check
+         *  - deactivates the suggested changes accounting in the recordSugestedChangesKernel to
+         *      avoid triggering the over subscription check in the checkForOverSubsciption
+         *      atomic physics sub-stage
          *  - deactivates the accepted changes accounting in the recordChanges kernel
          *
          * @attention **do not use outside debug!**

@@ -117,8 +117,10 @@ namespace picongpu::atomicPhysics::debug
 
     namespace scFlyComparison
     {
-        /** @attention resamples electron momentum every atomicPhysics step creating unphysical currents,
-         *  **do not use outside debug!** */
+        /** resamples electron momentum every atomicPhysics step
+         *
+         * @attention this creates unphysical currents, **do not use outside debug!**
+         */
 #ifndef PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE
 #    define PARAM_FORCE_CONSTANT_ELECTRON_TEMPERATURE false
 #endif
