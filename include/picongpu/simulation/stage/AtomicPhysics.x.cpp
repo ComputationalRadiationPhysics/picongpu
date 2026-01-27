@@ -803,15 +803,15 @@ namespace picongpu::simulation::stage
 
         if constexpr(picongpu::atomicPhysics::debug::scFlyComparison::FORCE_CONSTANT_ELECTRON_TEMPERATURE)
         {
-            std::cout << "[atomicPhysics WARNING]: forcing a constant electron temperature of "
-                      << picongpu::atomicPhysics::debug::scFlyComparison::TemperatureParam::temperature
-                      << " keV, per user direction." << std::endl;
+            log<picLog::PHYSICS>("[atomicPhysics WARNING]: (using DEBUG ONLY feature), forcing a constant electron "
+                                 "temperature of %1% keV, per user direction.")
+                % picongpu::atomicPhysics::debug::scFlyComparison::TemperatureParam::temperature;
         }
 
         if constexpr(picongpu::atomicPhysics::debug::fixedRateMatrix::USE_FIXED_RATE_INSTEAD_OF_RATE_CALCULATION)
         {
-            std::cout << "[atomicPhysics WARNING]: using a fixed, user specified rate matrix, per user direction."
-                      << std::endl;
+            log<picLog::PHYSICS>(
+                "[atomicPhysics WARNING]: (using DEBUG ONLY feature), using fixed rate matrix, per user direction.");
         }
 
         if constexpr(picongpu::atomicPhysics::debug::rateCalculation::RUN_UNIT_TESTS)
