@@ -25,6 +25,7 @@
 */
 
 #include "mallocMC/mallocMC_utils.hpp"
+#include "mallocMC/span.hpp"
 #include "mocks.hpp"
 
 #include <alpaka/acc/AccCpuSerial.hpp>
@@ -40,6 +41,7 @@
 
 using mallocMC::CreationPolicies::FlatterScatterAlloc::BitFieldFlatImpl;
 using mallocMC::CreationPolicies::FlatterScatterAlloc::BitMaskImpl;
+using mallocMC::span;
 
 using BitMaskSizes = std::tuple<
     std::integral_constant<uint32_t, 16U>, // NOLINT(*magic-number*)
@@ -157,7 +159,7 @@ TEMPLATE_LIST_TEST_CASE("BitFieldFlat", "", BitMaskSizes)
     SECTION("knows a free bit if later ones are free, too.")
     {
         uint32_t const index = GENERATE(0, 1, numChunks / 2, numChunks - 1);
-        for(auto& mask : std::span{static_cast<BitMask*>(data), index / BitMaskSize})
+        for(auto& mask : span{static_cast<BitMask*>(data), index / BitMaskSize})
         {
             mask.set(accSerial);
         }
@@ -174,7 +176,7 @@ TEMPLATE_LIST_TEST_CASE("BitFieldFlat", "", BitMaskSizes)
     SECTION("knows its first free bit for different numChunks.")
     {
         auto localNumChunks = numChunks / GENERATE(1, 2, 3);
-        std::span localData{static_cast<BitMask*>(data), mallocMC::ceilingDivision(localNumChunks, BitMaskSize)};
+        span localData{static_cast<BitMask*>(data), mallocMC::ceilingDivision(localNumChunks, BitMaskSize)};
         uint32_t const index = GENERATE(0, 1, 10, 12);
         for(auto& mask : localData)
         {

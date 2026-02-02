@@ -28,6 +28,7 @@
 
 #include "mallocMC/creationPolicies/FlatterScatter/wrappingLoop.hpp"
 #include "mallocMC/mallocMC_utils.hpp"
+#include "mallocMC/span.hpp"
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/intrinsic/Traits.hpp>
@@ -36,7 +37,6 @@
 
 #include <cstdint>
 #include <limits>
-#include <span>
 #include <type_traits>
 
 namespace mallocMC::CreationPolicies::FlatterScatterAlloc
@@ -344,7 +344,7 @@ namespace mallocMC::CreationPolicies::FlatterScatterAlloc
     template<uint32_t MyBitMaskSize = BitMaskSize>
     struct BitFieldFlatImpl
     {
-        std::span<BitMaskImpl<MyBitMaskSize>> data;
+        mallocMC::span<BitMaskImpl<MyBitMaskSize>> data;
 
         /**
          * @brief Check if the index-th bit in the bit field is set (=1).

@@ -26,12 +26,13 @@
   THE SOFTWARE.
 */
 
+#include "mallocMC/span.hpp"
+
 #include <mallocMC/mallocMC.cuh>
 
 #include <cstdint>
 #include <cstdlib>
 #include <functional>
-#include <span>
 
 /**
  * @brief Computes the sum of squares of the first `n` natural numbers.
@@ -66,15 +67,14 @@ __device__ auto sumOfSquares(auto const n)
  */
 __global__ void oneDotProductPerThread(mallocMC::CudaMemoryManager<> memoryManager, uint64_t numValues)
 {
+    using mallocMC::span;
     uint64_t tid = threadIdx.x + blockIdx.x * blockDim.x;
 
     // Not very realistic, all threads are doing this on their own:
-    auto a = std::span<uint64_t>(
-        reinterpret_cast<uint64_t*>(memoryManager.malloc(numValues * sizeof(uint64_t))),
-        numValues);
-    auto b = std::span<uint64_t>(
-        reinterpret_cast<uint64_t*>(memoryManager.malloc(numValues * sizeof(uint64_t))),
-        numValues);
+    auto a
+        = span<uint64_t>(reinterpret_cast<uint64_t*>(memoryManager.malloc(numValues * sizeof(uint64_t))), numValues);
+    auto b
+        = span<uint64_t>(reinterpret_cast<uint64_t*>(memoryManager.malloc(numValues * sizeof(uint64_t))), numValues);
 
     std::iota(std::begin(a), std::end(a), tid);
     std::iota(std::begin(b), std::end(b), tid);
