@@ -1,10 +1,10 @@
 {
   "adios2": {
     "engine": {
-      "usesteps": true,
       "parameters": {
-        "InitialBufferSize": "2Gb",
-        "Profile": "On"
+        "BufferChunkSize": 2147381248,
+        "Profile": "On",
+        "StatsLevel": 1
       }
     },
     "dataset": [
