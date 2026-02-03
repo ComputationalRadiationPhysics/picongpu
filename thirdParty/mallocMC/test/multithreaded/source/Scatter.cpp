@@ -33,6 +33,7 @@
 #include "mallocMC/distributionPolicies/Noop.hpp"
 #include "mallocMC/mallocMC_utils.hpp"
 #include "mallocMC/oOMPolicies/ReturnNull.hpp"
+#include "mallocMC/span.hpp"
 #include "mocks.hpp"
 
 #include <alpaka/acc/AccCpuSerial.hpp>
@@ -66,10 +67,10 @@
 #include <cstdio>
 #include <functional>
 #include <iterator>
-#include <span>
 #include <tuple>
 #include <type_traits>
 
+using mallocMC::span;
 using Dim = alpaka::DimInt<1>;
 using Idx = std::uint32_t;
 
@@ -97,8 +98,6 @@ using MyDeviceAllocator = mallocMC::DeviceAllocator<
     mallocMC::DistributionPolicies::Noop,
     mallocMC::OOMPolicies::ReturnNull,
     mallocMC::AlignmentPolicies::Shrink<>>;
-
-using std::span;
 
 // Fill all pages of the given access block with occupied chunks of the given size. This is useful to test the
 // behaviour near full filling but also to have a deterministic page and chunk where an allocation must happen
@@ -236,7 +235,7 @@ auto createChunkSizes(auto const& devHost, auto const& devAcc, auto& queue)
 auto createPointers(auto const& devHost, auto const& devAcc, auto& queue, uint32_t const size)
 {
     auto pointers = makeBuffer<void*>(devHost, devAcc, size);
-    std::span<void*> tmp(alpaka::getPtrNative(pointers.m_onHost), pointers.m_extents[0]);
+    span<void*> tmp(alpaka::getPtrNative(pointers.m_onHost), pointers.m_extents[0]);
     std::fill(std::begin(tmp), std::end(tmp), reinterpret_cast<void*>(1U));
     alpaka::memcpy(queue, pointers.m_onDevice, pointers.m_onHost);
     return pointers;
@@ -307,7 +306,7 @@ auto fillAllButOne(auto& queue, auto* accessBlock, auto const& chunkSize, auto& 
 template<typename TAcc>
 auto freeAllButOneOnFirstPage(auto& queue, auto* accessBlock, auto& pointers)
 {
-    std::span<void*> tmp(alpaka::getPtrNative(pointers.m_onHost), pointers.m_extents[0]);
+    span<void*> tmp(alpaka::getPtrNative(pointers.m_onHost), pointers.m_extents[0]);
     std::sort(std::begin(tmp), std::end(tmp));
     // This points to the first chunk of page 0.
     auto* pointer1 = tmp[0];
@@ -371,7 +370,7 @@ auto checkContent(
     alpaka::wait(queue);
 
 
-    std::span<bool> tmpResults(alpaka::getPtrNative(results.m_onHost), results.m_extents[0]);
+    span<bool> tmpResults(alpaka::getPtrNative(results.m_onHost), results.m_extents[0]);
     auto writtenCorrectly = std::reduce(std::cbegin(tmpResults), std::cend(tmpResults), true, std::multiplies<bool>{});
 
     return writtenCorrectly;
@@ -735,7 +734,7 @@ TEMPLATE_LIST_TEST_CASE("Threaded Scatter", "", alpaka::EnabledAccTags)
             devHost,
             devAcc,
             getAvailableSlots<Acc>(accessBlock, queue, devHost, devAcc, chunkSizes.m_onHost[0]));
-        std::span<uint32_t> tmp(alpaka::getPtrNative(content.m_onHost), content.m_extents[0]);
+        span<uint32_t> tmp(alpaka::getPtrNative(content.m_onHost), content.m_extents[0]);
         std::generate(std::begin(tmp), std::end(tmp), ContentGenerator{});
         alpaka::memcpy(queue, content.m_onDevice, content.m_onHost);
         alpaka::wait(queue);
@@ -796,7 +795,7 @@ TEMPLATE_LIST_TEST_CASE("Threaded Scatter", "", alpaka::EnabledAccTags)
         alpaka::memcpy(queue, pointers.m_onHost, pointers.m_onDevice);
         alpaka::wait(queue);
 
-        std::span<void*> tmpPointers(alpaka::getPtrNative(pointers.m_onHost), pointers.m_extents[0]);
+        span<void*> tmpPointers(alpaka::getPtrNative(pointers.m_onHost), pointers.m_extents[0]);
         std::sort(std::begin(tmpPointers), std::end(tmpPointers));
         CHECK(std::unique(std::begin(tmpPointers), std::end(tmpPointers)) == std::end(tmpPointers));
     }
@@ -824,7 +823,7 @@ TEMPLATE_LIST_TEST_CASE("Threaded Scatter", "", alpaka::EnabledAccTags)
 
         // We only let the last (availableSlots-1) keep their memory. So, the rest at the beginning should have a
         // nullptr.
-        std::span<void*> tmpManyPointers(alpaka::getPtrNative(manyPointers.m_onHost), manyPointers.m_extents[0]);
+        span<void*> tmpManyPointers(alpaka::getPtrNative(manyPointers.m_onHost), manyPointers.m_extents[0]);
         auto beginNonNull = std::begin(tmpManyPointers) + (oversubscriptionFactor - 1) * availableSlots + 1;
 
         CHECK(std::all_of(
