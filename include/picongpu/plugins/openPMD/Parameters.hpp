@@ -20,10 +20,8 @@ namespace picongpu::openPMD
         std::string particleIOChunkSizeString;
         std::string dataPreparationStrategyString;
         std::string backendConfigString;
-        std::string backendConfigStringForbidden;
         std::string rangeString;
         std::string backendConfigRestartString;
-        std::string backendConfigRestartStringForbidden;
         std::string writeAccessString;
     };
 } // namespace picongpu::openPMD
