@@ -161,7 +161,7 @@ namespace picongpu
                      * The reading routines (for restarting from a checkpoint)
                      * are configured via --checkpoint.openPMD.jsonRestart.
                      */
-                    at == ::openPMD::Access::READ_ONLY ? jsonRestartParams : jsonMatcher->getDefault());
+                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -243,11 +243,19 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    " an empty string will be assumed instead.",
                    "_%06T"};
 
-            plugins::multi::Option<std::string> jsonConfig
-                = {"json", "advanced (backend) configuration for openPMD in JSON format (used when writing)", "{}"};
+            plugins::multi::Option<std::string> backendConfigForbidden
+                = {"json", "Option renamed as .backendConfig", "REMOVED"};
 
-            plugins::multi::Option<std::string> jsonRestartConfig
-                = {"jsonRestart",
+            plugins::multi::Option<std::string> backendConfig
+                = {"backendConfig",
+                   "advanced (backend) configuration for openPMD in JSON format (used when writing)",
+                   "{}"};
+
+            plugins::multi::Option<std::string> backendConfigRestartForbidden
+                = {"jsonRestart", "Option renamed as .backendConfigRestart", "REMOVED"};
+
+            plugins::multi::Option<std::string> backendConfigRestart
+                = {"backendConfigRestart",
                    "advanced (backend) configuration for openPMD in JSON format (used when reading from a checkpoint)",
                    R"({"defer_iteration_parsing": true})"};
 
@@ -352,14 +360,19 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint},
                 {&fileNameExtension, "ext", &PluginParameters::fileExtension},
                 {&fileNameInfix, "infix", &PluginParameters::fileInfix},
-                {&jsonConfig, "backend_config", &PluginParameters::jsonConfigString},
+                {&backendConfigForbidden, std::nullopt, &PluginParameters::backendConfigStringForbidden},
+                {&backendConfig, "backend_config", &PluginParameters::backendConfigString},
                 {&dataPreparationStrategy,
                  "data_preparation_strategy",
                  &PluginParameters::dataPreparationStrategyString},
                 {&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint},
-                {&jsonRestartConfig,
+                {&backendConfigRestartForbidden,
                  std::nullopt,
-                 &PluginParameters::jsonRestartParams,
+                 &PluginParameters::backendConfigRestartStringForbidden,
+                 ApplyParameter::OnlyInCheckpoint},
+                {&backendConfigRestart,
+                 std::nullopt,
+                 &PluginParameters::backendConfigRestartString,
                  ApplyParameter::OnlyInCheckpoint},
                 {&particleIOChunkSize, "particleIOChunkSize", &PluginParameters::particleIOChunkSizeString},
                 {&writeAccess, "write_mode", &PluginParameters::writeAccessString}};
@@ -632,15 +645,24 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 % fileExtension;
 
             // Avoid repeatedly parsing the JSON config
+            if(backendConfigStringForbidden != "REMOVED")
+            {
+                throw std::runtime_error("Command line option openPMD.json was renamed as openPMD.backendConfig.");
+            }
             if(!jsonMatcher)
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                jsonMatcher = AbstractJsonMatcher::construct(jsonConfigString, communicator);
+                jsonMatcher = AbstractJsonMatcher::construct(backendConfigString, communicator);
             }
 
             log<picLog::INPUT_OUTPUT>("openPMD: global JSON output config: %1%") % jsonMatcher->getDefault();
-            log<picLog::INPUT_OUTPUT>("openPMD: global JSON restart config: %1%") % jsonRestartParams;
+            if(backendConfigRestartStringForbidden != "REMOVED")
+            {
+                throw std::runtime_error(
+                    "Command line option openPMD.jsonRestart was renamed as openPMD.backendConfigRestart.");
+            }
+            log<picLog::INPUT_OUTPUT>("openPMD: global JSON restart config: %1%") % backendConfigRestartString;
 
             {
                 if(dataPreparationStrategyString == "adios" || dataPreparationStrategyString == "doubleBuffer")
