@@ -8,7 +8,7 @@ License: GPLv3+
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import BaseModel, PlainSerializer, field_serializer, field_validator
+from pydantic import BaseModel, PlainSerializer, Field, field_serializer, field_validator
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
 from picongpu.pypicongpu.output.particle_functor import ParticleFunctor
