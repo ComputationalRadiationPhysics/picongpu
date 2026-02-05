@@ -15,7 +15,6 @@ from .particle_dump import ParticleDump
 from .phase_space import PhaseSpace
 from .radiation import Radiation
 from .timestepspec import TimeStepSpec
-from .unit_dimension import UnitDimension
 
 __all__ = [
     "BackendConfig",
@@ -31,6 +30,5 @@ __all__ = [
     "DerivedFieldDump",
     "TimeStepSpec",
     "Checkpoint",
-    "UnitDimension",
     "Radiation",
 ]
