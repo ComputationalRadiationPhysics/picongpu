@@ -97,8 +97,8 @@ namespace
                         catch(toml::type_error const&)
                         {
                             throw std::runtime_error(
-                                "[openPMD plugin] Data sources in TOML "
-                                "file must be a string or a vector of strings.");
+                                "[openPMD plugin] Data sources in pluginConfig "
+                                "file (TOML) must be a string or a vector of strings.");
                         }
                     }();
                     dataSources.push_back(std::move(dataSource));
@@ -116,8 +116,8 @@ namespace
                     catch(toml::type_error const&)
                     {
                         throw std::runtime_error(
-                            "[openPMD plugin] Data sources in TOML "
-                            "file must be a string or a vector of strings.");
+                            "[openPMD plugin] Data sources in pluginConfig "
+                            "file (TOML) must be a string or a vector of strings.");
                     }
                 }();
                 dataSources.push_back(std::move(dataSource));
@@ -186,7 +186,8 @@ namespace
             catch(toml::type_error const& e)
             {
                 throw std::runtime_error(
-                    "[openPMD plugin] Key 'sink' in TOML file must be a table (" + std::string(e.what()) + ")");
+                    "[openPMD plugin] Key 'sink' in pluginConfig file (TOML) must be a table (" + std::string(e.what())
+                    + ")");
             }
         }();
 
@@ -209,7 +210,8 @@ namespace
                 catch(toml::type_error const& e)
                 {
                     throw std::runtime_error(
-                        "[openPMD plugin] Key 'period' in TOML file must be a table (" + std::string(e.what()) + ")");
+                        "[openPMD plugin] Key 'period' in pluginConfig file (TOML) must be a table ("
+                        + std::string(e.what()) + ")");
                 }
             }();
             mergePeriodTable(period, parseOnePeriodTable(periodTable));
@@ -230,7 +232,10 @@ namespace
         MPI_CHECK(MPI_Comm_rank(comm, &rank));
         {
             char const* argsv[] = {path.c_str()};
-            picongpu::toml::writeLog("openPMD: Reading data requirements from TOML file: '%1%'", 1, argsv);
+            picongpu::toml::writeLog(
+                "openPMD: Reading data requirements from pluginConfig file (TOML): '%1%'",
+                1,
+                argsv);
         }
 
         // wait for file to appear
@@ -242,13 +247,13 @@ namespace
             ChronoDuration waitedFor = 0s;
             while(!stdfs::exists(path))
             {
-                picongpu::toml::writeLog("openPMD: Still waiting for TOML file:\n\t%1%", 1, argsv);
+                picongpu::toml::writeLog("openPMD: Still waiting for pluginConfig file (TOML):\n\t%1%", 1, argsv);
                 if(waitedFor > timeout)
                 {
                     std::stringstream errorMsg;
                     std::chrono::seconds const asSeconds = timeout;
-                    errorMsg << "openPMD: TOML file '" << path << "' was not found within the timeout of "
-                             << asSeconds.count() << " seconds.";
+                    errorMsg << "openPMD: pluginConfig file  (TOML)'" << path
+                             << "' was not found within the timeout of " << asSeconds.count() << " seconds.";
                     throw std::runtime_error(errorMsg.str());
                 }
                 std::this_thread::sleep_for(sleepInterval);
@@ -258,7 +263,7 @@ namespace
 
         MPI_CHECK(MPI_Barrier(comm));
 
-        picongpu::toml::writeLog("openPMD: Reading TOML file collectively");
+        picongpu::toml::writeLog("openPMD: Reading pluginConfig file  (TOMLcollectively");
         std::string fileContents = picongpu::collective_file_read(path, comm);
 
         return parseTomlFile(dataSources, tomlParameters, fileContents, path);

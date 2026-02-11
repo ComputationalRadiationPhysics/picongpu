@@ -157,9 +157,9 @@ namespace picongpu
                     communicator,
                     /*
                      * The writing routines are configured via the JSON set passed
-                     * in --openPMD.json / --checkpoint.openPMD.json, or TOML parameter backend_config.
-                     * The reading routines (for restarting from a checkpoint)
-                     * are configured via --checkpoint.openPMD.jsonRestart.
+                     * in --openPMD.backendConfig / --checkpoint.openPMD.backendConfig, or TOML parameter
+                     * backend_config. The reading routines (for restarting from a checkpoint) are configured via
+                     * --checkpoint.openPMD.jsonRestart.
                      */
                     at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
@@ -524,7 +524,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             {
                                 throw std::runtime_error(
                                     "[openPMD plugin] Parameter '" + option.getName()
-                                    + "' was defined, But neither 'period' nor 'toml' was.");
+                                    + "' was defined, But neither 'period' nor 'pluginConfig' was.");
                             }
                         }
                     }
@@ -1195,7 +1195,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             if(cmd.optionDefined(m_id) && not cmd.get(m_id).empty())
                             {
                                 throw std::runtime_error(
-                                    "[openPMD plugin] If using parameter toml, no other parameter may be used (do not "
+                                    "[openPMD plugin] If using parameter pluginConfig, no other parameter may be used "
+                                    "(do not "
                                     "define '"
                                     + cmd.getName() + "').");
                             }
@@ -1222,7 +1223,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 else
                                 {
                                     throw std::runtime_error(
-                                        "[openPMD plugin] Internal error: Could not initialize TOML param "
+                                        "[openPMD plugin] Internal error: Could not initialize pluginConfig param "
                                         "'"
                                         + *parameter.tomlParameter
                                         + "' with a default value because it was not specified "
@@ -1273,7 +1274,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     else
                     {
                         throw std::runtime_error(
-                            "[openPMD plugin] Either the notify period or the TOML sources must "
+                            "[openPMD plugin] Either the notify period or the pluginConfig sources (TOML) must "
                             "be specified, but not both.");
                     }
                 }
