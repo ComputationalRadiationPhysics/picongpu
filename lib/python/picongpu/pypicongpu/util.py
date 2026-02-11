@@ -5,15 +5,20 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-import typeguard
-import typing
 import logging
+from itertools import chain
+from operator import itemgetter
+from types import GenericAlias, UnionType
+from typing import Any, Self
+
+import typeguard
 
 attr_cnt = 0
 
 
 def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError)):
-    """Try to evaluate the expression and return the first valid.
+    """
+    Try to evaluate the expression and return the first valid.
 
     This basically allows for runtime SFINAE ("substitution failure is not an error")
     as with the default `ignore` argument it does not raise an error
@@ -30,7 +35,7 @@ def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError
 
         # This is a tuple:
         d = d['data']
-        assert alt(lambda: t['data'], d).count(1) == 2
+        assert alt(lambda: d['data'], d).count(1) == 2
 
     This is very helpful when looping over heterogeneous lists:
 
@@ -59,6 +64,93 @@ def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError
             return alternative
 
 
+class _Attribute(str):
+    pass
+
+
+class _Item:
+    args: Any
+
+    def __init__(self, args):
+        self.args = args
+
+
+class UnpackChain:
+    """
+    Helper class to iterate over (nested) members.
+
+    This class can wrap another object to allow
+    iterating over recursively unpacked members.
+    This is very helpful to iterate over
+    deeply nested objects as they easily occur with pydantic.
+
+    By example (using a slightly artifical recursive model):
+
+        from pydantic import BaseModel
+
+        class Model(BaseModel):
+            a: list["Model"] | int
+            b: list[list["Model"]] = Field(default_factory=list)
+
+        m = Model(a=[{"a": [{"a": 1}, {"a": 2}], "b": [[{"a": 4}, {"a": 5}]]}, {"a": 3}])
+        print(*(x for x in UnpackChain(m).a.a))
+        #> [Model(a=1, b=[]), Model(a=2, b=[])] 3
+        print(*(x for x in UnpackChain(m).a.a.a))
+        #> 1 2
+        print(*(x for x in UnpackChain(m).a.b[:].a))
+        #> 4 5
+        print(*(x for x in UnpackChain(m).a.b[0].a))
+        #> 4
+
+    Warning: Consecutive access by []-operator is ambiguous and tricky!
+    Only the last in a series of []-accesses is allowed to
+    generate something non-iterable. So, the following are all fine:
+        - [:]
+        - [0]
+        - [:][:]
+        - [:][0]
+        - [0].a[:]
+    But the following fail:
+        - [0][:]
+        - [0][0]
+    This is because I cannot tell purely from the arguments,
+    if an access by [] is supposed to imply iteration or not.
+    The semantics are currently that it DOES imply iteration
+    (except for the last of a series of [] which is a bit more relaxed).
+    """
+
+    def __init__(self, obj, requests=None):
+        self._requests = requests or []
+        self.obj = obj
+
+    def __getattr__(self, name: str, /) -> Self:
+        self._requests.append(_Attribute(name))
+        return self
+
+    def __getitem__(self, *args):
+        self._requests.append(_Item(args))
+        return self
+
+    def __iter__(self):
+        if len(self._requests) == 0:
+            return iter([self.obj])
+
+        new_obj = alt(
+            # Using itemgetter here because indexing via [*args] apparently doesn't work?
+            lambda: itemgetter(*self._requests[0].args)(self.obj),
+            lambda: getattr(self.obj, self._requests[0]),
+            NotImplemented,
+        )
+
+        if new_obj is NotImplemented:
+            return iter([])
+
+        if len(self._requests) == 1 or alt(lambda: hasattr(new_obj, self._requests[1]), False):
+            return iter(UnpackChain(new_obj, requests=self._requests[1:]))
+
+        return chain(*(UnpackChain(x, requests=self._requests[1:]) for x in alt(lambda: iter(new_obj), [])))
+
+
 def unique(iterable):
     # very naive, just for non-hashables that can still be compared
     result = []
@@ -68,13 +160,8 @@ def unique(iterable):
     return result
 
 
-# note: type_ may be either a type, or a definition by typing
-# depending on the python version the type of typing.XXXX is different
-# (_GenericMeta vs. GenericMeta) -- so we compute it on the fly
 @typeguard.typechecked
-def build_typesafe_property(
-    type_: typing.Union[type, type(typing.List[int])], name: typing.Optional[str] = None
-) -> property:
+def build_typesafe_property(type_: type | GenericAlias | UnionType, name: str | None = None) -> property:
     if name is None:
         global attr_cnt
         name = str(attr_cnt)
@@ -96,7 +183,7 @@ def build_typesafe_property(
 
 
 @typeguard.typechecked
-def unsupported(name: str, value: typing.Any = 1, default: typing.Any = None) -> None:
+def unsupported(name: str, value: Any = 1, default: Any = None) -> None:
     """
     Print a msg that the feature/parameter/thing is unsupported.
 

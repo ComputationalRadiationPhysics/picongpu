@@ -9,7 +9,7 @@ License: GPLv3+
 import datetime
 import logging
 import math
-import typing
+from typing import Iterable
 from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
@@ -27,7 +27,6 @@ from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
-from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
@@ -41,7 +40,7 @@ from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
-from picongpu.pypicongpu.util import alt, unique
+from picongpu.pypicongpu.util import UnpackChain, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
@@ -80,7 +79,7 @@ def _not_allowed_template_directories(directories: tuple[Path]) -> dict[Path, st
     return {d: "is not an existing directory" for d in filter(lambda p: not p.is_dir(), directories)}
 
 
-def _normalise_template_dir(directory: None | PathLike | typing.Iterable[PathLike]) -> tuple[Path]:
+def _normalise_template_dir(directory: None | PathLike | Iterable[PathLike]) -> tuple[Path]:
     """
     Allow strings, Paths and an iterable thereof and return tuple[Path].
     """
@@ -151,7 +150,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     """
 
     picongpu_custom_user_input = pypicongpu.util.build_typesafe_property(
-        typing.Optional[list[pypicongpu.customuserinput.CustomUserInput]]
+        list[pypicongpu.customuserinput.CustomUserInput] | None
     )
     """
     list of custom user input objects
@@ -162,7 +161,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_interaction = pypicongpu.util.build_typesafe_property(list[Interaction])
     """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
 
-    picongpu_typical_ppc = pypicongpu.util.build_typesafe_property(typing.Optional[int])
+    picongpu_typical_ppc = pypicongpu.util.build_typesafe_property(int | None)
     """
     typical number of particle in a cell in the simulation
 
@@ -171,10 +170,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir = pypicongpu.util.build_typesafe_property(typing.Iterable[Path])
+    picongpu_template_dir = pypicongpu.util.build_typesafe_property(Iterable[Path])
     """directory containing templates to use for generating picongpu setups"""
 
-    picongpu_moving_window_move_point = pypicongpu.util.build_typesafe_property(typing.Optional[float])
+    picongpu_moving_window_move_point = pypicongpu.util.build_typesafe_property(float | None)
     """
     point a light ray reaches in y from the left border until we begin sliding the simulation window with the speed of
     light
@@ -185,13 +184,13 @@ class Simulation(picmistandard.PICMI_Simulation):
         thereby reducing the simulation window size accordingrelative spot at which to start moving the simulation window
     """
 
-    picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(typing.Optional[int])
+    picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(int | None)
     """iteration, at which to stop moving the simulation window"""
 
-    picongpu_base_density = pypicongpu.util.build_typesafe_property(typing.Optional[float])
+    picongpu_base_density = pypicongpu.util.build_typesafe_property(float | None)
     """value to normalise densities with"""
 
-    picongpu_walltime = pypicongpu.util.build_typesafe_property(typing.Optional[datetime.timedelta])
+    picongpu_walltime = pypicongpu.util.build_typesafe_property(datetime.timedelta | None)
     """time after which the cluster scheduler will stop the simulation"""
 
     picongpu_binomial_current_interpolation = pypicongpu.util.build_typesafe_property(bool)
@@ -199,19 +198,19 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_distributions = pypicongpu.util.build_typesafe_property(list[_DensityImpl])
 
-    __runner = pypicongpu.util.build_typesafe_property(typing.Optional[pypicongpu.runner.Runner])
+    __runner = pypicongpu.util.build_typesafe_property(pypicongpu.runner.Runner | None)
 
     # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
     #   pydantic, Brian Marre, 2024
     def __init__(
         self,
-        picongpu_template_dir: None | PathLike | typing.Iterable[PathLike] = None,
-        picongpu_typical_ppc: typing.Optional[int] = None,
-        picongpu_moving_window_move_point: typing.Optional[float] = None,
-        picongpu_moving_window_stop_iteration: typing.Optional[int] = None,
-        picongpu_interaction: typing.Optional[list[Interaction]] = None,
-        picongpu_base_density: typing.Optional[float] = None,
-        picongpu_walltime: typing.Optional[datetime.timedelta] = None,
+        picongpu_template_dir: None | PathLike | Iterable[PathLike] = None,
+        picongpu_typical_ppc: int | None = None,
+        picongpu_moving_window_move_point: float | None = None,
+        picongpu_moving_window_stop_iteration: int | None = None,
+        picongpu_interaction: list[Interaction] | None = None,
+        picongpu_base_density: float | None = None,
+        picongpu_walltime: datetime.timedelta | None = None,
         picongpu_binomial_current_interpolation: bool = False,
         **keyword_arguments,
     ):
@@ -312,7 +311,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def write_input_file(
         self,
         file_name: str,
-        pypicongpu_simulation: typing.Optional[pypicongpu.simulation.Simulation] = None,
+        pypicongpu_simulation: pypicongpu.simulation.Simulation | None = None,
     ) -> None:
         """
         generate input data set for picongpu
@@ -393,38 +392,21 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError("runtime not specified (neither as step count nor max time)")
 
     def _collect_particle_filters(self):
-        def extract_filtered_species(diagnostics):
-            return map(
-                lambda d: d.species,
-                filter(lambda d: alt(lambda: isinstance(d.species, FilteredSpecies), False), diagnostics),
-            )
-
         # This does not necessarily work on Binning plugin
         # because that might have a list of species.
         # But that's fine because the Binning plugin uses it's own mechanism
         # and we don't need their filters to register
         # unless they are used somewhere else as well.
-        from_diagnostics = (
-            get_as_pypicongpu(diagnostic.species.functor)
-            for diagnostic in self.diagnostics
-            if hasattr(diagnostic, "species") and isinstance(diagnostic.species, FilteredSpecies)
+        return unique(
+            map(
+                get_as_pypicongpu,
+                chain(
+                    UnpackChain(self).diagnostics.species.functor,
+                    UnpackChain(self).picongpu_interaction.screening_species.functor,
+                    UnpackChain(self).picongpu_interaction.collisions.species_pairs[:].functor,
+                ),
+            )
         )
-        from_collision_screening_species = (
-            get_as_pypicongpu(filtered_species.functor)
-            for interaction in self.picongpu_interaction
-            for filtered_species in alt(lambda: interaction.screening_species, [])
-            if isinstance(filtered_species, FilteredSpecies)
-        )
-        from_collision_pairs = (
-            get_as_pypicongpu(filtered_species.functor)
-            for interaction in self.picongpu_interaction
-            for collision in alt(lambda: interaction.collisions, [])
-            for pair in collision.species_pairs
-            for filtered_species in pair
-            if isinstance(filtered_species, FilteredSpecies)
-        )
-
-        return unique(chain(from_diagnostics, from_collision_screening_species, from_collision_pairs))
 
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
