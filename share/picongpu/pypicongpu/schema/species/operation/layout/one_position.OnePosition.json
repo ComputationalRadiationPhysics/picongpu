@@ -1,16 +1,3 @@
 {
-  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.layout.one_position.OnePosition",
-  "type": "object",
-  "description": "Describes a one position layout",
-  "unevaluatedProperties": false,
-  "required": [
-    "ppc"
-  ],
-  "properties": {
-    "ppc": {
-      "type": "integer",
-      "description": "particles per cell",
-      "exclusiveMinimum": 0
-    }
-  }
+  "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.layout.one_position.OnePosition"
 }

@@ -37,8 +37,8 @@ from .lasers import (
     PlaneWaveLaser,
     TWTSLaser,
 )
-from .layout import GriddedLayout, PseudoRandomLayout
-from .particle_functor import ParticleFunctor, FilteredSpecies, ParticleFilter
+from .layout import GriddedLayout, OnePositionLayout, PseudoRandomLayout
+from .particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
 from .simulation import Simulation
 from .solver import ElectromagneticSolver
 from .species import Species
@@ -60,6 +60,7 @@ __all__ = [
     "ParticleFilter",
     "PseudoRandomLayout",
     "GriddedLayout",
+    "OnePositionLayout",
     "constants",
     "FoilDistribution",
     "UniformDistribution",

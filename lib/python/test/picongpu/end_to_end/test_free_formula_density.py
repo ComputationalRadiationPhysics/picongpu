@@ -30,7 +30,7 @@ from .distributions import DISTRIBUTIONS
 
 logging.basicConfig(level=logging.INFO)
 
-LAYOUT = picmi.GriddedLayout(n_macroparticles_per_cell=2)
+LAYOUT = picmi.OnePositionLayout(n_macroparticles_per_cell=2)
 
 
 def basic_simulation():

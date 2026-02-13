@@ -78,7 +78,7 @@ namespace picongpu
                          *
                          * @details in 2D the last component is ignored
                          */
-                        static constexpr auto inCellOffset = float3_X(0., 0., 0.);
+                        static constexpr auto inCellOffset = float3_X({{#layout.data.in_cell_offset}}{{{x}}},{{{y}}},{{{z}}}{{/layout.data.in_cell_offset}});
                     };
 
                     /** Definition of OnePosition start position functor that
@@ -86,6 +86,19 @@ namespace picongpu
                      */
                     using init_{{{placed_species_initial.typename}}} = OnePositionImpl<one_position_{{{placed_species_initial.typename}}}>;
                 {{/layout.typeID.one_position}}
+
+                {{#layout.typeID.quiet}}
+                    struct quiet_{{{placed_species_initial.typename}}}
+                    {
+                      using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<{{#layout.data.n_points}}{{{x}}},{{{y}}},{{{z}}}{{/layout.data.n_points}}>, simDim>::type;
+                    };
+
+                    /** Definition of OnePosition start position functor that
+                     * places macro-particles at the initial in-cell position defined above.
+                     */
+                    using init_{{{placed_species_initial.typename}}} = QuietImpl<quiet_{{{placed_species_initial.typename}}}>;
+                {{/layout.typeID.quiet}}
+
 {{/data}}{{/typeID.simpledensity}}{{/init_operations}}
             } // namespace pypicongpu
         } // namespace startPosition

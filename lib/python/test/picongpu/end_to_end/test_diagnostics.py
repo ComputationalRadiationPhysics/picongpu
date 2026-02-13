@@ -18,7 +18,6 @@ from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
     FilteredSpecies,
-    GriddedLayout,
     ParticleFilter,
     ParticleFunctor,
     Simulation,
@@ -36,6 +35,7 @@ from picongpu.picmi.diagnostics import (
     TimeStepSpec,
 )
 from picongpu.picmi.diagnostics.backend_config import RangeSpec
+from picongpu.picmi.layout import OnePositionLayout
 from picongpu.picmi.particle_functor import Particle
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
 from sympy import And, Eq, Piecewise
@@ -57,7 +57,7 @@ from .distributions import Gaussian, SphereFlanks
 
 logging.basicConfig(level=logging.INFO)
 
-LAYOUT = GriddedLayout(n_macroparticles_per_cell=2)
+LAYOUT = OnePositionLayout(n_macroparticles_per_cell=2)
 PARTICLE_SHAPE = "counter"
 SPECIES = [
     Species(
