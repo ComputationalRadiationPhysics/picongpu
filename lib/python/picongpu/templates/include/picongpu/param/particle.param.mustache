@@ -78,7 +78,7 @@ namespace picongpu
                          *
                          * @details in 2D the last component is ignored
                          */
-                        static constexpr auto inCellOffset = float3_X({{#layout.in_cell_offset}}{{{x}}},{{{y}}},{{{z}}}{{/layout.in_cell_offset}});
+                        static constexpr auto inCellOffset = float3_X({{#layout.data.in_cell_offset}}{{{x}}},{{{y}}},{{{z}}}{{/layout.data.in_cell_offset}});
                     };
 
                     /** Definition of OnePosition start position functor that

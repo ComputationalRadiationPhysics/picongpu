@@ -9,16 +9,16 @@ from functools import partial
 from operator import gt, le
 
 import numpy as np
+import picmistandard
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from ..pypicongpu.species.operation.layout import OnePosition as PyPIConGPU_OnePosition
 from ..pypicongpu.species.operation.layout import Quiet, Random
 
 
-# This will inherit from PICMI_PseudoRandomLayout again
-# once PICMI has switched to pydantic.
-class PseudoRandomLayout(BaseModel):
+class PseudoRandomLayout(picmistandard.PICMI_PseudoRandomLayout):
     n_macroparticles_per_cell: int = Field(gt=0)
+    # PIConGPU can't handle the following separately:
     n_macroparticles: None = None
     seed: None = None
     grid: None = None
@@ -27,8 +27,6 @@ class PseudoRandomLayout(BaseModel):
         return Random(ppc=self.n_macroparticles_per_cell)
 
 
-# This will inherit from PICMI_GriddedLayout again
-# once PICMI has switched to pydantic.
 class GriddedLayout(BaseModel):
     n_macroparticles_per_cell: tuple[int, int, int] = (1, 1, 1)
     grid: None = None

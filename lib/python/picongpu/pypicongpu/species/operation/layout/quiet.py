@@ -8,7 +8,9 @@ License: GPLv3+
 from functools import partial
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, Field, PlainSerializer
+from pydantic import AfterValidator, BaseModel, Field, PlainSerializer, PrivateAttr
+
+from .layout import Layout
 
 
 def serialise_vec(value) -> dict:
@@ -27,8 +29,8 @@ Vec3_int = Annotated[
     AfterValidator(
         partial(
             broadcast_validation,
-            condition=lambda v: v > 0,
-            message="Number of points must be greater than 0 in each direction.",
+            condition=lambda v: v >= 0 and v < 1,
+            message="All of in_cell_offset must be between 0 and 1.",
         )
     ),
 ]

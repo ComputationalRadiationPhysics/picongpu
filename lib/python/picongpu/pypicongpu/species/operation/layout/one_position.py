@@ -8,7 +8,7 @@ License: GPLv3+
 from functools import partial
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, Field, PlainSerializer
+from pydantic import AfterValidator, BaseModel, Field, PlainSerializer, PrivateAttr
 
 
 def serialise_vec(value) -> dict:
