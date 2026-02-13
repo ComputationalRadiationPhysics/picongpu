@@ -206,28 +206,19 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
     def test_cutoff_below_zero(self):
         """length below zero is not accepted"""
 
-        testCases = self._get_test_foils(-1.0, 1.0)
-
-        for i, entry in enumerate(testCases):
-            with pytest.raises(ValidationError):
-                entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
+        with self.assertRaises(ValidationError):
+            self._get_test_foils(-1.0, 1.0)
 
     def test_length_zero(self):
         """length set to zero is not accepted"""
-        testCases = self._get_test_foils(1.0, 0)
-
-        for entry in testCases:
-            with pytest.raises(ValidationError):
-                entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
+        with self.assertRaises(ValidationError):
+            self._get_test_foils(1.0, 0)
 
     def test_length_below_zero(self):
         """length below zero is not accepted"""
 
-        testCases = self._get_test_foils(1.0, -1.0)
-
-        for entry in testCases:
-            with pytest.raises(ValidationError):
-                entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
+        with self.assertRaises(ValidationError):
+            self._get_test_foils(1.0, -1.0)
 
     def test_setting_noPlasmaRamps(self):
         testCases = self._get_test_foils(None, 1.0)
