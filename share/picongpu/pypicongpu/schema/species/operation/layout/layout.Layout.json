@@ -13,6 +13,7 @@
       "type": "object",
       "required": [
         "random",
+        "quiet",
         "one_position"
       ],
       "unevaluatedProperties": false,
@@ -20,21 +21,14 @@
         "random": {
           "type": "boolean"
         },
+        "quiet": {
+          "type": "boolean"
+        },
         "one_position": {
           "type": "boolean"
         }
       }
     },
-    "data": {
-      "description": "data as provided by any density profile (schema)",
-      "anyOf": [
-        {
-          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.layout.random.Random"
-        },
-        {
-          "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.layout.one_position.one_position"
-        }
-      ]
-    }
+    "data": {}
   }
 }

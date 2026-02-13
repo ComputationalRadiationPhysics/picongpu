@@ -5,65 +5,62 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-import picmistandard
-import typeguard
+from functools import partial
+from operator import gt, le
 
-from ..pypicongpu.species.operation.layout import Random, OnePosition
+import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+
+from ..pypicongpu.species.operation.layout import OnePosition as PyPIConGPU_OnePosition
+from ..pypicongpu.species.operation.layout import Quiet, Random
 
 
-@typeguard.typechecked
-class PseudoRandomLayout(picmistandard.PICMI_PseudoRandomLayout):
-    # note: is translated from outside, does not do any checks itself
-    def check(self):
-        """
-        check validity of self
-
-        if ok pass silently, raise on error
-        """
-        assert self.n_macroparticles_per_cell is not None, "macroparticles per cell must be given"
-        assert self.n_macroparticles is None, "total number of macrosparticles not supported"
-
-        assert self.n_macroparticles_per_cell > 0, "at least one particle per cell required"
-
-        # Note: Call PICMI check interface once available upstream
+# This will inherit from PICMI_PseudoRandomLayout again
+# once PICMI has switched to pydantic.
+class PseudoRandomLayout(BaseModel):
+    n_macroparticles_per_cell: int = Field(gt=0)
+    n_macroparticles: None = None
+    seed: None = None
+    grid: None = None
 
     def get_as_pypicongpu(self):
         return Random(ppc=self.n_macroparticles_per_cell)
 
 
-@typeguard.typechecked
-class GriddedLayout(picmistandard.PICMI_GriddedLayout):
-    # note: is translated from outside, does not do any checks itself
-
-    def __init__(self, *args, **kwargs):
-        # The standard seems to have a typo here:
-        # PseudoRandomLayout allows for n_macroparticles_per_cell (with an s)
-        # while this one only has n_macroparticle_per_cell.
-        # We fix this here:
-        if "n_macroparticles_per_cell" in kwargs:
-            if len(args) == 0:
-                args = (kwargs.pop("n_macroparticles_per_cell"),)
-            else:
-                raise ValueError("You provided n_macroparticles_per_cell and an unnamed first arg.")
-        super().__init__(*args, **kwargs)
-        # The standard apparently has a typo in its interface.
-        self.n_macroparticles_per_cell = self.n_macroparticle_per_cell
-        if self.grid is not None:
-            raise NotImplementedError("Non-default grid is not implemented.")
-
-    def check(self):
-        """
-        check validity of self
-
-        if ok pass silently, raise on error
-        """
-        assert self.n_macroparticles_per_cell is not None, "macroparticles per cell must be given"
-        assert self.n_macroparticles_per_cell > 0, "at least one particle per cell required"
-
-        # Note: Call PICMI check interface once available upstream
+# This will inherit from PICMI_GriddedLayout again
+# once PICMI has switched to pydantic.
+class GriddedLayout(BaseModel):
+    n_macroparticles_per_cell: tuple[int, int, int] = (1, 1, 1)
+    grid: None = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def get_as_pypicongpu(self):
-        return OnePosition(ppc=self.n_macroparticles_per_cell)
+        return Quiet(ppc=np.prod(self.n_macroparticles_per_cell), n_points=self.n_macroparticles_per_cell)
+
+    @computed_field
+    def in_cell_offsets(self) -> np.ndarray:
+        return (np.mgrid[*map(slice, self.n_macroparticles_per_cell)] + 0.5).reshape(
+            len(self.n_macroparticles_per_cell), -1
+        ).T / self.n_macroparticles_per_cell
 
 
-AnyLayout = PseudoRandomLayout | GriddedLayout
+class OnePositionLayout(BaseModel):
+    n_macroparticles_per_cell: int = Field(gt=0, description="Number of particles per cell")
+    in_cell_offset: tuple[float, float, float] = Field(
+        (0.0, 0.0, 0.0),
+        description="Offset to cell origin where the particles are placed in units of cell size (between 0 and 1).",
+    )
+    grid: None = None
+
+    @field_validator("in_cell_offset", mode="after")
+    @classmethod
+    def _validate_in_cell_offset(cls, in_cell_offset):
+        if not (all(map(partial(le, 0.0), in_cell_offset)) and all(map(partial(gt, 1.0), in_cell_offset))):
+            raise ValueError(f"All of in_cell_offset must be between 0 and 1. You gave: {in_cell_offset=}.")
+        return in_cell_offset
+
+    def get_as_pypicongpu(self):
+        return PyPIConGPU_OnePosition(ppc=self.n_macroparticles_per_cell, in_cell_offset=self.in_cell_offset)
+
+
+AnyLayout = PseudoRandomLayout | GriddedLayout | OnePositionLayout

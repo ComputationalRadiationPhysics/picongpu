@@ -1,6 +1,6 @@
 """
 This file is part of PIConGPU.
-Copyright 2025-2026 PIConGPU contributors
+Copyright 2026 PIConGPU contributors
 Authors: Julian Lenz
 License: GPLv3+
 """
@@ -23,22 +23,21 @@ def broadcast_validation(values, condition, message="Condition not met."):
     return values
 
 
-Vec3_float = Annotated[
-    tuple[float, float, float],
+Vec3_int = Annotated[
+    tuple[int, int, int],
     PlainSerializer(serialise_vec),
     AfterValidator(
         partial(
             broadcast_validation,
-            condition=lambda v: v >= 0 and v < 1,
-            message="All of in_cell_offset must be between 0 and 1.",
+            condition=lambda v: v > 0,
+            message="Number of points must be greater than 0 in each direction.",
         )
     ),
 ]
 
 
-class OnePosition(Layout, BaseModel):
-    _name: str = PrivateAttr("one_position")
-    in_cell_offset: Vec3_float = Field(default=(0.0, 0.0, 0.0))
-    """Offset inside of the cell relative to cell size, i.e., between 0 and 1"""
+class Quiet(Layout, BaseModel):
+    _name: str = PrivateAttr("quiet")
+    n_points: Vec3_int = Field(default=(0, 0, 0))
     ppc: int = Field(gt=0)
     """particles per cell, >0"""

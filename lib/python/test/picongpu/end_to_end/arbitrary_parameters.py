@@ -8,6 +8,7 @@ License: GPLv3+
 import numpy as np
 
 NUMBER_OF_CELLS = [64, 64, 32]
+LOWER_BOUNDARY = np.array([0.0, 0.0, 0.0])
 UPPER_BOUNDARY = np.array([64.0, 66.0, 74.0])
 CELL_SIZE = UPPER_BOUNDARY / NUMBER_OF_CELLS
 
