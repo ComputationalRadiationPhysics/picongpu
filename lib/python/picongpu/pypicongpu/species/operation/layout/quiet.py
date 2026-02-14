@@ -29,8 +29,8 @@ Vec3_int = Annotated[
     AfterValidator(
         partial(
             broadcast_validation,
-            condition=lambda v: v >= 0 and v < 1,
-            message="All of in_cell_offset must be between 0 and 1.",
+            condition=lambda v: v > 0,
+            message="Number of points must be greater than 0 in each direction.",
         )
     ),
 ]
