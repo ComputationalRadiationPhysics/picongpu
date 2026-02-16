@@ -27,6 +27,8 @@
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/types.hpp"
 
+#include <bit>
+
 namespace pmacc
 {
     struct IdGenerator
@@ -107,6 +109,12 @@ namespace pmacc
                 % state.startId % state.maxNumProc % m_maxNumProc;
         }
 
+        // Reset the idProvider to initial state for testing
+        void reset()
+        {
+            setState(State{.nextId = m_startId, .startId = m_startId, .maxNumProc = m_maxNumProc});
+        }
+
         IdProvider(SimulationDataId providerName, uint64_t mpiRank, uint64_t numMpiRanks)
             : name(providerName)
             , idBuffer(DataSpace<1>{1})
@@ -130,14 +138,7 @@ namespace pmacc
              * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is
              * impossible)
              */
-            uint64_t tmp = curState.maxNumProc - 1;
-            int32_t bitsToCheck = 0;
-            while(tmp)
-            {
-                bitsToCheck++;
-                tmp >>= 1;
-            }
-
+            auto const bitsToCheck = std::bit_width(curState.maxNumProc - 1);
             // Number of bits in the ids
             static constexpr int32_t numBitsOfType = sizeof(curState.maxNumProc) * CHAR_BIT;
 
