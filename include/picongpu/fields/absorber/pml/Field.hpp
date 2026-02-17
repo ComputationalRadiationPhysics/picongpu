@@ -24,6 +24,7 @@
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/absorber/Thickness.hpp"
+#include "picongpu/fields/absorber/pml/Allocation.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
@@ -34,7 +35,6 @@
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
@@ -99,18 +99,17 @@ namespace picongpu
 
                 /** Data box type used for PML fields in kernels
                  *
-                 * Only stores data in the PML area using the given 1d data box.
-                 * Access is provided via a simDim-dimensional index, same as for other
-                 * grid values.
+                 * Stores psi in an ND bounding box of allocated PML cells and provides
+                 * access via a simDim-dimensional grid index.
                  *
-                 * @tparam T_DataBox1d underlying 1d data box type
+                 * @tparam T_DataBox underlying ND data box type
                  */
-                template<typename T_DataBox1d>
+                template<typename T_DataBox>
                 class OuterLayerBox
                 {
                 public:
                     //! Underlying data box type
-                    using DataBox = T_DataBox1d;
+                    using DataBox = T_DataBox;
 
                     //! Element type
                     using ValueType = typename DataBox::ValueType;
@@ -120,17 +119,20 @@ namespace picongpu
 
                     /** Create an outer layer box
                      *
-                     * Only stores data in the PML area using the given 1d data box.
+                     * Stores psi in an ND bounding box of allocated PML cells.
                      * Access is provided via a simDim-dimensional index, same as for other
                      * grid values.
                      *
                      * @param gridLayout grid layout, as for normal fields
-                     * @param globalThickness global PML thickness
+                     * @param allocationThickness PML thickness used for allocation
                      * @param box underlying data box, preallocated to fit all data
                      *            the constructed OuterLayerBox does not own the box memory,
                      *            so can only be used before the box is reallocated
                      */
-                    OuterLayerBox(GridLayout<simDim> const& gridLayout, Thickness const& globalThickness, DataBox box);
+                    OuterLayerBox(
+                        GridLayout<simDim> const& gridLayout,
+                        Thickness const& allocationThickness,
+                        DataBox box);
 
                     /** Constant element access by a simDim-dimensional index
                      *
@@ -145,11 +147,11 @@ namespace picongpu
                     HDINLINE ValueType& operator()(Idx const& idx);
 
                 private:
-                    /** Convert a simDim-dimensional index to a linear one
+                    /** Convert a simDim-dimensional index to ND data box index
                      *
                      * @param idxWithGuard grid index with guard
                      */
-                    HDINLINE int getLinearIdx(Idx const& idxWithGuard) const;
+                    HDINLINE Idx getDataBoxIdx(Idx const& idxWithGuard) const;
 
                     //! A single Cartesial layer that is part of the outer layer box
                     class Layer
@@ -168,26 +170,12 @@ namespace picongpu
                          */
                         HDINLINE bool contains(Idx const& idx) const;
 
-                        //! Get the simDim-dimensional volume of the layer
-                        HDINLINE int getVolume() const;
-
-                        /** Get a linear index inside a layer
-                         *
-                         * Same as in pmacc::DataBox, x is minor and z is major.
-                         *
-                         * @param idx grid index without guard
-                         */
-                        HDINLINE int getLinearIdx(Idx const& idx) const;
-
                     private:
                         //! First index of the layer
                         Idx beginIdx;
 
                         //! Size of the layer
                         Idx size;
-
-                        //! simDim-dimensional volume of the layer
-                        int volume;
                     };
 
                     //! Number of layers: a positive and a negative one for each axis
@@ -206,6 +194,9 @@ namespace picongpu
 
                     //! Guard size
                     Idx const guardSize;
+
+                    //! Begin of ND psi allocation box, without guard
+                    Idx const allocationBegin;
                 };
 
                 /** Base class for implementation inheritance in classes for the
@@ -246,7 +237,7 @@ namespace picongpu
                     using DataBoxType = pmacc::DataBox<pmacc::PitchedBox<ValueType, simDim>>;
 
                     //! Data box type used for PML fields in kernels
-                    using OuterLayerBoxType = OuterLayerBox<pmacc::DataBoxDim1Access<DataBoxType>>;
+                    using OuterLayerBoxType = OuterLayerBox<DataBoxType>;
 
                     //! Size of supercell
                     using SuperCellSize = MappingDesc::SuperCellSize;
@@ -272,6 +263,14 @@ namespace picongpu
 
                     //! Get the device outer layer data box for the field values
                     HINLINE OuterLayerBoxType getDeviceOuterLayerBox();
+
+                    /** Get a psi value by grid index including guard.
+                     *
+                     * The index must point to a PML cell.
+                     *
+                     * @param gridIndexWithGuard grid index including guard cells
+                     */
+                    HINLINE ValueType& getPsi(pmacc::DataSpace<simDim> const& gridIndexWithGuard);
 
                     /** Start asynchronous communication of field values
                      *
@@ -300,6 +299,12 @@ namespace picongpu
 
                     // PML global thickness
                     Thickness globalThickness;
+
+                    // PML thickness used for psi allocation on this rank
+                    Thickness allocationThickness;
+
+                    // Begin of ND psi allocation box, without guard
+                    pmacc::DataSpace<simDim> allocationBegin;
                 };
 
                 //! Data box type used for PML fields in kernels

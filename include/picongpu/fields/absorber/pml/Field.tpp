@@ -23,7 +23,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/assert.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <cstdint>
@@ -56,23 +56,77 @@ namespace picongpu
                         return result;
                     }
 
-                    /** Get linear size of the outer layer box
-                     *
-                     * @param gridLayout grid layout, as for normal fields
-                     * @param globalThickness global PML thickness
-                     */
-                    HINLINE int getOuterLayerBoxLinearSize(
-                        GridLayout<simDim> const& gridLayout,
-                        Thickness const& globalThickness)
+                    //! Get if there is at least one PML cell for allocation
+                    HINLINE bool hasAllocatedPmlCells(Thickness const& allocationThickness)
                     {
-                        // All sizes are without guard, since Pml is only on the internal area
-                        auto const gridDataSpace = gridLayout.sizeWithoutGuardND();
-                        auto const nonPmlDataSpace
-                            = gridDataSpace
-                              - (globalThickness.getPositiveBorder() + globalThickness.getNegativeBorder());
-                        auto const numGridCells = gridDataSpace.productOfComponents();
-                        auto const numNonPmlCells = nonPmlDataSpace.productOfComponents();
-                        return numGridCells - numNonPmlCells;
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                            if(allocationThickness(dim, 0) > 0u || allocationThickness(dim, 1) > 0u)
+                                return true;
+                        return false;
+                    }
+
+                    //! Get begin of ND psi allocation box, without guard
+                    HINLINE pmacc::DataSpace<simDim> getAllocationBegin(
+                        GridLayout<simDim> const& gridLayout,
+                        Thickness const& allocationThickness)
+                    {
+                        auto const gridSize = gridLayout.sizeWithoutGuardND();
+                        auto const hasPmlCells = hasAllocatedPmlCells(allocationThickness);
+                        auto begin = pmacc::DataSpace<simDim>::create(0);
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                        {
+                            auto const negativeSize = allocationThickness(dim, 0);
+                            auto const positiveSize = allocationThickness(dim, 1);
+                            if(!hasPmlCells)
+                                begin[dim] = 0;
+                            else if(negativeSize > 0u)
+                                begin[dim] = 0;
+                            else if(positiveSize > 0u)
+                                begin[dim] = gridSize[dim] - positiveSize;
+                            else
+                                begin[dim] = 0;
+                        }
+                        return begin;
+                    }
+
+                    //! Get end of ND psi allocation box, without guard
+                    HINLINE pmacc::DataSpace<simDim> getAllocationEnd(
+                        GridLayout<simDim> const& gridLayout,
+                        Thickness const& allocationThickness)
+                    {
+                        auto const gridSize = gridLayout.sizeWithoutGuardND();
+                        auto const hasPmlCells = hasAllocatedPmlCells(allocationThickness);
+                        auto end = pmacc::DataSpace<simDim>::create(0);
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                        {
+                            auto const negativeSize = allocationThickness(dim, 0);
+                            auto const positiveSize = allocationThickness(dim, 1);
+                            if(!hasPmlCells)
+                                end[dim] = gridSize[dim];
+                            else if(positiveSize > 0u)
+                                end[dim] = gridSize[dim];
+                            else if(negativeSize > 0u)
+                                end[dim] = negativeSize;
+                            else
+                                end[dim] = gridSize[dim];
+                        }
+                        return end;
+                    }
+
+                    //! Check if a grid index without guard belongs to allocated PML area
+                    HDINLINE bool isInsideAllocatedPml(
+                        pmacc::DataSpace<simDim> const& idx,
+                        GridLayout<simDim> const& gridLayout,
+                        Thickness const& allocationThickness)
+                    {
+                        auto const negativeSize = allocationThickness.getNegativeBorder();
+                        auto const positiveSize = allocationThickness.getPositiveBorder();
+                        auto const gridSize = gridLayout.sizeWithoutGuardND();
+                        auto const positiveBegin = gridSize - positiveSize;
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                            if((idx[dim] < negativeSize[dim]) || (idx[dim] >= positiveBegin[dim]))
+                                return true;
+                        return false;
                     }
 
                 } // namespace detail
@@ -107,14 +161,15 @@ namespace picongpu
                 template<typename T_Value>
                 OuterLayerBox<T_Value>::OuterLayerBox(
                     GridLayout<simDim> const& gridLayout,
-                    Thickness const& globalThickness,
+                    Thickness const& allocationThickness,
                     DataBox box)
                     : box(box)
                     , guardSize(gridLayout.guardSizeND())
+                    , allocationBegin(detail::getAllocationBegin(gridLayout, allocationThickness))
 
                 {
-                    auto const negativeSize = globalThickness.getNegativeBorder();
-                    auto const positiveSize = globalThickness.getPositiveBorder();
+                    auto const negativeSize = allocationThickness.getNegativeBorder();
+                    auto const positiveSize = allocationThickness.getPositiveBorder();
                     /* The region of interest is grid without guard,
                      * which consists of PML and internal area
                      */
@@ -164,46 +219,32 @@ namespace picongpu
                 HDINLINE typename OuterLayerBox<T_Value>::ValueType const& OuterLayerBox<T_Value>::operator()(
                     Idx const& idx) const
                 {
-                    return box(getLinearIdx(idx));
+                    return box(getDataBoxIdx(idx));
                 }
 
                 template<typename T_Value>
                 HDINLINE typename OuterLayerBox<T_Value>::ValueType& OuterLayerBox<T_Value>::operator()(Idx const& idx)
                 {
-                    return box(getLinearIdx(idx));
+                    return box(getDataBoxIdx(idx));
                 }
 
                 template<typename T_Value>
-                HDINLINE int OuterLayerBox<T_Value>::getLinearIdx(Idx const& idxWithGuard) const
+                HDINLINE typename OuterLayerBox<T_Value>::Idx OuterLayerBox<T_Value>::getDataBoxIdx(
+                    Idx const& idxWithGuard) const
                 {
-                    /* Each PML layer provide a contiguous 1d index range.
-                     * The resulting index is a sum of the baseIdx representing the total
-                     * size of all previous layers and an index inside the current layer.
-                     */
                     auto const idx = idxWithGuard - guardSize;
-                    int currentLayerBeginIdx = 0;
-                    int result = -1;
+                    bool isInPml = false;
                     for(Layer const& layer : layers)
                         if(layer.contains(idx))
-                        {
-                            /* Note: here we could have returned the result directly,
-                             * but chose to have a single return for potential
-                             * performance gains on GPU.
-                             * 'break' can be used too because the if condition will evaluate only for one layer to
-                             * true but this would create 'stack frame' usage within GPU kernel.
-                             */
-                            result = currentLayerBeginIdx + layer.getLinearIdx(idx);
-                        }
-                        else
-                            currentLayerBeginIdx += layer.getVolume();
-                    return result;
+                            isInPml = true;
+                    PMACC_DEVICE_ASSERT_MSG(isInPml, "PML index is outside of allocated psi area.");
+                    return idx - allocationBegin;
                 }
 
                 template<typename T_Value>
                 HDINLINE OuterLayerBox<T_Value>::Layer::Layer(Idx const& beginIdx, Idx const& endIdx)
                     : beginIdx{beginIdx}
                     , size{endIdx - beginIdx}
-                    , volume{size.productOfComponents()}
                 {
                 }
 
@@ -216,32 +257,15 @@ namespace picongpu
                     return true;
                 }
 
-                template<typename T_Value>
-                HDINLINE int OuterLayerBox<T_Value>::Layer::getVolume() const
-                {
-                    return volume;
-                }
-
-                template<typename T_Value>
-                HDINLINE int OuterLayerBox<T_Value>::Layer::getLinearIdx(Idx const& idx) const
-                {
-                    // Convert to 3d zero-based index, for 2d keep .z( ) == 0
-                    pmacc::DataSpace<3> zeroBasedIdx{0, 0, 0};
-                    for(uint32_t dim = 0u; dim < simDim; dim++)
-                        zeroBasedIdx[dim] = idx[dim] - beginIdx[dim];
-                    return zeroBasedIdx.x() + zeroBasedIdx.y() * size.x() + zeroBasedIdx.z() * size.y() * size.x();
-                }
-
                 Field::Field(MappingDesc const& cellDescription, Thickness const& globalThickness)
                     : SimulationFieldHelper<MappingDesc>(cellDescription)
                     , gridLayout(cellDescription.getGridLayout())
                     , globalThickness(globalThickness)
+                    , allocationThickness(computeAllocationThickness(gridLayout, globalThickness))
+                    , allocationBegin(detail::getAllocationBegin(gridLayout, allocationThickness))
                 {
-                    /* Create a simDim-dimentional buffer
-                     * with size = linearSize x 1 [x 1 for 3d]
-                     */
-                    auto size = pmacc::DataSpace<simDim>::create(1);
-                    size[0] = detail::getOuterLayerBoxLinearSize(gridLayout, globalThickness);
+                    auto const end = detail::getAllocationEnd(gridLayout, allocationThickness);
+                    auto const size = end - allocationBegin;
                     auto const guardSize = pmacc::DataSpace<simDim>::create(0);
                     auto const layout = pmacc::GridLayout<simDim>(size, guardSize);
                     data = std::make_unique<Buffer>(layout);
@@ -269,12 +293,15 @@ namespace picongpu
 
                 Field::OuterLayerBoxType Field::getDeviceOuterLayerBox()
                 {
-                    auto const boxWrapper1d
-                        = pmacc::DataBoxDim1Access<DataBoxType>{getDeviceDataBox(), data->getGridLayout().sizeND()};
-                    /* Note: the outer layer box type just provides access to data,
-                     * it does not own or make copy of the data (nor is that required)
-                     */
-                    return OuterLayerBoxType{gridLayout, globalThickness, boxWrapper1d};
+                    return OuterLayerBoxType{gridLayout, allocationThickness, getDeviceDataBox()};
+                }
+
+                Field::ValueType& Field::getPsi(pmacc::DataSpace<simDim> const& gridIndexWithGuard)
+                {
+                    auto const idxWithoutGuard = gridIndexWithGuard - gridLayout.guardSizeND();
+                    auto const isInPml = detail::isInsideAllocatedPml(idxWithoutGuard, gridLayout, allocationThickness);
+                    PMACC_ASSERT_MSG(isInPml, "PML index is outside of allocated psi area.");
+                    return getHostDataBox()(idxWithoutGuard - allocationBegin);
                 }
 
                 EventTask Field::asyncCommunication(EventTask serialEvent)
