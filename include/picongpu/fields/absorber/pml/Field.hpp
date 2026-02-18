@@ -24,7 +24,6 @@
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/fields/YeeCell.hpp"
 #include "picongpu/fields/absorber/Thickness.hpp"
-#include "picongpu/fields/absorber/pml/Allocation.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
@@ -99,8 +98,9 @@ namespace picongpu
 
                 /** Data box type used for PML fields in kernels
                  *
-                 * Stores psi in an ND bounding box of allocated PML cells and provides
-                 * access via a simDim-dimensional grid index.
+                 * Stores all PML data area by allocating a bounding box to the full extent of the local domain
+		 * and provides access via a simDim-dimensional grid index. This temporary solution is wasteful
+		 * with memory, because the center portion of the grid is not used.
                  *
                  * @tparam T_DataBox underlying ND data box type
                  */
@@ -119,19 +119,20 @@ namespace picongpu
 
                     /** Create an outer layer box
                      *
-                     * Stores psi in an ND bounding box of allocated PML cells.
+                     * Stores all PML data area by allocating a bounding box
+		     * to the full extent of the local domain.
                      * Access is provided via a simDim-dimensional index, same as for other
                      * grid values.
                      *
                      * @param gridLayout grid layout, as for normal fields
-                     * @param allocationThickness PML thickness used for allocation
+                     * @param globalThickness PML thickness used for allocation
                      * @param box underlying data box, preallocated to fit all data
                      *            the constructed OuterLayerBox does not own the box memory,
                      *            so can only be used before the box is reallocated
                      */
                     OuterLayerBox(
                         GridLayout<simDim> const& gridLayout,
-                        Thickness const& allocationThickness,
+                        Thickness const& globalThickness,
                         DataBox box);
 
                     /** Constant element access by a simDim-dimensional index
@@ -147,7 +148,7 @@ namespace picongpu
                     HDINLINE ValueType& operator()(Idx const& idx);
 
                 private:
-                    /** Convert a simDim-dimensional index to ND data box index
+                    /** Return a simDim-dimensional ND data box index
                      *
                      * @param idxWithGuard grid index with guard
                      */
@@ -195,8 +196,8 @@ namespace picongpu
                     //! Guard size
                     Idx const guardSize;
 
-                    //! Begin of ND psi allocation box, without guard
-                    Idx const allocationBegin;
+		    //! Begin of global PML region, without guard
+                    Idx const globalPMLBegin;
                 };
 
                 /** Base class for implementation inheritance in classes for the
@@ -264,14 +265,6 @@ namespace picongpu
                     //! Get the device outer layer data box for the field values
                     HINLINE OuterLayerBoxType getDeviceOuterLayerBox();
 
-                    /** Get a psi value by grid index including guard.
-                     *
-                     * The index must point to a PML cell.
-                     *
-                     * @param gridIndexWithGuard grid index including guard cells
-                     */
-                    HINLINE ValueType& getPsi(pmacc::DataSpace<simDim> const& gridIndexWithGuard);
-
                     /** Start asynchronous communication of field values
                      *
                      * @param serialEvent event to depend on
@@ -300,11 +293,8 @@ namespace picongpu
                     // PML global thickness
                     Thickness globalThickness;
 
-                    // PML thickness used for psi allocation on this rank
-                    Thickness allocationThickness;
-
-                    // Begin of ND psi allocation box, without guard
-                    pmacc::DataSpace<simDim> allocationBegin;
+                    //! Begin of global PML region, without guard
+                    pmacc::DataSpace<simDim> globalPMLBegin;
                 };
 
                 //! Data box type used for PML fields in kernels
