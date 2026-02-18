@@ -4,10 +4,10 @@ spack load cmake@3.26.6 ^openssl certs=mozilla %gcc@12.2.0
 
 echo "openpmd-api:"
 spack install --reuse openpmd-api@0.15.2 +python %gcc@12.2.0 \
-    ^adios2@2.9.2 ++blosc2 +cuda cuda_arch=70\
+    ^adios2@2.9.2 ++blosc2 +cuda cuda_arch=70 \
     ^cmake@3.26.6 \
     ^hdf5@1.14.3 \
-    ^openmpi@4.1.5 +atomics +cuda cuda_arch=70\
+    ^openmpi@4.1.5 +atomics +cuda cuda_arch=70 \
     ^python@3.11.6 \
     ^py-numpy@1.26.2
 
@@ -16,7 +16,7 @@ spack install --reuse boost@1.83.0 \
     +program_options \
     +atomic \
     ~python \
-    cxxstd=17 \
+    cxxstd=20 \
     %gcc@12.2.0
 
 echo "pngwriter"
