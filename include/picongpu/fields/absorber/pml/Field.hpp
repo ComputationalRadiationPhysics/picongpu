@@ -98,9 +98,8 @@ namespace picongpu
 
                 /** Data box type used for PML fields in kernels
                  *
-                 * Stores all PML data area by allocating a bounding box to the full extent of the local domain
-		 * and provides access via a simDim-dimensional grid index. This temporary solution is wasteful
-		 * with memory, because the center portion of the grid is not used.
+                 * Stores PML values in explicit slabs and provides access via
+                 * a simDim-dimensional grid index.
                  *
                  * @tparam T_DataBox underlying ND data box type
                  */
@@ -119,21 +118,16 @@ namespace picongpu
 
                     /** Create an outer layer box
                      *
-                     * Stores all PML data area by allocating a bounding box
-		     * to the full extent of the local domain.
-                     * Access is provided via a simDim-dimensional index, same as for other
-                     * grid values.
-                     *
                      * @param gridLayout grid layout, as for normal fields
                      * @param globalThickness PML thickness used for allocation
-                     * @param box underlying data box, preallocated to fit all data
+                     * @param slabBoxes underlying slab data boxes, preallocated per slab
                      *            the constructed OuterLayerBox does not own the box memory,
                      *            so can only be used before the box is reallocated
                      */
                     OuterLayerBox(
                         GridLayout<simDim> const& gridLayout,
                         Thickness const& globalThickness,
-                        DataBox box);
+                        DataBox const (&slabBoxes)[2 * simDim]);
 
                     /** Constant element access by a simDim-dimensional index
                      *
@@ -148,13 +142,13 @@ namespace picongpu
                     HDINLINE ValueType& operator()(Idx const& idx);
 
                 private:
-                    /** Return a simDim-dimensional ND data box index
+                    /** Return local slab index for a given grid index with guard
                      *
                      * @param idxWithGuard grid index with guard
                      */
-                    HDINLINE Idx getDataBoxIdx(Idx const& idxWithGuard) const;
+                    HDINLINE Idx getDataBoxIdx(Idx const& idxWithGuard, uint32_t& slabIdx) const;
 
-                    //! A single Cartesial layer that is part of the outer layer box
+                    //! A single Cartesial slab that is part of the outer layer box
                     class Layer
                     {
                     public:
@@ -163,7 +157,10 @@ namespace picongpu
                          * @param beginIdx first index
                          * @param endIdx index right after the last
                          */
-                        HDINLINE Layer(Idx const& beginIdx = Idx::create(0), Idx const& endIdx = Idx::create(0));
+                        HDINLINE Layer(
+                            Idx const& beginIdx = Idx::create(0),
+                            Idx const& endIdx = Idx::create(0),
+                            uint32_t slabIdx = 0u);
 
                         /** Check if the layer contains given index
                          *
@@ -171,33 +168,38 @@ namespace picongpu
                          */
                         HDINLINE bool contains(Idx const& idx) const;
 
+                        //! Return local slab index for a point inside the slab
+                        HDINLINE Idx localIdx(Idx const& idx) const;
+
+                        //! Return slab id
+                        HDINLINE uint32_t getSlabIdx() const;
+
                     private:
                         //! First index of the layer
                         Idx beginIdx;
 
                         //! Size of the layer
                         Idx size;
+
+                        //! Slab id in the underlying data box array
+                        uint32_t slabIdx;
                     };
 
                     //! Number of layers: a positive and a negative one for each axis
                     static constexpr auto numLayers = 2 * simDim;
 
-                    /** Cartesian layers constituting the outer layer
+                    /** Cartesian layers constituting the outer layer.
                      *
                      * The ordering inside the array is z-y-x for 3d and y-x for 2d.
-                     * However, it should not be relevant since the layers do not intersect,
-                     * and logically it represents a set of layers
                      */
                     Layer layers[numLayers];
 
-                    //! Data box, does not own memory
-                    DataBox box;
+                    //! Slab data boxes, do not own memory
+                    DataBox slabBoxes[numLayers];
 
                     //! Guard size
                     Idx const guardSize;
 
-		    //! Begin of global PML region, without guard
-                    Idx const globalPMLBegin;
                 };
 
                 /** Base class for implementation inheritance in classes for the
@@ -225,15 +227,13 @@ namespace picongpu
 
                     /** Type of host-device buffer for field values
                      *
-                     * The buffer is logically 1d, but technically multidimentional
-                     * for easier coupling to output utilities.
+                     * Each slab is stored as a simDim-dimensional box.
                      */
                     using Buffer = pmacc::GridBuffer<ValueType, simDim>;
 
                     /** Type of data box for field values on host and device
                      *
-                     * The data box is logically 1d, but technically multidimentional
-                     * for easier coupling to output utilities.
+                     * Data box for a slab buffer.
                      */
                     using DataBoxType = pmacc::DataBox<pmacc::PitchedBox<ValueType, simDim>>;
 
@@ -250,16 +250,28 @@ namespace picongpu
                      */
                     HINLINE Field(MappingDesc const& cellDescription, Thickness const& globalThickness);
 
-                    //! Get a reference to the host-device buffer for the field values
+                    //! Get a reference to a slab host-device buffer for the field values
+                    HINLINE Buffer& getGridBuffer(uint32_t slabIdx);
+
+                    //! Get a reference to the first slab host-device buffer for compatibility
                     HINLINE Buffer& getGridBuffer();
 
-                    //! Get the grid layout
+                    //! Get the grid layout of a slab
+                    HINLINE pmacc::GridLayout<simDim> getGridLayout(uint32_t slabIdx);
+
+                    //! Get the first slab grid layout for compatibility
                     HINLINE pmacc::GridLayout<simDim> getGridLayout();
 
-                    //! Get the host data box for the field values
+                    //! Get the host data box for slab field values
+                    HINLINE DataBoxType getHostDataBox(uint32_t slabIdx);
+
+                    //! Get the first slab host data box for compatibility
                     HINLINE DataBoxType getHostDataBox();
 
-                    //! Get the device data box for the field values
+                    //! Get the device data box for slab field values
+                    HINLINE DataBoxType getDeviceDataBox(uint32_t slabIdx);
+
+                    //! Get the first slab device data box for compatibility
                     HINLINE DataBoxType getDeviceDataBox();
 
                     //! Get the device outer layer data box for the field values
@@ -284,8 +296,24 @@ namespace picongpu
                     HINLINE void synchronize() override;
 
                 private:
-                    //! Host-device buffer for field values
-                    std::unique_ptr<Buffer> data;
+                    //! Slab geometry description
+                    struct SlabInfo
+                    {
+                        pmacc::DataSpace<simDim> begin;
+                        pmacc::DataSpace<simDim> end;
+                    };
+
+                    //! Compute begin/end of all slabs
+                    HINLINE void initializeSlabInfo();
+
+                    //! Number of slabs: a positive and a negative one for each axis
+                    static constexpr auto numSlabs = 2 * simDim;
+
+                    //! Host-device slab buffers for field values
+                    std::unique_ptr<Buffer> slabData[numSlabs];
+
+                    //! Geometry of each slab
+                    SlabInfo slabInfo[numSlabs];
 
                     //! Grid layout for normal (non-PML) fields
                     pmacc::GridLayout<simDim> gridLayout;
@@ -293,8 +321,6 @@ namespace picongpu
                     // PML global thickness
                     Thickness globalThickness;
 
-                    //! Begin of global PML region, without guard
-                    pmacc::DataSpace<simDim> globalPMLBegin;
                 };
 
                 //! Data box type used for PML fields in kernels
