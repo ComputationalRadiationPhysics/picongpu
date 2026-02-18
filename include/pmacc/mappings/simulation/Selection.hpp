@@ -54,6 +54,10 @@ namespace pmacc
          * Copy constructor
          */
         HDINLINE constexpr Selection(Selection const&) = default;
+        /**
+         * Copy assignment
+         */
+        HDINLINE constexpr Selection& operator=(Selection const&) = default;
 
         /**
          * Constructor
