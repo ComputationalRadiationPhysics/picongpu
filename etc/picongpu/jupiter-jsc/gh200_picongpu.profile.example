@@ -38,7 +38,7 @@ module load Stages/2026
 module load GCC/14.3.0
 module load CUDA/13
 module load CMake/3.31.8
-module load ParaStationMPI/5.13.0-1
+module load OpenMPI/5.0.8
 module load Blosc2
 module load Python
 module load HDF5
