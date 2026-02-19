@@ -41,6 +41,8 @@
 #    include <sstream>
 #    include <stdexcept>
 #    include <string>
+#    include <type_traits>
+#    include <optional>
 
 #    include <openPMD/openPMD.hpp>
 
@@ -56,63 +58,15 @@ namespace picongpu
         {
         public:
             template<class Data>
-            static void loadFieldAtOffset(
-                Data& field,
-                uint32_t const numComponents,
-                std::string const& objectName,
-                ThreadParams* params,
-                uint32_t const currentStep,
-                DataSpace<simDim> const& domainOffset,
-                DataSpace<simDim> const& localDomainSize,
-                DataSpace<simDim> const& destinationOffset)
-            {
-                auto const name_lookup_tpl = plugins::misc::getComponentNames(numComponents);
-
-                using ValueType = typename Data::ValueType;
-                field.getHostBuffer().setValue(ValueType::create(0.0));
-                if(localDomainSize.productOfComponents() == 0u)
-                {
-                    field.hostToDevice();
-                    return;
-                }
-
-                ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Mesh& mesh = series.iterations[currentStep].open().meshes[objectName];
-
-                auto destBox = field.getHostBuffer().getDataBox();
-                for(uint32_t n = 0; n < numComponents; ++n)
-                {
-                    ::openPMD::RecordComponent rc
-                        = numComponents > 1 ? mesh[name_lookup_tpl[n]] : mesh[::openPMD::RecordComponent::SCALAR];
-                    ::openPMD::Offset start
-                        = asStandardVector<DataSpace<simDim> const&, ::openPMD::Offset>(domainOffset);
-                    ::openPMD::Extent count
-                        = asStandardVector<DataSpace<simDim> const&, ::openPMD::Extent>(localDomainSize);
-
-                    eventSystem::getTransactionEvent().waitForFinished();
-                    std::shared_ptr<float_X> field_container = rc.loadChunk<float_X>(start, count);
-                    mesh.seriesFlush();
-
-                    int const elementCount = localDomainSize.productOfComponents();
-#    pragma omp parallel for simd
-                    for(int linearId = 0; linearId < elementCount; ++linearId)
-                    {
-                        auto destIdx = pmacc::math::mapToND(localDomainSize, linearId) + destinationOffset;
-                        destBox(destIdx)[n] = field_container.get()[linearId];
-                    }
-                }
-                field.hostToDevice();
-                eventSystem::getTransactionEvent().waitForFinished();
-            }
-
-            template<class Data>
             static void loadField(
                 Data& field,
                 uint32_t const numComponents,
                 std::string objectName,
                 ThreadParams* params,
                 uint32_t const currentStep,
-                bool const isDomainBound)
+                bool const isDomainBound,
+                std::optional<DataSpace<simDim>> const& domainOffset = std::nullopt,
+                std::optional<DataSpace<simDim>> const& localDomainSize = std::nullopt)
             {
                 log<picLog::INPUT_OUTPUT>("Begin loading field '%1%'") % objectName;
 
@@ -124,8 +78,14 @@ namespace picongpu
                 using ValueType = typename Data::ValueType;
                 field.getHostBuffer().setValue(ValueType::create(0.0));
 
-                ::pmacc::math::Vector<uint64_t, simDim> domain_offset = localDomain.offset;
+                DataSpace<simDim> domain_offset = localDomain.offset;
                 DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
+                bool const useCustomReadLayout = domainOffset.has_value() && localDomainSize.has_value();
+                if(useCustomReadLayout)
+                {
+                    domain_offset = *domainOffset;
+                    local_domain_size = *localDomainSize;
+                }
                 bool useLinearIdxAsDestination = false;
 
                 ::openPMD::Series& series = *params->openPMDSeries;
@@ -134,7 +94,7 @@ namespace picongpu
                 /* Patch for non-domain-bound fields
                  * This is an ugly fix to allow output of reduced 1d PML buffers
                  */
-                if(!isDomainBound)
+                if(!isDomainBound && !useCustomReadLayout)
                 {
                     auto const field_layout = field.getGridLayout();
                     auto const field_no_guard = field_layout.sizeWithoutGuardND();
@@ -210,7 +170,7 @@ namespace picongpu
                     log<picLog::INPUT_OUTPUT>("openPMD: Read from field '%1%'") % objectName;
 
                     ::openPMD::Offset start
-                        = asStandardVector<::pmacc::math::Vector<uint64_t, simDim>&, ::openPMD::Offset>(domain_offset);
+                        = asStandardVector<DataSpace<simDim>&, ::openPMD::Offset>(domain_offset);
                     ::openPMD::Extent count
                         = asStandardVector<DataSpace<simDim>&, ::openPMD::Extent>(local_domain_size);
 
@@ -240,6 +200,10 @@ namespace picongpu
                         if(useLinearIdxAsDestination)
                         {
                             destIdx[0] = linearId;
+                        }
+                        else if(useCustomReadLayout)
+                        {
+                            destIdx = pmacc::math::mapToND(local_domain_size, linearId);
                         }
                         else
                         {
@@ -273,6 +237,41 @@ namespace picongpu
         template<typename T_Field>
         struct LoadFields
         {
+        private:
+            static constexpr bool isPmlSlabField
+                = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                  || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
+
+            static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
+            {
+                auto const slabSuffix = [&]()
+                {
+                    switch(slabIdx)
+                    {
+                    case 0u:
+                        return "_xneg";
+                    case 1u:
+                        return "_xpos";
+                    case 2u:
+                        return "_yneg";
+                    case 3u:
+                        return "_ypos";
+                    case 4u:
+                        if constexpr(simDim == DIM3)
+                            return "_zneg";
+                        break;
+                    case 5u:
+                        if constexpr(simDim == DIM3)
+                            return "_zpos";
+                        break;
+                    default:
+                        break;
+                    }
+                    throw std::runtime_error("Invalid PML slab index for naming: " + std::to_string(slabIdx));
+                }();
+                return fieldName + slabSuffix;
+            }
+
         public:
             HINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
             {
@@ -289,70 +288,35 @@ namespace picongpu
                 /* load from openPMD */
                 bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
 
-                RestartFieldLoader::loadField(
-                    field->getGridBuffer(),
-                    (uint32_t) T_Field::numComponents,
-                    T_Field::getName(),
-                    tp,
-                    restartStep,
-                    isDomainBound);
-            }
-        };
-
-        template<>
-        struct LoadFields<fields::absorber::pml::FieldE>
-        {
-            HINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-                if(traits::IsFieldOutputOptional<fields::absorber::pml::FieldE>::value
-                   && !dc.hasId(fields::absorber::pml::FieldE::getName()))
-                    return;
-                auto field = dc.get<fields::absorber::pml::FieldE>(fields::absorber::pml::FieldE::getName());
-                auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-                for(uint32_t slabIdx = 0u; slabIdx < fields::absorber::pml::FieldE::getNumSlabs(); ++slabIdx)
+                if constexpr(isPmlSlabField)
                 {
-                    auto const slabName = fields::absorber::pml::FieldE::getName() + "_slab" + std::to_string(slabIdx);
-                    auto const slabBegin = field->getSlabBegin(slabIdx);
-                    auto const slabSize = field->getSlabSize(slabIdx);
-                    RestartFieldLoader::loadFieldAtOffset(
-                        field->getGridBuffer(slabIdx),
-                        static_cast<uint32_t>(fields::absorber::pml::FieldE::numComponents),
-                        slabName,
-                        params,
-                        restartStep,
-                        localDomain.offset + slabBegin,
-                        slabSize,
-                        DataSpace<simDim>::create(0));
+                    auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                    for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
+                    {
+                        auto const slabName = getPmlSlabName(T_Field::getName(), slabIdx);
+                        auto const slabBegin = field->getSlabBegin(slabIdx);
+                        auto const slabSize = field->getSlabSize(slabIdx);
+                        auto& slabBuffer = field->getGridBuffer(slabIdx);
+                        RestartFieldLoader::loadField(
+                            slabBuffer,
+                            (uint32_t) T_Field::numComponents,
+                            slabName,
+                            tp,
+                            restartStep,
+                            isDomainBound,
+                            localDomain.offset + slabBegin,
+                            slabSize);
+                    }
                 }
-            }
-        };
-
-        template<>
-        struct LoadFields<fields::absorber::pml::FieldB>
-        {
-            HINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-                if(traits::IsFieldOutputOptional<fields::absorber::pml::FieldB>::value
-                   && !dc.hasId(fields::absorber::pml::FieldB::getName()))
-                    return;
-                auto field = dc.get<fields::absorber::pml::FieldB>(fields::absorber::pml::FieldB::getName());
-                auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-                for(uint32_t slabIdx = 0u; slabIdx < fields::absorber::pml::FieldB::getNumSlabs(); ++slabIdx)
+                else
                 {
-                    auto const slabName = fields::absorber::pml::FieldB::getName() + "_slab" + std::to_string(slabIdx);
-                    auto const slabBegin = field->getSlabBegin(slabIdx);
-                    auto const slabSize = field->getSlabSize(slabIdx);
-                    RestartFieldLoader::loadFieldAtOffset(
-                        field->getGridBuffer(slabIdx),
-                        static_cast<uint32_t>(fields::absorber::pml::FieldB::numComponents),
-                        slabName,
-                        params,
+                    RestartFieldLoader::loadField(
+                        field->getGridBuffer(),
+                        (uint32_t) T_Field::numComponents,
+                        T_Field::getName(),
+                        tp,
                         restartStep,
-                        localDomain.offset + slabBegin,
-                        slabSize,
-                        DataSpace<simDim>::create(0));
+                        isDomainBound);
                 }
             }
         };

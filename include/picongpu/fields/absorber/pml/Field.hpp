@@ -1,5 +1,5 @@
-/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
- *                     Benjamin Worpitz, Sergei Bastrakov
+/* Copyright 2013-2025 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Benjamin Worpitz, Sergei Bastrakov, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -98,7 +98,7 @@ namespace picongpu
 
                 /** Data box type used for PML fields in kernels
                  *
-                 * Stores PML values in explicit slabs and provides access via
+                 * Stores PML fields in explicit slabs and provides access via
                  * a simDim-dimensional grid index.
                  *
                  * @tparam T_DataBox underlying ND data box type
@@ -120,7 +120,7 @@ namespace picongpu
                      *
                      * @param gridLayout grid layout, as for normal fields
                      * @param globalThickness PML thickness used for allocation
-                     * @param slabBoxes underlying slab data boxes, preallocated per slab
+                     * @param slabBoxes underlying array of data boxes, preallocated per slab
                      *            the constructed OuterLayerBox does not own the box memory,
                      *            so can only be used before the box is reallocated
                      */
@@ -142,9 +142,11 @@ namespace picongpu
                     HDINLINE ValueType& operator()(Idx const& idx);
 
                 private:
-                    /** Return local slab index for a given grid index with guard
+                    /** Return a local simDim-dimensional ND data box index
+		     *  for a given grid index with guard
                      *
                      * @param idxWithGuard grid index with guard
+		     * @param slabIdx returns the respective slabIdx
                      */
                     HDINLINE Idx getDataBoxIdx(Idx const& idxWithGuard, uint32_t& slabIdx) const;
 
@@ -169,7 +171,7 @@ namespace picongpu
                         HDINLINE bool contains(Idx const& idx) const;
 
                         //! Return local slab index for a point inside the slab
-                        HDINLINE Idx localIdx(Idx const& idx) const;
+                        HDINLINE Idx getLocalIdx(Idx const& idx) const;
 
                         //! Return slab id
                         HDINLINE uint32_t getSlabIdx() const;
@@ -188,10 +190,7 @@ namespace picongpu
                     //! Number of layers: a positive and a negative one for each axis
                     static constexpr auto numLayers = 2 * simDim;
 
-                    /** Cartesian layers constituting the outer layer.
-                     *
-                     * The ordering inside the array is x-y-z for 3d and x-y for 2d.
-                     */
+                    //! Cartesian layers constituting the outer layer.
                     Layer layers[numLayers];
 
                     //! Slab data boxes, do not own memory
@@ -270,26 +269,14 @@ namespace picongpu
                     //! Get a reference to a slab host-device buffer for the field values
                     HINLINE Buffer& getGridBuffer(uint32_t slabIdx);
 
-                    //! Get a reference to the first slab host-device buffer for compatibility
-                    HINLINE Buffer& getGridBuffer();
-
                     //! Get the grid layout of a slab
                     HINLINE pmacc::GridLayout<simDim> getGridLayout(uint32_t slabIdx);
-
-                    //! Get the first slab grid layout for compatibility
-                    HINLINE pmacc::GridLayout<simDim> getGridLayout();
 
                     //! Get the host data box for slab field values
                     HINLINE DataBoxType getHostDataBox(uint32_t slabIdx);
 
-                    //! Get the first slab host data box for compatibility
-                    HINLINE DataBoxType getHostDataBox();
-
                     //! Get the device data box for slab field values
                     HINLINE DataBoxType getDeviceDataBox(uint32_t slabIdx);
-
-                    //! Get the first slab device data box for compatibility
-                    HINLINE DataBoxType getDeviceDataBox();
 
                     //! Get slab begin index in local grid coordinates without guard
                     HINLINE pmacc::DataSpace<simDim> getSlabBegin(uint32_t slabIdx) const;
@@ -482,18 +469,18 @@ namespace picongpu
         };
 
         /** Field domain boundness trait for output and checkpointing:
-         *  PML fields are not domain-bound
+         *  PML fields are stored on the simulation domain grid via slab chunks.
          */
         template<>
-        struct IsFieldDomainBound<fields::absorber::pml::FieldE> : std::false_type
+        struct IsFieldDomainBound<fields::absorber::pml::FieldE> : std::true_type
         {
         };
 
         /** Field domain boundness trait for output and checkpointing:
-         *  PML fields are not domain-bound
+         *  PML fields are stored on the simulation domain grid via slab chunks.
          */
         template<>
-        struct IsFieldDomainBound<fields::absorber::pml::FieldB> : std::false_type
+        struct IsFieldDomainBound<fields::absorber::pml::FieldB> : std::true_type
         {
         };
 

@@ -114,9 +114,7 @@ namespace picongpu
 
                 HDINLINE float_X& NodeValues::operator[](uint32_t const idx)
                 {
-                    // Here it is safe to call the const version
-                    auto constThis = const_cast<NodeValues const*>(this);
-                    return const_cast<float_X&>((*constThis)[idx]);
+                    return *(&xy + idx);
                 }
 
                 HDINLINE float_X const& NodeValues::operator[](uint32_t const idx) const
@@ -200,24 +198,22 @@ namespace picongpu
                         }
                         return false;
                     };
-                    // Keep overlap priority z -> y -> x independent of slab index order.
                     if constexpr(simDim == DIM3)
                     {
                         if(mapFromLayer(Field::slabZNeg))
-                            return layers[Field::slabZNeg].localIdx(idx);
+                            return layers[Field::slabZNeg].getLocalIdx(idx);
                         if(mapFromLayer(Field::slabZPos))
-                            return layers[Field::slabZPos].localIdx(idx);
+                            return layers[Field::slabZPos].getLocalIdx(idx);
                     }
                     if(mapFromLayer(Field::slabYNeg))
-                        return layers[Field::slabYNeg].localIdx(idx);
+                        return layers[Field::slabYNeg].getLocalIdx(idx);
                     if(mapFromLayer(Field::slabYPos))
-                        return layers[Field::slabYPos].localIdx(idx);
+                        return layers[Field::slabYPos].getLocalIdx(idx);
                     if(mapFromLayer(Field::slabXNeg))
-                        return layers[Field::slabXNeg].localIdx(idx);
+                        return layers[Field::slabXNeg].getLocalIdx(idx);
                     if(mapFromLayer(Field::slabXPos))
-                        return layers[Field::slabXPos].localIdx(idx);
-                    PMACC_ASSERT_MSG(false, "PML index is outside of allocated psi slabs.");
-                    PMACC_DEVICE_ASSERT_MSG(false, "PML index is outside of allocated psi slabs.");
+                        return layers[Field::slabXPos].getLocalIdx(idx);
+                    PMACC_ASSERT_MSG(false, "PML index is outside of allocated PML slabs.");
                     return detail::makeIdx(0, 0, 0);
                 }
 
@@ -242,7 +238,7 @@ namespace picongpu
                 }
 
                 template<typename T_Value>
-                HDINLINE typename OuterLayerBox<T_Value>::Idx OuterLayerBox<T_Value>::Layer::localIdx(
+                HDINLINE typename OuterLayerBox<T_Value>::Idx OuterLayerBox<T_Value>::Layer::getLocalIdx(
                     Idx const& idx) const
                 {
                     return idx - beginIdx;
@@ -305,20 +301,10 @@ namespace picongpu
                     return *slabData[slabIdx];
                 }
 
-                Field::Buffer& Field::getGridBuffer()
-                {
-                    return getGridBuffer(0u);
-                }
-
                 pmacc::GridLayout<simDim> Field::getGridLayout(uint32_t const slabIdx)
                 {
                     PMACC_ASSERT(slabIdx < numSlabs);
                     return slabData[slabIdx]->getGridLayout();
-                }
-
-                pmacc::GridLayout<simDim> Field::getGridLayout()
-                {
-                    return getGridLayout(0u);
                 }
 
                 Field::DataBoxType Field::getHostDataBox(uint32_t const slabIdx)
@@ -327,20 +313,10 @@ namespace picongpu
                     return slabData[slabIdx]->getHostBuffer().getDataBox();
                 }
 
-                Field::DataBoxType Field::getHostDataBox()
-                {
-                    return getHostDataBox(0u);
-                }
-
                 Field::DataBoxType Field::getDeviceDataBox(uint32_t const slabIdx)
                 {
                     PMACC_ASSERT(slabIdx < numSlabs);
                     return slabData[slabIdx]->getDeviceBuffer().getDataBox();
-                }
-
-                Field::DataBoxType Field::getDeviceDataBox()
-                {
-                    return getDeviceDataBox(0u);
                 }
 
                 pmacc::DataSpace<simDim> Field::getSlabBegin(uint32_t const slabIdx) const

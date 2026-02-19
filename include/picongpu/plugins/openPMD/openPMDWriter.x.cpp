@@ -700,9 +700,39 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
         private:
+            template<typename T_Field>
+            static constexpr bool isPmlSlabField
+                = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                  || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
+
             static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
             {
-                return fieldName + "_slab" + std::to_string(slabIdx);
+                auto const slabSuffix = [&]()
+                {
+                    switch(slabIdx)
+                    {
+                    case 0u:
+                        return "_xneg";
+                    case 1u:
+                        return "_xpos";
+                    case 2u:
+                        return "_yneg";
+                    case 3u:
+                        return "_ypos";
+                    case 4u:
+                        if constexpr(simDim == DIM3)
+                            return "_zneg";
+                        break;
+                    case 5u:
+                        if constexpr(simDim == DIM3)
+                            return "_zpos";
+                        break;
+                    default:
+                        break;
+                    }
+                    throw std::runtime_error("Invalid PML slab index for naming: " + std::to_string(slabIdx));
+                }();
+                return fieldName + slabSuffix;
             }
 
             template<typename UnitType>
@@ -717,7 +747,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             /**
              * Write calculated fields to openPMD.
              */
-            template<typename T_Field, typename T_Enable = void>
+            template<typename T_Field>
             struct GetFields
             {
             private:
@@ -760,97 +790,49 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      * solver implementation */
                     float_X const timeOffset = 0.0;
 
-                    openPMDWriter::writeField<ComponentType>(
-                        params,
-                        currentStep,
-                        GetNComponents<ValueType>::value,
-                        T_Field::getName(),
-                        *field,
-                        getUnit(),
-                        T_Field::getUnitDimension(),
-                        std::move(inCellPosition),
-                        timeOffset,
-                        isDomainBound);
-                }
-            };
-
-            template<typename T_Field>
-            struct GetFields<
-                T_Field,
-                std::enable_if_t<
-                    std::is_same_v<T_Field, fields::absorber::pml::FieldE>
-                    || std::is_same_v<T_Field, fields::absorber::pml::FieldB>>>
-            {
-            private:
-                using ValueType = typename T_Field::ValueType;
-                using ComponentType = typename pmacc::traits::GetComponentsType<ValueType>::type;
-                using UnitType = typename T_Field::UnitValueType;
-
-                static std::vector<float_64> getUnit()
-                {
-                    UnitType unit = T_Field::getUnit();
-                    return createUnit(unit, T_Field::numComponents);
-                }
-
-            public:
-                HINLINE void operator()(ThreadParams* params, uint32_t const currentStep)
-                {
-                    DataConnector& dc = Environment<simDim>::get().DataConnector();
-                    if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
-                        return;
-                    auto field = dc.get<T_Field>(T_Field::getName());
-                    field->synchronize();
-
-                    traits::FieldPosition<fields::YeeCell, T_Field> const fieldPos;
-                    std::vector<std::vector<float_X>> inCellPosition;
-                    for(uint32_t n = 0; n < T_Field::numComponents; ++n)
+                    if constexpr(isPmlSlabField<T_Field>)
                     {
-                        std::vector<float_X> inCellPositonComponent;
-                        for(uint32_t d = 0; d < simDim; ++d)
-                            inCellPositonComponent.push_back(fieldPos()[n][d]);
-                        inCellPosition.push_back(inCellPositonComponent);
-                    }
-                    float_X const timeOffset = 0.0;
-
-                    auto const originalLocalDimensions = params->window.localDimensions;
-                    auto const originalWindowToDomainOffset = params->localWindowToDomainOffset;
-                    auto const localWindowBegin = originalWindowToDomainOffset;
-                    auto const localWindowEnd = localWindowBegin + originalLocalDimensions.size;
-                    for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
-                    {
-                        auto const slabBegin = field->getSlabBegin(slabIdx);
-                        auto const slabEnd = field->getSlabEnd(slabIdx);
-                        auto writeBegin = slabBegin;
-                        auto writeEnd = slabEnd;
-                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                        auto const& subGrid = Environment<simDim>::get().SubGrid();
+                        auto const localDomain = subGrid.getLocalDomain();
+                        auto const globalDomain = subGrid.getGlobalDomain();
+                        for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
                         {
-                            writeBegin[dim] = std::max(writeBegin[dim], localWindowBegin[dim]);
-                            writeEnd[dim] = std::min(writeEnd[dim], localWindowEnd[dim]);
-                            if(writeEnd[dim] < writeBegin[dim])
-                                writeEnd[dim] = writeBegin[dim];
+                            auto const slabBegin = field->getSlabBegin(slabIdx);
+                            auto const slabSize = field->getSlabSize(slabIdx);
+                            auto const slabOffset = localDomain.offset + slabBegin;
+                            auto const slabBufferOffset = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND();
+                            openPMDWriter::writeField<ComponentType>(
+                                params,
+                                currentStep,
+                                GetNComponents<ValueType>::value,
+                                getPmlSlabName(T_Field::getName(), slabIdx),
+                                field->getGridBuffer(slabIdx),
+                                getUnit(),
+                                T_Field::getUnitDimension(),
+                                inCellPosition,
+                                timeOffset,
+                                isDomainBound,
+                                true,
+                                slabOffset,
+                                slabSize,
+                                globalDomain.size,
+                                slabBufferOffset);
                         }
-                        auto const writeSize = writeEnd - writeBegin;
-                        auto const writeOffsetLocalWindow = writeBegin - localWindowBegin;
-                        auto const bufferOffset = writeBegin - slabBegin;
-
-                        params->window.localDimensions.offset = originalLocalDimensions.offset + writeOffsetLocalWindow;
-                        params->window.localDimensions.size = writeSize;
-                        params->localWindowToDomainOffset = bufferOffset;
-
+                    }
+                    else
+                    {
                         openPMDWriter::writeField<ComponentType>(
                             params,
                             currentStep,
                             GetNComponents<ValueType>::value,
-                            getPmlSlabName(T_Field::getName(), slabIdx),
-                            field->getGridBuffer(slabIdx),
+                            T_Field::getName(),
+                            *field,
                             getUnit(),
                             T_Field::getUnitDimension(),
-                            inCellPosition,
+                            std::move(inCellPosition),
                             timeOffset,
-                            true);
+                            isDomainBound);
                     }
-                    params->window.localDimensions = originalLocalDimensions;
-                    params->localWindowToDomainOffset = originalWindowToDomainOffset;
                 }
             };
 
@@ -860,7 +842,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * FieldTmp is calculated on device and then dumped to openPMD.
              */
             template<typename Solver, typename Species, typename Filter>
-            struct GetFields<FieldTmpOperation<Solver, Species, Filter>, void>
+            struct GetFields<FieldTmpOperation<Solver, Species, Filter>>
             {
                 /*
                  * This is only a wrapper function to allow disable nvcc warnings.
@@ -1636,7 +1618,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::vector<std::vector<float_X>> inCellPosition,
                 float_X timeOffset,
                 bool isDomainBound,
-                bool logBeginWriteField = true)
+                bool logBeginWriteField = true,
+                std::optional<DataSpace<simDim>> const& recordOffsetOverride = std::nullopt,
+                std::optional<DataSpace<simDim>> const& recordLocalSizeOverride = std::nullopt,
+                std::optional<DataSpace<simDim>> const& recordGlobalSizeOverride = std::nullopt,
+                std::optional<DataSpace<simDim>> const& sourceBufferOffsetOverride = std::nullopt)
             {
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(nComponents);
                 std::optional<std::string> pathToRecordComponentSpecifiedViaMeshName = std::nullopt;
@@ -1700,11 +1686,21 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 pmacc::math::UInt64<simDim> recordLocalSizeDims = localWindowSize;
                 pmacc::math::UInt64<simDim> recordOffsetDims = params->window.localDimensions.offset;
                 pmacc::math::UInt64<simDim> recordGlobalSizeDims = params->window.globalDimensions.size;
+                bool const useCustomWriteLayout = recordOffsetOverride.has_value() && recordLocalSizeOverride.has_value()
+                                                  && recordGlobalSizeOverride.has_value();
+                if(useCustomWriteLayout)
+                {
+                    localWindowSize = *recordLocalSizeOverride;
+                    bufferOffset = sourceBufferOffsetOverride.value_or(bufferGridLayout.guardSizeND());
+                    recordLocalSizeDims = precisionCast<uint64_t>(localWindowSize);
+                    recordOffsetDims = precisionCast<uint64_t>(*recordOffsetOverride);
+                    recordGlobalSizeDims = precisionCast<uint64_t>(*recordGlobalSizeOverride);
+                }
 
                 /* Patch for non-domain-bound fields
                  * Allow for the output of reduced 1d PML buffer
                  */
-                if(!isDomainBound)
+                if(!isDomainBound && !useCustomWriteLayout)
                 {
                     localWindowSize = bufferGridLayout.sizeWithoutGuardND();
                     bufferOffset = bufferGridLayout.guardSizeND();
