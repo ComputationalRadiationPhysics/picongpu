@@ -27,6 +27,7 @@ dependencies = [
   "h5py",
   "imageio",
   "jsonschema>=4.23",
+  "lasy>=0.6",
   "matplotlib",
   # interim: released engine; our rendering contexts normalise a present None to
   # "" (the upstream fix-none-handling build renders it as "None" and keeps
