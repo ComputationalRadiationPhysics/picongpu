@@ -1842,6 +1842,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     int const maxZ = simDim == DIM3 ? localWindowSize[2] : 1;
                     int const guardZ = simDim == DIM3 ? bufferOffset[2] : 0;
                     auto const* ptr = hostDataBox.getPointer();
+                    auto const* scalarPtr = reinterpret_cast<ComponentType const*>(ptr);
                     for(int z = 0; z < maxZ; ++z)
                     {
                         for(int y = 0; y < localWindowSize[1]; ++y)
@@ -1856,7 +1857,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 size_t index_src = base_index_src + (x + bufferOffset[0]) * nComponents + d;
                                 size_t index_dst = base_index_dst + x;
 
-                                dstBuffer[index_dst] = ptr[index_src][d];
+                                dstBuffer[index_dst] = scalarPtr[index_src];
                             }
                         }
                     }
