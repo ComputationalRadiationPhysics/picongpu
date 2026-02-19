@@ -28,6 +28,7 @@
 #    include "picongpu/fields/FieldE.hpp"
 #    include "picongpu/fields/FieldJ.hpp"
 #    include "picongpu/fields/FieldTmp.hpp"
+#    include "picongpu/fields/absorber/pml/Field.hpp"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
@@ -699,6 +700,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
         private:
+            static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
+            {
+                return fieldName + "_slab" + std::to_string(slabIdx);
+            }
+
             template<typename UnitType>
             static std::vector<float_64> createUnit(UnitType unit, uint32_t numComponents)
             {
@@ -711,7 +717,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             /**
              * Write calculated fields to openPMD.
              */
-            template<typename T_Field>
+            template<typename T_Field, typename T_Enable = void>
             struct GetFields
             {
             private:
@@ -768,13 +774,93 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             };
 
+            template<typename T_Field>
+            struct GetFields<
+                T_Field,
+                std::enable_if_t<
+                    std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                    || std::is_same_v<T_Field, fields::absorber::pml::FieldB>>>
+            {
+            private:
+                using ValueType = typename T_Field::ValueType;
+                using ComponentType = typename pmacc::traits::GetComponentsType<ValueType>::type;
+                using UnitType = typename T_Field::UnitValueType;
+
+                static std::vector<float_64> getUnit()
+                {
+                    UnitType unit = T_Field::getUnit();
+                    return createUnit(unit, T_Field::numComponents);
+                }
+
+            public:
+                HINLINE void operator()(ThreadParams* params, uint32_t const currentStep)
+                {
+                    DataConnector& dc = Environment<simDim>::get().DataConnector();
+                    if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
+                        return;
+                    auto field = dc.get<T_Field>(T_Field::getName());
+                    field->synchronize();
+
+                    traits::FieldPosition<fields::YeeCell, T_Field> const fieldPos;
+                    std::vector<std::vector<float_X>> inCellPosition;
+                    for(uint32_t n = 0; n < T_Field::numComponents; ++n)
+                    {
+                        std::vector<float_X> inCellPositonComponent;
+                        for(uint32_t d = 0; d < simDim; ++d)
+                            inCellPositonComponent.push_back(fieldPos()[n][d]);
+                        inCellPosition.push_back(inCellPositonComponent);
+                    }
+                    float_X const timeOffset = 0.0;
+
+                    auto const originalLocalDimensions = params->window.localDimensions;
+                    auto const originalWindowToDomainOffset = params->localWindowToDomainOffset;
+                    auto const localWindowBegin = originalWindowToDomainOffset;
+                    auto const localWindowEnd = localWindowBegin + originalLocalDimensions.size;
+                    for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
+                    {
+                        auto const slabBegin = field->getSlabBegin(slabIdx);
+                        auto const slabEnd = field->getSlabEnd(slabIdx);
+                        auto writeBegin = slabBegin;
+                        auto writeEnd = slabEnd;
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                        {
+                            writeBegin[dim] = std::max(writeBegin[dim], localWindowBegin[dim]);
+                            writeEnd[dim] = std::min(writeEnd[dim], localWindowEnd[dim]);
+                            if(writeEnd[dim] < writeBegin[dim])
+                                writeEnd[dim] = writeBegin[dim];
+                        }
+                        auto const writeSize = writeEnd - writeBegin;
+                        auto const writeOffsetLocalWindow = writeBegin - localWindowBegin;
+                        auto const bufferOffset = writeBegin - slabBegin;
+
+                        params->window.localDimensions.offset = originalLocalDimensions.offset + writeOffsetLocalWindow;
+                        params->window.localDimensions.size = writeSize;
+                        params->localWindowToDomainOffset = bufferOffset;
+
+                        openPMDWriter::writeField<ComponentType>(
+                            params,
+                            currentStep,
+                            GetNComponents<ValueType>::value,
+                            getPmlSlabName(T_Field::getName(), slabIdx),
+                            field->getGridBuffer(slabIdx),
+                            getUnit(),
+                            T_Field::getUnitDimension(),
+                            inCellPosition,
+                            timeOffset,
+                            true);
+                    }
+                    params->window.localDimensions = originalLocalDimensions;
+                    params->localWindowToDomainOffset = originalWindowToDomainOffset;
+                }
+            };
+
             /** Calculate FieldTmp with given solver, particle species, and filter
              * and write them to openPMD.
              *
              * FieldTmp is calculated on device and then dumped to openPMD.
              */
             template<typename Solver, typename Species, typename Filter>
-            struct GetFields<FieldTmpOperation<Solver, Species, Filter>>
+            struct GetFields<FieldTmpOperation<Solver, Species, Filter>, void>
             {
                 /*
                  * This is only a wrapper function to allow disable nvcc warnings.

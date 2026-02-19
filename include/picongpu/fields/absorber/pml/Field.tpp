@@ -335,6 +335,24 @@ namespace picongpu
                     return getDeviceDataBox(0u);
                 }
 
+                pmacc::DataSpace<simDim> Field::getSlabBegin(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numSlabs);
+                    return slabInfo[slabIdx].begin;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabEnd(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numSlabs);
+                    return slabInfo[slabIdx].end;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabSize(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numSlabs);
+                    return slabInfo[slabIdx].end - slabInfo[slabIdx].begin;
+                }
+
                 Field::OuterLayerBoxType Field::getDeviceOuterLayerBox()
                 {
                     DataBoxType slabBoxes[numSlabs];

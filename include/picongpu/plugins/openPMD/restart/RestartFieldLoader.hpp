@@ -23,6 +23,7 @@
 #if (ENABLE_OPENPMD == 1)
 
 #    include "picongpu/defines.hpp"
+#    include "picongpu/fields/absorber/pml/Field.hpp"
 #    include "picongpu/plugins/misc/ComponentNames.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.def"
 #    include "picongpu/simulation/control/MovingWindow.hpp"
@@ -54,6 +55,56 @@ namespace picongpu
         class RestartFieldLoader
         {
         public:
+            template<class Data>
+            static void loadFieldAtOffset(
+                Data& field,
+                uint32_t const numComponents,
+                std::string const& objectName,
+                ThreadParams* params,
+                uint32_t const currentStep,
+                DataSpace<simDim> const& domainOffset,
+                DataSpace<simDim> const& localDomainSize,
+                DataSpace<simDim> const& destinationOffset)
+            {
+                auto const name_lookup_tpl = plugins::misc::getComponentNames(numComponents);
+
+                using ValueType = typename Data::ValueType;
+                field.getHostBuffer().setValue(ValueType::create(0.0));
+                if(localDomainSize.productOfComponents() == 0u)
+                {
+                    field.hostToDevice();
+                    return;
+                }
+
+                ::openPMD::Series& series = *params->openPMDSeries;
+                ::openPMD::Mesh& mesh = series.iterations[currentStep].open().meshes[objectName];
+
+                auto destBox = field.getHostBuffer().getDataBox();
+                for(uint32_t n = 0; n < numComponents; ++n)
+                {
+                    ::openPMD::RecordComponent rc
+                        = numComponents > 1 ? mesh[name_lookup_tpl[n]] : mesh[::openPMD::RecordComponent::SCALAR];
+                    ::openPMD::Offset start
+                        = asStandardVector<DataSpace<simDim> const&, ::openPMD::Offset>(domainOffset);
+                    ::openPMD::Extent count
+                        = asStandardVector<DataSpace<simDim> const&, ::openPMD::Extent>(localDomainSize);
+
+                    eventSystem::getTransactionEvent().waitForFinished();
+                    std::shared_ptr<float_X> field_container = rc.loadChunk<float_X>(start, count);
+                    mesh.seriesFlush();
+
+                    int const elementCount = localDomainSize.productOfComponents();
+#    pragma omp parallel for simd
+                    for(int linearId = 0; linearId < elementCount; ++linearId)
+                    {
+                        auto destIdx = pmacc::math::mapToND(localDomainSize, linearId) + destinationOffset;
+                        destBox(destIdx)[n] = field_container.get()[linearId];
+                    }
+                }
+                field.hostToDevice();
+                eventSystem::getTransactionEvent().waitForFinished();
+            }
+
             template<class Data>
             static void loadField(
                 Data& field,
@@ -245,6 +296,64 @@ namespace picongpu
                     tp,
                     restartStep,
                     isDomainBound);
+            }
+        };
+
+        template<>
+        struct LoadFields<fields::absorber::pml::FieldE>
+        {
+            HINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+                if(traits::IsFieldOutputOptional<fields::absorber::pml::FieldE>::value
+                   && !dc.hasId(fields::absorber::pml::FieldE::getName()))
+                    return;
+                auto field = dc.get<fields::absorber::pml::FieldE>(fields::absorber::pml::FieldE::getName());
+                auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                for(uint32_t slabIdx = 0u; slabIdx < fields::absorber::pml::FieldE::getNumSlabs(); ++slabIdx)
+                {
+                    auto const slabName = fields::absorber::pml::FieldE::getName() + "_slab" + std::to_string(slabIdx);
+                    auto const slabBegin = field->getSlabBegin(slabIdx);
+                    auto const slabSize = field->getSlabSize(slabIdx);
+                    RestartFieldLoader::loadFieldAtOffset(
+                        field->getGridBuffer(slabIdx),
+                        static_cast<uint32_t>(fields::absorber::pml::FieldE::numComponents),
+                        slabName,
+                        params,
+                        restartStep,
+                        localDomain.offset + slabBegin,
+                        slabSize,
+                        DataSpace<simDim>::create(0));
+                }
+            }
+        };
+
+        template<>
+        struct LoadFields<fields::absorber::pml::FieldB>
+        {
+            HINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+                if(traits::IsFieldOutputOptional<fields::absorber::pml::FieldB>::value
+                   && !dc.hasId(fields::absorber::pml::FieldB::getName()))
+                    return;
+                auto field = dc.get<fields::absorber::pml::FieldB>(fields::absorber::pml::FieldB::getName());
+                auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                for(uint32_t slabIdx = 0u; slabIdx < fields::absorber::pml::FieldB::getNumSlabs(); ++slabIdx)
+                {
+                    auto const slabName = fields::absorber::pml::FieldB::getName() + "_slab" + std::to_string(slabIdx);
+                    auto const slabBegin = field->getSlabBegin(slabIdx);
+                    auto const slabSize = field->getSlabSize(slabIdx);
+                    RestartFieldLoader::loadFieldAtOffset(
+                        field->getGridBuffer(slabIdx),
+                        static_cast<uint32_t>(fields::absorber::pml::FieldB::numComponents),
+                        slabName,
+                        params,
+                        restartStep,
+                        localDomain.offset + slabBegin,
+                        slabSize,
+                        DataSpace<simDim>::create(0));
+                }
             }
         };
 

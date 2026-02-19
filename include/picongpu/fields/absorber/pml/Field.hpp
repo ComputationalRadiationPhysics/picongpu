@@ -250,6 +250,12 @@ namespace picongpu
                      */
                     HINLINE Field(MappingDesc const& cellDescription, Thickness const& globalThickness);
 
+                    //! Number of slabs in this field representation
+                    HINLINE static constexpr uint32_t getNumSlabs()
+                    {
+                        return numSlabs;
+                    }
+
                     //! Get a reference to a slab host-device buffer for the field values
                     HINLINE Buffer& getGridBuffer(uint32_t slabIdx);
 
@@ -273,6 +279,15 @@ namespace picongpu
 
                     //! Get the first slab device data box for compatibility
                     HINLINE DataBoxType getDeviceDataBox();
+
+                    //! Get slab begin index in local grid coordinates without guard
+                    HINLINE pmacc::DataSpace<simDim> getSlabBegin(uint32_t slabIdx) const;
+
+                    //! Get slab end index in local grid coordinates without guard
+                    HINLINE pmacc::DataSpace<simDim> getSlabEnd(uint32_t slabIdx) const;
+
+                    //! Get slab size in local grid coordinates
+                    HINLINE pmacc::DataSpace<simDim> getSlabSize(uint32_t slabIdx) const;
 
                     //! Get the device outer layer data box for the field values
                     HINLINE OuterLayerBoxType getDeviceOuterLayerBox();
@@ -307,7 +322,7 @@ namespace picongpu
                     HINLINE void initializeSlabInfo();
 
                     //! Number of slabs: a positive and a negative one for each axis
-                    static constexpr auto numSlabs = 2 * simDim;
+                    static constexpr uint32_t numSlabs = 2 * simDim;
 
                     //! Host-device slab buffers for field values
                     std::unique_ptr<Buffer> slabData[numSlabs];
