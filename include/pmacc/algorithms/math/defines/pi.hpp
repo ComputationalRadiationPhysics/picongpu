@@ -39,7 +39,7 @@ namespace pmacc
             static constexpr T_Type doubleValue = static_cast<T_Type>(2.0) * value;
             static constexpr T_Type halfValue = value / static_cast<T_Type>(2.0);
             static constexpr T_Type quarterValue = value / static_cast<T_Type>(4.0);
-            static constexpr T_Type doubleReciprocalValue = static_cast<T_Type>(2.0) / value;
+            static constexpr T_Type doubleReciprocalValue = static_cast<T_Type>(2.0) * std::numbers::inv_pi_v<T_Type>;
         };
 
     } // namespace math
