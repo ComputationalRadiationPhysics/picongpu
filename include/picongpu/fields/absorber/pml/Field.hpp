@@ -190,7 +190,7 @@ namespace picongpu
 
                     /** Cartesian layers constituting the outer layer.
                      *
-                     * The ordering inside the array is z-y-x for 3d and y-x for 2d.
+                     * The ordering inside the array is x-y-z for 3d and x-y for 2d.
                      */
                     Layer layers[numLayers];
 
@@ -216,6 +216,17 @@ namespace picongpu
                     , public ISimulationData
                 {
                 public:
+                    //! Number of slabs: a positive and a negative one for each axis
+                    static constexpr uint32_t numSlabs = 2 * simDim;
+
+                    //! Slab ids (DIM3: x-,x+,y-,y+,z-,z+; DIM2: x-,x+,y-,y+)
+                    static constexpr uint32_t slabXNeg = 0u;
+                    static constexpr uint32_t slabXPos = 1u;
+                    static constexpr uint32_t slabYNeg = 2u;
+                    static constexpr uint32_t slabYPos = 3u;
+                    static constexpr uint32_t slabZNeg = 4u;
+                    static constexpr uint32_t slabZPos = 5u;
+
                     //! Type of each field value
                     using ValueType = NodeValues;
 
@@ -320,9 +331,6 @@ namespace picongpu
 
                     //! Compute begin/end of all slabs
                     HINLINE void initializeSlabInfo();
-
-                    //! Number of slabs: a positive and a negative one for each axis
-                    static constexpr uint32_t numSlabs = 2 * simDim;
 
                     //! Host-device slab buffers for field values
                     std::unique_ptr<Buffer> slabData[numSlabs];

@@ -139,43 +139,33 @@ namespace picongpu
 
                     // Note: since this should compile for 2d, .z( ) can't be used
                     using detail::makeIdx;
-                    int layerIdx = 0;
-
-                    if constexpr(simDim == DIM3)
-                    {
-                        auto const negativeZLayer = Layer{
-                            makeIdx(0, 0, 0),
-                            makeIdx(gridSize[0], gridSize[1], negativeSize[2]),
-                            static_cast<uint32_t>(layerIdx)};
-                        layers[layerIdx++] = negativeZLayer;
-                        auto const positiveZLayer = Layer{
-                            makeIdx(0, 0, gridSize[2] - positiveSize[2]),
-                            makeIdx(gridSize[0], gridSize[1], gridSize[2]),
-                            static_cast<uint32_t>(layerIdx)};
-                        layers[layerIdx++] = positiveZLayer;
-                    }
-
-                    auto const negativeYLayer = Layer{
-                        makeIdx(0, 0, 0),
-                        makeIdx(gridSize[0], negativeSize[1], simDim == DIM3 ? gridSize[2] : 1),
-                        static_cast<uint32_t>(layerIdx)};
-                    layers[layerIdx++] = negativeYLayer;
-                    auto const positiveYLayer = Layer{
-                        makeIdx(0, gridSize[1] - positiveSize[1], 0),
-                        makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1),
-                        static_cast<uint32_t>(layerIdx)};
-                    layers[layerIdx++] = positiveYLayer;
-
-                    auto const negativeXLayer = Layer{
+                    layers[Field::slabXNeg] = Layer{
                         makeIdx(0, 0, 0),
                         makeIdx(negativeSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1),
-                        static_cast<uint32_t>(layerIdx)};
-                    layers[layerIdx++] = negativeXLayer;
-                    auto const positiveXLayer = Layer{
+                        Field::slabXNeg};
+                    layers[Field::slabXPos] = Layer{
                         makeIdx(gridSize[0] - positiveSize[0], 0, 0),
                         makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1),
-                        static_cast<uint32_t>(layerIdx)};
-                    layers[layerIdx++] = positiveXLayer;
+                        Field::slabXPos};
+                    layers[Field::slabYNeg] = Layer{
+                        makeIdx(0, 0, 0),
+                        makeIdx(gridSize[0], negativeSize[1], simDim == DIM3 ? gridSize[2] : 1),
+                        Field::slabYNeg};
+                    layers[Field::slabYPos] = Layer{
+                        makeIdx(0, gridSize[1] - positiveSize[1], 0),
+                        makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1),
+                        Field::slabYPos};
+                    if constexpr(simDim == DIM3)
+                    {
+                        layers[Field::slabZNeg] = Layer{
+                            makeIdx(0, 0, 0),
+                            makeIdx(gridSize[0], gridSize[1], negativeSize[2]),
+                            Field::slabZNeg};
+                        layers[Field::slabZPos] = Layer{
+                            makeIdx(0, 0, gridSize[2] - positiveSize[2]),
+                            makeIdx(gridSize[0], gridSize[1], gridSize[2]),
+                            Field::slabZPos};
+                    }
                 }
 
                 template<typename T_Value>
@@ -201,12 +191,31 @@ namespace picongpu
                     uint32_t& slabIdx) const
                 {
                     auto const idx = idxWithGuard - guardSize;
-                    for(Layer const& layer : layers)
+                    auto const mapFromLayer = [&](uint32_t const layerId) -> bool {
+                        auto const& layer = layers[layerId];
                         if(layer.contains(idx))
                         {
                             slabIdx = layer.getSlabIdx();
-                            return layer.localIdx(idx);
+                            return true;
                         }
+                        return false;
+                    };
+                    // Keep overlap priority z -> y -> x independent of slab index order.
+                    if constexpr(simDim == DIM3)
+                    {
+                        if(mapFromLayer(Field::slabZNeg))
+                            return layers[Field::slabZNeg].localIdx(idx);
+                        if(mapFromLayer(Field::slabZPos))
+                            return layers[Field::slabZPos].localIdx(idx);
+                    }
+                    if(mapFromLayer(Field::slabYNeg))
+                        return layers[Field::slabYNeg].localIdx(idx);
+                    if(mapFromLayer(Field::slabYPos))
+                        return layers[Field::slabYPos].localIdx(idx);
+                    if(mapFromLayer(Field::slabXNeg))
+                        return layers[Field::slabXNeg].localIdx(idx);
+                    if(mapFromLayer(Field::slabXPos))
+                        return layers[Field::slabXPos].localIdx(idx);
                     PMACC_ASSERT_MSG(false, "PML index is outside of allocated psi slabs.");
                     PMACC_DEVICE_ASSERT_MSG(false, "PML index is outside of allocated psi slabs.");
                     return detail::makeIdx(0, 0, 0);
@@ -267,28 +276,27 @@ namespace picongpu
                     auto const negativeSize = globalThickness.getNegativeBorder();
                     auto const positiveSize = globalThickness.getPositiveBorder();
 
-                    auto slabIdx = 0u;
+                    slabInfo[slabXNeg] = SlabInfo{
+                        detail::makeIdx(0, 0, 0),
+                        detail::makeIdx(negativeSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1)};
+                    slabInfo[slabXPos] = SlabInfo{
+                        detail::makeIdx(gridSize[0] - positiveSize[0], 0, 0),
+                        detail::makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1)};
+                    slabInfo[slabYNeg] = SlabInfo{
+                        detail::makeIdx(0, 0, 0),
+                        detail::makeIdx(gridSize[0], negativeSize[1], simDim == DIM3 ? gridSize[2] : 1)};
+                    slabInfo[slabYPos] = SlabInfo{
+                        detail::makeIdx(0, gridSize[1] - positiveSize[1], 0),
+                        detail::makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1)};
                     if constexpr(simDim == DIM3)
                     {
-                        slabInfo[slabIdx++] = SlabInfo{
+                        slabInfo[slabZNeg] = SlabInfo{
                             detail::makeIdx(0, 0, 0),
                             detail::makeIdx(gridSize[0], gridSize[1], negativeSize[2])};
-                        slabInfo[slabIdx++] = SlabInfo{
+                        slabInfo[slabZPos] = SlabInfo{
                             detail::makeIdx(0, 0, gridSize[2] - positiveSize[2]),
                             detail::makeIdx(gridSize[0], gridSize[1], gridSize[2])};
                     }
-                    slabInfo[slabIdx++] = SlabInfo{
-                        detail::makeIdx(0, 0, 0),
-                        detail::makeIdx(gridSize[0], negativeSize[1], simDim == DIM3 ? gridSize[2] : 1)};
-                    slabInfo[slabIdx++] = SlabInfo{
-                        detail::makeIdx(0, gridSize[1] - positiveSize[1], 0),
-                        detail::makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1)};
-                    slabInfo[slabIdx++] = SlabInfo{
-                        detail::makeIdx(0, 0, 0),
-                        detail::makeIdx(negativeSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1)};
-                    slabInfo[slabIdx++] = SlabInfo{
-                        detail::makeIdx(gridSize[0] - positiveSize[0], 0, 0),
-                        detail::makeIdx(gridSize[0], gridSize[1], simDim == DIM3 ? gridSize[2] : 1)};
                 }
 
                 Field::Buffer& Field::getGridBuffer(uint32_t const slabIdx)
