@@ -16,7 +16,7 @@ spack install --reuse boost@1.83.0 \
     +program_options \
     +atomic \
     ~python \
-    cxxstd=17 \
+    cxxstd=20 \
     %gcc@12.2.0
 
 echo "pngwriter"
