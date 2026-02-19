@@ -744,6 +744,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 return tmp;
             }
 
+            template<typename T_Buffer>
+            static auto getHostDataBox(T_Buffer& buffer) -> decltype(buffer.getHostDataBox())
+            {
+                return buffer.getHostDataBox();
+            }
+
+            template<typename T_Buffer>
+            static auto getHostDataBox(T_Buffer& buffer) -> decltype(buffer.getHostBuffer().getDataBox())
+            {
+                return buffer.getHostBuffer().getDataBox();
+            }
+
             /**
              * Write calculated fields to openPMD.
              */
@@ -1662,8 +1674,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     PMACC_ASSERT(inCellPosition.at(n).size() == simDim);
                 PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
+                auto const hostDataBox = getHostDataBox(buffer);
                 log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents
-                    % buffer.getHostDataBox().getPointer();
+                    % hostDataBox.getPointer();
                 if(logBeginWriteField)
                 {
                     params->m_dumpTimes.now<std::chrono::milliseconds>("Begin write field " + name);
@@ -1828,7 +1841,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      */
                     int const maxZ = simDim == DIM3 ? localWindowSize[2] : 1;
                     int const guardZ = simDim == DIM3 ? bufferOffset[2] : 0;
-                    void* ptr = buffer.getHostDataBox().getPointer();
+                    auto const* ptr = hostDataBox.getPointer();
                     for(int z = 0; z < maxZ; ++z)
                     {
                         for(int y = 0; y < localWindowSize[1]; ++y)
@@ -1843,7 +1856,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 size_t index_src = base_index_src + (x + bufferOffset[0]) * nComponents + d;
                                 size_t index_dst = base_index_dst + x;
 
-                                dstBuffer[index_dst] = reinterpret_cast<ComponentType*>(ptr)[index_src];
+                                dstBuffer[index_dst] = ptr[index_src][d];
                             }
                         }
                     }
