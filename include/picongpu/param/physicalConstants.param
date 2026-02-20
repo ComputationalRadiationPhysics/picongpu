@@ -23,7 +23,7 @@
 
 namespace picongpu
 {
-    constexpr float_64 PI = 3.141592653589793238462643383279502884197169399;
+    constexpr float_64 PI = pmacc::math::Pi<float_64>::value;
 
     namespace SI
     {
