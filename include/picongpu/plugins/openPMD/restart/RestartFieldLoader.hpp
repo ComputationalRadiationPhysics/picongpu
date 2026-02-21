@@ -78,7 +78,7 @@ namespace picongpu
                 using ValueType = typename Data::ValueType;
                 field.getHostBuffer().setValue(ValueType::create(0.0));
 
-                DataSpace<simDim> domain_offset = localDomain.offset;
+                ::pmacc::math::Vector<uint64_t, simDim> domain_offset = localDomain.offset;
                 DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
                 bool const useCustomReadLayout = domainOffset.has_value() && localDomainSize.has_value();
                 if(useCustomReadLayout)
@@ -170,7 +170,7 @@ namespace picongpu
                     log<picLog::INPUT_OUTPUT>("openPMD: Read from field '%1%'") % objectName;
 
                     ::openPMD::Offset start
-                        = asStandardVector<DataSpace<simDim>&, ::openPMD::Offset>(domain_offset);
+                        = asStandardVector<::pmacc::math::Vector<uint64_t, simDim>&, ::openPMD::Offset>(domain_offset);
                     ::openPMD::Extent count
                         = asStandardVector<DataSpace<simDim>&, ::openPMD::Extent>(local_domain_size);
 
@@ -299,7 +299,7 @@ namespace picongpu
                         auto& slabBuffer = field->getGridBuffer(slabIdx);
                         RestartFieldLoader::loadField(
                             slabBuffer,
-                            (uint32_t) T_Field::numComponents,
+                            static_cast<uint32_t>(T_Field::numComponents),
                             slabName,
                             tp,
                             restartStep,
@@ -312,7 +312,7 @@ namespace picongpu
                 {
                     RestartFieldLoader::loadField(
                         field->getGridBuffer(),
-                        (uint32_t) T_Field::numComponents,
+                        static_cast<uint32_t>(T_Field::numComponents),
                         T_Field::getName(),
                         tp,
                         restartStep,

@@ -37,6 +37,7 @@
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -127,7 +128,7 @@ namespace picongpu
                     OuterLayerBox(
                         GridLayout<simDim> const& gridLayout,
                         Thickness const& globalThickness,
-                        DataBox const (&slabBoxes)[2 * simDim]);
+                        std::array<DataBox, numLayers> const& slabBoxes);
 
                     /** Constant element access by a simDim-dimensional index
                      *
@@ -143,14 +144,14 @@ namespace picongpu
 
                 private:
                     /** Return a local simDim-dimensional ND data box index
-		     *  for a given grid index with guard
+                     *  for a given grid index with guard
                      *
                      * @param idxWithGuard grid index with guard
-		     * @param slabIdx returns the respective slabIdx
+                     * @param slabIdx returns the respective slabIdx
                      */
                     HDINLINE Idx getDataBoxIdx(Idx const& idxWithGuard, uint32_t& slabIdx) const;
 
-                    //! A single Cartesial slab that is part of the outer layer box
+                    //! A single Cartesian slab that is part of the outer layer box
                     class Layer
                     {
                     public:
@@ -191,10 +192,10 @@ namespace picongpu
                     static constexpr auto numLayers = 2 * simDim;
 
                     //! Cartesian layers constituting the outer layer.
-                    Layer layers[numLayers];
+                    std::array<Layer, numLayers> layers;
 
                     //! Slab data boxes, do not own memory
-                    DataBox slabBoxes[numLayers];
+                    std::array<DataBox, numLayers> slabBoxes;
 
                     //! Guard size
                     Idx const guardSize;
@@ -320,10 +321,10 @@ namespace picongpu
                     HINLINE void initializeSlabInfo();
 
                     //! Host-device slab buffers for field values
-                    std::unique_ptr<Buffer> slabData[numSlabs];
+                    std::array<std::unique_ptr<Buffer>, numSlabs> slabData;
 
                     //! Geometry of each slab
-                    SlabInfo slabInfo[numSlabs];
+                    std::array<SlabInfo, numSlabs> slabInfo;
 
                     //! Grid layout for normal (non-PML) fields
                     pmacc::GridLayout<simDim> gridLayout;
@@ -336,7 +337,7 @@ namespace picongpu
                 //! Data box type used for PML fields in kernels
                 using FieldBox = Field::OuterLayerBoxType;
 
-                /** Representation of the additinal electric field components in PML
+                /** Representation of the additional electric field components in PML
                  *
                  * Stores field values on host and device and provides data synchronization
                  * between them.
@@ -388,7 +389,7 @@ namespace picongpu
                     }
                 };
 
-                /** Representation of the additinal magnetic field components in PML
+                /** Representation of the additional magnetic field components in PML
                  *
                  * Stores field values on host and device and provides data synchronization
                  * between them.

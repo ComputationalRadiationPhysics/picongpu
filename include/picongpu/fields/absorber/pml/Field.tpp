@@ -126,14 +126,13 @@ namespace picongpu
                 OuterLayerBox<T_Value>::OuterLayerBox(
                     GridLayout<simDim> const& gridLayout,
                     Thickness const& globalThickness,
-                    DataBox const (&inputSlabBoxes)[2 * simDim])
-                    : guardSize(gridLayout.guardSizeND())
+                    std::array<DataBox, numLayers> const& inputSlabBoxes)
+                    : slabBoxes(inputSlabBoxes)
+                    , guardSize(gridLayout.guardSizeND())
                 {
                     auto const negativeSize = globalThickness.getNegativeBorder();
                     auto const positiveSize = globalThickness.getPositiveBorder();
                     auto const gridSize = gridLayout.sizeWithoutGuardND();
-                    for(uint32_t slabIdx = 0u; slabIdx < numLayers; ++slabIdx)
-                        slabBoxes[slabIdx] = inputSlabBoxes[slabIdx];
 
                     // Note: since this should compile for 2d, .z( ) can't be used
                     using detail::makeIdx;
@@ -259,10 +258,12 @@ namespace picongpu
                     initializeSlabInfo();
 
                     auto const zeroGuard = pmacc::DataSpace<simDim>::create(0);
-                    for(uint32_t slabIdx = 0u; slabIdx < numSlabs; ++slabIdx)
+                    uint32_t slabIdx = 0u;
+                    for(auto& slab : slabData)
                     {
                         auto const size = detail::getAllocationSize(slabInfo[slabIdx].end - slabInfo[slabIdx].begin);
-                        slabData[slabIdx] = std::make_unique<Buffer>(pmacc::GridLayout<simDim>(size, zeroGuard));
+                        slab = std::make_unique<Buffer>(pmacc::GridLayout<simDim>(size, zeroGuard));
+                        ++slabIdx;
                     }
                 }
 
@@ -339,39 +340,43 @@ namespace picongpu
 
                 Field::OuterLayerBoxType Field::getDeviceOuterLayerBox()
                 {
-                    DataBoxType slabBoxes[numSlabs];
-                    for(uint32_t slabIdx = 0u; slabIdx < numSlabs; ++slabIdx)
-                        slabBoxes[slabIdx] = getDeviceDataBox(slabIdx);
+                    std::array<DataBoxType, numSlabs> slabBoxes;
+                    uint32_t slabIdx = 0u;
+                    for(auto& slabBox : slabBoxes)
+                    {
+                        slabBox = getDeviceDataBox(slabIdx);
+                        ++slabIdx;
+                    }
                     return OuterLayerBoxType{gridLayout, globalThickness, slabBoxes};
                 }
 
                 EventTask Field::asyncCommunication(EventTask serialEvent)
                 {
                     auto event = serialEvent;
-                    for(uint32_t slabIdx = 0u; slabIdx < numSlabs; ++slabIdx)
-                        event = slabData[slabIdx]->asyncCommunication(event);
+                    for(auto& slab : slabData)
+                        event += slab->asyncCommunication(event);
                     return event;
                 }
 
                 void Field::reset(uint32_t)
                 {
-                    for(uint32_t slabIdx = 0u; slabIdx < numSlabs; ++slabIdx)
+                    for(auto& slab : slabData)
                     {
-                        slabData[slabIdx]->getHostBuffer().reset(true);
-                        slabData[slabIdx]->getDeviceBuffer().reset(false);
+                        slab->getHostBuffer().reset(true);
+                        slab->getDeviceBuffer().reset(false);
                     }
                 }
 
                 void Field::syncToDevice()
                 {
-                    for(uint32_t slabIdx = 0u; slabIdx < numSlabs; ++slabIdx)
-                        slabData[slabIdx]->hostToDevice();
+                    for(auto& slab : slabData)
+                        slab->hostToDevice();
                 }
 
                 void Field::synchronize()
                 {
-                    for(uint32_t slabIdx = 0u; slabIdx < numSlabs; ++slabIdx)
-                        slabData[slabIdx]->deviceToHost();
+                    for(auto& slab : slabData)
+                        slab->deviceToHost();
                 }
 
             } // namespace pml
