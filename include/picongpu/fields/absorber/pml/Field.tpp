@@ -65,11 +65,11 @@ namespace picongpu
                         Thickness const& globalThickness)
                     {
                         auto const gridSize = gridLayout.sizeWithoutGuardND();
+                        auto const negativeSize = globalThickness.getNegativeBorder();
+                        auto const positiveSize = globalThickness.getPositiveBorder();
                         for(uint32_t dim = 0u; dim < simDim; ++dim)
                         {
-                            auto const negativeSize = globalThickness(dim, 0);
-                            auto const positiveSize = globalThickness(dim, 1);
-                            if(negativeSize > gridSize[dim] || positiveSize > gridSize[dim])
+                            if(negativeSize[dim] > gridSize[dim] || positiveSize[dim] > gridSize[dim])
                             {
                                 std::ostringstream msg;
                                 msg << "Requested global PML thickness exceeds local domain in dimension " << dim
@@ -342,10 +342,10 @@ namespace picongpu
 
                     slabViewInfo[slabYNeg] = SlabInfo{
                         makeIdx(negativeSize[0], 0, negativeSizeZ),
-                        makeIdx(positiveSize[0], negativeSize[1], positiveBeginZ)};
+                        makeIdx(positiveBegin[0], negativeSize[1], positiveBeginZ)};
                     slabViewInfo[slabYPos] = SlabInfo{
                         makeIdx(negativeSize[0], positiveBegin[1], negativeSizeZ),
-                        makeIdx(positiveSize[0], gridSize[1], positiveBeginZ)};
+                        makeIdx(positiveBegin[0], gridSize[1], positiveBeginZ)};
 
                     slabViewInfo[slabXNeg] = SlabInfo{
                         makeIdx(0, 0, negativeSizeZ),
