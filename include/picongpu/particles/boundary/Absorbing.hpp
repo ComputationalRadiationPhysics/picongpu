@@ -200,8 +200,8 @@ namespace picongpu
                         throw std::runtime_error("The used exchange results into an invalid selected axis.");
                     auto const offsetCells = getOffsetCells(species, exchangeType);
                     auto const isMinSide = pmacc::boundary::isMinSide(exchangeType);
-                    auto const& pmlImpl = absorberImpl.asPmlImpl();
-                    auto const localParameters = pmlImpl.getLocalParameters(currentStep);
+                    auto& pmlImpl = absorberImpl.asPmlImpl();
+                    auto const localParameters = pmlImpl.updateAndGetLocalParameters(currentStep);
                     auto const pmlThickness = static_cast<uint32_t>(
                         isMinSide ? localParameters.negativeBorderSize[axis]
                                   : localParameters.positiveBorderSize[axis]);

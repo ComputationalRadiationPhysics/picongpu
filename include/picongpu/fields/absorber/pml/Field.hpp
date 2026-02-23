@@ -51,6 +51,9 @@ namespace picongpu
         {
             namespace pml
             {
+                //! Number of Cartesian PML layers (negative/positive per axis)
+                inline constexpr uint32_t numPmlLayers = 2 * simDim;
+
                 //! Additional node values for E or B in PML
                 struct NodeValues
                 {
@@ -97,6 +100,13 @@ namespace picongpu
                     HDINLINE float_X const& operator[](uint32_t const idx) const;
                 };
 
+                //! Slab geometry description
+                struct SlabInfo
+                {
+                    pmacc::DataSpace<simDim> begin;
+                    pmacc::DataSpace<simDim> end;
+                };
+
                 /** Data box type used for PML fields in kernels
                  *
                  * Stores PML fields in explicit slabs and provides access via
@@ -120,15 +130,15 @@ namespace picongpu
                     /** Create an outer layer box
                      *
                      * @param gridLayout grid layout, as for normal fields
-                     * @param globalThickness PML thickness used for allocation
+                     * @param slabInfo view geometry for each slab
                      * @param slabBoxes underlying array of data boxes, preallocated per slab
                      *            the constructed OuterLayerBox does not own the box memory,
                      *            so can only be used before the box is reallocated
                      */
                     OuterLayerBox(
                         GridLayout<simDim> const& gridLayout,
-                        Thickness const& globalThickness,
-                        std::array<DataBox, numLayers> const& slabBoxes);
+                        std::array<SlabInfo, numPmlLayers> const& slabInfo,
+                        std::array<DataBox, numPmlLayers> const& slabBoxes);
 
                     /** Constant element access by a simDim-dimensional index
                      *
@@ -188,18 +198,14 @@ namespace picongpu
                         uint32_t slabIdx;
                     };
 
-                    //! Number of layers: a positive and a negative one for each axis
-                    static constexpr auto numLayers = 2 * simDim;
-
                     //! Cartesian layers constituting the outer layer.
-                    std::array<Layer, numLayers> layers;
+                    std::array<Layer, numPmlLayers> layers;
 
                     //! Slab data boxes, do not own memory
-                    std::array<DataBox, numLayers> slabBoxes;
+                    std::array<DataBox, numPmlLayers> slabBoxes;
 
                     //! Guard size
                     Idx const guardSize;
-
                 };
 
                 /** Base class for implementation inheritance in classes for the
@@ -216,9 +222,6 @@ namespace picongpu
                     , public ISimulationData
                 {
                 public:
-                    //! Number of slabs: a positive and a negative one for each axis
-                    static constexpr uint32_t numSlabs = 2 * simDim;
-
                     //! Slab ids (DIM3: x-,x+,y-,y+,z-,z+; DIM2: x-,x+,y-,y+)
                     static constexpr uint32_t slabXNeg = 0u;
                     static constexpr uint32_t slabXPos = 1u;
@@ -264,7 +267,7 @@ namespace picongpu
                     //! Number of slabs in this field representation
                     HINLINE static constexpr uint32_t getNumSlabs()
                     {
-                        return numSlabs;
+                        return numPmlLayers;
                     }
 
                     //! Get a reference to a slab host-device buffer for the field values
@@ -288,6 +291,14 @@ namespace picongpu
                     //! Get slab size in local grid coordinates
                     HINLINE pmacc::DataSpace<simDim> getSlabSize(uint32_t slabIdx) const;
 
+                    /** Set per-step slab view geometry for kernel access
+                     *
+                     * View geometry follows the PML layer exclusion logic z -> x -> y
+                     * to avoid overlapping PMLs. To be symmetric with respect to x- and z-planes
+                     * (moving window axis) exclusions, the y-planes are given the lowest priority.
+                     */
+                    HINLINE void setSlabViews(Thickness const& localThickness);
+
                     //! Get the device outer layer data box for the field values
                     HINLINE OuterLayerBoxType getDeviceOuterLayerBox();
 
@@ -310,28 +321,23 @@ namespace picongpu
                     HINLINE void synchronize() override;
 
                 private:
-                    //! Slab geometry description
-                    struct SlabInfo
-                    {
-                        pmacc::DataSpace<simDim> begin;
-                        pmacc::DataSpace<simDim> end;
-                    };
-
                     //! Compute begin/end of all slabs
                     HINLINE void initializeSlabInfo();
 
                     //! Host-device slab buffers for field values
-                    std::array<std::unique_ptr<Buffer>, numSlabs> slabData;
+                    std::array<std::unique_ptr<Buffer>, numPmlLayers> slabData;
 
-                    //! Geometry of each slab
-                    std::array<SlabInfo, numSlabs> slabInfo;
+                    //! Allocation/storage geometry of each slab (used by I/O)
+                    std::array<SlabInfo, numPmlLayers> slabInfo;
+
+                    //! Per-step kernel view geometry with overlap exclusion
+                    std::array<SlabInfo, numPmlLayers> slabViewInfo;
 
                     //! Grid layout for normal (non-PML) fields
                     pmacc::GridLayout<simDim> gridLayout;
 
                     // PML global thickness
                     Thickness globalThickness;
-
                 };
 
                 //! Data box type used for PML fields in kernels

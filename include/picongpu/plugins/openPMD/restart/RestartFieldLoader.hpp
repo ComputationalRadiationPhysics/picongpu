@@ -38,11 +38,11 @@
 #    include <pmacc/particles/frame_types.hpp>
 #    include <pmacc/types.hpp>
 
+#    include <optional>
 #    include <sstream>
 #    include <stdexcept>
 #    include <string>
 #    include <type_traits>
-#    include <optional>
 
 #    include <openPMD/openPMD.hpp>
 
@@ -238,9 +238,8 @@ namespace picongpu
         struct LoadFields
         {
         private:
-            static constexpr bool isPmlSlabField
-                = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
-                  || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
+            static constexpr bool isPmlSlabField = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                                                   || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
 
             static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
             {

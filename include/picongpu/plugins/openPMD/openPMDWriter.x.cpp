@@ -701,9 +701,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
         private:
             template<typename T_Field>
-            static constexpr bool isPmlSlabField
-                = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
-                  || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
+            static constexpr bool isPmlSlabField = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                                                   || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
 
             static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
             {
@@ -1699,7 +1698,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 pmacc::math::UInt64<simDim> recordLocalSizeDims = localWindowSize;
                 pmacc::math::UInt64<simDim> recordOffsetDims = params->window.localDimensions.offset;
                 pmacc::math::UInt64<simDim> recordGlobalSizeDims = params->window.globalDimensions.size;
-                bool const useCustomWriteLayout = recordOffsetOverride.has_value() && recordLocalSizeOverride.has_value()
+                bool const useCustomWriteLayout = recordOffsetOverride.has_value()
+                                                  && recordLocalSizeOverride.has_value()
                                                   && recordGlobalSizeOverride.has_value();
                 if(useCustomWriteLayout)
                 {
