@@ -36,7 +36,7 @@ This can be done by setting the following environment variable either in your en
 
 
 Additionally, you can activate IO logging in PIConGPU by adding the login level ``32``.
-This can be done via command flags (see above) when using ``pic-build```or via ``ccmake .`` in the ``.build`` directory.
+This can be done via command flags (see above) when using ``pic-build`` or via ``ccmake .`` in the ``.build`` directory.
 To debug the performance of openPMD output in PIConGPU, set the CMake variable ``PIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES`` to ``1`` to obtain detailed time information about the I/O steps.
 
 When reporting a crash, it is helpful if you attached the output ``stdout`` and ``stderr`` of such a build.
