@@ -57,5 +57,6 @@ dependencies = [
   "typeguard>=4.2.1",
 ]
 
-[tool.setuptools]
-packages = [ "picongpu" ]
+[tool.setuptools.packages.find]
+where = [ "." ]
+include = [ "picongpu*" ]
