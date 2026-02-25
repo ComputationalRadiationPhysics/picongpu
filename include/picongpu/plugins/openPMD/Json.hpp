@@ -50,7 +50,7 @@ namespace picongpu
              * If an ordinary JSON configuration was detected, given regex
              * patterns will be matched against "" (the empty string).
              *
-             * @param config The JSON configuration, exactly as in --openPMD.json.
+             * @param config The JSON configuration, exactly as in --openPMD.backendConfig.
              * @param comm MPI communicator for collective file reading, if needed.
              * @return std::unique_ptr<AbstractJsonMatcher>
              */
