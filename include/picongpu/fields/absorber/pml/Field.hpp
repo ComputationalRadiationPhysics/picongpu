@@ -1,4 +1,4 @@
-/* Copyright 2013-2025 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2026 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz, Sergei Bastrakov, Alexander Debus
  *
  * This file is part of PIConGPU.
@@ -41,6 +41,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace picongpu
@@ -157,9 +158,9 @@ namespace picongpu
                      *  for a given grid index with guard
                      *
                      * @param idxWithGuard grid index with guard
-                     * @param slabIdx returns the respective slabIdx
+                     * @return local DataBox index of the respective slabIdx
                      */
-                    HDINLINE Idx getDataBoxIdx(Idx const& idxWithGuard, uint32_t& slabIdx) const;
+                    HDINLINE std::tuple<Idx, uint32_t> getDataBoxIdx(Idx const& idxWithGuard) const;
 
                     //! A single Cartesian slab that is part of the outer layer box
                     class Layer
@@ -170,10 +171,13 @@ namespace picongpu
                          * @param beginIdx first index
                          * @param endIdx index right after the last
                          */
-                        HDINLINE Layer(
-                            Idx const& beginIdx = Idx::create(0),
-                            Idx const& endIdx = Idx::create(0),
-                            uint32_t slabIdx = 0u);
+                        HDINLINE Layer(Idx const& beginIdx = Idx::create(0), Idx const& endIdx = Idx::create(0));
+
+                        /** Create a layer
+                         *
+                         * @param inputSlabInfo create layer from slab meta data
+                         */
+                        HDINLINE Layer(SlabInfo const& inputSlabInfo);
 
                         /** Check if the layer contains given index
                          *
@@ -184,18 +188,12 @@ namespace picongpu
                         //! Return local slab index for a point inside the slab
                         HDINLINE Idx getLocalIdx(Idx const& idx) const;
 
-                        //! Return slab id
-                        HDINLINE uint32_t getSlabIdx() const;
-
                     private:
                         //! First index of the layer
                         Idx beginIdx;
 
                         //! Size of the layer
                         Idx size;
-
-                        //! Slab id in the underlying data box array
-                        uint32_t slabIdx;
                     };
 
                     //! Cartesian layers constituting the outer layer.
@@ -222,14 +220,6 @@ namespace picongpu
                     , public ISimulationData
                 {
                 public:
-                    //! Slab ids (DIM3: x-,x+,y-,y+,z-,z+; DIM2: x-,x+,y-,y+)
-                    static constexpr uint32_t slabXNeg = 0u;
-                    static constexpr uint32_t slabXPos = 1u;
-                    static constexpr uint32_t slabYNeg = 2u;
-                    static constexpr uint32_t slabYPos = 3u;
-                    static constexpr uint32_t slabZNeg = 4u;
-                    static constexpr uint32_t slabZPos = 5u;
-
                     //! Type of each field value
                     using ValueType = NodeValues;
 
@@ -321,6 +311,14 @@ namespace picongpu
                     HINLINE void synchronize() override;
 
                 private:
+                    //! Slab ids (DIM3: x-,x+,y-,y+,z-,z+; DIM2: x-,x+,y-,y+)
+                    static constexpr uint32_t slabXNeg = 0u;
+                    static constexpr uint32_t slabXPos = 1u;
+                    static constexpr uint32_t slabYNeg = 2u;
+                    static constexpr uint32_t slabYPos = 3u;
+                    static constexpr uint32_t slabZNeg = 4u;
+                    static constexpr uint32_t slabZPos = 5u;
+
                     //! Compute begin/end of all slabs
                     HINLINE void initializeSlabInfo();
 

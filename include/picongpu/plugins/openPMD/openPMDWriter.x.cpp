@@ -1,6 +1,6 @@
-/* Copyright 2014-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2014-2026 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz, Alexander Grund, Franz Poeschel,
- *                     Pawel Ordyna, Sergei Bastrakov
+ *                     Pawel Ordyna, Sergei Bastrakov, Alexander Debus
  *
  * This file is part of PIConGPU.
  *

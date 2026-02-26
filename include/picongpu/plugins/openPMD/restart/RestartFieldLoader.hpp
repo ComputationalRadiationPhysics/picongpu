@@ -1,5 +1,5 @@
-/* Copyright 2014-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
- *                     Benjamin Worpitz, Franz Poeschel
+/* Copyright 2014-2026 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ *                     Benjamin Worpitz, Franz Poeschel, Alexander Debus
  *
  * This file is part of PIConGPU.
  *

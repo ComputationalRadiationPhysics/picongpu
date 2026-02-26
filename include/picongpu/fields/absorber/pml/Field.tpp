@@ -1,4 +1,4 @@
-/* Copyright 2013-2025 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2026 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz, Sergei Bastrakov,
  *                     Alexander Debus
  *
@@ -31,6 +31,7 @@
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <tuple>
 
 namespace picongpu
 {
@@ -132,70 +133,52 @@ namespace picongpu
                     : slabBoxes(inputSlabBoxes)
                     , guardSize(gridLayout.guardSizeND())
                 {
-                    for(uint32_t slabIdx = 0u; slabIdx < numPmlLayers; ++slabIdx)
-                        layers[slabIdx] = Layer(inputSlabInfo[slabIdx].begin, inputSlabInfo[slabIdx].end, slabIdx);
+                    for(uint32_t i = 0u; i < numPmlLayers; ++i)
+                        layers[i] = Layer(inputSlabInfo[i]);
                 }
 
                 template<typename T_Value>
                 HDINLINE typename OuterLayerBox<T_Value>::ValueType const& OuterLayerBox<T_Value>::operator()(
                     Idx const& idx) const
                 {
-                    uint32_t slabIdx = 0u;
-                    auto const localIdx = getDataBoxIdx(idx, slabIdx);
+                    auto const [localIdx, slabIdx] = getDataBoxIdx(idx);
                     return slabBoxes[slabIdx](localIdx);
                 }
 
                 template<typename T_Value>
                 HDINLINE typename OuterLayerBox<T_Value>::ValueType& OuterLayerBox<T_Value>::operator()(Idx const& idx)
                 {
-                    uint32_t slabIdx = 0u;
-                    auto const localIdx = getDataBoxIdx(idx, slabIdx);
+                    auto const [localIdx, slabIdx] = getDataBoxIdx(idx);
                     return slabBoxes[slabIdx](localIdx);
                 }
 
                 template<typename T_Value>
-                HDINLINE typename OuterLayerBox<T_Value>::Idx OuterLayerBox<T_Value>::getDataBoxIdx(
-                    Idx const& idxWithGuard,
-                    uint32_t& slabIdx) const
+                HDINLINE std::tuple<typename OuterLayerBox<T_Value>::Idx, uint32_t> OuterLayerBox<
+                    T_Value>::getDataBoxIdx(Idx const& idxWithGuard) const
                 {
                     auto const idx = idxWithGuard - guardSize;
-                    auto const mapFromLayer = [&](uint32_t const layerId) -> bool
+                    uint32_t slabIdx = 0u;
+                    for(auto const& layer : layers)
                     {
-                        auto const& layer = layers[layerId];
                         if(layer.contains(idx))
-                        {
-                            slabIdx = layer.getSlabIdx();
-                            return true;
-                        }
-                        return false;
-                    };
-                    if constexpr(simDim == DIM3)
-                    {
-                        if(mapFromLayer(Field::slabZNeg))
-                            return layers[Field::slabZNeg].getLocalIdx(idx);
-                        if(mapFromLayer(Field::slabZPos))
-                            return layers[Field::slabZPos].getLocalIdx(idx);
+                            return std::make_tuple(layer.getLocalIdx(idx), slabIdx);
+                        slabIdx++;
                     }
-                    if(mapFromLayer(Field::slabYNeg))
-                        return layers[Field::slabYNeg].getLocalIdx(idx);
-                    if(mapFromLayer(Field::slabYPos))
-                        return layers[Field::slabYPos].getLocalIdx(idx);
-                    if(mapFromLayer(Field::slabXNeg))
-                        return layers[Field::slabXNeg].getLocalIdx(idx);
-                    if(mapFromLayer(Field::slabXPos))
-                        return layers[Field::slabXPos].getLocalIdx(idx);
                     PMACC_ASSERT_MSG(false, "PML index is outside of allocated PML slabs.");
-                    return detail::makeIdx(0, 0, 0);
+                    return std::make_tuple(detail::makeIdx(0, 0, 0), uint32_t{0u});
+                };
+
+                template<typename T_Value>
+                HDINLINE OuterLayerBox<T_Value>::Layer::Layer(Idx const& beginIdx, Idx const& endIdx)
+                    : beginIdx{beginIdx}
+                    , size{endIdx - beginIdx}
+                {
                 }
 
                 template<typename T_Value>
-                HDINLINE OuterLayerBox<T_Value>::Layer::Layer(
-                    Idx const& beginIdx,
-                    Idx const& endIdx,
-                    uint32_t const slabIdx)
-                    : beginIdx{beginIdx}
-                    , size{endIdx - beginIdx}
-                    , slabIdx{slabIdx}
+                HDINLINE OuterLayerBox<T_Value>::Layer::Layer(SlabInfo const& inputSlabInfo)
+                    : beginIdx{inputSlabInfo.begin}
+                    , size{inputSlabInfo.end - inputSlabInfo.begin}
                 {
                 }
 
@@ -213,12 +196,6 @@ namespace picongpu
                     Idx const& idx) const
                 {
                     return idx - beginIdx;
-                }
-
-                template<typename T_Value>
-                HDINLINE uint32_t OuterLayerBox<T_Value>::Layer::getSlabIdx() const
-                {
-                    return slabIdx;
                 }
 
                 Field::Field(MappingDesc const& cellDescription, Thickness const& globalThickness)
