@@ -84,7 +84,6 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    models/LL_RR
    models/field_ionization
    models/collisional_ionization
-   models/photons
    models/binary_collisions
    models/atomic_physics
 
