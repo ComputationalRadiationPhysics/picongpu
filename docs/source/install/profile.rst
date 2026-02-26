@@ -97,20 +97,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
    :language: bash
 
 
-Draco (MPCDF)
--------------
-
-**System overview:** `link <https://www.mpcdf.mpg.de/services/computing/draco/about-the-system>`__
-
-**User guide:** `link <https://www.mpcdf.mpg.de/services/computing/draco>`__
-
-**Production directory:** ``/ptmp/$USER/``
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libpng and PNGwriter <install-dependencies>` manually.
-
-.. literalinclude:: profiles/draco-mpcdf/picongpu.profile.example
-   :language: bash
-
 D.A.V.I.D.E (CINECA)
 --------------------
 
