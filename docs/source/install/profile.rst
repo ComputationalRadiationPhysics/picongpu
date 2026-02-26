@@ -96,7 +96,18 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
 .. literalinclude:: profiles/hemera-hzdr/fwkt_v100_picongpu.profile.example
    :language: bash
 
+dev server (HZDR)
+-----------------
 
+**information on software setup with spack:**
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   ./profiles/bash-devServer-hzdr/README
+
+	      
 JURECA (JSC)
 ------------
 
@@ -164,4 +175,44 @@ Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/aris-grnet/gpu_picongpu.profile.example
+   :language: bash
+
+	      
+
+Capella (ZIH)
+-------------
+
+Information on SLURM usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   ./profiles/zih-tud/Slurm_Tutorial
+
+
+Perlmutter (NERSC)
+------------------
+
+General information on system
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   ./profiles/perlmutter-nersc/README
+
+gpu profile
+^^^^^^^^^^^
+
+.. literalinclude:: profiles/perlmutter-nersc/gpu.profile.example
+   :language: bash
+
+	      
+building your software stack
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/perlmutter-nersc/dependencies_autoinstall.sh
    :language: bash
