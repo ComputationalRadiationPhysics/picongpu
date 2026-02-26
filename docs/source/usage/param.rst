@@ -67,3 +67,5 @@ When setting up a simulation, it is recommended to adjust ``.param`` files in th
    param/extensions
    param/plugins
    param/misc
+   param/particles/init
+   param/particles/current
