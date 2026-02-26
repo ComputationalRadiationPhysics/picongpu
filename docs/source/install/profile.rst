@@ -97,23 +97,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
    :language: bash
 
 
-D.A.V.I.D.E (CINECA)
---------------------
-
-**System overview:** `link <http://www.hpc.cineca.it/content/davide>`__
-
-**User guide:** `link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG3.2%3A+D.A.V.I.D.E.+UserGuide>`__
-
-**Production directory:** ``$CINECA_SCRATCH/`` (`link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG2.4%3A+Data+storage+and+FileSystems>`__)
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
-
-Queue: dvd_usr_prod (Nvidia P100 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/davide-cineca/gpu_picongpu.profile.example
-   :language: bash
-
 JURECA (JSC)
 ------------
 
