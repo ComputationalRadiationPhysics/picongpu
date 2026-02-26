@@ -97,29 +97,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
    :language: bash
 
 
-Piz Daint (CSCS)
-----------------
-
-**System overview:** `link <https://www.cscs.ch/computers/piz-daint/>`__
-
-**User guide:** `link <https://user.cscs.ch/>`__
-
-**Production directory:** ``$SCRATCH`` (`link <https://user.cscs.ch/storage/file_systems/>`__).
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, libpng, PNGwriter and ADIOS2 <install-dependencies>` manually.
-
-.. note::
-
-   The MPI libraries are lacking Fortran bindings (which we do not need anyway).
-   During the install of ADIOS, make sure to add to ``configure`` the ``--disable-fortran`` flag.
-
-.. note::
-
-   Please find a `Piz Daint quick start from August 2018 here <https://gist.github.com/ax3l/68cb4caa597df3def9b01640959ea56b>`_.
-
-.. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
-   :language: bash
-
 Taurus (TU Dresden)
 -------------------
 
