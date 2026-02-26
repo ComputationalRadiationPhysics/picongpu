@@ -96,23 +96,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
 .. literalinclude:: profiles/hemera-hzdr/fwkt_v100_picongpu.profile.example
    :language: bash
 
-Summit (ORNL)
--------------
-
-**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/>`__
-
-**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/>`__
-
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`__).
-Note that ``$HOME`` is mounted on compute nodes as read-only.
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-V100 GPUs (recommended)
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/summit-ornl/gpu_picongpu.profile.example
-   :language: bash
 
 Piz Daint (CSCS)
 ----------------
