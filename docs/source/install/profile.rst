@@ -97,23 +97,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
    :language: bash
 
 
-Cori (NERSC)
-------------
-
-**System overview:** `link <https://www.nersc.gov/users/computational-systems/cori/configuration/>`__
-
-**User guide:** `link <https://docs.nersc.gov/>`__
-
-**Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`__).
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-Queue: dgx (DGX - A100)
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/cori-nersc/a100_picongpu.profile.example
-   :language: bash
-
 Draco (MPCDF)
 -------------
 
