@@ -97,40 +97,6 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
    :language: bash
 
 
-Taurus (TU Dresden)
--------------------
-
-**System overview:** `link <https://tu-dresden.de/zih/hochleistungsrechnen/hpc>`__
-
-**User guide:** `link <https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus>`__
-
-**Production directory:** ``/scratch/$USER/`` and ``/scratch/$proj/``
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-Queue: gpu2 (Nvidia K80 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/taurus-tud/k80_picongpu.profile.example
-   :language: bash
-
-Queue: ml (NVIDIA V100 GPUs on Power9 nodes)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For this profile, you additionally need to compile and install everything for the power9-architecture including your own :ref:`boost <install-dependencies>`, :ref:`HDF5 <install-dependencies>`, c-blosc and :ref:`ADIOS <install-dependencies>`.
-
-.. note::
-
-   Please find a `Taurus ml quick start here <https://gist.github.com/steindev/cc02eae81f465833afa27fc8880f3473>`_.
-
-.. note::
-   
-   You need to compile the libraries and PIConGPU on an ``ml`` node since
-   only nodes in the ``ml`` queue are Power9 systems.
-
-.. literalinclude:: profiles/taurus-tud/V100_picongpu.profile.example
-   :language: bash
-
 Cori (NERSC)
 ------------
 
