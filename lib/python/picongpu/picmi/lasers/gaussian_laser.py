@@ -6,10 +6,8 @@ Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Richard Pausch,
 License: GPLv3+
 """
 
-import math
-
-import picmistandard
-import typeguard
+from picmistandard import PICMI_GaussianLaser
+from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser, util
 from ..copy_attributes import default_converts_to
@@ -22,10 +20,12 @@ from .polarization_type import PolarizationType
     # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
     # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
     # i.e. PULSE_DURATION = duration / 2 (#5739)
-    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
+    conversions={
+        "pulse_init": "pulse_init",
+        "duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si(),
+    },
 )
-@typeguard.typechecked
-class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
+class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     """
     PICMI object for Gaussian Laser.
 
@@ -78,71 +78,24 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
       calculated automatically.
     """
 
-    def __init__(
-        self,
-        wavelength,
-        waist,
-        duration,
-        propagation_direction,
-        polarization_direction,
-        focal_position,
-        centroid_position,
-        a0=None,
-        E0=None,
-        picongpu_polarization_type=(PolarizationType.LINEAR),
-        picongpu_laguerre_modes: list[float] | None = None,
-        picongpu_laguerre_phases: list[float] | None = None,
-        # make sure to always place Huygens-surface inside PML-boundaries,
-        # default is valid for standard PMLs
-        # @todo create check for insufficient dimension
-        # @todo create check in simulation for conflict between PMLs and
-        # Huygens-surfaces
-        picongpu_huygens_surface_positions: list[list[int]] = [
-            [16, -16],
-            [16, -16],
-            [16, -16],
-        ],
-        **kw,
-    ):
-        if waist <= 0:
-            raise ValueError(f"waist must be > 0. You gave {waist=}.")
-        if wavelength <= 0:
-            raise ValueError(f"wavelength must be > 0. You gave {wavelength=}.")
-        if duration <= 0:
-            raise ValueError(f"laser pulse duration must be > 0. You gave {duration=}.")
+    picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
+    picongpu_laguerre_modes: list[float] = Field(default_factory=lambda: [1.0])
+    picongpu_laguerre_phases: list[float] = Field(default_factory=lambda: [0.0])
+    # make sure to always place Huygens-surface inside PML-boundaries,
+    # default is valid for standard PMLs
+    # @todo create check for insufficient dimension
+    # @todo create check in simulation for conflict between PMLs and
+    # Huygens-surfaces
+    picongpu_huygens_surface_positions: list[list[int]] = [
+        [16, -16],
+        [16, -16],
+        [16, -16],
+    ]
+    phi0: float = 0.0
 
-        assert (picongpu_laguerre_modes is None and picongpu_laguerre_phases is None) or (
-            picongpu_laguerre_modes is not None and picongpu_laguerre_phases is not None
-        ), (
-            "laguerre_modes and laguerre_phases MUST BE both set or both \
-            unset"
-        )
-
-        self.picongpu_polarization_type = picongpu_polarization_type
-        self.picongpu_laguerre_modes = picongpu_laguerre_modes or [1.0]
-        self.picongpu_laguerre_phases = picongpu_laguerre_phases or [0.0]
-        self.picongpu_huygens_surface_positions = picongpu_huygens_surface_positions
-
-        # Calculate a0 and E0 using our base laser, as the PICMI standard does not provide consistency checks.
-        self.k0 = 2.0 * math.pi / wavelength
-        self.a0, self.E0 = self._compute_E0_and_a0(self.k0, E0, a0)
-        kw["E0"] = self.E0
-        kw["a0"] = self.a0
-
-        super().__init__(
-            wavelength,
-            waist,
-            duration,
-            propagation_direction,
-            polarization_direction,
-            focal_position,
-            centroid_position,
-            **kw,
-        )
-
-        self.phi0 = self.phi0 or 0.0
-        self._validate_common_properties()
-        self.pulse_init = self._compute_pulse_init()
+    @computed_field
+    def pulse_init(self) -> int:
+        return self._compute_pulse_init()
 
     def _pulse_duration_sigma_si(self):
         """Convert the PICMI-standard laser ``duration`` to the PIConGPU
@@ -160,7 +113,8 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
         """
         return self.duration / 2.0
 
-    def check(self):
+    @model_validator(mode="after")
+    def _validate(self):
         util.unsupported("laser name", self.name)
         util.unsupported("laser zeta", self.zeta)
         util.unsupported("laser beta", self.beta)
@@ -168,7 +122,15 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
         # unsupported: fill_in (do not warn, b/c we don't know if it has been
         # set explicitly, and always warning is bad)
 
+        if len(self.picongpu_laguerre_modes) != len(self.picongpu_laguerre_phases):
+            raise ValueError(
+                "Your setup specifies a different number of Laguerre modes and phases. "
+                "Please be explicit about both and use the same length. "
+                f"You gave: {self.picongpu_laguerre_modes=} and {self.picongpu_laguerre_phases=}."
+            )
         self._validate_common_properties()
+
         assert self._propagation_connects_centroid_and_focus(), (
             "propagation_direction must connect centroid_position and focus_position"
         )
+        return self
