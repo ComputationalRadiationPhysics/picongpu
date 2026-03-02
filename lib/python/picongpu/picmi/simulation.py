@@ -195,9 +195,6 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_walltime = pypicongpu.util.build_typesafe_property(datetime.timedelta | None)
     """time after which the cluster scheduler will stop the simulation"""
 
-    picongpu_binomial_current_interpolation = pypicongpu.util.build_typesafe_property(bool)
-    """switch on a binomial current interpolation"""
-
     picongpu_distributions = pypicongpu.util.build_typesafe_property(list[_DensityImpl])
 
     _runner = pypicongpu.util.build_typesafe_property(Runner | None)
@@ -476,7 +473,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             solver=self.solver.get_as_pypicongpu(),
             customuserinput=self.picongpu_custom_user_input,
             grid=self.solver.grid.get_as_pypicongpu(),
-            binomial_current_interpolation=self.picongpu_binomial_current_interpolation,
+            binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,

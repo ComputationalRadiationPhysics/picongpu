@@ -5,20 +5,28 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
-import picmistandard
-import typeguard
+from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
 
 
-@typeguard.typechecked
-class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
+class BinomialSmoother(PICMI_BinomialSmoother):
+    n_pass: None = None
+    compensation: None = None
+    stride: None = None
+    alpha: None = None
+
+
+class ElectromagneticSolver(PICMI_ElectromagneticSolver):
     """
     PICMI Electromagnic Solver
 
     See PICMI spec for full documentation.
     """
+
+    source_smoother: BinomialSmoother | None = None
+    field_smoother: None = None
 
     def get_as_pypicongpu(self) -> AnySolver:
         solver_by_method = {
@@ -31,13 +39,11 @@ class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
 
         # todo: stencil order, cfl
         util.unsupported("stencil order", self.stencil_order)
-        util.unsupported("field smoother", self.field_smoother)
         if self.method != "Yee" and self.method != "Lehe":
             # for yee and Lehe the cfl will be respected -- this behavior is coordinated
             # at the simulation class though
             util.unsupported("cfl", self.cfl)
 
-        util.unsupported("source smoother", self.source_smoother)
         util.unsupported("level of subcycling", self.subcycling)
         util.unsupported("galilean velocity", self.galilean_velocity)
         util.unsupported("divE cleaning", self.divE_cleaning)
