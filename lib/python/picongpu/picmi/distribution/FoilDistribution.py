@@ -5,13 +5,12 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from ...pypicongpu import species
-from ...pypicongpu import util
+import typing
 
-import picmistandard
-
-import typeguard
 import numpy as np
+from picmistandard import PICMI_FoilDistribution
+
+from ...pypicongpu import species, util
 
 """
 note on rms_velocity:
@@ -35,12 +34,11 @@ this method returns None.
 """
 
 
-@typeguard.typechecked
-class FoilDistribution(picmistandard.PICMI_FoilDistribution):
-    def picongpu_get_rms_velocity_si(self) -> tuple[float, float, float]:
+class FoilDistribution(PICMI_FoilDistribution):
+    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_as_pypicongpu(self, grid):
+    def get_as_pypicongpu(self, _) -> species.operation.densityprofile.DensityProfile:
         util.unsupported("fill in", self.fill_in)
         util.unsupported("lower bound", self.lower_bound, (None, None, None))
         util.unsupported("upper bound", self.upper_bound, (None, None, None))
