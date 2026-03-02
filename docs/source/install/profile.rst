@@ -59,27 +59,6 @@ and providing default parameters for :ref:`TBG <usage-tbg>`.
 .. literalinclude:: profiles/bash/bash_picongpu.profile.example
    :language: bash
 
-Crusher (ORNL)
---------------
-
-**System overview:** `link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#system-overview>`__
-
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#data-and-storage>`__).
-Note that ``$HOME`` is mounted on compute nodes as read-only.
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>` manually.
-
-MI250X GPUs using hipcc (recommended)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/crusher-ornl/batch_hipcc_picongpu.profile.example
-   :language: bash
-
-MI250X GPUs using craycc
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/crusher-ornl/batch_craycc_picongpu.profile.example
-  :language: bash
 
 Hemera (HZDR)
 -------------
@@ -117,129 +96,18 @@ Queue: fwkt_v100 (4x NVIDIA V100 32GB)
 .. literalinclude:: profiles/hemera-hzdr/fwkt_v100_picongpu.profile.example
    :language: bash
 
-Summit (ORNL)
--------------
+dev server (HZDR)
+-----------------
 
-**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/>`__
+**information on software setup with spack:**
 
-**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/>`__
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`__).
-Note that ``$HOME`` is mounted on compute nodes as read-only.
+   ./profiles/bash-devServer-hzdr/README
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-V100 GPUs (recommended)
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/summit-ornl/gpu_picongpu.profile.example
-   :language: bash
-
-Piz Daint (CSCS)
-----------------
-
-**System overview:** `link <https://www.cscs.ch/computers/piz-daint/>`__
-
-**User guide:** `link <https://user.cscs.ch/>`__
-
-**Production directory:** ``$SCRATCH`` (`link <https://user.cscs.ch/storage/file_systems/>`__).
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, libpng, PNGwriter and ADIOS2 <install-dependencies>` manually.
-
-.. note::
-
-   The MPI libraries are lacking Fortran bindings (which we do not need anyway).
-   During the install of ADIOS, make sure to add to ``configure`` the ``--disable-fortran`` flag.
-
-.. note::
-
-   Please find a `Piz Daint quick start from August 2018 here <https://gist.github.com/ax3l/68cb4caa597df3def9b01640959ea56b>`_.
-
-.. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
-   :language: bash
-
-Taurus (TU Dresden)
--------------------
-
-**System overview:** `link <https://tu-dresden.de/zih/hochleistungsrechnen/hpc>`__
-
-**User guide:** `link <https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus>`__
-
-**Production directory:** ``/scratch/$USER/`` and ``/scratch/$proj/``
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-Queue: gpu2 (Nvidia K80 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/taurus-tud/k80_picongpu.profile.example
-   :language: bash
-
-Queue: ml (NVIDIA V100 GPUs on Power9 nodes)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For this profile, you additionally need to compile and install everything for the power9-architecture including your own :ref:`boost <install-dependencies>`, :ref:`HDF5 <install-dependencies>`, c-blosc and :ref:`ADIOS <install-dependencies>`.
-
-.. note::
-
-   Please find a `Taurus ml quick start here <https://gist.github.com/steindev/cc02eae81f465833afa27fc8880f3473>`_.
-
-.. note::
-   
-   You need to compile the libraries and PIConGPU on an ``ml`` node since
-   only nodes in the ``ml`` queue are Power9 systems.
-
-.. literalinclude:: profiles/taurus-tud/V100_picongpu.profile.example
-   :language: bash
-
-Cori (NERSC)
-------------
-
-**System overview:** `link <https://www.nersc.gov/users/computational-systems/cori/configuration/>`__
-
-**User guide:** `link <https://docs.nersc.gov/>`__
-
-**Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`__).
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
-
-Queue: dgx (DGX - A100)
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/cori-nersc/a100_picongpu.profile.example
-   :language: bash
-
-Draco (MPCDF)
--------------
-
-**System overview:** `link <https://www.mpcdf.mpg.de/services/computing/draco/about-the-system>`__
-
-**User guide:** `link <https://www.mpcdf.mpg.de/services/computing/draco>`__
-
-**Production directory:** ``/ptmp/$USER/``
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libpng and PNGwriter <install-dependencies>` manually.
-
-.. literalinclude:: profiles/draco-mpcdf/picongpu.profile.example
-   :language: bash
-
-D.A.V.I.D.E (CINECA)
---------------------
-
-**System overview:** `link <http://www.hpc.cineca.it/content/davide>`__
-
-**User guide:** `link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG3.2%3A+D.A.V.I.D.E.+UserGuide>`__
-
-**Production directory:** ``$CINECA_SCRATCH/`` (`link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG2.4%3A+Data+storage+and+FileSystems>`__)
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
-
-Queue: dvd_usr_prod (Nvidia P100 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/davide-cineca/gpu_picongpu.profile.example
-   :language: bash
-
+	      
 JURECA (JSC)
 ------------
 
@@ -309,17 +177,42 @@ Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
 .. literalinclude:: profiles/aris-grnet/gpu_picongpu.profile.example
    :language: bash
 
-Ascent (ORNL)
+	      
+
+Capella (ZIH)
 -------------
 
-**System overview and user guide:** `link <https://docs.olcf.ornl.gov/systems/ascent_user_guide.html#system-overview/>`__
+Information on SLURM usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Production directory:** usually ``$PROJWORK/$proj/`` (as on summit `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`__).
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`openPMD-api and PNGwriter <install-dependencies>` manually or use pre-installed libraries in the shared project directory.
+   ./profiles/zih-tud/Slurm_Tutorial
 
-V100 GPUs (recommended)
-^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: profiles/ascent-ornl/gpu_picongpu.profile.example
+Perlmutter (NERSC)
+------------------
+
+General information on system
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   ./profiles/perlmutter-nersc/README
+
+gpu profile
+^^^^^^^^^^^
+
+.. literalinclude:: profiles/perlmutter-nersc/gpu.profile.example
+   :language: bash
+
+	      
+building your software stack
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/perlmutter-nersc/dependencies_autoinstall.sh
    :language: bash
