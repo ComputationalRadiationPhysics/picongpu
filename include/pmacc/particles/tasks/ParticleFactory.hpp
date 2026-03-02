@@ -81,10 +81,8 @@ namespace pmacc
         }
 
         ParticleFactory() = default;
-        ;
 
         ParticleFactory(ParticleFactory const&) = default;
-        ;
     };
 
 } // namespace pmacc

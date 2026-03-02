@@ -94,7 +94,6 @@ namespace pmacc
          * This task effectively becomes other.
          */
         EventTask& operator=(EventTask const& other) = default;
-        ;
 
         std::string toString();
 
