@@ -5,10 +5,10 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ...pypicongpu import species
+from picmistandard import PICMI_Extension
+from pydantic import field_validator
 
-from pydantic import BaseModel
-import typeguard
+from ...pypicongpu import species
 
 """
 note on rms_velocity:
@@ -32,8 +32,7 @@ this method returns None.
 """
 
 
-@typeguard.typechecked
-class Distribution(BaseModel):
+class Distribution(PICMI_Extension):
     rms_velocity: tuple[float, float, float] = (0, 0, 0)
     """thermal velocity spread [m/s]"""
 
@@ -42,6 +41,13 @@ class Distribution(BaseModel):
 
     fill_in: bool = True
     """whether to fill in the empty space opened up when the simulation window moves"""
+
+    @field_validator("rms_velocity", mode="after")
+    @classmethod
+    def isotropic_temperature(cls, value):
+        if not (value[0] == value[1] == value[2]):
+            raise ValueError("all thermal velcoity spread (rms velocity) components must be equal")
+        return value
 
     def __hash__(self):
         """custom hash function for indexing in dicts"""

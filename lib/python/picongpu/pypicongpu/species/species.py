@@ -26,12 +26,12 @@ from .constant import (
 
 
 class Shape(Enum):
-    CIC = "CIC"
-    COUNTER = "Counter"
     NGP = "NGP"
-    PCS = "PCS"
-    PQS = "PQS"
-    TSC = "TSC"
+    linear = "CIC"
+    quadratic = "TSC"
+    cubic = "PQS"
+    quartic = "PCS"
+    counter = "Counter"
 
 
 class Pusher(Enum):
@@ -121,7 +121,7 @@ class Species(RenderedObject, BaseModel):
     name: str
     """name of the species"""
 
-    shape: Shape = Shape["TSC"]
+    shape: Shape = Shape("TSC")
 
     @computed_field
     def species_name(self) -> str:

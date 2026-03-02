@@ -7,10 +7,12 @@ License: GPLv3+
 
 import logging
 import traceback
+from typing import Callable, Literal
 
 import numpy as np
-import sympy
-import typeguard
+from picmistandard import PICMI_Extension
+from pydantic import Field, PrivateAttr, computed_field
+from sympy import Expr, Symbol, lambdify, symbols
 
 from picongpu.pypicongpu import species
 from picongpu.pypicongpu.util import decorating_class
@@ -38,8 +40,7 @@ this method returns None.
 
 
 @decorating_class
-@typeguard.typechecked
-class AnalyticDistribution:
+class AnalyticDistribution(PICMI_Extension):
     """
     This class represents a plasma with a density defined by an analytic expression.
 
@@ -116,16 +117,25 @@ class AnalyticDistribution:
             (currently untested)
     """
 
-    def __init__(self, density_expression, directed_velocity=(0.0, 0.0, 0.0)):
-        self.density_function = density_expression
-        self.rms_velocity = (0.0, 0.0, 0.0)
-        self.directed_velocity = tuple(float(v) for v in directed_velocity)
-        x, y, z = sympy.symbols("x,y,z")
-        # density_expression might be independent of any or all of the three variables.
-        # In order to be sure to arrive at a function of these three variables,
-        # we add this trivial additional term.
-        self.density_expression = self.density_function(x, y, z) + (0 * x * y * z)
-        self.warned_about_lambdify_failure = False
+    density_function: Callable[[Symbol, Symbol, Symbol], Expr]
+    rms_velocity: Literal[(0.0, 0.0, 0.0)] = (0.0, 0.0, 0.0)
+    directed_velocity: list[float] = Field(default_factory=lambda: [0, 0, 0])
+    _warned_about_lambdify_failure: bool = PrivateAttr(False)
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and "density_function" not in kwargs:
+            kwargs["density_function"] = args[0]
+        elif len(args) > 0:
+            raise ValueError(f"Invalid argument combination for AnalyticDistribution. You gave: {args=} and {kwargs=}.")
+        super().__init__(**kwargs)
+
+    @computed_field
+    def density_expression(self) -> Expr:
+        x, y, z = symbols("x,y,z")
+        return self.density_function(x, y, z) + (0 * x * y * z)
 
     def get_as_pypicongpu(self, _):
         return species.operation.densityprofile.FreeFormula(density_expression=self.density_expression)
@@ -150,12 +160,12 @@ class AnalyticDistribution:
         try:
             # This produces faster code but the code generation is not perfect.
             # There are cases where the generated code can't handle broadcasting properly.
-            return sympy.lambdify(sympy.symbols("x,y,z"), self.density_expression, "numpy")(*args, **kwargs)
+            return lambdify(symbols("x,y,z"), self.density_expression, "numpy")(*args, **kwargs)
         # We explicitly want this to be as broad as possible
         # because we have a second shot.
         # There should be no instances of this being dangerous during idiomatic use of this functionality.
         except Exception:
-            if not self.warned_about_lambdify_failure:
+            if not self._warned_about_lambdify_failure:
                 message = (
                     "Sympy did not manage to produce proper numpy code for your AnalyticDistribution. "
                     "If you run into performance problems, try to rewrite your function. "
@@ -164,7 +174,7 @@ class AnalyticDistribution:
                 logging.warning(message)
                 logging.warning(traceback.format_exc())
                 logging.warning("Continuing operation using a slower serialised version now.")
-                self.warned_about_lambdify_failure = True
+                self._warned_about_lambdify_failure = True
         # This basically calls the original function in a big loop.
         # Slower but more reliable in some cases of difficult broadcasting.
         return np.vectorize(self.density_function)(*args, **kwargs)

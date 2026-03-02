@@ -6,9 +6,9 @@ License: GPLv3+
 """
 
 import re
-from enum import Enum
 from typing import Any
 
+from picmistandard import PICMI_Species
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -18,12 +18,7 @@ from pydantic import (
     model_validator,
 )
 
-from picongpu.picmi.distribution import AnyDistribution
-from picongpu.picmi.species_requirements import (
-    evaluate_requirements,
-    resolving_add,
-    run_construction,
-)
+from picongpu.picmi.species_requirements import evaluate_requirements, resolving_add, run_construction
 from picongpu.pypicongpu.species.attribute import Momentum, Position
 from picongpu.pypicongpu.species.attribute.attribute import Attribute
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
@@ -40,42 +35,10 @@ from ..pypicongpu.species.util.element import Element
 from .predefinedparticletypeproperties import PredefinedParticleTypeProperties
 
 
-class ParticleShape(Enum):
-    NGP = "NGP"
-    CIC = "linear"
-    TSC = "quadratic"
-    PQS = "cubic"
-    PCS = "quartic"
-    Counter = "counter"
-
-
-class PusherMethod(Enum):
-    # supported by PICMI standard and PIConGPU
-    Boris = "Boris"
-    Vay = "Vay"
-    HigueraCary = "Higuera-Cary"
-    Free = "free"
-    ReducedLandauLifshitz = "LLRK4"
-    # only supported by PIConGPU
-    Acceleration = "Acceleration"
-    Photon = "Photon"
-    Probe = "Probe"
-    Axel = "Axel"
-    # not supported by PIConGPU
-    Li = "Li"
-
-
-class Species(BaseModel):
-    name: str
-    particle_type: str | None = None
-    initial_distribution: AnyDistribution | None = None
+class Species(PICMI_Species):
     picongpu_fixed_charge: bool = False
-    charge_state: int | None = None
-    density_scale: float | None = None
-    mass: float | None = None
-    charge: float | None = None
-    particle_shape: ParticleShape = ParticleShape("quadratic")
-    method: PusherMethod = PusherMethod("Boris")
+    particle_shape: str | None = "quadratic"
+    method: str | None = "Boris"
 
     # Theoretically, Position(), Momentum() and Weighting() are also requirements imposed from the outside,
     # e.g., by the current deposition, pusher, ..., but these concepts are not separately modelled in PICMI
@@ -146,8 +109,8 @@ class Species(BaseModel):
         return PyPIConGPUSpecies(
             name=self.name,
             **self._evaluate_species_requirements(),
-            shape=Shape(self.particle_shape.name),
-            pusher=Pusher[self.method.name],
+            shape=Shape[self.particle_shape],
+            pusher=Pusher[self.method],
         )
 
     def get_operation_requirements(self):
