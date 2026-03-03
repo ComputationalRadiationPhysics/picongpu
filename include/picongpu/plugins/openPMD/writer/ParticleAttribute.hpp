@@ -122,7 +122,7 @@ namespace picongpu
              * @param elements elements of this attribute
              */
             template<typename FrameType>
-            HINLINE void operator()(
+            void operator()(
                 ThreadParams* params,
                 FrameType& frame,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
