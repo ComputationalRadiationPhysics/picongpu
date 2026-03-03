@@ -5,9 +5,10 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
+from typing import Literal
+
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
 
-from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
 
 
@@ -25,30 +26,15 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
     See PICMI spec for full documentation.
     """
 
-    source_smoother: BinomialSmoother | None = None
     field_smoother: None = None
+    method: Literal["Yee", "Lehe"]
+    stencil_order: None = None
+    subcycling: None = None
+    galilean_velocity: None = None
+    divE_cleaning: None = None
+    divB_cleaning: None = None
+    pml_divE_cleaning: None = None
+    pml_divB_cleaning: None = None
 
     def get_as_pypicongpu(self) -> AnySolver:
-        solver_by_method = {
-            "Yee": YeeSolver(),
-            "Lehe": LeheSolver(),
-        }
-
-        if self.method not in solver_by_method:
-            raise ValueError("unkown solver: {}".format(self.method))
-
-        # todo: stencil order, cfl
-        util.unsupported("stencil order", self.stencil_order)
-        if self.method != "Yee" and self.method != "Lehe":
-            # for yee and Lehe the cfl will be respected -- this behavior is coordinated
-            # at the simulation class though
-            util.unsupported("cfl", self.cfl)
-
-        util.unsupported("level of subcycling", self.subcycling)
-        util.unsupported("galilean velocity", self.galilean_velocity)
-        util.unsupported("divE cleaning", self.divE_cleaning)
-        util.unsupported("divB cleaning", self.divB_cleaning)
-        util.unsupported("pml divE cleaning", self.pml_divE_cleaning)
-        util.unsupported("pml divB cleaning", self.pml_divB_cleaning)
-
-        return solver_by_method[self.method]
+        return YeeSolver() if self.method == "Yee" else LeheSolver()

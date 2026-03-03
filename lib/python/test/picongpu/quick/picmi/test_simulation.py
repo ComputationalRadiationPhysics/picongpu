@@ -112,15 +112,6 @@ class TestPicmiSimulation(TestCase):
             # delta_t does not match cfl at all
             get_sim_cfl_helper(1, 0.99, (3, 4, 5), "Yee")
 
-    def test_cfl_not_yee(self):
-        # if the solver is not yee, cfl and timestep can be set however
-        # -> none of this raises an error
-        get_sim_cfl_helper(7.14500557764070900528e-9, 0.99, (3, 4, 5), "CKC")
-        get_sim_cfl_helper(42, 0.99, (3, 4, 5), "CKC")
-        get_sim_cfl_helper(None, 0.99, (3, 4, 5), "CKC")
-        get_sim_cfl_helper(42, None, (3, 4, 5), "CKC")
-        get_sim_cfl_helper(None, None, (3, 4, 5), "CKC")
-
     def test_species_translation(self):
         """test that species are moved to PyPIConGPU simulation"""
         grid = get_grid(1, 1, 1, 64)
