@@ -22,9 +22,10 @@ from pydantic import (
     model_serializer,
 )
 
-from picongpu.pypicongpu.output.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
+from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.species.species import Species
 from picongpu.pypicongpu.util import unique
 
@@ -95,13 +96,14 @@ def to_string(timestepspec: TimeStepSpec):
 class FieldDump(BaseModel):
     name: str
     functor: ParticleFunctor | None = None
+    filtername: None | str
 
     def get_rendering_context(self) -> dict:
         return self.model_dump(mode="json")
 
 
 class OpenPMDPlugin(Plugin):
-    sources: list[tuple[TimeStepSpec, Species | FieldDump]]
+    sources: list[tuple[TimeStepSpec, Species | FieldDump | FilteredSpecies]]
     config: OpenPMDConfig = OpenPMDConfig(file="simData")
 
     _name: str = PrivateAttr("openPMD")
@@ -159,7 +161,7 @@ class OpenPMDPlugin(Plugin):
         return {
             "config_filename": str(self.config_filename(content, context="runtime")),
             "derived_fields": unique(
-                source[1].functor.model_dump(mode="json")
+                source[1].model_dump(mode="json")
                 for source in self.sources
                 if isinstance(source[1], FieldDump) and source[1].functor is not None
             ),

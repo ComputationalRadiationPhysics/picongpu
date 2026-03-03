@@ -93,24 +93,24 @@ pypicongpu_output_with_newlines="
       {{#data}}
 
     {{#typeID.phasespace}}
-          --{{{species.name}}}_phaseSpace.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
-          --{{{species.name}}}_phaseSpace.filter all
-          --{{{species.name}}}_phaseSpace.space {{{spatial_coordinate}}}
-          --{{{species.name}}}_phaseSpace.momentum {{{momentum_coordinate}}}
-          --{{{species.name}}}_phaseSpace.min {{{min_momentum}}}
-          --{{{species.name}}}_phaseSpace.max {{{max_momentum}}}
+          --{{{species.species_name}}}_phaseSpace.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
+          --{{{species.species_name}}}_phaseSpace.filter {{{species.filter_name}}}
+          --{{{species.species_name}}}_phaseSpace.space {{{spatial_coordinate}}}
+          --{{{species.species_name}}}_phaseSpace.momentum {{{momentum_coordinate}}}
+          --{{{species.species_name}}}_phaseSpace.min {{{min_momentum}}}
+          --{{{species.species_name}}}_phaseSpace.max {{{max_momentum}}}
     {{/typeID.phasespace}}
 
     {{#typeID.energyhistogram}}
-          --{{{species.name}}}_energyHistogram.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
-          --{{{species.name}}}_energyHistogram.filter all
-          --{{{species.name}}}_energyHistogram.binCount {{{bin_count}}}
-          --{{{species.name}}}_energyHistogram.minEnergy {{{min_energy}}}
-          --{{{species.name}}}_energyHistogram.maxEnergy {{{max_energy}}}
+          --{{{species.species_name}}}_energyHistogram.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
+          --{{{species.species_name}}}_energyHistogram.filter {{{species.filter_name}}}
+          --{{{species.species_name}}}_energyHistogram.binCount {{{bin_count}}}
+          --{{{species.species_name}}}_energyHistogram.minEnergy {{{min_energy}}}
+          --{{{species.species_name}}}_energyHistogram.maxEnergy {{{max_energy}}}
     {{/typeID.energyhistogram}}
 
     {{#typeID.macroparticlecount}}
-      --{{{species.name}}}_macroParticlesCount.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
+      --{{{species.species_name}}}_macroParticlesCount.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
     {{/typeID.macroparticlecount}}
 
     {{#typeID.radiation}}

@@ -10,10 +10,10 @@ from typing import Literal
 from pydantic import BaseModel
 
 from picongpu.picmi.copy_attributes import default_converts_to
-
-from ...pypicongpu.output.phase_space import PhaseSpace as PyPIConGPUPhaseSpace
-from ..species import Species as Species
-from .timestepspec import TimeStepSpec
+from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
+from picongpu.picmi.species import Species
+from picongpu.pypicongpu.output.phase_space import PhaseSpace as PyPIConGPUPhaseSpace
 
 
 @default_converts_to(PyPIConGPUPhaseSpace)
@@ -51,7 +51,7 @@ class PhaseSpace(BaseModel):
         Optional name for the phase-space plugin.
     """
 
-    species: Species
+    species: Species | FilteredSpecies
     period: TimeStepSpec
     spatial_coordinate: Literal["x", "y", "z"]
     momentum_coordinate: Literal["px", "py", "pz"]

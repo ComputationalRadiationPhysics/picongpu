@@ -5,8 +5,8 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from .constant import Constant
-from ..util import Element
+from picongpu.pypicongpu.species.constant import Constant
+from picongpu.pypicongpu.species.util import Element
 
 
 class ElementProperties(Constant):

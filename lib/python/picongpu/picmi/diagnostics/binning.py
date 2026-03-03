@@ -6,16 +6,16 @@ License: GPLv3+
 """
 
 from pathlib import Path
-from ..copy_attributes import default_converts_to
-
 
 from picongpu.picmi.diagnostics.backend_config import OpenPMDConfig
+from picongpu.picmi.particle_functor import ParticleFunctor as BinningFunctor
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
+from picongpu.picmi.species import Species
+from picongpu.pypicongpu.output.binning import Binning as PyPIConGPUBinning
+from picongpu.pypicongpu.output.binning import BinningAxis as PyPIConGPUBinningAxis
+from picongpu.pypicongpu.output.binning import BinSpec as PyPIConGPUBinSpec
 
-from ...pypicongpu.output.binning import Binning as PyPIConGPUBinning
-from ...pypicongpu.output.binning import BinningAxis as PyPIConGPUBinningAxis
-from ...pypicongpu.output.binning import BinSpec as PyPIConGPUBinSpec
-from ..species import Species as Species
-from .particle_functor import ParticleFunctor as BinningFunctor
+from ..copy_attributes import default_converts_to
 from .timestepspec import TimeStepSpec
 
 
@@ -44,7 +44,7 @@ class BinningAxis:
     def get_as_pypicongpu(self) -> PyPIConGPUBinningAxis:
         return PyPIConGPUBinningAxis(
             name=self.name,
-            functor=self.functor.get_as_pypicongpu(),
+            functor=self.functor.get_as_pypicongpu(mode="Binning"),
             bin_spec=self.bin_spec.get_as_pypicongpu(),
             use_overflow_bins=self.use_overflow_bins,
         )
@@ -56,7 +56,7 @@ class Binning:
         name: str,
         deposition_functor: BinningFunctor,
         axes: list[BinningAxis],
-        species: Species | list[Species],
+        species: Species | FilteredSpecies | list[Species | FilteredSpecies],
         period: TimeStepSpec | None = None,
         openPMD: dict | None = None,
         openPMDExt: str | None = None,
@@ -66,7 +66,7 @@ class Binning:
         self.name = name
         self.deposition_functor = deposition_functor
         self.axes = axes
-        if isinstance(species, Species):
+        if isinstance(species, Species) or isinstance(species, FilteredSpecies):
             species = [species]
         self.species = species
         self.period = period or TimeStepSpec[:]
@@ -87,9 +87,9 @@ class Binning:
     ) -> PyPIConGPUBinning:
         return PyPIConGPUBinning(
             name=self.name,
-            deposition_functor=self.deposition_functor.get_as_pypicongpu(),
+            deposition_functor=self.deposition_functor.get_as_pypicongpu(mode="Binning"),
             axes=list(map(BinningAxis.get_as_pypicongpu, self.axes)),
-            species=[s.get_as_pypicongpu() for s in self.species],
+            species=[s.get_as_pypicongpu(mode="Binning") for s in self.species],
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
             openPMD=self.openPMD,
             openPMDExt=self.openPMDExt,

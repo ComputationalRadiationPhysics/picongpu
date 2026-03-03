@@ -6,18 +6,25 @@ License: GPLv3+
 """
 
 from pathlib import Path
+
 import numpy as np
 import openpmd_api as opmd
 import pandas as pd
-from picongpu.picmi.diagnostics import ParticleDump, Binning
-from .arbitrary_parameters import CELL_SIZE
 from openpmd_api.openpmd_api_cxx import ErrorWrongAPIUsage
+from picongpu.picmi.diagnostics import Binning, ParticleDump
+from picongpu.picmi.species import Species
+
+from .arbitrary_parameters import CELL_SIZE
 
 
 def load_diagnostic_result(diagnostic, result_path):
     path = Path(str(diagnostic.result_path(result_path)).replace("%06T", 6 * "0"))
     if isinstance(diagnostic, ParticleDump):
-        return read_particles(path).loc(axis=0)[*diagnostic.species.name.split("_", maxsplit=1)]
+        if isinstance(diagnostic.species, Species):
+            return read_particles(path).loc(axis=0)[*diagnostic.species.name.split("_", maxsplit=1)]
+        # else FilteredSpecies:
+        name = diagnostic.species.species.name + "_" + diagnostic.species.functor.name
+        return read_particles(path).loc(axis=0)[*name.split("_", maxsplit=1)]
     if isinstance(diagnostic, Binning):
         return read_fields(path, ["Binning"])["Binning"]
     return read_fields(path, [diagnostic.fieldname])[diagnostic.fieldname]
@@ -91,11 +98,13 @@ def compute_densities_per_setup_and_impl(data):
     ].sum()
 
 
-def compute_densities_from_particles(series_name):
+def compute_densities_from_particles(data_or_filename):
     """
     This density is not normalised by volume yet.
     """
-    return compute_densities_per_setup_and_impl(read_particles(series_name))
+    return compute_densities_per_setup_and_impl(
+        read_particles(data_or_filename) if isinstance(data_or_filename, Path) else data_or_filename
+    )
 
 
 def _density_into_mesh(df, number_of_cells, cell_size):
@@ -104,9 +113,9 @@ def _density_into_mesh(df, number_of_cells, cell_size):
     return from_particles / np.prod(cell_size)
 
 
-def read_densities_into_mesh(filename, number_of_cells, cell_size):
+def read_densities_into_mesh(data_or_filename, number_of_cells, cell_size):
     df = (
-        compute_densities_from_particles(filename)
+        compute_densities_from_particles(data_or_filename)
         .reset_index(drop=False)
         .rename({"positionOffset_" + key: key for key in "xyz"}, axis=1)
     )

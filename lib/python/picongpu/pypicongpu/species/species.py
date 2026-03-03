@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 import re
-from pydantic import BaseModel, computed_field, field_serializer
+from pydantic import BaseModel, computed_field, field_validator
 import typing
 from enum import Enum
 
@@ -49,6 +49,51 @@ class Pusher(Enum):
     Axel = "Axel"
 
 
+class Constants(BaseModel):
+    mass: Mass | None
+    charge: Charge | None
+    density_ratio: DensityRatio | None
+    element_properties: ElementProperties | None
+    ground_state_ionization: GroundStateIonization | None
+    synchrotron: SynchrotronConstant | None
+
+
+def has_constant_of_type(constants, needle_type: typing.Type[Constant]) -> bool:
+    """
+    lookup if constant of given type is present
+
+    Searches through constants of this species and returns true if a
+    constant of the given type is present.
+
+    :param needle_type: constant type to look for
+    :return: whether constant of needle_type exists
+    """
+
+    constants_types = list(map(type, constants))
+    return needle_type in constants_types
+
+
+def get_constant_by_type(constants, needle_type: typing.Type[Constant]) -> Constant:
+    """
+    retrieve constant of given type, raise if not found
+
+    Searches through constants of this species and returns the constant of
+    the given type if found. If no constant of this type is found, an error
+    is raised.
+
+    :param needle_type: constant type to look for
+    :raise RuntimeError: on failure to find constant of given type
+    :return: constant of given type
+    """
+    for const in constants:
+        # note: check using type equality, because polymorphy messes with
+        # duplicate detection & rendering
+        if needle_type is type(const):
+            return const
+
+    raise RuntimeError("no constant of requested type available: {}".format(needle_type))
+
+
 @typeguard.typechecked
 class Species(RenderedObject, BaseModel):
     """
@@ -66,7 +111,7 @@ class Species(RenderedObject, BaseModel):
     mandatory. Each species constant or attribute may only be defined once.
     """
 
-    constants: list[Constant]
+    constants: Constants
     """PIConGPU particle flags"""
 
     attributes: list[Attribute]
@@ -80,13 +125,22 @@ class Species(RenderedObject, BaseModel):
     shape: Shape = Shape["TSC"]
 
     @computed_field
+    def species_name(self) -> str:
+        return self.name
+
+    @computed_field
+    def filter_name(self) -> str:
+        return "all"
+
+    @computed_field
+    def filter_typename(self) -> str:
+        return "All"
+
+    @computed_field
     def typename(self) -> str:
         """
         get (standalone) C++ name for this species
         """
-        # ensures only safe names
-        self.check()
-
         return "species_" + self.name
 
     def __hash__(self):
@@ -122,10 +176,6 @@ class Species(RenderedObject, BaseModel):
         if Momentum not in [type(a) for a in self.attributes]:
             raise ValueError("Each species must have the momentum attribute!")
 
-        # all constants check()'s pass
-        for const in self.constants:
-            const.check()
-
         # each constant type can only be used once
         const_types = list(map(type, self.constants))
         non_unique_constants = set([c for c in const_types if const_types.count(c) > 1])
@@ -144,42 +194,9 @@ class Species(RenderedObject, BaseModel):
                 "attribute names must be unique per species, offending: {}".format(", ".join(non_unique_attributes))
             )
 
-    def get_constant_by_type(self, needle_type: typing.Type[Constant]) -> Constant:
-        """
-        retrieve constant of given type, raise if not found
-
-        Searches through constants of this species and returns the constant of
-        the given type if found. If no constant of this type is found, an error
-        is raised.
-
-        :param needle_type: constant type to look for
-        :raise RuntimeError: on failure to find constant of given type
-        :return: constant of given type
-        """
-        for const in self.constants:
-            # note: check using type equality, because polymorphy messes with
-            # duplicate detection & rendering
-            if needle_type is type(const):
-                return const
-
-        raise RuntimeError("no constant of requested type available: {}".format(needle_type))
-
-    def has_constant_of_type(self, needle_type: typing.Type[Constant]) -> bool:
-        """
-        lookup if constant of given type is present
-
-        Searches through constants of this species and returns true if a
-        constant of the given type is present.
-
-        :param needle_type: constant type to look for
-        :return: whether constant of needle_type exists
-        """
-
-        constants_types = list(map(type, self.constants))
-        return needle_type in constants_types
-
-    @field_serializer("constants")
-    def constants_context(self, _):
+    @field_validator("constants", mode="before")
+    @classmethod
+    def constants_context(cls, value):
         constant_names_by_type = {
             "mass": Mass,
             "charge": Charge,
@@ -191,8 +208,9 @@ class Species(RenderedObject, BaseModel):
 
         constants_context = {}
         for constant_name, constant_type in constant_names_by_type.items():
-            if self.has_constant_of_type(constant_type):
-                constants_context[constant_name] = self.get_constant_by_type(constant_type).get_rendering_context()
+            if has_constant_of_type(value, constant_type):
+                constants_context[constant_name] = get_constant_by_type(value, constant_type)
             else:
                 constants_context[constant_name] = None
-        return constants_context
+
+        return Constants(**constants_context)

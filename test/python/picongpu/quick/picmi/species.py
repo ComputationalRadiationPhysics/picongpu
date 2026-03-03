@@ -7,17 +7,16 @@ License: GPLv3+
 
 from unittest import TestCase, main
 
+from picongpu.picmi.interaction.ionization.fieldionization import ADK, BSI
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
-    run_construction,
     RequirementConflict,
     SetChargeStateOperation,
+    run_construction,
 )
-from picongpu.pypicongpu.species.operation.setchargestate import SetChargeState
-from picongpu.pypicongpu.species.constant.groundstateionization import GroundStateIonization
-from picongpu.picmi.interaction.ionization.fieldionization import ADK, BSI
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.mass import Mass
+from picongpu.pypicongpu.species.operation.setchargestate import SetChargeState
 
 
 def unique_in(elements, collection):
@@ -31,12 +30,6 @@ class TestSpeciesRequirementResolution(TestCase):
         requirements = [Weighting()]
         species.register_requirements(2 * requirements)
         assert all(unique_in(requirements, species.get_as_pypicongpu().attributes))
-
-    def test_deduplicate_constants(self):
-        species = Species(name="dummy")
-        requirements = [Mass(mass_si=1.0)]
-        species.register_requirements(2 * requirements)
-        assert all(unique_in(requirements, species.get_as_pypicongpu().constants))
 
     def test_deduplicate_delayed_construction(self):
         species = Species(name="dummy", particle_type="H", charge_state=1)
@@ -71,13 +64,7 @@ class TestSpeciesRequirementResolution(TestCase):
             run_construction(op) for op in ion.get_operation_requirements() if op.metadata.Type == SetChargeState
         ][0]
         assert set_charge_state_op.charge_state == ion.charge_state
-
-        ground_state_ionizations = [
-            x for x in ion.get_as_pypicongpu().constants if isinstance(x, GroundStateIonization)
-        ]
-        # They have been merged:
-        assert len(ground_state_ionizations) == 1
-        assert len(ground_state_ionizations[0].ionization_model_list) == len(ionizations)
+        assert len(ion.get_as_pypicongpu().constants.ground_state_ionization.ionization_model_list) == len(ionizations)
 
 
 if __name__ == "__main__":

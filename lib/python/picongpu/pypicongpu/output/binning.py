@@ -10,11 +10,12 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, PlainSerializer, PrivateAttr
 
-from ..rendering.renderedobject import RenderedObject
-from ..species import Species
-from .particle_functor import ParticleFunctor as BinningFunctor
-from .plugin import Plugin
-from .timestepspec import TimeStepSpec
+from picongpu.pypicongpu.output.plugin import Plugin
+from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
+from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
+from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
+from picongpu.pypicongpu.species import Species
 
 
 class BinSpec(RenderedObject, BaseModel):
@@ -27,15 +28,15 @@ class BinSpec(RenderedObject, BaseModel):
 class BinningAxis(RenderedObject, BaseModel):
     axis_name: str = Field(alias="name")
     bin_spec: BinSpec
-    axis_functor: BinningFunctor = Field(alias="functor")
+    axis_functor: ParticleFunctor = Field(alias="functor")
     use_overflow_bins: bool
 
 
 class Binning(Plugin, BaseModel):
     binner_name: str = Field(alias="name")
-    deposition_functor: BinningFunctor
+    deposition_functor: ParticleFunctor
     axes: list[BinningAxis]
-    species: list[Species]
+    species: list[Species | FilteredSpecies]
     period: TimeStepSpec
     openPMD: Annotated[dict | None, PlainSerializer(lambda x: json.dumps(x) if x is not None else x)]
     openPMDExtension: str | None = Field(alias="openPMDExt")

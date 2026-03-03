@@ -11,11 +11,12 @@ from typing import Literal
 
 from pydantic import BaseModel, computed_field
 
+from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.openpmd_plugin import NATIVE_FIELDS
 from .backend_config import BackendConfig, OpenPMDConfig
 from .timestepspec import TimeStepSpec
-from picongpu.picmi.diagnostics.particle_functor import ParticleFunctor
+from picongpu.picmi.particle_functor import ParticleFunctor
 
 
 class _FieldDump(BaseModel):
@@ -31,12 +32,18 @@ class _FieldDump(BaseModel):
 
 class NativeFieldDump(_FieldDump):
     fieldname: Literal[*NATIVE_FIELDS]
+    filtername: None = None
 
 
 class DerivedFieldDump(_FieldDump):
-    species: Species
+    species: Species | FilteredSpecies
     functor: ParticleFunctor
 
     @computed_field
+    def filtername(self) -> None | str:
+        return None if isinstance(self.species, Species) else self.species.functor.name
+
+    @computed_field
     def fieldname(self) -> str:
-        return f"{self.species.name}_all_{self.functor.name}"
+        species_name = self.species.name if isinstance(self.species, Species) else self.species.species.name
+        return f"{species_name}_{self.filtername or 'all'}_{self.functor.name}"

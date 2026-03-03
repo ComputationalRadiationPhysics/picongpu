@@ -6,9 +6,8 @@ License: GPLv3+
 """
 
 from typing import Annotated
-from pydantic import PlainSerializer, PrivateAttr, BaseModel, field_validator, model_validator, Field, computed_field
+from pydantic import PlainSerializer, PrivateAttr, BaseModel, field_validator, Field, computed_field
 
-from ..constant import DensityRatio
 from ..species import Species
 from .densityoperation import DensityOperation
 from .densityprofile import DensityProfile
@@ -46,9 +45,9 @@ class SimpleDensity(DensityOperation):
     def validate_species(cls, species):
         return sorted(
             set(species),
-            key=lambda species: 1
-            if not species.has_constant_of_type(DensityRatio)
-            else species.get_constant_by_type(DensityRatio).ratio,
+            key=lambda species: (
+                None if species.constants.density_ratio is None else species.constants.density_ratio.ratio
+            ),
         )
 
     @computed_field
@@ -61,17 +60,3 @@ class SimpleDensity(DensityOperation):
 
     def __init__(self, *args, **kwargs):
         return BaseModel.__init__(self, *args, **kwargs)
-
-    @model_validator(mode="after")
-    def check_preconditions(self):
-        if 0 == len(self.species):
-            raise ValueError("must apply to at least one species")
-
-        # check ratios (if present)
-        for species in self.species:
-            if species.has_constant_of_type(DensityRatio):
-                species.get_constant_by_type(DensityRatio).check()
-
-        if hasattr(self.profile, "check"):
-            self.profile.check()
-        return self

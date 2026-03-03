@@ -5,10 +5,7 @@
   "unevaluatedProperties": false,
   "required": [],
   "properties": {
-    "species": {
-      "description": "species for the momentum is given",
-      "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
-    },
+    "species": {},
     "drift": {
       "description": "initial velocity (optional)",
       "anyOf": [

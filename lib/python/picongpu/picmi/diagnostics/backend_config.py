@@ -7,21 +7,12 @@ License: GPLv3+
 
 from enum import Enum
 
-from picongpu.pypicongpu.output.openpmd_plugin import (
-    OpenPMDConfig as PyPIConGPUOpenPMDConfig,
-)
+from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDConfig, RangeSpecEntry
 from picongpu.pypicongpu.output.openpmd_plugin import RangeSpec as PyPIConGPURangeSpec
-from picongpu.pypicongpu.output.openpmd_plugin import RangeSpecEntry
 
-
-class BackendConfig:
-    def result_path(self, prefix_path):
-        raise NotImplementedError()
-
-
-class OpenPMDConfig(PyPIConGPUOpenPMDConfig, BackendConfig):
-    def __init__(self, *args, **kwargs):
-        super(PyPIConGPUOpenPMDConfig, self).__init__(*args, **kwargs)
+# If there should ever be another option,
+# this type alias could be expanded via type union.
+BackendConfig = OpenPMDConfig
 
 
 class RangeSpecUnit(Enum):
@@ -29,6 +20,8 @@ class RangeSpecUnit(Enum):
 
 
 def _apply_units(iterable, unit):
+    if unit != RangeSpecUnit.CELLS:
+        raise ValueError(f"Unknown RangeSpecUnit. You gave: {unit=}.")
     return tuple(iterable)
 
 

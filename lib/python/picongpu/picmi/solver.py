@@ -5,11 +5,11 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
-from ..pypicongpu import util
-from picongpu.pypicongpu.field_solver import AnySolver, YeeSolver, LeheSolver
-
 import picmistandard
 import typeguard
+
+from picongpu.pypicongpu import util
+from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
 
 
 @typeguard.typechecked

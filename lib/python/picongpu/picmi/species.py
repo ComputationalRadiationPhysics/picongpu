@@ -5,14 +5,24 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from enum import Enum
 import re
+from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, PrivateAttr, computed_field, model_validator, field_validator
+from pydantic import (
+    BaseModel,
+    PrivateAttr,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 from picongpu.picmi.distribution import AnyDistribution
-from picongpu.picmi.species_requirements import resolving_add, evaluate_requirements, run_construction
+from picongpu.picmi.species_requirements import (
+    evaluate_requirements,
+    resolving_add,
+    run_construction,
+)
 from picongpu.pypicongpu.species.attribute import Momentum, Position
 from picongpu.pypicongpu.species.attribute.attribute import Attribute
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
@@ -21,7 +31,8 @@ from picongpu.pypicongpu.species.constant.constant import Constant
 from picongpu.pypicongpu.species.constant.densityratio import DensityRatio
 from picongpu.pypicongpu.species.constant.mass import Mass
 from picongpu.pypicongpu.species.operation.operation import Operation
-from picongpu.pypicongpu.species.species import Shape, Pusher, Species as PyPIConGPUSpecies
+from picongpu.pypicongpu.species.species import Pusher, Shape
+from picongpu.pypicongpu.species.species import Species as PyPIConGPUSpecies
 
 from .. import pypicongpu
 from ..pypicongpu.species.util.element import Element

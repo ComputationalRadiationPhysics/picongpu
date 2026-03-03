@@ -5,16 +5,20 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from inspect import signature
 from typing import Any, Callable, Iterable
 
 from sympy import Expr, Symbol, symbols
 from typeguard import typechecked
 
-from ...pypicongpu.output.particle_functor import (
+from picongpu.picmi.particle_functor.rng_arg import RNGArg
+from picongpu.picmi.particle_functor.unit_dimension import UnitDimension
+from picongpu.pypicongpu.particle_functor import (
     ParticleFunctor as PyPIConGPUParticleFunctor,
     UnitDimension as PyPIConGPUUnitDimension,
+    generate_preamble,
 )
-from .unit_dimension import UnitDimension
+from picongpu.pypicongpu.util import alt
 
 _COORDINATE_SYSTEM = {
     (
@@ -28,6 +32,7 @@ _COORDINATE_SYSTEM = {
         ("LOCAL", ("xl", "yl", "zl")),
         ("MOVING_WINDOW", ("xmw", "ymw", "zmw")),
         ("LOCAL_WITH_GUARDS", ("xlg", "ylg", "zlg")),
+        ("CELL", ("xc", "yc", "zc")),
     )
     for precision in ("CELL", "SUB_CELL")
     for unit in ("CELL", "PIC", "SI")
@@ -41,6 +46,8 @@ class Particle:
 
 @typechecked
 class AbstractParticle(Particle):
+    needs_total_position = False
+
     def __init__(self):
         self.used_attributes = {}
 
@@ -52,6 +59,7 @@ class AbstractParticle(Particle):
             origin = kwargs.get("origin", "total")
             precision = kwargs.get("precision", "cell")
             unit = kwargs.get("unit", "cell")
+            self.needs_total_position = self.needs_total_position or (origin.lower() not in ["cell", "local"])
             my_symbols = _COORDINATE_SYSTEM[(origin, precision, unit)]
             self.used_attributes |= {my_symbols: ("position", origin, precision, unit)}
 
@@ -85,19 +93,13 @@ class AbstractParticle(Particle):
 
         return my_symbols
 
-    def finalize(self, expression, name=None, return_type=None):
-        return expression
-
 
 @typechecked
 class ParticleFunctor:
-    def check(self):
-        pass
-
     def __init__(
         self,
         name: str,
-        functor: Callable[[Particle], Any],
+        functor: Callable[[Particle], Any] | Callable[[Particle, RNGArg], Any],
         return_type: type | str = float,
         unit_dimension: UnitDimension | None = None,
     ):
@@ -105,19 +107,32 @@ class ParticleFunctor:
         self.functor = functor
         self.return_type = return_type
         self.unit_dimension = unit_dimension or UnitDimension()
+        rng_classes = [
+            cls
+            for p in signature(self.functor).parameters.values()
+            if isinstance(p.annotation, type) and issubclass(cls := p.annotation, RNGArg)
+        ]
+        if len(rng_classes) > 1:
+            raise ValueError(
+                f"ParticleFunctor can take at most one RNG. You have requested {rng_classes=} in your signature."
+            )
+        self.rng_class = alt(lambda: rng_classes[0], None) or (lambda: None)
 
-    def get_as_pypicongpu(self) -> PyPIConGPUParticleFunctor:
-        self.check()
+    def get_as_pypicongpu(self, mode) -> PyPIConGPUParticleFunctor:
         particle = AbstractParticle()
-        functor_expression = self(particle)
+        rng = self.rng_class()
+        functor_expression = self(particle) if rng is None else self(particle, rng)
         return PyPIConGPUParticleFunctor(
             name=self.name,
             functor_expression=functor_expression,
-            attribute_mapping=particle.get_attribute_map(),
+            functor_preamble=generate_preamble(
+                particle.get_attribute_map() | alt(lambda: rng.get_attribute_map(), {}), mode=mode
+            ),
             return_type=self.return_type,
             unit_dimension=PyPIConGPUUnitDimension(unit_dimension=self.unit_dimension.unit_vector.tolist()),
+            needs_total_position=particle.needs_total_position,
+            rng_info=alt(lambda: rng.model_dump(mode="python"), None),
         )
 
-    def __call__(self, particle):
-        expression = self.functor(particle)
-        return particle.finalize(expression, self.name, self.return_type)
+    def __call__(self, *args):
+        return self.functor(*args)

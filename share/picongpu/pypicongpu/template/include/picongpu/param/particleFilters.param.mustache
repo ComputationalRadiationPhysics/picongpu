@@ -1,0 +1,149 @@
+/* Copyright 2013-2024 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * A common task in both modeling and in situ processing (output) is the
+ * selection of particles of a particle species by attributes. Users can
+ * define such selections as particle filters in this file.
+ *
+ * Particle filters are simple mappings assigning each particle of a species
+ * either `true` or `false` (ignore / filter out).
+ *
+ * All active filters need to be listed in `AllParticleFilters`. They are then
+ * combined with `VectorAllSpecies` at compile-time, e.g. for plugins.
+ */
+
+#pragma once
+
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <bit>
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace filter
+        {
+            template<typename T_RNG>
+            typename std::remove_cvref_t<decltype(std::declval<T_RNG>().m_rng)>::result_type
+            random_number(T_RNG& rng, auto loc, auto scale) {
+              using result_type = typename std::remove_cvref_t<decltype(std::declval<T_RNG>().m_rng)>::result_type;
+
+              // This only applies to uniform distributions:
+              if constexpr(std::is_integral_v<result_type>) {
+                // Doing just a modulo would skew the distribution.
+                // Instead, we drop any bits greater or equal to the next higher power of two
+                // and afterwards discard values that are too large.
+                // On average, we draw at most twice as much.
+
+                using u_result_type = std::make_unsigned_t<result_type>;
+
+                // This assumes that scale >= 0 which is ensured by PyPIConGPU.
+                const u_result_type mask = std::bit_ceil(static_cast<u_result_type>(scale)) - 1u;
+                auto result = result_type{};
+                do {
+                    result = static_cast<result_type>(static_cast<u_result_type>(rng()) & mask);
+                } while (result >= scale);
+                return result + loc;
+              }
+              else {
+                return scale * rng() + loc;
+              }
+            }
+
+            {{#particle_filters}}
+            struct {{{typename}}} {
+                static constexpr char const* name = "{{{name}}}";
+                static constexpr bool isDeterministic =
+                {{#rng_info}}
+                false
+                {{/rng_info}}
+                {{^rng_info}}
+                true
+                {{/rng_info}}
+                ;
+
+                {{#rng_info}}
+                template< typename T_Rng, typename T_Particle >
+                HDINLINE bool operator()( T_Rng& rng, T_Particle& particle )
+                {{/rng_info}}
+                {{^rng_info}}
+                template<typename T_Particle>
+                HDINLINE bool operator()(
+                {{#needs_total_position}}
+                  DataSpace< simDim > const & particleOffsetToTotalOrigin,
+                {{/needs_total_position}}
+                  T_Particle const& particle
+                )
+                {{/rng_info}}
+                {
+                {{#rng_info}}
+                using RNGType = typename std::remove_cvref_t<decltype(rng.m_rng)>;
+                {{/rng_info}}
+                  {{#functor_preamble}}
+                  {{{statement}}}
+                  {{/functor_preamble}}
+                  return {{{functor_expression}}};
+                }
+
+              };
+
+              using {{{name}}} =
+              {{#rng_info}}
+                generic::FreeRng<
+              {{/rng_info}}
+              {{^rng_info}}
+              {{#needs_total_position}}
+                generic::FreeTotalCellOffset<
+              {{/needs_total_position}}
+              {{^needs_total_position}}
+                generic::Free<
+              {{/needs_total_position}}
+              {{/rng_info}}
+                  {{{typename}}}
+              {{#rng_info}}
+                  ,
+                  {{{rng_info.typename}}}< {{{rng_info.return_type}}} >
+              {{/rng_info}}
+                >;
+
+            {{/particle_filters}}
+
+            using AllParticleFilters = MakeSeq_t<
+            {{#particle_filters}}
+            {{{name}}},
+            {{/particle_filters}}
+              All
+            >;
+
+        } // namespace filter
+
+        namespace traits
+        {
+            /* if needed for generic "free" filters,
+             * place `SpeciesEligibleForSolver` traits for filters here
+             */
+        } // namespace traits
+    } // namespace particles
+} // namespace picongpu

@@ -5,7 +5,6 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
-from contextlib import contextmanager
 import datetime
 import json
 import logging
@@ -14,6 +13,7 @@ import re
 import subprocess
 import tempfile
 import typing
+from contextlib import contextmanager
 from os import chdir, environ, path
 from pathlib import Path
 

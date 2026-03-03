@@ -260,9 +260,6 @@ class TestPicmiSimulation(unittest.TestCase):
         for op in density_operations:
             self.assertTrue(isinstance(op.profile, species.operation.densityprofile.Uniform))
 
-            # passes:
-            op.check_preconditions()
-
             species_names = set(map(lambda species: species.name, op.species))
 
             # ensure grouping:

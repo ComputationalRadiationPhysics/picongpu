@@ -5,13 +5,14 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from ...rendering import RenderedObject
-
-from pydantic import BaseModel, computed_field
-import typeguard
-import scipy
-import periodictable
 import re
+
+import periodictable
+import scipy
+import typeguard
+from pydantic import BaseModel, computed_field
+
+from picongpu.pypicongpu.rendering import RenderedObject
 
 
 @typeguard.typechecked

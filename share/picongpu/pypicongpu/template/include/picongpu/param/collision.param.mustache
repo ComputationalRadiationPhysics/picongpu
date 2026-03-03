@@ -45,7 +45,12 @@ namespace picongpu
 
             using CollisionScreeningSpecies = MakeSeq_t<
             {{#collisional_physics.screening_species}}
-                {{{name}}},
+            {{#type_filtered}}
+                picongpu::plugins::misc::SpeciesFilter<{{{species.typename}}}, picongpu::particles::filter::{{{filter_name}}}>,
+            {{/type_filtered}}
+            {{^type_filtered}}
+                {{{typename}}},
+            {{/type_filtered}}
             {{/collisional_physics.screening_species}}
             MakeSeq_t<>
                 >;
@@ -86,6 +91,15 @@ namespace picongpu
                        {{/species_pairs}}
                        MakeSeq_t<>
                     >
+                    {{#has_filters}}
+                    ,
+                    {{#species_pairs}}
+                    FilterPair<
+                      picongpu::particles::filter::{{{species_lhs.filter_typename}}},
+                      picongpu::particles::filter::{{{species_rhs.filter_typename}}}
+                    >
+                    {{/species_pairs}}
+                    {{/has_filters}}
                 >,
 {{/collisional_physics.collisions}}
                 MakeSeq_t<>

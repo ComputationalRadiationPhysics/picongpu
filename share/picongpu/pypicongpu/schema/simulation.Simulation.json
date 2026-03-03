@@ -58,6 +58,7 @@
     "walltime": {
       "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.walltime.Walltime"
     },
+    "particle_filters": {},
     "collisional_physics": {},
     "binomial_current_interpolation": {
       "type": "boolean",
@@ -102,6 +103,7 @@
     "moving_window",
     "walltime",
     "collisional_physics",
+    "particle_filters",
     "customuserinput",
     "output",
     "synchrotron_params",
