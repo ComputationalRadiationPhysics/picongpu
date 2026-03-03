@@ -5,7 +5,7 @@
 
 [build-system]
 build-backend = "hatchling.build"
-requires = [ "hatchling" ]
+requires = ["hatchling"]
 
 [project]
 name = "picongpu"
@@ -37,7 +37,7 @@ dependencies = [
   "pandas>=2.2.3",
   "particle>=0.25.1",
   "periodictable>=1.7.1",
-  "picmistandard>=0.27",
+  "picmistandard @ git+https://github.com/chillenzer/picmi.git@b9d7e33c39830d4d1372b9d8383c7d4ff4eddd61",
   "pillow",
   "pint",
   "pydantic>=2.6.4",
@@ -55,7 +55,7 @@ dependencies = [
   "typeguard>=4.2.1",
 ]
 
-optional-dependencies.test = [ "pytest>=9" ]
+optional-dependencies.test = ["pytest>=9"]
 
 scripts.picrc-builder = "picongpu.picrc_builder:main"
 
@@ -63,7 +63,7 @@ scripts.picrc-builder = "picongpu.picrc_builder:main"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = [ "picongpu" ]
+packages = ["picongpu"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "../../include" = "picongpu/core/include"
@@ -74,7 +74,7 @@ packages = [ "picongpu" ]
 "../../thirdParty" = "picongpu/core/thirdParty"
 
 [tool.hatch.build.targets.sdist]
-packages = [ "picongpu" ]
+packages = ["picongpu"]
 [tool.hatch.build.targets.sdist.force-include]
 "../../include" = "picongpu/core/include"
 "../../etc" = "picongpu/core/etc"
@@ -89,4 +89,4 @@ markers = [
   "compiling: tests that compile PIConGPU simulations",
   "end_to_end: end-to-end simulation tests",
 ]
-filterwarnings = [ "error" ]
+filterwarnings = ["error"]
