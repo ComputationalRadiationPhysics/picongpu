@@ -31,6 +31,7 @@ dependencies = [
   "h5py",
   "imageio",
   "jsonschema>=4.23",
+  "lasy>=0.6",
   # Included from: picongpu/extra/plugins/requirements.txt
   # Included from: picongpu/extra/plugins/plot_mpl/requirements.txt
   "matplotlib",

@@ -1,0 +1,5 @@
+numpy
+lasy
+scipy>=1.17.0
+openpmd_api
+picongpu
