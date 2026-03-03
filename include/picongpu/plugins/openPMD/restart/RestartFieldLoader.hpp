@@ -120,13 +120,21 @@ namespace picongpu
                     }
                     log<picLog::INPUT_OUTPUT>("openPMD:  (end) collect PML sizes for %1%") % objectName;
 
-                    if(auto const& extentOnDisk = mesh.begin()->second.getExtent();
-                       extentOnDisk != ::openPMD::Extent{1, 1, pmlTotalSize})
+
+                    auto const expectedExtent = [&pmlTotalSize]()
+                    {
+                        if constexpr(simDim == 3u)
+                            return ::openPMD::Extent{1u, 1u, pmlTotalSize};
+                        else
+                            return ::openPMD::Extent{1u, pmlTotalSize};
+                    }();
+
+                    if(auto const& extentOnDisk = mesh.begin()->second.getExtent(); extentOnDisk != expectedExtent)
                     {
                         log<picLog::INPUT_OUTPUT>(
                             "openPMD:  Skip loading for PML fields. Expecting extent %1%, found extent %2% on disk. "
                             "This may happen when restarting with a different domain decomposition.")
-                            % pmlTotalSize % extentOnDisk.at(2);
+                            % pmlTotalSize % extentOnDisk.at(simDim - 1u);
                         return;
                     }
 
