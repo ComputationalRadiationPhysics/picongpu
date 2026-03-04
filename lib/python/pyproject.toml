@@ -26,33 +26,23 @@ classifiers = [
 # dependecies list generated with
 # https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
 dependencies = [
-  # Included from: picongpu/pypicongpu/requirements.txt
   "chevron>=0.13.1",
   "h5py",
   "imageio",
   "jsonschema>=4.23",
-  # Included from: picongpu/extra/plugins/requirements.txt
-  # Included from: picongpu/extra/plugins/plot_mpl/requirements.txt
   "matplotlib",
   "mpmath>=1.3",
   "numpy>=1.26.2",
   "openpmd-api>=0.16.1",
-  # Included from: picongpu/extra/plugins/plot_mpl/../data/requirements.txt
   "pandas>=2.2.3",
   "particle>=0.25.1",
   "periodictable>=1.7.1",
-  # Included from: picongpu/picmi/requirements.txt
   "picmistandard>=0.27",
   "pillow",
-  # Included from: picongpu/extra/requirements.txt
-  # Included from: picongpu/extra/input/requirements.txt
   "pint",
   "pydantic>=2.6.4",
-  # testing
   "pytest>=9",
   "referencing>=0.35.1",
-  # Included from: picongpu/extra/utils/requirements.txt
-  # Included from: picongpu/extra/utils/FLYonPICRateCalculationReference/requirements.txt
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",
