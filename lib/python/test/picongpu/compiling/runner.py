@@ -7,16 +7,17 @@ License: GPLv3+
 
 from picongpu.pypicongpu.runner import Runner
 
-import unittest
-
 from picongpu import picmi
 
-import tempfile
 import os
 import shutil
+import tempfile
+from unittest import TestCase
+
+import pytest
 
 
-class TestRunner(unittest.TestCase):
+class TestRunner(TestCase):
     # note: these tests run a long time
     # (as they involve actually trying to build/run stuff)
     # for short tests see the short/ directory
@@ -65,30 +66,30 @@ class TestRunner(unittest.TestCase):
         # Any other call (or calling the steps again) is prohibited
         # and should produce an error.
 
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.build()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.run()
 
         # no raise
         r.generate()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.generate()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.run()
 
         r.build()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.generate()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.build()
 
         r.run()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.generate()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.build()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.run()
 
     def test_generate_code(self):
@@ -100,7 +101,7 @@ class TestRunner(unittest.TestCase):
         assert os.path.isdir(r.setup_dir)
 
         # error because now path exists
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.generate()
 
     def test_build(self):
@@ -115,7 +116,7 @@ class TestRunner(unittest.TestCase):
         assert os.path.isdir(pic_build_dir)
 
         # error because now path+.build (pic-build destination) exists
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.build()
 
         # but: injecting a generated (but not built) dir
@@ -141,7 +142,7 @@ class TestRunner(unittest.TestCase):
         assert os.path.isdir(r.run_dir)
 
         # error because now path exists
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.run()
 
         # but: resetting the path to sth nonexistent works
@@ -156,14 +157,14 @@ class TestRunner(unittest.TestCase):
         r = Runner(self.sim)
         # other tests ensure that vars are set
 
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.setup_dir = None
             r.generate()
 
     def test_dir_reset_build(self):
         r = Runner(self.sim)
         r.generate()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             r.setup_dir = None
             r.build()
 
@@ -177,9 +178,9 @@ class TestRunner(unittest.TestCase):
             # -> run dir could *theoretically* be guessed again
             # (but this is not the case)
             assert os.path.isdir(r.scratch_dir)
-            self.assertTrue(r.run_dir.startswith(r.scratch_dir))
+            assert r.run_dir.startswith(r.scratch_dir)
 
-            with self.assertRaises(Exception):
+            with pytest.raises(Exception):
                 r.run_dir = None
                 r.run()
 
@@ -193,23 +194,23 @@ class TestRunner(unittest.TestCase):
             r.build()
 
             r.scratch_dir = None
-            self.assertTrue(r.run_dir is not None)
+            assert r.run_dir is not None
             # no error
             r.run()
 
     def test_dirs_used(self):
         r = Runner(self.sim)
 
-        self.assertTrue(not os.path.exists(r.run_dir))
-        self.assertTrue(not os.path.exists(r.setup_dir))
+        assert not os.path.exists(r.run_dir)
+        assert not os.path.exists(r.setup_dir)
         r.generate()
-        self.assertTrue(not os.path.exists(r.run_dir))
-        self.assertTrue(os.path.isdir(r.setup_dir))
+        assert not os.path.exists(r.run_dir)
+        assert os.path.isdir(r.setup_dir)
 
         r.build()
-        self.assertTrue(not os.path.exists(r.run_dir))
-        self.assertTrue(os.path.isdir(r.setup_dir))
+        assert not os.path.exists(r.run_dir)
+        assert os.path.isdir(r.setup_dir)
 
         r.run()
-        self.assertTrue(os.path.isdir(r.run_dir))
-        self.assertTrue(os.path.isdir(r.setup_dir))
+        assert os.path.isdir(r.run_dir)
+        assert os.path.isdir(r.setup_dir)

@@ -7,10 +7,11 @@ License: GPLv3+
 
 import logging
 import tempfile
-import unittest
 from pathlib import Path
 from datetime import timedelta
+from unittest import TestCase
 
+import pytest
 import typeguard
 from picongpu import picmi, pypicongpu
 from picongpu.pypicongpu.grid import BoundaryCondition
@@ -30,7 +31,7 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     )
 
 
-class TestSimulation(unittest.TestCase):
+class TestSimulation(TestCase):
     def _set_up_sim(self, **kw):
         grid = picmi.Cartesian3DGrid(
             number_of_cells=[192, 2048, 12],
@@ -110,7 +111,7 @@ class TestSimulation(unittest.TestCase):
             logging.disable(logging.CRITICAL + 10)
 
             # there is no code -> this should not compile
-            with self.assertRaises(Exception):
+            with pytest.raises(Exception):
                 sim.picongpu_run()
 
             # enable the logger again
@@ -121,8 +122,5 @@ class TestSimulation(unittest.TestCase):
         runner = sim.picongpu_get_runner()
 
         # check for generated (rendered) dir
-        self.assertTrue(Path(runner.setup_dir).is_dir())
-        self.assertSequenceEqual(
-            [Path(template_dir_name).absolute()],
-            list(map(Path.absolute, runner._pypicongpu_template_dir)),
-        )
+        assert Path(runner.setup_dir).is_dir()
+        assert [Path(template_dir_name).absolute()] == list(map(Path.absolute, runner._pypicongpu_template_dir))
