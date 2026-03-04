@@ -9,9 +9,9 @@ import logging
 import traceback
 import typing
 
+import numpy as np
 import sympy
 import typeguard
-from numpy import vectorize
 
 from picongpu.pypicongpu import species
 from picongpu.pypicongpu.util import decorating_class
@@ -147,6 +147,7 @@ class AnalyticDistribution:
         )
 
     def __call__(self, *args, **kwargs):
+        args = tuple(np.asarray(a) for a in args)
         try:
             # This produces faster code but the code generation is not perfect.
             # There are cases where the generated code can't handle broadcasting properly.
@@ -167,4 +168,4 @@ class AnalyticDistribution:
                 self.warned_about_lambdify_failure = True
         # This basically calls the original function in a big loop.
         # Slower but more reliable in some cases of difficult broadcasting.
-        return vectorize(self.density_function)(*args, **kwargs)
+        return np.vectorize(self.density_function)(*args, **kwargs)
