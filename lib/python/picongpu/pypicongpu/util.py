@@ -8,8 +8,8 @@ License: GPLv3+
 from itertools import chain
 from functools import wraps
 from inspect import Parameter, signature
-from operator import itemgetter
-from typing import Any, Self
+from operator import itemgetter, attrgetter, methodcaller
+from typing import Any
 
 from pydantic import BeforeValidator
 
@@ -146,17 +146,6 @@ def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError
             return alternative
 
 
-class _Attribute(str):
-    pass
-
-
-class _Item:
-    args: Any
-
-    def __init__(self, args):
-        self.args = args
-
-
 class UnpackChain:
     """
     Helper class to iterate over (nested) members.
@@ -166,76 +155,39 @@ class UnpackChain:
     This is very helpful to iterate over
     deeply nested objects as they easily occur with pydantic.
 
-    By example (using a slightly artifical recursive model):
-
-        from pydantic import BaseModel
-
-        class Model(BaseModel):
-            a: list["Model"] | int
-            b: list[list["Model"]] = Field(default_factory=list)
-
-        m = Model(a=[{"a": [{"a": 1}, {"a": 2}], "b": [[{"a": 4}, {"a": 5}]]}, {"a": 3}])
-        print(*(x for x in UnpackChain(m).a.a))
-        #> [Model(a=1, b=[]), Model(a=2, b=[])] 3
-        print(*(x for x in UnpackChain(m).a.a.a))
-        #> 1 2
-        print(*(x for x in UnpackChain(m).a.b[:].a))
-        #> 4 5
-        print(*(x for x in UnpackChain(m).a.b[0].a))
-        #> 4
-
-    Warning: Consecutive access by []-operator is ambiguous and tricky!
-    Only the last in a series of []-accesses is allowed to
-    generate something non-iterable. So, the following are all fine:
-        - [:]
-        - [0]
-        - [:][:]
-        - [:][0]
-        - [0].a[:]
-    But the following fail:
-        - [0][:]
-        - [0][0]
-    This is because I cannot tell purely from the arguments,
-    if an access by [] is supposed to imply iteration or not.
-    The semantics are currently that it DOES imply iteration
-    (except for the last of a series of [] which is a bit more relaxed).
+    Warning: Consecutive access by []-operator is ambiguous and therefore forbidden.
     """
 
     def __init__(self, obj, requests=None):
-        self._requests = requests or []
+        self._requests = requests or tuple()
         self.obj = obj
 
-    def __getattr__(self, name: str, /) -> Self:
-        self._requests.append(_Attribute(name))
-        return self
+    def __getattr__(self, name: str, /):
+        return UnpackChain(self.obj, requests=self._requests + (attrgetter(name),))
 
     def __getitem__(self, *args):
-        self._requests.append(_Item(args))
-        return self
+        if alt(lambda: isinstance(self._requests[-1], itemgetter), False):
+            raise ValueError("Consecutive access by []-operator is ambiguous and forbidden.")
+        return UnpackChain(self.obj, requests=self._requests + (itemgetter(*args),))
+
+    def __call__(self, *args, **kwargs):
+        return UnpackChain(self.obj, requests=self._requests + (methodcaller("__call__", *args, **kwargs),))
 
     def values(self):
-        self._requests.append("values()")
-        return self
+        return UnpackChain(self.obj, requests=self._requests + (methodcaller("values"),))
 
     def __iter__(self):
         if len(self._requests) == 0:
-            return iter([self.obj])
+            try:
+                return iter(self.obj)
+            except TypeError:
+                return iter([self.obj])
 
-        new_obj = (
-            alt(
-                # Using itemgetter here because indexing via [*args] apparently doesn't work?
-                lambda: itemgetter(*self._requests[0].args)(self.obj),
-                lambda: getattr(self.obj, self._requests[0]),
-                NotImplemented,
-            )
-            if self._requests[0] != "values()"
-            else alt(lambda: self.obj.values(), NotImplemented)
-        )
-
+        new_obj = alt(lambda: self._requests[0](self.obj), NotImplemented)
         if new_obj is NotImplemented:
             return iter([])
 
-        if len(self._requests) == 1 or alt(lambda: hasattr(new_obj, self._requests[1]), False):
+        if len(self._requests) == 1 or alt(lambda: self._requests[1](new_obj), False):
             return iter(UnpackChain(new_obj, requests=self._requests[1:]))
 
         return chain(*(UnpackChain(x, requests=self._requests[1:]) for x in alt(lambda: iter(new_obj), [])))
