@@ -317,23 +317,23 @@ class TestPicmiGaussianDistribution(TestCase, HelperTestPicmiBoundaries):
         gaussian = self._get_distribution()
 
         pypic = gaussian.get_as_pypicongpu(ARBITRARY_GRID)
-        self.assertTrue(isinstance(pypic, species.operation.densityprofile.Gaussian))
+        assert isinstance(pypic, species.operation.densityprofile.Gaussian)
 
-        self.assertEqual(self.values["density"], pypic.density)
-        self.assertEqual(self.values["center_front"], pypic.gas_center_front)
-        self.assertEqual(self.values["center_rear"], pypic.gas_center_rear)
-        self.assertEqual(self.values["sigma_front"], pypic.gas_sigma_front)
-        self.assertEqual(self.values["sigma_rear"], pypic.gas_sigma_rear)
-        self.assertEqual(self.values["power"], pypic.gas_power)
-        self.assertEqual(self.values["factor"], pypic.gas_factor)
-        self.assertEqual(self.values["vacuum_front"], pypic.vacuum_cells_front)
+        assert pypic.density == self.values["density"]
+        assert pypic.gas_center_front == self.values["center_front"]
+        assert pypic.gas_center_rear == self.values["center_rear"]
+        assert pypic.gas_sigma_front == self.values["sigma_front"]
+        assert pypic.gas_sigma_rear == self.values["sigma_rear"]
+        assert pypic.gas_power == self.values["power"]
+        assert pypic.gas_factor == self.values["factor"]
+        assert pypic.vacuum_cells_front == self.values["vacuum_front"]
 
         # @todo repect bounding boxes, Brian Marre, 2024
 
     def test_density_zero(self):
         """density set to zero is not accepted"""
         gaussian = self._get_distribution(density=0.0)
-        with self.assertRaisesRegex(ValueError, ".*density must be > 0.*"):
+        with pytest.raises(ValueError, match=".*density must be > 0.*"):
             gaussian.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_front_rear_swapped(self):
@@ -341,17 +341,17 @@ class TestPicmiGaussianDistribution(TestCase, HelperTestPicmiBoundaries):
         gaussian = self._get_distribution(
             center_front=self.values["center_rear"], center_rear=self.values["center_front"]
         )
-        with self.assertRaisesRegex(ValueError, ".*center_front must be <= center_rear.*"):
+        with pytest.raises(ValueError, match=".*center_front must be <= center_rear.*"):
             gaussian.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_sigma_zero(self):
         """sigma == 0 is not accepted"""
         gaussian = self._get_distribution(sigma_front=0.0)
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             gaussian.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
         gaussian = self._get_distribution(sigma_rear=0.0)
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             gaussian.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_drift(self):
@@ -359,18 +359,18 @@ class TestPicmiGaussianDistribution(TestCase, HelperTestPicmiBoundaries):
         # no drift
         gaussian = self._get_distribution(directed_velocity=[0, 0, 0])
         drift = gaussian.get_picongpu_drift()
-        self.assertEqual(None, drift)
+        assert drift is None
 
         # some drift
         # uses velocity
         gaussian = self._get_distribution(directed_velocity=[278487224.0, 103784563.0, 1283345.0])
 
         drift = gaussian.get_picongpu_drift()
-        self.assertNotEqual(None, drift)
-        self.assertAlmostEqual(drift.gamma, 7.6208808298928865)
-        self.assertAlmostEqual(drift.direction_normalized[0], 0.9370354841199405)
-        self.assertAlmostEqual(drift.direction_normalized[1], 0.34920746753855203)
-        self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
+        assert drift is not None
+        assert abs(drift.gamma - 7.6208808298928865) < 1e-10
+        assert abs(drift.direction_normalized[0] - 0.9370354841199405) < 1e-10
+        assert abs(drift.direction_normalized[1] - 0.34920746753855203) < 1e-10
+        assert abs(drift.direction_normalized[2] - 0.004318114799291135) < 1e-10
 
 
 class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
@@ -403,16 +403,16 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_cutoff=0.2,
         )
         pypic = dist.get_as_pypicongpu(ARBITRARY_GRID)
-        self.assertTrue(isinstance(pypic, species.operation.densityprofile.Cylinder))
-        self.assertAlmostEqual(pypic.density_si, 42.42)
-        self.assertEqual(pypic.center_position_si, (1.0, 2.0, 3.0))
-        self.assertAlmostEqual(pypic.radius_si, 4.0)
-        self.assertEqual(pypic.cylinder_axis, (0.5, 0.5, 0.707))
+        assert isinstance(pypic, species.operation.densityprofile.Cylinder)
+        assert abs(pypic.density_si - 42.42) < 1e-10
+        assert pypic.center_position_si == (1.0, 2.0, 3.0)
+        assert abs(pypic.radius_si - 4.0) < 1e-10
+        assert pypic.cylinder_axis == (0.5, 0.5, 0.707)
 
     def test_density_zero(self):
         """density set to zero is not accepted"""
         dist = self._get_distribution(density=0.0)
-        with self.assertRaisesRegex(ValueError, ".*density must be > 0.*"):
+        with pytest.raises(ValueError, match=".*density must be > 0.*"):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_radius_zero(self):
@@ -422,7 +422,7 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_length=0.1,
             exponential_pre_plasma_cutoff=0.2,
         )
-        with self.assertRaisesRegex(ValueError, ".*radius must be > sqrt(2)*"):
+        with pytest.raises(ValueError, match=".*radius must be > sqrt(2)*"):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_cutoff_zero(self):
@@ -433,8 +433,8 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
         )
         pypic = dist.get_as_pypicongpu(ARBITRARY_GRID)
         # no error
-        self.assertAlmostEqual(pypic.density_si, 1.0)
-        self.assertAlmostEqual(pypic.radius_si, 2.0)
+        assert abs(pypic.density_si - 1.0) < 1e-10
+        assert abs(pypic.radius_si - 2.0) < 1e-10
 
     def test_cutoff_below_zero(self):
         """cutoff below zero is not accepted (depends on ramp checks)"""
@@ -442,7 +442,7 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_length=1.0,
             exponential_pre_plasma_cutoff=-0.5,
         )
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_length_zero(self):
@@ -451,7 +451,7 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_length=0.0,
             exponential_pre_plasma_cutoff=1.0,
         )
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_length_below_zero(self):
@@ -460,30 +460,30 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_length=-1.0,
             exponential_pre_plasma_cutoff=1.0,
         )
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_setting_noPrePlasma(self):
         """must set either both cutoffs and length, or none"""
         # only one set
         dist = self._get_distribution(exponential_pre_plasma_length=1.0)
-        with self.assertRaisesRegex(
+        with pytest.raises(
             ValueError,
-            "either both exponential_pre_plasma_length and exponential_pre_plasma_cutoff must be set.*",
+            match="either both exponential_pre_plasma_length and exponential_pre_plasma_cutoff must be set.*",
         ):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
         # partial other way
         dist = self._get_distribution(exponential_pre_plasma_cutoff=1.0)
-        with self.assertRaisesRegex(
+        with pytest.raises(
             ValueError,
-            "either both exponential_pre_plasma_length and exponential_pre_plasma_cutoff must be set.*",
+            match="either both exponential_pre_plasma_length and exponential_pre_plasma_cutoff must be set.*",
         ):
             dist.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_mandatory(self):
         """check that mandatory must be given"""
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             picmi.CylindricalDistribution().get_as_pypicongpu(ARBITRARY_GRID)
 
         # minimal valid
