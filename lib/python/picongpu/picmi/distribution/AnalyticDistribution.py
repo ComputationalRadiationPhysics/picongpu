@@ -142,9 +142,9 @@ class AnalyticDistribution:
         if all(v == 0 for v in self.directed_velocity):
             return None
 
-        drift = species.operation.momentum.Drift()
-        drift.fill_from_velocity(self.directed_velocity)
-        return drift
+        return species.operation.momentum.Drift.from_velocity(
+            self.directed_velocity  # type: ignore[arg-type]
+        )
 
     def __call__(self, *args, **kwargs):
         try:

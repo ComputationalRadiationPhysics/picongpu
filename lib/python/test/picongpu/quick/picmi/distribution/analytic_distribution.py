@@ -11,7 +11,6 @@ import numpy as np
 from scipy.constants import c
 
 from picongpu.picmi import AnalyticDistribution
-import typeguard
 import pytest
 
 # allow numpy broadcasting (see https://numpy.org/doc/stable/user/basics.broadcasting.html)
@@ -69,8 +68,10 @@ class TestAnalyticDistribution(TestCase):
         assert AnalyticDistribution(lambda *x: sum(x), directed_velocity=[0, 0, 0]).get_picongpu_drift() is None
 
     def test_drift_wrong_dimensionality(self):
+        from pydantic_core import ValidationError
+
         # Test drift with wrong dimensionality
-        with pytest.raises(typeguard.TypeCheckError):
+        with pytest.raises(ValidationError):
             AnalyticDistribution(
                 lambda x, y, z: x + y + z,
                 # Only 2 elements
