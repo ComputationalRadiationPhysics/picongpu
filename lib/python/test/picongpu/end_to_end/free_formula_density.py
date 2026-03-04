@@ -6,8 +6,8 @@ License: GPLv3+
 """
 
 import logging
-import unittest
 from pathlib import Path
+from unittest import TestCase
 
 import numpy as np
 from picongpu import picmi
@@ -92,7 +92,7 @@ def setup_sim():
 SIM = None
 
 
-class TestFreeFormulaDensity(unittest.TestCase):
+class TestFreeFormulaDensity(TestCase):
     _result_path = None
 
     def setUp(self):
@@ -113,7 +113,7 @@ class TestFreeFormulaDensity(unittest.TestCase):
         return self._result_path
 
     def test_compare_particles_pairwise(self):
-        self.assertTrue(compare_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5"))
+        assert compare_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5")
 
     def test_compare_particles_against_call_operator(self):
         particles = read_densities_into_mesh(
@@ -174,7 +174,7 @@ class TestFreeFormulaDensity(unittest.TestCase):
         )
 
         for (setup, impl), count in number_of_particles.items():
-            self.assertEqual(
+            assert (
                 round(
                     read_position_check(
                         self.result_path
@@ -182,8 +182,8 @@ class TestFreeFormulaDensity(unittest.TestCase):
                         / "binningOpenPMD"
                         / f"origin_{generate_name(setup, impl)}_000000.h5"
                     )
-                ),
-                count,
+                )
+                == count
             )
 
     def test_unit_conversions_by_hand(self):
@@ -194,7 +194,7 @@ class TestFreeFormulaDensity(unittest.TestCase):
         )
 
         for (setup, impl), count in number_of_particles.items():
-            self.assertEqual(
+            assert (
                 round(
                     read_position_check(
                         self.result_path
@@ -202,10 +202,6 @@ class TestFreeFormulaDensity(unittest.TestCase):
                         / "binningOpenPMD"
                         / f"unit_{generate_name(setup, impl)}_000000.h5"
                     )
-                ),
-                count,
+                )
+                == count
             )
-
-
-if __name__ == "__main__":
-    unittest.main()

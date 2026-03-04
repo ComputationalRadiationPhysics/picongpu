@@ -7,13 +7,13 @@ License: GPLv3+
 
 import logging
 from functools import partial
+from hashlib import sha256 as compute_hash
 from itertools import chain
 from pathlib import Path
-from unittest import TestCase, main
-from hashlib import sha256 as compute_hash
-import pandas as pd
+from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
@@ -422,7 +422,3 @@ class TestDiagnostics(TestCase):
             .rename({"particle_number": "actual_percent"}, axis=1)
         )
         pd.testing.assert_series_equal(found["actual_percent"], found["expected_percent"], check_names=False)
-
-
-if __name__ == "__main__":
-    main()
