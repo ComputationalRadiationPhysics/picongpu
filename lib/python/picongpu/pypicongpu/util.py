@@ -7,6 +7,8 @@ License: GPLv3+
 
 import logging
 from itertools import chain
+from functools import wraps
+from inspect import Parameter, signature
 from operator import itemgetter
 from types import GenericAlias, UnionType
 from typing import Any, Self
@@ -14,6 +16,52 @@ from typing import Any, Self
 import typeguard
 
 attr_cnt = 0
+
+
+def decorating_class(cls):
+    """
+    A decorating class can be used as decorator, i.e., in the following example `a` and `b` are identical:
+
+        a = MyClass(b=lambda: print("Hello World!"), c=6)
+
+        @MyClass(c=6)
+        def b():
+            print("Hello World!")
+    """
+    # It is important to extract the signature before decorating the class.
+    # Otherwise, we'll only see the names of the decorator's arguments.
+    sig = signature(cls).parameters
+    try:
+        parameter = next(iter(sig.values()))
+    except StopIteration as error:
+        raise TypeError(
+            f"A decorating class must have at least one argument to its constructor. You gave: {sig=} for {cls=}."
+        ) from error
+    if parameter.kind == Parameter.VAR_KEYWORD:
+        raise TypeError(
+            f"A decorating class cannot have only **kwargs arguments to its constructor. You gave: {sig=} for {cls=}."
+        )
+
+    @wraps(cls, updated=tuple())
+    class Tmp(cls):
+        def __new__(cls, decorated=None, **kwargs):
+            decorated = kwargs.pop(parameter.name, None) or decorated
+            if decorated is None:
+                if parameter.kind in [Parameter.KEYWORD_ONLY]:
+                    return lambda d: cls(**{parameter.name: d}, **kwargs)
+                elif parameter.kind in [
+                    Parameter.POSITIONAL_ONLY,
+                    Parameter.POSITIONAL_OR_KEYWORD,
+                    Parameter.VAR_POSITIONAL,
+                ]:
+                    return lambda d: cls(d, **kwargs)
+                else:
+                    # The remaining option for parameter.kind is VAR_KEYWORD (at the time of writing)
+                    # and that was caught above already.
+                    raise Exception("This path should be unreachable!")
+            return super().__new__(cls)
+
+    return Tmp
 
 
 def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError)):
