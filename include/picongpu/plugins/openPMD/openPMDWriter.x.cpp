@@ -1710,54 +1710,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     recordGlobalSizeDims = precisionCast<uint64_t>(*recordGlobalSizeOverride);
                 }
 
-                /* Patch for non-domain-bound fields
-                 * Allow for the output of reduced 1d PML buffer
-                 */
-                if(!isDomainBound && !useCustomWriteLayout)
-                {
-                    localWindowSize = bufferGridLayout.sizeWithoutGuardND();
-                    bufferOffset = bufferGridLayout.guardSizeND();
-
-                    recordLocalSizeDims = precisionCast<uint64_t>(localWindowSize);
-
-                    /* Scan the PML buffer local size along all local domains
-                     * This code is based on the same operation in hdf5::Field::writeField(),
-                     * the same comments apply here
-                     */
-                    log<picLog::INPUT_OUTPUT>("openPMD:  (begin) collect PML sizes for %1%") % name;
-                    auto& gridController = Environment<simDim>::get().GridController();
-                    auto const numRanks = uint64_t{gridController.getGlobalSize()};
-                    /* Use domain position-based rank, not MPI rank, to be independent
-                     * of the MPI rank assignment scheme
-                     */
-                    auto const rank = uint64_t{gridController.getScalarPosition()};
-                    std::vector<uint64_t> localSizes(2u * numRanks, 0u);
-                    uint64_t localSizeInfo[2] = {recordLocalSizeDims[0], rank};
-                    eventSystem::getTransactionEvent().waitForFinished();
-                    MPI_CHECK(MPI_Allgather(
-                        localSizeInfo,
-                        2,
-                        MPI_UINT64_T,
-                        &(*localSizes.begin()),
-                        2,
-                        MPI_UINT64_T,
-                        gridController.getCommunicator().getMPIComm()));
-                    uint64_t globalOffsetFile = 0;
-                    uint64_t globalSize = 0;
-                    for(uint64_t r = 0; r < numRanks; ++r)
-                    {
-                        globalSize += localSizes.at(2u * r);
-                        if(localSizes.at(2u * r + 1u) < rank)
-                            globalOffsetFile += localSizes.at(2u * r);
-                    }
-                    log<picLog::INPUT_OUTPUT>("openPMD:  (end) collect PML sizes for %1%") % name;
-
-                    recordGlobalSizeDims = pmacc::math::UInt64<simDim>::create(1);
-                    recordGlobalSizeDims[0] = globalSize;
-                    recordOffsetDims = pmacc::math::UInt64<simDim>::create(0);
-                    recordOffsetDims[0] = globalOffsetFile;
-                }
-
                 auto const numDataPoints = localWindowSize.productOfComponents();
 
                 {
