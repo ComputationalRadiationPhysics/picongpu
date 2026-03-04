@@ -57,14 +57,14 @@ dependencies = [
   "typeguard>=4.2.1",
 ]
 
-[tool.pytest.ini_options]
-testpaths = ["test/picongpu/quick"]
-pythonpath = ["."]
-python_files = ["*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "--ignore-glob=**/__init__.py"
-
 [tool.setuptools.packages.find]
 where = [ "." ]
 include = [ "picongpu*" ]
+
+[tool.pytest.ini_options]
+testpaths = [ "test/picongpu/quick" ]
+pythonpath = [ "." ]
+python_files = [ "*.py" ]
+python_classes = [ "Test*" ]
+python_functions = [ "test_*" ]
+addopts = "--ignore-glob=**/__init__.py"
