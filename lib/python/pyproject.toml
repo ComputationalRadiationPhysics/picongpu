@@ -66,4 +66,4 @@ pythonpath = [ "." ]
 python_files = [ "*.py" ]
 python_classes = [ "Test*" ]
 python_functions = [ "test_*" ]
-addopts = "--ignore=test/testsuite --ignore=test/setups --ignore=picongpu --ignore=test/picongpu/end_to_end/__init__.py"
+addopts = "--ignore=test/testsuite --ignore=test/setups --ignore=picongpu"
