@@ -18,7 +18,7 @@ from picongpu.pypicongpu.particle_functor import (
     UnitDimension as PyPIConGPUUnitDimension,
     generate_preamble,
 )
-from picongpu.pypicongpu.util import alt
+from picongpu.pypicongpu.util import alt, decorating_class
 
 _COORDINATE_SYSTEM = {
     (
@@ -94,22 +94,26 @@ class AbstractParticle(Particle):
         return my_symbols
 
 
+@decorating_class
 @typechecked
 class ParticleFunctor:
     def __init__(
         self,
-        name: str,
         functor: Callable[[Particle], Any] | Callable[[Particle, RNGArg], Any],
-        return_type: type | str = float,
+        name: str | None = None,
+        return_type: type | str | None = None,
         unit_dimension: UnitDimension | None = None,
     ):
-        self.name = name
         self.functor = functor
+        sig = signature(self.functor)
+        self.name = name or functor.__name__
         self.return_type = return_type
+        if self.return_type is None:
+            self.return_type = float if sig.return_annotation == sig.empty else sig.return_annotation
         self.unit_dimension = unit_dimension or UnitDimension()
         rng_classes = [
             cls
-            for p in signature(self.functor).parameters.values()
+            for p in sig.parameters.values()
             if isinstance(p.annotation, type) and issubclass(cls := p.annotation, RNGArg)
         ]
         if len(rng_classes) > 1:
