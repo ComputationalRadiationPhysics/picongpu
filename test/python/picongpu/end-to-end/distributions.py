@@ -251,6 +251,11 @@ class SphereFlanks:
         return density * sympy.Piecewise(front_vacuum, inner_vacuum, sphere, flanks)
 
 
+@picmi.AnalyticDistribution
+def uniformdec(x, y, z):
+    return Uniform().arbitrary_value
+
+
 DISTRIBUTIONS = {
     "Uniform": Uniform().distributions,
     "Gaussian": Gaussian().distributions,
@@ -258,4 +263,5 @@ DISTRIBUTIONS = {
     "LinearExponential": LinearExponential().distributions,
     "SphereFlanks": SphereFlanks().distributions,
     "Cylinder": Cylinder().distributions,
+    "Uniformdec": {"predefined": Uniform().distributions["predefined"], "free_form": uniformdec},
 }

@@ -94,7 +94,13 @@ def basic_simulation():
 
 
 CUTOFF_ENERGY = 10.0
-MACROPARTICLE_COUNTER = ParticleFunctor(name="macroparticle_counter", functor=lambda _: 1, return_type=int)
+
+
+@ParticleFunctor
+def macroparticle_counter(_) -> int:
+    return 1
+
+
 FUNCTORS = [
     # Currently no eligible particles available:
     # ParticleFunctor(name="bound_electrons", functor=lambda p: p.get("boundElectrons")),
@@ -116,14 +122,13 @@ FUNCTORS = [
     ),
     # Currently no eligible particles available:
     # ParticleFunctor(name="larmor_power", functor=larmor_power),
-    MACROPARTICLE_COUNTER,
+    macroparticle_counter,
     # Somehow off by some factor:
     ParticleFunctor(
         name="mid_current_density_x",
-        functor=lambda p: p.get("charge")
-        / np.prod(CELL_SIZE)
-        * p.get("momentum")[0]
-        / (p.get("gamma") * p.get("mass")),
+        functor=lambda p: (
+            p.get("charge") / np.prod(CELL_SIZE) * p.get("momentum")[0] / (p.get("gamma") * p.get("mass"))
+        ),
     ),
     ParticleFunctor(name="momentum_y", functor=lambda p: p.get("momentum")[1]),
     # Duplicated just to test what happens:
@@ -239,7 +244,7 @@ def generate_random_field_dumps(species, distribution):
             species=FilteredSpecies(
                 species=s, functor=RandomParticleFilter(percent, name=name, distribution=distribution)
             ),
-            functor=MACROPARTICLE_COUNTER,
+            functor=macroparticle_counter,
             options={"file": f"random_{name}"},
         )
         for percent in range(0, 100, 10)

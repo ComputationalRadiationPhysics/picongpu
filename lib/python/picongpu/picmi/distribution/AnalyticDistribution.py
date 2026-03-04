@@ -13,7 +13,8 @@ import sympy
 import typeguard
 from numpy import vectorize
 
-from ...pypicongpu import species
+from picongpu.pypicongpu import species
+from picongpu.pypicongpu.util import decorating_class
 
 """
 note on rms_velocity:
@@ -37,6 +38,7 @@ this method returns None.
 """
 
 
+@decorating_class
 @typeguard.typechecked
 class AnalyticDistribution:
     """

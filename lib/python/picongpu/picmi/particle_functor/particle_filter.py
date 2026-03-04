@@ -15,7 +15,7 @@ from picongpu.pypicongpu.particle_functor import FilteredSpecies as PyPIConGPUFi
 
 
 class ParticleFilter(ParticleFunctor):
-    def __init__(self, name: str, functor: Callable[[Particle], Any]):
+    def __init__(self, functor: Callable[[Particle], Any], name: str):
         return super().__init__(name=name, functor=functor, return_type=bool, unit_dimension=None)
 
     def get_as_pypicongpu(self, mode="Filter"):
