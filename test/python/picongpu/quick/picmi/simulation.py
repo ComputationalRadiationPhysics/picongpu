@@ -14,6 +14,7 @@ from unittest import TestCase
 from pathlib import Path
 
 import typeguard
+import pytest
 from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
@@ -88,9 +89,9 @@ class TestPicmiSimulation(TestCase):
 
         # nothing defined if grid is empty
         sim = picmi.Simulation()
-        self.assertEqual(None, sim.time_step_size)
+        assert sim.time_step_size is None
         sim = picmi.Simulation(time_step_size=17)
-        self.assertEqual(17, sim.time_step_size)
+        assert sim.time_step_size == 17
 
         # delta_t = cfl = None -> ignored (at least during instantiation;
         # can throw later)
@@ -98,18 +99,18 @@ class TestPicmiSimulation(TestCase):
 
         # delta_t -> cfl
         sim = get_sim_cfl_helper(2.02760320328617635877e-13, None, (7e-6, 8e-6, 9e-6), "Yee")
-        self.assertAlmostEqual(13.37, sim.solver.cfl)
+        assert abs(sim.solver.cfl - 13.37) < 1e-10
 
         # cfl -> delta_t
         sim = get_sim_cfl_helper(None, 0.99, (3, 4, 5), "Yee")
-        self.assertAlmostEqual(7.14500557764070900528e-9, sim.time_step_size)
+        assert abs(sim.time_step_size - 7.14500557764070900528e-9) < 1e-20
 
         # both delta_t and cfl defined:
         # case a: silently pass if they do match
         get_sim_cfl_helper(7.14500557764070900528e-9, 0.99, (3, 4, 5), "Yee")
 
         # case b: raise error if no match
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             # delta_t does not match cfl at all
             get_sim_cfl_helper(1, 0.99, (3, 4, 5), "Yee")
 
@@ -133,7 +134,7 @@ class TestPicmiSimulation(TestCase):
         layout4 = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
 
         # species list empty by default
-        self.assertEqual([], sim.get_as_pypicongpu().species)
+        assert sim.get_as_pypicongpu().species == []
 
         # not placed
         sim.add_species(picmi.Species(name="dummy1", mass=5), None)
@@ -145,12 +146,12 @@ class TestPicmiSimulation(TestCase):
         sim.add_species(picmi.Species(name="dummy3", mass=3, initial_distribution=profile), layout4)
 
         picongpu = sim.get_as_pypicongpu()
-        self.assertEqual(3, len(picongpu.species))
+        assert len(picongpu.species) == 3
         species_names = set(map(lambda species: species.name, picongpu.species))
-        self.assertEqual({"dummy1", "dummy2", "dummy3"}, species_names)
+        assert species_names == {"dummy1", "dummy2", "dummy3"}
 
         # check typical ppc is derived
-        self.assertEqual(picongpu.typical_ppc, 3)
+        assert picongpu.typical_ppc == 3
 
     def test_explicit_typical_ppc(self):
         grid = get_grid(1, 1, 1, 64)
@@ -169,12 +170,12 @@ class TestPicmiSimulation(TestCase):
         sim.add_species(picmi.Species(name="dummy3", mass=3, charge=4, initial_distribution=profile), layout4)
 
         picongpu = sim.get_as_pypicongpu()
-        self.assertEqual(2, len(picongpu.species))
+        assert len(picongpu.species) == 2
         species_names = set(map(lambda species: species.name, picongpu.species))
-        self.assertEqual({"dummy2", "dummy3"}, species_names)
+        assert species_names == {"dummy2", "dummy3"}
 
         # check explicitly set typical ppc is respected
-        self.assertEqual(picongpu.typical_ppc, 15)
+        assert picongpu.typical_ppc == 15
 
     def test_wrong_explicitly_set_typical_ppc(self):
         grid = get_grid(1, 1, 1, 64)
@@ -182,13 +183,13 @@ class TestPicmiSimulation(TestCase):
 
         wrongValues = [0, -1, -15]
         for value in wrongValues:
-            with self.assertRaisesRegex(ValueError, "Typical ppc should be > 0"):
+            with pytest.raises(ValueError, match="Typical ppc should be > 0"):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
 
         wrongTypes = [0.0, -1.0, -15.0, 1.0, 15.0]
         for value in wrongTypes:
-            with self.assertRaisesRegex(
-                typeguard.TypeCheckError, '"picongpu_typical_ppc" .* did not match any element in the union'
+            with pytest.raises(
+                typeguard.TypeCheckError, match='"picongpu_typical_ppc" .* did not match any element in the union'
             ):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
 
@@ -197,18 +198,18 @@ class TestPicmiSimulation(TestCase):
         layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
 
         # both profile and layout must be given
-        with self.assertRaisesRegex(Exception, ".*initial.*distribution.*"):
+        with pytest.raises(Exception, match=".*initial.*distribution.*"):
             # no profile
             sim = copy.deepcopy(self.sim)
             sim.add_species(picmi.Species(name="dummy3"), layout)
             sim.get_as_pypicongpu()
-        with self.assertRaisesRegex(Exception, ".*layout.*"):
+        with pytest.raises(Exception, match=".*layout.*"):
             # no layout
             sim = copy.deepcopy(self.sim)
             sim.add_species(picmi.Species(name="dummy3", initial_distribution=profile), None)
             sim.get_as_pypicongpu()
 
-        with self.assertRaisesRegex(Exception, ".*initial.*distribution.*"):
+        with pytest.raises(Exception, match=".*initial.*distribution.*"):
             # neither profile nor layout, but ratio
             sim = copy.deepcopy(self.sim)
             sim.add_species(picmi.Species(name="dummy3", density_scale=7), None)
@@ -243,10 +244,10 @@ class TestPicmiSimulation(TestCase):
         operations = pypic.init_operations
 
         # species
-        self.assertEqual(4, len(my_species))
-        self.assertEqual(
-            ["colocated1", "colocated2", "separate1", "separate2"],
-            list(map(lambda species: species.name, my_species)),
+        assert len(my_species) == 4
+        assert (
+            ["colocated1", "colocated2", "separate1", "separate2"]
+            == list(map(lambda species: species.name, my_species))
         )
 
         # operations
@@ -256,35 +257,35 @@ class TestPicmiSimulation(TestCase):
                 operations,
             )
         )
-        self.assertEqual(3, len(density_operations))
+        assert len(density_operations) == 3
         for op in density_operations:
-            self.assertTrue(isinstance(op.profile, species.operation.densityprofile.Uniform))
+            assert isinstance(op.profile, species.operation.densityprofile.Uniform)
 
             species_names = set(map(lambda species: species.name, op.species))
 
             # ensure grouping:
             if "separate1" in species_names or "separate2" in species_names:
                 # one of the two lone species
-                self.assertEqual(1, len(species_names))
+                assert len(species_names) == 1
             else:
                 # the two colocated species
-                self.assertEqual(2, len(species_names))
+                assert len(species_names) == 2
 
             # check profile
             if "separate2" in species_names or "colocated1" in species_names:
                 # used "profile"
-                self.assertEqual(42, op.profile.density_si)
+                assert op.profile.density_si == 42
             else:
                 # used "other_profile"
-                self.assertEqual(17, op.profile.density_si)
+                assert op.profile.density_si == 17
 
             # check layout
             if "separate1" in species_names or "colocated1" in species_names:
                 # used "layout"
-                self.assertEqual(3, op.layout.ppc)
+                assert op.layout.ppc == 3
             else:
                 # used "other_layout"
-                self.assertEqual(4, op.layout.ppc)
+                assert op.layout.ppc == 4
 
     def test_operation_not_placed_translated(self):
         """non-placed species are correctly translated"""
@@ -292,9 +293,9 @@ class TestPicmiSimulation(TestCase):
 
         pypicongpu = self.sim.get_as_pypicongpu()
 
-        self.assertEqual(1, len(pypicongpu.species))
+        assert len(pypicongpu.species) == 1
         # not placed, momentum (both initialize to empty)
-        self.assertEqual(0, len(pypicongpu.init_operations))
+        assert len(pypicongpu.init_operations) == 0
 
     def test_operation_momentum(self):
         """operation for momentum correctly derived from species"""
@@ -321,16 +322,17 @@ class TestPicmiSimulation(TestCase):
         )
 
         # momentum operation must always be generated
-        self.assertEqual(1, len(mom_ops))
+        assert len(mom_ops) == 1
         mom_op = mom_ops[0]
 
-        self.assertEqual("valid", mom_op.species.name)
-        self.assertAlmostEqual(3.06645343e19, mom_op.temperature.temperature_kev, delta=1e13)
-        self.assertEqual(
-            mom_op.drift.direction_normalized,
-            (0.14068221552237223, 0.2029580145696681, 0.9690286675623457),
+        assert mom_op.species.name == "valid"
+        assert abs(mom_op.temperature.temperature_kev - 3.06645343e19) < 1e13
+        assert mom_op.drift.direction_normalized == (
+            0.14068221552237223,
+            0.2029580145696681,
+            0.9690286675623457,
         )
-        self.assertAlmostEqual(1.491037242289643, mom_op.drift.gamma)
+        assert abs(mom_op.drift.gamma - 1.491037242289643) < 1e-10
 
     def test_moving_window(self):
         """test that the user may set moving window"""
@@ -347,8 +349,8 @@ class TestPicmiSimulation(TestCase):
         )
         pypic = sim.get_as_pypicongpu()
 
-        self.assertAlmostEqual(pypic.moving_window.move_point, 0.9)
-        self.assertEqual(pypic.moving_window.stop_iteration, None)
+        assert abs(pypic.moving_window.move_point - 0.9) < 1e-10
+        assert pypic.moving_window.stop_iteration is None
 
     def test_add_ionization_model(self):
         """ionization model is added correctly"""
@@ -382,23 +384,23 @@ class TestPicmiSimulation(TestCase):
         operations = pypic_sim.init_operations
 
         operation_types = list(map(lambda op: type(op), operations))
-        self.assertEqual(2, operation_types.count(species.operation.SetChargeState))
+        assert operation_types.count(species.operation.SetChargeState) == 2
 
         for op in operations:
             if isinstance(op, species.operation.SetChargeState) and op.species.name == "Nitrogen":
-                self.assertEqual(5, op.bound_electrons)
+                assert op.bound_electrons == 5
             if isinstance(op, species.operation.SetChargeState) and op.species.name == "Hydrogen":
-                self.assertEqual(0, op.bound_electrons)
+                assert op.bound_electrons == 0
             # other ops (position...): ignore
 
     def test_write_input_file(self):
         """sanity check picmi upstream: write input file"""
         sim = self.sim
         outdir = self.__get_tmpdir_name()
-        self.assertTrue(not os.path.isdir(outdir))
+        assert not os.path.isdir(outdir)
         sim.write_input_file(outdir)
-        self.assertTrue(os.path.isdir(outdir))
-        self.assertTrue(os.path.exists(outdir + "/include/picongpu/param/simulation.param"))
+        assert os.path.isdir(outdir)
+        assert os.path.exists(outdir + "/include/picongpu/param/simulation.param")
 
     def test_custom_template_dir_basic_write_input_file(self):
         """providing custom template dir possible or write_input_file"""
@@ -425,12 +427,12 @@ class TestPicmiSimulation(TestCase):
             sim.write_input_file(out_dir)
 
         # check for generated (rendered) dir
-        self.assertTrue(os.path.isfile(out_dir + "/include/picongpu/time_steps"))
+        assert os.path.isfile(out_dir + "/include/picongpu/time_steps")
         with open(out_dir + "/include/picongpu/time_steps") as rendered_file:
-            self.assertEqual("128", rendered_file.read())
+            assert rendered_file.read() == "128"
 
         # JSON has been dumped
-        self.assertTrue(os.path.isfile(out_dir + "/pypicongpu.json"))
+        assert os.path.isfile(out_dir + "/pypicongpu.json")
 
     def test_custom_input_basic_write_input_file(self):
         """test custom input may be rendered"""
@@ -463,10 +465,10 @@ class TestPicmiSimulation(TestCase):
         sim.write_input_file(out_dir, pypicongpu_simulation=pypicongpu_simulation)
 
         # check for generated (rendered) dir
-        self.assertTrue(os.path.isdir(out_dir))
+        assert os.path.isdir(out_dir)
 
         # JSON has been dumped
-        self.assertTrue(os.path.isfile(out_dir + "/pypicongpu.json"))
+        assert os.path.isfile(out_dir + "/pypicongpu.json")
 
     def test_custom_template_dir_basic_get_runner(self):
         """using picongpu_get_runner() directly sets template dir"""
@@ -482,10 +484,7 @@ class TestPicmiSimulation(TestCase):
             )
             runner = sim.picongpu_get_runner()
 
-            self.assertSequenceEqual(
-                tuple(map(Path.absolute, runner._pypicongpu_template_dir)),
-                (Path(tmpdir).absolute(),),
-            )
+            assert list(map(Path.absolute, runner._pypicongpu_template_dir)) == [Path(tmpdir).absolute()]
 
     def test_custom_template_dir_optional(self):
         """custom template dir is optional"""
@@ -495,12 +494,12 @@ class TestPicmiSimulation(TestCase):
         sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_template_dir=None)
 
         # simulation is valid
-        self.assertNotEqual({}, self.sim.get_as_pypicongpu().get_rendering_context())
+        assert self.sim.get_as_pypicongpu().get_rendering_context() != {}
         runner = sim.picongpu_get_runner()
 
         # good default template dir is selected
-        self.assertNotEqual(None, runner._pypicongpu_template_dir)
-        self.assertNotEqual("", runner._pypicongpu_template_dir)
+        assert runner._pypicongpu_template_dir is not None
+        assert runner._pypicongpu_template_dir != ""
 
     def test_custom_template_dir_checks(self):
         """sanity checks are run on template dir"""
@@ -517,13 +516,13 @@ class TestPicmiSimulation(TestCase):
                 picongpu_template_dir=template_dir_name,
             )
 
-            self.assertNotEqual({}, sim.get_as_pypicongpu().get_rendering_context())
+            assert sim.get_as_pypicongpu().get_rendering_context() != {}
             # no throw:
             sim.picongpu_get_runner()
 
         # left "with" block -- tmpdir is now deleted
         # -> now raises
-        with self.assertRaisesRegex(Exception, ".*template.*"):
+        with pytest.raises(Exception, match=".*template.*"):
             picmi.Simulation(
                 time_step_size=17,
                 max_steps=4,
@@ -544,13 +543,13 @@ class TestPicmiSimulation(TestCase):
                 solver=solver,
                 picongpu_template_dir=valid_path,
             )
-            self.assertNotEqual({}, sim.get_as_pypicongpu().get_rendering_context())
+            assert sim.get_as_pypicongpu().get_rendering_context() != {}
             # no throw:
             sim.picongpu_get_runner()
 
         invalid_paths = [1, 42.0]
         for invalid_path in invalid_paths:
-            with self.assertRaises(typeguard.TypeCheckError):
+            with pytest.raises(typeguard.TypeCheckError):
                 picmi.Simulation(
                     time_step_size=17,
                     max_steps=4,
@@ -567,9 +566,7 @@ class TestPicmiSimulation(TestCase):
         self.sim.picongpu_add_custom_user_input(i)
 
         renderingContextGoodResult = {"test_data_1": 1, "test_data_2": 2, "tags": ["tag_1", "tag_2"]}
-        self.assertEqual(
-            renderingContextGoodResult, self.sim.get_as_pypicongpu().get_rendering_context()["customuserinput"]
-        )
+        assert renderingContextGoodResult == self.sim.get_as_pypicongpu().get_rendering_context()["customuserinput"]
 
     def test_combination_of_several_custom_inputs(self):
         i_1 = customuserinput.CustomUserInput()
@@ -582,9 +579,7 @@ class TestPicmiSimulation(TestCase):
         self.sim.picongpu_add_custom_user_input(i_2)
 
         renderingContextGoodResult = {"test_data_1": 1, "test_data_2": 2, "tags": ["tag_1", "tag_2"]}
-        self.assertEqual(
-            renderingContextGoodResult, self.sim.get_as_pypicongpu().get_rendering_context()["customuserinput"]
-        )
+        assert renderingContextGoodResult == self.sim.get_as_pypicongpu().get_rendering_context()["customuserinput"]
 
     def test_duplicated_tag_over_different_custom_inputs(self):
         i_1 = customuserinput.CustomUserInput()
@@ -596,7 +591,7 @@ class TestPicmiSimulation(TestCase):
         self.sim.picongpu_add_custom_user_input(i_1)
         self.sim.picongpu_add_custom_user_input(i_2)
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             self.sim.get_as_pypicongpu().get_rendering_context()
 
     def test_duplicated_key_over_different_custom_inputs(self):
@@ -617,6 +612,6 @@ class TestPicmiSimulation(TestCase):
         self.sim.picongpu_add_custom_user_input(i_sameValue)
         self.sim.get_as_pypicongpu().get_rendering_context()
 
-        with self.assertRaisesRegex(ValueError, "Key test_data_1 exist already, and specified values differ."):
+        with pytest.raises(ValueError, match="Key test_data_1 exist already, and specified values differ."):
             self.sim.picongpu_add_custom_user_input(i_differentValue)
             self.sim.get_as_pypicongpu().get_rendering_context()
