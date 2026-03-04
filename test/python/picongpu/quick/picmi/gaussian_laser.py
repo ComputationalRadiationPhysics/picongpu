@@ -7,12 +7,12 @@ License: GPLv3+
 
 from picongpu import picmi
 
-import unittest
+from unittest import TestCase
 from math import sqrt
 from scipy.constants import c
 
 
-class TestPicmiGaussianLaser(unittest.TestCase):
+class TestPicmiGaussianLaser(TestCase):
     def test_basic(self):
         """full laser example"""
         picmi_laser = picmi.GaussianLaser(

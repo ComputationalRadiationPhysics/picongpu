@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-import unittest
+from unittest import TestCase
 from functools import reduce
 from math import floor, ceil
 
@@ -142,7 +142,7 @@ TESTCASES_IN_SECONDS = [
 ]
 
 
-class TestTimeStepSpec(unittest.TestCase):
+class TestTimeStepSpec(TestCase):
     def test_get_as_pypicongpu(self):
         """
         The unit conversion is done in get_as_pypicongpu, so we can only test in seconds here.

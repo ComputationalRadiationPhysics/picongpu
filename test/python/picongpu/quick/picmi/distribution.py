@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-import unittest
+from unittest import TestCase
 
 import typeguard
 from picongpu import picmi
@@ -49,7 +49,7 @@ class HelperTestPicmiBoundaries:
         raise NotImplementedError("must be implemented in child classes")
 
 
-class TestPicmiUniformDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
+class TestPicmiUniformDistribution(TestCase, HelperTestPicmiBoundaries):
     def _get_distribution(self, lower_bound, upper_bound):
         return picmi.UniformDistribution(density=1716273, lower_bound=lower_bound, upper_bound=upper_bound)
 
@@ -97,7 +97,7 @@ class TestPicmiUniformDistribution(unittest.TestCase, HelperTestPicmiBoundaries)
         self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
 
 
-class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
+class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
     def _get_distribution(self, lower_bound, upper_bound):
         return picmi.FoilDistribution(
             density=1716273,
@@ -289,7 +289,7 @@ class TestPicmiFoilDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
         self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
 
 
-class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
+class TestPicmiGaussianDistribution(TestCase, HelperTestPicmiBoundaries):
     values = {
         "density": 42.42,
         "center_front": 1.0,
@@ -379,7 +379,7 @@ class TestPicmiGaussianDistribution(unittest.TestCase, HelperTestPicmiBoundaries
         self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
 
 
-class TestPicmiCylindricalDistribution(unittest.TestCase, HelperTestPicmiBoundaries):
+class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
     def _get_distribution(
         self,
         density=1.0,

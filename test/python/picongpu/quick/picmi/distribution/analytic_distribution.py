@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-import unittest
+from unittest import TestCase
 import numpy as np
 
 from scipy.constants import c
@@ -44,7 +44,7 @@ def velocity(gamma):
     return np.sqrt(c**2 * (1.0 - 1.0 / gamma**2))
 
 
-class TestAnalyticDistribution(unittest.TestCase):
+class TestAnalyticDistribution(TestCase):
     def setUp(self):
         self.valid_density = lambda x, y, z: x * y * z
         self.dist = AnalyticDistribution(self.valid_density, directed_velocity=(1.0, 2.0, 3.0))

@@ -5,13 +5,13 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-import unittest
+from unittest import TestCase
 from pathlib import Path
 
 from picongpu.picmi.simulation import _normalise_template_dir
 
 
-class TestNormaliseTemplateDir(unittest.TestCase):
+class TestNormaliseTemplateDir(TestCase):
     def test_single_string(self):
         existing_dir_string = "."
         self.assertSequenceEqual(_normalise_template_dir(existing_dir_string), (Path(existing_dir_string),))

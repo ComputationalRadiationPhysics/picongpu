@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-import unittest
+from unittest import TestCase
 import inspect
 import typeguard
 from picongpu.picmi.copy_attributes import copy_attributes, converts_to, default_converts_to
@@ -56,7 +56,7 @@ class ClassWithProperty:
         return self._attribute
 
 
-class TestCopyAttributes(unittest.TestCase):
+class TestCopyAttributes(TestCase):
     def test_returns_instance_of_correct_class(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class()
         self.assertTrue(isinstance(copy_attributes(dummy_provider, DummyReceiver), DummyReceiver))
@@ -198,7 +198,7 @@ class TestCopyAttributes(unittest.TestCase):
         )
 
 
-class TestConvertsTo(unittest.TestCase):
+class TestConvertsTo(TestCase):
     def test_returns_same_class(self):
         DummyProvider, DummyReceiver = gen_two_classes()
         self.assertTrue(converts_to(DummyReceiver)(DummyProvider) is DummyProvider)

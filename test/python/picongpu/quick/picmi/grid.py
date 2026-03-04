@@ -7,11 +7,11 @@ License: GPLv3+
 
 from picongpu import picmi
 
-import unittest
+from unittest import TestCase
 import typeguard
 
 
-class TestCartesian3DGrid(unittest.TestCase):
+class TestCartesian3DGrid(TestCase):
     COMMON_KWARGS = dict(
         lower_bound=[0, 0, 0],
         upper_bound=[3.40992e-5, 9.07264e-5, 2.1312e-6],

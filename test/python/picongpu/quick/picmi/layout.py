@@ -7,10 +7,10 @@ License: GPLv3+
 
 from picongpu import picmi
 
-import unittest
+from unittest import TestCase
 
 
-class TestPicmiPseudoRandomLayout(unittest.TestCase):
+class TestPicmiPseudoRandomLayout(TestCase):
     def test_basic(self):
         """simple translation"""
         layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=7)
@@ -30,7 +30,7 @@ class TestPicmiPseudoRandomLayout(unittest.TestCase):
             layout.check()
 
 
-class TestPicmiGriddedLayout(unittest.TestCase):
+class TestPicmiGriddedLayout(TestCase):
     def test_basic(self):
         """simple translation"""
         layout = picmi.GriddedLayout(n_macroparticle_per_cell=7)

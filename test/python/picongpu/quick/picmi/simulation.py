@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import typing
-import unittest
+from unittest import TestCase
 from pathlib import Path
 
 import typeguard
@@ -45,7 +45,7 @@ def get_sim_cfl_helper(
     return picmi.Simulation(time_step_size=delta_t, solver=solver)
 
 
-class TestPicmiSimulation(unittest.TestCase):
+class TestPicmiSimulation(TestCase):
     def __get_sim(self):
         grid = get_grid(1, 1, 1, 32)
         solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
