@@ -34,7 +34,3 @@ class TestNormaliseTemplateDir(unittest.TestCase):
             raise ValueError(f"Test could not proceed because {non_existent_dir=} does exist.")
         with self.assertRaisesRegex(ValueError, ".*is not an existing directory.*"):
             _normalise_template_dir(non_existent_dir)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -80,7 +80,3 @@ class TestAnalyticDistribution(unittest.TestCase):
         for args, result in VALID_CALLS:
             with self.subTest(args=args, result=result):
                 np.testing.assert_allclose(np.asarray(self.dist(*args)), np.asarray(result))
-
-
-if __name__ == "__main__":
-    unittest.main()

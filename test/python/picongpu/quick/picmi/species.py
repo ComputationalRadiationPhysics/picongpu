@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, BSI
 from picongpu.picmi.species import Species
@@ -65,7 +65,3 @@ class TestSpeciesRequirementResolution(TestCase):
         ][0]
         assert set_charge_state_op.charge_state == ion.charge_state
         assert len(ion.get_as_pypicongpu().constants.ground_state_ionization.ionization_model_list) == len(ionizations)
-
-
-if __name__ == "__main__":
-    main()

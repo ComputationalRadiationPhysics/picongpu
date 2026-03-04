@@ -307,7 +307,3 @@ class TestConvertsTo(unittest.TestCase):
         self.assertEqual(
             dummy_provider.get_as_pypicongpu().arbitrary_name, dummy_provider.arbitrary_name.get_as_pypicongpu()
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
