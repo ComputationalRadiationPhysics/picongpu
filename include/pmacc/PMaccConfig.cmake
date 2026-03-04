@@ -152,20 +152,6 @@ set_target_properties(pmacc PROPERTIES LINKER_LANGUAGE CXX)
 add_library(pmacc::pmacc ALIAS pmacc)
 target_link_libraries(pmacc PUBLIC alpaka::alpaka)
 
-# Create traget pmacc::filesystem to handle system where std::filesystem is experimental.
-# e.g. on systems with an old libstdc++ <= 7
-add_library(pmacc_filesystem INTERFACE)
-add_library(pmacc::filesystem ALIAS pmacc_filesystem)
-target_link_libraries(pmacc PUBLIC pmacc::filesystem)
-
-include(CheckCXXSymbolExists)
-check_cxx_symbol_exists(std::filesystem::path::preferred_separator "filesystem" PMACC_FOUND_CXX17_STD_FILESYSTEM)
-if(NOT PMACC_FOUND_CXX17_STD_FILESYSTEM)
-    message(STATUS "Switch using 'std::experimental::filesystem'")
-    target_compile_definitions(pmacc_filesystem INTERFACE "-DPMACC_USE_STD_EXPERIMENTAL_FILESYSTEM=1")
-    target_link_libraries(pmacc_filesystem INTERFACE stdc++fs)
-endif()
-
 ###############################################################################
 # Build Flags
 ###############################################################################
@@ -279,7 +265,6 @@ endif()
 
 find_package(MPI REQUIRED)
 target_link_libraries(pmacc PUBLIC MPI::MPI_CXX)
-target_link_libraries(pmacc_filesystem INTERFACE MPI::MPI_CXX)
 
 if(CMAKE_TRY_COMPILE_TARGET_TYPE STREQUAL "STATIC_LIBRARY" AND CMAKE_EXE_LINKER_FLAGS)
     # Workaround for linker issues when linking static MPI libraries.
