@@ -48,6 +48,8 @@ dependencies = [
   # Included from: picongpu/extra/input/requirements.txt
   "pint",
   "pydantic>=2.6.4",
+  # testing
+  "pytest>=9",
   "referencing>=0.35.1",
   # Included from: picongpu/extra/utils/requirements.txt
   # Included from: picongpu/extra/utils/FLYonPICRateCalculationReference/requirements.txt
