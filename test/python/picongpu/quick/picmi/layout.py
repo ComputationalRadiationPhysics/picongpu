@@ -9,6 +9,8 @@ from picongpu import picmi
 
 from unittest import TestCase
 
+import pytest
+
 
 class TestPicmiPseudoRandomLayout(TestCase):
     def test_basic(self):
@@ -19,12 +21,12 @@ class TestPicmiPseudoRandomLayout(TestCase):
 
     def test_invalid(self):
         """erros for invalid params entered"""
-        with self.assertRaisesRegex(Exception, ".*per.*"):
+        with pytest.raises(Exception, match=".*per.*"):
             layout = picmi.PseudoRandomLayout(n_macroparticles=700)
             layout.ppc = 1
             layout.check()
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=0)
             layout.ppc = 1
             layout.check()
@@ -39,11 +41,11 @@ class TestPicmiGriddedLayout(TestCase):
 
     def test_invalid(self):
         """erros for invalid params entered"""
-        with self.assertRaisesRegex(Exception, ".*per.*"):
+        with pytest.raises(Exception, match=".*per.*"):
             layout = picmi.GriddedLayout(n_macroparticles=700)
             layout.ppc = 1
             layout.check()
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             layout = picmi.GriddedLayout(n_macroparticle_per_cell=0)
             layout.check()

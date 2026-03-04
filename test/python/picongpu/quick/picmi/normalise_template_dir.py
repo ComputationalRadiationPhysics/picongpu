@@ -8,29 +8,30 @@ License: GPLv3+
 from unittest import TestCase
 from pathlib import Path
 
+import pytest
+
 from picongpu.picmi.simulation import _normalise_template_dir
 
 
 class TestNormaliseTemplateDir(TestCase):
     def test_single_string(self):
         existing_dir_string = "."
-        self.assertSequenceEqual(_normalise_template_dir(existing_dir_string), (Path(existing_dir_string),))
+        assert list(_normalise_template_dir(existing_dir_string)) == [Path(existing_dir_string)]
 
     def test_none(self):
-        self.assertSequenceEqual(_normalise_template_dir(None), tuple())
+        assert list(_normalise_template_dir(None)) == []
 
     def test_path(self):
         existing_dir = Path()
-        self.assertSequenceEqual(_normalise_template_dir(existing_dir), (existing_dir,))
+        assert list(_normalise_template_dir(existing_dir)) == [existing_dir]
 
     def test_mixed_iterable(self):
         mixed_iter = [".", Path(), None]
-        self.assertSequenceEqual(_normalise_template_dir(mixed_iter), (Path(), Path()))
+        assert list(_normalise_template_dir(mixed_iter)) == [Path(), Path()]
 
     def test_disallows_non_existent_paths(self):
         non_existent_dir = Path("non_existent_dir").absolute()
         if non_existent_dir.exists():
-            # If this ever happens, we must come up with a more robust way of handling this.
             raise ValueError(f"Test could not proceed because {non_existent_dir=} does exist.")
-        with self.assertRaisesRegex(ValueError, ".*is not an existing directory.*"):
+        with pytest.raises(ValueError, match=".*is not an existing directory.*"):
             _normalise_template_dir(non_existent_dir)

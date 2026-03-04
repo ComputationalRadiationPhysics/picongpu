@@ -12,6 +12,7 @@ from scipy.constants import c
 
 from picongpu.picmi import AnalyticDistribution
 import typeguard
+import pytest
 
 # allow numpy broadcasting (see https://numpy.org/doc/stable/user/basics.broadcasting.html)
 # some examples to check:
@@ -52,7 +53,7 @@ class TestAnalyticDistribution(TestCase):
     def test_density_expression_invalid(self):
         for density, err in INVALID_DENSITIES:
             with self.subTest(density=density, err=err):
-                with self.assertRaises(err):
+                with pytest.raises(err):
                     AnalyticDistribution(density).get_as_pypicongpu()
 
     def test_drift_input_types(self):
@@ -65,11 +66,11 @@ class TestAnalyticDistribution(TestCase):
             np.testing.assert_allclose(velocity(result.gamma) * np.asarray(result.direction_normalized), drift)
 
     def test_drift_is_none_for_vanishing_vector(self):
-        self.assertIsNone(AnalyticDistribution(lambda *x: sum(x), directed_velocity=[0, 0, 0]).get_picongpu_drift())
+        assert AnalyticDistribution(lambda *x: sum(x), directed_velocity=[0, 0, 0]).get_picongpu_drift() is None
 
     def test_drift_wrong_dimensionality(self):
         # Test drift with wrong dimensionality
-        with self.assertRaises(typeguard.TypeCheckError):
+        with pytest.raises(typeguard.TypeCheckError):
             AnalyticDistribution(
                 lambda x, y, z: x + y + z,
                 # Only 2 elements

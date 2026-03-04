@@ -7,13 +7,10 @@ License: GPLv3+
 
 from unittest import TestCase
 
+import pytest
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, BSI
 from picongpu.picmi.species import Species
-from picongpu.picmi.species_requirements import (
-    RequirementConflict,
-    SetChargeStateOperation,
-    run_construction,
-)
+from picongpu.picmi.species_requirements import RequirementConflict, SetChargeStateOperation, run_construction
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.mass import Mass
 from picongpu.pypicongpu.species.operation.setchargestate import SetChargeState
@@ -40,7 +37,7 @@ class TestSpeciesRequirementResolution(TestCase):
     def test_conflicting_constants(self):
         species = Species(name="dummy")
         requirements = [Mass(mass_si=1.0), Mass(mass_si=2.0)]
-        with self.assertRaises(RequirementConflict):
+        with pytest.raises(RequirementConflict):
             # Not yet decided which one should raise, but one of them definitely will.
             species.register_requirements(requirements)
             species.get_as_pypicongpu()

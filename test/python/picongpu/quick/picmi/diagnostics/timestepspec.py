@@ -9,6 +9,8 @@ from unittest import TestCase
 from functools import reduce
 from math import floor, ceil
 
+import pytest
+
 from picongpu.picmi.diagnostics import TimeStepSpec
 
 # choose larger than any of the numbers used in the TEST_CASES
@@ -149,10 +151,7 @@ class TestTimeStepSpec(TestCase):
         """
         for ts, indices in TESTCASES_IN_STEPS + TESTCASES_IN_SECONDS:
             with self.subTest(ts=ts, indices=indices):
-                self.assertEqual(
-                    _indices(ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)),
-                    indices,
-                )
+                assert _indices(ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)) == indices
 
     def test_construct_from_instance(self):
         """
@@ -160,10 +159,7 @@ class TestTimeStepSpec(TestCase):
         """
         for ts, indices in TESTCASES_IN_STEPS:
             with self.subTest(ts=ts, indices=indices):
-                self.assertEqual(
-                    _indices(TimeStepSpec(ts).get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)),
-                    indices,
-                )
+                assert _indices(TimeStepSpec(ts).get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)) == indices
 
     def test_addition_operator(self):
         """
@@ -174,23 +170,20 @@ class TestTimeStepSpec(TestCase):
                 ts = ts_steps + ts_seconds
                 indices = indices_steps | indices_seconds
                 with self.subTest(ts=ts, indices=indices):
-                    self.assertEqual(
-                        _indices(ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)),
-                        indices,
-                    )
+                    assert _indices(ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)) == indices
 
     def test_dont_reset_unit_from_steps_to_seconds(self):
         ts = TimeStepSpec[:]("steps")
-        with self.assertRaisesRegex(ValueError, "Don't reset units on a TimeStepSpec. "):
+        with pytest.raises(ValueError, match="Don't reset units on a TimeStepSpec. "):
             ts("seconds")
 
     def test_dont_reset_unit_from_seconds_to_steps(self):
         ts = TimeStepSpec[:]("seconds")
-        with self.assertRaisesRegex(ValueError, "Don't reset units on a TimeStepSpec. "):
+        with pytest.raises(ValueError, match="Don't reset units on a TimeStepSpec. "):
             ts("steps")
 
     def test_dont_reset_unit_on_addition_result(self):
-        with self.assertRaisesRegex(ValueError, "Don't reset units on a TimeStepSpec. "):
+        with pytest.raises(ValueError, match="Don't reset units on a TimeStepSpec. "):
             (TimeStepSpec[:] + TimeStepSpec[:])("seconds")
 
     def test_resetting_to_same_unit_is_fine(self):
@@ -205,11 +198,11 @@ class TestTimeStepSpec(TestCase):
             ts("steps")
 
     def test_wrong_unit(self):
-        with self.assertRaisesRegex(ValueError, "Unknown unit in TimeStepSpec."):
+        with pytest.raises(ValueError, match="Unknown unit in TimeStepSpec."):
             TimeStepSpec[:]("meters")
 
     def test_raises_on_negative_time_step_size(self):
-        with self.assertRaisesRegex(ValueError, "Time step size must be strictly positive."):
+        with pytest.raises(ValueError, match="Time step size must be strictly positive."):
             TimeStepSpec[:]("seconds").get_as_pypicongpu(-1.0, 10)
 
     def test_rounding_in_unit_conversion(self):
@@ -229,14 +222,11 @@ class TestTimeStepSpec(TestCase):
                 inclusive_range(INDEX_MAX),
             )
         )
-        self.assertEqual(_indices(ts.get_as_pypicongpu(time_step_size, INDEX_MAX)), expected)
+        assert _indices(ts.get_as_pypicongpu(time_step_size, INDEX_MAX)) == expected
 
     def test_step_size_smaller_one_in_unit_conversion(self):
         ts = TimeStepSpec[::0.5]("seconds")
-        self.assertEqual(
-            _indices(ts.get_as_pypicongpu(0.7, INDEX_MAX)),
-            set(inclusive_range(INDEX_MAX)),
-        )
+        assert _indices(ts.get_as_pypicongpu(0.7, INDEX_MAX)) == set(inclusive_range(INDEX_MAX))
 
     def test_modify_after_copy_construction(self):
         ts = TimeStepSpec[::0.5]
@@ -247,34 +237,31 @@ class TestTimeStepSpec(TestCase):
             # It's fine. This is because tuples are immutable to start with.
             pass
         finally:
-            self.assertEqual(ts2.specs, (slice(None, None, 0.5),))
+            assert ts2.specs == (slice(None, None, 0.5),)
 
     def test_seconds_are_copied(self):
         ts = TimeStepSpec[::0.5]("seconds")
         ts2 = TimeStepSpec(ts)
-        self.assertEqual(ts2.specs, ts.specs)
-        self.assertEqual(ts2.specs_in_seconds, ts.specs_in_seconds)
+        assert ts2.specs == ts.specs
+        assert ts2.specs_in_seconds == ts.specs_in_seconds
 
     def test_translation_does_not_contain_negative_numbers(self):
         for ts, indices in TESTCASES_IN_STEPS:
             with self.subTest(ts=ts, indices=indices):
-                self.assertEqual(
-                    list(
-                        filter(
-                            lambda s: s.start < 0
-                            # -1 is allowed as a value for stop only
-                            or (s is not None and s.stop < -1)
-                            and s.step < 1,
-                            ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX).specs,
-                        )
-                    ),
-                    [],
-                )
+                assert list(
+                    filter(
+                        lambda s: s.start < 0
+                        # -1 is allowed as a value for stop only
+                        or (s is not None and s.stop < -1)
+                        and s.step < 1,
+                        ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX).specs,
+                    )
+                ) == []
 
     def test_raises_for_negative_step_size(self):
         for ts, indices in TESTCASES_IN_STEPS_RAISING:
             with self.subTest(ts=ts, indices=indices):
-                with self.assertRaisesRegex(ValueError, "Step size must be >= 1"):
+                with pytest.raises(ValueError, match="Step size must be >= 1"):
                     ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX)
 
     def test_regression_wrong_int_casting(self):
@@ -284,4 +271,4 @@ class TestTimeStepSpec(TestCase):
 
         as_single = TimeStepSpec[stop_time]("seconds").get_as_pypicongpu(dt, num_steps).specs[0]
         as_slice = TimeStepSpec[stop_time:stop_time]("seconds").get_as_pypicongpu(dt, num_steps).specs[0]
-        self.assertEqual(as_single, as_slice)
+        assert as_single == as_slice

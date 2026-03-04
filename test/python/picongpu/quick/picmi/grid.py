@@ -9,6 +9,7 @@ from picongpu import picmi
 
 from unittest import TestCase
 import typeguard
+import pytest
 
 
 class TestCartesian3DGrid(TestCase):
@@ -34,7 +35,7 @@ class TestCartesian3DGrid(TestCase):
 
     def test_typo_ngpus(self):
         """test common typo picongpu_ngpus instead of picongpu_n_gpus"""
-        with self.assertRaisesRegex(TypeError, ".*Unexpected.*ngpus.*"):
+        with pytest.raises(TypeError, match=".*Unexpected.*ngpus.*"):
             picmi.Cartesian3DGrid(
                 number_of_cells=[192, 2048, 12],
                 # common typo ngpus instead of picongpu_n_gpus
@@ -45,9 +46,9 @@ class TestCartesian3DGrid(TestCase):
     def test_n_gpus_type(self):
         """test wrong input type for picongpu_n_gpus"""
         for i, not_ngpus_type in enumerate([1, 1.0, 1.2, "abc", tuple([1])]):
-            with self.assertRaisesRegex(
+            with pytest.raises(
                 typeguard.TypeCheckError,
-                '.*argument "picongpu_n_gpus"(.*) did not match any element.*',
+                match='.*argument "picongpu_n_gpus"(.*) did not match any element.*',
             ):
                 picmi.Cartesian3DGrid(
                     number_of_cells=[192, 2048, 12],
@@ -63,13 +64,13 @@ class TestCartesian3DGrid(TestCase):
                 picongpu_n_gpus=not_ngpus_dist,
                 **self.COMMON_KWARGS,
             )
-            with self.assertRaisesRegex(Exception, ".*GPU- and/or super-cell-distribution.*"):
+            with pytest.raises(Exception, match=".*GPU- and/or super-cell-distribution.*"):
                 grid.get_as_pypicongpu()
 
     def test_n_gpus_wrong_numbers(self):
         """test negativ numbers or zero as number of gpus"""
         for not_ngpus_dist in [[0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
-            with self.assertRaisesRegex(Exception, ".*Number of gpus must be positive integer.*"):
+            with pytest.raises(Exception, match=".*Number of gpus must be positive integer.*"):
                 picmi.Cartesian3DGrid(
                     number_of_cells=[192, 2048, 12],
                     picongpu_n_gpus=not_ngpus_dist,
@@ -93,7 +94,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_super_cell_size=(7, 8, 4),
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*GPU- and/or super-cell-distribution.*"):
+        with pytest.raises(Exception, match=".*GPU- and/or super-cell-distribution.*"):
             grid.get_as_pypicongpu()
 
     def test_super_cell_mismatch_with_dist(self):
@@ -104,7 +105,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_grid_dist=([12, 180], [2048], [12]),
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*grid distribution in x dimension must be multiple.*"):
+        with pytest.raises(Exception, match=".*grid distribution in x dimension must be multiple.*"):
             grid.get_as_pypicongpu()
 
     def test_super_cell_size_zero(self):
@@ -113,7 +114,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_super_cell_size=(0, 8, 4),
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*super cell size must be an integer greater than 1.*"):
+        with pytest.raises(Exception, match=".*super cell size must be an integer greater than 1.*"):
             grid.get_as_pypicongpu()
 
     def test_super_cell_size_negative(self):
@@ -122,7 +123,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_super_cell_size=(8, -8, 4),
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*super cell size must be an integer greater than 1.*"):
+        with pytest.raises(Exception, match=".*super cell size must be an integer greater than 1.*"):
             grid.get_as_pypicongpu()
 
     def test_grid_dist_values_lt_one(self):
@@ -132,7 +133,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_grid_dist=([192], [2048], [0]),
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*All values in grid distribution must be greater than 0.*"):
+        with pytest.raises(Exception, match=".*All values in grid distribution must be greater than 0.*"):
             grid.get_as_pypicongpu()
 
     def test_grid_dist_sum_mismatch(self):
@@ -142,7 +143,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_grid_dist=([100, 64], [2048], [12]),
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*sum of grid distribution.*must match number of cells.*"):
+        with pytest.raises(Exception, match=".*sum of grid distribution.*must match number of cells.*"):
             grid.get_as_pypicongpu()
 
     def test_grid_dist_length_mismatch(self):
@@ -153,7 +154,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_grid_dist=([96, 96], [2048], [12]),  # length 2 in x but n_gpus=1
             **self.COMMON_KWARGS,
         )
-        with self.assertRaisesRegex(Exception, ".*number of grid distributions.*must match number of gpus.*"):
+        with pytest.raises(Exception, match=".*number of grid distributions.*must match number of gpus.*"):
             grid.get_as_pypicongpu()
 
     def test_grid_dist_correct(self):
