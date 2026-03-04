@@ -8,6 +8,7 @@ License: GPLv3+
 from unittest import TestCase
 
 import typeguard
+import pytest
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.pypicongpu import species
@@ -57,23 +58,20 @@ class TestPicmiUniformDistribution(TestCase, HelperTestPicmiBoundaries):
         """full paramset"""
         uniform = picmi.UniformDistribution(density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666])
         pypic = uniform.get_as_pypicongpu(ARBITRARY_GRID)
-        self.assertTrue(isinstance(pypic, species.operation.densityprofile.Uniform))
+        assert isinstance(pypic, species.operation.densityprofile.Uniform)
 
-        self.assertEqual(42.42, pypic.density_si)
-        # TODO
-        # self.assertEqual((111, 222, 333), pypic.lower_bound)
-        # self.assertEqual((444, 555, 666), pypic.upper_bound)
+        assert pypic.density_si == 42.42
 
     def test_density_zero(self):
         """density set to zero is not accepted"""
         uniform = picmi.UniformDistribution(density=0)
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             uniform.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_mandatory(self):
         """check that mandatory must be given"""
         # type of exception is not checked
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             picmi.UniformDistribution().get_as_pypicongpu(ARBITRARY_GRID)
 
         # density is only required param
@@ -84,17 +82,17 @@ class TestPicmiUniformDistribution(TestCase, HelperTestPicmiBoundaries):
         # no drift
         uniform = picmi.UniformDistribution(density=1, directed_velocity=[0, 0, 0])
         drift = uniform.get_picongpu_drift()
-        self.assertEqual(None, drift)
+        assert drift is None
 
         # some drift
         # uses velocity
         uniform = picmi.UniformDistribution(density=1, directed_velocity=[278487224.0, 103784563.0, 1283345.0])
         drift = uniform.get_picongpu_drift()
-        self.assertNotEqual(None, drift)
-        self.assertAlmostEqual(drift.gamma, 7.6208808298928865)
-        self.assertAlmostEqual(drift.direction_normalized[0], 0.9370354841199405)
-        self.assertAlmostEqual(drift.direction_normalized[1], 0.34920746753855203)
-        self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
+        assert drift is not None
+        assert abs(drift.gamma - 7.6208808298928865) < 1e-10
+        assert abs(drift.direction_normalized[0] - 0.9370354841199405) < 1e-10
+        assert abs(drift.direction_normalized[1] - 0.34920746753855203) < 1e-10
+        assert abs(drift.direction_normalized[2] - 0.004318114799291135) < 1e-10
 
 
 class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
@@ -126,24 +124,20 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         )
 
         pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
-        self.assertTrue(isinstance(pypic, species.operation.densityprofile.Foil))
+        assert isinstance(pypic, species.operation.densityprofile.Foil)
 
-        self.assertEqual(42.42, pypic.density_si)
-        self.assertEqual(1.0, pypic.y_value_front_foil_si)
-        self.assertEqual(2.0, pypic.thickness_foil_si)
-        self.assertEqual(3.0, pypic.pre_foil_plasmaRamp.PlasmaLength)
-        self.assertEqual(4.0, pypic.pre_foil_plasmaRamp.PlasmaCutoff)
-        self.assertEqual(5.0, pypic.post_foil_plasmaRamp.PlasmaLength)
-        self.assertEqual(6.0, pypic.post_foil_plasmaRamp.PlasmaCutoff)
-
-        # @todo repect bounding boxes, Brian Marre, 2023
-        # self.assertEqual((111, 222, 333), pypic.lower_bound)
-        # self.assertEqual((444, 555, 666), pypic.upper_bound)
+        assert pypic.density_si == 42.42
+        assert pypic.y_value_front_foil_si == 1.0
+        assert pypic.thickness_foil_si == 2.0
+        assert pypic.pre_foil_plasmaRamp.PlasmaLength == 3.0
+        assert pypic.pre_foil_plasmaRamp.PlasmaCutoff == 4.0
+        assert pypic.post_foil_plasmaRamp.PlasmaLength == 5.0
+        assert pypic.post_foil_plasmaRamp.PlasmaCutoff == 6.0
 
     def test_density_zero(self):
         """density set to zero is not accepted"""
         foil = picmi.FoilDistribution(density=0, thickness=1.0, front=2.0)
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             foil.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_front_zero(self):
@@ -151,14 +145,14 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         foil = picmi.FoilDistribution(density=1.0, thickness=2.0, front=0)
         pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
         # no error:
-        self.assertEqual(0, pypic.y_value_front_foil_si)
+        assert pypic.y_value_front_foil_si == 0
 
     def test_thickness_zero(self):
         """thickness set to zero is accepted"""
         foil = picmi.FoilDistribution(density=1.0, thickness=0, front=2.0)
         pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
         # no error
-        self.assertEqual(0, pypic.thickness_foil_si)
+        assert pypic.thickness_foil_si == 0
 
     def _get_test_foils(self, cutoff, length):
         """
@@ -205,9 +199,9 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         for entry in testCases:
             pypic = entry.get_as_pypicongpu(ARBITRARY_GRID)
             # no error:
-            self.assertEqual(1.0, pypic.density_si)
-            self.assertEqual(2.0, pypic.thickness_foil_si)
-            self.assertEqual(3.0, pypic.y_value_front_foil_si)
+            assert pypic.density_si == 1.0
+            assert pypic.thickness_foil_si == 2.0
+            assert pypic.y_value_front_foil_si == 3.0
 
     def test_cutoff_below_zero(self):
         """length below zero is not accepted"""
@@ -215,7 +209,7 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         testCases = self._get_test_foils(-1.0, 1.0)
 
         for i, entry in enumerate(testCases):
-            with self.assertRaises(ValidationError):
+            with pytest.raises(ValidationError):
                 entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_length_zero(self):
@@ -223,7 +217,7 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         testCases = self._get_test_foils(1.0, 0)
 
         for entry in testCases:
-            with self.assertRaises(ValidationError):
+            with pytest.raises(ValidationError):
                 entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_length_below_zero(self):
@@ -232,16 +226,16 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         testCases = self._get_test_foils(1.0, -1.0)
 
         for entry in testCases:
-            with self.assertRaises(ValidationError):
+            with pytest.raises(ValidationError):
                 entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_setting_noPlasmaRamps(self):
         testCases = self._get_test_foils(None, 1.0)
 
         for entry in testCases:
-            with self.assertRaisesRegex(
+            with pytest.raises(
                 ValueError,
-                "either both exponential_(pre|post)_plasma_"
+                match="either both exponential_(pre|post)_plasma_"
                 "length and exponential_(pre|post)_plasma_cutoff must be"
                 " set to none or neither!",
             ):
@@ -249,9 +243,9 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
 
         testCases = self._get_test_foils(1.0, None)
         for entry in testCases:
-            with self.assertRaisesRegex(
+            with pytest.raises(
                 ValueError,
-                "either both exponential_(pre|post)_plasma_"
+                match="either both exponential_(pre|post)_plasma_"
                 "length and exponential_(pre|post)_plasma_cutoff must be"
                 " set to none or neither!",
             ):
@@ -260,7 +254,7 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
     def test_mandatory(self):
         """check that mandatory must be given"""
         # type of exception is not checked
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             picmi.FoilDistribution()
 
         # density, thickness and front are only required param
@@ -271,7 +265,7 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         # no drift
         foil = picmi.FoilDistribution(density=1.0, front=2.0, thickness=3.0, directed_velocity=[0, 0, 0])
         drift = foil.get_picongpu_drift()
-        self.assertEqual(None, drift)
+        assert drift is None
 
         # some drift
         # uses velocity
@@ -282,11 +276,11 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
             directed_velocity=[278487224.0, 103784563.0, 1283345.0],
         )
         drift = foil.get_picongpu_drift()
-        self.assertNotEqual(None, drift)
-        self.assertAlmostEqual(drift.gamma, 7.6208808298928865)
-        self.assertAlmostEqual(drift.direction_normalized[0], 0.9370354841199405)
-        self.assertAlmostEqual(drift.direction_normalized[1], 0.34920746753855203)
-        self.assertAlmostEqual(drift.direction_normalized[2], 0.004318114799291135)
+        assert drift is not None
+        assert abs(drift.gamma - 7.6208808298928865) < 1e-10
+        assert abs(drift.direction_normalized[0] - 0.9370354841199405) < 1e-10
+        assert abs(drift.direction_normalized[1] - 0.34920746753855203) < 1e-10
+        assert abs(drift.direction_normalized[2] - 0.004318114799291135) < 1e-10
 
 
 class TestPicmiGaussianDistribution(TestCase, HelperTestPicmiBoundaries):

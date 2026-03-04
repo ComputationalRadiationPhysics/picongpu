@@ -8,6 +8,7 @@ License: GPLv3+
 from unittest import TestCase
 import inspect
 import typeguard
+import pytest
 from picongpu.picmi.copy_attributes import copy_attributes, converts_to, default_converts_to
 
 CLASS_NAME = "TmpClass"
@@ -59,7 +60,7 @@ class ClassWithProperty:
 class TestCopyAttributes(TestCase):
     def test_returns_instance_of_correct_class(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class()
-        self.assertTrue(isinstance(copy_attributes(dummy_provider, DummyReceiver), DummyReceiver))
+        assert isinstance(copy_attributes(dummy_provider, DummyReceiver), DummyReceiver)
 
     def test_receiving_classes_must_be_default_constructible(self):
         # This does not apply to instances!
@@ -72,10 +73,10 @@ class TestCopyAttributes(TestCase):
         dummy_provider = gen_class()()
         DummyReceiver = gen_class(attributes={"__init__": custom_init})
 
-        with self.assertRaisesRegex(
+        with pytest.raises(
             ValueError,
-            "Instantiation failed. The receiving class must be default constructible. "
-            f"You gave .*{CLASS_NAME}.* which expects 1 argument in its constructor. "
+            match="Instantiation failed. The receiving class must be default constructible. "
+            f".*{CLASS_NAME}.* which expects 1 argument in its constructor. "
             "You can work with an instance instead of a class in this case.",
         ):
             # This fails because it tries to instantiate DummyReceiver as DummyReceiver().
@@ -86,7 +87,7 @@ class TestCopyAttributes(TestCase):
     def test_returns_identical_instance(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class()
         dummy_receiver = DummyReceiver()
-        self.assertTrue(copy_attributes(dummy_provider, dummy_receiver) is dummy_receiver)
+        assert copy_attributes(dummy_provider, dummy_receiver) is dummy_receiver
 
     def test_copies_single_attribute(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
@@ -94,18 +95,19 @@ class TestCopyAttributes(TestCase):
         )
 
         # precondition, just to check that our test infrastructure works:
-        self.assertEqual(dummy_provider.arbitrary_name, ARBITRARY_VALUE)
-        self.assertNotEqual(dummy_provider.arbitrary_name, DummyReceiver().arbitrary_name)
+        assert dummy_provider.arbitrary_name == ARBITRARY_VALUE
+        assert dummy_provider.arbitrary_name != DummyReceiver().arbitrary_name
 
-        self.assertEqual(copy_attributes(dummy_provider, DummyReceiver).arbitrary_name, ARBITRARY_VALUE)
+        assert copy_attributes(dummy_provider, DummyReceiver).arbitrary_name == ARBITRARY_VALUE
 
     def test_does_not_copy_private_attributes(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
             common_attributes={"arbitrary_name": ARBITRARY_VALUE, "_private_attribute": ARBITRARY_VALUE}
         )
 
-        self.assertNotEqual(
-            copy_attributes(dummy_provider, DummyReceiver)._private_attribute, dummy_provider._private_attribute
+        assert (
+            copy_attributes(dummy_provider, DummyReceiver)._private_attribute
+            != dummy_provider._private_attribute
         )
 
     def test_does_create_new_attributes(self):
@@ -114,26 +116,26 @@ class TestCopyAttributes(TestCase):
             only_provider={"additional_argument": ARBITRARY_VALUE},
         )
 
-        self.assertFalse(hasattr(copy_attributes(dummy_provider, DummyReceiver), "additional_argument"))
+        assert not hasattr(copy_attributes(dummy_provider, DummyReceiver), "additional_argument")
 
     def test_copies_multiple_attributes(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
             common_attributes={"arbitrary_name1": ARBITRARY_VALUE, "arbitrary_name2": "arbitrary_string"}
         )
 
-        self.assertEqual(copy_attributes(dummy_provider, DummyReceiver).arbitrary_name1, dummy_provider.arbitrary_name1)
-        self.assertEqual(copy_attributes(dummy_provider, DummyReceiver).arbitrary_name2, dummy_provider.arbitrary_name2)
+        assert copy_attributes(dummy_provider, DummyReceiver).arbitrary_name1 == dummy_provider.arbitrary_name1
+        assert copy_attributes(dummy_provider, DummyReceiver).arbitrary_name2 == dummy_provider.arbitrary_name2
 
     def test_applies_custom_renaming(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
             only_provider={"provider_name": ARBITRARY_VALUE}, only_receiver={"receiver_name": "arbitrary_string"}
         )
 
-        self.assertEqual(
+        assert (
             copy_attributes(
                 dummy_provider, DummyReceiver, conversions={"receiver_name": "provider_name"}
-            ).receiver_name,
-            dummy_provider.provider_name,
+            ).receiver_name
+            == dummy_provider.provider_name
         )
 
     def test_custom_renaming_fails_for_missing_receiving_counterpart(self):
@@ -141,9 +143,9 @@ class TestCopyAttributes(TestCase):
             only_provider={"provider_name": ARBITRARY_VALUE}
         )
 
-        with self.assertRaisesRegex(
+        with pytest.raises(
             ValueError,
-            f"Conversion failed. 'receiver_name' is not a member of the receiver <.*{CLASS_NAME}.*>. "
+            match=f"Conversion failed. 'receiver_name' is not a member of the receiver <.*{CLASS_NAME}.*>. "
             "You gave {'receiver_name': 'provider_name'}.",
         ):
             copy_attributes(dummy_provider, DummyReceiver, conversions={"receiver_name": "provider_name"})
@@ -153,9 +155,9 @@ class TestCopyAttributes(TestCase):
             only_receiver={"receiver_name": ARBITRARY_VALUE}
         )
 
-        with self.assertRaisesRegex(
+        with pytest.raises(
             ValueError,
-            f"Conversion failed. 'provider_name' is not a member of the provider {dummy_provider}. "
+            match=f"Conversion failed. 'provider_name' is not a member of the provider {dummy_provider}. "
             "You gave {'receiver_name': 'provider_name'}.",
         ):
             copy_attributes(dummy_provider, DummyReceiver, conversions={"receiver_name": "provider_name"})
@@ -165,11 +167,11 @@ class TestCopyAttributes(TestCase):
             common_attributes={"arbitrary_name": ARBITRARY_VALUE}
         )
 
-        self.assertEqual(
+        assert (
             copy_attributes(
                 dummy_provider, DummyReceiver, conversions={"arbitrary_name": custom_conversion}
-            ).arbitrary_name,
-            custom_conversion(dummy_provider),
+            ).arbitrary_name
+            == custom_conversion(dummy_provider)
         )
 
     def test_removes_prefix(self):
@@ -177,41 +179,39 @@ class TestCopyAttributes(TestCase):
             only_provider={"prefixed_arbitrary_name": ARBITRARY_VALUE}, only_receiver={"arbitrary_name": None}
         )
 
-        self.assertEqual(
-            copy_attributes(dummy_provider, DummyReceiver, remove_prefix="prefixed_").arbitrary_name,
-            dummy_provider.prefixed_arbitrary_name,
+        assert (
+            copy_attributes(dummy_provider, DummyReceiver, remove_prefix="prefixed_").arbitrary_name
+            == dummy_provider.prefixed_arbitrary_name
         )
 
     def test_ignore_attributes(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
             common_attributes={"arbitrary_name": ARBITRARY_VALUE}
         )
-        self.assertEqual(copy_attributes(dummy_provider, DummyReceiver, ignore=["arbitrary_name"]).arbitrary_name, None)
+        assert copy_attributes(dummy_provider, DummyReceiver, ignore=["arbitrary_name"]).arbitrary_name is None
 
     def test_copies_property_by_value(self):
         dummy_provider = ClassWithProperty()
         DummyReceiver = gen_class({"attribute": None})
-        self.assertTrue(
-            isinstance(
-                getattr(copy_attributes(dummy_provider, DummyReceiver), "attribute"), type(dummy_provider._attribute)
-            )
+        assert isinstance(
+            getattr(copy_attributes(dummy_provider, DummyReceiver), "attribute"), type(dummy_provider._attribute)
         )
 
 
 class TestConvertsTo(TestCase):
     def test_returns_same_class(self):
         DummyProvider, DummyReceiver = gen_two_classes()
-        self.assertTrue(converts_to(DummyReceiver)(DummyProvider) is DummyProvider)
+        assert converts_to(DummyReceiver)(DummyProvider) is DummyProvider
 
     def test_adds_attribute_get_as_pypicongpu(self):
         DummyProvider, DummyReceiver = gen_two_classes()
-        self.assertTrue(hasattr(converts_to(DummyReceiver)(DummyProvider), "get_as_pypicongpu"))
+        assert hasattr(converts_to(DummyReceiver)(DummyProvider), "get_as_pypicongpu")
 
     def test_fails_if_get_as_pypicongpu_exists(self):
         DummyProvider, DummyReceiver = gen_two_classes(only_receiver={"get_as_pypicongpu": ARBITRARY_VALUE})
-        with self.assertRaisesRegex(
+        with pytest.raises(
             TypeError,
-            f"Adding 'get_as_pypicongpu' failed because it already existed on receiving class .*{CLASS_NAME}.*.",
+            match=f"Adding 'get_as_pypicongpu' failed because it already existed on receiving class .*{CLASS_NAME}.*.",
         ):
             converts_to(DummyReceiver)(DummyProvider)
 
@@ -219,8 +219,8 @@ class TestConvertsTo(TestCase):
         return tuple(x for x in inspect.getmembers(lhs) if not x[0].startswith("__"))
 
     def assertInstancesEqual(self, lhs, rhs):
-        self.assertEqual(type(lhs), type(rhs))
-        self.assertSequenceEqual(self._extract_relevant_members(lhs), self._extract_relevant_members(rhs))
+        assert type(lhs) == type(rhs)
+        assert list(self._extract_relevant_members(lhs)) == list(self._extract_relevant_members(rhs))
 
     def test_get_as_pypicongpu_acts_like_copy_attributes(self):
         arbitrary_value2 = "arbitrary_string"
@@ -264,9 +264,9 @@ class TestConvertsTo(TestCase):
         DummyProvider, DummyReceiver = gen_two_classes()
 
         dummy_provider = converts_to(DummyReceiver, preamble=preamble)(DummyProvider)()
-        self.assertEqual(preamble.counter, 0)
+        assert preamble.counter == 0
         dummy_provider.get_as_pypicongpu()
-        self.assertEqual(preamble.counter, 1)
+        assert preamble.counter == 1
 
     def test_passes_through_arbitrary_arguments_to_conversions(self):
         conversions = {"arbitrary_name": lambda self, x: self.arbitrary_name - x}
@@ -276,9 +276,9 @@ class TestConvertsTo(TestCase):
         )
 
         dummy_provider = converts_to(DummyReceiver, conversions=conversions)(DummyProvider)()
-        self.assertEqual(
-            dummy_provider.get_as_pypicongpu(ARBITRARY_VALUE).arbitrary_name,
-            conversions["arbitrary_name"](dummy_provider, ARBITRARY_VALUE),
+        assert (
+            dummy_provider.get_as_pypicongpu(ARBITRARY_VALUE).arbitrary_name
+            == conversions["arbitrary_name"](dummy_provider, ARBITRARY_VALUE)
         )
 
     def test_passes_through_arbitrary_arguments_to_preamble(self):
@@ -286,16 +286,16 @@ class TestConvertsTo(TestCase):
         DummyProvider, DummyReceiver = gen_two_classes()
 
         dummy_provider = converts_to(DummyReceiver, preamble=preamble)(DummyProvider)()
-        self.assertEqual(preamble.args, None)
-        self.assertEqual(preamble.kwargs, None)
+        assert preamble.args is None
+        assert preamble.kwargs is None
         dummy_provider.get_as_pypicongpu(ARBITRARY_VALUE, arbitrary_kwarg=ARBITRARY_VALUE)
-        self.assertEqual(preamble.args[1:], (ARBITRARY_VALUE,))
-        self.assertEqual(preamble.kwargs, {"arbitrary_kwarg": ARBITRARY_VALUE})
+        assert preamble.args[1:] == (ARBITRARY_VALUE,)
+        assert preamble.kwargs == {"arbitrary_kwarg": ARBITRARY_VALUE}
 
     def test_ignore_attributes(self):
         DummyProvider, DummyReceiver = gen_two_classes(common_attributes={"arbitrary_name": ARBITRARY_VALUE})
         dummy_provider = converts_to(DummyReceiver, ignore=["arbitrary_name"])(DummyProvider)()
-        self.assertEqual(dummy_provider.get_as_pypicongpu().arbitrary_name, None)
+        assert dummy_provider.get_as_pypicongpu().arbitrary_name is None
 
     def test_default_converts_to_uses_get_as_pypicongpu(self):
         DummyProvider, DummyReceiver = gen_two_classes(
@@ -304,6 +304,6 @@ class TestConvertsTo(TestCase):
             }
         )
         dummy_provider = default_converts_to(DummyReceiver)(DummyProvider)()
-        self.assertEqual(
-            dummy_provider.get_as_pypicongpu().arbitrary_name, dummy_provider.arbitrary_name.get_as_pypicongpu()
+        assert (
+            dummy_provider.get_as_pypicongpu().arbitrary_name == dummy_provider.arbitrary_name.get_as_pypicongpu()
         )
