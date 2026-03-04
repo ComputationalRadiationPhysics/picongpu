@@ -105,10 +105,7 @@ class TestCopyAttributes(TestCase):
             common_attributes={"arbitrary_name": ARBITRARY_VALUE, "_private_attribute": ARBITRARY_VALUE}
         )
 
-        assert (
-            copy_attributes(dummy_provider, DummyReceiver)._private_attribute
-            != dummy_provider._private_attribute
-        )
+        assert copy_attributes(dummy_provider, DummyReceiver)._private_attribute != dummy_provider._private_attribute
 
     def test_does_create_new_attributes(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
@@ -132,9 +129,7 @@ class TestCopyAttributes(TestCase):
         )
 
         assert (
-            copy_attributes(
-                dummy_provider, DummyReceiver, conversions={"receiver_name": "provider_name"}
-            ).receiver_name
+            copy_attributes(dummy_provider, DummyReceiver, conversions={"receiver_name": "provider_name"}).receiver_name
             == dummy_provider.provider_name
         )
 
@@ -167,12 +162,9 @@ class TestCopyAttributes(TestCase):
             common_attributes={"arbitrary_name": ARBITRARY_VALUE}
         )
 
-        assert (
-            copy_attributes(
-                dummy_provider, DummyReceiver, conversions={"arbitrary_name": custom_conversion}
-            ).arbitrary_name
-            == custom_conversion(dummy_provider)
-        )
+        assert copy_attributes(
+            dummy_provider, DummyReceiver, conversions={"arbitrary_name": custom_conversion}
+        ).arbitrary_name == custom_conversion(dummy_provider)
 
     def test_removes_prefix(self):
         dummy_provider, DummyReceiver = gen_provider_and_matching_receiver_class(
@@ -276,9 +268,8 @@ class TestConvertsTo(TestCase):
         )
 
         dummy_provider = converts_to(DummyReceiver, conversions=conversions)(DummyProvider)()
-        assert (
-            dummy_provider.get_as_pypicongpu(ARBITRARY_VALUE).arbitrary_name
-            == conversions["arbitrary_name"](dummy_provider, ARBITRARY_VALUE)
+        assert dummy_provider.get_as_pypicongpu(ARBITRARY_VALUE).arbitrary_name == conversions["arbitrary_name"](
+            dummy_provider, ARBITRARY_VALUE
         )
 
     def test_passes_through_arbitrary_arguments_to_preamble(self):
@@ -304,6 +295,4 @@ class TestConvertsTo(TestCase):
             }
         )
         dummy_provider = default_converts_to(DummyReceiver)(DummyProvider)()
-        assert (
-            dummy_provider.get_as_pypicongpu().arbitrary_name == dummy_provider.arbitrary_name.get_as_pypicongpu()
-        )
+        assert dummy_provider.get_as_pypicongpu().arbitrary_name == dummy_provider.arbitrary_name.get_as_pypicongpu()

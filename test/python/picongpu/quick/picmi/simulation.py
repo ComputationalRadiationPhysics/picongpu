@@ -245,9 +245,8 @@ class TestPicmiSimulation(TestCase):
 
         # species
         assert len(my_species) == 4
-        assert (
-            ["colocated1", "colocated2", "separate1", "separate2"]
-            == list(map(lambda species: species.name, my_species))
+        assert ["colocated1", "colocated2", "separate1", "separate2"] == list(
+            map(lambda species: species.name, my_species)
         )
 
         # operations

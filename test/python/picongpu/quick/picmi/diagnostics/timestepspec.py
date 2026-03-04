@@ -248,15 +248,18 @@ class TestTimeStepSpec(TestCase):
     def test_translation_does_not_contain_negative_numbers(self):
         for ts, indices in TESTCASES_IN_STEPS:
             with self.subTest(ts=ts, indices=indices):
-                assert list(
-                    filter(
-                        lambda s: s.start < 0
-                        # -1 is allowed as a value for stop only
-                        or (s is not None and s.stop < -1)
-                        and s.step < 1,
-                        ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX).specs,
+                assert (
+                    list(
+                        filter(
+                            lambda s: s.start < 0
+                            # -1 is allowed as a value for stop only
+                            or (s is not None and s.stop < -1)
+                            and s.step < 1,
+                            ts.get_as_pypicongpu(TIME_STEP_SIZE, INDEX_MAX).specs,
+                        )
                     )
-                ) == []
+                    == []
+                )
 
     def test_raises_for_negative_step_size(self):
         for ts, indices in TESTCASES_IN_STEPS_RAISING:

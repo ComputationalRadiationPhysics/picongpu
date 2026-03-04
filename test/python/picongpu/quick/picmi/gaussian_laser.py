@@ -42,20 +42,24 @@ class TestPicmiGaussianLaser(TestCase):
         assert pypic_laser.focus_pos_si == (5, 4, 5)
         # centroid is not a picongpu input
         assert pypic_laser.E0_si == 5
-        assert (
-            picmi.lasers.PolarizationType.LINEAR.get_as_pypicongpu()
-            == pypic_laser.polarization_type
-        )
+        assert picmi.lasers.PolarizationType.LINEAR.get_as_pypicongpu() == pypic_laser.polarization_type
         assert pypic_laser.laguerre_modes == [2.0, 3.0]
         assert pypic_laser.laguerre_phases == [4.0, 5.0]
         assert pypic_laser.phase == -2
         assert pypic_laser.huygens_surface_positions == [[1, -1], [1, -1], [1, -1]]
 
         # computed values
-        assert abs(
-            -2.0 * picmi_laser.centroid_position[1] / picmi_laser.propagation_direction[1] / c / picmi_laser.duration
-            - pypic_laser.pulse_init
-        ) < 1e-10
+        assert (
+            abs(
+                -2.0
+                * picmi_laser.centroid_position[1]
+                / picmi_laser.propagation_direction[1]
+                / c
+                / picmi_laser.duration
+                - pypic_laser.pulse_init
+            )
+            < 1e-10
+        )
 
     def test_scalar_values_negative(self):
         """waist, duration and wavelelngth must be > 0"""
