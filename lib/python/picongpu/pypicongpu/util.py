@@ -7,7 +7,7 @@ License: GPLv3+
 
 import logging
 from itertools import chain
-from functools import wraps
+from functools import partial, wraps
 from inspect import Parameter, signature
 from operator import itemgetter
 from types import GenericAlias, UnionType
@@ -16,6 +16,35 @@ from typing import Any, Self
 import typeguard
 
 attr_cnt = 0
+
+
+def _extract_first_parameter(cls):
+    sig = signature(cls).parameters
+    try:
+        parameter = next(iter(sig.values()))
+    except StopIteration as error:
+        raise TypeError(
+            f"A decorating class must have at least one argument to its constructor. You gave: {sig=} for {cls=}."
+        ) from error
+    if parameter.kind in [Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL]:
+        raise TypeError(
+            f"A decorating class cannot have variadic (keyword) arguments to its constructor first. You gave: {sig=} for {cls=}."
+        )
+    return parameter
+
+
+def _pass_first_parameter_to(f, parameter, kwargs):
+    """
+    Constructs a function that can be called with the first parameter as positional argument regardless of it being kw-only or not.
+    """
+    if parameter.kind in [Parameter.KEYWORD_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
+        return lambda d: f(**{parameter.name: d}, **kwargs)
+    elif parameter.kind in [Parameter.POSITIONAL_ONLY]:
+        return lambda d: f(d, **kwargs)
+    else:
+        # The remaining option for parameter.kind is VAR_KEYWORD (at the time of writing)
+        # and that was caught above already.
+        raise Exception("This path should be unreachable!")
 
 
 def decorating_class(cls):
@@ -30,36 +59,19 @@ def decorating_class(cls):
     """
     # It is important to extract the signature before decorating the class.
     # Otherwise, we'll only see the names of the decorator's arguments.
-    sig = signature(cls).parameters
-    try:
-        parameter = next(iter(sig.values()))
-    except StopIteration as error:
-        raise TypeError(
-            f"A decorating class must have at least one argument to its constructor. You gave: {sig=} for {cls=}."
-        ) from error
-    if parameter.kind == Parameter.VAR_KEYWORD:
-        raise TypeError(
-            f"A decorating class cannot have only **kwargs arguments to its constructor. You gave: {sig=} for {cls=}."
-        )
+    parameter = _extract_first_parameter(cls)
 
     @wraps(cls, updated=tuple())
     class Tmp(cls):
         def __new__(cls, decorated=None, **kwargs):
             decorated = kwargs.pop(parameter.name, None) or decorated
             if decorated is None:
-                if parameter.kind in [Parameter.KEYWORD_ONLY]:
-                    return lambda d: cls(**{parameter.name: d}, **kwargs)
-                elif parameter.kind in [
-                    Parameter.POSITIONAL_ONLY,
-                    Parameter.POSITIONAL_OR_KEYWORD,
-                    Parameter.VAR_POSITIONAL,
-                ]:
-                    return lambda d: cls(d, **kwargs)
-                else:
-                    # The remaining option for parameter.kind is VAR_KEYWORD (at the time of writing)
-                    # and that was caught above already.
-                    raise Exception("This path should be unreachable!")
-            return super().__new__(cls)
+                return _pass_first_parameter_to(cls, parameter, kwargs)
+            constructor = partial(super().__new__, cls)
+            try:
+                return _pass_first_parameter_to(constructor, parameter, kwargs)(decorated)
+            except TypeError:
+                return constructor()
 
     return Tmp
 
