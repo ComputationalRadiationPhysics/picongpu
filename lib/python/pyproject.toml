@@ -62,9 +62,8 @@ where = [ "." ]
 include = [ "picongpu*" ]
 
 [tool.pytest.ini_options]
-testpaths = [ "test/picongpu/quick" ]
 pythonpath = [ "." ]
 python_files = [ "*.py" ]
 python_classes = [ "Test*" ]
 python_functions = [ "test_*" ]
-addopts = "--ignore-glob=**/__init__.py"
+addopts = "--ignore-glob=**/__init__.py --ignore-glob=**/__main__.py --ignore=test/testsuite --ignore=test/setups --ignore=picongpu"
