@@ -54,6 +54,3 @@ test = ["pytest>=9"]
 [tool.setuptools.packages.find]
 where = [ "." ]
 include = [ "picongpu*" ]
-
-[tool.pytest.ini_options]
-pythonpath = [ "." ]
