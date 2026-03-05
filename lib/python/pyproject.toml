@@ -53,3 +53,10 @@ optional-dependencies.test = [ "pytest>=9" ]
 [tool.setuptools.packages.find]
 where = [ "." ]
 include = [ "picongpu*" ]
+
+[tool.pytest.ini_options]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "compiling: tests that compile PIConGPU simulations",
+  "end_to_end: end-to-end simulation tests",
+]
