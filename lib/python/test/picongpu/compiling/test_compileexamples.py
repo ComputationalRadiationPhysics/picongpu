@@ -19,7 +19,7 @@ EXAMPLES = filter(
 )
 
 
-class TestExamplesMeta(type):
+class _TestExamplesMeta(type):
     def __new__(cls, name, bases, dict):
         # Generate one test for each example in the examples folder
         for example in EXAMPLES:
@@ -40,7 +40,7 @@ class TestExamplesMeta(type):
         return type.__new__(cls, name, bases, dict)
 
 
-class TestExamples(unittest.TestCase, metaclass=TestExamplesMeta):
+class TestExamples(unittest.TestCase, metaclass=_TestExamplesMeta):
     def load_example_script(self, path):
         """load and execute example PICMI script from given path"""
         module_spec = importlib.util.spec_from_file_location("example", path)
