@@ -41,13 +41,15 @@ dependencies = [
   "pillow",
   "pint",
   "pydantic>=2.6.4",
-  "pytest>=9",
   "referencing>=0.35.1",
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",
   "typeguard>=4.2.1",
 ]
+
+[project.optional-dependencies]
+test = ["pytest>=9"]
 
 [tool.setuptools.packages.find]
 where = [ "." ]
