@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     PrivateAttr,
     computed_field,
     field_validator,
@@ -93,8 +94,7 @@ class Species(BaseModel):
             value = values["particle_type"]
         return value
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @model_validator(mode="after")
     def check(self):

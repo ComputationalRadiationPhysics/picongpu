@@ -14,6 +14,7 @@ import numpy as np
 import numpy.typing as nptype
 
 import pydantic
+from pydantic import ConfigDict
 import typeguard
 
 
@@ -51,8 +52,7 @@ class MemoryCalculator(pydantic.BaseModel):
     # in super cells, see ``memory.param``
     guard_size: nptype.NDArray = np.array((1, 1, 1))
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, **keyword_arguments):
         pydantic.BaseModel.__init__(self, **keyword_arguments)

@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import field_validator
+from pydantic import ConfigDict, field_validator
 
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.species import Species
@@ -48,5 +48,4 @@ class Radiation(RadiationPluginConfig):
             period=self.period.get_as_pypicongpu(time_step_size=time_step_size, num_steps=num_steps),
         )
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

@@ -16,6 +16,7 @@ import tomli_w
 from pydantic import (
     AfterValidator,
     BaseModel,
+    ConfigDict,
     PrivateAttr,
     ValidationError,
     field_validator,
@@ -167,5 +168,4 @@ class OpenPMDPlugin(Plugin):
             ),
         }
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

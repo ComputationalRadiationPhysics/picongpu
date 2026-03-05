@@ -17,7 +17,7 @@ from pathlib import Path
 
 import picmistandard
 import typeguard
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from picongpu import pypicongpu
 from picongpu.picmi import constants
@@ -49,8 +49,7 @@ class _DensityImpl(BaseModel):
     grid: Cartesian3DGrid
     species: Species
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
