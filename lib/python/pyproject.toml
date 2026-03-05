@@ -57,7 +57,3 @@ include = [ "picongpu*" ]
 
 [tool.pytest.ini_options]
 pythonpath = [ "." ]
-python_files = [ "*.py" ]
-python_classes = [ "Test*" ]
-python_functions = [ "test_*" ]
-addopts = "--ignore=test/testsuite --ignore=test/setups --ignore=picongpu"
