@@ -33,6 +33,7 @@
 #    include <memory>
 #    include <optional>
 
+#    include <mpi.h>
 #    include <openPMD/Series.hpp>
 
 namespace picongpu
@@ -229,6 +230,11 @@ namespace picongpu
                                   << std::endl;
                     }
                 }
+
+                // Broadcast the reduce counter from rank 0 to all other ranks
+                auto& gc = Environment<simDim>::get().GridController();
+                eventSystem::getTransactionEvent().waitForFinished();
+                MPI_CHECK(MPI_Bcast(&reduceCounter, 1, MPI_UINT32_T, 0, gc.getCommunicator().getMPIComm()));
             }
 
         private:
