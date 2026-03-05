@@ -48,8 +48,7 @@ dependencies = [
   "typeguard>=4.2.1",
 ]
 
-[project.optional-dependencies]
-test = ["pytest>=9"]
+optional-dependencies.test = [ "pytest>=9" ]
 
 [tool.setuptools.packages.find]
 where = [ "." ]
