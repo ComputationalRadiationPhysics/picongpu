@@ -76,10 +76,8 @@ namespace pmacc
 
     private:
         FieldFactory() = default;
-        ;
 
         FieldFactory(FieldFactory const&) = default;
-        ;
     };
 
 } // namespace pmacc

@@ -539,9 +539,6 @@ list(REMOVE_ITEM SRCFILES ${ACCSRCFILES})
 
 add_library(picongpu-hostonly STATIC ${SRCFILES})
 target_link_libraries(picongpu-hostonly PUBLIC ${HOST_LIBS})
-# Some host compiled libraries depend on std::filesystem,
-# compatibility to std::experimental::filesystem is handled in pmacc.
-target_link_libraries(picongpu-hostonly PRIVATE pmacc::filesystem)
 
 alpaka_add_executable(picongpu
      ${ACCSRCFILES}
