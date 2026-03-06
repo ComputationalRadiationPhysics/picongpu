@@ -7,7 +7,7 @@
 
 # - the script installs a Python environment
 # - generates a modified requirements.txt depending of the environment variables for pypicongpu
-# - install the dependencies and runs the quick tests
+# - install the dependencies and runs the pytest tests
 
 set -e
 set -o pipefail
@@ -56,12 +56,12 @@ echo "modified pyproject.toml: "
 cat $PYPROJECT_TOML_PATH
 echo ""
 
-# install pypicongpu dependencies
-pip3 install -e ${CI_PROJECT_DIR}/lib/python/
+# install pypicongpu dependencies (including pytest for testing)
+pip3 install -e "${CI_PROJECT_DIR}/lib/python/[test]"
 
 # run quick tests
-cd $CI_PROJECT_DIR/test/python/picongpu
-python3 -m quick
+cd $CI_PROJECT_DIR/lib/python/test/picongpu
+python3 -m pytest quick/
 
 # executing the compiling tests is optional
 # for the compiling test we need: cmake, boost and openmpi
@@ -93,5 +93,5 @@ if [ ! -z ${PYTHON_COMPILING_TEST+x} ]; then
     # set C++ compiler
     export CXX=$CXX_VERSION
     # execute the compiling test
-    python3 -m compiling -v
+    python3 -m pytest compiling/ -v
 fi
