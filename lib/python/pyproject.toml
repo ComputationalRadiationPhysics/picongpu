@@ -60,3 +60,4 @@ markers = [
   "compiling: tests that compile PIConGPU simulations",
   "end_to_end: end-to-end simulation tests",
 ]
+filterwarnings = [ "error" ]
