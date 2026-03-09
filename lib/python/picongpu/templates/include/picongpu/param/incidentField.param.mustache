@@ -74,12 +74,12 @@ namespace picongpu::fields::incidentField
         static constexpr uint32_t numModes = {{{modenumber}}};
         static constexpr auto laguerreModes = floatN_X<numModes+1>(
             {{#laguerre_modes}}
-            {{{single_laguerre_mode}}}{{^_last}},{{/_last}}
+            {{{component}}}{{^_last}},{{/_last}}
             {{/laguerre_modes}}
             );
         static constexpr auto laguerrePhases = floatN_X<numModes+1>(
             {{#laguerre_phases}}
-            {{{single_laguerre_phase}}}{{^_last}},{{/_last}}
+            {{{component}}}{{^_last}},{{/_last}}
             {{/laguerre_phases}}
             );
         {{/data}}

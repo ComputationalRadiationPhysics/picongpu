@@ -5,10 +5,11 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from .rendering import RenderedObject
+from typing import Any
 
-import typing
-from pydantic import BaseModel, model_serializer
+from pydantic import BaseModel, Field, model_serializer
+
+from .rendering import RenderedObject
 
 
 class CustomUserInput(RenderedObject, BaseModel):
@@ -16,12 +17,12 @@ class CustomUserInput(RenderedObject, BaseModel):
     container for easy passing of additional input as dict from user script to rendering context of simulation input
     """
 
-    tags: typing.Optional[list[str]] = None
+    tags: list[str] | None = Field(None, min_length=1)
     """
     list of tags
     """
 
-    rendering_context: typing.Optional[dict[str, typing.Any]] = None
+    rendering_context: dict[str, Any] | None = None
     """
     accumulation variable of added dictionaries
     """
@@ -42,7 +43,7 @@ class CustomUserInput(RenderedObject, BaseModel):
             if tag in existing_tags:
                 raise ValueError("duplicate tag provided!, tags must be unique!")
 
-    def addToCustomInput(self, custom_input: dict[str, typing.Any], tag: str):
+    def addToCustomInput(self, custom_input: dict[str, Any], tag: str):
         """
         append dictionary to custom input dictionary
         """
@@ -66,6 +67,6 @@ class CustomUserInput(RenderedObject, BaseModel):
     def get_tags(self) -> list[str]:
         return self.tags
 
-    @model_serializer
-    def _get_serialized(self) -> dict | None:
+    @model_serializer(mode="plain")
+    def _get_serialized(self) -> dict[str, Any] | None:
         return self.rendering_context

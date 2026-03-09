@@ -5,12 +5,11 @@ Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Julian Lenz
 License: GPLv3+
 """
 
-import enum
 import logging
+from enum import Enum
 from typing import Annotated
 
 from pydantic import (
-    AfterValidator,
     BaseModel,
     BeforeValidator,
     Field,
@@ -23,19 +22,11 @@ from pydantic import (
 from .rendering import SelfRegisteringRenderedObject
 
 
-class PolarizationType(enum.Enum):
+class PolarizationType(Enum):
     """represents a polarization of a laser (for PIConGPU)"""
 
-    LINEAR = 1
-    CIRCULAR = 2
-
-    def get_cpp_str(self) -> str:
-        """retrieve name as used in c++ param files"""
-        cpp_by_ptype = {
-            PolarizationType.LINEAR: "Linear",
-            PolarizationType.CIRCULAR: "Circular",
-        }
-        return cpp_by_ptype[self]
+    LINEAR = "Linear"
+    CIRCULAR = "Circular"
 
 
 def _get_huygens_surface_serialized(huygens_surface_positions) -> dict:
@@ -88,11 +79,11 @@ class _BaseLaser(Laser, BaseModel):
         tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
     ]
     """direction of polarization (normalized vector)"""
-    polarization_type: Annotated[PolarizationType, PlainSerializer(lambda x: x.get_cpp_str())]
+    polarization_type: PolarizationType
     """laser polarization"""
-    wave_length_si: float = Field(alias="wavelength")
+    wave_length_si: float = Field(alias="wavelength", gt=0.0)
     """wave length in m"""
-    pulse_duration_si: float = Field(alias="duration")
+    pulse_duration_si: float = Field(alias="duration", gt=0.0)
     """duration in s (1 sigma)"""
     focus_pos_si: Annotated[tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)] = (
         Field(alias="focal_position")
@@ -100,9 +91,9 @@ class _BaseLaser(Laser, BaseModel):
     """focus position vector in m"""
     phase: float = Field(alias="phi0")
     """phi0 in rad, periodic in 2*pi"""
-    E0_si: float = Field(alias="E0")
+    E0_si: float = Field(alias="E0", gt=0.0)
     """E0 in V/m"""
-    pulse_init: float
+    pulse_init: float = Field(ge=0.0)
     """laser will be initialized pulse_init times of duration (unitless)"""
 
     # Huygens surface position (common to all lasers)
@@ -134,15 +125,11 @@ class GaussianLaser(_BaseLaser):
 
     _name: str = PrivateAttr("gaussian")
 
-    waist_si: float = Field(alias="waist")
+    waist_si: float = Field(alias="waist", gt=0.0)
     """beam waist in m"""
-    laguerre_modes: Annotated[
-        list[float], AfterValidator(lambda x: all_ge(x, 0)), PlainSerializer(lambda x: serialise_laguerre(x, "mode"))
-    ] = Field(min_length=1)
+    laguerre_modes: Annotated[list[_Component], BeforeValidator(validate_component_vector)] = Field(min_length=1)
     """array containing the magnitudes of radial Laguerre-modes"""
-    laguerre_phases: Annotated[list[float], PlainSerializer(lambda x: serialise_laguerre(x, "phase"))] = Field(
-        min_length=1
-    )
+    laguerre_phases: Annotated[list[_Component], BeforeValidator(validate_component_vector)] = Field(min_length=1)
     """array containing the phases of radial Laguerre-modes"""
 
     @computed_field

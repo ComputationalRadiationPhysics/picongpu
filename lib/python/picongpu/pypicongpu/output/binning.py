@@ -6,14 +6,14 @@ License: GPLv3+
 """
 
 import json
-from typing import Annotated
+from typing import Any
 
-from pydantic import BaseModel, Field, PlainSerializer, PrivateAttr
+from pydantic import BaseModel, Field, PrivateAttr, field_serializer
 
 from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
-from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
+from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
 from picongpu.pypicongpu.species import Species
 
@@ -38,9 +38,13 @@ class Binning(Plugin, BaseModel):
     axes: list[BinningAxis]
     species: list[Species | FilteredSpecies]
     period: TimeStepSpec
-    openPMD: Annotated[dict | None, PlainSerializer(lambda x: json.dumps(x) if x is not None else x)]
+    openPMD: dict[str, Any] | None
     openPMDExtension: str | None = Field(alias="openPMDExt")
     openPMDInfix: str | None
     dumpPeriod: int
 
     _name: str = PrivateAttr("binning")
+
+    @field_serializer("openPMD")
+    def _serialize_openPMD(self, value) -> str | None:
+        return None if value is None else json.dumps(value)
