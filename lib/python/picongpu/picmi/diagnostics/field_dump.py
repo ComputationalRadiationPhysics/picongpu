@@ -9,7 +9,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field
 
 from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 from picongpu.picmi.species import Species
@@ -23,8 +23,7 @@ class _FieldDump(BaseModel):
     period: TimeStepSpec = TimeStepSpec[:]("steps")
     options: BackendConfig = OpenPMDConfig(file="simData")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def result_path(self, prefix_path: PathLike):
         return self.options.result_path(prefix_path=Path(prefix_path) / "simOutput" / "openPMD")

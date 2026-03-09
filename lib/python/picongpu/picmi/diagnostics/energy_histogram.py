@@ -5,7 +5,7 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from picongpu.picmi.copy_attributes import default_converts_to
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
@@ -62,5 +62,4 @@ class EnergyHistogram(BaseModel):
     min_energy: float
     max_energy: float
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

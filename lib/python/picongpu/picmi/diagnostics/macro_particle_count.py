@@ -5,7 +5,7 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from picongpu.picmi.copy_attributes import default_converts_to
 
@@ -40,5 +40,4 @@ class MacroParticleCount(BaseModel):
     species: Species
     period: TimeStepSpec
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

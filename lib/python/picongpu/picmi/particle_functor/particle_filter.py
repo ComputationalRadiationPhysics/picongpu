@@ -7,7 +7,7 @@ License: GPLv3+
 
 from typing import Any, Callable
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field
 
 from picongpu.picmi.particle_functor.particle_functor import Particle, ParticleFunctor
 from picongpu.picmi.species import Species
@@ -26,8 +26,7 @@ class FilteredSpecies(BaseModel):
     species: Species
     functor: ParticleFilter
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @computed_field
     def name_with_filter(self) -> str:

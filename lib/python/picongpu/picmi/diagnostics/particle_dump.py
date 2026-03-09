@@ -8,7 +8,7 @@ License: GPLv3+
 from os import PathLike
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from picongpu.picmi.diagnostics.backend_config import BackendConfig, OpenPMDConfig
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
@@ -21,8 +21,7 @@ class ParticleDump(BaseModel):
     period: TimeStepSpec = TimeStepSpec[:]("steps")
     options: BackendConfig = OpenPMDConfig(file="simData")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def result_path(self, prefix_path: PathLike):
         return self.options.result_path(prefix_path=Path(prefix_path) / "simOutput" / "openPMD")

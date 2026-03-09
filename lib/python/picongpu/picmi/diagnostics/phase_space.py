@@ -7,7 +7,7 @@ License: GPLv3+
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from picongpu.picmi.copy_attributes import default_converts_to
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
@@ -62,5 +62,4 @@ class PhaseSpace(BaseModel):
         if self.min_momentum >= self.max_momentum:
             raise ValueError("min_momentum must be less than max_momentum")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
