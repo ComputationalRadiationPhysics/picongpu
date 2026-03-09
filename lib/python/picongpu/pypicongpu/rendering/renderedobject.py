@@ -194,19 +194,7 @@ class RenderedObject:
         :raise RuntimeError: on schema not found
         :return: self as rendering context
         """
-        # Temporary transitional refactoring:
-        # We plan to move to pydantic for serialisation
-        # but we don't quite have the infrastructure yet.
-        try:
-            serialized = self._get_serialized()
-        except (AttributeError, NotImplementedError) as first_error:
-            try:
-                serialized = self.model_dump(mode="json")
-            except AttributeError as second_error:
-                raise first_error from second_error
-
-        RenderedObject.check_context_for_type(self.__class__, serialized)
-        return serialized
+        return RenderedObject.check_context_for_type(self.__class__, self.model_dump(mode="json"))
 
     @staticmethod
     def check_context_for_type(type_to_check: type, context: dict | None):

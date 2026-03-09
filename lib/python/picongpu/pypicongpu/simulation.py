@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, PlainSerializer, Field, field_serializer, field_validator
 
@@ -28,7 +28,10 @@ from .rendering import RenderedObject
 from .walltime import Walltime
 
 
-def _serialize(value):
+# The annotation with -> Any is a temporary workaround.
+# Pydantic cannot know about our custom schema,
+# so it fails to validate correctly.
+def _serialize(value) -> Any:
     if isinstance(value, list):
         return [_serialize(v) for v in value]
     return value.get_rendering_context() if value is not None else None
@@ -111,7 +114,7 @@ class Simulation(RenderedObject, BaseModel):
         return outputs
 
     @field_serializer("customuserinput")
-    def _render_custom_user_input_list(self, value):
+    def _render_custom_user_input_list(self, value) -> dict[str, Any] | None:
         if value is None:
             return None
         custom_rendering_context = {"tags": []}
