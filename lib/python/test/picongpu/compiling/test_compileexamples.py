@@ -7,23 +7,19 @@ License: GPLv3+
 
 from picongpu import pypicongpu
 
-import importlib.util
-import os
+from importlib import util
 from pathlib import Path
 
 import unittest
 
-EXAMPLES = filter(
-    Path.is_dir,
-    (Path(os.environ["PICSRC"]) / "share/picongpu/pypicongpu/examples/").iterdir(),
-)
+EXAMPLES = (Path(__file__).parents[3] / "examples").glob("*/main.py")
 
 
 class _TestExamplesMeta(type):
     def __new__(cls, name, bases, dict):
         # Generate one test for each example in the examples folder
         for example in EXAMPLES:
-            name = "test_" + example.name
+            name = "test_" + example.parent.name
             dict[name] = (
                 # This is slightly convoluted:
                 # Python's semantics around variables implement
@@ -35,7 +31,7 @@ class _TestExamplesMeta(type):
                 # So, we need to eagerly evaluate the `example` variable
                 # which we achieve via an immediately evaluated lambda expression.
                 # Please excuse my C++ dialect.
-                lambda example: lambda self: self.build_simulation(self.load_example_script(example / "main.py"))
+                lambda example: lambda self: self.build_simulation(self.load_example_script(example))
             )(example)
         return type.__new__(cls, name, bases, dict)
 
@@ -43,8 +39,8 @@ class _TestExamplesMeta(type):
 class TestExamples(unittest.TestCase, metaclass=_TestExamplesMeta):
     def load_example_script(self, path):
         """load and execute example PICMI script from given path"""
-        module_spec = importlib.util.spec_from_file_location("example", path)
-        module = importlib.util.module_from_spec(module_spec)
+        module_spec = util.spec_from_file_location("example", path)
+        module = util.module_from_spec(module_spec)
         module_spec.loader.exec_module(module)
 
         sim = module.sim
