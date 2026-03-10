@@ -7,19 +7,16 @@ License: GPLv3+
 
 import logging
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
     BeforeValidator,
     Field,
     PlainSerializer,
-    PrivateAttr,
     computed_field,
     model_validator,
 )
-
-from .rendering import SelfRegisteringRenderedObject
 
 
 class PolarizationType(Enum):
@@ -47,10 +44,6 @@ def _get_huygens_surface_serialized(huygens_surface_positions) -> dict:
     }
 
 
-class Laser(SelfRegisteringRenderedObject, BaseModel):
-    pass
-
-
 class _Component(BaseModel):
     component: float
 
@@ -67,7 +60,7 @@ def validate_component_vector(value):
         return value
 
 
-class _BaseLaser(Laser, BaseModel):
+class _BaseLaser(BaseModel):
     """Base class for all laser types with common properties and serialization logic"""
 
     # Common properties for all lasers
@@ -123,7 +116,7 @@ class GaussianLaser(_BaseLaser):
     Holds Parameters to specify a gaussian laser
     """
 
-    _name: str = PrivateAttr("gaussian")
+    type_gaussian: Literal[True] = True
 
     waist_si: float = Field(alias="waist", gt=0.0)
     """beam waist in m"""
@@ -150,7 +143,7 @@ class PlaneWaveLaser(_BaseLaser):
     Holds Parameters to specify a plane wave laser
     """
 
-    _name: str = PrivateAttr("planewave")
+    type_planewave: Literal[True] = True
     laser_nofocus_constant_si: float
     """constant for plane wave laser without focus (unitless)"""
 
@@ -162,7 +155,7 @@ class DispersivePulseLaser(_BaseLaser):
     Holds Parameters to specify a dispersive Gaussian laser pulse with dispersion parameters
     """
 
-    _name: str = PrivateAttr("dispersive")
+    type_dispersive: Literal[True] = True
 
     waist_si: float = Field(alias="waist")
     """beam waist in m"""
@@ -178,14 +171,14 @@ class DispersivePulseLaser(_BaseLaser):
     """third order dispersion in focus [s^3]"""
 
 
-class FromOpenPMDPulseLaser(Laser, BaseModel):
+class FromOpenPMDPulseLaser(BaseModel):
     """
     PIConGPU FromOpenPMDPulseLaser
 
     Holds Parameters to specify a laser pulse from an OpenPMD file
     """
 
-    _name: str = PrivateAttr("fromOpenPMDPulse")
+    type_fromOpenPMDPulse: Literal[True] = True
 
     propagation_direction: Annotated[
         tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
@@ -221,7 +214,7 @@ class TWTSLaser(_BaseLaser):
     Holds Parameters to specify a TWTS laser pulse
     """
 
-    _name: str = PrivateAttr("twts")
+    type_twts: Literal[True] = True
 
     waist_si: float = Field(alias="waist")
     """beam waist in m"""

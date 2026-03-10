@@ -5,15 +5,11 @@ Authors: Kristin Tippey, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, PrivateAttr, model_serializer
-from .plasmaramp import PlasmaRamp
+from typing import Literal
+from pydantic import BaseModel
 
 
-class None_(PlasmaRamp, BaseModel):
+class None_(BaseModel):
     """no plasma ramp, either up or down"""
 
-    _name: str = PrivateAttr("none")
-
-    @model_serializer()
-    def serialize(self):
-        return None
+    type_none: Literal[True] = True

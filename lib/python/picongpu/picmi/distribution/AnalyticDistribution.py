@@ -128,7 +128,7 @@ class AnalyticDistribution:
         self.density_expression = self.density_function(x, y, z) + (0 * x * y * z)
         self.warned_about_lambdify_failure = False
 
-    def get_as_pypicongpu(self, _) -> species.operation.densityprofile.DensityProfile:
+    def get_as_pypicongpu(self, _):
         return species.operation.densityprofile.FreeFormula(density_expression=self.density_expression)
 
     def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:

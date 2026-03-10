@@ -10,7 +10,7 @@ from pydantic import PlainSerializer, PrivateAttr, BaseModel, field_validator, F
 
 from ..species import Species
 from .densityoperation import DensityOperation
-from .densityprofile import DensityProfile
+from .densityprofile import AnyDensityProfile
 from .layout import Layout
 
 
@@ -30,7 +30,7 @@ class SimpleDensity(DensityOperation):
       note that their density ratios will be respected
     """
 
-    profile: Annotated[DensityProfile, PlainSerializer(lambda x: x.get_rendering_context())]
+    profile: AnyDensityProfile
     """density profile to use, describes the actual density"""
 
     species: list[Species] = Field(exclude=True)

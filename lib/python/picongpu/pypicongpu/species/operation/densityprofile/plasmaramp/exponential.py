@@ -5,13 +5,13 @@ Authors: Kristin Tippey, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, PrivateAttr, Field
-from .plasmaramp import PlasmaRamp
+from typing import Literal
+from pydantic import BaseModel, Field
 
 
-class Exponential(PlasmaRamp, BaseModel):
+class Exponential(BaseModel):
     """exponential plasma ramp, either up or down"""
 
-    _name: str = PrivateAttr("exponential")
+    type_exponential: Literal[True] = True
     PlasmaLength: float = Field(gt=0.0)
     PlasmaCutoff: float = Field(ge=0.0)
