@@ -5,12 +5,12 @@ Authors: Kristin Tippey, Brian Edward Marre
 License: GPLv3+
 """
 
-from typing import Annotated
-from pydantic import BeforeValidator, Field, PlainSerializer, PrivateAttr, BaseModel, model_validator
-from .densityprofile import DensityProfile
-from .plasmaramp import AllPlasmaRamps, None_
+from math import sqrt
+from typing import Annotated, Literal
 
-import math
+from pydantic import BaseModel, BeforeValidator, Field, model_validator
+
+from .plasmaramp import AllPlasmaRamps, None_
 
 
 class _Component(BaseModel):
@@ -29,7 +29,7 @@ def validate_component_vector(value):
         return value
 
 
-class Cylinder(DensityProfile, BaseModel):
+class Cylinder(BaseModel):
     """
     Describes a cylindrical density distribution of particles with gaussian up-ramp
     with a constant density region in between. It can have an arbitrary orientation
@@ -44,7 +44,7 @@ class Cylinder(DensityProfile, BaseModel):
       the reduced radius ensures mass conservation
     """
 
-    _name: str = PrivateAttr("cylinder")
+    type_cylinder: Literal[True] = True
 
     density_si: float = Field(gt=0.0)
     """particle number density at at the foil plateau (m^-3)"""
@@ -60,14 +60,12 @@ class Cylinder(DensityProfile, BaseModel):
 
     # This still relies on some magic to insert the typeID.
     # We'll handle it another time:
-    pre_plasma_ramp: Annotated[AllPlasmaRamps, PlainSerializer(lambda x: x.get_rendering_context())] = None_()
+    pre_plasma_ramp: AllPlasmaRamps = None_()
     """pre plasma ramp"""
 
     @model_validator(mode="after")
     def check(self):
-        min_radius = (
-            math.sqrt(2.0) * self.pre_plasma_ramp.PlasmaLength if type(self.pre_plasma_ramp) is not None_ else 0.0
-        )
+        min_radius = sqrt(2.0) * self.pre_plasma_ramp.PlasmaLength if type(self.pre_plasma_ramp) is not None_ else 0.0
         if self.radius_si < min_radius:
             raise ValueError(
                 f"radius must be > sqrt(2)*pre_plasma_length = {min_radius}, so that the reduced radius stays non negative. In case of no preplasma radius must be >= 0.0."

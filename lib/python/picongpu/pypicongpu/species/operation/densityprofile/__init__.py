@@ -5,7 +5,6 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .densityprofile import DensityProfile
 from .uniform import Uniform
 from .foil import Foil
 from .gaussian import Gaussian
@@ -14,8 +13,10 @@ from .free_formula import FreeFormula
 
 from . import plasmaramp
 
+AnyDensityProfile = Uniform | Foil | Gaussian | FreeFormula | Cylinder
+
 __all__ = [
-    "DensityProfile",
+    "AnyDensityProfile",
     "Uniform",
     "Foil",
     "plasmaramp",

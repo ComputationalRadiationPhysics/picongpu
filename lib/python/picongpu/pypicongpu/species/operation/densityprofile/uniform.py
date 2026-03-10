@@ -5,11 +5,12 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, Field, PrivateAttr
-from .densityprofile import DensityProfile
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
-class Uniform(DensityProfile, BaseModel):
+class Uniform(BaseModel):
     """
     globally constant density
 
@@ -17,7 +18,7 @@ class Uniform(DensityProfile, BaseModel):
     ambiguities the PICMI name uniform is followed here.
     """
 
-    _name: str = PrivateAttr("uniform")
+    type_uniform: Literal[True] = True
 
     density_si: float = Field(gt=0.0)
     """density at every point in space (kg * m^-3)"""

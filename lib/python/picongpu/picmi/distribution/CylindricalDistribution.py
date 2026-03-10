@@ -55,7 +55,7 @@ class CylindricalDistribution(Distribution):
 
     # @note user may add additional attributes by hand, these will be available but not type verified
 
-    def get_as_pypicongpu(self, grid) -> species.operation.densityprofile.Cylinder:
+    def get_as_pypicongpu(self, grid):
         self.cell_size = grid.get_cell_size()
         util.unsupported("fill in not active", self.fill_in, True)
 

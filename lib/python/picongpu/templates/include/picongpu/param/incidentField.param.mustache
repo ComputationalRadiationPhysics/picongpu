@@ -24,10 +24,9 @@
 namespace picongpu::fields::incidentField
 {
     {{#laser}}
-    {{^typeID.fromOpenPMDPulse}}
+    {{^type_fromOpenPMDPulse}}
     struct PyPIConGPULaserBaseParam_{{{_idx}}} : public profiles::BaseParam
     {
-        {{#data}}
         static constexpr float_64 WAVE_LENGTH_SI = {{{wave_length_si}}}; // m
         static constexpr float_64 AMPLITUDE_SI = {{{E0_si}}}; // V/m
         static constexpr float_64 PULSE_DURATION_SI = {{{pulse_duration_si}}}; // s (1 sigma)
@@ -61,14 +60,12 @@ namespace picongpu::fields::incidentField
         static constexpr float_64 POLARISATION_DIRECTION_X = polarisation_direction[0];
         static constexpr float_64 POLARISATION_DIRECTION_Y = polarisation_direction[1];
         static constexpr float_64 POLARISATION_DIRECTION_Z = polarisation_direction[2];
-        {{/data}}
     };
-    {{/typeID.fromOpenPMDPulse}}
+    {{/type_fromOpenPMDPulse}}
 
-    {{#typeID.gaussian}}
+    {{#type_gaussian}}
     struct PyPIConGPUGaussianPulseParam_{{{_idx}}} : public PyPIConGPULaserBaseParam_{{{_idx}}}
     {
-        {{#data}}
         static constexpr float_64 W0_SI = {{{waist_si}}};
         static constexpr float_64 PULSE_INIT = {{{pulse_init}}};
         static constexpr uint32_t numModes = {{{modenumber}}};
@@ -82,24 +79,20 @@ namespace picongpu::fields::incidentField
             {{{component}}}{{^_last}},{{/_last}}
             {{/laguerre_phases}}
             );
-        {{/data}}
     };
-    {{/typeID.gaussian}}
+    {{/type_gaussian}}
 
-    {{#typeID.planewave}}
+    {{#type_planewave}}
     struct PyPIConGPUPlaneWaveParam_{{{_idx}}} : public PyPIConGPULaserBaseParam_{{{_idx}}}
     {
-        {{#data}}
         static constexpr float_64 RAMP_INIT = {{{pulse_init}}};
         static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = {{{laser_nofocus_constant_si}}};
-        {{/data}}
     };
-    {{/typeID.planewave}}
+    {{/type_planewave}}
 
-    {{#typeID.dispersive}}
+    {{#type_dispersive}}
     struct PyPIConGPUDispersivePulseParam_{{{_idx}}} : public PyPIConGPULaserBaseParam_{{{_idx}}}
     {
-        {{#data}}
         static constexpr float_64 W0_SI = {{{waist_si}}};
         static constexpr float_64 PULSE_INIT = {{{pulse_init}}};
         static constexpr float_X SPECTRAL_SUPPORT = {{{spectral_support}}};
@@ -107,14 +100,12 @@ namespace picongpu::fields::incidentField
         static constexpr float_64 AD_SI = {{{ad_si}}};
         static constexpr float_64 GDD_SI = {{{gdd_si}}};
         static constexpr float_64 TOD_SI = {{{tod_si}}};
-        {{/data}}
     };
-    {{/typeID.dispersive}}
+    {{/type_dispersive}}
 
-    {{#typeID.fromOpenPMDPulse}}
+    {{#type_fromOpenPMDPulse}}
     struct PyPIConGPUFromOpenPMDPulseParam_{{{_idx}}}
     {
-        {{#data}}
         static constexpr char const* filename = "{{{file_path}}}";
         static constexpr uint32_t iteration = {{{iteration}}};
         static constexpr char const* datasetEName = "{{{dataset_name}}}";
@@ -143,14 +134,12 @@ namespace picongpu::fields::incidentField
         static constexpr float_64 POLARISATION_DIRECTION_Z = polarisation_direction[2];
 
         static constexpr float_64 TIME_DELAY_SI = {{{time_offset_si}}};
-        {{/data}}
     };
-    {{/typeID.fromOpenPMDPulse}}
+    {{/type_fromOpenPMDPulse}}
 
-    {{#typeID.twts}}
+    {{#type_twts}}
     struct PyPIConGPUTWTSParam_{{{_idx}}} : public PyPIConGPULaserBaseParam_{{{_idx}}}
     {
-        {{#data}}
         static constexpr float_64 W0_SI = {{{waist_si}}};
         static constexpr float_64 FOCUS_Y_SI = focus_position[1];
         static constexpr float_64 FOCUS_Z_OFFSET_SI = {{{focus_lateral_offset_si}}};
@@ -162,28 +151,27 @@ namespace picongpu::fields::incidentField
         static constexpr float_X windowStart = {{{windowStart}}};
         static constexpr float_X windowEnd = {{{windowEnd}}};
         static constexpr float_X windowLength = {{{windowLength}}};
-        {{/data}}
     };
-    {{/typeID.twts}}
+    {{/type_twts}}
 
-    {{#typeID.gaussian}}
+    {{#type_gaussian}}
     using LaserProfile_{{{_idx}}} = profiles::GaussianPulse<PyPIConGPUGaussianPulseParam_{{{_idx}}}>;
-    {{/typeID.gaussian}}
-    {{#typeID.planewave}}
+    {{/type_gaussian}}
+    {{#type_planewave}}
     using LaserProfile_{{{_idx}}} = profiles::PlaneWave<PyPIConGPUPlaneWaveParam_{{{_idx}}}>;
-    {{/typeID.planewave}}
-    {{#typeID.dispersive}}
+    {{/type_planewave}}
+    {{#type_dispersive}}
     using LaserProfile_{{{_idx}}} = profiles::DispersivePulse<PyPIConGPUDispersivePulseParam_{{{_idx}}}>;
-    {{/typeID.dispersive}}
-    {{#typeID.fromOpenPMDPulse}}
+    {{/type_dispersive}}
+    {{#type_fromOpenPMDPulse}}
     using LaserProfile_{{{_idx}}} = profiles::FromOpenPMDPulse<PyPIConGPUFromOpenPMDPulseParam_{{{_idx}}}>;
-    {{/typeID.fromOpenPMDPulse}}
-    {{#typeID.twts}}
+    {{/type_fromOpenPMDPulse}}
+    {{#type_twts}}
     using LaserProfile_{{{_idx}}} = profiles::Free<
             profiles::TWTSFunctorIncidentE<PyPIConGPUTWTSParam_{{{_idx}}}>,
             profiles::TWTSFunctorIncidentB<PyPIConGPUTWTSParam_{{{_idx}}}>
             >;
-    {{/typeID.twts}}
+    {{/type_twts}}
 
     // TODO: find a better solution and move it into simulation class, or add a check that all lasers use the same positions
     {{/laser}}
@@ -209,7 +197,7 @@ namespace picongpu::fields::incidentField
      * source matching such a case.
      */
     constexpr int32_t POSITION[3][2] = {
-        {{#data.huygens_surface_positions}}
+        {{#huygens_surface_positions}}
         {{#row_x}}
             { {{{negative}}}, {{{positive}}} },
         {{/row_x}}
@@ -219,7 +207,7 @@ namespace picongpu::fields::incidentField
         {{#row_z}}
             { {{{negative}}}, {{{positive}}} }
         {{/row_z}}
-        {{/data.huygens_surface_positions}}
+        {{/huygens_surface_positions}}
     };
     {{/_first}}
 
@@ -249,25 +237,21 @@ namespace picongpu::fields::incidentField
     using YMax = profiles::None;
     using ZMin = MakeSeq_t<
     {{#laser}}
-    {{#typeID.twts}}
-    {{#data}}
+    {{#type_twts}}
     {{#laserIncidenceAnglePositive}}
         LaserProfile_{{{_idx}}},
     {{/laserIncidenceAnglePositive}}
-    {{/data}}
-    {{/typeID.twts}}
+    {{/type_twts}}
     {{/laser}}
     profiles::None
     >;
     using ZMax = MakeSeq_t<
     {{#laser}}
-    {{#typeID.twts}}
-    {{#data}}
+    {{#type_twts}}
     {{^laserIncidenceAnglePositive}}
         LaserProfile_{{{_idx}}},
     {{/laserIncidenceAnglePositive}}
-    {{/data}}
-    {{/typeID.twts}}
+    {{/type_twts}}
     {{/laser}}
     profiles::None
     >;

@@ -184,7 +184,7 @@ class TestPicmiGaussianLaser(TestCase):
             E0=1,
         )
         pypic_laser = picmi_laser.get_as_pypicongpu()
-        assert pypic_laser.get_rendering_context() != {}
+        assert pypic_laser.model_dump() != {}
 
     def test_values_centroid_position_y_smaller_equal_zero(self):
         """centroid position must have y<=0"""
@@ -214,7 +214,7 @@ class TestPicmiGaussianLaser(TestCase):
                 E0=1,
             )
             .get_as_pypicongpu()
-            .get_rendering_context()
+            .model_dump()
             != {}
         )
 
@@ -319,7 +319,7 @@ class TestPicmiGaussianLaser(TestCase):
             polarization_direction=[0, 0, 1],
             E0=1,
         )
-        assert picmi_laser.get_as_pypicongpu().get_rendering_context() != {}
+        assert picmi_laser.get_as_pypicongpu().model_dump() != {}
 
         grid_valid = picmi.Cartesian3DGrid(
             number_of_cells=[128, 512, 256],
@@ -335,7 +335,7 @@ class TestPicmiGaussianLaser(TestCase):
         sim_valid.add_laser(picmi_laser, None)
 
         # translates without issue:
-        assert sim_valid.get_as_pypicongpu().get_rendering_context() != {}
+        assert sim_valid.get_as_pypicongpu().model_dump() != {}
 
     def test_overdefinition_a0_E0(self):
         """only either a0 or E0 allowed to be set"""

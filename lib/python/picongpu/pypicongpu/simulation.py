@@ -8,12 +8,12 @@ License: GPLv3+
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import BaseModel, PlainSerializer, Field, field_serializer, field_validator
+from pydantic import BaseModel, Field, PlainSerializer, field_serializer, field_validator
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
-from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.output.radiation import RadiationPlugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
+from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.species.operation.operation import Operation
 from picongpu.pypicongpu.species.species import Species
@@ -59,7 +59,7 @@ class Simulation(RenderedObject, BaseModel):
     grid: Grid3D
     """Used grid Object"""
 
-    laser: Annotated[list[AnyLaser] | None, PlainSerializer(_serialize)]
+    laser: list[AnyLaser] | None
     """List of laser objects to use in the simulation, or None to disable lasers"""
 
     solver: AnySolver

@@ -5,9 +5,8 @@ Authors: Brian Edward Marre, Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from typing import Annotated
-from .densityprofile import DensityProfile
-from pydantic import AfterValidator, BaseModel, Field, PrivateAttr, model_validator
+from typing import Annotated, Literal
+from pydantic import AfterValidator, BaseModel, Field, model_validator
 
 
 def neq_0(value):
@@ -16,7 +15,7 @@ def neq_0(value):
     return value
 
 
-class Gaussian(DensityProfile, BaseModel):
+class Gaussian(BaseModel):
     """
     gaussian density profile
 
@@ -26,7 +25,7 @@ class Gaussian(DensityProfile, BaseModel):
     - for gasCenterRear < y;    density * exp(gasFactor * (abs( (y - gasCenterRear) / gasSigmaRear))^gasPower)
     """
 
-    _name: str = PrivateAttr("gaussian")
+    type_gaussian: Literal[True] = True
 
     gas_center_front: float = Field(ge=0.0, alias="center_front")
     """position of the front edge of the constant middle of the density profile, [m]"""
