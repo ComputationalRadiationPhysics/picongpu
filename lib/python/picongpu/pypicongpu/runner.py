@@ -8,13 +8,12 @@ License: GPLv3+
 import datetime
 import json
 import logging
-import pathlib
 import re
 import subprocess
 import tempfile
 import typing
 from contextlib import contextmanager
-from importlib import resources
+from importlib.resources import files, as_file
 from os import chdir, environ, path
 from pathlib import Path
 
@@ -32,7 +31,7 @@ from .simulation import Simulation
 # For the moment, we assume that those files reside on disk
 # such that storing their path for later use is safe.
 # We might need to come back to this, if we ever need to support more general imports.
-with resources.path("picongpu.templates") as template_path:
+with as_file(files("picongpu.templates")) as template_path:
     DEFAULT_TEMPLATE_DIRECTORY = template_path.absolute()
 
 
@@ -262,7 +261,7 @@ class Runner:
             else:
                 self.scratch_dir = None
 
-        if self.scratch_dir is not None and self.scratch_dir.startswith(str(pathlib.Path.home())):
+        if self.scratch_dir is not None and self.scratch_dir.startswith(str(Path.home())):
             logging.warning(
                 "You specified your scratch directory to be inside your $HOME. THIS IS NOT ACCEPTABLE ON HPC!"
             )
