@@ -46,7 +46,7 @@ namespace picongpu
             /**********************************/
             /* phase 1: create macroparticles */
             /**********************************/
-{{#init_operations}}{{#typeID.simpledensity}}{{#data}}
+{{#init_operations}}{{#type_simpledensity}}
                 /// @details This functor assumes the ratio to be 1. The correct density ratio of the species is applied
                 /// here (automatically by CreateDensity).
 
@@ -61,13 +61,13 @@ namespace picongpu
                         {{{placed_species_initial.typename}}},
                         {{{typename}}}>,
                 {{/placed_species_copied}}
-{{/data}}{{/typeID.simpledensity}}{{/init_operations}}
+{{/type_simpledensity}}{{/init_operations}}
 
             /*********************************************/
             /* phase 2: adjust other attributes (if any) */
             /*********************************************/
 
-{{#init_operations}}{{#typeID.simplemomentum}}{{#data}}
+{{#init_operations}}{{#type_simplemomentum}}
                 {{! simple momentum adds a temperature & drift without inter-species dependencies }}
                 {{#drift}}
                     // *sets* drift, i.e. overwrites momentum
@@ -77,11 +77,11 @@ namespace picongpu
                     // *adds* temperature, does *NOT* overwrite
                     Manipulate<manipulators::pypicongpu::AddTemperature_{{{species.typename}}}, {{{species.typename}}}>,
                 {{/temperature}}
-{{/data}}{{/typeID.simplemomentum}}{{/init_operations}}
+{{/type_simplemomentum}}{{/init_operations}}
 
-{{#init_operations}}{{#typeID.setchargestate}}{{#data}}
+{{#init_operations}}{{#type_setchargestate}}
                 Manipulate<manipulators::pypicongpu::PreIonize_{{{species.typename}}}, {{{species.typename}}}>,
-{{/data}}{{/typeID.setchargestate}}{{/init_operations}}
+{{/type_setchargestate}}{{/init_operations}}
 
             // does nothing -- exists to catch trailing comma left by code generation
             pypicongpu::nop>;

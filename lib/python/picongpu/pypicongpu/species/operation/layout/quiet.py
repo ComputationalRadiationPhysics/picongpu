@@ -6,11 +6,9 @@ License: GPLv3+
 """
 
 from functools import partial
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, Field, PlainSerializer, PrivateAttr
-
-from .layout import Layout
+from pydantic import AfterValidator, BaseModel, Field, PlainSerializer
 
 
 def serialise_vec(value) -> dict:
@@ -36,8 +34,8 @@ Vec3_int = Annotated[
 ]
 
 
-class Quiet(Layout, BaseModel):
-    _name: str = PrivateAttr("quiet")
+class Quiet(BaseModel):
+    type_quiet: Literal[True] = True
     n_points: Vec3_int = Field(default=(0, 0, 0))
     ppc: int = Field(gt=0)
     """particles per cell, >0"""

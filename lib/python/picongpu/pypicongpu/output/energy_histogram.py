@@ -5,19 +5,20 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, Field, PrivateAttr
+from typing import Literal
 
-from picongpu.pypicongpu.output.plugin import Plugin
+from pydantic import BaseModel, Field
+
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.species import Species
 
 
-class EnergyHistogram(Plugin, BaseModel):
+class EnergyHistogram(BaseModel):
     species: Species | FilteredSpecies
     period: TimeStepSpec
     bin_count: int = Field(gt=0)
     min_energy: float
     max_energy: float
 
-    _name: str = PrivateAttr("energyhistogram")
+    type_energyhistogram: Literal[True] = True

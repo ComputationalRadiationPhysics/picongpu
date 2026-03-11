@@ -5,13 +5,14 @@ Authors: Hannes Troepgen, Brian Edward Marre, Masoud Afshari
 License: GPLv3+
 """
 
-from pydantic import Field, PrivateAttr, BaseModel
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 from ..species import Species
-from .operation import Operation
 
 
-class SetChargeState(Operation):
+class SetChargeState(BaseModel):
     """
     assigns boundElectrons attribute and sets it to the initial charge state
 
@@ -24,7 +25,4 @@ class SetChargeState(Operation):
     charge_state: int = Field(ge=0)
     """initial ion charge state"""
 
-    _name: str = PrivateAttr("setchargestate")
-
-    def __init__(self, *args, **kwargs):
-        return BaseModel.__init__(self, *args, **kwargs)
+    type_setchargestate: Literal[True] = True

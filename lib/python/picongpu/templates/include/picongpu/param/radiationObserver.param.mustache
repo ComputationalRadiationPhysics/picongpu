@@ -38,14 +38,14 @@ namespace picongpu
             namespace radiation_observer
             {
               {{#output}}
-              {{#typeID.radiation}}
-              {{#data.config.observer}}
+              {{#type_radiation}}
+              {{#config.observer}}
                 HDINLINE vector_64 observationDirection(int const index)
                 {
                 return vector_64({{#component_expressions}}{{{x}}},{{{y}}},{{{z}}}{{/component_expressions}});
                 }
-            {{/data.config.observer}}
-            {{/typeID.radiation}}
+            {{/config.observer}}
+            {{/type_radiation}}
             {{/output}}
             } // namespace radiation_observer
         } // namespace radiation

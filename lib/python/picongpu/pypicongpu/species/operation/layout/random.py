@@ -5,12 +5,12 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, PrivateAttr, Field
+from typing import Literal
 
-from .layout import Layout
+from pydantic import BaseModel, Field
 
 
-class Random(Layout, BaseModel):
-    _name: str = PrivateAttr("random")
+class Random(BaseModel):
+    type_random: Literal[True] = True
     ppc: int = Field(gt=0)
     """particles per cell (random layout), >0"""

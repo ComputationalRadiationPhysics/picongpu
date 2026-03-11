@@ -44,8 +44,8 @@ namespace picongpu
         {
             namespace pypicongpu
             {
-                {{#init_operations}}{{#typeID.simpledensity}}{{#data}}
-                {{#layout.typeID.random}}
+                {{#init_operations}}{{#type_simpledensity}}
+                {{#layout.type_random}}
                     struct random_ppc_{{{placed_species_initial.typename}}}
                     {
                         /** Maximum number of macro-particles per cell during density profile evaluation.
@@ -56,12 +56,12 @@ namespace picongpu
                          *
                          * unit: none
                          */
-                        static constexpr uint32_t numParticlesPerCell = {{{layout.data.ppc}}};
+                        static constexpr uint32_t numParticlesPerCell = {{{layout.ppc}}};
                     };
                     using init_{{{placed_species_initial.typename}}} = RandomImpl<random_ppc_{{{placed_species_initial.typename}}}>;
-                {{/layout.typeID.random}}
+                {{/layout.type_random}}
 
-                {{#layout.typeID.one_position}}
+                {{#layout.type_one_position}}
                     struct one_position_{{{placed_species_initial.typename}}}
                     {
                         /** Maximum number of macro-particles per cell during density profile evaluation.
@@ -72,41 +72,41 @@ namespace picongpu
                          *
                          * unit: none
                          */
-                        static constexpr uint32_t numParticlesPerCell = {{{layout.data.ppc}}};
+                        static constexpr uint32_t numParticlesPerCell = {{{layout.ppc}}};
 
                         /** each x, y, z in-cell position component in range [0.0, 1.0)
                          *
                          * @details in 2D the last component is ignored
                          */
-                        static constexpr auto inCellOffset = float3_X({{#layout.data.in_cell_offset}}{{{x}}},{{{y}}},{{{z}}}{{/layout.data.in_cell_offset}});
+                        static constexpr auto inCellOffset = float3_X({{#layout.in_cell_offset}}{{{x}}},{{{y}}},{{{z}}}{{/layout.in_cell_offset}});
                     };
 
                     /** Definition of OnePosition start position functor that
                      * places macro-particles at the initial in-cell position defined above.
                      */
                     using init_{{{placed_species_initial.typename}}} = OnePositionImpl<one_position_{{{placed_species_initial.typename}}}>;
-                {{/layout.typeID.one_position}}
+                {{/layout.type_one_position}}
 
-                {{#layout.typeID.quiet}}
+                {{#layout.type_quiet}}
                     struct quiet_{{{placed_species_initial.typename}}}
                     {
-                      using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<{{#layout.data.n_points}}{{{x}}},{{{y}}},{{{z}}}{{/layout.data.n_points}}>, simDim>::type;
+                      using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<{{#layout.n_points}}{{{x}}},{{{y}}},{{{z}}}{{/layout.n_points}}>, simDim>::type;
                     };
 
                     /** Definition of OnePosition start position functor that
                      * places macro-particles at the initial in-cell position defined above.
                      */
                     using init_{{{placed_species_initial.typename}}} = QuietImpl<quiet_{{{placed_species_initial.typename}}}>;
-                {{/layout.typeID.quiet}}
+                {{/layout.type_quiet}}
 
-{{/data}}{{/typeID.simpledensity}}{{/init_operations}}
+{{/type_simpledensity}}{{/init_operations}}
             } // namespace pypicongpu
         } // namespace startPosition
 
         namespace manipulators
         {
             namespace pypicongpu {
-                {{#init_operations}}{{#typeID.simplemomentum}}{{#data}}
+                {{#init_operations}}{{#type_simplemomentum}}
                     {{! note: this is a loop }}
                     {{! -> there can be multiple "simple momentum"s }}
 
@@ -143,12 +143,12 @@ namespace picongpu
                             };
                             using AddTemperature_{{{species.typename}}} = unary::Temperature<AddTemperature_{{{species.typename}}}_Param>;
                     {{/temperature}}
-                {{/data}}{{/typeID.simplemomentum}}{{/init_operations}}
+                {{/type_simplemomentum}}{{/init_operations}}
 
-                {{#init_operations}}{{#typeID.setchargestate}}{{#data}}
+                {{#init_operations}}{{#type_setchargestate}}
                     //! definition of PreIonized manipulator
                     using PreIonize_{{{species.typename}}} = unary::ChargeState<{{{charge_state}}}u>;;
-                {{/data}}{{/typeID.setchargestate}}{{/init_operations}}
+                {{/type_setchargestate}}{{/init_operations}}
             } // namespace pypicongpu
         } // namespace manipulators
     } // namespace particles

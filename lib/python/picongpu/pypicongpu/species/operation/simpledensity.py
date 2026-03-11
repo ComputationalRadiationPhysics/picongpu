@@ -5,16 +5,16 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from typing import Annotated
-from pydantic import PlainSerializer, PrivateAttr, BaseModel, field_validator, Field, computed_field
+from typing import Literal
+
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 from ..species import Species
-from .densityoperation import DensityOperation
 from .densityprofile import AnyDensityProfile
-from .layout import Layout
+from .layout import AnyLayout
 
 
-class SimpleDensity(DensityOperation):
+class SimpleDensity(BaseModel):
     """
     Place a set of species together, using the same density profile
 
@@ -36,9 +36,9 @@ class SimpleDensity(DensityOperation):
     species: list[Species] = Field(exclude=True)
     """species to be placed"""
 
-    layout: Annotated[Layout, PlainSerializer(lambda x: x.get_rendering_context())]
+    layout: AnyLayout
 
-    _name: str = PrivateAttr("simpledensity")
+    type_simpledensity: Literal[True] = True
 
     @field_validator("species", mode="before")
     @classmethod

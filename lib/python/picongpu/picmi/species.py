@@ -31,7 +31,7 @@ from picongpu.pypicongpu.species.constant.charge import Charge
 from picongpu.pypicongpu.species.constant.constant import Constant
 from picongpu.pypicongpu.species.constant.densityratio import DensityRatio
 from picongpu.pypicongpu.species.constant.mass import Mass
-from picongpu.pypicongpu.species.operation.operation import Operation
+from picongpu.pypicongpu.species.operation import AnyOperation
 from picongpu.pypicongpu.species.species import Pusher, Shape
 from picongpu.pypicongpu.species.species import Species as PyPIConGPUSpecies
 
@@ -151,7 +151,7 @@ class Species(BaseModel):
         )
 
     def get_operation_requirements(self):
-        return evaluate_requirements(self._requirements, Operation)
+        return evaluate_requirements(self._requirements, AnyOperation)
 
     def _evaluate_species_requirements(self):
         return {
