@@ -1,5 +1,5 @@
-/* Copyright 2014-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
- *                     Benjamin Worpitz, Franz Poeschel
+/* Copyright 2014-2026 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ *                     Benjamin Worpitz, Franz Poeschel, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 #if (ENABLE_OPENPMD == 1)
 
 #    include "picongpu/defines.hpp"
+#    include "picongpu/fields/absorber/pml/Field.hpp"
 #    include "picongpu/plugins/misc/ComponentNames.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.def"
 #    include "picongpu/simulation/control/MovingWindow.hpp"
@@ -37,9 +38,11 @@
 #    include <pmacc/particles/frame_types.hpp>
 #    include <pmacc/types.hpp>
 
+#    include <optional>
 #    include <sstream>
 #    include <stdexcept>
 #    include <string>
+#    include <type_traits>
 
 #    include <openPMD/openPMD.hpp>
 
@@ -61,7 +64,9 @@ namespace picongpu
                 std::string objectName,
                 ThreadParams* params,
                 uint32_t const currentStep,
-                bool const isDomainBound)
+                bool const isDomainBound,
+                std::optional<DataSpace<simDim>> const& domainOffset = std::nullopt,
+                std::optional<DataSpace<simDim>> const& localDomainSize = std::nullopt)
             {
                 log<picLog::INPUT_OUTPUT>("Begin loading field '%1%'") % objectName;
 
@@ -75,75 +80,16 @@ namespace picongpu
 
                 ::pmacc::math::Vector<uint64_t, simDim> domain_offset = localDomain.offset;
                 DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
+                bool const useCustomReadLayout = domainOffset.has_value() && localDomainSize.has_value();
+                if(useCustomReadLayout)
+                {
+                    domain_offset = *domainOffset;
+                    local_domain_size = *localDomainSize;
+                }
                 bool useLinearIdxAsDestination = false;
 
                 ::openPMD::Series& series = *params->openPMDSeries;
                 ::openPMD::Mesh& mesh = series.iterations[currentStep].open().meshes[objectName];
-
-                /* Patch for non-domain-bound fields
-                 * This is an ugly fix to allow output of reduced 1d PML buffers
-                 */
-                if(!isDomainBound)
-                {
-                    auto const field_layout = field.getGridLayout();
-                    auto const field_no_guard = field_layout.sizeWithoutGuardND();
-                    auto const elementCount = field_no_guard.productOfComponents();
-                    uint64_t pmlTotalSize = 0;
-
-                    /* Scan the PML buffer local size along all local domains
-                     * This code is symmetric to one in Field::writeField()
-                     */
-                    log<picLog::INPUT_OUTPUT>("openPMD:  (begin) collect PML sizes for %1%") % objectName;
-                    auto& gridController = Environment<simDim>::get().GridController();
-                    auto const numRanks = uint64_t{gridController.getGlobalSize()};
-                    /* Use domain position-based rank, not MPI rank, to be independent
-                     * of the MPI rank assignment scheme
-                     */
-                    auto const rank = uint64_t{gridController.getScalarPosition()};
-                    std::vector<uint64_t> localSizes(2 * numRanks, 0u);
-                    uint64_t localSizeInfo[2] = {static_cast<uint64_t>(elementCount), rank};
-                    eventSystem::getTransactionEvent().waitForFinished();
-                    MPI_CHECK(MPI_Allgather(
-                        localSizeInfo,
-                        2,
-                        MPI_UINT64_T,
-                        &(*localSizes.begin()),
-                        2,
-                        MPI_UINT64_T,
-                        gridController.getCommunicator().getMPIComm()));
-                    uint64_t domainOffset = 0;
-                    for(uint64_t r = 0; r < numRanks; ++r)
-                    {
-                        if(localSizes.at(2u * r + 1u) < rank)
-                            domainOffset += localSizes.at(2u * r);
-                        pmlTotalSize += localSizes.at(2u * r);
-                    }
-                    log<picLog::INPUT_OUTPUT>("openPMD:  (end) collect PML sizes for %1%") % objectName;
-
-
-                    auto const expectedExtent = [&pmlTotalSize]()
-                    {
-                        if constexpr(simDim == 3u)
-                            return ::openPMD::Extent{1u, 1u, pmlTotalSize};
-                        else
-                            return ::openPMD::Extent{1u, pmlTotalSize};
-                    }();
-
-                    if(auto const& extentOnDisk = mesh.begin()->second.getExtent(); extentOnDisk != expectedExtent)
-                    {
-                        log<picLog::INPUT_OUTPUT>(
-                            "openPMD:  Skip loading for PML fields. Expecting extent %1%, found extent %2% on disk. "
-                            "This may happen when restarting with a different domain decomposition.")
-                            % pmlTotalSize % extentOnDisk.at(simDim - 1u);
-                        return;
-                    }
-
-                    domain_offset = DataSpace<simDim>::create(0);
-                    domain_offset[0] = domainOffset;
-                    local_domain_size = DataSpace<simDim>::create(1);
-                    local_domain_size[0] = elementCount;
-                    useLinearIdxAsDestination = true;
-                }
 
                 auto destBox = field.getHostBuffer().getDataBox();
                 for(uint32_t n = 0; n < numComponents; ++n)
@@ -190,6 +136,10 @@ namespace picongpu
                         {
                             destIdx[0] = linearId;
                         }
+                        else if(useCustomReadLayout)
+                        {
+                            destIdx = pmacc::math::mapToND(local_domain_size, linearId);
+                        }
                         else
                         {
                             /* calculate index inside the moving window domain which
@@ -222,6 +172,40 @@ namespace picongpu
         template<typename T_Field>
         struct LoadFields
         {
+        private:
+            static constexpr bool isPmlSlabField = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                                                   || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
+
+            static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
+            {
+                auto const slabSuffix = [&]()
+                {
+                    switch(slabIdx)
+                    {
+                    case 0u:
+                        return "_xneg";
+                    case 1u:
+                        return "_xpos";
+                    case 2u:
+                        return "_yneg";
+                    case 3u:
+                        return "_ypos";
+                    case 4u:
+                        if constexpr(simDim == DIM3)
+                            return "_zneg";
+                        break;
+                    case 5u:
+                        if constexpr(simDim == DIM3)
+                            return "_zpos";
+                        break;
+                    default:
+                        break;
+                    }
+                    throw std::runtime_error("Invalid PML slab index for naming: " + std::to_string(slabIdx));
+                }();
+                return fieldName + slabSuffix;
+            }
+
         public:
             HINLINE void operator()(ThreadParams* params, uint32_t const restartStep)
             {
@@ -238,13 +222,36 @@ namespace picongpu
                 /* load from openPMD */
                 bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
 
-                RestartFieldLoader::loadField(
-                    field->getGridBuffer(),
-                    (uint32_t) T_Field::numComponents,
-                    T_Field::getName(),
-                    tp,
-                    restartStep,
-                    isDomainBound);
+                if constexpr(isPmlSlabField)
+                {
+                    auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                    for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
+                    {
+                        auto const slabName = getPmlSlabName(T_Field::getName(), slabIdx);
+                        auto const slabBegin = field->getSlabBegin(slabIdx);
+                        auto const slabSize = field->getSlabSize(slabIdx);
+                        auto& slabBuffer = field->getGridBuffer(slabIdx);
+                        RestartFieldLoader::loadField(
+                            slabBuffer,
+                            static_cast<uint32_t>(T_Field::numComponents),
+                            slabName,
+                            tp,
+                            restartStep,
+                            isDomainBound,
+                            localDomain.offset + slabBegin,
+                            slabSize);
+                    }
+                }
+                else
+                {
+                    RestartFieldLoader::loadField(
+                        field->getGridBuffer(),
+                        static_cast<uint32_t>(T_Field::numComponents),
+                        T_Field::getName(),
+                        tp,
+                        restartStep,
+                        isDomainBound);
+                }
             }
         };
 

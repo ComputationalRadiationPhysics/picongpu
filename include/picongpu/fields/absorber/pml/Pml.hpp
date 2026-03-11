@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Sergei Bastrakov
+/* Copyright 2019-2026 Sergei Bastrakov, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -77,9 +77,8 @@ namespace picongpu
                     template<typename T_CurlB>
                     UpdateEFunctor<T_CurlB> getUpdateEFunctor(float_X const currentStep)
                     {
-                        return UpdateEFunctor<T_CurlB>{
-                            psiE->getDeviceOuterLayerBox(),
-                            getLocalParameters(currentStep)};
+                        auto const localParameters = updateAndGetLocalParameters(currentStep);
+                        return UpdateEFunctor<T_CurlB>{psiE->getDeviceOuterLayerBox(), localParameters};
                     }
 
                     /** Functor to update magnetic field by half a time step using FDTD with the given curl and PML
@@ -93,9 +92,10 @@ namespace picongpu
                     template<typename T_CurlE>
                     UpdateBHalfFunctor<T_CurlE> getUpdateBHalfFunctor(float_X const currentStep, bool const updatePsiB)
                     {
+                        auto const localParameters = updateAndGetLocalParameters(currentStep);
                         return UpdateBHalfFunctor<T_CurlE>{
                             psiB->getDeviceOuterLayerBox(),
-                            getLocalParameters(currentStep),
+                            localParameters,
                             updatePsiB};
                     }
 
@@ -103,10 +103,12 @@ namespace picongpu
                      *
                      * @param currentStep index of the current time iteration
                      */
-                    LocalParameters getLocalParameters(float_X const currentStep) const
+                    LocalParameters updateAndGetLocalParameters(float_X const currentStep)
                     {
                         Thickness localThickness = getLocalThickness(currentStep);
                         checkLocalThickness(localThickness);
+                        psiE->setSlabViews(localThickness);
+                        psiB->setSlabViews(localThickness);
                         return LocalParameters(
                             parameters,
                             localThickness,

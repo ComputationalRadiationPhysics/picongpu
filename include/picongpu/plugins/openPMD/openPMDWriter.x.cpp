@@ -1,6 +1,6 @@
-/* Copyright 2014-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2014-2026 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz, Alexander Grund, Franz Poeschel,
- *                     Pawel Ordyna, Sergei Bastrakov
+ *                     Pawel Ordyna, Sergei Bastrakov, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -28,6 +28,7 @@
 #    include "picongpu/fields/FieldE.hpp"
 #    include "picongpu/fields/FieldJ.hpp"
 #    include "picongpu/fields/FieldTmp.hpp"
+#    include "picongpu/fields/absorber/pml/Field.hpp"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
@@ -699,6 +700,40 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
         private:
+            template<typename T_Field>
+            static constexpr bool isPmlSlabField = std::is_same_v<T_Field, fields::absorber::pml::FieldE>
+                                                   || std::is_same_v<T_Field, fields::absorber::pml::FieldB>;
+
+            static std::string getPmlSlabName(std::string const& fieldName, uint32_t const slabIdx)
+            {
+                auto const slabSuffix = [&]()
+                {
+                    switch(slabIdx)
+                    {
+                    case 0u:
+                        return "_xneg";
+                    case 1u:
+                        return "_xpos";
+                    case 2u:
+                        return "_yneg";
+                    case 3u:
+                        return "_ypos";
+                    case 4u:
+                        if constexpr(simDim == DIM3)
+                            return "_zneg";
+                        break;
+                    case 5u:
+                        if constexpr(simDim == DIM3)
+                            return "_zpos";
+                        break;
+                    default:
+                        break;
+                    }
+                    throw std::runtime_error("Invalid PML slab index for naming: " + std::to_string(slabIdx));
+                }();
+                return fieldName + slabSuffix;
+            }
+
             template<typename UnitType>
             static std::vector<float_64> createUnit(UnitType unit, uint32_t numComponents)
             {
@@ -706,6 +741,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 for(uint32_t i = 0; i < numComponents; ++i)
                     tmp[i] = unit[i];
                 return tmp;
+            }
+
+            template<typename T_Buffer>
+            static auto getHostDataBox(T_Buffer& buffer) -> decltype(buffer.getHostDataBox())
+            {
+                return buffer.getHostDataBox();
+            }
+
+            template<typename T_Buffer>
+            static auto getHostDataBox(T_Buffer& buffer) -> decltype(buffer.getHostBuffer().getDataBox())
+            {
+                return buffer.getHostBuffer().getDataBox();
             }
 
             /**
@@ -754,17 +801,49 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      * solver implementation */
                     float_X const timeOffset = 0.0;
 
-                    openPMDWriter::writeField<ComponentType>(
-                        params,
-                        currentStep,
-                        GetNComponents<ValueType>::value,
-                        T_Field::getName(),
-                        *field,
-                        getUnit(),
-                        T_Field::getUnitDimension(),
-                        std::move(inCellPosition),
-                        timeOffset,
-                        isDomainBound);
+                    if constexpr(isPmlSlabField<T_Field>)
+                    {
+                        auto const& subGrid = Environment<simDim>::get().SubGrid();
+                        auto const localDomain = subGrid.getLocalDomain();
+                        auto const globalDomain = subGrid.getGlobalDomain();
+                        for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
+                        {
+                            auto const slabBegin = field->getSlabBegin(slabIdx);
+                            auto const slabSize = field->getSlabSize(slabIdx);
+                            auto const slabOffset = localDomain.offset + slabBegin;
+                            auto const slabBufferOffset = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND();
+                            openPMDWriter::writeField<ComponentType>(
+                                params,
+                                currentStep,
+                                GetNComponents<ValueType>::value,
+                                getPmlSlabName(T_Field::getName(), slabIdx),
+                                field->getGridBuffer(slabIdx),
+                                getUnit(),
+                                T_Field::getUnitDimension(),
+                                inCellPosition,
+                                timeOffset,
+                                isDomainBound,
+                                true,
+                                slabOffset,
+                                slabSize,
+                                globalDomain.size,
+                                slabBufferOffset);
+                        }
+                    }
+                    else
+                    {
+                        openPMDWriter::writeField<ComponentType>(
+                            params,
+                            currentStep,
+                            GetNComponents<ValueType>::value,
+                            T_Field::getName(),
+                            *field,
+                            getUnit(),
+                            T_Field::getUnitDimension(),
+                            std::move(inCellPosition),
+                            timeOffset,
+                            isDomainBound);
+                    }
                 }
             };
 
@@ -1550,7 +1629,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::vector<std::vector<float_X>> inCellPosition,
                 float_X timeOffset,
                 bool isDomainBound,
-                bool logBeginWriteField = true)
+                bool logBeginWriteField = true,
+                std::optional<DataSpace<simDim>> const& recordOffsetOverride = std::nullopt,
+                std::optional<DataSpace<simDim>> const& recordLocalSizeOverride = std::nullopt,
+                std::optional<DataSpace<simDim>> const& recordGlobalSizeOverride = std::nullopt,
+                std::optional<DataSpace<simDim>> const& sourceBufferOffsetOverride = std::nullopt)
             {
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(nComponents);
                 std::optional<std::string> pathToRecordComponentSpecifiedViaMeshName = std::nullopt;
@@ -1590,8 +1673,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     PMACC_ASSERT(inCellPosition.at(n).size() == simDim);
                 PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
+                auto const hostDataBox = getHostDataBox(buffer);
                 log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents
-                    % buffer.getHostDataBox().getPointer();
+                    % hostDataBox.getPointer();
                 if(logBeginWriteField)
                 {
                     params->m_dumpTimes.now<std::chrono::milliseconds>("Begin write field " + name);
@@ -1614,53 +1698,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 pmacc::math::UInt64<simDim> recordLocalSizeDims = localWindowSize;
                 pmacc::math::UInt64<simDim> recordOffsetDims = params->window.localDimensions.offset;
                 pmacc::math::UInt64<simDim> recordGlobalSizeDims = params->window.globalDimensions.size;
-
-                /* Patch for non-domain-bound fields
-                 * Allow for the output of reduced 1d PML buffer
-                 */
-                if(!isDomainBound)
+                bool const useCustomWriteLayout = recordOffsetOverride.has_value()
+                                                  && recordLocalSizeOverride.has_value()
+                                                  && recordGlobalSizeOverride.has_value();
+                if(useCustomWriteLayout)
                 {
-                    localWindowSize = bufferGridLayout.sizeWithoutGuardND();
-                    bufferOffset = bufferGridLayout.guardSizeND();
-
+                    localWindowSize = *recordLocalSizeOverride;
+                    bufferOffset = sourceBufferOffsetOverride.value_or(bufferGridLayout.guardSizeND());
                     recordLocalSizeDims = precisionCast<uint64_t>(localWindowSize);
-
-                    /* Scan the PML buffer local size along all local domains
-                     * This code is based on the same operation in hdf5::Field::writeField(),
-                     * the same comments apply here
-                     */
-                    log<picLog::INPUT_OUTPUT>("openPMD:  (begin) collect PML sizes for %1%") % name;
-                    auto& gridController = Environment<simDim>::get().GridController();
-                    auto const numRanks = uint64_t{gridController.getGlobalSize()};
-                    /* Use domain position-based rank, not MPI rank, to be independent
-                     * of the MPI rank assignment scheme
-                     */
-                    auto const rank = uint64_t{gridController.getScalarPosition()};
-                    std::vector<uint64_t> localSizes(2u * numRanks, 0u);
-                    uint64_t localSizeInfo[2] = {recordLocalSizeDims[0], rank};
-                    eventSystem::getTransactionEvent().waitForFinished();
-                    MPI_CHECK(MPI_Allgather(
-                        localSizeInfo,
-                        2,
-                        MPI_UINT64_T,
-                        &(*localSizes.begin()),
-                        2,
-                        MPI_UINT64_T,
-                        gridController.getCommunicator().getMPIComm()));
-                    uint64_t globalOffsetFile = 0;
-                    uint64_t globalSize = 0;
-                    for(uint64_t r = 0; r < numRanks; ++r)
-                    {
-                        globalSize += localSizes.at(2u * r);
-                        if(localSizes.at(2u * r + 1u) < rank)
-                            globalOffsetFile += localSizes.at(2u * r);
-                    }
-                    log<picLog::INPUT_OUTPUT>("openPMD:  (end) collect PML sizes for %1%") % name;
-
-                    recordGlobalSizeDims = pmacc::math::UInt64<simDim>::create(1);
-                    recordGlobalSizeDims[0] = globalSize;
-                    recordOffsetDims = pmacc::math::UInt64<simDim>::create(0);
-                    recordOffsetDims[0] = globalOffsetFile;
+                    recordOffsetDims = precisionCast<uint64_t>(*recordOffsetOverride);
+                    recordGlobalSizeDims = precisionCast<uint64_t>(*recordGlobalSizeOverride);
                 }
 
                 auto const numDataPoints = localWindowSize.productOfComponents();
@@ -1746,7 +1793,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      */
                     int const maxZ = simDim == DIM3 ? localWindowSize[2] : 1;
                     int const guardZ = simDim == DIM3 ? bufferOffset[2] : 0;
-                    void* ptr = buffer.getHostDataBox().getPointer();
+                    auto const* ptr = hostDataBox.getPointer();
+                    auto const* scalarPtr = reinterpret_cast<ComponentType const*>(ptr);
                     for(int z = 0; z < maxZ; ++z)
                     {
                         for(int y = 0; y < localWindowSize[1]; ++y)
@@ -1761,7 +1809,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 size_t index_src = base_index_src + (x + bufferOffset[0]) * nComponents + d;
                                 size_t index_dst = base_index_dst + x;
 
-                                dstBuffer[index_dst] = reinterpret_cast<ComponentType*>(ptr)[index_src];
+                                dstBuffer[index_dst] = scalarPtr[index_src];
                             }
                         }
                     }

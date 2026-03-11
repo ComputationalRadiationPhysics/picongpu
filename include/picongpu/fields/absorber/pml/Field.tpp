@@ -1,5 +1,6 @@
-/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Benjamin Worpitz, Sergei Bastrakov
+/* Copyright 2013-2026 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Benjamin Worpitz, Sergei Bastrakov,
+ *                     Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -23,11 +24,14 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/assert.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <cstdint>
 #include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <tuple>
 
 namespace picongpu
 {
@@ -56,23 +60,42 @@ namespace picongpu
                         return result;
                     }
 
-                    /** Get linear size of the outer layer box
-                     *
-                     * @param gridLayout grid layout, as for normal fields
-                     * @param globalThickness global PML thickness
-                     */
-                    HINLINE int getOuterLayerBoxLinearSize(
+                    //! Validate global thickness against local domain for slab allocation
+                    HINLINE void checkGlobalThickness(
                         GridLayout<simDim> const& gridLayout,
                         Thickness const& globalThickness)
                     {
-                        // All sizes are without guard, since Pml is only on the internal area
-                        auto const gridDataSpace = gridLayout.sizeWithoutGuardND();
-                        auto const nonPmlDataSpace
-                            = gridDataSpace
-                              - (globalThickness.getPositiveBorder() + globalThickness.getNegativeBorder());
-                        auto const numGridCells = gridDataSpace.productOfComponents();
-                        auto const numNonPmlCells = nonPmlDataSpace.productOfComponents();
-                        return numGridCells - numNonPmlCells;
+                        auto const gridSize = gridLayout.sizeWithoutGuardND();
+                        auto const negativeSize = globalThickness.getNegativeBorder();
+                        auto const positiveSize = globalThickness.getPositiveBorder();
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                        {
+                            if(negativeSize[dim] > gridSize[dim] || positiveSize[dim] > gridSize[dim])
+                            {
+                                std::ostringstream msg;
+                                msg << "Requested global PML thickness exceeds local domain in dimension " << dim
+                                    << " (negative=" << negativeSize << ", positive=" << positiveSize
+                                    << ", localSize=" << gridSize[dim] << ").";
+                                throw std::out_of_range(msg.str());
+                            }
+                        }
+                    }
+
+                    //! Return volume of a slab size
+                    HINLINE uint64_t getVolume(pmacc::DataSpace<simDim> const& size)
+                    {
+                        uint64_t result = 1u;
+                        for(uint32_t dim = 0u; dim < simDim; ++dim)
+                            result *= size[dim];
+                        return result;
+                    }
+
+                    //! Return allocation size with a non-zero fallback
+                    HINLINE pmacc::DataSpace<simDim> getAllocationSize(pmacc::DataSpace<simDim> const& size)
+                    {
+                        if(getVolume(size) == 0u)
+                            return pmacc::DataSpace<simDim>::create(1);
+                        return size;
                     }
 
                 } // namespace detail
@@ -94,9 +117,7 @@ namespace picongpu
 
                 HDINLINE float_X& NodeValues::operator[](uint32_t const idx)
                 {
-                    // Here it is safe to call the const version
-                    auto constThis = const_cast<NodeValues const*>(this);
-                    return const_cast<float_X&>((*constThis)[idx]);
+                    return *(&xy + idx);
                 }
 
                 HDINLINE float_X const& NodeValues::operator[](uint32_t const idx) const
@@ -107,103 +128,57 @@ namespace picongpu
                 template<typename T_Value>
                 OuterLayerBox<T_Value>::OuterLayerBox(
                     GridLayout<simDim> const& gridLayout,
-                    Thickness const& globalThickness,
-                    DataBox box)
-                    : box(box)
+                    std::array<SlabInfo, numPmlLayers> const& inputSlabInfo,
+                    std::array<DataBox, numPmlLayers> const& inputSlabBoxes)
+                    : slabBoxes(inputSlabBoxes)
                     , guardSize(gridLayout.guardSizeND())
-
                 {
-                    auto const negativeSize = globalThickness.getNegativeBorder();
-                    auto const positiveSize = globalThickness.getPositiveBorder();
-                    /* The region of interest is grid without guard,
-                     * which consists of PML and internal area
-                     */
-                    auto const gridSize = gridLayout.sizeWithoutGuardND();
-                    auto const positiveBegin = gridSize - positiveSize;
-
-                    // Note: since this should compile for 2d, .z( ) can't be used
-                    using detail::makeIdx;
-                    int layerIdx = 0;
-
-                    // Define standard values of Layer z-origin and negative z-size for 2D simulations.
-                    auto positiveBeginZ = 0;
-                    auto negativeSizeZ = 0;
-
-                    if constexpr(simDim == DIM3)
-                    {
-                        auto const negativeZLayer
-                            = Layer{makeIdx(0, 0, 0), makeIdx(gridSize[0], gridSize[1], negativeSize[2])};
-                        layers[layerIdx++] = negativeZLayer;
-                        auto const positiveZLayer
-                            = Layer{makeIdx(0, 0, positiveBegin[2]), makeIdx(gridSize[0], gridSize[1], gridSize[2])};
-                        layers[layerIdx++] = positiveZLayer;
-
-                        positiveBeginZ = positiveBegin[2];
-                        negativeSizeZ = negativeSize[2];
-                    }
-
-                    auto const negativeYLayer
-                        = Layer{makeIdx(0, 0, negativeSizeZ), makeIdx(gridSize[0], negativeSize[1], positiveBeginZ)};
-                    layers[layerIdx++] = negativeYLayer;
-                    auto const positiveYLayer = Layer{
-                        makeIdx(0, positiveBegin[1], negativeSizeZ),
-                        makeIdx(gridSize[0], gridSize[1], positiveBeginZ)};
-                    layers[layerIdx++] = positiveYLayer;
-
-                    auto const negativeXLayer = Layer{
-                        makeIdx(0, negativeSize[1], negativeSizeZ),
-                        makeIdx(negativeSize[0], positiveBegin[1], positiveBeginZ)};
-                    layers[layerIdx++] = negativeXLayer;
-                    auto const positiveXLayer = Layer{
-                        makeIdx(positiveBegin[0], negativeSize[1], negativeSizeZ),
-                        makeIdx(gridSize[0], positiveBegin[1], positiveBeginZ)};
-                    layers[layerIdx++] = positiveXLayer;
+                    for(uint32_t i = 0u; i < numPmlLayers; ++i)
+                        layers[i] = Layer(inputSlabInfo[i]);
                 }
 
                 template<typename T_Value>
                 HDINLINE typename OuterLayerBox<T_Value>::ValueType const& OuterLayerBox<T_Value>::operator()(
                     Idx const& idx) const
                 {
-                    return box(getLinearIdx(idx));
+                    auto const [localIdx, slabIdx] = getDataBoxIdx(idx);
+                    return slabBoxes[slabIdx](localIdx);
                 }
 
                 template<typename T_Value>
                 HDINLINE typename OuterLayerBox<T_Value>::ValueType& OuterLayerBox<T_Value>::operator()(Idx const& idx)
                 {
-                    return box(getLinearIdx(idx));
+                    auto const [localIdx, slabIdx] = getDataBoxIdx(idx);
+                    return slabBoxes[slabIdx](localIdx);
                 }
 
                 template<typename T_Value>
-                HDINLINE int OuterLayerBox<T_Value>::getLinearIdx(Idx const& idxWithGuard) const
+                HDINLINE std::tuple<typename OuterLayerBox<T_Value>::Idx, uint32_t> OuterLayerBox<
+                    T_Value>::getDataBoxIdx(Idx const& idxWithGuard) const
                 {
-                    /* Each PML layer provide a contiguous 1d index range.
-                     * The resulting index is a sum of the baseIdx representing the total
-                     * size of all previous layers and an index inside the current layer.
-                     */
                     auto const idx = idxWithGuard - guardSize;
-                    int currentLayerBeginIdx = 0;
-                    int result = -1;
-                    for(Layer const& layer : layers)
+                    uint32_t slabIdx = 0u;
+                    for(auto const& layer : layers)
+                    {
                         if(layer.contains(idx))
-                        {
-                            /* Note: here we could have returned the result directly,
-                             * but chose to have a single return for potential
-                             * performance gains on GPU.
-                             * 'break' can be used too because the if condition will evaluate only for one layer to
-                             * true but this would create 'stack frame' usage within GPU kernel.
-                             */
-                            result = currentLayerBeginIdx + layer.getLinearIdx(idx);
-                        }
-                        else
-                            currentLayerBeginIdx += layer.getVolume();
-                    return result;
-                }
+                            return std::make_tuple(layer.getLocalIdx(idx), slabIdx);
+                        slabIdx++;
+                    }
+                    PMACC_ASSERT_MSG(false, "PML index is outside of allocated PML slabs.");
+                    return std::make_tuple(detail::makeIdx(0, 0, 0), uint32_t{0u});
+                };
 
                 template<typename T_Value>
                 HDINLINE OuterLayerBox<T_Value>::Layer::Layer(Idx const& beginIdx, Idx const& endIdx)
                     : beginIdx{beginIdx}
                     , size{endIdx - beginIdx}
-                    , volume{size.productOfComponents()}
+                {
+                }
+
+                template<typename T_Value>
+                HDINLINE OuterLayerBox<T_Value>::Layer::Layer(SlabInfo const& inputSlabInfo)
+                    : beginIdx{inputSlabInfo.begin}
+                    , size{inputSlabInfo.end - inputSlabInfo.begin}
                 {
                 }
 
@@ -217,19 +192,10 @@ namespace picongpu
                 }
 
                 template<typename T_Value>
-                HDINLINE int OuterLayerBox<T_Value>::Layer::getVolume() const
+                HDINLINE typename OuterLayerBox<T_Value>::Idx OuterLayerBox<T_Value>::Layer::getLocalIdx(
+                    Idx const& idx) const
                 {
-                    return volume;
-                }
-
-                template<typename T_Value>
-                HDINLINE int OuterLayerBox<T_Value>::Layer::getLinearIdx(Idx const& idx) const
-                {
-                    // Convert to 3d zero-based index, for 2d keep .z( ) == 0
-                    pmacc::DataSpace<3> zeroBasedIdx{0, 0, 0};
-                    for(uint32_t dim = 0u; dim < simDim; dim++)
-                        zeroBasedIdx[dim] = idx[dim] - beginIdx[dim];
-                    return zeroBasedIdx.x() + zeroBasedIdx.y() * size.x() + zeroBasedIdx.z() * size.y() * size.x();
+                    return idx - beginIdx;
                 }
 
                 Field::Field(MappingDesc const& cellDescription, Thickness const& globalThickness)
@@ -237,65 +203,174 @@ namespace picongpu
                     , gridLayout(cellDescription.getGridLayout())
                     , globalThickness(globalThickness)
                 {
-                    /* Create a simDim-dimentional buffer
-                     * with size = linearSize x 1 [x 1 for 3d]
-                     */
-                    auto size = pmacc::DataSpace<simDim>::create(1);
-                    size[0] = detail::getOuterLayerBoxLinearSize(gridLayout, globalThickness);
-                    auto const guardSize = pmacc::DataSpace<simDim>::create(0);
-                    auto const layout = pmacc::GridLayout<simDim>(size, guardSize);
-                    data = std::make_unique<Buffer>(layout);
+                    detail::checkGlobalThickness(gridLayout, globalThickness);
+                    initializeSlabInfo();
+
+                    auto const zeroGuard = pmacc::DataSpace<simDim>::create(0);
+                    uint32_t slabIdx = 0u;
+                    for(auto& slab : slabData)
+                    {
+                        auto const size = detail::getAllocationSize(slabInfo[slabIdx].end - slabInfo[slabIdx].begin);
+                        slab = std::make_unique<Buffer>(pmacc::GridLayout<simDim>(size, zeroGuard));
+                        ++slabIdx;
+                    }
+
+                    setSlabViews(globalThickness);
                 }
 
-                Field::Buffer& Field::getGridBuffer()
+                void Field::initializeSlabInfo()
                 {
-                    return *data;
+                    auto const gridSize = gridLayout.sizeWithoutGuardND();
+                    auto const negativeSize = globalThickness.getNegativeBorder();
+                    auto const positiveSize = globalThickness.getPositiveBorder();
+                    auto const positiveBegin = gridSize - positiveSize;
+
+                    // Note: since this should compile for 2d, .z( ) can't be used
+                    using detail::makeIdx;
+                    auto gridSizeZ = 0;
+
+                    if constexpr(simDim == DIM3)
+                    {
+                        slabInfo[slabZNeg] = SlabInfo{
+                            detail::makeIdx(0, 0, 0),
+                            detail::makeIdx(gridSize[0], gridSize[1], negativeSize[2])};
+                        slabInfo[slabZPos] = SlabInfo{
+                            detail::makeIdx(0, 0, positiveBegin[2]),
+                            detail::makeIdx(gridSize[0], gridSize[1], gridSize[2])};
+                        gridSizeZ = gridSize[2];
+                    }
+
+                    slabInfo[slabXNeg]
+                        = SlabInfo{detail::makeIdx(0, 0, 0), detail::makeIdx(negativeSize[0], gridSize[1], gridSizeZ)};
+                    slabInfo[slabXPos] = SlabInfo{
+                        detail::makeIdx(positiveBegin[0], 0, 0),
+                        detail::makeIdx(gridSize[0], gridSize[1], gridSizeZ)};
+                    slabInfo[slabYNeg]
+                        = SlabInfo{detail::makeIdx(0, 0, 0), detail::makeIdx(gridSize[0], negativeSize[1], gridSizeZ)};
+                    slabInfo[slabYPos] = SlabInfo{
+                        detail::makeIdx(0, positiveBegin[1], 0),
+                        detail::makeIdx(gridSize[0], gridSize[1], gridSizeZ)};
                 }
 
-                pmacc::GridLayout<simDim> Field::getGridLayout()
+                Field::Buffer& Field::getGridBuffer(uint32_t const slabIdx)
                 {
-                    return data->getGridLayout();
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return *slabData[slabIdx];
                 }
 
-                Field::DataBoxType Field::getHostDataBox()
+                pmacc::GridLayout<simDim> Field::getGridLayout(uint32_t const slabIdx)
                 {
-                    return data->getHostBuffer().getDataBox();
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabData[slabIdx]->getGridLayout();
                 }
 
-                Field::DataBoxType Field::getDeviceDataBox()
+                Field::DataBoxType Field::getHostDataBox(uint32_t const slabIdx)
                 {
-                    return data->getDeviceBuffer().getDataBox();
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabData[slabIdx]->getHostBuffer().getDataBox();
+                }
+
+                Field::DataBoxType Field::getDeviceDataBox(uint32_t const slabIdx)
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabData[slabIdx]->getDeviceBuffer().getDataBox();
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabBegin(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabInfo[slabIdx].begin;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabEnd(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabInfo[slabIdx].end;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabSize(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabInfo[slabIdx].end - slabInfo[slabIdx].begin;
+                }
+
+                void Field::setSlabViews(Thickness const& localThickness)
+                {
+                    auto const gridSize = gridLayout.sizeWithoutGuardND();
+                    auto const negativeSize = localThickness.getNegativeBorder();
+                    auto const positiveSize = localThickness.getPositiveBorder();
+                    auto const positiveBegin = gridSize - positiveSize;
+
+                    // Note: since this should compile for 2d, .z( ) can't be used
+                    using detail::makeIdx;
+                    auto positiveBeginZ = 0;
+                    auto negativeSizeZ = 0;
+
+                    if constexpr(simDim == DIM3)
+                    {
+                        slabViewInfo[slabZNeg]
+                            = SlabInfo{makeIdx(0, 0, 0), makeIdx(gridSize[0], gridSize[1], negativeSize[2])};
+                        slabViewInfo[slabZPos] = SlabInfo{
+                            makeIdx(0, 0, positiveBegin[2]),
+                            makeIdx(gridSize[0], gridSize[1], gridSize[2])};
+                        positiveBeginZ = positiveBegin[2];
+                        negativeSizeZ = negativeSize[2];
+                    }
+
+                    slabViewInfo[slabYNeg] = SlabInfo{
+                        makeIdx(negativeSize[0], 0, negativeSizeZ),
+                        makeIdx(positiveBegin[0], negativeSize[1], positiveBeginZ)};
+                    slabViewInfo[slabYPos] = SlabInfo{
+                        makeIdx(negativeSize[0], positiveBegin[1], negativeSizeZ),
+                        makeIdx(positiveBegin[0], gridSize[1], positiveBeginZ)};
+
+                    slabViewInfo[slabXNeg] = SlabInfo{
+                        makeIdx(0, 0, negativeSizeZ),
+                        makeIdx(negativeSize[0], gridSize[1], positiveBeginZ)};
+                    slabViewInfo[slabXPos] = SlabInfo{
+                        makeIdx(positiveBegin[0], 0, negativeSizeZ),
+                        makeIdx(gridSize[0], gridSize[1], positiveBeginZ)};
                 }
 
                 Field::OuterLayerBoxType Field::getDeviceOuterLayerBox()
                 {
-                    auto const boxWrapper1d
-                        = pmacc::DataBoxDim1Access<DataBoxType>{getDeviceDataBox(), data->getGridLayout().sizeND()};
-                    /* Note: the outer layer box type just provides access to data,
-                     * it does not own or make copy of the data (nor is that required)
-                     */
-                    return OuterLayerBoxType{gridLayout, globalThickness, boxWrapper1d};
+                    std::array<DataBoxType, numPmlLayers> slabBoxes;
+                    uint32_t slabIdx = 0u;
+                    for(auto& slabBox : slabBoxes)
+                    {
+                        slabBox = getDeviceDataBox(slabIdx);
+                        ++slabIdx;
+                    }
+                    return OuterLayerBoxType{gridLayout, slabViewInfo, slabBoxes};
                 }
 
                 EventTask Field::asyncCommunication(EventTask serialEvent)
                 {
-                    return data->asyncCommunication(serialEvent);
+                    auto event = serialEvent;
+                    for(auto& slab : slabData)
+                        event += slab->asyncCommunication(event);
+                    return event;
                 }
 
                 void Field::reset(uint32_t)
                 {
-                    data->getHostBuffer().reset(true);
-                    data->getDeviceBuffer().reset(false);
+                    for(auto& slab : slabData)
+                    {
+                        slab->getHostBuffer().reset(true);
+                        slab->getDeviceBuffer().reset(false);
+                    }
                 }
 
                 void Field::syncToDevice()
                 {
-                    data->hostToDevice();
+                    for(auto& slab : slabData)
+                        slab->hostToDevice();
                 }
 
                 void Field::synchronize()
                 {
-                    data->deviceToHost();
+                    for(auto& slab : slabData)
+                        slab->deviceToHost();
                 }
 
             } // namespace pml
