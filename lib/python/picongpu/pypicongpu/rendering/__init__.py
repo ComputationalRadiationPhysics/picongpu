@@ -5,18 +5,8 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .renderer import Renderer
 from .pmaccprinter import PMAccPrinter
-from .renderedobject import (
-    RenderedObject,
-    SelfRegistering,
-    SelfRegisteringRenderedObject,
-)
+from .renderedobject import RenderedObject
+from .renderer import Renderer
 
-__all__ = [
-    "PMAccPrinter",
-    "Renderer",
-    "RenderedObject",
-    "SelfRegistering",
-    "SelfRegisteringRenderedObject",
-]
+__all__ = ["PMAccPrinter", "Renderer", "RenderedObject"]

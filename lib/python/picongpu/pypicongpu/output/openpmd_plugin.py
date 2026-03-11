@@ -10,7 +10,7 @@ from hashlib import sha256
 from os import PathLike
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 import tomli_w
 from pydantic import (
@@ -156,9 +156,10 @@ class OpenPMDPlugin(BaseModel):
         return content
 
     @model_serializer(mode="plain")
-    def _get_serialized(self) -> dict | None:
+    def _get_serialized(self) -> dict[str, Any] | None:
         content = self._generate_config_file()
         return {
+            "type_openPMD": True,
             "config_filename": str(self.config_filename(content, context="runtime")),
             "derived_fields": unique(
                 source[1].model_dump(mode="json")

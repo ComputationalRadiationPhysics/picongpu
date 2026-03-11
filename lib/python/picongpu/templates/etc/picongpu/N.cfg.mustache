@@ -90,7 +90,6 @@ TBG_currentInterpolation="--currentInterpolation none"
 
 pypicongpu_output_with_newlines="
   {{#output}}
-      {{#data}}
 
     {{#type_phasespace}}
           --{{{species.species_name}}}_phaseSpace.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
@@ -189,7 +188,6 @@ pypicongpu_output_with_newlines="
 --openPMD.toml {{{config_filename}}}
 {{/type_openPMD}}
 
-    {{/data}}
   {{/output}}
 "
 
