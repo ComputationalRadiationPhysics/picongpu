@@ -4,9 +4,9 @@
 # License: GPLv3+
 
 [build-system]
-build-backend = "setuptools.build_meta"
+build-backend = "uv_build"
 
-requires = [ "setuptools>=61", "wheel" ]
+requires = [ "uv-build>=0.10.9,<0.11" ]
 
 [project]
 name = "picongpu"
@@ -50,13 +50,6 @@ dependencies = [
 
 optional-dependencies.test = [ "pytest>=9" ]
 
-[tool.setuptools.packages.find]
-where = [ "." ]
-include = [ "picongpu*" ]
-
-[tool.setuptools.package-data]
-picongpu = [ "picongpu/templates" ]
-
 [tool.pytest.ini_options]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -64,3 +57,8 @@ markers = [
   "end_to_end: end-to-end simulation tests",
 ]
 filterwarnings = [ "error" ]
+
+[tool.uv.build-backend]
+module-name = "picongpu"
+module-root = ""
+namespace = true
