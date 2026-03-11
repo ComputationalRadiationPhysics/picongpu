@@ -54,6 +54,9 @@ optional-dependencies.test = [ "pytest>=9" ]
 where = [ "." ]
 include = [ "picongpu*" ]
 
+[tool.setuptools.package-data]
+picongpu = [ "picongpu/templates" ]
+
 [tool.pytest.ini_options]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
