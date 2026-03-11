@@ -10,7 +10,7 @@ import typeguard
 import math
 import datetime
 import sympy
-import chevron
+from moosetash import render, MissingVariable
 import re
 import logging
 import pathlib
@@ -187,7 +187,7 @@ class Renderer:
                 logging.warning(
                     "do NOT use HTML escaped syntax (only {{two braces}}) for vars, offending var: " + match.group(1)
                 )
-        return chevron.render(template, context, warn=True)
+        return render(template, context, missing_variable_handler=_allow_only_missing_type_variables)
 
     @staticmethod
     def render_directory(context: dict, path: str) -> None:
@@ -230,3 +230,9 @@ class Renderer:
             new_path = functools.reduce(lambda a, b: a / b, map(lambda s: pathlib.Path(s), parts))
 
             template_path.rename(new_path)
+
+
+def _allow_only_missing_type_variables(name, _):
+    if name.startswith("type_"):
+        return ""
+    raise MissingVariable(name)
