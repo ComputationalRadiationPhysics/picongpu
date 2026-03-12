@@ -13,12 +13,13 @@ hard set packages and fills up with the remaining packages.
 Run `python pyproject_toml_modifier.py --help` to check the usage.
 """
 
+import argparse
 import os
 import sys
-import argparse
-from typing import Dict
+
 import toml
 from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 
 
 def exit_error(text: str):
@@ -31,6 +32,12 @@ def exit_error(text: str):
     # bash annotation to print text with red color
     print(f"\033[0;31mERROR: {text}\033[0m")
     sys.exit(1)
+
+
+def updated(requirement_string, packages):
+    r = Requirement(requirement_string)
+    r.specifier = SpecifierSet(f"=={s}") if (s := packages.get(r.name, False)) else r.specifier
+    return str(r)
 
 
 if __name__ == "__main__":
@@ -66,11 +73,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # parse environment variables
-    packages = {}
-    for envvar in os.environ:
-        if envvar not in args.ignore_env_args:
-            if envvar.startswith("PYPIC_DEP_VERSION_"):
-                packages[envvar.split("_")[-1]] = os.environ[envvar]
+    packages = {
+        envvar.split("_")[-1]: os.environ[envvar]
+        for envvar in os.environ
+        if envvar not in args.ignore_env_args and envvar.startswith("PYPIC_DEP_VERSION_")
+    }
 
     print("Try to set following package to a fix version")
     for pkg_name, pkg_version in packages.items():
@@ -78,23 +85,14 @@ if __name__ == "__main__":
 
     pyproject_toml = toml.load(args.i)
 
-    # parse dependencies from pyproject.toml
-    parsed_dependencies: Dict[str, str] = {}
-    for dep in pyproject_toml["project"]["dependencies"]:
-        req = Requirement(dep)
-        parsed_dependencies[str(req.name)] = str(req.specifier)
+    pyproject_toml["project"]["dependencies"] = [
+        updated(d, packages) for d in pyproject_toml["project"]["dependencies"]
+    ]
 
-    # replace dependency version with versions defined in the environment variables
-    for pkg_name, pkg_version in packages.items():
-        if pkg_name not in parsed_dependencies:
-            exit_error(f"could not find {pkg_name} in pyproject.toml dependencies")
-        else:
-            parsed_dependencies[pkg_name] = f"=={pkg_version}"
-
-    # replace dependencies in the output pyproject.toml with modified dependency versions
-    pyproject_toml["project"]["dependencies"] = []
-    for dep_name, dep_version in parsed_dependencies.items():
-        pyproject_toml["project"]["dependencies"].append(f"{dep_name}{dep_version}")
+    if not_found := set(packages.keys()).difference(
+        map(lambda d: Requirement(d).name, pyproject_toml["project"]["dependencies"])
+    ):
+        exit_error(f"could not find {not_found=} in pyproject.toml dependencies")
 
     with open(args.o, "w", encoding="utf-8") as output_file:
         toml.dump(pyproject_toml, output_file)
