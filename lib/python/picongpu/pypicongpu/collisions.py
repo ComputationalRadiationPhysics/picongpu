@@ -11,37 +11,23 @@ from typing import Literal
 from pydantic import (
     BaseModel,
     Field,
-    PrivateAttr,
     computed_field,
     field_serializer,
     field_validator,
 )
 
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
-from picongpu.pypicongpu.rendering.renderedobject import SelfRegisteringRenderedObject
 from picongpu.pypicongpu.species.species import Species
-from picongpu.pypicongpu.util import unique, alt
+from picongpu.pypicongpu.util import alt, unique
 
 
-class _CollisionFunctor(SelfRegisteringRenderedObject, BaseModel):
-    pass
-
-
-class ConstLogCollision(_CollisionFunctor):
-    _name: str = PrivateAttr("constlog")
+class ConstLogCollision(BaseModel):
+    type_constlog: Literal[True] = True
     coulomb_log: float
 
 
-class DynamicLogCollision(_CollisionFunctor):
-    _name: str = PrivateAttr("dynamiclog")
-
-    # Our current context validation doesn't like empty leafs.
-    # This puts some unused content into the context.
-    # Ain't pretty but was the fastest solution.
-    # General overhaul of rendering is on the agenda anyways.
-    @computed_field
-    def unused(self) -> str:
-        return ""
+class DynamicLogCollision(BaseModel):
+    type_dynamiclog: Literal[True] = True
 
 
 CollisionFunctor = ConstLogCollision | DynamicLogCollision

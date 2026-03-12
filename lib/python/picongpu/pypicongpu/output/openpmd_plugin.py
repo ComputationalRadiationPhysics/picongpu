@@ -10,7 +10,7 @@ from hashlib import sha256
 from os import PathLike
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 import tomli_w
 from pydantic import (
@@ -23,7 +23,6 @@ from pydantic import (
     model_serializer,
 )
 
-from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
@@ -103,11 +102,11 @@ class FieldDump(BaseModel):
         return self.model_dump(mode="json")
 
 
-class OpenPMDPlugin(Plugin):
+class OpenPMDPlugin(BaseModel):
     sources: list[tuple[TimeStepSpec, Species | FieldDump | FilteredSpecies]]
     config: OpenPMDConfig = OpenPMDConfig(file="simData")
 
-    _name: str = PrivateAttr("openPMD")
+    type_openPMD: Literal[True] = True
     _setup_dir: Path | None = PrivateAttr(None)
     # We're using a negation here because now `False` and `None` (evaluating to `False`)
     # both mean that we can't rely on `setup_dir` being anything permanent:
@@ -142,10 +141,10 @@ class OpenPMDPlugin(Plugin):
         # As a workaround, we're computing this on the fly.
         # Shouldn't be performance critical but it would be more elegant to normalise early on.
         sources = reduce(
-            lambda dictionary, key_val: dictionary.setdefault(to_string(key_val[0]), []).append(
-                key_val[1].get_rendering_context()["name"]
-            )
-            or dictionary,
+            lambda dictionary, key_val: (
+                dictionary.setdefault(to_string(key_val[0]), []).append(key_val[1].get_rendering_context()["name"])
+                or dictionary
+            ),
             self.sources,
             {},
         )
@@ -157,9 +156,10 @@ class OpenPMDPlugin(Plugin):
         return content
 
     @model_serializer(mode="plain")
-    def _get_serialized(self) -> dict | None:
+    def _get_serialized(self) -> dict[str, Any] | None:
         content = self._generate_config_file()
         return {
+            "type_openPMD": True,
             "config_filename": str(self.config_filename(content, context="runtime")),
             "derived_fields": unique(
                 source[1].model_dump(mode="json")

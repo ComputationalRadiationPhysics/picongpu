@@ -6,11 +6,10 @@ License: GPLv3+
 """
 
 import json
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field, PrivateAttr, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 
-from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
@@ -32,7 +31,7 @@ class BinningAxis(RenderedObject, BaseModel):
     use_overflow_bins: bool
 
 
-class Binning(Plugin, BaseModel):
+class Binning(BaseModel):
     binner_name: str = Field(alias="name")
     deposition_functor: ParticleFunctor
     axes: list[BinningAxis]
@@ -43,7 +42,7 @@ class Binning(Plugin, BaseModel):
     openPMDInfix: str | None
     dumpPeriod: int
 
-    _name: str = PrivateAttr("binning")
+    type_binning: Literal[True] = True
 
     @field_serializer("openPMD")
     def _serialize_openPMD(self, value) -> str | None:

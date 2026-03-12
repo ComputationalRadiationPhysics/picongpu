@@ -6,16 +6,16 @@ License: GPLv3+
 """
 
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Any
 
-from pydantic import BaseModel, Field, PlainSerializer, field_serializer, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
 from picongpu.pypicongpu.output.radiation import RadiationPlugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
-from picongpu.pypicongpu.species.operation.operation import Operation
+from picongpu.pypicongpu.species.operation import AnyOperation
 from picongpu.pypicongpu.species.species import Species
 
 from .customuserinput import CustomUserInput
@@ -23,18 +23,9 @@ from .field_solver import AnySolver
 from .grid import Grid3D
 from .laser import AnyLaser
 from .movingwindow import MovingWindow
-from .output import OpenPMDPlugin, Plugin
+from .output import AnyPlugin, OpenPMDPlugin
 from .rendering import RenderedObject
 from .walltime import Walltime
-
-
-# The annotation with -> Any is a temporary workaround.
-# Pydantic cannot know about our custom schema,
-# so it fails to validate correctly.
-def _serialize(value) -> Any:
-    if isinstance(value, list):
-        return [_serialize(v) for v in value]
-    return value.get_rendering_context() if value is not None else None
 
 
 class Simulation(RenderedObject, BaseModel):
@@ -88,9 +79,9 @@ class Simulation(RenderedObject, BaseModel):
     binomial_current_interpolation: bool
     """switch on a binomial current interpolation"""
 
-    output: Annotated[list[Plugin] | None, PlainSerializer(_serialize)]
+    output: list[AnyPlugin] | None
     species: list[Species]
-    init_operations: Annotated[list[Operation], PlainSerializer(_serialize)]
+    init_operations: list[AnyOperation]
     synchrotron_params: SynchrotronParams = SynchrotronParams()
     collisional_physics: CollisionalPhysicsSetup = CollisionalPhysicsSetup()
     particle_filters: list[ParticleFunctor] = Field(default_factory=list)

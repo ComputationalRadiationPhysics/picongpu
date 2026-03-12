@@ -1,5 +1,3 @@
-from .operation import Operation
-from .densityoperation import DensityOperation
 from .simpledensity import SimpleDensity
 from .simplemomentum import SimpleMomentum
 from .setchargestate import SetChargeState
@@ -7,9 +5,10 @@ from .setchargestate import SetChargeState
 from . import densityprofile
 from . import momentum
 
+AnyOperation = SimpleDensity | SimpleMomentum | SetChargeState
+
 __all__ = [
-    "Operation",
-    "DensityOperation",
+    "AnyOperation",
     "SimpleDensity",
     "SimpleMomentum",
     "SetChargeState",

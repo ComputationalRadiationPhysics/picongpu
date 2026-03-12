@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from types import UnionType
 from typing import Any, Callable
 from scipy.constants import electron_volt
 
@@ -95,7 +96,7 @@ def run_construction(obj):
 
 
 def evaluate_requirements(requirements, Types):
-    if isinstance(Types, type):
+    if isinstance(Types, type) or isinstance(Types, UnionType):
         return next(evaluate_requirements(requirements, [Types]))
     return (
         filter(
@@ -116,8 +117,8 @@ class _Operators(BaseModel):
         **dict(map(lambda kv: (kv[0], get_as_pypicongpu(kv[1])), self.metadata.kwargs.items())),
     )
     try_update_with: Callable[[Any, Any], bool] = lambda self, other: False
-    is_same_as: Callable[[Any, Any], bool] = lambda self, other: isinstance(other, DelayedConstruction) and (
-        self.metadata == other.metadata
+    is_same_as: Callable[[Any, Any], bool] = lambda self, other: (
+        isinstance(other, DelayedConstruction) and (self.metadata == other.metadata)
     )
     # This is supposed to raise in case of conflict:
     check_for_conflict: Callable[[Any, Any], None] = lambda self, other: None

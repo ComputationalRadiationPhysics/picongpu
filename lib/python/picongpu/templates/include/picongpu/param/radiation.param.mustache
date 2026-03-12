@@ -34,7 +34,7 @@
  * radiation verbose level:
  * 0=nothing, 1=physics, 2=simulation_state, 4=memory, 8=critical
  */
-#define PIC_VERBOSE_RADIATION {{#output}}{{#typeID.radiation}}{{{data.config.radiation.verbose_level}}}{{/typeID.radiation}}{{/output}}
+#define PIC_VERBOSE_RADIATION {{#output}}{{#type_radiation}}{{{config.radiation.verbose_level}}}{{/type_radiation}}{{/output}}
 
 #include "picongpu/defines.hpp"
 #include "picongpu/algorithms/Gamma.def"
@@ -49,8 +49,7 @@ namespace picongpu
         namespace radiation
         {
           {{#output}}
-          {{#typeID.radiation}}
-          {{#data}}
+          {{#type_radiation}}
           {{#config}}
           {{#radiation}}
           {{#frequencies}}
@@ -59,13 +58,13 @@ namespace picongpu
                 namespace SI
                 {
                     /** mimimum frequency of the linear frequency scale in units of [1/s] */
-                    constexpr float_64 omega_min = {{{data.omega_min}}};
+                    constexpr float_64 omega_min = {{{omega_min}}};
                     /** maximum frequency of the linear frequency scale in units of [1/s] */
-                    constexpr float_64 omega_max = {{{data.omega_max}}};
+                    constexpr float_64 omega_max = {{{omega_max}}};
                 } // namespace SI
 
                 /** number of frequency values to compute in the linear frequency [unitless] */
-                constexpr unsigned int N_omega = {{{data.N_omega}}};
+                constexpr unsigned int N_omega = {{{N_omega}}};
             } // namespace linear_frequencies
 
             namespace log_frequencies
@@ -73,25 +72,25 @@ namespace picongpu
                 namespace SI
                 {
                     /** mimimum frequency of the linear frequency scale in units of [1/s] */
-                    constexpr float_64 omega_min = {{{data.omega_min}}};
+                    constexpr float_64 omega_min = {{{omega_min}}};
                     /** maximum frequency of the linear frequency scale in units of [1/s] */
-                    constexpr float_64 omega_max = {{{data.omega_max}}};
+                    constexpr float_64 omega_max = {{{omega_max}}};
                 } // namespace SI
 
                 /** number of frequency values to compute in the linear frequency [unitless] */
-                constexpr unsigned int N_omega = {{{data.N_omega}}};
+                constexpr unsigned int N_omega = {{{N_omega}}};
             } // namespace log_frequencies
 
             namespace frequencies_from_list
             {
-            {{#typeID.frequencies_from_list}}
-                constexpr char const* listLocation = {{{data.list_location}}};
-            {{/typeID.frequencies_from_list}}
-            {{^typeID.frequencies_from_list}}
+            {{#type_frequencies_from_list}}
+                constexpr char const* listLocation = {{{list_location}}};
+            {{/type_frequencies_from_list}}
+            {{^type_frequencies_from_list}}
                 constexpr char const* listLocation = "path/to/frequencies";
-            {{/typeID.frequencies_from_list}}
+            {{/type_frequencies_from_list}}
 
-                constexpr unsigned int N_omega = {{{data.N_omega}}};
+                constexpr unsigned int N_omega = {{{N_omega}}};
             } // namespace frequencies_from_list
 
             /** selected mode of frequency scaling:
@@ -102,15 +101,15 @@ namespace picongpu
              * - frequencies_from_list
              */
             namespace radiation_frequencies =
-            {{#typeID.linear_frequencies}}
+            {{#type_linear_frequencies}}
             linear_frequencies
-            {{/typeID.linear_frequencies}}
-            {{#typeID.log_frequencies}}
+            {{/type_linear_frequencies}}
+            {{#type_log_frequencies}}
             log_frequencies
-            {{/typeID.log_frequencies}}
-            {{#typeID.frequencies_from_list}}
+            {{/type_log_frequencies}}
+            {{#type_frequencies_from_list}}
             frequencies_from_list
-            {{/typeID.frequencies_from_list}};
+            {{/type_frequencies_from_list}};
 
           {{/frequencies}}
 
@@ -245,8 +244,7 @@ namespace picongpu
             namespace radWindowFunction = radWindowFunction{{{window_function}}};
         {{/radiation}}
         {{/config}}
-        {{/data}}
-        {{/typeID.radiation}}
+        {{/type_radiation}}
         {{/output}}
         } // namespace radiation
     } // namespace plugins

@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 import enum
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field, PlainSerializer, model_validator
 from typing_extensions import Self
@@ -47,7 +47,7 @@ Vec3_float = Annotated[tuple[float, float, float], PlainSerializer(serialise_vec
 Vec3_int = Annotated[tuple[int, int, int], PlainSerializer(serialise_vec)]
 
 
-def serialise_grid_dist(value):
+def serialise_grid_dist(value) -> None | dict[Literal["x", "y", "z"], list[dict[Literal["device_cells"], int]]]:
     return (
         value
         if value is None

@@ -6,17 +6,16 @@ License: GPLv3+
 """
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import typeguard
-from pydantic import BaseModel, Field, PrivateAttr, model_validator
+from pydantic import BaseModel, Field, model_validator
 
-from .plugin import Plugin
 from .timestepspec import TimeStepSpec
 
 
 @typeguard.typechecked
-class Checkpoint(Plugin, BaseModel):
+class Checkpoint(BaseModel):
     period: TimeStepSpec | None
     timePeriod: Annotated[int, Field(..., ge=0)] | None
     directory: Path | None
@@ -30,7 +29,7 @@ class Checkpoint(Plugin, BaseModel):
     restartLoop: Annotated[int, Field(..., ge=0)] | None
     openPMD: dict | None
 
-    _name: str = PrivateAttr("checkpoint")
+    type_checkpoint: Literal[True] = True
 
     @model_validator(mode="after")
     def check(self):

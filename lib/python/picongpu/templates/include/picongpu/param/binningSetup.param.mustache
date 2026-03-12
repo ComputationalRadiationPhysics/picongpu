@@ -25,8 +25,7 @@
 namespace picongpu::plugins::binning
 {
   {{#output}}
-  {{#typeID.binning}}
-  {{#data}}
+  {{#type_binning}}
   inline void {{{binner_name}}}(BinningCreator& binningCreator)
   {
 
@@ -116,18 +115,15 @@ namespace picongpu::plugins::binning
       .setDumpPeriod({{{dumpPeriod}}})
       ;
   }
-  {{/data}}
-  {{/typeID.binning}}
+  {{/type_binning}}
   {{/output}}
 
   inline void getBinning(BinningCreator& binningCreator)
   {
       {{#output}}
-      {{#typeID.binning}}
-      {{#data}}
+      {{#type_binning}}
       {{{binner_name}}}(binningCreator);
-      {{/data}}
-      {{/typeID.binning}}
+      {{/type_binning}}
       {{/output}}
   }
 } // namespace picongpu::plugins::binning

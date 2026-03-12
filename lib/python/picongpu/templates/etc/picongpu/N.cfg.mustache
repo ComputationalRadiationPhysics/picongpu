@@ -90,30 +90,29 @@ TBG_currentInterpolation="--currentInterpolation none"
 
 pypicongpu_output_with_newlines="
   {{#output}}
-      {{#data}}
 
-    {{#typeID.phasespace}}
+    {{#type_phasespace}}
           --{{{species.species_name}}}_phaseSpace.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
           --{{{species.species_name}}}_phaseSpace.filter {{{species.filter_name}}}
           --{{{species.species_name}}}_phaseSpace.space {{{spatial_coordinate}}}
           --{{{species.species_name}}}_phaseSpace.momentum {{{momentum_coordinate}}}
           --{{{species.species_name}}}_phaseSpace.min {{{min_momentum}}}
           --{{{species.species_name}}}_phaseSpace.max {{{max_momentum}}}
-    {{/typeID.phasespace}}
+    {{/type_phasespace}}
 
-    {{#typeID.energyhistogram}}
+    {{#type_energyhistogram}}
           --{{{species.species_name}}}_energyHistogram.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
           --{{{species.species_name}}}_energyHistogram.filter {{{species.filter_name}}}
           --{{{species.species_name}}}_energyHistogram.binCount {{{bin_count}}}
           --{{{species.species_name}}}_energyHistogram.minEnergy {{{min_energy}}}
           --{{{species.species_name}}}_energyHistogram.maxEnergy {{{max_energy}}}
-    {{/typeID.energyhistogram}}
+    {{/type_energyhistogram}}
 
-    {{#typeID.macroparticlecount}}
+    {{#type_macroparticlecount}}
       --{{{species.species_name}}}_macroParticlesCount.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
-    {{/typeID.macroparticlecount}}
+    {{/type_macroparticlecount}}
 
-    {{#typeID.radiation}}
+    {{#type_radiation}}
     {{#species}}
     {{#config}}
           --{{{name}}}_radiation.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
@@ -142,9 +141,9 @@ pypicongpu_output_with_newlines="
            {{/distributed_amplitude}}
     {{/config}}
     {{/species}}
-    {{/typeID.radiation}}
+    {{/type_radiation}}
 
-{{#typeID.checkpoint}}
+{{#type_checkpoint}}
 {{#period}}--checkpoint.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
 {{/period}}
 {{#timePeriod}}--checkpoint.timePeriod {{{timePeriod}}}
@@ -183,13 +182,12 @@ pypicongpu_output_with_newlines="
   {{#openPMD.particleIOChunkSize}}--checkpoint.openPMD.particleIOChunkSize {{{openPMD.particleIOChunkSize}}}
   {{/openPMD.particleIOChunkSize}}
 {{/openPMD}}
-{{/typeID.checkpoint}}
+{{/type_checkpoint}}
 
-{{#typeID.openPMD}}
+{{#type_openPMD}}
 --openPMD.toml {{{config_filename}}}
-{{/typeID.openPMD}}
+{{/type_openPMD}}
 
-    {{/data}}
   {{/output}}
 "
 

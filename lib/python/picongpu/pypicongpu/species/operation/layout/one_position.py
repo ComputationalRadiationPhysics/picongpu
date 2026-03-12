@@ -6,11 +6,9 @@ License: GPLv3+
 """
 
 from functools import partial
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, Field, PlainSerializer, PrivateAttr
-
-from .layout import Layout
+from pydantic import AfterValidator, BaseModel, Field, PlainSerializer
 
 
 def serialise_vec(value) -> dict:
@@ -36,8 +34,8 @@ Vec3_float = Annotated[
 ]
 
 
-class OnePosition(Layout, BaseModel):
-    _name: str = PrivateAttr("one_position")
+class OnePosition(BaseModel):
+    type_one_position: Literal[True] = True
     in_cell_offset: Vec3_float = Field(default=(0.0, 0.0, 0.0))
     """Offset inside of the cell relative to cell size, i.e., between 0 and 1"""
     ppc: int = Field(gt=0)

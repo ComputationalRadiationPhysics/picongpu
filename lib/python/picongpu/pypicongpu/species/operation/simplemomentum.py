@@ -5,15 +5,13 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-from .operation import Operation
+from typing import Literal
 from .momentum import Temperature, Drift
 from ..species import Species
-from pydantic import BaseModel, PrivateAttr
-
-import typing
+from pydantic import BaseModel
 
 
-class SimpleMomentum(Operation):
+class SimpleMomentum(BaseModel):
     """
     provides momentum to a species
 
@@ -29,13 +27,10 @@ class SimpleMomentum(Operation):
     species: Species
     """species for which momentum will be set"""
 
-    temperature: typing.Optional[Temperature]
+    temperature: Temperature | None
     """temperature of particles (if any)"""
 
-    drift: typing.Optional[Drift]
+    drift: Drift | None
     """drift of particles (if any)"""
 
-    _name: str = PrivateAttr("simplemomentum")
-
-    def __init__(self, *args, **kwargs):
-        return BaseModel.__init__(self, *args, **kwargs)
+    type_simplemomentum: Literal[True] = True

@@ -5,14 +5,15 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, PrivateAttr
+from typing import Literal
 
-from picongpu.pypicongpu.output.plugin import Plugin
+from pydantic import BaseModel
+
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.species import Species
 
 
-class MacroParticleCount(Plugin, BaseModel):
+class MacroParticleCount(BaseModel):
     species: Species
     period: TimeStepSpec
-    _name: str = PrivateAttr("macroparticlecount")
+    type_macroparticlecount: Literal[True] = True

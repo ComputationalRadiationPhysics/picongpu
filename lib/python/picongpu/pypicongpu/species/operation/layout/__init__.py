@@ -5,9 +5,9 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .layout import Layout
-from .random import Random
-from .quiet import Quiet
 from .one_position import OnePosition
+from .quiet import Quiet
+from .random import Random
 
-__all__ = ["Layout", "Random", "Quiet", "OnePosition"]
+AnyLayout = Random | Quiet | OnePosition
+__all__ = ["Random", "Quiet", "OnePosition"]

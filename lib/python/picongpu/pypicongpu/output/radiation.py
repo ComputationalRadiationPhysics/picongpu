@@ -7,51 +7,46 @@ License: GPLv3+
 
 from enum import Enum
 from operator import attrgetter, itemgetter
-from typing import Annotated, Callable
+from typing import Callable, Literal
 
 from pydantic import (
     BaseModel,
     Field,
-    PlainSerializer,
-    PrivateAttr,
     computed_field,
     field_validator,
 )
 from sympy import Expr, Symbol
 from sympy.vector import CoordSys3D, Vector
 
-from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.rendering.pmaccprinter import PMAccPrinter
-from picongpu.pypicongpu.rendering.renderedobject import SelfRegisteringRenderedObject
 from picongpu.pypicongpu.species import Species
 
 
-class FrequencyConfigurationBase(SelfRegisteringRenderedObject, BaseModel):
-    N_omega: int = Field(2048, description="Number of frequency values in linear scale")
-
-
-class LinearFrequencies(FrequencyConfigurationBase):
+class LinearFrequencies(BaseModel):
     """Linear frequency scale configuration."""
 
+    N_omega: int = Field(2048, description="Number of frequency values in linear scale")
     omega_min: float = Field(0.0, description="Minimum frequency in [1/s]")
     omega_max: float = Field(1.06e16, description="Maximum frequency in [1/s]")
-    _name: str = PrivateAttr("linear_frequencies")
+    type_linear_frequencies: Literal[True] = True
 
 
-class LogFrequencies(FrequencyConfigurationBase):
+class LogFrequencies(BaseModel):
     """Logarithmic frequency scale configuration."""
 
+    N_omega: int = Field(2048, description="Number of frequency values in linear scale")
     omega_min: float = Field(1.0e14, description="Minimum frequency in [1/s]")
     omega_max: float = Field(1.0e17, description="Maximum frequency in [1/s]")
-    _name: str = PrivateAttr("log_frequencies")
+    type_log_frequencies: Literal[True] = True
 
 
-class FrequenciesFromList(FrequencyConfigurationBase):
+class FrequenciesFromList(BaseModel):
     """Frequency list configuration."""
 
+    N_omega: int = Field(2048, description="Number of frequency values in linear scale")
     list_location: str = Field(description="Path to text file containing frequencies")
-    _name: str = PrivateAttr("frequencies_from_list")
+    type_frequencies_from_list: Literal[True] = True
 
 
 FrequencyConfiguration = LinearFrequencies | LogFrequencies | FrequenciesFromList
@@ -121,7 +116,7 @@ class RadiationConfiguration(BaseModel):
         description="Verbose level (0=nothing, 1=physics, 2=sim_state, 4=memory, 8=critical)",
     )
 
-    frequencies: Annotated[FrequencyConfiguration, PlainSerializer(lambda x: x.get_rendering_context())] = Field(
+    frequencies: FrequencyConfiguration = Field(
         default_factory=LinearFrequencies,
         description="Frequency scale configuration",
     )
@@ -134,7 +129,7 @@ class RadiationConfiguration(BaseModel):
     )
 
 
-class RadiationPluginConfig(Plugin):
+class RadiationPluginConfig(BaseModel):
     """Top-level radiation plugin configuration.
 
     Combines radiation settings, observer settings, gamma filtering,
@@ -234,8 +229,8 @@ class RadiationPluginConfig(Plugin):
     )
 
 
-class RadiationPlugin(Plugin):
-    _name: str = PrivateAttr("radiation")
+class RadiationPlugin(BaseModel):
+    type_radiation: Literal[True] = True
     config: RadiationPluginConfig
     species: list[Species]
     period: TimeStepSpec

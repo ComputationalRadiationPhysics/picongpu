@@ -7,15 +7,14 @@ License: GPLv3+
 
 from typing import Literal
 
-from pydantic import BaseModel, PrivateAttr, model_validator
+from pydantic import BaseModel, model_validator
 
-from picongpu.pypicongpu.output.plugin import Plugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.species import Species
 
 
-class PhaseSpace(Plugin, BaseModel):
+class PhaseSpace(BaseModel):
     species: Species | FilteredSpecies
     period: TimeStepSpec
     spatial_coordinate: Literal["x", "y", "z"]
@@ -23,7 +22,7 @@ class PhaseSpace(Plugin, BaseModel):
     min_momentum: float
     max_momentum: float
 
-    _name: str = PrivateAttr("phasespace")
+    type_phasespace: Literal[True] = True
 
     @model_validator(mode="after")
     def check(self):
