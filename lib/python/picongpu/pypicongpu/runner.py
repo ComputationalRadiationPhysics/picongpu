@@ -34,6 +34,8 @@ from .simulation import Simulation
 with as_file(files("picongpu.templates")) as template_path:
     DEFAULT_TEMPLATE_DIRECTORY = template_path.absolute()
 
+PROFILE = Path(__file__).parent / "picongpu.profile"
+
 
 @contextmanager
 def cd(path):
@@ -49,13 +51,32 @@ def runArgs(name, args):
     assert list(filter(lambda x: x is None, args)) == [], "arguments must not be None!"
     logging.info("running {}...".format(name))
     logging.debug("command for {}: {}".format(name, " ".join(args)))
-    proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.run(args, capture_output=True)
     logging.info("{} done, returned {}".format(name, proc.returncode))
+    logging.debug(f"command for {name}: {' '.join(args)}\n{proc.stdout.decode()=}")
+    logging.debug(f"command for {name}: {' '.join(args)}\n{proc.stderr.decode()=}")
 
     if 0 != proc.returncode:
         logging.error(">>>>>>> Command failed (output below): {}\n{}".format(" ".join(proc.args), proc.stdout.decode()))
         logging.error(">>>>>>> Command failed (output above): {}".format(" ".join(proc.args)))
         raise RuntimeError("subprocess failed")
+
+
+def script_content_with(commands, profile_content):
+    preamble = """
+    set -euxo pipefail
+    """
+
+    if not isinstance(commands, str):
+        commands = "\n".join(commands)
+    if (shebang := profile_content.split("\n", maxsplit=1)[0]).startswith("#!"):
+        preamble = f"{shebang}\n{preamble}"
+        profile_content = profile_content.split("\n", maxsplit=1)[1]
+    return f"""
+        {preamble}
+        {profile_content}
+        {commands}
+        """
 
 
 def get_tmpdir_with_name(name, parent: str = None):
@@ -299,8 +320,16 @@ class Runner:
 
     def __copy_template(self):
         """copy template files to be built from"""
-        for d in self._pypicongpu_template_dir:
-            runArgs("add template", ["pic-create", "--force", str(d), self.setup_dir])
+
+        with PROFILE.open("r") as profile:
+            profile_content = profile.read()
+        script_content = script_content_with(
+            [f"pic-create --force {str(d)} {self.setup_dir}" for d in self._pypicongpu_template_dir], profile_content
+        )
+        with tempfile.NamedTemporaryFile(mode="w") as script:
+            script.write(script_content)
+            script.flush()
+            runArgs("copy templates", ["zsh", str(script.name)])
 
     def __render_templates(self):
         """
