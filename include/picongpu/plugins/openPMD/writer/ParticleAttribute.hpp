@@ -159,8 +159,8 @@ namespace picongpu
                 {
                     // accumulateWrittenBytes += 0;
 
-#    if !OPENPMDAPI_VERSION_GE(0, 17, 0)
                     // Workaround for this bug: https://github.com/openPMD/openPMD-api/pull/1794
+                    // and also this one for good measure https://github.com/openPMD/openPMD-api/pull/1862
                     // In the affected versions of the openPMD-api, Span-based storeChunk must be
                     // treated as an MPI-collective call.
                     for(uint32_t d = 0; d < components; d++)
@@ -172,7 +172,6 @@ namespace picongpu
                             ::openPMD::Offset{globalOffset},
                             ::openPMD::Extent{elements});
                     }
-#    endif
                     return;
                 }
 
