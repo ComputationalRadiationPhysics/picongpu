@@ -4,9 +4,9 @@
 # License: GPLv3+
 
 [build-system]
-build-backend = "uv_build"
+build-backend = "hatchling.build"
 
-requires = [ "uv-build>=0.10.9,<0.11" ]
+requires = [ "hatchling" ]
 
 [project]
 name = "picongpu"
@@ -51,6 +51,26 @@ dependencies = [
 
 optional-dependencies.test = [ "pytest>=9" ]
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = [ "picongpu" ]
+
+[tool.hatch.build.targets.wheel.force-include]
+"../../include" = "picongpu/core/include"
+"../../etc" = "picongpu/core/etc"
+"../../bin" = "picongpu/core/bin"
+"../../src/tools/bin" = "picongpu/core/bin"
+
+[tool.hatch.build.targets.sdist]
+packages = [ "picongpu" ]
+[tool.hatch.build.targets.sdist.force-include]
+"../../include" = "picongpu/core/include"
+"../../etc" = "picongpu/core/etc"
+"../../bin" = "picongpu/core/bin"
+"../../src/tools/bin" = "picongpu/core/bin"
+
 [tool.pytest.ini_options]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -58,8 +78,3 @@ markers = [
   "end_to_end: end-to-end simulation tests",
 ]
 filterwarnings = [ "error" ]
-
-[tool.uv.build-backend]
-module-name = "picongpu"
-module-root = ""
-namespace = true

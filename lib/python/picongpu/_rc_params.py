@@ -12,6 +12,8 @@ from pathlib import Path
 
 from moosetash import render
 
+from picongpu import core
+
 
 class RCParams(dict):
     def _handle_setting_picongpurc_path(self, to):
@@ -68,7 +70,10 @@ class RCParams(dict):
         if "preamble" in self:
             return self["preamble"]
         else:
-            return "set -euxo pipefail"
+            return f"""
+set -euxo pipefail
+export PATH="{str(core.path("bin"))}:$PATH"
+"""
 
 
 def search_for_in_parents(filename, start_path=Path()):
