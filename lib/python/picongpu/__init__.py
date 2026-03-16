@@ -5,6 +5,4 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from pathlib import Path
-
-path = Path(__file__).parent.absolute()
+from ._rc_params import rc_params as rc_params

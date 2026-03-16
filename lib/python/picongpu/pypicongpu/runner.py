@@ -13,28 +13,16 @@ import subprocess
 import tempfile
 import typing
 from contextlib import contextmanager
-from importlib.resources import files, as_file
 from os import chdir, environ, path
 from pathlib import Path
 
 import typeguard
 
+from picongpu import rc_params, templates
+
 from . import util
 from .rendering import Renderer
 from .simulation import Simulation
-
-# This uses a very simplified way to think about `resources.path`:
-# In general, imports are not necessarily from files actually existent on disk
-# but can come from downloading on-the-fly or unpacking a zip or the like.
-# `resources.path` provides a context manager to clean up
-# whatever mess was created by performing that import.
-# For the moment, we assume that those files reside on disk
-# such that storing their path for later use is safe.
-# We might need to come back to this, if we ever need to support more general imports.
-with as_file(files("picongpu.templates")) as template_path:
-    DEFAULT_TEMPLATE_DIRECTORY = template_path.absolute()
-
-PROFILE = Path(__file__).parent / "picongpu.profile"
 
 
 @contextmanager
@@ -62,21 +50,30 @@ def runArgs(name, args):
         raise RuntimeError("subprocess failed")
 
 
-def script_content_with(commands, profile_content):
-    preamble = """
-    set -euxo pipefail
-    """
-
+def script_content_with(commands, rc_params=rc_params):
     if not isinstance(commands, str):
         commands = "\n".join(commands)
-    if (shebang := profile_content.split("\n", maxsplit=1)[0]).startswith("#!"):
-        preamble = f"{shebang}\n{preamble}"
-        profile_content = profile_content.split("\n", maxsplit=1)[1]
     return f"""
-        {preamble}
-        {profile_content}
-        {commands}
-        """
+{rc_params.shebang}
+
+# preamble
+{rc_params.preamble}
+
+# profile content
+{rc_params.profile_content}
+
+# commands
+{commands}
+"""[1:]
+
+
+def run_commands(commands, rc_params=rc_params):
+    """copy template files to be built from"""
+
+    with tempfile.NamedTemporaryFile(mode="w") as script:
+        script.write(script_content_with(commands, rc_params=rc_params))
+        script.flush()
+        runArgs("copy templates", [*rc_params.shebang[len("#!") :].split(" "), str(script.name)])
 
 
 def get_tmpdir_with_name(name, parent: str = None):
@@ -241,7 +238,7 @@ class Runner:
 
         # use helper to perform various checks
         # note that the order matters: run_dir depends on scratch_dir
-        self._pypicongpu_template_dir = pypicongpu_template_dir or (DEFAULT_TEMPLATE_DIRECTORY,)
+        self._pypicongpu_template_dir = pypicongpu_template_dir or (templates.path,)
         self.__helper_set_scratch_dir(scratch_dir)
         self.__helper_set_setup_dir(setup_dir)
         self.__helper_set_run_dir(run_dir)
@@ -318,19 +315,6 @@ class Runner:
         logging.info("  params file: {}".format(self.__params_file()))
         logging.info("     cfg file: {}".format(self.__cfg_file()))
 
-    def __copy_template(self):
-        """copy template files to be built from"""
-
-        with PROFILE.open("r") as profile:
-            profile_content = profile.read()
-        script_content = script_content_with(
-            [f"pic-create --force {str(d)} {self.setup_dir}" for d in self._pypicongpu_template_dir], profile_content
-        )
-        with tempfile.NamedTemporaryFile(mode="w") as script:
-            script.write(script_content)
-            script.flush()
-            runArgs("copy templates", ["zsh", str(script.name)])
-
     def __render_templates(self):
         """
         render the templates in the setup dir into a picongpu input
@@ -388,7 +372,7 @@ class Runner:
         assert not path.isdir(self.setup_dir), (
             "setup directory must not exist before generation -- did you call generate() already?"
         )
-        self.__copy_template()
+        run_commands([f"pic-create --force {str(d)} {self.setup_dir}" for d in self._pypicongpu_template_dir])
         self.__render_templates()
 
     def build(self):
