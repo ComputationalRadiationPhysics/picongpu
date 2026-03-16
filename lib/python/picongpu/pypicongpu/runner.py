@@ -49,6 +49,8 @@ def runArgs(name, args):
         logging.error(">>>>>>> Command failed (output above): {}".format(" ".join(proc.args)))
         raise RuntimeError("subprocess failed")
 
+    return proc
+
 
 def script_content_with(commands, rc_params=rc_params):
     if not isinstance(commands, str):
@@ -73,7 +75,7 @@ def run_commands(commands, rc_params=rc_params):
     with tempfile.NamedTemporaryFile(mode="w") as script:
         script.write(script_content_with(commands, rc_params=rc_params))
         script.flush()
-        runArgs("copy templates", [*rc_params.shebang[len("#!") :].split(" "), str(script.name)])
+        return runArgs("copy templates", [*rc_params.shebang[len("#!") :].split(" "), str(script.name)])
 
 
 def get_tmpdir_with_name(name, parent: str = None):

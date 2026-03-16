@@ -71,13 +71,13 @@ class RCParams(dict):
             return "set -euxo pipefail"
 
 
-def find_picongpurc_path(search_file=Path(".picongpurc.toml"), search_path=Path()):
-    if not isinstance(search_file, Path):
-        return find_picongpurc_path(search_file=Path(search_file), search_path=search_path)
-    if not isinstance(search_path, Path) or not search_path.is_absolute():
-        return find_picongpurc_path(search_file=search_file, search_path=Path(search_path).absolute())
+def search_for_in_parents(filename, start_path=Path()):
+    if not isinstance(filename, Path):
+        return search_for_in_parents(filename=Path(filename), start_path=start_path)
+    if not isinstance(start_path, Path) or not start_path.is_absolute():
+        return search_for_in_parents(filename=filename, start_path=Path(start_path).absolute())
     try:
-        return next(chain(*map(methodcaller("glob", search_file.name), [search_path, *search_path.parents])))
+        return next(chain(*map(methodcaller("glob", filename.name), [start_path, *start_path.parents])))
     except StopIteration:
         return None
 
