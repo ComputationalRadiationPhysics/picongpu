@@ -11,7 +11,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 import tomli_w
 from picongpu import rc_params
 from picongpu._rc_params import search_for_in_parents
-from picongpu.pypicongpu.runner import run_commands
+from picongpu.pypicongpu.runner import generate_bare_profile_as_in, run_commands, generate_bare_profile
 from pytest import fixture, mark, raises
 
 
@@ -137,3 +137,27 @@ def test_search_for_file_in_parent_directory(arbitrary_string, arbitrary_filenam
 def test_search_for_file_returns_none_if_not_found(arbitrary_filename):
     with TemporaryDirectory() as d1:
         assert search_for_in_parents(filename=arbitrary_filename, start_path=d1) is None
+
+
+def test_generate_bare_profile(my_rc_params, arbitrary_string):
+    my_rc_params["profile_content"] = arbitrary_string
+    with NamedTemporaryFile(mode="r") as file:
+        result_path = generate_bare_profile(path=file.name, rc_params=my_rc_params)
+        assert arbitrary_string in file.read()
+        assert Path(file.name) == result_path
+
+
+def test_generate_bare_profile_as_in(arbitrary_string):
+    with NamedTemporaryFile(mode="w", suffix=".py") as script:
+        script.write(
+            f"""
+from picongpu import rc_params
+
+rc_params["profile_content"] = "{arbitrary_string}"
+"""
+        )
+        script.flush()
+        with NamedTemporaryFile(mode="r") as file:
+            result_path = generate_bare_profile_as_in(script_path=script.name, path=file.name)
+            assert arbitrary_string in file.read()
+            assert Path(file.name) == result_path

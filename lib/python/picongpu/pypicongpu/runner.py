@@ -88,12 +88,16 @@ def generate_bare_profile(path=None, rc_params=rc_params):
     return path
 
 
-def generate_bare_profile_as_in(script_path):
+def generate_bare_profile_as_in(script_path, path=None):
+    if not isinstance(script_path, Path):
+        return generate_bare_profile_as_in(Path(script_path).absolute(), path=path)
+    if not script_path.is_absolute():
+        return generate_bare_profile_as_in(script_path.absolute(), path=path)
+
     module_spec = spec_from_file_location("script", script_path)
     module = module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
-    rc_params = module.rc_params
-    return generate_bare_profile(rc_params=rc_params)
+    return generate_bare_profile(path=path, rc_params=module.rc_params)
 
 
 def run_commands(commands, name=None, script_path=None, rc_params=rc_params):
