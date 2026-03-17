@@ -15,6 +15,7 @@ import typing
 from contextlib import contextmanager
 from os import chdir, environ, path
 from pathlib import Path
+from importlib.util import spec_from_file_location, module_from_spec
 
 import typeguard
 
@@ -23,6 +24,8 @@ from picongpu import rc_params, templates
 from . import util
 from .rendering import Renderer
 from .simulation import Simulation
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 @contextmanager
@@ -37,6 +40,7 @@ def cd(path):
 
 def runArgs(name, args):
     assert list(filter(lambda x: x is None, args)) == [], "arguments must not be None!"
+    logging.basicConfig(level=logging.DEBUG)
     logging.info("running {}...".format(name))
     logging.debug("command for {}: {}".format(name, " ".join(args)))
     proc = subprocess.run(args, capture_output=True)
@@ -69,13 +73,37 @@ def script_content_with(commands, rc_params=rc_params):
 """[1:]
 
 
-def run_commands(commands, rc_params=rc_params):
-    """copy template files to be built from"""
+def generate_bare_profile(path=None, rc_params=rc_params):
+    if path is None:
+        return generate_bare_profile(
+            path=Path(tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False).name), rc_params=rc_params
+        )
+    if not isinstance(path, Path):
+        return generate_bare_profile(path=Path(path), rc_params=rc_params)
 
-    with tempfile.NamedTemporaryFile(mode="w") as script:
+    with rc_params.set_temporarily(preamble="", override_existing=False):
+        with path.open("w") as file:
+            file.write(script_content_with("", rc_params=rc_params))
+
+    return path
+
+
+def generate_bare_profile_as_in(script_path):
+    module_spec = spec_from_file_location("script", script_path)
+    module = module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    rc_params = module.rc_params
+    return generate_bare_profile(rc_params=rc_params)
+
+
+def run_commands(commands, name=None, script_path=None, rc_params=rc_params):
+    name = name or "unnamed_task"
+    if script_path is not None:
+        script_path.parent.mkdir(parents=True, exist_ok=True)
+    with script_path.open("w") if script_path is not None else tempfile.NamedTemporaryFile(mode="w") as script:
         script.write(script_content_with(commands, rc_params=rc_params))
         script.flush()
-        return runArgs("copy templates", [*rc_params.shebang[len("#!") :].split(" "), str(script.name)])
+        return runArgs(name, [*rc_params.shebang[len("#!") :].split(" "), str(script.name)])
 
 
 def get_tmpdir_with_name(name, parent: str = None):
@@ -342,7 +370,9 @@ class Runner:
     def __build(self):
         """launch build of PIConGPU"""
         with cd(self.setup_dir):
-            runArgs("pic-build", ["pic-build", "-j", "4"])
+            run_commands(
+                "pic-build -j 4", name="pic-build", script_path=Path(self.setup_dir) / "scripts" / "pic-build-step.sh"
+            )
 
     def __run(self):
         """
@@ -353,14 +383,13 @@ class Runner:
         TODO multi-device support
         """
         with cd(self.setup_dir):
-            runArgs(
-                "PIConGPU",
-                (
-                    (
-                        "tbg -s bash -c etc/picongpu/N.cfg -t " + environ["PIC_SYSTEM_TEMPLATE_PATH"] + "/mpiexec.tpl"
-                    ).split()
-                    + [self.run_dir]
-                ),
+            run_commands(
+                [
+                    f"export PIC_PROFILE={str(generate_bare_profile())}",
+                    f"tbg -s bash -c etc/picongpu/N.cfg -t $TBG_TPLFILE {str(self.run_dir)}",
+                ],
+                name="run picongpu",
+                script_path=Path(self.setup_dir) / "scripts" / "run-step.sh",
             )
 
     def generate(self, printDirToConsole=False):
@@ -374,7 +403,11 @@ class Runner:
         assert not path.isdir(self.setup_dir), (
             "setup directory must not exist before generation -- did you call generate() already?"
         )
-        run_commands([f"pic-create --force {str(d)} {self.setup_dir}" for d in self._pypicongpu_template_dir])
+        run_commands(
+            [f"pic-create --force {str(d)} {self.setup_dir}" for d in self._pypicongpu_template_dir],
+            name="copy_templates",
+            script_path=Path(self.setup_dir) / "scripts" / "copy-templates-step.sh",
+        )
         self.__render_templates()
 
     def build(self):

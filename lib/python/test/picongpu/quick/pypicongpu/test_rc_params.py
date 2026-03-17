@@ -159,3 +159,32 @@ def test_allows_short_name_for_unambiguous_presets(my_rc_params):
 def test_allows_file_extension_for_presets(my_rc_params):
     # passes:
     my_rc_params["preset"] = "bash/bash_picongpu.profile.example"
+
+
+def test_set_temporarily(my_rc_params, any_key, any_content):
+    assert any_key not in my_rc_params
+    with my_rc_params.set_temporarily(any_key=any_content):
+        assert my_rc_params["any_key"] == any_content
+    assert any_key not in my_rc_params
+
+
+def test_set_temporarily_overrides_existing_by_default(my_rc_params, any_key, any_content):
+    other_content = "other cool content"
+    assert other_content != any_content
+
+    my_rc_params[any_key] = other_content
+    assert my_rc_params["any_key"] == other_content
+    with my_rc_params.set_temporarily(any_key=any_content):
+        assert my_rc_params["any_key"] == any_content
+    assert my_rc_params["any_key"] == other_content
+
+
+def test_set_temporarily_allows_not_overriding_existing(my_rc_params, any_key, any_content):
+    other_content = "other cool content"
+    assert other_content != any_content
+
+    my_rc_params[any_key] = other_content
+    assert my_rc_params["any_key"] == other_content
+    with my_rc_params.set_temporarily(any_key=any_content, override_existing=False):
+        assert my_rc_params["any_key"] == other_content
+    assert my_rc_params["any_key"] == other_content

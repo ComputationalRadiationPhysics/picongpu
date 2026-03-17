@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from contextlib import contextmanager
 from os import environ
 import tomllib
 from copy import deepcopy
@@ -237,7 +238,7 @@ def _path_to_str(value):
 
 
 _RETAINED_CONTENT = {"dirty_reset_policy": "raise", "missing_variable_policy": "raise"}
-_DEFAULT_CONTENT = _RETAINED_CONTENT | {"required_informartion": tuple()}
+_DEFAULT_CONTENT = _RETAINED_CONTENT | {"required_informartion": tuple(), "pic_src_path": core.path()}
 
 
 class RCParams(dict):
@@ -245,6 +246,21 @@ class RCParams(dict):
         super().__init__(*args, **kwargs)
         for k, v in _DEFAULT_CONTENT.items():
             self[k] = v
+
+    @contextmanager
+    def set_temporarily(self, /, override_existing=True, **kwargs):
+        setter = self.__setitem__ if override_existing else self.setdefault
+        previous = {k: self.get(k, NotImplemented) for k in kwargs}
+        try:
+            for k, v in kwargs.items():
+                setter(k, v)
+            yield self
+        finally:
+            for k, v in previous.items():
+                if v is NotImplemented:
+                    self.pop(k, NotImplemented)
+                else:
+                    setter(k, v)
 
     def _managed_clear(self, key, value):
         previous = deepcopy(self)
@@ -269,7 +285,6 @@ class RCParams(dict):
         self._managed_clear("preset", preset)
         self |= _parse_example_into_preset(preset)
         self["profile_template_content"] = _generate_profile_template_content(preset)
-        self["pic_src_path"] = core.path()
 
     def __setitem__(self, *args, **kwargs):
         if args[0] == "picongpurc_path":
@@ -309,7 +324,7 @@ class RCParams(dict):
             except MissingVariable as error:
                 message = (
                     "Rendering your profile template encountered a missing variable. "
-                    f"The following variables are expected from your preset: {self['required_information']}. "
+                    f"The following variables are expected from your preset: {self.get('required_information', [])}. "
                     "You can query this via rc_params['required_information']."
                 )
                 raise MissingVariable(message) from error
@@ -330,10 +345,7 @@ class RCParams(dict):
         if "preamble" in self:
             return self["preamble"]
         else:
-            return f"""
-set -euxo pipefail
-export PATH="{str(core.path("bin"))}:$PATH"
-"""
+            return "set -euxo pipefail"
 
 
 def search_for_in_parents(filename, start_path):
@@ -382,9 +394,10 @@ def generate_default_rc_params():
         or search_in_user_config()
         or _DEFAULT_PICONGPURC_PATH
     )
-    if picongpurc_path is None:
-        return RCParams()
-    return RCParams(picongpurc_path=picongpurc_path)
+    result = RCParams()
+    if picongpurc_path is not None:
+        result["picongpurc_path"] = picongpurc_path
+    return result
 
 
 rc_params = generate_default_rc_params()
