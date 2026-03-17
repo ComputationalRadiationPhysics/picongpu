@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from os import environ
 import tomllib
 from copy import deepcopy
 from itertools import chain
@@ -141,12 +142,22 @@ def _make_template_from_example(profile_content):
 
 
 def _read_preset(preset):
-    etc_path = core.path("etc") / "picongpu" / (preset + ".profile.example")
-    try:
-        with etc_path.open("r") as file:
-            return file.read()
-    except StopIteration as error:
-        raise ValueError(f"{preset=} not found in {etc_path=}.") from error
+    etc_path = core.path("etc") / "picongpu" / preset
+    if etc_path.is_dir():
+        candidates = list(etc_path.glob("*.profile.example"))
+        if len(candidates) == 0:
+            raise ValueError(f"{preset=} not found in {etc_path=}.")
+        if len(candidates) > 1:
+            raise ValueError(
+                f"{preset=} is ambiguous. Please use one of the following instead: {[f'{preset}/{c.name}' for c in candidates]}."
+            )
+        etc_path = candidates[0]
+    if not etc_path.is_file() and not preset.endswith(".profile.example"):
+        etc_path = Path(str(etc_path) + ".profile.example")
+    if not etc_path.is_file():
+        raise ValueError(f"{preset=} not found in {etc_path=}.")
+    with etc_path.open("r") as file:
+        return file.read()
 
 
 def _generate_profile_template_content(preset):
@@ -325,7 +336,7 @@ export PATH="{str(core.path("bin"))}:$PATH"
 """
 
 
-def search_for_in_parents(filename, start_path=Path()):
+def search_for_in_parents(filename, start_path):
     if not isinstance(filename, Path):
         return search_for_in_parents(filename=Path(filename), start_path=start_path)
     if not isinstance(start_path, Path) or not start_path.is_absolute():
@@ -336,4 +347,44 @@ def search_for_in_parents(filename, start_path=Path()):
         return None
 
 
-rc_params = RCParams()
+def search_in_environment_variables():
+    path = environ.get("PIC_RC", None)
+    if path is None:
+        return None
+    path = Path(path)
+    if path.is_file():
+        return path
+    if path.is_dir():
+        try:
+            return next(path.glob("picongpurc.toml"))
+        except StopIteration:
+            return None
+    return None
+
+
+def search_in_user_config():
+    path = environ.get("XDG_CONFIG_HOME", None)
+    if path is None:
+        return None
+    path = Path(path) / "picongpu" / "picongpurc.toml"
+    if path.is_file():
+        return path
+    return None
+
+
+_DEFAULT_PICONGPURC_PATH = None
+
+
+def generate_default_rc_params():
+    picongpurc_path = (
+        search_for_in_parents("[.]*picongpurc.toml", Path())
+        or search_in_environment_variables()
+        or search_in_user_config()
+        or _DEFAULT_PICONGPURC_PATH
+    )
+    if picongpurc_path is None:
+        return RCParams()
+    return RCParams(picongpurc_path=picongpurc_path)
+
+
+rc_params = generate_default_rc_params()

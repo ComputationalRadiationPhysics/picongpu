@@ -139,3 +139,23 @@ def test_hemera_profile_is_reproduced(my_rc_params):
     with (core.path("etc") / "picongpu" / "hemera-hzdr" / "defq_picongpu.profile.example").open("r") as file:
         expected = "".join(filter(_no_comment_or_blank_line, file.readlines())).strip()
     assert profile_content == expected
+
+
+def test_raises_on_non_existent_preset(my_rc_params):
+    with raises(ValueError):
+        my_rc_params["preset"] = "bogus"
+
+
+def test_raises_on_ambiguous_preset(my_rc_params):
+    with raises(ValueError):
+        my_rc_params["preset"] = "hemera-hzdr"
+
+
+def test_allows_short_name_for_unambiguous_presets(my_rc_params):
+    # passes:
+    my_rc_params["preset"] = "bash"
+
+
+def test_allows_file_extension_for_presets(my_rc_params):
+    # passes:
+    my_rc_params["preset"] = "bash/bash_picongpu.profile.example"
