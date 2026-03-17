@@ -62,6 +62,7 @@ packages = [ "picongpu" ]
 "../../etc" = "picongpu/core/etc"
 "../../bin" = "picongpu/core/bin"
 "../../src/tools/bin" = "picongpu/core/bin"
+"../../share/picongpu/examples" = "picongpu/core/share/picongpu/examples"
 
 [tool.hatch.build.targets.sdist]
 packages = [ "picongpu" ]
@@ -70,6 +71,7 @@ packages = [ "picongpu" ]
 "../../etc" = "picongpu/core/etc"
 "../../bin" = "picongpu/core/bin"
 "../../src/tools/bin" = "picongpu/core/bin"
+"../../share/picongpu/examples" = "picongpu/core/share/picongpu/examples"
 
 [tool.pytest.ini_options]
 markers = [

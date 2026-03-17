@@ -5,5 +5,6 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from ._rc_params import rc_params as rc_params
 from . import core as core
+from ._rc_params import DirtyResetError as DirtyResetError
+from ._rc_params import rc_params as rc_params

@@ -11,7 +11,9 @@ from pathlib import Path
 
 
 @lru_cache
-def path(component: Literal["bin", "etc", "include"]):
+def path(component: Literal["bin", "etc", "include"] | None = None):
+    if component is None:
+        return path("bin").parent
     here = Path(__file__).parent.absolute()
     alternative_location_in_source = here.parents[3]
     expected_components = "pic-create" if component == "bin" else "picongpu"
