@@ -1,0 +1,164 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname ${BASH_SOURCE:-$0}) && pwd)/$(basename ${BASH_SOURCE:-$0}) # for compatibility with both zsh and bash
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj=`accounts | grep gpu | awk '{print $1}'`
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# General modules #############################################################
+#
+module purge
+module load gcc-native/13.2
+module load craype/2.7.34
+module load libfabric/1.22.0
+module load craype-network-ofi
+module load cray-mpich/8.1.32
+module load cray-libsci/25.03.0
+module load PrgEnv-gnu/8.6.0
+module load cray-dsmml/0.3.1
+module load craype-x86-milan
+module load cudatoolkit/25.3_12.8
+module load craype-accel-nvidia80
+module load cue-login-env/1.1
+module load slurm-env/0.1
+module load default
+module load cmake/3.31.8
+module load python
+
+
+# self-build libraries ##################################################################
+#
+# needs to be compiled by the user
+# Check the install script "dependencies_autoinstall.sh"
+# in the picongpu source code under etc/picongpu/delta-ncsa/
+
+export PROJECT_DIR="/projects/__proj_name__/__user_name__/"
+export DELTA_LIB="$PROJECT_DIR/delta-picongpu-libs/"
+
+BOOST_VERSION=1.87.0
+export BOOST_ROOT=$DELTA_LIB/BOOST/$BOOST_VERSION
+export CPATH=$BOOST_ROOT/include:$CPATH
+export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=$BOOST_ROOT/lib/cmake:$CMAKE_PREFIX_PATH
+
+BLOSC_VERSION=2.22.0
+export BLOSC_ROOT=$DELTA_LIB/BLOSC/$BLOSC_VERSION
+export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
+
+HDF5_VERSION=2.0.0 #1.14.6
+export HDF5_ROOT=$DELTA_LIB/HDF5/$HDF5_VERSION
+export PATH=$HDF5_ROOT/bin:$PATH
+export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
+#export HDF5_LIBRARIES=$HDF5_ROOT/lib
+#export HDF5_INCLUDE_DIRS=$HDF5_ROOT/include
+
+ADIOS2_VERSION=2.11.0
+export ADIOS2_ROOT=$DELTA_LIB/ADIOS2/$ADIOS2_VERSION
+export PATH=$ADIOS2_ROOT/bin:$PATH
+export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
+export PYTHONPATH=$ADIOS2_ROOT/lib/python3.10/site-packages:$PYTHONPATH
+
+OPENPMD_VERSION=0.17.0
+export OPENPMD_ROOT=$DELTA_LIB/OPENPMD/$OPENPMD_VERSION
+export PATH=$OPENPMD_ROOT/bin:$PATH
+export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$OPENPMD_ROOT/lib/python3.10/site-packages:$PYTHONPATH
+
+LIBPNG_VERSION=1.6.34
+export LIBPNG_ROOT=$DELTA_LIB/libpng/$LIBPNG_VERSION
+export CMAKE_PREFIX_PATH=$LIBPNG_ROOT:$CMAKE_PREFIX_PATH
+export CPATH=$LIBPNG_ROOT/include:$CPATH
+export LD_LIBRARY_PATH=$LIBPNG_ROOT/lib:$LD_LIBRARY_PATH
+
+PNGWRITER_VERSION=0.7.0
+export PNGwriter_ROOT=$DELTA_LIB/PNGWRITER/$PNGWRITER_VERSION
+export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
+export CPATH=$PNGwriter_ROOT/include:$CPATH
+export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+
+FFTW_VERSION=3.3.10
+export FFTW_ROOT=$DELTA_LIB/FFTW/FFTW_VERSION
+export CMAKE_PREFIX_PATH=$FFTW_ROOT:$CMAKE_PREFIX_PATH
+export CPATH=$FFTW_ROOT/include:$CPATH
+export LD_LIBRARY_PATH=$FFTW_ROOT/lib:$LD_LIBRARY_PATH
+
+
+
+# Environment #################################################################
+#
+export CC="$(which cc)"
+export CXX="$(which CC)"
+export CUDACXX=$(which nvcc)
+
+export MPI_CXX=$(which mpic++)
+export MPI_CC=$(which mpicc)
+
+export PICSRC=$HOME/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:80"
+
+
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/delta-ncsa"}
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "gpu-v100" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/delta-ncsa/gpuA100x4.tpl"
+export TBG_partition="gpuA100x4"
+
+# allocate an interactive shell for one hour
+#   getNode 2  # allocates two interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gres=gpu:4 --mem=240000 -p $TBG_partition -A $proj --pty bash
+}
+
+# allocate an interactive device for one hour to execute a mpi parallel application
+#   getDevice 2  # allocates two interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numGPUs=1
+    else
+        if [ "$1" -gt 4 ] ; then
+            echo "The maximal number of devices per node is 4." 1>&2
+            return 1
+        else
+            numGPUs=$1
+        fi
+    fi
+    srun --time=1:00:00 --nodes=1 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gres=gpu:$numGPUs --mem=$((60000 * $numGPUs)) -p $TBG_partition -A $proj --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
