@@ -5,6 +5,10 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from functools import lru_cache
 from pathlib import Path
 
-path = Path(__file__).parent.absolute()
+
+@lru_cache
+def path():
+    return Path(__file__).parent.absolute()

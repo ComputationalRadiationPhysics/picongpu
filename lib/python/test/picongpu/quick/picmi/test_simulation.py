@@ -457,11 +457,8 @@ class TestPicmiSimulation(TestCase):
         sim.picongpu_add_custom_user_input(i_1)
         sim.picongpu_add_custom_user_input(i_2)
 
-        # get pypicongpu simualtion
-        pypicongpu_simulation = sim.get_as_pypicongpu()
-
         # write simulation
-        sim.write_input_file(out_dir, pypicongpu_simulation=pypicongpu_simulation)
+        sim.write_input_file(out_dir)
 
         # check for generated (rendered) dir
         assert os.path.isdir(out_dir)
@@ -483,7 +480,7 @@ class TestPicmiSimulation(TestCase):
             )
             runner = sim.picongpu_get_runner()
 
-            assert list(map(Path.absolute, runner._pypicongpu_template_dir)) == [Path(tmpdir).absolute()]
+            assert list(map(Path.absolute, runner.template_dir)) == [Path(tmpdir).absolute()]
 
     def test_custom_template_dir_optional(self):
         """custom template dir is optional"""
@@ -497,8 +494,8 @@ class TestPicmiSimulation(TestCase):
         runner = sim.picongpu_get_runner()
 
         # good default template dir is selected
-        assert runner._pypicongpu_template_dir is not None
-        assert runner._pypicongpu_template_dir != ""
+        assert runner.template_dir is not None
+        assert runner.template_dir != ""
 
     def test_custom_template_dir_checks(self):
         """sanity checks are run on template dir"""

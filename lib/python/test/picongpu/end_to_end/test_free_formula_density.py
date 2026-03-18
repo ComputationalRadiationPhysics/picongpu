@@ -109,7 +109,7 @@ class TestFreeFormulaDensity(TestCase):
     @property
     def result_path(self):
         if self._result_path is None:
-            self._result_path = Path(self.sim._Simulation__runner.run_dir)
+            self._result_path = Path(self.sim.picongpu_get_runner().run_dir)
         return self._result_path
 
     def test_compare_particles_pairwise(self):

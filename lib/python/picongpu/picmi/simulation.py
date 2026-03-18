@@ -9,17 +9,17 @@ License: GPLv3+
 import datetime
 import logging
 import math
-from typing import Iterable
 from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
 from pathlib import Path
+from typing import Iterable
 
 import picmistandard
 import typeguard
 from pydantic import BaseModel, ConfigDict
 
-from picongpu import pypicongpu
+from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
@@ -37,6 +37,7 @@ from picongpu.picmi.species_requirements import (
 )
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
+from picongpu.pypicongpu.runner import Runner
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
@@ -197,7 +198,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_distributions = pypicongpu.util.build_typesafe_property(list[_DensityImpl])
 
-    __runner = pypicongpu.util.build_typesafe_property(pypicongpu.runner.Runner | None)
+    _runner = pypicongpu.util.build_typesafe_property(Runner | None)
 
     # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
     #   pydantic, Brian Marre, 2024
@@ -221,7 +222,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_walltime = picongpu_walltime
         self.picongpu_binomial_current_interpolation = picongpu_binomial_current_interpolation
         self.picongpu_custom_user_input = None
-        self.__runner = None
+        self._runner = None
 
         if picongpu_typical_ppc is not None and picongpu_typical_ppc <= 0:
             raise ValueError(f"Typical ppc should be > 0, not {picongpu_typical_ppc=}.")
@@ -307,11 +308,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    def write_input_file(
-        self,
-        file_name: str,
-        pypicongpu_simulation: pypicongpu.simulation.Simulation | None = None,
-    ) -> None:
+    def write_input_file(self, file_name: str) -> None:
         """
         generate input data set for picongpu
 
@@ -320,15 +317,13 @@ class Simulation(picmistandard.PICMI_Simulation):
         :param file_name: not yet existing directory
         :param pypicongpu_simulation: manipulated pypicongpu simulation
         """
-        if self.__runner is not None:
+        if self._runner is not None:
             logging.warning("runner already initialized, overwriting")
 
-        # if not overwritten generate from current state
-        if pypicongpu_simulation is None:
-            pypicongpu_simulation = self.get_as_pypicongpu()
-
-        self.__runner = pypicongpu.runner.Runner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
-        self.__runner.generate()
+        self._runner = Runner(
+            sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), setup_dir=file_name
+        )
+        self._runner.generate()
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.CustomUserInput):
         """add custom user input to previously stored input"""
@@ -475,10 +470,12 @@ class Simulation(picmistandard.PICMI_Simulation):
         runner.build()
         runner.run()
 
-    def picongpu_get_runner(self) -> pypicongpu.runner.Runner:
-        if self.__runner is None:
-            self.__runner = pypicongpu.runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
-        return self.__runner
+    def picongpu_get_runner(self) -> Runner:
+        if self._runner is None:
+            self._runner = Runner(
+                sim=self.get_as_pypicongpu(), template_dir=self.picongpu_template_dir or (templates.path(),)
+            )
+        return self._runner
 
     def _picongpu_add_species(self, species, layout):
         self.species.append(species)
