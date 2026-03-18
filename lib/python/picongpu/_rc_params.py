@@ -141,7 +141,7 @@ def _make_template_from_example(profile_content):
         lines = [
             *lines[:spack_section_start],
             "{{{spack_section}}}",
-            *filter(_is_spack_line, lines[spack_section_start:]),
+            *filter(lambda x: not _is_spack_line(x), lines[spack_section_start:]),
         ]
     return "\n".join(lines)
 
