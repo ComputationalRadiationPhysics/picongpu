@@ -5,14 +5,14 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from contextlib import contextmanager
-from os import environ
 import tomllib
+from contextlib import contextmanager
 from copy import deepcopy
 from itertools import chain
-from warnings import warn
 from operator import methodcaller
+from os import environ
 from pathlib import Path
+from warnings import warn
 
 from moosetash import MissingVariable, missing_partial_default, missing_variable_keep, missing_variable_raise, render
 
@@ -90,7 +90,11 @@ def _split_into_default_and_required(parsed_example):
 
 
 def _parse_example_into_preset(preset):
-    return _split_into_default_and_required(_parse_example_content(_read_preset(preset)))
+    if preset is None:
+        return {}
+    return _split_into_default_and_required(_parse_example_content(_read_preset(preset))) | {
+        "profile_template_content": _generate_profile_template_content(preset)
+    }
 
 
 def _is_module_line(line):
@@ -162,6 +166,8 @@ def _read_preset(preset):
 
 
 def _generate_profile_template_content(preset):
+    if preset is None:
+        return ""
     return _make_template_from_example(_read_preset(preset))
 
 
@@ -241,16 +247,102 @@ _RETAINED_CONTENT = {"dirty_reset_policy": "raise", "missing_variable_policy": "
 _DEFAULT_CONTENT = _RETAINED_CONTENT | {"required_informartion": tuple(), "pic_src_path": core.path()}
 
 
-class RCParams(dict):
+def _read_picongpurc(path):
+    if path is None:
+        return {}
+    if not isinstance(path, Path) or not path.is_absolute():
+        return _read_picongpurc(Path(path).absolute())
+    with path.open("rb") as file:
+        return tomllib.load(file)
+
+
+_SET_VIA_PROPERTY = ["picongpurc_path", "preset"]
+
+
+class RCParams:
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for k, v in _DEFAULT_CONTENT.items():
-            self[k] = v
+        self._init_args = args
+        self._init_kwargs = kwargs
+        direct_init = dict(*args, **kwargs)
+        rc_config = _read_picongpurc(direct_init.get("picongpurc_path", None))
+        preset = _parse_example_into_preset(direct_init.get("preset", None) or rc_config.get("preset", None))
+        self._data = _DEFAULT_CONTENT | preset | rc_config | direct_init
+
+    @property
+    def preset(self):
+        return self._data.get("preset", None)
+
+    @preset.setter
+    def preset(self, value):
+        new_data = (
+            _DEFAULT_CONTENT
+            | _parse_example_into_preset(value)
+            | {key: self._data.get(key, value) for key, value in _RETAINED_CONTENT.items()}
+        )
+
+        # adding _RETAINED_CONTENT shadows potential deviations from the original state
+        # which is what we want because this content is retained and not lost during reset
+        if (self._data | _RETAINED_CONTENT) != (
+            RCParams(*self._init_args, **self._init_kwargs)._data | _RETAINED_CONTENT
+        ):
+            new_data = _interpret_dirty_reset_handler(self._data.get("dirty_reset_policy", "raise"))(
+                "preset", value, self._data, new_data
+            )
+        self._data = new_data
+
+    @property
+    def picongpurc_path(self):
+        return self._data.get("picongpurc_path", None)
+
+    @picongpurc_path.setter
+    def picongpurc_path(self, value):
+        new_data = RCParams(picongpurc_path=value)._data | {
+            key: self._data.get(key, value) for key, value in _RETAINED_CONTENT.items()
+        }
+        # adding _RETAINED_CONTENT shadows potential deviations from the original state
+        # which is what we want because this content is retained and not lost during reset
+        if (self._data | _RETAINED_CONTENT) != (
+            RCParams(*self._init_args, **self._init_kwargs)._data | _RETAINED_CONTENT
+        ):
+            new_data = _interpret_dirty_reset_handler(self._data.get("dirty_reset_policy", "raise"))(
+                "preset", value, self._data, new_data
+            )
+        self._data = new_data
+
+    def __getitem__(self, *args, **kwargs):
+        return self._data.__getitem__(*args, **kwargs)
+
+    def __contains__(self, *args, **kwargs):
+        return self._data.__contains__(*args, **kwargs)
+
+    def __setitem__(self, *args, **kwargs):
+        if args[0] in _SET_VIA_PROPERTY:
+            setattr(self, args[0], args[1])
+        return self._data.__setitem__(*args, **kwargs)
+
+    def __ior__(self, other):
+        if isinstance(other, RCParams):
+            return self.__ior__(other._data)
+        if not isinstance(other, dict):
+            raise TypeError(f"Unknown operator {type(self)} |= {type(other)}.")
+        other = deepcopy(other)
+        for key in _SET_VIA_PROPERTY:
+            if (value := other.pop(key, NotImplemented)) is not NotImplemented:
+                setattr(self, key, value)
+        self._data = self._data.__ior__(other)
+        return self
+
+    def __or__(self, other):
+        if isinstance(other, RCParams):
+            return self.__or__(other._data)
+        if not isinstance(other, dict):
+            raise TypeError(f"Unknown operator {type(self)} | {type(other)}.")
+        return RCParams(self._data.__or__(other))
 
     @contextmanager
     def set_temporarily(self, /, override_existing=True, **kwargs):
-        setter = self.__setitem__ if override_existing else self.setdefault
-        previous = {k: self.get(k, NotImplemented) for k in kwargs}
+        setter = self._data.__setitem__ if override_existing else self._data.setdefault
+        previous = {k: self._data.get(k, NotImplemented) for k in kwargs}
         try:
             for k, v in kwargs.items():
                 setter(k, v)
@@ -258,83 +350,52 @@ class RCParams(dict):
         finally:
             for k, v in previous.items():
                 if v is NotImplemented:
-                    self.pop(k, NotImplemented)
+                    self._data.pop(k, NotImplemented)
                 else:
                     setter(k, v)
 
-    def _managed_clear(self, key, value):
-        previous = deepcopy(self)
-        self.clear()
-        for k, v in _DEFAULT_CONTENT.items():
-            self[k] = v
-        for k, v in _RETAINED_CONTENT.items():
-            self[k] = previous.get(k, v)
-        if previous != self:
-            self |= _interpret_dirty_reset_handler(self["dirty_reset_policy"])(key, value, previous, self)
-
-    def _handle_setting_picongpurc_path(self, picongpurc_path):
-        if picongpurc_path is None:
-            return
-        self._managed_clear("picongpurc_path", picongpurc_path)
-        with Path(picongpurc_path).open("rb") as file:
-            self |= tomllib.load(file).items()
-
-    def _handle_setting_preset(self, preset):
-        if preset is None:
-            return
-        self._managed_clear("preset", preset)
-        self |= _parse_example_into_preset(preset)
-        self["profile_template_content"] = _generate_profile_template_content(preset)
-
-    def __setitem__(self, *args, **kwargs):
-        if args[0] == "picongpurc_path":
-            self._handle_setting_picongpurc_path(args[1])
-        elif args[0] == "preset":
-            self._handle_setting_preset(args[1])
-        return super().__setitem__(*args, **kwargs)
-
     @property
     def rendering_context(self):
-        return _path_to_str(self)
+        return _path_to_str(self._data)
 
     @property
     def profile_template_content(self):
-        if "profile_template_content" in self:
-            return self["profile_template_content"]
-        elif "profile_template_path" in self:
-            with Path(self["profile_template_path"]).open("r") as file:
+        if "profile_template_content" in self._data:
+            return self._data["profile_template_content"]
+        elif "profile_template_path" in self._data:
+            with Path(self._data["profile_template_path"]).open("r") as file:
                 return file.read()
         else:
             return ""
 
     @property
     def profile_content(self):
-        if "profile_content" in self:
-            return self["profile_content"]
-        elif "profile_path" in self:
-            with Path(self["profile_path"]).open("r") as file:
+        if "profile_content" in self._data:
+            return self._data["profile_content"]
+        elif "profile_path" in self._data:
+            with Path(self._data["profile_path"]).open("r") as file:
                 return file.read()
         elif template := self.profile_template_content:
             try:
                 return render(
                     template=template,
                     context=self.rendering_context,
-                    missing_variable_handler=_interpret_missing_variable_handler(self["missing_variable_policy"]),
+                    missing_variable_handler=_interpret_missing_variable_handler(self._data["missing_variable_policy"]),
                 )
             except MissingVariable as error:
                 message = (
                     "Rendering your profile template encountered a missing variable. "
-                    f"The following variables are expected from your preset: {self.get('required_information', [])}. "
+                    f"The following variables are expected from your preset: {self._data.get('required_information', [])}. "
                     "You can query this via rc_params['required_information']."
                 )
                 raise MissingVariable(message) from error
         else:
-            return ""
+            return f'export PATH="{str(core.path("bin"))}:$PATH"'
 
     @property
     def shebang(self):
-        if "shebang" in self:
-            return self["shebang"]
+        if "shebang" in self._data:
+            return self._data["shebang"]
         elif (shebang := self.profile_content.split("\n", maxsplit=1)[0]).startswith("#!"):
             return shebang
         else:
@@ -342,8 +403,8 @@ class RCParams(dict):
 
     @property
     def preamble(self):
-        if "preamble" in self:
-            return self["preamble"]
+        if "preamble" in self._data:
+            return self._data["preamble"]
         else:
             return "set -euxo pipefail"
 

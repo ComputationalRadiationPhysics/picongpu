@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import tomli_w
 from picongpu import rc_params
-from picongpu._rc_params import search_for_in_parents
+from picongpu._rc_params import RCParams, search_for_in_parents
 from picongpu.pypicongpu.runner import generate_bare_profile_as_in, run_commands, generate_bare_profile
 from pytest import fixture, mark, raises
 
@@ -161,3 +161,27 @@ rc_params["profile_content"] = "{arbitrary_string}"
             result_path = generate_bare_profile_as_in(script_path=script.name, path=file.name)
             assert arbitrary_string in file.read()
             assert Path(file.name) == result_path
+
+
+def test_init_args_take_precedence_over_picongpurc():
+    with NamedTemporaryFile("w") as file:
+        file.write('author = "a"')
+        file.flush()
+        assert RCParams(author="b", picongpurc_path=Path(file.name))["author"] == "b"
+
+
+def test_init_args_take_precedence_over_preset(arbitrary_string):
+    # just to be sure the test isn't trivial:
+    assert RCParams(preset="bash")["pic_backend"] != arbitrary_string
+
+    assert RCParams(pic_backend=arbitrary_string, preset="bash")["pic_backend"] == arbitrary_string
+
+
+def test_picongpurc_content_takes_precedence_over_preset(arbitrary_string):
+    # just to be sure the test isn't trivial:
+    assert RCParams(preset="bash")["pic_backend"] != arbitrary_string
+
+    with NamedTemporaryFile("w") as file:
+        file.write(f'pic_backend = "{arbitrary_string}"')
+        file.flush()
+        assert RCParams(preset="bash", picongpurc_path=Path(file.name))["pic_backend"] == arbitrary_string

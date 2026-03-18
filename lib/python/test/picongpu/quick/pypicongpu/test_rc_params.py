@@ -39,7 +39,7 @@ def dirty_rc_params(my_rc_params, any_key, any_content):
 
 def test_presets_set_src_path(my_rc_params):
     my_rc_params["preset"] = "bash/bash_picongpu"
-    assert "pic_src_path" in my_rc_params
+    assert my_rc_params["pic_src_path"] == core.path()
 
 
 def test_presets_clear_previous_settings(dirty_rc_params, any_key):
@@ -68,10 +68,10 @@ def test_dirty_resets_can_ignore(dirty_rc_params):
 def test_dirty_resets_can_trigger_custom_handler(dirty_rc_params):
     call_args = []
     dirty_rc_params["dirty_reset_policy"] = lambda *args: call_args.extend(args) or args[3]
-    previous = deepcopy(dirty_rc_params)
+    previous = deepcopy(dirty_rc_params)._data
     dirty_rc_params["preset"] = "bash/bash_picongpu"
 
-    assert call_args == ["preset", "bash/bash_picongpu", previous, dirty_rc_params]
+    assert call_args == ["preset", "bash/bash_picongpu", previous, dirty_rc_params._data]
 
 
 def test_preset_points_profile_to_correct_pic_src_path(my_rc_params):
