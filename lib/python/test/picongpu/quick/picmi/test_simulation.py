@@ -10,17 +10,17 @@ import os
 import shutil
 import tempfile
 import typing
-from unittest import TestCase
 from pathlib import Path
+from unittest import TestCase
 
-import typeguard
 import pytest
+import typeguard
 from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
+from rocrate.rocrate import ROCrate
 
 
-@typeguard.typechecked
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     # sets delta_[x,y,z] implicitly by providing bounding box+cell count
     return picmi.Cartesian3DGrid(
@@ -33,7 +33,6 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     )
 
 
-@typeguard.typechecked
 def get_sim_cfl_helper(
     delta_t: typing.Optional[float],
     cfl: typing.Optional[float],
@@ -615,3 +614,11 @@ class TestPicmiSimulation(TestCase):
         with pytest.raises(ValueError, match="Key test_data_1 exist already, and specified values differ."):
             self.sim.picongpu_add_custom_user_input(i_differentValue)
             self.sim.get_as_pypicongpu().get_rendering_context()
+
+    def test_all_files_tracked_by_rocrate(self):
+        outdir = self.__get_tmpdir_name()
+        self.sim.write_input_file(outdir)
+        tracked = [Path(outdir) / e.id for e in ROCrate(outdir).data_entities if e.type == "File"]
+        existing = list(filter(Path.is_file, Path(outdir).rglob("*")))
+        # The `ro-crate-metadata.json` file is listed as a different @type.
+        assert set(existing).symmetric_difference(tracked) == {Path(outdir) / "ro-crate-metadata.json"}

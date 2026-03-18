@@ -43,6 +43,7 @@ dependencies = [
   "pint",
   "pydantic>=2.6.4",
   "referencing>=0.35.1",
+  "rocrate",
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",

@@ -317,6 +317,15 @@ class RCParams:
             )
         self._data = new_data
 
+    @property
+    def preset_dir(self):
+        if "preset" in self._data:
+            return self._data["preset"].split("/")[0]
+        elif "export PIC_SYSTEM_TEMPLATE_PATH=" in (txt := self.profile_content):
+            return txt.split('PIC_SYSTEM_TEMPLATE_PATH:-"')[1].split('"}')[0].strip().split("/picongpu/")[1]
+        else:
+            return ""
+
     def __getitem__(self, *args, **kwargs):
         return self._data.__getitem__(*args, **kwargs)
 

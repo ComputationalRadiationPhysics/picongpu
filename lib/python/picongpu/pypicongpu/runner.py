@@ -12,10 +12,10 @@ import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from shutil import copytree
 from typing import Annotated, Sequence
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, Field
+from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, PrivateAttr
+from rocrate.rocrate import ROCrate
 
 from picongpu import core, rc_params
 from picongpu.templates import path as tpath
@@ -169,6 +169,8 @@ class Runner(BaseModel):
     )
     sim: Annotated[Simulation, BeforeValidator(lambda s: alt(lambda: s.get_as_pypicongpu(), s))]
 
+    _rocrate: ROCrate = PrivateAttr(default_factory=ROCrate)
+
     def _log_dirs(self):
         """print human-readble list of paths to log"""
         logging.info(" template dir: {}".format(self.template_dir))
@@ -191,7 +193,14 @@ class Runner(BaseModel):
         # dump checked context
         self.store_metadata(context, filename="pypicongpu_rendering_context.json")
         # preprocess (floats to str, add _special properties, ...)
-        Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir))
+        with tempfile.TemporaryDirectory() as d:
+            self._rocrate.write(d)
+            rendered_directory = Renderer.render_directory(Renderer.get_context_preprocessed(context), d)
+        for p in rendered_directory.iterdir():
+            if p.is_file():
+                self._rocrate.add_file(p, p.name)
+            else:
+                self._rocrate.add_tree(p, p.name)
 
     @property
     def metadata_path(self):
@@ -209,13 +218,8 @@ class Runner(BaseModel):
     def run_command_path(self):
         return self.setup_dir / "commands" / "run.sh"
 
-    def generate_profile(self):
-        self.profile_path.parent.mkdir(parents=True, exist_ok=True)
-        generate_bare_profile(self.profile_path)
-
     def generate_build_command(self, *args, rc_params=rc_params, **flags):
-        self.build_command_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.build_command_path.open("w") as script:
+        with tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False) as script:
             script.write(
                 script_content_with(
                     " ".join(["pic-build", *map(lambda f: f"-{f[0]} {f[1]}", flags.items()), *args]),
@@ -224,10 +228,10 @@ class Runner(BaseModel):
                 )
             )
             script.flush()
+            return script.name
 
     def generate_run_command(self, *args, rc_params=rc_params, **flags):
-        self.run_command_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.run_command_path.open("w") as script:
+        with tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False) as script:
             script.write(
                 script_content_with(
                     [
@@ -239,11 +243,13 @@ class Runner(BaseModel):
                 )
             )
             script.flush()
+            return script.name
 
     def store_metadata(self, metadata, filename):
-        self.metadata_path.mkdir(parents=True, exist_ok=True)
-        with (self.metadata_path / filename).open("w") as file:
+        with tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False) as file:
             json.dump(metadata, file, indent=4)
+            file.flush()
+            self._rocrate.add_file(file.name, f"metadata/{filename}")
 
     def generate(self, printDirToConsole=False):
         """
@@ -256,27 +262,29 @@ class Runner(BaseModel):
         assert not self.setup_dir.is_dir(), (
             "setup directory must not exist before generation -- did you call generate() already?"
         )
-
-        dst = self.setup_dir / "etc" / "picongpu"
-        dst.mkdir(parents=True)
-        copytree(core.path("etc") / "picongpu", dst, dirs_exist_ok=True)
+        preset = rc_params.preset_dir
+        self._rocrate.add_tree(core.path("etc") / f"picongpu/{preset}", f"etc/picongpu/{preset}")
+        for path in (core.path("etc") / "picongpu").iterdir():
+            if path.is_file():
+                self._rocrate.add_file(path, f"etc/picongpu/{path.name}")
 
         for t in self.template_dir:
-            for src, dst in map(
-                lambda f: (t / f, self.setup_dir / f), ("etc/picongpu", "bin", "include/picongpu", "lib", "validation")
-            ):
-                if src.is_dir():
-                    dst.mkdir(parents=True, exist_ok=True)
-                    copytree(src, dst, dirs_exist_ok=True)
+            for dst in ("etc/picongpu", "bin", "include/picongpu", "lib", "validation"):
+                if (src := t / dst).is_dir():
+                    self._rocrate.add_tree(src, dst)
 
-        self._render_templates()
-
-        self.generate_profile()
-        self.generate_build_command(j=4)
-        self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE")
+        self._rocrate.add_file(generate_bare_profile(), "commands/picongpu.profile")
+        self._rocrate.add_file(self.generate_build_command(j=4), "commands/build.sh")
+        self._rocrate.add_file(
+            self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE"),
+            "commands/run.sh",
+        )
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
+
+        self._render_templates()
+        self._rocrate.write(self.setup_dir)
 
     def build(self):
         """
