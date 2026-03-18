@@ -15,6 +15,7 @@ from pathlib import Path
 from warnings import warn
 
 from moosetash import MissingVariable, missing_partial_default, missing_variable_keep, missing_variable_raise, render
+from pydantic import BaseModel, ConfigDict
 
 from picongpu import core
 
@@ -244,7 +245,7 @@ def _path_to_str(value):
 
 
 _RETAINED_CONTENT = {"dirty_reset_policy": "raise", "missing_variable_policy": "raise"}
-_DEFAULT_CONTENT = _RETAINED_CONTENT | {"required_informartion": tuple(), "pic_src_path": core.path()}
+_DEFAULT_CONTENT = _RETAINED_CONTENT | {"required_information": tuple(), "pic_src_path": core.path()}
 
 
 def _read_picongpurc(path):
@@ -259,6 +260,10 @@ def _read_picongpurc(path):
 _SET_VIA_PROPERTY = ["picongpurc_path", "preset"]
 
 
+class _Serializer(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
 class RCParams:
     def __init__(self, *args, **kwargs):
         self._init_args = args
@@ -267,6 +272,9 @@ class RCParams:
         rc_config = _read_picongpurc(direct_init.get("picongpurc_path", None))
         preset = _parse_example_into_preset(direct_init.get("preset", None) or rc_config.get("preset", None))
         self._data = _DEFAULT_CONTENT | preset | rc_config | direct_init
+
+    def model_dump(self, mode="json"):
+        return _Serializer(**self._data).model_dump(mode=mode)
 
     @property
     def preset(self):

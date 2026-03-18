@@ -189,11 +189,13 @@ class Runner(BaseModel):
         # check 2: structure suitable for renderer?
         Renderer.check_rendering_context(context)
         # dump checked context
-        with (self.setup_dir / "pypicongpu.json").open("w") as file:
-            json.dump(context, file, indent=4)
-
+        self.store_metadata(context, filename="pypicongpu_rendering_context.json")
         # preprocess (floats to str, add _special properties, ...)
         Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir))
+
+    @property
+    def metadata_path(self):
+        return self.setup_dir / "metadata"
 
     @property
     def profile_path(self):
@@ -238,6 +240,11 @@ class Runner(BaseModel):
             )
             script.flush()
 
+    def store_metadata(self, metadata, filename):
+        self.metadata_path.mkdir(parents=True, exist_ok=True)
+        with (self.metadata_path / filename).open("w") as file:
+            json.dump(metadata, file, indent=4)
+
     def generate(self, printDirToConsole=False):
         """
         generate the picongpu-compatible input files
@@ -267,6 +274,9 @@ class Runner(BaseModel):
         self.generate_profile()
         self.generate_build_command(j=4)
         self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE")
+
+        self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
+        self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
 
     def build(self):
         """

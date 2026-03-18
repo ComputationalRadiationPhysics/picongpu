@@ -431,7 +431,9 @@ class TestPicmiSimulation(TestCase):
             assert rendered_file.read() == "128"
 
         # JSON has been dumped
-        assert os.path.isfile(out_dir + "/pypicongpu.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_rendering_context.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_runner.json")
+        assert os.path.isfile(out_dir + "/metadata/rc_params.json")
 
     def test_custom_input_basic_write_input_file(self):
         """test custom input may be rendered"""
@@ -464,7 +466,9 @@ class TestPicmiSimulation(TestCase):
         assert os.path.isdir(out_dir)
 
         # JSON has been dumped
-        assert os.path.isfile(out_dir + "/pypicongpu.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_rendering_context.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_runner.json")
+        assert os.path.isfile(out_dir + "/metadata/rc_params.json")
 
     def test_custom_template_dir_basic_get_runner(self):
         """using picongpu_get_runner() directly sets template dir"""
