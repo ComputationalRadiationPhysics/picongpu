@@ -12,11 +12,12 @@ import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+from shutil import copytree
 from typing import Annotated, Sequence
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, Field
 
-from picongpu import rc_params
+from picongpu import core, rc_params
 from picongpu.templates import path as tpath
 
 from .rendering import Renderer
@@ -160,8 +161,12 @@ class Runner(BaseModel):
     """
 
     template_dir: Annotated[Sequence[Path], AfterValidator(lambda t: tuple(p.absolute() for p in t))] = (tpath(),)
-    setup_dir: Annotated[Path, AfterValidator(Path.absolute)] = Path(get_tmpdir_with_name("setup")).absolute()
-    run_dir: Annotated[Path, AfterValidator(Path.absolute)] = Path(get_tmpdir_with_name("run")).absolute()
+    setup_dir: Annotated[Path, AfterValidator(Path.absolute)] = Field(
+        default_factory=lambda: Path(get_tmpdir_with_name("setup")).absolute()
+    )
+    run_dir: Annotated[Path, AfterValidator(Path.absolute)] = Field(
+        default_factory=lambda: Path(get_tmpdir_with_name("run")).absolute()
+    )
     sim: Annotated[Simulation, BeforeValidator(lambda s: alt(lambda: s.get_as_pypicongpu(), s))]
 
     def _log_dirs(self):
@@ -190,6 +195,49 @@ class Runner(BaseModel):
         # preprocess (floats to str, add _special properties, ...)
         Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir))
 
+    @property
+    def profile_path(self):
+        return self.setup_dir / "commands" / "picongpu.profile"
+
+    @property
+    def build_command_path(self):
+        return self.setup_dir / "commands" / "build.sh"
+
+    @property
+    def run_command_path(self):
+        return self.setup_dir / "commands" / "run.sh"
+
+    def generate_profile(self):
+        self.profile_path.parent.mkdir(parents=True, exist_ok=True)
+        generate_bare_profile(self.profile_path)
+
+    def generate_build_command(self, *args, rc_params=rc_params, **flags):
+        self.build_command_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.build_command_path.open("w") as script:
+            script.write(
+                script_content_with(
+                    " ".join(["pic-build", *map(lambda f: f"-{f[0]} {f[1]}", flags.items()), *args]),
+                    rc_params=rc_params,
+                    working_dir=self.setup_dir,
+                )
+            )
+            script.flush()
+
+    def generate_run_command(self, *args, rc_params=rc_params, **flags):
+        self.run_command_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.run_command_path.open("w") as script:
+            script.write(
+                script_content_with(
+                    [
+                        f'export PIC_PROFILE="{str(self.profile_path)}"',
+                        " ".join(["tbg", *map(lambda f: f"-{f[0]} {f[1]}", flags.items()), *args]),
+                    ],
+                    rc_params=rc_params,
+                    working_dir=self.setup_dir,
+                )
+            )
+            script.flush()
+
     def generate(self, printDirToConsole=False):
         """
         generate the picongpu-compatible input files
@@ -201,12 +249,24 @@ class Runner(BaseModel):
         assert not self.setup_dir.is_dir(), (
             "setup directory must not exist before generation -- did you call generate() already?"
         )
-        run_commands(
-            [f"pic-create --force {str(d)} {self.setup_dir}" for d in self.template_dir],
-            name="copy_templates",
-            script_path=Path(self.setup_dir) / "scripts" / "copy-templates-step.sh",
-        )
+
+        dst = self.setup_dir / "etc" / "picongpu"
+        dst.mkdir(parents=True)
+        copytree(core.path("etc") / "picongpu", dst, dirs_exist_ok=True)
+
+        for t in self.template_dir:
+            for src, dst in map(
+                lambda f: (t / f, self.setup_dir / f), ("etc/picongpu", "bin", "include/picongpu", "lib", "validation")
+            ):
+                if src.is_dir():
+                    dst.mkdir(parents=True, exist_ok=True)
+                    copytree(src, dst, dirs_exist_ok=True)
+
         self._render_templates()
+
+        self.generate_profile()
+        self.generate_build_command(j=4)
+        self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE")
 
     def build(self):
         """
@@ -218,12 +278,9 @@ class Runner(BaseModel):
         assert not (self.setup_dir / ".build").exists(), (
             "build dir (.build in setup dir) must not exist -- did you call build() already?"
         )
-        run_commands(
-            "pic-build -j 4",
-            name="pic-build",
-            script_path=Path(self.setup_dir) / "scripts" / "pic-build-step.sh",
-            working_dir=self.setup_dir,
-        )
+        if not self.build_command_path.exists():
+            self.generate_build_command(j=4)
+        return runArgs("build", [*rc_params.shebang[len("#!") :].split(" "), str(self.build_command_path)])
 
     def run(self):
         """
@@ -233,12 +290,6 @@ class Runner(BaseModel):
             "build dir (.build in setup dir) must exist -- did you call build()?"
         )
         assert not self.run_dir.exists(), "run dir must not exist yet -- did you call run() already?"
-        run_commands(
-            [
-                f"export PIC_PROFILE={str(generate_bare_profile())}",
-                f"tbg -s bash -c etc/picongpu/N.cfg -t $TBG_TPLFILE {str(self.run_dir)}",
-            ],
-            name="run picongpu",
-            script_path=self.setup_dir / "scripts" / "run-step.sh",
-            working_dir=self.setup_dir,
-        )
+        if not self.run_command_path.exists():
+            self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE")
+        return runArgs("run", [*rc_params.shebang[len("#!") :].split(" "), str(self.run_command_path)])
