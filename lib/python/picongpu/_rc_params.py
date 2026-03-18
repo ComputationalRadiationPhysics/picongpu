@@ -406,7 +406,10 @@ class RCParams:
         if "preamble" in self._data:
             return self._data["preamble"]
         else:
-            return "set -euxo pipefail"
+            return f"""
+set -euxo pipefail
+export PATH="{str(core.path("bin"))}:$PATH"
+"""
 
 
 def search_for_in_parents(filename, start_path):
