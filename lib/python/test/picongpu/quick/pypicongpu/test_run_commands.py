@@ -71,8 +71,8 @@ def test_uses_profile_path(my_rc_params, passing_command, arbitrary_string):
         assert run_commands(passing_command, rc_params=my_rc_params).stdout.decode().strip() == arbitrary_string
 
 
-# Taking a little guess here that these two will be available on any test system:
-@mark.parametrize("shell", ["/bin/sh", "/bin/bash"])
+# Taking a little guess here that these might be available on test systems:
+@mark.parametrize("shell", filter(lambda p: Path(p).exists(), ("/bin/sh", "/bin/bash", "/bin/zsh")))
 def test_respects_shebang_in_profile(my_rc_params, shell):
     my_rc_params["profile_content"] = f"#!{shell}"
     run_commands(
@@ -84,6 +84,10 @@ def test_respects_shebang_in_profile(my_rc_params, shell):
     )
 
 
+@mark.skipif(
+    condition=(not Path("/bin/sh").exists()) or (not Path("/bin/bash").exists()),
+    reason="The used shells are not available.",
+)
 def test_respects_overriden_shebang(my_rc_params):
     shebang = "/bin/sh"
     my_rc_params["profile_content"] = "#!/bin/bash"
