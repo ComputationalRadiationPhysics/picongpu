@@ -25,8 +25,6 @@ from . import util
 from .rendering import Renderer
 from .simulation import Simulation
 
-logging.basicConfig(level=logging.DEBUG)
-
 
 @contextmanager
 def cd(path):
@@ -40,7 +38,6 @@ def cd(path):
 
 def runArgs(name, args):
     assert list(filter(lambda x: x is None, args)) == [], "arguments must not be None!"
-    logging.basicConfig(level=logging.DEBUG)
     logging.info("running {}...".format(name))
     logging.debug("command for {}: {}".format(name, " ".join(args)))
     proc = subprocess.run(args, capture_output=True)
