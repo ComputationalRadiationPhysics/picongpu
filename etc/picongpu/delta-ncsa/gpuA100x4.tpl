@@ -48,7 +48,7 @@
 
 ## calculations will be performed by tbg ##
 .TBG_queue=${TBG_partition:-"gpuA100x4"}
-.TBG_account=${DELTA_account:-"default"}
+.TBG_account=${proj:-"default"}
 # configure if the output file should be appended or overwritten
 .TBG_keepOutputFileOpen="SBATCH --open-mode=append"
 
