@@ -6,12 +6,12 @@ License: GPLv3+
 """
 
 import datetime
+import functools
 import logging
 import math
+import pathlib
 import re
 import typing
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import sympy
 import typeguard
@@ -191,23 +191,46 @@ class Renderer:
         return render(template, context, missing_variable_handler=_allow_only_missing_type_variables)
 
     @staticmethod
-    def render_directory(context: dict, path: str) -> Path:
+    def render_directory(context: dict, path: str) -> None:
         """
         Render all templates inside a given directory and remove the templates
 
         Recursively find all files inside given path and render the files
         ending in ".mustache" to the same name without the ending.
+        The original ".mustache" files are renamed with a dot "." prefix.
 
         :param context: (checked and preprocessed) rendering context
         :param path: directory containing ".mustache" files
         """
-        with TemporaryDirectory(delete=False) as d:
-            for template_path in filter(lambda p: p.name.endswith(".mustache"), Path(path).rglob("*")):
-                rendered_path = Path(d).absolute() / str(template_path.relative_to(path))[: -len(".mustache")]
-                rendered_path.parent.mkdir(parents=True, exist_ok=True)
-                with rendered_path.open("w") as outfile, template_path.open("r") as infile:
-                    outfile.write(Renderer.get_rendered_template(context, infile.read()))
-            return Path(d).absolute()
+        if not pathlib.Path(path).is_dir():
+            raise ValueError("is not a directory: {}".format(path))
+
+        mustache_fileending_re = re.compile(r"[.]mustache$")
+        all_mustache_files = list(
+            filter(
+                lambda p: mustache_fileending_re.search(str(p)),
+                filter(lambda p: p.is_file(), pathlib.Path(path).rglob("*")),
+            )
+        )
+        for template_path in all_mustache_files:
+            rendered_path = pathlib.Path(mustache_fileending_re.sub("", str(template_path)))
+            if rendered_path.exists():
+                raise ValueError("would overwrite {}, aborting".format(rendered_path))
+
+            with open(rendered_path, "w") as outfile:
+                with open(template_path, "r") as infile:
+                    template_str = infile.read()
+                    rendered = Renderer.get_rendered_template(context, template_str)
+                    outfile.write(rendered)
+
+            # prefix filename with .
+            # (on that note: screw pathlib for only disassembling, but not
+            # reassembling paths from parts)
+            parts = list(template_path.parts)
+            parts[-1] = "." + parts[-1]
+            new_path = functools.reduce(lambda a, b: a / b, map(lambda s: pathlib.Path(s), parts))
+
+            template_path.rename(new_path)
 
 
 def _allow_only_missing_type_variables(name, _):

@@ -621,12 +621,14 @@ class TestPicmiSimulation(TestCase):
         self.sim.write_input_file(outdir)
         tracked = [Path(outdir) / e.id for e in ROCrate(outdir).data_entities if e.type == "File"]
         existing = list(filter(Path.is_file, Path(outdir).rglob("*")))
-        # The `ro-crate-metadata.json` and `workflow.cwl` are listed as a different @type.
-        assert set(existing).symmetric_difference(tracked) == {
-            Path(outdir) / "ro-crate-metadata.json",
-            Path(outdir) / "workflow.cwl",
-        }
+        # The `ro-crate-metadata.json` are listed as a different @type.
+        assert set(existing).symmetric_difference(tracked) == {Path(outdir) / "ro-crate-metadata.json"}
 
+    @pytest.mark.xfail(
+        reason="Undecided whether we should set it up like this. "
+        "I'm just temporarily leaving it as a reminder "
+        "and to spare the trouble to write the test again if we decide positively."
+    )
     def test_all_directories_record_their_content_as_has_part(self):
         outdir = Path(self.__get_tmpdir_name())
         self.sim.write_input_file(str(outdir))

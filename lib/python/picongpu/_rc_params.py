@@ -428,6 +428,22 @@ set -euxo pipefail
 export PATH="{str(core.path("bin"))}:$PATH"
 """
 
+    @property
+    def rocrate_info(self):
+        return _ROCrateInfo(self._data)
+
+
+def _generate_rocrate_defaults(data):
+    return {}
+
+
+class _ROCrateInfo(BaseModel):
+    def __init__(self, data):
+        return super().__init__(**(_generate_rocrate_defaults(data) | data.get("rocrate", {}).get("info", {})))
+
+    def add_metadata_to(self, crate):
+        return crate
+
 
 def search_for_in_parents(filename, start_path):
     if not isinstance(filename, Path):
