@@ -10,6 +10,7 @@ import os
 import shutil
 import tempfile
 import typing
+from operator import itemgetter
 from pathlib import Path
 from unittest import TestCase
 
@@ -620,5 +621,26 @@ class TestPicmiSimulation(TestCase):
         self.sim.write_input_file(outdir)
         tracked = [Path(outdir) / e.id for e in ROCrate(outdir).data_entities if e.type == "File"]
         existing = list(filter(Path.is_file, Path(outdir).rglob("*")))
-        # The `ro-crate-metadata.json` file is listed as a different @type.
-        assert set(existing).symmetric_difference(tracked) == {Path(outdir) / "ro-crate-metadata.json"}
+        # The `ro-crate-metadata.json` and `workflow.cwl` are listed as a different @type.
+        assert set(existing).symmetric_difference(tracked) == {
+            Path(outdir) / "ro-crate-metadata.json",
+            Path(outdir) / "workflow.cwl",
+        }
+
+    def test_all_directories_record_their_content_as_has_part(self):
+        outdir = Path(self.__get_tmpdir_name())
+        self.sim.write_input_file(str(outdir))
+        rocrate = ROCrate(outdir)
+        for id_, parent_id in map(lambda p: _as_ids(p, outdir), outdir.rglob("*")):
+            if id_ != "ro-crate-metadata.json":
+                entity = rocrate.get(parent_id)
+                assert entity is not None
+                assert id_ in map(itemgetter("@id"), entity.properties()["hasPart"])
+        for entity in rocrate.get_entities():
+            for part in entity.properties.get("hasPart", []):
+                assert (Path(outdir) / part["@id"]).exists()
+
+
+def _as_ids(p: Path, relative_to: Path):
+    local = p.relative_to(relative_to)
+    return map(lambda x: str(x) + ("/" if (relative_to / x).is_dir() else ""), (local, local.parent))

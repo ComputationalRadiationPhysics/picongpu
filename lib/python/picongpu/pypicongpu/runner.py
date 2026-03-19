@@ -11,6 +11,7 @@ import logging
 import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
+from os import chmod
 from pathlib import Path
 from typing import Annotated, Sequence
 
@@ -169,7 +170,8 @@ class Runner(BaseModel):
     )
     sim: Annotated[Simulation, BeforeValidator(lambda s: alt(lambda: s.get_as_pypicongpu(), s))]
 
-    _rocrate: ROCrate = PrivateAttr(default_factory=ROCrate)
+    _rocrate: ROCrate = PrivateAttr(default_factory=lambda: ROCrate(version="1.2"))
+    _temporary_metadata_storage_value: Path | None = PrivateAttr(None)
 
     def _log_dirs(self):
         """print human-readble list of paths to log"""
@@ -196,6 +198,9 @@ class Runner(BaseModel):
         with tempfile.TemporaryDirectory() as d:
             self._rocrate.write(d)
             rendered_directory = Renderer.render_directory(Renderer.get_context_preprocessed(context), d)
+
+        # The top-level `./` id is kind of special in an RO-Crate,
+        # so just `add_tree(..., './')` doesn't quite work as expected.
         for p in rendered_directory.iterdir():
             if p.is_file():
                 self._rocrate.add_file(p, p.name)
@@ -228,7 +233,9 @@ class Runner(BaseModel):
                 )
             )
             script.flush()
-            return script.name
+            path = Path(script.name).absolute()
+        chmod(path, 777)
+        return path
 
     def generate_run_command(self, *args, rc_params=rc_params, **flags):
         with tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False) as script:
@@ -243,13 +250,21 @@ class Runner(BaseModel):
                 )
             )
             script.flush()
-            return script.name
+            path = Path(script.name).absolute()
+        chmod(path, 777)
+        return path
+
+    @property
+    def _temporary_metadata_storage(self):
+        if self._temporary_metadata_storage_value is None:
+            self._temporary_metadata_storage_value = Path(tempfile.TemporaryDirectory(delete=False).name).absolute()
+        return self._temporary_metadata_storage_value
 
     def store_metadata(self, metadata, filename):
-        with tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False) as file:
+        with (self._temporary_metadata_storage / filename).open("w") as file:
             json.dump(metadata, file, indent=4)
             file.flush()
-            self._rocrate.add_file(file.name, f"metadata/{filename}")
+            self._rocrate.add_tree(Path(file.name).parent, "metadata")
 
     def generate(self, printDirToConsole=False):
         """
@@ -272,6 +287,8 @@ class Runner(BaseModel):
             for dst in ("etc/picongpu", "bin", "include/picongpu", "lib", "validation"):
                 if (src := t / dst).is_dir():
                     self._rocrate.add_tree(src, dst)
+            if (wf_file := t / "workflow.cwl").is_file():
+                self._rocrate.add_workflow(wf_file, "workflow.cwl")
 
         self._rocrate.add_file(generate_bare_profile(), "commands/picongpu.profile")
         self._rocrate.add_file(self.generate_build_command(j=4), "commands/build.sh")

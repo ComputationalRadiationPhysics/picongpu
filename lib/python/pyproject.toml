@@ -43,7 +43,10 @@ dependencies = [
   "pint",
   "pydantic>=2.6.4",
   "referencing>=0.35.1",
-  "rocrate",
+  # Temporarily choosing the master here
+  # because the latest release doesn't yet support RO-Crate v1.2
+  # and it doesn't seem reasonable to build a new feature on top of an outdated standard.
+  "rocrate @ git+https://github.com/ResearchObject/ro-crate-py@master",
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",
