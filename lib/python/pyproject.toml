@@ -5,13 +5,10 @@
 
 [build-system]
 build-backend = "hatchling.build"
-
 requires = [ "hatchling" ]
 
 [project]
 name = "picongpu"
-# should be always identical with PIConGPU version
-version = "0.9.0.dev"
 description = "Python package for PIConGPU"
 license = "GPL-3.0-or-later"
 # Our hand-rolled type-safety infrastructure is getting in the way of 3.14.
@@ -23,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
+dynamic = [ "version" ]
 # dependecies list generated with
 # https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
 dependencies = [
@@ -57,6 +55,9 @@ optional-dependencies.test = [ "pytest>=9" ]
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.version]
+path = "picongpu/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = [ "picongpu" ]

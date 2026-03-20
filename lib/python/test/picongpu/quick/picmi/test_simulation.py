@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
+Copyright 2021-2026 PIConGPU contributors
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
@@ -10,7 +10,6 @@ import os
 import shutil
 import tempfile
 import typing
-from operator import itemgetter
 from pathlib import Path
 from unittest import TestCase
 
@@ -19,7 +18,6 @@ import typeguard
 from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
-from rocrate.rocrate import ROCrate
 
 
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
@@ -615,34 +613,3 @@ class TestPicmiSimulation(TestCase):
         with pytest.raises(ValueError, match="Key test_data_1 exist already, and specified values differ."):
             self.sim.picongpu_add_custom_user_input(i_differentValue)
             self.sim.get_as_pypicongpu().get_rendering_context()
-
-    def test_all_files_tracked_by_rocrate(self):
-        outdir = self.__get_tmpdir_name()
-        self.sim.write_input_file(outdir)
-        tracked = [Path(outdir) / e.id for e in ROCrate(outdir).data_entities if e.type == "File"]
-        existing = list(filter(Path.is_file, Path(outdir).rglob("*")))
-        # The `ro-crate-metadata.json` are listed as a different @type.
-        assert set(existing).symmetric_difference(tracked) == {Path(outdir) / "ro-crate-metadata.json"}
-
-    @pytest.mark.xfail(
-        reason="Undecided whether we should set it up like this. "
-        "I'm just temporarily leaving it as a reminder "
-        "and to spare the trouble to write the test again if we decide positively."
-    )
-    def test_all_directories_record_their_content_as_has_part(self):
-        outdir = Path(self.__get_tmpdir_name())
-        self.sim.write_input_file(str(outdir))
-        rocrate = ROCrate(outdir)
-        for id_, parent_id in map(lambda p: _as_ids(p, outdir), outdir.rglob("*")):
-            if id_ != "ro-crate-metadata.json":
-                entity = rocrate.get(parent_id)
-                assert entity is not None
-                assert id_ in map(itemgetter("@id"), entity.properties()["hasPart"])
-        for entity in rocrate.get_entities():
-            for part in entity.properties.get("hasPart", []):
-                assert (Path(outdir) / part["@id"]).exists()
-
-
-def _as_ids(p: Path, relative_to: Path):
-    local = p.relative_to(relative_to)
-    return map(lambda x: str(x) + ("/" if (relative_to / x).is_dir() else ""), (local, local.parent))

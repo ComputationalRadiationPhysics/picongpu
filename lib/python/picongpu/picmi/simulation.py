@@ -308,7 +308,8 @@ class Simulation(picmistandard.PICMI_Simulation):
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    def write_input_file(self, file_name: str) -> None:
+    # file_name annotation should be PathLike but typeguard can't handle that.
+    def write_input_file(self, file_name: str | Path, exist_ok=False) -> None:
         """
         generate input data set for picongpu
 
@@ -321,9 +322,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             logging.warning("runner already initialized, overwriting")
 
         self._runner = Runner(
-            sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), setup_dir=file_name
+            sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), setup_dir=Path(file_name)
         )
-        self._runner.generate()
+        self._runner.generate(exist_ok=exist_ok)
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.CustomUserInput):
         """add custom user input to previously stored input"""
