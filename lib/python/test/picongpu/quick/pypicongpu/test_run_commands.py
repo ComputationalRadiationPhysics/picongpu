@@ -15,13 +15,12 @@ from picongpu._rc_params import RCParams, search_for_in_parents
 from picongpu.pypicongpu.runner import (
     PicBuildFlags,
     TBGFlags,
+    generate_bare_profile,
     generate_bare_profile_as_in,
     run_commands,
-    generate_bare_profile,
 )
-from pytest import fixture, mark, raises
-
 from picongpu.pypicongpu.util import UnpackChain
+from pytest import fixture, mark, raises
 
 
 @fixture

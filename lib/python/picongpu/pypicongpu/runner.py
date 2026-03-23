@@ -11,12 +11,20 @@ import logging
 import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
-from itertools import chain
 from pathlib import Path
 from shutil import copy2, copytree
 from typing import Annotated, Sequence
 
-from pydantic import AfterValidator, AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, computed_field
+from pydantic import (
+    AfterValidator,
+    AliasChoices,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    computed_field,
+    model_serializer,
+)
 from rocrate.rocrate import ROCrate
 
 from picongpu import core, rc_params
@@ -122,7 +130,47 @@ def get_tmpdir_with_name(name, parent: Path | None = None):
         return Path(tmpdir).absolute()
 
 
-class PicBuildFlags(BaseModel):
+class CmdLineFlags(BaseModel):
+    model_config = ConfigDict(serialize_by_alias=True)
+
+    @model_serializer(mode="wrap")
+    def _compose_commandline(self, handler) -> str:
+        return " ".join(map(_flag_to_str, handler(self).items()))
+
+
+class CmdLine(BaseModel):
+    @computed_field
+    def command(self) -> str:
+        raise NotImplementedError()
+
+    args: Sequence[str]
+    flags: CmdLineFlags
+
+    @model_serializer(mode="plain")
+    def compose_commandline(self) -> str:
+        # example:
+        #   model.command="cmd" model.args=('a', 'b'), model.flags={'x': 5, 'cfg': 6}
+        #   cmd -x 5 --cfg 6 a b
+        return f"{self.command} {self.flags.model_dump()} " + " ".join(self.args)
+
+
+def _flag_to_str(flag_value_tuple) -> str:
+    match flag_value_tuple:
+        case (str(toggle), True):
+            return f"-{toggle}"
+        case (str(toggle), False):
+            return ""
+        case (_, None):
+            return ""
+        case (str(shorthand), value) if len(shorthand) == 1 and value is not None:
+            return f"-{shorthand} {str(value)}"
+        case (str(longoption), value) if len(longoption) > 1 and value is not None:
+            return f"--{longoption} {str(value)}"
+        case _:
+            raise ValueError(f"Unknown serialization of {flag_value_tuple=} to string.")
+
+
+class PicBuildFlags(CmdLineFlags):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
     # because they overlap with tbg flags and could thus lead to confusion.
     jobs: int | None = Field(
@@ -169,11 +217,10 @@ class PicBuildFlags(BaseModel):
         validation_alias=AliasChoices("help", "h"),
         serialization_alias="h",
     )
-    model_config = ConfigDict(serialize_by_alias=True)
 
 
-class PicBuildCmdline(BaseModel):
-    args: tuple = Field(default=tuple(), max_length=0)
+class PicBuildCmdline(CmdLine):
+    args: Sequence[str] = Field(default=tuple(), max_length=0)
     flags: PicBuildFlags = PicBuildFlags()
 
     @computed_field
@@ -181,7 +228,7 @@ class PicBuildCmdline(BaseModel):
         return "pic-build"
 
 
-class TBGFlags(BaseModel):
+class TBGFlags(CmdLineFlags):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
     # because they overlap with pic-build flags and could thus lead to confusion.
     cfg_file: str = Field(
@@ -225,31 +272,15 @@ class TBGFlags(BaseModel):
         validation_alias=AliasChoices("help", "h"),
         serialization_alias="h",
     )
-    model_config = ConfigDict(serialize_by_alias=True)
 
 
-class TbgCmdLine(BaseModel):
+class TbgCmdLine(CmdLine):
     args: Sequence[str] = Field(min_length=1, max_length=2)
     flags: TBGFlags = TBGFlags()
 
     @computed_field
     def command(self) -> str:
         return "tbg"
-
-
-def compose_commandline(model):
-    # example:
-    #   model.command="cmd" model.args=('a', 'b'), model.flags={'x': 5, 'cfg': 6}
-    #   cmd -x 5 --cfg 6 a b
-    return f"{model.command} " + " ".join(
-        chain(
-            (
-                f"{('-' if len(key) == 1 else '--')}{key} {value}"
-                for key, value in model.flags.model_dump(mode="python").items()
-            ),
-            model.args,
-        ),
-    )
 
 
 class Runner(BaseModel):
@@ -350,7 +381,7 @@ class Runner(BaseModel):
         with self.build_command_path.open("w") as script:
             script.write(
                 script_content_with(
-                    compose_commandline(PicBuildCmdline(args=args, flags=flags)),
+                    PicBuildCmdline(args=args, flags=flags).model_dump(),
                     rc_params=rc_params,
                     working_dir=self.setup_dir,
                 )
@@ -366,7 +397,7 @@ class Runner(BaseModel):
                 script_content_with(
                     [
                         f'export PIC_PROFILE="{str(self.profile_path)}"',
-                        compose_commandline(TbgCmdLine(args=args, flags=flags)),
+                        TbgCmdLine(args=args, flags=flags).model_dump(),
                     ],
                     rc_params=rc_params,
                     working_dir=self.setup_dir,
