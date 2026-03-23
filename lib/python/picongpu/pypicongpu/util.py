@@ -191,15 +191,23 @@ class UnpackChain:
         self._requests.append(_Item(args))
         return self
 
+    def values(self):
+        self._requests.append("values()")
+        return self
+
     def __iter__(self):
         if len(self._requests) == 0:
             return iter([self.obj])
 
-        new_obj = alt(
-            # Using itemgetter here because indexing via [*args] apparently doesn't work?
-            lambda: itemgetter(*self._requests[0].args)(self.obj),
-            lambda: getattr(self.obj, self._requests[0]),
-            NotImplemented,
+        new_obj = (
+            alt(
+                # Using itemgetter here because indexing via [*args] apparently doesn't work?
+                lambda: itemgetter(*self._requests[0].args)(self.obj),
+                lambda: getattr(self.obj, self._requests[0]),
+                NotImplemented,
+            )
+            if self._requests[0] != "values()"
+            else alt(lambda: self.obj.values(), NotImplemented)
         )
 
         if new_obj is NotImplemented:

@@ -5,14 +5,23 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from functools import reduce
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import tomli_w
 from picongpu import rc_params
 from picongpu._rc_params import RCParams, search_for_in_parents
-from picongpu.pypicongpu.runner import generate_bare_profile_as_in, run_commands, generate_bare_profile
+from picongpu.pypicongpu.runner import (
+    PicBuildFlags,
+    TBGFlags,
+    generate_bare_profile_as_in,
+    run_commands,
+    generate_bare_profile,
+)
 from pytest import fixture, mark, raises
+
+from picongpu.pypicongpu.util import UnpackChain
 
 
 @fixture
@@ -189,3 +198,13 @@ def test_picongpurc_content_takes_precedence_over_preset(arbitrary_string):
         file.write(f'pic_backend = "{arbitrary_string}"')
         file.flush()
         assert RCParams(preset="bash", picongpurc_path=Path(file.name))["pic_backend"] == arbitrary_string
+
+
+def test_picbuild_and_tbg_flags_are_disjoint_enough():
+    flags_classes = {"pic-build": PicBuildFlags, "tbg": TBGFlags}
+    flags = {
+        name: reduce(set.union, UnpackChain(cls.model_fields).values().validation_alias.choices, set())
+        for name, cls in flags_classes.items()
+    }
+    # The overlapping flags mean roughly the same in both, so I consider this fine.
+    assert flags["pic-build"].intersection(flags["tbg"]) == {"f", "force", "h", "help"}

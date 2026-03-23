@@ -11,11 +11,12 @@ import logging
 import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
+from itertools import chain
 from pathlib import Path
-from shutil import copytree, copy2
+from shutil import copy2, copytree
 from typing import Annotated, Sequence
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, Field
+from pydantic import AfterValidator, AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, computed_field
 from rocrate.rocrate import ROCrate
 
 from picongpu import core, rc_params
@@ -121,6 +122,136 @@ def get_tmpdir_with_name(name, parent: Path | None = None):
         return Path(tmpdir).absolute()
 
 
+class PicBuildFlags(BaseModel):
+    # We explicitly disallow the some shorthands like `-c`, `-t`, ...
+    # because they overlap with tbg flags and could thus lead to confusion.
+    jobs: int | None = Field(
+        default=4,
+        description="allow N jobs at once; infinite jobs if set to None",
+        validation_alias=AliasChoices("jobs", "j"),
+        serialization_alias="j",
+    )
+
+    cmake: str | None = Field(
+        default=None,
+        description=(
+            'Extra arguments that are passed straight to CMake, e.g. "-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug".'
+        ),
+        validation_alias=AliasChoices("cmake"),
+        serialization_alias="c",
+    )
+
+    preset: int | None = Field(
+        default=None,
+        description="Configure this preset number from CMake flags.",
+        ge=0,
+        validation_alias=AliasChoices("preset"),
+        serialization_alias="t",
+    )
+
+    force: bool = Field(
+        default=False,
+        description=("When set, clears the CMake file cache and forces a scan for new .param files."),
+        validation_alias=AliasChoices("force", "f"),
+        serialization_alias="f",
+    )
+
+    cmake_build_system: str | None = Field(
+        default=None,
+        description=("Select the build system used by CMake (e.g. ``Ninja``)."),
+        validation_alias=AliasChoices("G"),
+        serialization_alias="G",
+    )
+
+    help: bool = Field(
+        default=False,
+        description="Show the help message and exit.",
+        validation_alias=AliasChoices("help", "h"),
+        serialization_alias="h",
+    )
+    model_config = ConfigDict(serialize_by_alias=True)
+
+
+class PicBuildCmdline(BaseModel):
+    args: tuple = Field(default=tuple(), max_length=0)
+    flags: PicBuildFlags = PicBuildFlags()
+
+    @computed_field
+    def command(self) -> str:
+        return "pic-build"
+
+
+class TBGFlags(BaseModel):
+    # We explicitly disallow the some shorthands like `-c`, `-t`, ...
+    # because they overlap with pic-build flags and could thus lead to confusion.
+    cfg_file: str = Field(
+        default="etc/picongpu/N.cfg",
+        description="Configuration file to set up batch file.",
+        validation_alias=AliasChoices("cfg"),
+        serialization_alias="c",
+    )
+
+    submit_system: str | None = Field(
+        default="bash",
+        description="Submit command (qsub, 'qsub -h', sbatch, ...).",
+        validation_alias=AliasChoices("submit", "s"),
+        serialization_alias="s",
+    )
+
+    template_file: str | None = Field(
+        default="$TBG_TPLFILE",
+        description="Template to create a batch file from.",
+        validation_alias=AliasChoices("tpl"),
+        serialization_alias="t",
+    )
+
+    overwrite_vars: list[str] | None = Field(
+        default=None,
+        description="Overwrite any template variable.",
+        validation_alias=AliasChoices("o"),
+        serialization_alias="o",
+    )
+
+    force: bool = Field(
+        default=False,
+        description="Override if 'destinationPath' exists.",
+        validation_alias=AliasChoices("force", "f"),
+        serialization_alias="f",
+    )
+
+    help: bool = Field(
+        default=False,
+        description="Show the help message and exit.",
+        validation_alias=AliasChoices("help", "h"),
+        serialization_alias="h",
+    )
+    model_config = ConfigDict(serialize_by_alias=True)
+
+
+class TbgCmdLine(BaseModel):
+    args: Sequence[str] = Field(min_length=1, max_length=2)
+    flags: TBGFlags = TBGFlags()
+
+    @computed_field
+    def command(self) -> str:
+        return "tbg"
+
+
+def compose_commandline(model):
+    # example:
+    #   model.command="cmd" model.args=('a', 'b'), model.flags={'x': 5, 'cfg': 6}
+    #   cmd -x 5 --cfg 6 a b
+    return f"{model.command} " + " ".join(
+        chain(
+            (
+                f"{('-' if len(key) == 1 else '--')}{key} {value}"
+                for key, value in model.flags.model_dump(mode="python").items()
+            ),
+            model.args,
+        ),
+    )
+
+
 class Runner(BaseModel):
     """
     Accepts a PyPIConGPU Simulation and runs it
@@ -219,7 +350,7 @@ class Runner(BaseModel):
         with self.build_command_path.open("w") as script:
             script.write(
                 script_content_with(
-                    " ".join(["pic-build", *map(lambda f: f"-{f[0]} {f[1]}", flags.items()), *args]),
+                    compose_commandline(PicBuildCmdline(args=args, flags=flags)),
                     rc_params=rc_params,
                     working_dir=self.setup_dir,
                 )
@@ -227,13 +358,15 @@ class Runner(BaseModel):
             script.flush()
 
     def generate_run_command(self, *args, rc_params=rc_params, **flags):
+        flags = dict(s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE") | flags
+        args = args or (str(self.run_dir),)
         self.run_command_path.parent.mkdir(parents=True, exist_ok=True)
         with self.run_command_path.open("w") as script:
             script.write(
                 script_content_with(
                     [
                         f'export PIC_PROFILE="{str(self.profile_path)}"',
-                        " ".join(["tbg", *map(lambda f: f"-{f[0]} {f[1]}", flags.items()), *args]),
+                        compose_commandline(TbgCmdLine(args=args, flags=flags)),
                     ],
                     rc_params=rc_params,
                     working_dir=self.setup_dir,
@@ -246,7 +379,7 @@ class Runner(BaseModel):
         with (self.metadata_path / filename).open("w") as file:
             json.dump(metadata, file, indent=4)
 
-    def generate(self, printDirToConsole=False, exist_ok=False):
+    def generate(self, printDirToConsole=False, exist_ok=False, **flags):
         """
         generate the picongpu-compatible input files
         """
@@ -277,8 +410,8 @@ class Runner(BaseModel):
         self._render_templates()
 
         self.generate_profile()
-        self.generate_build_command(j=4)
-        self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE")
+        self.generate_build_command(**flags)
+        self.generate_run_command(**flags)
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
@@ -288,7 +421,7 @@ class Runner(BaseModel):
     def _write_rocrate(self):
         rc_params.rocrate_info.add_metadata_to(ROCrate(self.setup_dir, init=True)).metadata.write(self.setup_dir)
 
-    def build(self):
+    def build(self, **flags):
         """
         build (compile) picongpu-compatible input files
         """
@@ -298,11 +431,11 @@ class Runner(BaseModel):
         assert not (self.setup_dir / ".build").exists(), (
             "build dir (.build in setup dir) must not exist -- did you call build() already?"
         )
-        if not self.build_command_path.exists():
-            self.generate_build_command(j=4)
+        if not self.build_command_path.exists() or flags:
+            self.generate_build_command(**flags)
         return runArgs("build", [*rc_params.shebang[len("#!") :].split(" "), str(self.build_command_path)])
 
-    def run(self):
+    def run(self, **flags):
         """
         run compiled picongpu simulation
         """
@@ -310,6 +443,6 @@ class Runner(BaseModel):
             "build dir (.build in setup dir) must exist -- did you call build()?"
         )
         assert not self.run_dir.exists(), "run dir must not exist yet -- did you call run() already?"
-        if not self.run_command_path.exists():
-            self.generate_run_command(str(self.run_dir), s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE")
+        if not self.run_command_path.exists() or flags:
+            self.generate_run_command(str(self.run_dir), **flags)
         return runArgs("run", [*rc_params.shebang[len("#!") :].split(" "), str(self.run_command_path)])
