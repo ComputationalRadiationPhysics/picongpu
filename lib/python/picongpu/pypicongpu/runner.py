@@ -377,6 +377,7 @@ class Runner(BaseModel):
         generate_bare_profile(self.profile_path)
 
     def generate_build_command(self, *args, rc_params=rc_params, **flags):
+        flags = {"j": 4} | flags
         self.build_command_path.parent.mkdir(parents=True, exist_ok=True)
         with self.build_command_path.open("w") as script:
             script.write(

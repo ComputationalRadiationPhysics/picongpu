@@ -309,7 +309,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             # (might change in the future)
 
     # file_name annotation should be PathLike but typeguard can't handle that.
-    def write_input_file(self, file_name: str | Path, exist_ok=False) -> None:
+    def write_input_file(self, file_name: str | Path, exist_ok=False, **flags) -> None:
         """
         generate input data set for picongpu
 
@@ -324,7 +324,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         self._runner = Runner(
             sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), setup_dir=Path(file_name)
         )
-        self._runner.generate(exist_ok=exist_ok)
+        self._runner.generate(exist_ok=exist_ok, **flags)
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.CustomUserInput):
         """add custom user input to previously stored input"""
@@ -336,12 +336,12 @@ class Simulation(picmistandard.PICMI_Simulation):
         )
 
     # @todo add refactor once restarts are supported by the Runner, Brian Marre, 2024
-    def step(self, nsteps: int = 1):
+    def step(self, nsteps: int = 1, **flags):
         if nsteps != self.max_steps:
             raise ValueError(
                 "PIConGPU does not support stepwise running. Invoke step() with max_steps (={})".format(self.max_steps)
             )
-        self.picongpu_run()
+        self.picongpu_run(**flags)
 
     def _generate_openpmd_plugins(self, diagnostics, num_steps):
         diagnostics = list(diagnostics)
@@ -464,10 +464,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     def _get_base_density(self) -> float:
         return self.picongpu_base_density or 1.0e25
 
-    def picongpu_run(self) -> None:
+    def picongpu_run(self, **flags) -> None:
         """build and run PIConGPU simulation"""
         runner = self.picongpu_get_runner()
-        runner.generate()
+        runner.generate(**flags)
         runner.build()
         runner.run()
 
