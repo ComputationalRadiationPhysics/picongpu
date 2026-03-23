@@ -24,6 +24,7 @@ classifiers = [
 # dependecies list generated with
 # https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
 dependencies = [
+  "cwltool",
   "h5py",
   "imageio",
   "jsonschema>=4.23",

@@ -365,12 +365,12 @@ class Runner(BaseModel):
         return self.setup_dir / "commands" / "picongpu.profile"
 
     @property
-    def build_command_path(self):
-        return self.setup_dir / "commands" / "build.sh"
+    def build_script_path(self):
+        return self.setup_dir / "workflow" / "scripts" / "build.sh"
 
     @property
-    def run_command_path(self):
-        return self.setup_dir / "commands" / "run.sh"
+    def run_script_path(self):
+        return self.setup_dir / "workflow" / "scripts" / "run.sh"
 
     def generate_profile(self):
         self.profile_path.parent.mkdir(parents=True, exist_ok=True)
@@ -378,8 +378,8 @@ class Runner(BaseModel):
 
     def generate_build_command(self, *args, rc_params=rc_params, **flags):
         flags = {"j": 4} | flags
-        self.build_command_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.build_command_path.open("w") as script:
+        self.build_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.build_script_path.open("w") as script:
             script.write(
                 script_content_with(
                     PicBuildCmdline(args=args, flags=flags).model_dump(),
@@ -392,8 +392,8 @@ class Runner(BaseModel):
     def generate_run_command(self, *args, rc_params=rc_params, **flags):
         flags = dict(s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE") | flags
         args = args or (str(self.run_dir),)
-        self.run_command_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.run_command_path.open("w") as script:
+        self.run_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.run_script_path.open("w") as script:
             script.write(
                 script_content_with(
                     [
@@ -405,6 +405,16 @@ class Runner(BaseModel):
                 )
             )
             script.flush()
+
+    def generate_workflow_input(self):
+        data = {
+            "run_script": {"class": "File", "path": str(self.run_script_path)},
+            "build_script": {"class": "File", "path": str(self.build_script_path)},
+        }
+        with (self.setup_dir / "workflow" / "input.yaml").open("w") as file:
+            # Technically, we are writing json here,
+            # but yaml is a superset of json, so that's fine.
+            json.dump(data, file, indent=4)
 
     def store_metadata(self, metadata, filename):
         self.metadata_path.mkdir(parents=True, exist_ok=True)
@@ -431,19 +441,19 @@ class Runner(BaseModel):
 
         for t in self.template_dir:
             for src, dst in map(
-                lambda f: (t / f, self.setup_dir / f), ("etc/picongpu", "bin", "include/picongpu", "lib", "validation")
+                lambda f: (t / f, self.setup_dir / f),
+                ("etc/picongpu", "bin", "include/picongpu", "lib", "validation", "workflow"),
             ):
                 if src.is_dir():
                     dst.mkdir(parents=True, exist_ok=True)
                     copytree(src, dst, dirs_exist_ok=True)
-            if (wf_file := t / "workflow.cwl").is_file():
-                copy2(wf_file, self.setup_dir / "workflow.cwl")
 
         self._render_templates()
 
         self.generate_profile()
         self.generate_build_command(**flags)
         self.generate_run_command(**flags)
+        self.generate_workflow_input()
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
@@ -463,9 +473,9 @@ class Runner(BaseModel):
         assert not (self.setup_dir / ".build").exists(), (
             "build dir (.build in setup dir) must not exist -- did you call build() already?"
         )
-        if not self.build_command_path.exists() or flags:
+        if not self.build_script_path.exists() or flags:
             self.generate_build_command(**flags)
-        return runArgs("build", [*rc_params.shebang[len("#!") :].split(" "), str(self.build_command_path)])
+        return runArgs("build", [*rc_params.shebang[len("#!") :].split(" "), str(self.build_script_path)])
 
     def run(self, **flags):
         """
@@ -475,6 +485,6 @@ class Runner(BaseModel):
             "build dir (.build in setup dir) must exist -- did you call build()?"
         )
         assert not self.run_dir.exists(), "run dir must not exist yet -- did you call run() already?"
-        if not self.run_command_path.exists() or flags:
+        if not self.run_script_path.exists() or flags:
             self.generate_run_command(str(self.run_dir), **flags)
-        return runArgs("run", [*rc_params.shebang[len("#!") :].split(" "), str(self.run_command_path)])
+        return runArgs("run", [*rc_params.shebang[len("#!") :].split(" "), str(self.run_script_path)])

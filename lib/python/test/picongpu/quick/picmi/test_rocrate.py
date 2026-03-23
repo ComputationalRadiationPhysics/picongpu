@@ -82,7 +82,7 @@ def test_rocrate_has_basic_metadata(crate):
 
 
 def test_rocrate_points_main_entity_to_workflow(crate):
-    assert crate.mainEntity.properties()["@id"] == "workflow.cwl"
+    assert crate.mainEntity.properties()["@id"] == "workflow/workflow.cwl"
 
 
 def test_rocrate_indicates_the_software_it_has_been_produced_with(crate):

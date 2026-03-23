@@ -454,7 +454,7 @@ def _generate_rocrate_defaults(data):
             This executable can be run using the runtime parameters in `etc/`.
             See the `workflow.cwl` for details.
             """,
-        "mainEntity": "workflow.cwl",
+        "mainEntity": "workflow/workflow.cwl",
     }
 
 
