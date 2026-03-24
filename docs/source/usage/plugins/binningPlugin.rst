@@ -102,20 +102,97 @@ For two fields with one extra data parameter:
   Fields and extra data may be tuples with multiple elements which are unpacked and passed to the user-defined functors. Therefore, it is the responsibility of the user to ensure that their functors have an appropriate number of arguments to match the provided tuples.
 
 Domain Info
-"""""""""""
-Enables the user to find the location of the particle or field in the simulation domain. Contains
+-----------
+The binning plugin passes the domain info object to functors as a parameter to give the user access to some useful PIConGPU quantities inside the functor. 
+Importantly, it enables the user to find the location of the particle or field in the simulation domain.
 
-For particle binning, the ``DomainInfo`` class contains:
+The ``DomainInfo`` class contains:
 
 .. doxygenclass:: picongpu::plugins::binning::DomainInfoBase
   :members:
 
 The global and local offsets can be understood by looking at the `PIConGPU domain definitions <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions>`_.
 
-For particle binning, the particle position is obtained at cell precision by default. To get sub-cell precision or SI units, use optional template parameters with ``getParticlePosition<DomainOrigin, PositionPrecision, PositionUnits>``.
+Particle binning
+^^^^^^^^^^^^^^^^
 
-For field binning, the field ``DomainInfo`` additionally holds the localCellIndex in the supercell and has a method to ``getCellIndex<DomainOrigin, PositionUnits>`` to get the current cell index being binned relative to an origin (global, total, local). To get the exact position of the fields inside the cell, relative to the cell index, use the ``FieldPosition`` trait.
+For particle binning, we can use the ``getParticlePosition`` function. 
 
+.. code-block:: cpp
+
+    getParticlePosition<DomainOrigin, PositionPrecision, PositionUnits>()
+
+The particle position has the default precision set to cell precision, and the position is returned in cell units by default.
+
+To request a different origin, precision, or unit system, use the template parameters as described below.
+
+Field binning
+^^^^^^^^^^^^^
+
+For field binning, ``DomainInfo`` additionally stores the ``localCellIndex`` within the supercell we can use the ``getCellIndex`` function.
+
+.. code-block:: cpp
+
+    getCellIndex<DomainOrigin, PositionUnits>()
+
+This returns the current cell index being binned relative to the selected origin.
+
+To obtain the exact position of a field inside the cell, relative to the cell index, use the ``FieldPosition`` trait.
+
+Domain origin
+^^^^^^^^^^^^^
+  
+The reference origin for returned positions is selected with ``DomainOrigin``:
+
+The available origins are:
+
+- ``TOTAL``
+Absolute origin of the simulation. This includes regions that are no longer part of the current global volume, for example because they have moved out of the sliding window.
+
+- ``GLOBAL``
+Origin of the current sliding window, i.e. the currently simulated domain across all GPUs, excluding guard cells.
+
+- ``LOCAL``
+Origin of the local domain on the current GPU, excluding guard cells.
+
+- ``MOVING_WINDOW``
+Origin relative to the sliding window origin. This origin starts moving only once the sliding window moves and is not discretized to the cell grid.
+
+- ``LOCAL_WITH_GUARDS``
+Origin of the local domain on the current GPU, including guard cells. This setting is in particular used to access field data for the current cell with `getCellIndex`.
+  
+Position precision
+^^^^^^^^^^^^^^^^^^
+  
+For particle positions, the precision is selected with ``PositionPrecision``.
+
+The available precisions are:
+
+- ``CELL``
+Returns the particle position at cell precision, i.e. as a cell index.
+
+- ``SUB_CELL``
+Returns the particle position with sub-cell precision, i.e. as the cell index plus the particle position inside the cell in the range ``[0,1)``. The result is therefore a floating-point position in units of cells.
+
+Position units
+^^^^^^^^^^^^^^
+
+The output units for positions are selected with ``PositionUnits``.
+
+The available units are:
+
+- ``SI``
+  Returns the position in SI units.
+
+- ``PIC``
+  Returns the position in PIC units.
+
+- ``CELL``
+  Returns the position in units of cells. The result is integral for ``PositionPrecision::CELL`` and floating point for ``PositionPrecision::SUB_CELL``.
+
+.. note::
+
+    Using positions in SI/PIC units introduces floating point numerical errors and may be especially problematic when using the ``TOTAL`` origin with moving window, because floating-point precision decreases as the distance from the origin increases.
 
 Dimensionality and units
 ^^^^^^^^^^^^^^^^^^^^^^^^
