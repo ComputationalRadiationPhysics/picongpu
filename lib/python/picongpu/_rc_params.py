@@ -6,18 +6,19 @@ License: GPLv3+
 """
 
 import tomllib
+import yaml
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
 from itertools import chain
-from operator import methodcaller
+from operator import methodcaller, attrgetter
 from os import environ
 from pathlib import Path
 from warnings import warn
 
 from moosetash import MissingVariable, missing_partial_default, missing_variable_keep, missing_variable_raise, render
 from pydantic import BaseModel, ConfigDict, Field
-from rocrate.model import ComputerLanguage, SoftwareApplication
+from rocrate.model import ComputerLanguage, ContextEntity, SoftwareApplication, ComputationalWorkflow
 
 from picongpu import core
 
@@ -461,6 +462,62 @@ def _generate_rocrate_defaults(data):
     }
 
 
+def make_workflow(workflow, crate):
+    with (Path(crate.source) / workflow.id).open("r") as f:
+        cwl_data = yaml.safe_load(f)
+
+    def get_cwl_type(type_val):
+        match type_val:
+            case str(typename):
+                return typename
+            case {"type": "array", "items": str(typename)}:
+                return f"Array<{typename}>"
+            case {"type": str(typename)}:
+                return typename
+            case _:
+                raise ValueError(f"Unknown cwl {type_val=}.")
+
+    params = {
+        key: [
+            ContextEntity(
+                crate,
+                f"input_{name}",
+                properties={
+                    "name": name,
+                    "additionalType": get_cwl_type(definition.get("type", "File")),
+                    "description": definition.get("doc", ""),
+                },
+            )
+            for name, definition in cwl_data.get(key, {}).items()
+        ]
+        for key in ["inputs", "outputs"]
+    }
+
+    crate.add(
+        ComputerLanguage(
+            crate,
+            "cwl",
+            properties={
+                "name": "Common Workflow Language",
+                "version": "1.2",
+                "url": "https://www.commonwl.org/",
+            },
+        ),
+        *chain(*params.values()),
+        ComputationalWorkflow(
+            crate,
+            dest_path=workflow["@id"],
+            properties={
+                "name": "Build and run this simulation setup",
+                "conformsTo": ["https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE"],
+                "programmingLanguage": {"@id": "cwl"},
+                "input": list(map(attrgetter("id"), params["inputs"])),
+                "output": list(map(attrgetter("id"), params["outputs"])),
+            },
+        ),
+    )
+
+
 class _ROCrateInfo(BaseModel):
     name: str
     description: str
@@ -486,37 +543,15 @@ class _ROCrateInfo(BaseModel):
         if self.license:
             crate.license = self.license
         if self.keywords:
-            crate.keywords = self.keywords
+            crate.keywords = ", ".join(self.keywords)
         if self.mainEntity:
             crate.mainEntity = crate.get(self.mainEntity)
-            main_entity = crate.mainEntity
-            if main_entity:
-                current_types = main_entity.properties().get("@type", [])
-                if isinstance(current_types, str):
-                    current_types = [current_types]
-                elif not isinstance(current_types, list):
-                    current_types = list(current_types)
-                if "ComputationalWorkflow" not in current_types:
-                    main_entity.properties()["@type"] = current_types + ["ComputationalWorkflow"]
-                main_entity.properties()["conformsTo"] = {
-                    "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE"
-                }
         if self.software:
             software = SoftwareApplication(crate, self.software.id_, properties=self.software.model_dump(mode="python"))
             crate.add(software)
             crate.root_dataset.append_to("instrument", software)
-        cwl_lang = ComputerLanguage(
-            crate,
-            "cwl",
-            properties={
-                "name": "Common Workflow Language",
-                "version": "1.2",
-                "url": "https://www.commonwl.org/",
-            },
-        )
-        crate.add(cwl_lang)
-        if crate.mainEntity:
-            crate.mainEntity.properties()["programmingLanguage"] = {"@id": "cwl"}
+        if workflow := crate.get("workflow/workflow.cwl"):
+            make_workflow(workflow, crate)
         return crate
 
 
