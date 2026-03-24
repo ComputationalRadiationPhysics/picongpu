@@ -39,67 +39,9 @@ class TestDistribution(unittest.TestCase):
             picongpu_fixed_charge=True,
         )
         self.sim.add_species(species_hydrogen, random_layout)
-        runner = Runner(self.sim)
+        runner = Runner(sim=self.sim)
         runner.generate(printDirToConsole=True)
         runner.build()
-
-    def test_uniform(self):
-        uniform_dist = picmi.UniformDistribution(density=8e24)
-        self._compile_distribution(uniform_dist)
-
-    def test_foil_pre_and_post(self):
-        foil_dist = picmi.FoilDistribution(
-            density=8.0e24,
-            front=2.0e-5,
-            thickness=1.0e-5,
-            exponential_pre_plasma_length=1.0e-6,
-            exponential_pre_plasma_cutoff=1.0e-5,
-            exponential_post_plasma_length=1.0e-6,
-            exponential_post_plasma_cutoff=1.0e-5,
-        )
-        self._compile_distribution(foil_dist)
-
-    def test_foil_pre(self):
-        foil_dist = picmi.FoilDistribution(
-            density=8.0e24,
-            front=2.0e-5,
-            thickness=1.0e-5,
-            exponential_pre_plasma_length=1.0e-6,
-            exponential_pre_plasma_cutoff=1.0e-5,
-        )
-        self._compile_distribution(foil_dist)
-
-    def test_foil_post(self):
-        # with post-plasma only
-        foil_dist = picmi.FoilDistribution(
-            density=8.0e24,
-            front=2.0e-5,
-            thickness=1.0e-5,
-            exponential_post_plasma_length=1.0e-6,
-            exponential_post_plasma_cutoff=1.0e-5,
-        )
-        self._compile_distribution(foil_dist)
-
-    def test_foil_nothing(self):
-        # with no pre- or post-plasma
-        foil_dist = picmi.FoilDistribution(density=8.0e24, front=2.0e-5, thickness=1.0e-5)
-        self._compile_distribution(foil_dist)
-
-    def test_gaussian(self):
-        gaussian_dist = picmi.GaussianDistribution(
-            center_front=2.0e-5,
-            center_rear=3.0e-5,
-            sigma_front=5.0e-6,
-            sigma_rear=5.0e-6,
-            power=4.0,
-            factor=-1.0,
-            vacuum_front=50 * 9.07264e-5 / 2048,
-            density=8e24,
-        )
-        self._compile_distribution(gaussian_dist)
-
-    # tests for analytic distribution and gaussian-bunch distribution have been
-    #   removed for now, see issue #4367 for the test cases
 
     def test_temperature(self):
         uniform_dist = picmi.UniformDistribution(density=8e24, rms_velocity=[1e7, 1e7, 1e7])

@@ -26,6 +26,6 @@ def sim(request):
 
 def test_compile_example(sim):
     """Attempts to compile the given simulation."""
-    runner = pypicongpu.Runner(sim)
+    runner = pypicongpu.Runner(sim=sim)
     runner.generate(printDirToConsole=True)
     runner.build()

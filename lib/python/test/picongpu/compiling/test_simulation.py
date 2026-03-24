@@ -76,7 +76,7 @@ class TestSimulation(TestCase):
         """smallest possible example"""
         sim = self._set_up_minimal_sim()
 
-        runner = pypicongpu.Runner(sim)
+        runner = pypicongpu.Runner(sim=sim)
 
         runner.generate(printDirToConsole=True)
         runner.build()
@@ -84,7 +84,7 @@ class TestSimulation(TestCase):
 
     def test_moving_window_build(self):
         picmi_sim = self._set_up_sim(picongpu_moving_window_move_point=0.9, picongpu_moving_window_stop_iteration=1)
-        runner = pypicongpu.Runner(picmi_sim)
+        runner = pypicongpu.Runner(sim=picmi_sim)
         runner.generate(printDirToConsole=True)
         runner.build()
 

@@ -58,7 +58,7 @@ class TestRunner(TestCase):
 
     def test_step_order_required(self):
         """check that calling steps out of order does not work"""
-        r = Runner(self.sim)
+        r = Runner(sim=self.sim)
 
         # general pattern:
         # The steps generate(), build(), run() are allowed
@@ -94,7 +94,7 @@ class TestRunner(TestCase):
 
     def test_generate_code(self):
         # no error
-        r = Runner(self.sim, setup_dir=self.nonexisting_dir)
+        r = Runner(sim=self.sim, setup_dir=self.nonexisting_dir)
         # now the dir is created in the meantime -> causes error
         assert not os.path.exists(r.setup_dir)
         os.mkdir(r.setup_dir)
@@ -106,7 +106,7 @@ class TestRunner(TestCase):
 
     def test_build(self):
         # no error
-        r = Runner(self.sim, setup_dir=self.nonexisting_dir)
+        r = Runner(sim=self.sim, setup_dir=self.nonexisting_dir)
         r.generate()
 
         # now the dir is created in the meantime -> causes error
@@ -121,7 +121,7 @@ class TestRunner(TestCase):
 
         # but: injecting a generated (but not built) dir
         # from another runner works
-        other_runner = Runner(self.sim)
+        other_runner = Runner(sim=self.sim)
         other_runner.generate(printDirToConsole=True)
 
         r.setup_dir = other_runner.setup_dir
@@ -132,7 +132,7 @@ class TestRunner(TestCase):
 
     def test_run(self):
         # no error
-        r = Runner(self.sim, run_dir=self.nonexisting_dir)
+        r = Runner(sim=self.sim, run_dir=self.nonexisting_dir)
         r.generate()
         r.build()
 
@@ -154,7 +154,7 @@ class TestRunner(TestCase):
         """
         test what happens if dir vars are reset after correct construction
         """
-        r = Runner(self.sim)
+        r = Runner(sim=self.sim)
         # other tests ensure that vars are set
 
         with pytest.raises(Exception):
@@ -162,7 +162,7 @@ class TestRunner(TestCase):
             r.generate()
 
     def test_dir_reset_build(self):
-        r = Runner(self.sim)
+        r = Runner(sim=self.sim)
         r.generate()
         with pytest.raises(Exception):
             r.setup_dir = None
@@ -170,7 +170,7 @@ class TestRunner(TestCase):
 
     def test_dir_reset_run(self):
         with tempfile.TemporaryDirectory() as existing_dir:
-            r = Runner(self.sim, scratch_dir=existing_dir)
+            r = Runner(sim=self.sim, scratch_dir=existing_dir)
             r.generate()
             r.build()
 
@@ -189,7 +189,7 @@ class TestRunner(TestCase):
         resetting the scratch dir after run dir has been set has no effect
         """
         with tempfile.TemporaryDirectory() as existing_dir:
-            r = Runner(self.sim, scratch_dir=existing_dir)
+            r = Runner(sim=self.sim, scratch_dir=existing_dir)
             r.generate()
             r.build()
 
@@ -199,7 +199,7 @@ class TestRunner(TestCase):
             r.run()
 
     def test_dirs_used(self):
-        r = Runner(self.sim)
+        r = Runner(sim=self.sim)
 
         assert not os.path.exists(r.run_dir)
         assert not os.path.exists(r.setup_dir)
