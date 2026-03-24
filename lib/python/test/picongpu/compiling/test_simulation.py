@@ -123,4 +123,4 @@ class TestSimulation(TestCase):
 
         # check for generated (rendered) dir
         assert Path(runner.setup_dir).is_dir()
-        assert [Path(template_dir_name).absolute()] == list(map(Path.absolute, runner._pypicongpu_template_dir))
+        assert [Path(template_dir_name).absolute()] == list(map(Path.absolute, runner.template_dir))
