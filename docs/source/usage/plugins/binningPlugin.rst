@@ -161,20 +161,7 @@ The reference origin for returned positions is selected with ``DomainOrigin``:
 
 The available origins are:
 
-- ``TOTAL``
-Absolute origin of the simulation. This includes regions that are no longer part of the current global volume, for example because they have moved out of the sliding window.
-
-- ``GLOBAL``
-Origin of the current sliding window, i.e. the currently simulated domain across all GPUs, excluding guard cells.
-
-- ``LOCAL``
-Origin of the local domain on the current GPU, excluding guard cells.
-
-- ``MOVING_WINDOW``
-Origin relative to the sliding window origin. This origin starts moving only once the sliding window moves and is not discretized to the cell grid.
-
-- ``LOCAL_WITH_GUARDS``
-Origin of the local domain on the current GPU, including guard cells. This setting is in particular used to access field data for the current cell with `getCellIndex`.
+.. doxygenenum:: picongpu::plugins::binning::DomainOrigin
   
 Position precision
 ^^^^^^^^^^^^^^^^^^
@@ -183,11 +170,7 @@ For particle positions, the precision is selected with ``PositionPrecision``.
 
 The available precisions are:
 
-- ``CELL``
-Returns the particle position at cell precision, i.e. as a cell index.
-
-- ``SUB_CELL``
-Returns the particle position with sub-cell precision, i.e. as the cell index plus the particle position inside the cell in the range ``[0,1)``. The result is therefore a floating-point position in units of cells.
+.. doxygenenum:: picongpu::plugins::binning::PositionPrecision
 
 Position units
 ^^^^^^^^^^^^^^
@@ -196,14 +179,7 @@ The output units for positions are selected with ``PositionUnits``.
 
 The available units are:
 
-- ``SI``
-  Returns the position in SI units.
-
-- ``PIC``
-  Returns the position in PIC units.
-
-- ``CELL``
-  Returns the position in units of cells. The result is integral for ``PositionPrecision::CELL`` and floating point for ``PositionPrecision::SUB_CELL``.
+.. doxygenenum:: picongpu::plugins::binning::PositionUnits
 
 .. note::
 

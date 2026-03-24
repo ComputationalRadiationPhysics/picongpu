@@ -90,27 +90,30 @@ namespace picongpu
 
         enum class DomainOrigin
         {
-            // absolute origin of the simulation, inlcudes areas that are not in the current global volume,
-            // i.e. areas that have gone out due to the sliding window
+            /** Absolute origin of the simulation. This includes regions that are no longer part of the current global
+             * volume because they have moved out of the sliding window. */
             TOTAL,
-            // origin of the current sliding window, i.e. the currently simulated volume over all GPUs, no guards
+            /** Origin of the current sliding window, i.e. the currently simulated domain across all GPUs, excluding
+             * guard cells. */
             GLOBAL,
-            // origin of the current ("my") GPU, no guards
+            /** Origin of the local domain on the current GPU, excluding guard cells. */
             LOCAL,
-            /** origin relative to the origin of the sliding window. This origin only starts moving with the sliding
+            /** Origin relative to the origin of the sliding window. This origin only starts moving with the sliding
              *  window and is not discretized to the cell grid
              */
             MOVING_WINDOW,
-            // origin of the current ("my") GPU, including guards
+            /** Origin of the local domain on the current GPU, including guard cells. This setting is in particular
+             * used to access field data for the current cell with getCellIndex. */
             LOCAL_WITH_GUARDS
         };
 
         enum class PositionPrecision
         {
-            // Returns the cell index of the particle
+            /** Returns the particle position at cell precision, i.e. as a cell index. */
             CELL,
-            // Returns the position of the particle as the cell index + the position of the particle inside the cell
-            // [0,1) This value is a floating point number of cells
+            /** Returns the particle position with sub-cell precision, i.e. as the cell index plus the particle
+             * position inside the cell in the range [0,1). The result is therefore a floating-point position in units
+             * of cells. */
             SUB_CELL
         };
 

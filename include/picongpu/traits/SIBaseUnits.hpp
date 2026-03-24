@@ -33,13 +33,20 @@ namespace picongpu
     {
         enum SIBaseUnits_t
         {
-            length = 0, // L
-            mass = 1, // M
-            time = 2, // T
-            electricCurrent = 3, // I
-            thermodynamicTemperature = 4, // theta
-            amountOfSubstance = 5, // N
-            luminousIntensity = 6, // J
+            /** L */
+            length = 0,
+            /** M */
+            mass = 1,
+            /** T */
+            time = 2,
+            /** I */
+            electricCurrent = 3,
+            /** theta */
+            thermodynamicTemperature = 4,
+            /** N */
+            amountOfSubstance = 5,
+            /** J */
+            luminousIntensity = 6,
         };
     } // namespace SIBaseUnits
 
