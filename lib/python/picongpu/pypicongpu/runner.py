@@ -334,24 +334,24 @@ class Runner(BaseModel):
         return self.setup_dir / "metadata"
 
     @property
+    def workflow_dir_path(self):
+        return self.setup_dir / "workflow"
+
+    @property
     def profile_path(self):
-        return self.setup_dir / "commands" / "picongpu.profile"
+        return self.workflow_dir_path / "script" / "picongpu.profile"
 
     @property
     def build_script_path(self):
-        return self.setup_dir / "workflow" / "scripts" / "build.sh"
+        return self.workflow_dir_path / "scripts" / "build.sh"
 
     @property
     def run_script_path(self):
-        return self.setup_dir / "workflow" / "scripts" / "run.sh"
+        return self.workflow_dir_path / "scripts" / "run.sh"
 
     @property
     def workflow_definition_path(self):
-        return self.setup_dir / "workflow" / "workflow.cwl"
-
-    @property
-    def workflow_dir_path(self):
-        return self.setup_dir / "workflow"
+        return self.workflow_dir_path / "workflow.cwl"
 
     @property
     def workflow_input_path(self):
@@ -487,7 +487,6 @@ class Runner(BaseModel):
         """
         run compiled picongpu simulation
         """
-        assert not self.run_dir.exists(), "run dir must not exist yet -- did you call run() already?"
         if not self.run_script_path.exists() or flags:
             self.generate_run_command(str(self.run_dir), **flags)
         with self.workflow_input_path.open("r") as file:

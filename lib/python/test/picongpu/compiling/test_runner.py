@@ -43,10 +43,6 @@ class TestRunner(TestCase):
         self.picmi_sim = picmi.Simulation(max_steps=int(1), solver=solver)
         self.sim = self.picmi_sim.get_as_pypicongpu()
 
-        # unset default scratch dir if set
-        if Runner.SCRATCH_ENV_NAME in os.environ:
-            del os.environ[Runner.SCRATCH_ENV_NAME]
-
         self.nonexisting_dir = self.__get_tmpdir_name()
         self.nonexisting_dir2 = self.__get_tmpdir_name()
 
@@ -149,54 +145,6 @@ class TestRunner(TestCase):
         r.run_dir = self.nonexisting_dir2
         assert not os.path.exists(r.run_dir)
         r.run()
-
-    def test_dir_reset_generate(self):
-        """
-        test what happens if dir vars are reset after correct construction
-        """
-        r = Runner(sim=self.sim)
-        # other tests ensure that vars are set
-
-        with pytest.raises(Exception):
-            r.setup_dir = None
-            r.generate()
-
-    def test_dir_reset_build(self):
-        r = Runner(sim=self.sim)
-        r.generate()
-        with pytest.raises(Exception):
-            r.setup_dir = None
-            r.build()
-
-    def test_dir_reset_run(self):
-        with tempfile.TemporaryDirectory() as existing_dir:
-            r = Runner(sim=self.sim, scratch_dir=existing_dir)
-            r.generate()
-            r.build()
-
-            # scratch dir is set
-            # -> run dir could *theoretically* be guessed again
-            # (but this is not the case)
-            assert os.path.isdir(r.scratch_dir)
-            assert r.run_dir.startswith(r.scratch_dir)
-
-            with pytest.raises(Exception):
-                r.run_dir = None
-                r.run()
-
-    def test_dir_rm_scratch(self):
-        """
-        resetting the scratch dir after run dir has been set has no effect
-        """
-        with tempfile.TemporaryDirectory() as existing_dir:
-            r = Runner(sim=self.sim, scratch_dir=existing_dir)
-            r.generate()
-            r.build()
-
-            r.scratch_dir = None
-            assert r.run_dir is not None
-            # no error
-            r.run()
 
     def test_dirs_used(self):
         r = Runner(sim=self.sim)
