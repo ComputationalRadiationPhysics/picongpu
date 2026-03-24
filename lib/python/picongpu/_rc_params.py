@@ -17,7 +17,7 @@ from warnings import warn
 
 from moosetash import MissingVariable, missing_partial_default, missing_variable_keep, missing_variable_raise, render
 from pydantic import BaseModel, ConfigDict, Field
-from rocrate.model import SoftwareApplication
+from rocrate.model import ComputerLanguage, SoftwareApplication
 
 from picongpu import core
 from ._version import __version__
@@ -465,6 +465,10 @@ class _ROCrateInfo(BaseModel):
     license: str | None = None
     mainEntity: str | None
     software: SoftwareReference | None = SoftwareReference()
+    conformsTo: list[str] = [
+        "https://w3id.org/ro/crate/1.2",
+        "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE",
+    ]
 
     def __init__(self, data):
         return super().__init__(**(_generate_rocrate_defaults(data) | data.get("rocrate", {}).get("info", {})))
@@ -479,10 +483,27 @@ class _ROCrateInfo(BaseModel):
             crate.license = self.license
         if self.mainEntity:
             crate.mainEntity = crate.get(self.mainEntity)
+            main_entity = crate.mainEntity
+            if main_entity:
+                current_types = main_entity.properties().get("@type", [])
+                if isinstance(current_types, str):
+                    current_types = [current_types]
+                elif not isinstance(current_types, list):
+                    current_types = list(current_types)
+                if "ComputationalWorkflow" not in current_types:
+                    main_entity.properties()["@type"] = current_types + ["ComputationalWorkflow"]
         if self.software:
             software = SoftwareApplication(crate, self.software.id_, properties=self.software.model_dump(mode="python"))
             crate.add(software)
             crate.root_dataset.append_to("instrument", software)
+        cwl_lang = ComputerLanguage(crate, "cwl", properties={
+            "name": "Common Workflow Language",
+            "version": "1.2",
+            "url": "https://www.commonwl.org/",
+        })
+        crate.add(cwl_lang)
+        if crate.mainEntity:
+            crate.mainEntity.properties()["programmingLanguage"] = {"@id": "cwl"}
         return crate
 
 

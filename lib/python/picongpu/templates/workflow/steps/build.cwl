@@ -1,11 +1,15 @@
 cwlVersion: v1.2
 class: CommandLineTool
+label: "Build PIConGPU"
+doc: "Compile PIConGPU using pic-build with the provided build script"
 baseCommand: bash
 inputs:
   script:
       type: File
       inputBinding:
         position: 1
+      label: "Build script"
+      doc: "Shell script containing pic-build command and flags"
 outputs:
   executables:
     type:
@@ -13,3 +17,5 @@ outputs:
       items: File
     outputBinding:
       glob: "bin/*"
+    label: "Compiled executables"
+    doc: "Compiled PIConGPU binaries"

@@ -49,7 +49,7 @@ def crate(setup_dir):
 
 
 def test_all_files_tracked_by_rocrate(setup_dir, crate):
-    tracked = [Path(setup_dir) / e.id for e in crate.data_entities if e.type == "File"]
+    tracked = [Path(setup_dir) / e.id for e in crate.data_entities if "File" in e.type]
     existing = list(filter(Path.is_file, Path(setup_dir).rglob("*")))
     # The `ro-crate-metadata.json` are listed as a different @type.
     assert set(existing).symmetric_difference(tracked) == {Path(setup_dir) / "ro-crate-metadata.json"}
