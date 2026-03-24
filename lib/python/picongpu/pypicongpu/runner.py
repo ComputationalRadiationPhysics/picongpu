@@ -338,16 +338,20 @@ class Runner(BaseModel):
         return self.setup_dir / "workflow"
 
     @property
+    def workflow_scripts_path(self):
+        return self.workflow_dir_path / "scripts"
+
+    @property
     def profile_path(self):
-        return self.workflow_dir_path / "script" / "picongpu.profile"
+        return self.workflow_dir_path / "picongpu.profile"
 
     @property
     def build_script_path(self):
-        return self.workflow_dir_path / "scripts" / "build.sh"
+        return self.workflow_dir_path / "build.sh"
 
     @property
     def run_script_path(self):
-        return self.workflow_dir_path / "scripts" / "run.sh"
+        return self.workflow_dir_path / "run.sh"
 
     @property
     def workflow_definition_path(self):
@@ -459,6 +463,16 @@ class Runner(BaseModel):
         self.generate_build_command(**flags)
         self.generate_run_command(**flags)
         self.generate_workflow_input()
+        # This is a dirty hack for now.
+        # The correct approach would be to render everything in the `_render_templates` call.
+        # But this would require to broaden the rendering context to include information from the runner.
+        # I'll update this in a later refactoring.
+        if (self.workflow_dir_path / "steps" / "run.cwl").is_file():
+            with (self.workflow_dir_path / "steps" / "run.cwl").open("a") as file:
+                file.write(f"""
+    outputBinding:
+      glob: {self.run_dir}
+""")
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")

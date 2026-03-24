@@ -457,6 +457,7 @@ def _generate_rocrate_defaults(data):
             """,
         "mainEntity": "workflow/workflow.cwl",
         "license": "https://spdx.org/licenses/GPL-3.0-or-later",
+        "keywords": ["PIConGPU", "Plasma Physics", "Particle-in-Cell", "Simulation"],
     }
 
 
@@ -471,6 +472,7 @@ class _ROCrateInfo(BaseModel):
         "https://w3id.org/ro/crate/1.2",
         "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE",
     ]
+    keywords: list[str] = []
 
     def __init__(self, data):
         return super().__init__(**(_generate_rocrate_defaults(data) | data.get("rocrate", {}).get("info", {})))
@@ -483,6 +485,8 @@ class _ROCrateInfo(BaseModel):
             crate.datePublished = self.datePublished
         if self.license:
             crate.license = self.license
+        if self.keywords:
+            crate.keywords = self.keywords
         if self.mainEntity:
             crate.mainEntity = crate.get(self.mainEntity)
             main_entity = crate.mainEntity

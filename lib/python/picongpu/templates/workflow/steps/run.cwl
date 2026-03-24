@@ -2,6 +2,11 @@ cwlVersion: v1.2
 class: CommandLineTool
 label: "Run PIConGPU Simulation"
 doc: "Run the compiled PIConGPU simulation using tbg"
+hints:
+  SoftwareRequirement:
+    packages:
+      picongpu:
+        specs: ["https://doi.org/10.5281/zenodo.14513363"]
 baseCommand: bash
 inputs:
   script:
