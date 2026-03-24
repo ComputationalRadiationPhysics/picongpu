@@ -8,13 +8,13 @@ License: GPLv3+
 import datetime
 import json
 import logging
-import subprocess
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from shutil import copy2, copytree
 from typing import Annotated, Sequence
 
+from cwltool.factory import Factory as WorkflowFactory
 from pydantic import (
     AfterValidator,
     AliasChoices,
@@ -33,23 +33,6 @@ from picongpu.templates import path as tpath
 from .rendering import Renderer
 from .simulation import Simulation
 from .util import alt
-
-
-def runArgs(name, args):
-    assert list(filter(lambda x: x is None, args)) == [], "arguments must not be None!"
-    logging.info("running {}...".format(name))
-    logging.debug("command for {}: {}".format(name, " ".join(args)))
-    proc = subprocess.run(args, capture_output=True)
-    logging.info("{} done, returned {}".format(name, proc.returncode))
-    logging.debug(f"command for {name}: {' '.join(args)}\n{proc.stdout.decode()=}")
-    logging.debug(f"command for {name}: {' '.join(args)}\n{proc.stderr.decode()=}")
-
-    if 0 != proc.returncode:
-        logging.error(">>>>>>> Command failed (output below): {}\n{}".format(" ".join(proc.args), proc.stdout.decode()))
-        logging.error(">>>>>>> Command failed (output above): {}".format(" ".join(proc.args)))
-        raise RuntimeError("subprocess failed")
-
-    return proc
 
 
 def script_content_with(commands, working_dir: Path | None = None, rc_params=rc_params):
@@ -104,16 +87,6 @@ def generate_bare_profile_as_in(script_path, path=None):
     module = module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
     return generate_bare_profile(path=path, rc_params=module.rc_params)
-
-
-def run_commands(commands, name=None, script_path=None, rc_params=rc_params, working_dir=None):
-    name = name or "unnamed_task"
-    if script_path is not None:
-        script_path.parent.mkdir(parents=True, exist_ok=True)
-    with script_path.open("w") if script_path is not None else tempfile.NamedTemporaryFile(mode="w") as script:
-        script.write(script_content_with(commands, rc_params=rc_params, working_dir=working_dir))
-        script.flush()
-        return runArgs(name, [*rc_params.shebang[len("#!") :].split(" "), str(script.name)])
 
 
 def get_tmpdir_with_name(name, parent: Path | None = None):
@@ -372,6 +345,26 @@ class Runner(BaseModel):
     def run_script_path(self):
         return self.setup_dir / "workflow" / "scripts" / "run.sh"
 
+    @property
+    def workflow_definition_path(self):
+        return self.setup_dir / "workflow" / "workflow.cwl"
+
+    @property
+    def workflow_dir_path(self):
+        return self.setup_dir / "workflow"
+
+    @property
+    def workflow_input_path(self):
+        return self.workflow_dir_path / "input.yaml"
+
+    @property
+    def build_step_path(self):
+        return self.workflow_dir_path / "steps" / "build.cwl"
+
+    @property
+    def run_step_path(self):
+        return self.workflow_dir_path / "steps" / "run.cwl"
+
     def generate_profile(self):
         self.profile_path.parent.mkdir(parents=True, exist_ok=True)
         generate_bare_profile(self.profile_path)
@@ -408,10 +401,22 @@ class Runner(BaseModel):
 
     def generate_workflow_input(self):
         data = {
-            "run_script": {"class": "File", "path": str(self.run_script_path)},
-            "build_script": {"class": "File", "path": str(self.build_script_path)},
+            "run_script": {
+                "class": "File",
+                "path": str(self.run_script_path),
+                # For some reason, the "location" must also be set.
+                # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
+                "location": str(self.run_script_path),
+            },
+            "build_script": {
+                "class": "File",
+                "path": str(self.build_script_path),
+                # For some reason, the "location" must also be set.
+                # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
+                "location": str(self.build_script_path),
+            },
         }
-        with (self.setup_dir / "workflow" / "input.yaml").open("w") as file:
+        with (self.workflow_input_path).open("w") as file:
             # Technically, we are writing json here,
             # but yaml is a superset of json, so that's fine.
             json.dump(data, file, indent=4)
@@ -475,16 +480,15 @@ class Runner(BaseModel):
         )
         if not self.build_script_path.exists() or flags:
             self.generate_build_command(**flags)
-        return runArgs("build", [*rc_params.shebang[len("#!") :].split(" "), str(self.build_script_path)])
+        with self.workflow_input_path.open("r") as file:
+            return WorkflowFactory().make(str(self.build_step_path))(script=json.load(file)["build_script"])
 
     def run(self, **flags):
         """
         run compiled picongpu simulation
         """
-        assert (self.setup_dir / ".build").is_dir(), (
-            "build dir (.build in setup dir) must exist -- did you call build()?"
-        )
         assert not self.run_dir.exists(), "run dir must not exist yet -- did you call run() already?"
         if not self.run_script_path.exists() or flags:
             self.generate_run_command(str(self.run_dir), **flags)
-        return runArgs("run", [*rc_params.shebang[len("#!") :].split(" "), str(self.run_script_path)])
+        with self.workflow_input_path.open("r") as file:
+            return WorkflowFactory().make(str(self.workflow_definition_path))(**json.load(file))

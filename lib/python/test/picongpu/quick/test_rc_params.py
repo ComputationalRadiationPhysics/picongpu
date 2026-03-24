@@ -6,12 +6,13 @@ License: GPLv3+
 """
 
 from copy import deepcopy
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from moosetash import MissingVariable
-from picongpu import rc_params, DirtyResetError
+from picongpu import DirtyResetError, core, rc_params
+from picongpu._rc_params import search_for_in_parents
 from pytest import fixture, raises, warns
-
-from picongpu import core
 
 
 @fixture
@@ -27,6 +28,11 @@ def any_key():
 @fixture
 def any_content():
     return "any content"
+
+
+@fixture
+def arbitrary_filename():
+    return "tmp-custom-filename"
 
 
 @fixture
@@ -188,3 +194,25 @@ def test_set_temporarily_allows_not_overriding_existing(my_rc_params, any_key, a
     with my_rc_params.set_temporarily(any_key=any_content, override_existing=False):
         assert my_rc_params["any_key"] == other_content
     assert my_rc_params["any_key"] == other_content
+
+
+def test_search_for_file_in_same_directory(any_content, arbitrary_filename):
+    with TemporaryDirectory() as d1:
+        with (Path(d1) / arbitrary_filename).open("w") as file:
+            file.write(any_content)
+        with search_for_in_parents(filename=arbitrary_filename, start_path=d1).open("rb") as file:
+            assert file.read().decode() == any_content
+
+
+def test_search_for_file_in_parent_directory(any_content, arbitrary_filename):
+    with TemporaryDirectory() as d1:
+        with (Path(d1) / arbitrary_filename).open("w") as file:
+            file.write(any_content)
+        with TemporaryDirectory(prefix=f"{d1}/") as d2:
+            with search_for_in_parents(filename=arbitrary_filename, start_path=d2).open("rb") as file:
+                assert file.read().decode() == any_content
+
+
+def test_search_for_file_returns_none_if_not_found(arbitrary_filename):
+    with TemporaryDirectory() as d1:
+        assert search_for_in_parents(filename=arbitrary_filename, start_path=d1) is None
