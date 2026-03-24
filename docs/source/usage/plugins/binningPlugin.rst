@@ -101,6 +101,21 @@ For two fields with one extra data parameter:
 
   Fields and extra data may be tuples with multiple elements which are unpacked and passed to the user-defined functors. Therefore, it is the responsibility of the user to ensure that their functors have an appropriate number of arguments to match the provided tuples.
 
+Dimensionality and units
+^^^^^^^^^^^^^^^^^^^^^^^^
+Users can specify the units of their functor output using a 7 dimensional array. Each element of the array corresponds to an SI base unit, and the value stored in that index is the exponent of the unit.
+The dimensional base quantities are defined in ``SIBaseUnits_t`` following the international system of quantities (ISQ).
+If no units are given, the quantity is assumed to be dimensionless.
+
+.. literalinclude:: ../../../../share/picongpu/tests/compile2/include/picongpu/param/binningSetup.param
+   :language: c++
+   :start-after: doc-include-start: units
+   :end-before: doc-include-end: units
+   :dedent:
+
+.. doxygenenum:: picongpu::SIBaseUnits::SIBaseUnits_t
+
+
 Domain Info
 -----------
 The binning plugin passes the domain info object to functors as a parameter to give the user access to some useful PIConGPU quantities inside the functor. 
@@ -193,21 +208,6 @@ The available units are:
 .. note::
 
     Using positions in SI/PIC units introduces floating point numerical errors and may be especially problematic when using the ``TOTAL`` origin with moving window, because floating-point precision decreases as the distance from the origin increases.
-
-Dimensionality and units
-^^^^^^^^^^^^^^^^^^^^^^^^
-Users can specify the units of their functor output using a 7 dimensional array. Each element of the array corresponds to an SI base unit, and the value stored in that index is the exponent of the unit.
-The dimensional base quantities are defined in ``SIBaseUnits_t`` following the international system of quantities (ISQ).
-If no units are given, the quantity is assumed to be dimensionless.
-
-.. literalinclude:: ../../../../share/picongpu/tests/compile2/include/picongpu/param/binningSetup.param
-   :language: c++
-   :start-after: doc-include-start: units
-   :end-before: doc-include-end: units
-   :dedent:
-
-.. doxygenenum:: picongpu::SIBaseUnits::SIBaseUnits_t
-
 
 Axis
 ----
