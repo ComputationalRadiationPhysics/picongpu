@@ -237,7 +237,7 @@ $SHELL_OPT_U_RESTORE
 "$TBG_cfgPath"/submitAction.sh
 
 # picmi specific input copy (outside of submitAction.sh)
-if [ -f $TBG_projectPath/pypicongpu.json ]
+if [ -f $TBG_projectPath/metadata/pypicongpu_rendering_context.json ]
 then
     cp $TBG_projectPath/pypicongpu.json $TBG_dstPath/input/metadata.json
 else
