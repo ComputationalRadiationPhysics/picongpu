@@ -41,6 +41,7 @@ dependencies = [
   "pillow",
   "pint",
   "pydantic>=2.6.4",
+  "pyyaml",
   "referencing>=0.35.1",
   "roc-validator",
   # temporary bug-fix branch, should point to an upcoming release including this in the future:
