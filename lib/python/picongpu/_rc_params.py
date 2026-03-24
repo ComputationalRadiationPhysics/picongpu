@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from rocrate.model import ComputerLanguage, SoftwareApplication
 
 from picongpu import core
+
 from ._version import __version__
 
 
@@ -455,6 +456,7 @@ def _generate_rocrate_defaults(data):
             See the `workflow.cwl` for details.
             """,
         "mainEntity": "workflow/workflow.cwl",
+        "license": "https://spdx.org/licenses/GPL-3.0-or-later",
     }
 
 
@@ -492,6 +494,9 @@ class _ROCrateInfo(BaseModel):
                     current_types = list(current_types)
                 if "ComputationalWorkflow" not in current_types:
                     main_entity.properties()["@type"] = current_types + ["ComputationalWorkflow"]
+                main_entity.properties()["conformsTo"] = {
+                    "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE"
+                }
         if self.software:
             software = SoftwareApplication(crate, self.software.id_, properties=self.software.model_dump(mode="python"))
             crate.add(software)
