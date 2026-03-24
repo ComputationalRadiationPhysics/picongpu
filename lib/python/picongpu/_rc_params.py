@@ -522,6 +522,30 @@ def make_workflow(workflow, crate):
     )
 
 
+_DATASET_DESCRIPTIONS = {
+    "workflow": "Anything related to building and running this simulation setup, e.g., scripts, environment profiles, workflow definitions.",
+    "workflow/steps": "Workflow step definitions for building and running this simulation setup",
+    "workflow/scripts": "Self-contained scripts for building and running this simulation setup",
+    "etc": "Runtime configuration files for this simulation setup. "
+    "These files are used during the run step of the workflow. "
+    "Some of these files have been rendered from mustache templates using metadata/pypicongpu_rendering_context.json. "
+    "If so, the corresponding template is included with a suffix '.mustache'.",
+    "include": "Compile-time configuration files for this simulation setup. "
+    "These files are C++ header files that are compiled into the binary during the build step. "
+    "Some of these files have been rendered from mustache templates using metadata/pypicongpu_rendering_context.json. "
+    "If so, the corresponding template is included with a suffix '.mustache'.",
+    "metadata": "These files constitute various forms of serialization of the entities involved in generating this simulation setup.",
+}
+
+
+def add_dataset_descriptions(crate):
+    for id_, description in _DATASET_DESCRIPTIONS:
+        if entity := (crate.get(id_, None)):
+            entity["description"] = description
+        else:
+            crate.add_dataset(id_, properties={"description": description})
+
+
 class _ROCrateInfo(BaseModel):
     name: str
     description: str
@@ -552,6 +576,7 @@ class _ROCrateInfo(BaseModel):
             crate.root_dataset.append_to("instrument", software)
         if workflow := crate.get("workflow/workflow.cwl"):
             make_workflow(workflow, crate)
+        add_dataset_descriptions(crate)
         return crate
 
 
