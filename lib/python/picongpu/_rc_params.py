@@ -496,11 +496,15 @@ class _ROCrateInfo(BaseModel):
             software = SoftwareApplication(crate, self.software.id_, properties=self.software.model_dump(mode="python"))
             crate.add(software)
             crate.root_dataset.append_to("instrument", software)
-        cwl_lang = ComputerLanguage(crate, "cwl", properties={
-            "name": "Common Workflow Language",
-            "version": "1.2",
-            "url": "https://www.commonwl.org/",
-        })
+        cwl_lang = ComputerLanguage(
+            crate,
+            "cwl",
+            properties={
+                "name": "Common Workflow Language",
+                "version": "1.2",
+                "url": "https://www.commonwl.org/",
+            },
+        )
         crate.add(cwl_lang)
         if crate.mainEntity:
             crate.mainEntity.properties()["programmingLanguage"] = {"@id": "cwl"}
