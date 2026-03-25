@@ -18,10 +18,6 @@ inputs:
     doc: "Compiled PIConGPU binaries from build step"
 outputs:
   simulation_results:
-    type:
-      type: array
-      items: File
-    outputBinding:
-      glob: "**/*.h5"
+    type: Directory
     label: "Simulation results"
     doc: "Output files from the simulation (HDF5 format)"
