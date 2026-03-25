@@ -343,15 +343,15 @@ class Runner(BaseModel):
 
     @property
     def profile_path(self):
-        return self.workflow_dir_path / "picongpu.profile"
+        return self.workflow_scripts_path / "picongpu.profile"
 
     @property
     def build_script_path(self):
-        return self.workflow_dir_path / "build.sh"
+        return self.workflow_scripts_path / "build.sh"
 
     @property
     def run_script_path(self):
-        return self.workflow_dir_path / "run.sh"
+        return self.workflow_scripts_path / "run.sh"
 
     @property
     def workflow_definition_path(self):

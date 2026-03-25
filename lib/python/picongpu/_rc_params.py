@@ -592,8 +592,8 @@ _DEFAULT_PICONGPURC_PATH = None
 
 def generate_default_rc_params():
     picongpurc_path = (
-        search_for_in_parents("[.]*picongpurc.toml", Path())
-        or search_in_environment_variables()
+        search_in_environment_variables()
+        or search_for_in_parents("[.]*picongpurc.toml", Path())
         or search_in_user_config()
         or _DEFAULT_PICONGPURC_PATH
     )
