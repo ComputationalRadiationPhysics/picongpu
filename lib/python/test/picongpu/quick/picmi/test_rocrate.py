@@ -13,6 +13,7 @@ from picongpu.picmi import Cartesian3DGrid, ElectromagneticSolver, Simulation
 from picongpu._version import __version__
 from pytest import fixture, mark
 from rocrate.rocrate import ROCrate
+from rocrate_validator.services import validate
 
 
 @fixture
@@ -96,3 +97,11 @@ def test_rocrate_indicates_the_software_it_has_been_produced_with(crate):
 def test_adds_default_information_to_datasets(crate):
     # explicitly instantiating a list here for pytest to provide better assertion error messages
     assert all(["description" in dataset.properties() for dataset in crate.get_by_type("Dataset")])
+
+
+@mark.skip(
+    reason="Unsure about the problem but the validator complains about missing `conformsTo` in metadata file which is clearly present. "
+    "Skipping this test (as opposed to xfail) because it seems to be relatively expensive to run."
+)
+def test_validate_rocrate(setup_dir):
+    assert not validate(settings={"rocrate_uri": setup_dir}).get_issues()

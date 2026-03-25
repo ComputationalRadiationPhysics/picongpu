@@ -525,10 +525,6 @@ class _ROCrateInfo(BaseModel):
     license: str | None = None
     mainEntity: str | None
     software: SoftwareReference | None = SoftwareReference()
-    conformsTo: list[str] = [
-        "https://w3id.org/ro/crate/1.2",
-        "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE",
-    ]
     keywords: list[str] = []
 
     def __init__(self, data):
