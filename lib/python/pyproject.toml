@@ -43,10 +43,8 @@ dependencies = [
   "pydantic>=2.6.4",
   "referencing>=0.35.1",
   "roc-validator",
-  # Temporarily choosing the master here
-  # because the latest release doesn't yet support RO-Crate v1.2
-  # and it doesn't seem reasonable to build a new feature on top of an outdated standard.
-  "rocrate @ git+https://github.com/ResearchObject/ro-crate-py@master",
+  # temporary bug-fix branch, should point to an upcoming release including this in the future:
+  "rocrate @ git+https://github.com/chillenzer/ro-crate-py@fix-version-handling-in-init-mode",
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",
