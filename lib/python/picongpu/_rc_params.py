@@ -6,19 +6,19 @@ License: GPLv3+
 """
 
 import tomllib
-import yaml
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
 from itertools import chain
-from operator import methodcaller, attrgetter
+from operator import attrgetter, methodcaller
 from os import environ
 from pathlib import Path
 from warnings import warn
 
+import yaml
 from moosetash import MissingVariable, missing_partial_default, missing_variable_keep, missing_variable_raise, render
 from pydantic import BaseModel, ConfigDict, Field
-from rocrate.model import ComputerLanguage, ContextEntity, SoftwareApplication, ComputationalWorkflow
+from rocrate.model import ComputationalWorkflow, ComputerLanguage, ContextEntity, SoftwareApplication
 
 from picongpu import core
 
