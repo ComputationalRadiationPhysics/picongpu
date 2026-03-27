@@ -239,7 +239,7 @@ $SHELL_OPT_U_RESTORE
 # picmi specific input copy (outside of submitAction.sh)
 if [ -f $TBG_projectPath/metadata/pypicongpu_rendering_context.json ]
 then
-    cp $TBG_projectPath/pypicongpu.json $TBG_dstPath/input/metadata.json
+    cp $TBG_projectPath/metadata/pypicongpu_rendering_context.json $TBG_dstPath/input/metadata.json
 else
     echo "Could not find metadata/pypicongpu_rendering_context.json" >&2
 fi
