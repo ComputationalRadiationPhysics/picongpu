@@ -45,6 +45,7 @@ cd {str(working_dir.absolute())}
     )
     return f"""
 {rc_params.shebang}
+export ORIGINAL_WD="$(pwd -P)"
 
 {cd}
 
@@ -158,11 +159,21 @@ class TBGFlags(BaseModel):
         validation_alias=AliasChoices("submit", "s"),
     )
 
-    template_file: str | None = Field(
-        default="$TBG_TPLFILE",
-        description="Template to create a batch file from.",
-        validation_alias=AliasChoices("tpl"),
-    )
+    # Currently, we can't really set this
+    # because we want the default to be `$TBG_TPLFILE`
+    # which is typically set inside of the profile
+    # but `cwltool` is clever enough to realise
+    # that it would be dangerous to pass this as a raw string
+    # and passes it as a literal string `'$TBG_TPLFILE'`
+    # such that it is not resolved within `bash`.
+    # Working around this by hard-coding it
+    # but I'll have to come back to this eventually.
+    #    template_file: str | None = Field(
+    #        default="$TBG_TPLFILE",
+    #        description="Template to create a batch file from.",
+    #        validation_alias=AliasChoices("tpl"),
+    #    )
+    template_file: None = Field(None, validation_alias=AliasChoices("tpl"))
 
     overwrite_vars: list[str] | None = Field(
         default=None,
@@ -317,7 +328,11 @@ class Runner(BaseModel):
         with self.run_script_path.open("w") as script:
             script.write(
                 script_content_with(
-                    [f'export PIC_PROFILE="{str(self.profile_path)}"', "tbg $@"],
+                    [
+                        f'export PIC_PROFILE="{str(self.profile_path)}"',
+                        "tbg -t $TBG_TPLFILE $@",
+                        f'ln -s "{self.run_dir}" "$ORIGINAL_WD/results"',
+                    ],
                     rc_params=rc_params,
                     working_dir=self.setup_dir,
                 )
@@ -389,16 +404,6 @@ class Runner(BaseModel):
 
         self._render_templates()
 
-        # This is a dirty hack for now.
-        # The correct approach would be to render everything in the `_render_templates` call.
-        # But this would require to broaden the rendering context to include information from the runner.
-        # I'll update this in a later refactoring.
-        if (self.workflow_dir_path / "steps" / "run.cwl").is_file():
-            with (self.workflow_dir_path / "steps" / "run.cwl").open("a") as file:
-                file.write(f"""
-    outputBinding:
-      glob: {self.run_dir}
-""")
         self.generate_workflow_input(
             build_flags=PicBuildFlags(**flags),
             run_flags=TBGFlags(destination_path=self.run_dir, project_path=self.setup_dir, **flags),

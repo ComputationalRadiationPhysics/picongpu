@@ -31,6 +31,14 @@ inputs:
     label: "Submit system"
     doc: "Submit command (qsub, qsub -h, sbatch, ...)"
     default: "bash"
+  template_file:
+    type: string?
+    inputBinding:
+      position: 4
+      prefix: "-t"
+    label: "TBG template file"
+    doc: "Template to create a batch file from."
+    default: null
   overwrite_vars:
     type: string?
     inputBinding:
@@ -78,3 +86,5 @@ outputs:
     type: Directory
     label: "Simulation results"
     doc: "Output files from the simulation (HDF5 format)"
+    outputBinding:
+      glob: "results"

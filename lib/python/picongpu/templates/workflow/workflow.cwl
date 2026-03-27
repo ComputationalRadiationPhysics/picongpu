@@ -55,6 +55,11 @@ inputs:
     label: "Submit system"
     doc: "Submit command (qsub, qsub -h, sbatch, ...)"
     default: "bash"
+  run_template_file:
+    type: string?
+    label: "TBG template file"
+    doc: "Template to create a batch file from."
+    default: null
   run_overwrite_vars:
     type: string?
     label: "Overwrite variables"
@@ -111,6 +116,7 @@ steps:
       cfg_file: run_cfg_file
       submit_system: run_submit_system
       overwrite_vars: run_overwrite_vars
+      template_file: run_template_file
       force: run_force
       help: run_help
       project_path: run_project_path
