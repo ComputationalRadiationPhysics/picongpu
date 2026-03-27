@@ -15,15 +15,16 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Modules #####################################################################
 #
-module load release/24.04
-module load GCC/13.2.0
+module load release/25.06
+module load GCC/13.3.0
 module load CUDA/12.6.0
-module load CMake/3.27.6
-module load Boost/1.83.0
-module load OpenMPI/4.1.6
-module load HDF5/1.14.3
-module load libpng/1.6.40
+module load CMake/3.29.3
+module load Boost/1.85.0
+module load OpenMPI/5.0.3
+module load HDF5/1.14.5
+module load libpng/1.6.43
 module load FFTW/3.3.10
+module load Python/3.12.3
 
 # Self-Build Software #########################################################
 #
@@ -49,6 +50,8 @@ export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/taurus
 export PATH=$PICSRC/bin:$PATH
 export PATH=$PICSRC/src/tools/bin:$PATH
 
+# python not included yet
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # This is necessary in order to make alpaka compile.
 # The workaround is from Axel Huebl according to alpaka PR #702.
