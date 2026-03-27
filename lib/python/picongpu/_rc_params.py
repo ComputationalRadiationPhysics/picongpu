@@ -482,11 +482,15 @@ def make_workflow(workflow, crate):
             ContextEntity(
                 crate,
                 f"input_{name}",
-                properties={
-                    "name": name,
-                    "additionalType": get_cwl_type(definition.get("type", "File")),
-                    "description": definition.get("doc", ""),
-                },
+                properties=_drop_nones(
+                    {
+                        "@type": "FormalParameter",
+                        "name": name,
+                        "additionalType": get_cwl_type(definition.get("type", "File")),
+                        "description": definition.get("doc", None),
+                        "default": definition.get("default", None),
+                    }
+                ),
             )
             for name, definition in cwl_data.get(key, {}).items()
         ]
