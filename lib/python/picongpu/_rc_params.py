@@ -488,7 +488,6 @@ def make_workflow(workflow, crate):
                         "name": name,
                         "additionalType": get_cwl_type(definition.get("type", "File")),
                         "description": definition.get("doc", None),
-                        "default": definition.get("default", None),
                     }
                 ),
             )
@@ -539,7 +538,7 @@ _DATASET_DESCRIPTIONS = {
 
 
 def add_dataset_descriptions(crate):
-    for id_, description in _DATASET_DESCRIPTIONS:
+    for id_, description in _DATASET_DESCRIPTIONS.items():
         if entity := (crate.get(id_, None)):
             entity["description"] = description
         else:

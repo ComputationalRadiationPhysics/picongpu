@@ -20,10 +20,7 @@ from pydantic import (
     AliasChoices,
     BaseModel,
     BeforeValidator,
-    ConfigDict,
     Field,
-    computed_field,
-    model_serializer,
 )
 from rocrate.rocrate import ROCrate
 
@@ -103,54 +100,13 @@ def get_tmpdir_with_name(name, parent: Path | None = None):
         return Path(tmpdir).absolute()
 
 
-class CmdLineFlags(BaseModel):
-    model_config = ConfigDict(serialize_by_alias=True)
-
-    @model_serializer(mode="wrap")
-    def _compose_commandline(self, handler) -> str:
-        return " ".join(map(_flag_to_str, handler(self).items()))
-
-
-class CmdLine(BaseModel):
-    @computed_field
-    def command(self) -> str:
-        raise NotImplementedError()
-
-    args: Sequence[str]
-    flags: CmdLineFlags
-
-    @model_serializer(mode="plain")
-    def compose_commandline(self) -> str:
-        # example:
-        #   model.command="cmd" model.args=('a', 'b'), model.flags={'x': 5, 'cfg': 6}
-        #   cmd -x 5 --cfg 6 a b
-        return f"{self.command} {self.flags.model_dump()} " + " ".join(self.args)
-
-
-def _flag_to_str(flag_value_tuple) -> str:
-    match flag_value_tuple:
-        case (str(toggle), True):
-            return f"-{toggle}"
-        case (str(toggle), False):
-            return ""
-        case (_, None):
-            return ""
-        case (str(shorthand), value) if len(shorthand) == 1 and value is not None:
-            return f"-{shorthand} {str(value)}"
-        case (str(longoption), value) if len(longoption) > 1 and value is not None:
-            return f"--{longoption} {str(value)}"
-        case _:
-            raise ValueError(f"Unknown serialization of {flag_value_tuple=} to string.")
-
-
-class PicBuildFlags(CmdLineFlags):
+class PicBuildFlags(BaseModel):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
     # because they overlap with tbg flags and could thus lead to confusion.
     jobs: int | None = Field(
         default=4,
         description="allow N jobs at once; infinite jobs if set to None",
         validation_alias=AliasChoices("jobs", "j"),
-        serialization_alias="j",
     )
 
     cmake: str | None = Field(
@@ -159,7 +115,6 @@ class PicBuildFlags(CmdLineFlags):
             'Extra arguments that are passed straight to CMake, e.g. "-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug".'
         ),
         validation_alias=AliasChoices("cmake"),
-        serialization_alias="c",
     )
 
     preset: int | None = Field(
@@ -167,93 +122,67 @@ class PicBuildFlags(CmdLineFlags):
         description="Configure this preset number from CMake flags.",
         ge=0,
         validation_alias=AliasChoices("preset"),
-        serialization_alias="t",
     )
 
     force: bool = Field(
         default=False,
         description=("When set, clears the CMake file cache and forces a scan for new .param files."),
         validation_alias=AliasChoices("force", "f"),
-        serialization_alias="f",
     )
 
     cmake_build_system: str | None = Field(
         default=None,
         description=("Select the build system used by CMake (e.g. ``Ninja``)."),
         validation_alias=AliasChoices("G"),
-        serialization_alias="G",
     )
 
     help: bool = Field(
         default=False,
         description="Show the help message and exit.",
         validation_alias=AliasChoices("help", "h"),
-        serialization_alias="h",
     )
 
 
-class PicBuildCmdline(CmdLine):
-    args: Sequence[str] = Field(default=tuple(), max_length=0)
-    flags: PicBuildFlags = PicBuildFlags()
-
-    @computed_field
-    def command(self) -> str:
-        return "pic-build"
-
-
-class TBGFlags(CmdLineFlags):
+class TBGFlags(BaseModel):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
     # because they overlap with pic-build flags and could thus lead to confusion.
     cfg_file: str = Field(
         default="etc/picongpu/N.cfg",
         description="Configuration file to set up batch file.",
         validation_alias=AliasChoices("cfg"),
-        serialization_alias="c",
     )
 
     submit_system: str | None = Field(
         default="bash",
         description="Submit command (qsub, 'qsub -h', sbatch, ...).",
         validation_alias=AliasChoices("submit", "s"),
-        serialization_alias="s",
     )
 
     template_file: str | None = Field(
         default="$TBG_TPLFILE",
         description="Template to create a batch file from.",
         validation_alias=AliasChoices("tpl"),
-        serialization_alias="t",
     )
 
     overwrite_vars: list[str] | None = Field(
         default=None,
         description="Overwrite any template variable.",
         validation_alias=AliasChoices("o"),
-        serialization_alias="o",
     )
 
     force: bool = Field(
         default=False,
         description="Override if 'destinationPath' exists.",
         validation_alias=AliasChoices("force", "f"),
-        serialization_alias="f",
     )
 
     help: bool = Field(
         default=False,
         description="Show the help message and exit.",
         validation_alias=AliasChoices("help", "h"),
-        serialization_alias="h",
     )
-
-
-class TbgCmdLine(CmdLine):
-    args: Sequence[str] = Field(min_length=1, max_length=2)
-    flags: TBGFlags = TBGFlags()
-
-    @computed_field
-    def command(self) -> str:
-        return "tbg"
+    destination_path: Path = Field(description="Directory to organise the results in and run in.")
+    project_path: Path = Field(description="Simulation setup directory to run.")
 
 
 class Runner(BaseModel):
@@ -362,6 +291,10 @@ class Runner(BaseModel):
         return self.workflow_dir_path / "input.yaml"
 
     @property
+    def workflow_path(self):
+        return self.workflow_dir_path / "workflow.cwl"
+
+    @property
     def build_step_path(self):
         return self.workflow_dir_path / "steps" / "build.cwl"
 
@@ -373,57 +306,50 @@ class Runner(BaseModel):
         self.profile_path.parent.mkdir(parents=True, exist_ok=True)
         generate_bare_profile(self.profile_path)
 
-    def generate_build_command(self, *args, rc_params=rc_params, **flags):
-        flags = {"j": 4} | flags
+    def generate_build_command(self, rc_params=rc_params):
         self.build_script_path.parent.mkdir(parents=True, exist_ok=True)
         with self.build_script_path.open("w") as script:
-            script.write(
-                script_content_with(
-                    PicBuildCmdline(args=args, flags=flags).model_dump(),
-                    rc_params=rc_params,
-                    working_dir=self.setup_dir,
-                )
-            )
+            script.write(script_content_with("pic-build $@", rc_params=rc_params, working_dir=self.setup_dir))
             script.flush()
 
-    def generate_run_command(self, *args, rc_params=rc_params, **flags):
-        flags = dict(s="bash", c="etc/picongpu/N.cfg", t="$TBG_TPLFILE") | flags
-        args = args or (str(self.run_dir),)
+    def generate_run_command(self, rc_params=rc_params):
         self.run_script_path.parent.mkdir(parents=True, exist_ok=True)
         with self.run_script_path.open("w") as script:
             script.write(
                 script_content_with(
-                    [
-                        f'export PIC_PROFILE="{str(self.profile_path)}"',
-                        TbgCmdLine(args=args, flags=flags).model_dump(),
-                    ],
+                    [f'export PIC_PROFILE="{str(self.profile_path)}"', "tbg $@"],
                     rc_params=rc_params,
                     working_dir=self.setup_dir,
                 )
             )
             script.flush()
 
-    def generate_workflow_input(self):
-        data = {
-            "run_script": {
-                "class": "File",
-                "path": str(self.run_script_path),
-                # For some reason, the "location" must also be set.
-                # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
-                "location": str(self.run_script_path),
-            },
-            "build_script": {
-                "class": "File",
-                "path": str(self.build_script_path),
-                # For some reason, the "location" must also be set.
-                # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
-                "location": str(self.build_script_path),
-            },
-        }
+    def generate_workflow_input(self, build_flags: PicBuildFlags, run_flags: TBGFlags):
         with (self.workflow_input_path).open("w") as file:
-            # Technically, we are writing json here,
+            # Technically, we are writing json into a yaml file here,
             # but yaml is a superset of json, so that's fine.
-            json.dump(data, file, indent=4)
+            json.dump(
+                {
+                    "build_script": {
+                        "class": "File",
+                        "path": str(self.build_script_path),
+                        # For some reason, the "location" must also be set.
+                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
+                        "location": str(self.build_script_path),
+                    },
+                    **{f"build_{key}": value for key, value in build_flags.model_dump(mode="json").items()},
+                    "run_script": {
+                        "class": "File",
+                        "path": str(self.run_script_path),
+                        # For some reason, the "location" must also be set.
+                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
+                        "location": str(self.run_script_path),
+                    },
+                    **{f"run_{key}": value for key, value in run_flags.model_dump(mode="json").items()},
+                },
+                file,
+                indent=4,
+            )
 
     def store_metadata(self, metadata, filename):
         self.metadata_path.mkdir(parents=True, exist_ok=True)
@@ -457,12 +383,12 @@ class Runner(BaseModel):
                     dst.mkdir(parents=True, exist_ok=True)
                     copytree(src, dst, dirs_exist_ok=True)
 
+        self.generate_profile()
+        self.generate_build_command()
+        self.generate_run_command()
+
         self._render_templates()
 
-        self.generate_profile()
-        self.generate_build_command(**flags)
-        self.generate_run_command(**flags)
-        self.generate_workflow_input()
         # This is a dirty hack for now.
         # The correct approach would be to render everything in the `_render_templates` call.
         # But this would require to broaden the rendering context to include information from the runner.
@@ -473,6 +399,10 @@ class Runner(BaseModel):
     outputBinding:
       glob: {self.run_dir}
 """)
+        self.generate_workflow_input(
+            build_flags=PicBuildFlags(**flags),
+            run_flags=TBGFlags(destination_path=self.run_dir, project_path=self.setup_dir, **flags),
+        )
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
@@ -484,26 +414,22 @@ class Runner(BaseModel):
             self.setup_dir
         )
 
-    def build(self, **flags):
+    def build(self):
         """
         build (compile) picongpu-compatible input files
         """
-        assert self.setup_dir.is_dir(), (
-            "setup directory must exist (and contain generated files) -- did you call generate()?"
-        )
-        assert not (self.setup_dir / ".build").exists(), (
-            "build dir (.build in setup dir) must not exist -- did you call build() already?"
-        )
-        if not self.build_script_path.exists() or flags:
-            self.generate_build_command(**flags)
         with self.workflow_input_path.open("r") as file:
-            return WorkflowFactory().make(str(self.build_step_path))(script=json.load(file)["build_script"])
+            return WorkflowFactory().make(str(self.build_step_path))(
+                **{
+                    f"{key[len('build_') :]}": value
+                    for key, value in json.load(file).items()
+                    if key.startswith("build_")
+                }
+            )
 
-    def run(self, **flags):
+    def run(self):
         """
         run compiled picongpu simulation
         """
-        if not self.run_script_path.exists() or flags:
-            self.generate_run_command(str(self.run_dir), **flags)
         with self.workflow_input_path.open("r") as file:
             return WorkflowFactory().make(str(self.workflow_definition_path))(**json.load(file))
