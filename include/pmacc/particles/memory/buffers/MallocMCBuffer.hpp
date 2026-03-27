@@ -44,7 +44,7 @@ namespace pmacc
         using DeviceHeap = T_DeviceHeap;
         using BufferType = ::alpaka::Buf<HostDevice, uint8_t, AlpakaDim<DIM1>, MemIdxType>;
 
-        MallocMCBuffer(std::shared_ptr<DeviceHeap> const& deviceHeap);
+        MallocMCBuffer(DeviceHeap const& deviceHeap);
 
         virtual ~MallocMCBuffer();
 
@@ -84,7 +84,7 @@ namespace pmacc
     class MallocMCBuffer : public ISimulationData
     {
     public:
-        MallocMCBuffer(std::shared_ptr<T_DeviceHeap> const&);
+        MallocMCBuffer(T_DeviceHeap const&);
 
         ~MallocMCBuffer() override = default;
 

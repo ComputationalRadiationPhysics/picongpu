@@ -411,7 +411,7 @@ namespace picongpu
             deviceHeap->destructiveResize(alpakaDevice, alpakaQueue, heapSize);
             alpaka::wait(alpakaQueue);
 
-            auto mallocMCBuffer = std::make_unique<MallocMCBuffer<DeviceHeap>>(deviceHeap);
+            auto mallocMCBuffer = std::make_unique<MallocMCBuffer<DeviceHeap>>(*deviceHeap);
             dc.consume(std::move(mallocMCBuffer));
 
 #endif
