@@ -44,7 +44,7 @@ namespace pmacc
         using DeviceHeap = T_DeviceHeap;
         using BufferType = ::alpaka::Buf<HostDevice, uint8_t, AlpakaDim<DIM1>, MemIdxType>;
 
-        MallocMCBuffer(DeviceHeap const& deviceHeap);
+        MallocMCBuffer(DeviceHeap& deviceHeap);
 
         virtual ~MallocMCBuffer();
 
