@@ -29,6 +29,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <utility>
 
 namespace pmacc
 {
@@ -44,16 +45,16 @@ namespace pmacc
             {
                 template<typename T_Functor, typename... T_CtxVars>
                 HDINLINE auto operator()(T_Functor&& functor, Idx idx, T_CtxVars&&... ctxVars) const
-                    -> decltype(functor(idx, std::forward<T_CtxVars>(ctxVars)...))
+                    -> decltype(std::forward<T_Functor>(functor)(idx, std::forward<T_CtxVars>(ctxVars)...))
                 {
-                    return functor(idx, std::forward<T_CtxVars>(ctxVars)...);
+                    return std::forward<T_Functor>(functor)(idx, std::forward<T_CtxVars>(ctxVars)...);
                 }
 
                 template<typename T_Functor, typename... T_CtxVars>
                 HDINLINE auto operator()(T_Functor&& functor, Idx idx, T_CtxVars&&... ctxVars) const
-                    -> decltype(functor(std::forward<T_CtxVars>(ctxVars)...))
+                    -> decltype(std::forward<T_Functor>(functor)(std::forward<T_CtxVars>(ctxVars)...))
                 {
-                    return functor(std::forward<T_CtxVars>(ctxVars)...);
+                    return std::forward<T_Functor>(functor)(std::forward<T_CtxVars>(ctxVars)...);
                 }
             };
 
@@ -64,15 +65,17 @@ namespace pmacc
             struct FunctorWrapperWithoutCtxVars
             {
                 template<typename T_Functor>
-                HDINLINE auto operator()(T_Functor&& functor, Idx idx) const -> decltype(functor(idx))
+                HDINLINE auto operator()(T_Functor&& functor, Idx idx) const
+                    -> decltype(std::forward<T_Functor>(functor)(idx))
                 {
-                    return functor(idx);
+                    return std::forward<T_Functor>(functor)(idx);
                 }
 
                 template<typename T_Functor>
-                HDINLINE auto operator()(T_Functor&& functor, Idx idx) const -> decltype(functor())
+                HDINLINE auto operator()(T_Functor&& functor, Idx idx) const
+                    -> decltype(std::forward<T_Functor>(functor)())
                 {
-                    return functor();
+                    return std::forward<T_Functor>(functor)();
                 }
             };
 
@@ -85,22 +88,21 @@ namespace pmacc
              */
             struct FunctorWrapper
             {
-                template<
-                    typename T_Functor,
-                    typename... T_CtxVars,
-                    std::enable_if_t<sizeof...(T_CtxVars) != 0, int> = 0>
+                template<typename T_Functor, typename... T_CtxVars>
+                requires(sizeof...(T_CtxVars) != 0)
                 HDINLINE decltype(auto) operator()(T_Functor&& functor, Idx idx, T_CtxVars&&... ctxVars) const
                 {
-                    return FunctorWrapperWithCtxVars{}(functor, idx, std::forward<T_CtxVars>(ctxVars)[idx]...);
+                    return FunctorWrapperWithCtxVars{}(
+                        std::forward<T_Functor>(functor),
+                        idx,
+                        std::forward<T_CtxVars>(ctxVars)[idx]...);
                 }
 
-                template<
-                    typename T_Functor,
-                    typename... T_CtxVars,
-                    std::enable_if_t<sizeof...(T_CtxVars) == 0, int> = 0>
+                template<typename T_Functor, typename... T_CtxVars>
+                requires(sizeof...(T_CtxVars) == 0)
                 HDINLINE decltype(auto) operator()(T_Functor&& functor, Idx idx, T_CtxVars&&...) const
                 {
-                    return FunctorWrapperWithoutCtxVars{}(functor, idx);
+                    return FunctorWrapperWithoutCtxVars{}(std::forward<T_Functor>(functor), idx);
                 }
             };
         } // namespace detail
@@ -122,19 +124,9 @@ namespace pmacc
             : Config<T_domainSize, T_Worker::numWorkers(), T_simdSize>
             , T_Worker
         {
-            /** Get the result of a functor invocation.
-             *
-             * @attention The behavior is undefined for ill-formed invocations.
-             *
-             * @{
-             */
-            template<typename F, typename... T_Args>
-            using InvokeResult_t = typename std::invoke_result<F, T_Args...>::type;
-            /**@}*/
-
             template<typename T_Functor, typename... T_CtxVars>
             static constexpr bool resultIsVoid
-                = std::is_void_v<InvokeResult_t<detail::FunctorWrapper, T_Functor, Idx, T_CtxVars...>>;
+                = std::is_void_v<std::invoke_result_t<detail::FunctorWrapper, T_Functor, Idx, T_CtxVars...>>;
 
         public:
             using BaseConfig = Config<T_domainSize, T_Worker::numWorkers(), T_simdSize>;
@@ -179,10 +171,8 @@ namespace pmacc
              * void operator()(...);
              * @endcode
              */
-            template<
-                typename T_Functor,
-                typename... T_CtxVars,
-                std::enable_if_t<resultIsVoid<T_Functor, T_CtxVars...> && domainSize != 1, int> = 0>
+            template<typename T_Functor, typename... T_CtxVars>
+            requires(resultIsVoid<T_Functor, T_CtxVars...> && domainSize != 1)
             HDINLINE void operator()(T_Functor&& functor, T_CtxVars&&... ctxVars) const
             {
                 // number of iterations each worker can safely execute without boundary checks
@@ -194,10 +184,7 @@ namespace pmacc
                         uint32_t const beginWorker = i * simdSize;
                         uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->workerIdx();
                         for(uint32_t s = 0u; s < simdSize; ++s)
-                            detail::FunctorWrapper{}(
-                                std::forward<T_Functor>(functor),
-                                Idx(beginIdx + s, beginWorker + s),
-                                std::forward<T_CtxVars>(ctxVars)...);
+                            detail::FunctorWrapper{}(functor, Idx(beginIdx + s, beginWorker + s), ctxVars...);
                     }
                 }
 
@@ -212,24 +199,22 @@ namespace pmacc
                         {
                             constexpr uint32_t beginWorker = peeledIterations * simdSize;
                             uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->workerIdx();
-                            detail::FunctorWrapper{}(
-                                std::forward<T_Functor>(functor),
-                                Idx(beginIdx + s, beginWorker + s),
-                                std::forward<T_CtxVars>(ctxVars)...);
+                            detail::FunctorWrapper{}(functor, Idx(beginIdx + s, beginWorker + s), ctxVars...);
                         }
                     }
                 }
             }
 
             /** Execute the functor with the master worker only. */
-            template<
-                typename T_Functor,
-                typename... T_CtxVars,
-                std::enable_if_t<resultIsVoid<T_Functor, T_CtxVars...> && domainSize == 1, int> = 0>
+            template<typename T_Functor, typename... T_CtxVars>
+            requires(resultIsVoid<T_Functor, T_CtxVars...> && domainSize == 1)
             HDINLINE void operator()(T_Functor&& functor, T_CtxVars&&... ctxVars) const
             {
                 if(this->workerIdx() == 0u)
-                    detail::FunctorWrapper{}(functor, Idx(0u, 0u), std::forward<T_CtxVars>(ctxVars)...);
+                    detail::FunctorWrapper{}(
+                        std::forward<T_Functor>(functor),
+                        Idx(0u, 0u),
+                        std::forward<T_CtxVars>(ctxVars)...);
             }
 
             /** Execute the functor and create and return a variable for each index of the domain.
@@ -248,24 +233,20 @@ namespace pmacc
              *
              * @return Variable for each index of the domain.
              */
-            template<
-                typename T_Functor,
-                typename... T_CtxVars,
-                std::enable_if_t<!resultIsVoid<T_Functor, T_CtxVars...>, int> = 0>
+            template<typename T_Functor, typename... T_CtxVars>
+            requires(!resultIsVoid<T_Functor, T_CtxVars...>)
             HDINLINE auto operator()(T_Functor&& functor, T_CtxVars&&... ctxVars) const
             {
-                auto tmp = makeVar<std::decay_t<decltype(alpaka::core::declval<detail::FunctorWrapper>()(
-                    std::forward<T_Functor>(functor),
-                    alpaka::core::declval<Idx>(),
-                    std::forward<T_CtxVars>(ctxVars)...))>>(*this);
+                using ResultType = std::invoke_result_t<detail::FunctorWrapper, T_Functor&, Idx, T_CtxVars&...>;
+                auto tmp = makeVar<std::decay_t<ResultType>>(*this);
+
                 this->operator()(
-                    [&](Idx const& idx)
+                    [&](Idx const idx)
                     {
-                        tmp[idx] = std::move(
-                            detail::FunctorWrapper{}(
-                                std::forward<T_Functor>(functor),
-                                idx,
-                                std::forward<T_CtxVars>(ctxVars)...));
+                        tmp[idx] = detail::FunctorWrapper{}(
+                            std::forward<T_Functor>(functor),
+                            idx,
+                            std::forward<T_CtxVars>(ctxVars)...);
                     });
                 return tmp;
             }
