@@ -2,19 +2,28 @@ cwlVersion: v1.2
 class: CommandLineTool
 label: "Run PIConGPU Simulation"
 doc: "Run the compiled PIConGPU simulation using tbg"
-hints:
-  SoftwareRequirement:
-    packages:
-      picongpu:
-        specs: ["https://doi.org/10.5281/zenodo.14513363"]
-baseCommand: bash
+
+requirements:
+  InitialWorkDirRequirement:
+    listing:
+      - entryname: etc
+        entry: $(inputs.etc_directory)
+      - entryname: run.sh
+        entry: $(inputs.script)
+      - entryname: bin
+        entry: $(inputs.bin_directory)
+
+baseCommand: ./run.sh
+
 inputs:
+  etc_directory:
+    type: Directory
+    label: "Run-time configuration files for PIConGPU"
+    doc: "Directory containing the run-time configuration files for PIConGPU"
   script:
-      type: File
-      inputBinding:
-        position: 1
-      label: "Run script"
-      doc: "Shell script containing tbg command and flags"
+    type: File
+    label: "Run script"
+    doc: "Shell script setting up the environment and running tbg"
   cfg_file:
     type: string
     inputBinding:
@@ -75,10 +84,8 @@ inputs:
       position: 9
     label: "Destination path"
     doc: "Output directory for simulation results"
-  executables:
-    type:
-      type: array
-      items: File
+  bin_directory:
+    type: Directory
     label: "PIConGPU executables"
     doc: "Compiled PIConGPU binaries from build step"
 outputs:

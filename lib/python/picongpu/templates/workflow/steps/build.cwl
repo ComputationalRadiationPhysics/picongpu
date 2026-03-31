@@ -2,20 +2,26 @@ cwlVersion: v1.2
 class: CommandLineTool
 label: "Build PIConGPU"
 doc: "Compile PIConGPU using pic-build with the provided build script"
-hints:
-  SoftwareRequirement:
-    packages:
-      picongpu:
-        package: "PIConGPU"
-        specs: ["https://doi.org/10.5281/zenodo.14513363"]
-baseCommand: bash
+
+requirements:
+  InitialWorkDirRequirement:
+    listing:
+      - entryname: include
+        entry: $(inputs.include_directory)
+      - entryname: build.sh
+        entry: $(inputs.script)
+
+baseCommand: ./build.sh
+
 inputs:
+  include_directory:
+    type: Directory
+    label: "Compile-time parameter header directory"
+    doc: "Directory containing compile-time parameter headers for compilation of PIConGPU"
   script:
-      type: File
-      inputBinding:
-        position: 1
-      label: "Build script"
-      doc: "Shell script containing pic-build command and flags"
+    type: File
+    label: "Build script"
+    doc: "Shell script setting up the environment and running pic-build"
   jobs:
     type: int?
     inputBinding:
@@ -65,11 +71,9 @@ inputs:
     doc: "Show the help message and exit"
     default: false
 outputs:
-  executables:
-    type:
-      type: array
-      items: File
+  bin_directory:
+    type: Directory
     outputBinding:
-      glob: "bin/*"
+      glob: "bin"
     label: "Compiled executables"
     doc: "Compiled PIConGPU binaries"

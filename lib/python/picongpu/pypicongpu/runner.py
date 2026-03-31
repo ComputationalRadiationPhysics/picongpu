@@ -10,6 +10,7 @@ import json
 import logging
 import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
+from os import chmod
 from pathlib import Path
 from shutil import copy2, copytree
 from typing import Annotated, Sequence
@@ -32,22 +33,10 @@ from .simulation import Simulation
 from .util import alt
 
 
-def script_content_with(commands, working_dir: Path | None = None, rc_params=rc_params):
+def script_content_with(commands, rc_params=rc_params):
     if not isinstance(commands, str):
         commands = "\n".join(commands)
-    cd = (
-        f"""
-# adjust working directory
-cd {str(working_dir.absolute())}
-"""
-        if working_dir is not None
-        else ""
-    )
-    return f"""
-{rc_params.shebang}
-export ORIGINAL_WD="$(pwd -P)"
-
-{cd}
+    return f"""{rc_params.shebang}
 
 # preamble
 {rc_params.preamble}
@@ -57,7 +46,7 @@ export ORIGINAL_WD="$(pwd -P)"
 
 # commands
 {commands}
-"""[1:]
+"""
 
 
 def generate_bare_profile(path=None, rc_params=rc_params):
@@ -320,8 +309,9 @@ class Runner(BaseModel):
     def generate_build_command(self, rc_params=rc_params):
         self.build_script_path.parent.mkdir(parents=True, exist_ok=True)
         with self.build_script_path.open("w") as script:
-            script.write(script_content_with("pic-build $@", rc_params=rc_params, working_dir=self.setup_dir))
+            script.write(script_content_with("pic-build $@", rc_params=rc_params))
             script.flush()
+        chmod(self.build_script_path, 0o755)
 
     def generate_run_command(self, rc_params=rc_params):
         self.run_script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -331,20 +321,28 @@ class Runner(BaseModel):
                     [
                         f'export PIC_PROFILE="{str(self.profile_path)}"',
                         "tbg -t $TBG_TPLFILE $@",
-                        f'ln -s "{self.run_dir}" "$ORIGINAL_WD/results"',
+                        f'ln -s "{self.run_dir}" "results"',
                     ],
                     rc_params=rc_params,
-                    working_dir=self.setup_dir,
                 )
             )
             script.flush()
+        chmod(self.run_script_path, 0o755)
 
     def generate_workflow_input(self, build_flags: PicBuildFlags, run_flags: TBGFlags):
         with (self.workflow_input_path).open("w") as file:
             # Technically, we are writing json into a yaml file here,
             # but yaml is a superset of json, so that's fine.
             json.dump(
+                # We follow the comvention of prefixing with `build_` (resp. `run_`)
+                # because this makes it easy to filter and parse the arguments
+                # in cases when one wants to run the steps individually.
                 {
+                    "build_include_directory": {
+                        "class": "Directory",
+                        "path": str(self.setup_dir / "include"),
+                        "location": str(self.setup_dir / "include"),
+                    },
                     "build_script": {
                         "class": "File",
                         "path": str(self.build_script_path),
@@ -353,6 +351,11 @@ class Runner(BaseModel):
                         "location": str(self.build_script_path),
                     },
                     **{f"build_{key}": value for key, value in build_flags.model_dump(mode="json").items()},
+                    "run_etc_directory": {
+                        "class": "Directory",
+                        "path": str(self.setup_dir / "etc"),
+                        "location": str(self.setup_dir / "etc"),
+                    },
                     "run_script": {
                         "class": "File",
                         "path": str(self.run_script_path),

@@ -7,10 +7,14 @@ doc: |
   Then, it runs the simulation using tbg.
 
 inputs:
+  build_include_directory:
+    type: Directory
+    label: "Compile-time parameter header directory"
+    doc: "Directory containing compile-time parameter headers for compilation of PIConGPU"
   build_script:
     type: File
     label: "Build script"
-    doc: "Shell script to compile PIConGPU with pic-build"
+    doc: "Shell script setting up the environment and running pic-build"
   build_jobs:
     type: int?
     label: "Number of parallel jobs"
@@ -41,6 +45,10 @@ inputs:
     label: "Show help"
     doc: "Show the help message and exit"
     default: false
+  run_etc_directory:
+    type: Directory
+    label: "Compile-time parameter header directory"
+    doc: "Directory containing compile-time parameter headers for compilation of PIConGPU"
   run_script:
     type: File
     label: "Run script"
@@ -85,21 +93,20 @@ inputs:
     doc: "Output directory for simulation results"
 
 outputs:
-  executables:
-    type:
-      type: array
-      items: File
-    outputSource: build_step/executables
+  bin_directory:
+    type: Directory
+    outputSource: build_step/bin_directory
     label: "Compiled PIConGPU executables"
   simulation_results:
     type: Directory
     outputSource: run_step/simulation_results
-    label: "Simulation output directory"
+    label: "Simulation results"
 
 steps:
   build_step:
     run: steps/build.cwl
     in:
+      include_directory: build_include_directory
       script: build_script
       jobs: build_jobs
       cmake: build_cmake
@@ -107,11 +114,12 @@ steps:
       force: build_force
       cmake_build_system: build_cmake_build_system
       help: build_help
-    out: [executables]
+    out: [bin_directory]
     label: "Build PIConGPU"
   run_step:
     run: steps/run.cwl
     in:
+      etc_directory: run_etc_directory
       script: run_script
       cfg_file: run_cfg_file
       submit_system: run_submit_system
@@ -121,6 +129,6 @@ steps:
       help: run_help
       project_path: run_project_path
       destination_path: run_destination_path
-      executables: build_step/executables
+      bin_directory: build_step/bin_directory
     out: [simulation_results]
     label: "Run PIConGPU simulation"
