@@ -33,6 +33,7 @@ Compiler
 - C++20 supporting compiler, e.g. GCC 10+ or Clang 11+
 - if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
 - *note:* be sure to build all libraries/dependencies with the *same* compiler version
+- *note:* CUDA 12.4 does not work with gcc 13, CUDA < 12.[0-3] does not work work withh gcc 12 or newer.   
 - *Debian/Ubuntu:*
 
   - ``sudo apt-get install gcc-10 g++-10 build-essential``
@@ -134,7 +135,7 @@ Optional Libraries
 
 CUDA
 """"
-- `11.3.0+ <https://developer.nvidia.com/cuda-downloads>`_
+- `12.0.0+ <https://developer.nvidia.com/cuda-downloads>`_
 - g++-10 or newer is required
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
