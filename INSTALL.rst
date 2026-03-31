@@ -134,7 +134,7 @@ Optional Libraries
 
 CUDA
 """"
-- `11.3.0+ <https://developer.nvidia.com/cuda-downloads>`_
+- `12.0.0+ <https://developer.nvidia.com/cuda-downloads>`_
 - g++-10 or newer is required
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
