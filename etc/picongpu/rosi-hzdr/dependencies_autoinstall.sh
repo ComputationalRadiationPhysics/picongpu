@@ -82,11 +82,7 @@ fi
 
 
 
-### !!! change CMake to older version
-#module unload cmake/4.0.3
-#module load cmake/3.26.1 # CMake/3.24.3-GCCcore-12.2.0
-###
-
+# TODO: we need to update PNGwriter to work with a modern cmake
 
 #   PNGwriter
 #if [ ! -d "$PNGwriter_ROOT" ]; then
@@ -103,32 +99,17 @@ fi
 #fi
 
 
-### !!! change CMake back
-#module unload cmake/3.26.1 #CMake/3.24.3-GCCcore-12.2.0
-#module load cmake/4.0.3
-###
-
-
 
 #   HDF5
 if [ ! -d "$HDF5_ROOT" ]; then
     echo "Installing parallel HDF5..."
     cd $SOURCE_DIR
-    #https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.6.tar.gz
     wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz
     tar -xzf hdf5_${HDF5_VERSION}.tar.gz
     mkdir hdf5_build
     cd hdf5_build
     cmake -DCMAKE_INSTALL_PREFIX=$HDF5_ROOT  -DHDF5_ENABLE_PARALLEL=ON ../hdf5-hdf5_${HDF5_VERSION}/
     make install -j 16
-
-    #./configure --build=`uname -p` --enable-parallel --enable-shared --disable-fortran \
-    #    --prefix=$HDF5_ROOT CC=mpicc CXX=mpic++
-    #export CXXFLAGS="-fPIC"
-    #export CFLAGS="-fPIC"
-    #make check
-    #make CC=mpicc CXX=mpic++
-    #make install
 
 fi
 
@@ -141,8 +122,6 @@ if [ ! -d "$ADIOS2_ROOT" ]; then
     cd $SOURCE_DIR
     git clone -b v${ADIOS2_VERSION} https://github.com/ornladios/ADIOS2.git \
         $SOURCE_DIR/adios2
-    #cd $SOURCE_DIR/adios2
-    #sed -i 's|if (ADIOS2_HAVE_MPI_CLIENT_SERVER)|if (TRUE)|' cmake/DetectOptions.cmake
     mkdir $SOURCE_DIR/adios2-build
     cd $SOURCE_DIR/adios2-build
 
