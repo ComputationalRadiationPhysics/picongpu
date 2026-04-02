@@ -157,6 +157,12 @@ namespace picongpu
                 }
                 if(elements == 0)
                 {
+                    if(globalElements == 0)
+                    {
+                        // no one does anything, storeChunk() is not allowed since empty components are automatically
+                        // converted to constant components by the openPMD-api, these do not allow storeChunk
+                        return;
+                    }
                     // accumulateWrittenBytes += 0;
 
                     // Workaround for this bug: https://github.com/openPMD/openPMD-api/pull/1794
