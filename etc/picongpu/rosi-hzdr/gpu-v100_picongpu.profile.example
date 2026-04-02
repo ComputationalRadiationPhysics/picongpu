@@ -11,13 +11,12 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
-export EDITOR="emacs -nw"
+export EDITOR="nano"
 
 # General modules #############################################################
 #
 module purge
 module load volta
-module load emacs
 
 # these are not yet fully exposed modules
 # TODO: this needs to be updated in the future
