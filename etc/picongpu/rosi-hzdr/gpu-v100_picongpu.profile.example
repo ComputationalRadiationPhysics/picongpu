@@ -108,7 +108,7 @@ export PICSRC=$HOME/src/picongpu/
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:70"
 
-export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/hemera-hzdr"}
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/rosi-hzdr"}
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
@@ -119,7 +119,7 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 #   - SLURM (sbatch)
 #   - "gpu-v100" queue
 export TBG_SUBMIT="sbatch"
-#export TBG_TPLFILE="etc/picongpu/hemera-hzdr/fwkt_v100.tpl"
+export TBG_TPLFILE="etc/picongpu/rosi-hzdr/gpu-v100.tpl"
 export TBG_partition="gpu-v100"
 
 
