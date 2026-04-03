@@ -6,7 +6,7 @@ infix = ""         # replaces --openPMD.infix,
                    # default is "%06T"
 ext = "bp4"        # replaces --openPMD.ext,
                    # the default is "bp4" if ADIOS2 is available, else ".h5"
-backend_config = "@./adios_config.json"    # replaces --openPMD.json,
+backend_config = "@./adios_config.json"    # replaces --openPMD.backendConfig,
                                            # default is "{}"
 data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationStrategy,
                                            # default is "doubleBuffer"

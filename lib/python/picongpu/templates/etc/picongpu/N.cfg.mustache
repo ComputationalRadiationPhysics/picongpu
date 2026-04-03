@@ -171,21 +171,27 @@ pypicongpu_output_with_newlines="
   {{/openPMD.ext}}
   {{#openPMD.json}}--checkpoint.openPMD.json {{{openPMD.json}}}
   {{/openPMD.json}}
+  {{#openPMD.backendConfig}}--checkpoint.openPMD.backendConfig {{{openPMD.backendConfig}}}
+  {{/openPMD.backendConfig}}
   {{#openPMD.infix}}--checkpoint.openPMD.infix {{{openPMD.infix}}}
   {{/openPMD.infix}}
   {{#openPMD.dataPreparationStrategy}}--checkpoint.openPMD.dataPreparationStrategy {{{openPMD.dataPreparationStrategy}}}
   {{/openPMD.dataPreparationStrategy}}
   {{#openPMD.jsonRestart}}--checkpoint.openPMD.jsonRestart {{{openPMD.jsonRestart}}}
   {{/openPMD.jsonRestart}}
+  {{#openPMD.backendConfigRestart}}--checkpoint.openPMD.backendConfigRestart {{{openPMD.backendConfigRestart}}}
+  {{/openPMD.backendConfigRestart}}
   {{#openPMD.toml}}--checkpoint.openPMD.toml {{{openPMD.toml}}}
   {{/openPMD.toml}}
+  {{#openPMD.pluginConfig}}--checkpoint.openPMD.pluginConfig {{{openPMD.pluginConfig}}}
+  {{/openPMD.pluginConfig}}
   {{#openPMD.particleIOChunkSize}}--checkpoint.openPMD.particleIOChunkSize {{{openPMD.particleIOChunkSize}}}
   {{/openPMD.particleIOChunkSize}}
 {{/openPMD}}
 {{/type_checkpoint}}
 
 {{#type_openPMD}}
---openPMD.toml {{{config_filename}}}
+--openPMD.pluginConfig {{{config_filename}}}
 {{/type_openPMD}}
 
   {{/output}}

@@ -19,9 +19,9 @@ namespace picongpu::openPMD
         std::string fileExtension; /* Extension of the file name */
         std::string particleIOChunkSizeString;
         std::string dataPreparationStrategyString;
-        std::string jsonConfigString;
+        std::string backendConfigString;
         std::string rangeString;
-        std::string jsonRestartParams;
+        std::string backendConfigRestartString;
         std::string writeAccessString;
     };
 } // namespace picongpu::openPMD

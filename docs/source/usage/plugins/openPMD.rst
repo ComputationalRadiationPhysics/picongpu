@@ -55,7 +55,7 @@ In order to set defaults for these value, two further options control the filena
 
   Note that streaming IO requires group-based iteration layout in openPMD, i.e. ``--openPMD.infix=NULL`` is mandatory.
   If PIConGPU detects a streaming backend (e.g. by ``--openPMD.ext=sst``), it will automatically set ``--openPMD.infix=NULL``, overriding the user's choice.
-  Note however that the ADIOS2 backend can also be selected via ``--openPMD.json`` and via environment variables which PIConGPU does not check.
+  Note however that the ADIOS2 backend can also be selected via ``--openPMD.backendConfig`` and via environment variables which PIConGPU does not check.
   It is hence recommended to set ``--openPMD.infix=NULL`` explicitly.
 
 Option ``--openPMD.source`` controls which data is output.
@@ -72,7 +72,7 @@ openPMD backend-specific settings may be controlled via two mechanisms:
 * Environment variables.
   Please refer to the backends' documentations for information on environment variables understood by the backends.
 * Backend-specific runtime parameters may be set via JSON in the openPMD API.
-  PIConGPU exposes this via the command line option ``--openPMD.json``.
+  PIConGPU exposes this via the command line option ``--openPMD.backendConfig``.
   Please refer to the openPMD API's documentation for further information.
 
 The JSON parameter may be passed directly as a string, or by filename.
@@ -102,7 +102,7 @@ A full example:
 .. literalinclude:: openPMD_extended_config.json
 
 The extended format is only available for configuration of the writing procedures.
-The reading procedures (i.e. for restarting from a checkpoint) can be configured via ``--checkpoint.openPMD.jsonRestart``, e.g. see the example below for configuring the number of blosc decompression threads in ADIOS2.
+The reading procedures (i.e. for restarting from a checkpoint) can be configured via ``--checkpoint.openPMD.backendConfigRestart``, e.g. see the example below for configuring the number of blosc decompression threads in ADIOS2.
 Note that most sensible use cases for this command line option (including this example) require openPMD-api >= 0.15 (or a recent dev version until the 0.15 release).
 
 .. literalinclude:: openPMD_restart_config.json
@@ -130,10 +130,10 @@ PIConGPU command line option          description
 ``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
 ``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).
 ``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).
-``--openPMD.json``                    Set backend-specific parameters for openPMD backends in JSON format. Used in writing procedures.
-``--checkpoint.openPMD.jsonRestart``  Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
+``--openPMD.backendConfig``           Set backend-specific parameters for openPMD backends in JSON format. Used in writing procedures.
+``--checkpoint.openPMD.backendConfigRestart`` Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
 ``--openPMD.dataPreparationStrategy`` Strategy for preparation of particle data ('doubleBuffer' or 'mappedMemory'). Aliases 'adios' and 'hdf5' may be used respectively.
-``--openPMD.toml``                    Alternatively configure the openPMD plugin via a TOML file (see below).
+``--openPMD.pluginConfig``            Alternatively configure the openPMD plugin via a TOML file (see below).
 ``--openPMD.particleIOChunkSize``     Particle data will be written in chunks of the given size. unit: MiB
                                       The memory footprint on the host side is reduced compared to writing all particles with one write call.
                                       Currently the memory footprint is only reduced if bp5 is used, HDF5 and bp4 does not support partial data dump.
@@ -154,8 +154,8 @@ PIConGPU command line option          description
 
    This plugin is a multi plugin.
    Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
-   Each plugin instance requires that either ``--openPMD.period`` XOR ``--openPMD.toml`` is defined.
-   If ``--openPMD.toml`` is defined, the rest of the configuration for this instance is done via the specified TOML file, no other command line parameters may be passed.
+   Each plugin instance requires that either ``--openPMD.period`` XOR ``--openPMD.pluginConfig`` is defined.
+   If ``--openPMD.pluginConfig`` is defined, the rest of the configuration for this instance is done via the specified TOML file, no other command line parameters may be passed.
 
    In the case where an optional parameter with a default value is explicitly defined, the parameter will always be passed to the instance of the multi plugin where the parameter is not set.
    e.g.
@@ -198,7 +198,7 @@ By default, the openPMD-api uses a heuristic to automatically set an appropriate
 In combination with some MPI-IO backends (e.g. ROMIO), this has been found to cause crashes.
 To avoid this, PIConGPU overrides the default choice and deactivates HDF5 chunking in the openPMD plugin.
 
-If you want to use chunking, you can ask for it via the following option passed in ``--openPMD.json``:
+If you want to use chunking, you can ask for it via the following option passed in ``--openPMD.backendConfig``:
 
 .. code-block:: json
 
@@ -245,7 +245,7 @@ Note the inline comments for a description of the used schema:
 
 .. literalinclude:: openPMD.toml
 
-The location of the ``.toml`` file on the filesystem is specified via ``--openPMD.toml``.
+The location of the ``.toml`` file on the filesystem is specified via ``--openPMD.pluginConfig``.
 If using this parameter, no other parameters must be specified.
 If another parameter is specified, the openPMD plugin will notice and abort.
 

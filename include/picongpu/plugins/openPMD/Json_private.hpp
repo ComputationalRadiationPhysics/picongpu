@@ -150,7 +150,7 @@ namespace picongpu
              * patterns will be matched against "" (the empty string).
              *
              * @param config The JSON configuration, exactly as in
-             *               --openPMD.json.
+             *               --openPMD.backendConfig.
              * @param comm MPI communicator for collective file reading,
              *             if needed.
              */

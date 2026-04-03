@@ -157,11 +157,11 @@ namespace picongpu
                     communicator,
                     /*
                      * The writing routines are configured via the JSON set passed
-                     * in --openPMD.json / --checkpoint.openPMD.json, or TOML parameter backend_config.
-                     * The reading routines (for restarting from a checkpoint)
-                     * are configured via --checkpoint.openPMD.jsonRestart.
+                     * in --openPMD.backendConfig / --checkpoint.openPMD.backendConfig, or TOML parameter
+                     * backend_config. The reading routines (for restarting from a checkpoint) are configured via
+                     * --checkpoint.openPMD.jsonRestart.
                      */
-                    at == ::openPMD::Access::READ_ONLY ? jsonRestartParams : jsonMatcher->getDefault());
+                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -221,7 +221,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             plugins::multi::Option<std::string> source = {"source", "data sources: ", "species_all, fields_all"};
 
-            plugins::multi::Option<std::string> tomlSources = {"toml", "specify dynamic data sources via TOML"};
+            plugins::multi::Option<std::string> pluginConfigForbidden = {"toml", "Option renamed as .pluginConfig"};
+            plugins::multi::Option<std::string> pluginConfig
+                = {"pluginConfig", "specify plugin configuration and dynamic data sources via TOML"};
 
             std::vector<std::string> allowedDataSources = {"species_all", "fields_all"};
 
@@ -243,11 +245,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    " an empty string will be assumed instead.",
                    "_%06T"};
 
-            plugins::multi::Option<std::string> jsonConfig
-                = {"json", "advanced (backend) configuration for openPMD in JSON format (used when writing)", "{}"};
+            plugins::multi::Option<std::string> backendConfigForbidden = {"json", "Option renamed as .backendConfig"};
 
-            plugins::multi::Option<std::string> jsonRestartConfig
-                = {"jsonRestart",
+            plugins::multi::Option<std::string> backendConfig
+                = {"backendConfig",
+                   "advanced (backend) configuration for openPMD in JSON format (used when writing)",
+                   "{}"};
+
+            plugins::multi::Option<std::string> backendConfigRestartForbidden
+                = {"jsonRestart", "Option renamed as .backendConfigRestart", "REMOVED"};
+
+            plugins::multi::Option<std::string> backendConfigRestart
+                = {"backendConfigRestart",
                    "advanced (backend) configuration for openPMD in JSON format (used when reading from a checkpoint)",
                    R"({"defer_iteration_parsing": true})"};
 
@@ -320,7 +329,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             /*
              * The sub-commands for the openPMD plugin.
-             * Not listed in here: notifyPeriod and tomlSources.
+             * Not listed in here: notifyPeriod and pluginConfig.
              * Those two parameters are implemented manually since they are the
              * plugin's main commands that activate it and decide its interaction
              * with the main program.
@@ -352,14 +361,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint},
                 {&fileNameExtension, "ext", &PluginParameters::fileExtension},
                 {&fileNameInfix, "infix", &PluginParameters::fileInfix},
-                {&jsonConfig, "backend_config", &PluginParameters::jsonConfigString},
+                {&backendConfigForbidden, std::nullopt, std::nullopt},
+                {&backendConfig, "backend_config", &PluginParameters::backendConfigString},
                 {&dataPreparationStrategy,
                  "data_preparation_strategy",
                  &PluginParameters::dataPreparationStrategyString},
                 {&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint},
-                {&jsonRestartConfig,
+                {&backendConfigRestartForbidden, std::nullopt, std::nullopt, ApplyParameter::OnlyInCheckpoint},
+                {&backendConfigRestart,
                  std::nullopt,
-                 &PluginParameters::jsonRestartParams,
+                 &PluginParameters::backendConfigRestartString,
                  ApplyParameter::OnlyInCheckpoint},
                 {&particleIOChunkSize, "particleIOChunkSize", &PluginParameters::particleIOChunkSizeString},
                 {&writeAccess, "write_mode", &PluginParameters::writeAccessString}};
@@ -416,8 +427,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::string const& masterPrefix = std::string{}) override
             {
                 notifyPeriod.registerHelp(desc, masterPrefix + prefix);
-                tomlSources.registerHelp(desc, masterPrefix + prefix);
-
+                pluginConfig.registerHelp(desc, masterPrefix + prefix);
+                pluginConfigForbidden.registerHelp(desc, masterPrefix + prefix);
 
                 for(auto const& param : parameters)
                 {
@@ -469,9 +480,15 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 if(selfRegister)
                 {
-                    if(tomlSources.empty() && notifyPeriod.empty())
+                    if(!pluginConfigForbidden.empty())
+                    {
                         throw std::runtime_error(
-                            name + ": Either parameter .toml XOR parameter .period must be defined.");
+                            "Command line option openPMD.toml was renamed as openPMD.pluginConfig.");
+                    }
+
+                    if(pluginConfig.empty() && notifyPeriod.empty())
+                        throw std::runtime_error(
+                            name + ": Either parameter .pluginConfig XOR parameter .period must be defined.");
 
                     // check if user passed data source names are valid
                     for(auto const& dataSourceNames : source)
@@ -497,7 +514,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     // If using periods in some instances and TOML sources in others, then the other parameter
                     // must be specified as empty.
                     // Not this method's task to check this though.
-                    auto res = tomlSources.size() > notifyPeriod.size() ? tomlSources.size() : notifyPeriod.size();
+                    auto res = std::max({pluginConfig.size(), notifyPeriod.size(), pluginConfigForbidden.size()});
                     if(res == 0)
                     {
                         for(auto const& parameter : parameters)
@@ -507,7 +524,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             {
                                 throw std::runtime_error(
                                     "[openPMD plugin] Parameter '" + option.getName()
-                                    + "' was defined, But neither 'period' nor 'toml' was.");
+                                    + "' was defined, But neither 'period' nor 'pluginConfig' was.");
                             }
                         }
                     }
@@ -632,15 +649,24 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 % fileExtension;
 
             // Avoid repeatedly parsing the JSON config
+            if(!help.backendConfigForbidden.empty())
+            {
+                throw std::runtime_error("Command line option openPMD.json was renamed as openPMD.backendConfig.");
+            }
             if(!jsonMatcher)
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                jsonMatcher = AbstractJsonMatcher::construct(jsonConfigString, communicator);
+                jsonMatcher = AbstractJsonMatcher::construct(backendConfigString, communicator);
             }
 
             log<picLog::INPUT_OUTPUT>("openPMD: global JSON output config: %1%") % jsonMatcher->getDefault();
-            log<picLog::INPUT_OUTPUT>("openPMD: global JSON restart config: %1%") % jsonRestartParams;
+            if(!help.backendConfigRestartForbidden.empty())
+            {
+                throw std::runtime_error(
+                    "Command line option openPMD.jsonRestart was renamed as openPMD.backendConfigRestart.");
+            }
+            log<picLog::INPUT_OUTPUT>("openPMD: global JSON restart config: %1%") % backendConfigRestartString;
 
             {
                 if(dataPreparationStrategyString == "adios" || dataPreparationStrategyString == "doubleBuffer")
@@ -1148,10 +1174,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 if(m_help->selfRegister)
                 {
+                    if(!m_help->pluginConfigForbidden.empty())
+                    {
+                        throw std::runtime_error(
+                            "Command line option openPMD.toml was renamed as openPMD.pluginConfig.");
+                    }
+
                     /* only register for notify callback when .period is set on
                      * command line */
                     bool tomlSourcesSpecified
-                        = m_help->tomlSources.optionDefined(m_id) && not m_help->tomlSources.get(m_id).empty();
+                        = m_help->pluginConfig.optionDefined(m_id) && not m_help->pluginConfig.get(m_id).empty();
                     bool notifyPeriodSpecified
                         = m_help->notifyPeriod.optionDefined(m_id) && not m_help->notifyPeriod.get(m_id).empty();
                     if(tomlSourcesSpecified && not notifyPeriodSpecified)
@@ -1163,13 +1195,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             if(cmd.optionDefined(m_id) && not cmd.get(m_id).empty())
                             {
                                 throw std::runtime_error(
-                                    "[openPMD plugin] If using parameter toml, no other parameter may be used (do not "
+                                    "[openPMD plugin] If using parameter pluginConfig, no other parameter may be used "
+                                    "(do not "
                                     "define '"
                                     + cmd.getName() + "').");
                             }
                         }
 
-                        std::string const& tomlSources = m_help->tomlSources.get(id);
+                        std::string const& pluginConfig = m_help->pluginConfig.get(id);
 
                         PluginParameters pluginParametersWithDefaults;
                         for(auto const& parameter : m_help->parameters)
@@ -1190,7 +1223,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 else
                                 {
                                     throw std::runtime_error(
-                                        "[openPMD plugin] Internal error: Could not initialize TOML param "
+                                        "[openPMD plugin] Internal error: Could not initialize pluginConfig param "
                                         "'"
                                         + *parameter.tomlParameter
                                         + "' with a default value because it was not specified "
@@ -1203,7 +1236,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             std::piecewise_construct,
                             std::make_tuple(id),
                             std::make_tuple(
-                                /* tomlFile = */ m_help->tomlSources.get(id),
+                                /* tomlFile = */ m_help->pluginConfig.get(id),
                                 /* tomlParameters = */ m_help->tomlParameters(),
                                 /* allowedDataSources = */ m_help->allowedDataSources,
                                 /* comm = */ mThreadParams.communicator,
@@ -1241,7 +1274,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     else
                     {
                         throw std::runtime_error(
-                            "[openPMD plugin] Either the notify period or the TOML sources must "
+                            "[openPMD plugin] Either the notify period or the pluginConfig sources (TOML) must "
                             "be specified, but not both.");
                     }
                 }
