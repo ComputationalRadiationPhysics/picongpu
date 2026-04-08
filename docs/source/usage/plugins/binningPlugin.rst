@@ -133,24 +133,28 @@ Particle binning
 
 For particle binning, we can use the ``getParticlePosition`` function. 
 
-.. code-block:: cpp
-
-    getParticlePosition<DomainOrigin, PositionPrecision, PositionUnits>()
+.. doxygenfunction:: picongpu::plugins::binning::getParticlePosition
 
 The particle position has the default precision set to cell precision, and the position is returned in cell units by default.
 
+The return type of ``getParticlePosition`` depends on the combination of precision and units:
+
+- ``CELL`` precision + ``CELL`` units -> ``pmacc::DataSpace<simDim>`` (integer cell index vector).
+- ``SUB_CELL`` precision + ``CELL`` units  -> floating-point vector in number of cells
+- Any other combination with ``SI`` or ``PIC`` units -> ``pmacc::math::Vector<floating_T, simDim>`` (floating-point vector), where the ``floating_T`` type is an appropriately precise floating point type based on internal representations.
+
 To request a different origin, precision, or unit system, use the template parameters as described below.
+
 
 Field binning
 ^^^^^^^^^^^^^
 
-For field binning, ``DomainInfo`` additionally stores the ``localCellIndex`` within the supercell we can use the ``getCellIndex`` function.
+For field binning, ``DomainInfo`` additionally stores the ``localCellIndex`` within the supercell.
+We can use the ``getCellIndex`` function to return the current cell index being binned relative to the selected origin.
 
 .. code-block:: cpp
 
     getCellIndex<DomainOrigin, PositionUnits>()
-
-This returns the current cell index being binned relative to the selected origin.
 
 To obtain the exact position of a field inside the cell, relative to the cell index, use the ``FieldPosition`` trait.
 
