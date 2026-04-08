@@ -34,9 +34,9 @@
 namespace pmacc
 {
     template<typename T_DeviceHeap>
-    MallocMCBuffer<T_DeviceHeap>::MallocMCBuffer(std::shared_ptr<DeviceHeap> const& deviceHeap)
+    MallocMCBuffer<T_DeviceHeap>::MallocMCBuffer(DeviceHeap& deviceHeap)
         : /* currently mallocMC has only one heap */
-        deviceHeapInfo(deviceHeap->getHeapLocations()[0])
+        deviceHeapInfo(deviceHeap.getHeapLocations()[0])
         , hostBufferOffset(0)
     {
     }
