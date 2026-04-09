@@ -98,6 +98,24 @@ namespace pmacc
                     std::forward<Functor>(functor));
             }
 
+            /**
+             * @brief Converts a std::tuple into a pmacc @ref Tuple
+             * @note Host-only. std::tuples aren't trivially copyable anyway
+             */
+            template<typename... Ts>
+            constexpr auto fromStlTuple(std::tuple<Ts...> const& t)
+            {
+                return std::apply([](auto&&... args) { return make_tuple(std::forward<decltype(args)>(args)...); }, t);
+            }
+
+            template<typename... Ts>
+            constexpr auto fromStlTuple(std::tuple<Ts...>&& t)
+            {
+                return std::apply(
+                    [](auto&&... args) { return make_tuple(std::forward<decltype(args)>(args)...); },
+                    std::move(t));
+            }
+
         } // namespace tuple
     } // namespace memory
 } // namespace pmacc
