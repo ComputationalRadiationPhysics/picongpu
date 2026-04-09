@@ -101,22 +101,6 @@ For two fields with one extra data parameter:
 
   Fields and extra data may be tuples with multiple elements which are unpacked and passed to the user-defined functors. Therefore, it is the responsibility of the user to ensure that their functors have an appropriate number of arguments to match the provided tuples.
 
-Domain Info
-"""""""""""
-Enables the user to find the location of the particle or field in the simulation domain. Contains
-
-For particle binning, the ``DomainInfo`` class contains:
-
-.. doxygenclass:: picongpu::plugins::binning::DomainInfoBase
-  :members:
-
-The global and local offsets can be understood by looking at the `PIConGPU domain definitions <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions>`_.
-
-For particle binning, the particle position is obtained at cell precision by default. To get sub-cell precision or SI units, use optional template parameters with ``getParticlePosition<DomainOrigin, PositionPrecision, PositionUnits>``.
-
-For field binning, the field ``DomainInfo`` additionally holds the localCellIndex in the supercell and has a method to ``getCellIndex<DomainOrigin, PositionUnits>`` to get the current cell index being binned relative to an origin (global, total, local). To get the exact position of the fields inside the cell, relative to the cell index, use the ``FieldPosition`` trait.
-
-
 Dimensionality and units
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Users can specify the units of their functor output using a 7 dimensional array. Each element of the array corresponds to an SI base unit, and the value stored in that index is the exponent of the unit.
@@ -131,6 +115,79 @@ If no units are given, the quantity is assumed to be dimensionless.
 
 .. doxygenenum:: picongpu::SIBaseUnits::SIBaseUnits_t
 
+
+Domain Info
+-----------
+The binning plugin passes the domain info object to functors as a parameter to give the user access to some useful PIConGPU quantities inside the functor. 
+Importantly, it enables the user to find the location of the particle or field in the simulation domain.
+
+The ``DomainInfo`` class contains:
+
+.. doxygenclass:: picongpu::plugins::binning::DomainInfoBase
+  :members:
+
+The global and local offsets can be understood by looking at the `PIConGPU domain definitions <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions>`_.
+
+Particle binning
+^^^^^^^^^^^^^^^^
+
+For particle binning, we can use the ``getParticlePosition`` function. 
+
+.. doxygenfunction:: picongpu::plugins::binning::getParticlePosition
+
+The particle position has the default precision set to cell precision, and the position is returned in cell units by default.
+
+The return type of ``getParticlePosition`` depends on the combination of precision and units:
+
+- ``CELL`` precision + ``CELL`` units -> ``pmacc::DataSpace<simDim>`` (integer cell index vector).
+- ``SUB_CELL`` precision + ``CELL`` units  -> floating-point vector in number of cells
+- Any other combination with ``SI`` or ``PIC`` units -> ``pmacc::math::Vector<floating_T, simDim>`` (floating-point vector), where the ``floating_T`` type is an appropriately precise floating point type based on internal representations.
+
+To request a different origin, precision, or unit system, use the template parameters as described below.
+
+
+Field binning
+^^^^^^^^^^^^^
+
+For field binning, ``DomainInfo`` additionally stores the ``localCellIndex`` within the supercell.
+We can use the ``getCellIndex`` function to return the current cell index being binned relative to the selected origin.
+
+.. code-block:: cpp
+
+    getCellIndex<DomainOrigin, PositionUnits>()
+
+To obtain the exact position of a field inside the cell, relative to the cell index, use the ``FieldPosition`` trait.
+
+Domain origin
+^^^^^^^^^^^^^
+  
+The reference origin for returned positions is selected with ``DomainOrigin``:
+
+The available origins are:
+
+.. doxygenenum:: picongpu::plugins::binning::DomainOrigin
+  
+Position precision
+^^^^^^^^^^^^^^^^^^
+  
+For particle positions, the precision is selected with ``PositionPrecision``.
+
+The available precisions are:
+
+.. doxygenenum:: picongpu::plugins::binning::PositionPrecision
+
+Position units
+^^^^^^^^^^^^^^
+
+The output units for positions are selected with ``PositionUnits``.
+
+The available units are:
+
+.. doxygenenum:: picongpu::plugins::binning::PositionUnits
+
+.. note::
+
+    Using positions in SI/PIC units introduces floating point numerical errors and may be especially problematic when using the ``TOTAL`` origin with moving window, because floating-point precision decreases as the distance from the origin increases.
 
 Axis
 ----
