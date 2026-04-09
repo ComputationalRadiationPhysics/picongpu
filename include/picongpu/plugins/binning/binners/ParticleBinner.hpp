@@ -120,7 +120,7 @@ namespace picongpu
                     mapper.getGuardingSuperCells(),
                     windowOffset);
 
-                auto const axisKernels = tupleMap(
+                auto const axisKernels = pmacc::memory::tuple::tupleMap(
                     this->binningData.axisTuple,
                     [&](auto const& axis) -> decltype(auto) { return axis.getAxisKernel(); });
 
@@ -183,7 +183,7 @@ namespace picongpu
                             mapper.getGuardingSuperCells(),
                             windowOffset);
 
-                        auto const axisKernels = tupleMap(
+                        auto const axisKernels = pmacc::memory::tuple::tupleMap(
                             binner->binningData.axisTuple,
                             [&](auto const& axis) -> decltype(auto) { return axis.getAxisKernel(); });
 

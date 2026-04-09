@@ -55,7 +55,7 @@ namespace picongpu
 
                 auto binsDataspace = pmacc::DataSpace<T_nAxes>{};
                 bool validIdx = true;
-                binning::applyEnumerate(
+                pmacc::memory::tuple::applyEnumerate(
                     [&](auto const&... tupleArgs)
                     {
                         // This assumes n_bins and getBinIdx exist
@@ -63,7 +63,7 @@ namespace picongpu
                             = (
                                    [&](auto const& tupleArg)
                                    {
-                                        auto [isValid, binIdx] = binning::apply(
+                                        auto [isValid, binIdx] = pmacc::memory::tuple::apply(
                                             [&](auto const&... extraUserData)
                                             { return pmacc::memory::tuple::get<1>(tupleArg).getBinIdx(worker, domainInfo, particle, extraUserData...); },
                                             userFunctorData);
@@ -78,7 +78,7 @@ namespace picongpu
                 if(validIdx)
                 {
                     auto const idxOneD = pmacc::math::linearize(extents, binsDataspace);
-                    DepositionType depositVal = binning::apply(
+                    DepositionType depositVal = pmacc::memory::tuple::apply(
                         [&](auto const&... extraUserData)
                         { return quantityFunctor(worker, domainInfo, particle, extraUserData...); },
                         userFunctorData);
@@ -268,14 +268,14 @@ namespace picongpu
                 auto binsDataspace = pmacc::DataSpace<T_nAxes>{};
                 bool validIdx = true;
 
-                binning::applyEnumerate(
+                pmacc::memory::tuple::applyEnumerate(
                     [&](auto const&... tupleArgs)
                     {
                         // This assumes n_bins and getBinIdx exist
                         validIdx
                             = (
                                 [&](auto const& tupleArg){
-                                    auto [isValid, binIdx] = binning::apply(
+                                    auto [isValid, binIdx] = pmacc::memory::tuple::apply(
                                         [&](auto const&... userFunctorData)
                                         { return pmacc::memory::tuple::get<1>(tupleArg).getBinIdx(worker, domainInfo, userFunctorData...); },
                                         userFunctorData);
@@ -289,7 +289,7 @@ namespace picongpu
                 if(validIdx)
                 {
                     auto const idxOneD = pmacc::math::linearize(extents, binsDataspace);
-                    DepositionType depositVal = binning::apply(
+                    DepositionType depositVal = pmacc::memory::tuple::apply(
                         [&](auto const&... userFunctorData)
                         { return quantityFunctor(worker, domainInfo, userFunctorData...); },
                         userFunctorData);
