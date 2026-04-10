@@ -29,6 +29,7 @@
 #    include "picongpu/plugins/misc/ExecuteIf.hpp"
 
 #    include <pmacc/math/operation/traits.hpp>
+#    include <pmacc/memory/tuple/utility.hpp>
 #    include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
 #    include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -120,7 +121,7 @@ namespace picongpu
                     mapper.getGuardingSuperCells(),
                     windowOffset);
 
-                auto const axisKernels = tupleMap(
+                auto const axisKernels = pmacc::memory::tuple::tupleMap(
                     this->binningData.axisTuple,
                     [&](auto const& axis) -> decltype(auto) { return axis.getAxisKernel(); });
 
@@ -183,7 +184,7 @@ namespace picongpu
                             mapper.getGuardingSuperCells(),
                             windowOffset);
 
-                        auto const axisKernels = tupleMap(
+                        auto const axisKernels = pmacc::memory::tuple::tupleMap(
                             binner->binningData.axisTuple,
                             [&](auto const& axis) -> decltype(auto) { return axis.getAxisKernel(); });
 
@@ -198,10 +199,7 @@ namespace picongpu
                         auto const beginExternalCellsLocal = beginExternalCellsTotal - shiftTotaltoLocal;
                         auto const endExternalCellsLocal = endExternalCellsTotal - shiftTotaltoLocal;
 
-                        auto const extraData = std::apply(
-                            [&](auto&&... extras)
-                            { return pmacc::memory::tuple::make_tuple(std::forward<decltype(extras)>(extras)...); },
-                            binner->binningData.extraData);
+                        auto const extraData = pmacc::memory::tuple::fromStlTuple(binner->binningData.extraData);
 
                         auto const functorLeaving = LeavingParticleBinningKernel<
                             pmacc::math::operation::traits::AlpakaAtomicOp_t<ReductionOp>>{};

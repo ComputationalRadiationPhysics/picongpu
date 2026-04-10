@@ -27,7 +27,7 @@
 #    include "picongpu/plugins/binning/utility.hpp"
 
 #    include <pmacc/math/operation/traits.hpp>
-#    include <pmacc/memory/STLTuple.hpp>
+#    include <pmacc/memory/tuple/STLTuple.hpp>
 #    include <pmacc/meta/errorHandlerPolicies/ReturnType.hpp>
 #    include <pmacc/mpi/MPIReduce.hpp>
 #    include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -74,7 +74,7 @@ namespace picongpu
                     mapper.getGuardingSuperCells(),
                     windowOffset);
 
-                auto const axisKernels = tupleMap(
+                auto const axisKernels = pmacc::memory::tuple::tupleMap(
                     this->binningData.axisTuple,
                     [&](auto const& axis) -> decltype(auto) { return axis.getAxisKernel(); });
 
