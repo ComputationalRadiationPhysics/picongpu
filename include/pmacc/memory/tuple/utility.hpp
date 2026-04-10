@@ -47,7 +47,7 @@ namespace pmacc
                     TPmaccTuple&& t,
                     std::index_sequence<Is...>)
                 {
-                    return std::forward<TFunc>(f)(make_tuple(
+                    return std::forward<TFunc>(f)(tuple::make_tuple(
                         std::integral_constant<std::size_t, Is>{},
                         get<Is>(std::forward<TPmaccTuple>(t)))...);
                 }
@@ -82,7 +82,7 @@ namespace pmacc
                     std::tuple<Args...> const& tuple,
                     Functor&& functor)
                 {
-                    return make_tuple(std::forward<Functor>(functor)(std::get<Is>(tuple))...);
+                    return tuple::make_tuple(std::forward<Functor>(functor)(std::get<Is>(tuple))...);
                 }
             } // namespace detail
 
