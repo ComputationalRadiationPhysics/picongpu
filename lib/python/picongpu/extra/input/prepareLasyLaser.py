@@ -30,6 +30,180 @@ try:
 except Exception:
     tqdm_available = False
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _prepare_env_spatial_rt(env, Nr, theta, azimuthal_modes, lo, hi):
+    """Helper function for get_full_field() preparing the envelope spatially. Also returns frac for extent calculation later."""
+    # Cut off everything beyond Nr
+    if Nr is None:
+        Nr = env.shape[1]
+        frac = 1.0
+    else:
+        frac = env.shape[1] / Nr
+    env = env[:, :Nr, :]
+
+    # cut the laser at the right angle and prepare the field accordingly
+    # taken from Lasy
+    azimuthal_phase = np.exp(-1j * azimuthal_modes * theta)
+    env_upper = env * azimuthal_phase[:, None, None]
+    env_upper = env_upper.sum(0)
+    azimuthal_phase = np.exp(1j * azimuthal_modes * theta)
+    env_lower = env * azimuthal_phase[:, None, None]
+    env_lower = env_lower.sum(0)
+    env = np.vstack((env_lower[::-1][:-1], env_upper))
+
+    return env, -hi[0] / frac, hi[0] / frac
+
+
+def _prepare_env_spatial_xyt(env, Nx, Ny, lo, hi):
+    """Helper function for get_full_field() preparing the envelope spatially. Also returns lo and hi spatially for extent of the new field."""
+    # Cut out the section of size Nx, Ny, Nz
+    if Nx is not None:
+        midx = env.shape[0] // 2
+        xmin = midx - Nx // 2
+        xmax = midx + Nx // 2
+        fracx = env.shape[0] / Nx
+        env = env[xmin:xmax, :, :]
+        midx = (hi[0] + lo[0]) / 2
+        xlo = midx - (hi[0] - lo[0]) / 2 / fracx
+        xhi = midx + (hi[0] - lo[0]) / 2 / fracx
+    else:
+        Nx = env.shape[0]
+        fracx = 1.0
+        xlo = lo[0]
+        xhi = hi[0]
+    if Ny is not None:
+        midy = env.shape[1] // 2
+        ymin = midy - Ny // 2
+        ymax = midy + Ny // 2
+        fracy = env.shape[1] / Ny
+        env = env[:, ymin:ymax, :]
+        midy = (hi[1] + lo[1]) / 2
+        ylo = midy - (hi[1] - lo[1]) / 2 / fracy
+        yhi = midy + (hi[1] - lo[1]) / 2 / fracy
+    else:
+        Ny = env.shape[1]
+        fracy = 1.0
+        ylo = lo[1]
+        yhi = hi[1]
+
+    return env, (xlo, ylo), (xhi, yhi)
+
+
+def _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Prepares the new time axis for interpolation."""
+
+    t_lo, t_hi = np.min(time_axis), np.max(time_axis)
+
+    if Nt is not None and forced_dt is not None:
+        if offset_frac > 0:
+            if forced_dt * Nt >= (t_hi - t_lo) * (1 - offset_frac):
+                raise ValueError("forced_dt * Nt does not fit into field")
+            p = forced_dt * Nt / (t_hi - t_lo)
+            logger.warn(
+                "Nt and forced_dt given. Can not return the entire field, just " + str(100 * p)[:5] + " percent."
+            )
+            logger.info("Offsetting by " + str(100 * offset_frac)[:5] + " percent of the original field")
+            time_axis_new = np.arange(Nt) * forced_dt + t_hi - Nt * forced_dt - offset_frac * (t_hi - t_lo)
+        else:
+            if forced_dt * Nt >= (t_hi - t_lo):
+                raise ValueError("forced_dt * Nt does not fit into field")
+            p = forced_dt * Nt / (t_hi - t_lo)
+            logger.warn(
+                "Nt and forced_dt given. Can not return the entire field, just " + str(100 * p)[:5] + " percent."
+            )
+            time_axis_new = np.arange(Nt) * forced_dt + t_hi - Nt * forced_dt
+    elif forced_dt is None:
+        time_axis_new, dt = np.linspace(t_lo, t_hi, Nt, retstep=True)
+        logger.info("dt =", dt)
+    elif Nt is None:
+        time_axis_new = np.arange(int((t_hi - t_lo) / forced_dt)) * forced_dt + t_lo
+        Nt = len(time_axis_new)
+        logger.info("Nt =", Nt)
+
+    return time_axis_new
+
+
+def _interpolate_env_temporal_rt(env, Nr, time_axis, Nt, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Interpolates the envelope in the temporal direction. also returns new time axis."""
+    time_axis_new = _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac)
+    # prepare new field
+    env_new = np.zeros((2 * Nr - 1, len(time_axis_new)), dtype=env.dtype)
+    if tqdm_available:
+        pbar = tqdm(total=2 * Nr - 1, bar_format=bar_format)
+    # and then interpolate the envelope for Nt and forced_dt
+    # taken from Lasy
+    for ir in range(2 * Nr - 1):
+        interp_fu_abs = interp1d(time_axis, np.abs(env[ir]))
+        slice_abs = interp_fu_abs(time_axis_new)
+        interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ir])))
+        slice_angl = interp_fu_angl(time_axis_new)
+        env_new[ir] = slice_abs * np.exp(1j * slice_angl)
+        if tqdm_available:
+            pbar.update(1)
+        else:
+            if ir % 20 == 19:
+                print(ir + 1, "out of", 2 * Nr - 1)
+
+    if tqdm_available:
+        pbar.close()
+
+    return env_new, time_axis_new
+
+
+def _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Interpolates the envelope in the temporal direction. also returns new time axis."""
+    time_axis_new = _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac)
+    # prepare new field
+    env_new = np.zeros((Nx, Ny, len(time_axis_new)), dtype=env.dtype)
+    if tqdm_available:
+        pbar = tqdm(total=Nx, bar_format=bar_format)
+    # and then interpolate the envelope for Nt and forced_dt
+    # taken from Lasy, then modified
+    for ix in range(Nx):
+        for iy in range(Ny):
+            interp_fu_abs = interp1d(time_axis, np.abs(env[ix, iy]))
+            slice_abs = interp_fu_abs(time_axis_new)
+            interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ix, iy])))
+            slice_angl = interp_fu_angl(time_axis_new)
+            env_new[ix, iy] = slice_abs * np.exp(1j * slice_angl)
+        if tqdm_available:
+            pbar.update(1)
+        else:
+            if ix % 20 == 19:
+                print(ix + 1, "out of", Nx)
+    if tqdm_available:
+        pbar.close()
+
+    return env_new, time_axis_new
+
+
+def _prepare_interpolate_env(laser, theta, Nt, Nr, Nx, Ny, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Prepares and potentially interpolates the envelope for field calculation. Also calcualtes the extent of the new field and returns the new time axis."""
+    env = laser.grid.get_temporal_field()
+    time_axis = laser.grid.axes[-1]
+
+    if laser.dim == "rt":
+        env, lo, hi = _prepare_env_spatial_rt(env, Nr, theta, laser.grid.azimuthal_modes, laser.grid.lo, laser.grid.hi)
+
+        if Nt is not None or forced_dt is not None:
+            # Now interpolation is required.
+            env, time_axis = _interpolate_env_temporal_rt(env, Nr, time_axis, Nt, forced_dt, offset_frac)
+        ext = np.array([np.min(time_axis), np.max(time_axis), lo, hi])
+
+    else:
+        env, lo, hi = _prepare_env_spatial_xyt(env, Nx, Ny, laser.grid.lo, laser.grid.hi)
+
+        if Nt is not None or forced_dt is not None:
+            # Now interpolation is required.
+            env, time_axis = _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_frac)
+        ext = np.array([np.min(time_axis), np.max(time_axis), lo[1], hi[1], lo[0], hi[0]])
+
+    return env, ext, time_axis
+
 
 def get_full_field(laser, theta=0, Nt=None, Nr=None, Nx=None, Ny=None, forced_dt=None, offset_frac=0):
     """
@@ -78,208 +252,15 @@ def get_full_field(laser, theta=0, Nt=None, Nr=None, Nx=None, Ny=None, forced_dt
         extent : ndarray (Tmin, Tmax, Xmin, Xmax, [Ymin, Ymax])
             Physical extent of the reconstructed field.
     """
+    # preparing and potentially interpolating the envelope
+    env, ext, time_axis = _prepare_interpolate_env(laser, theta, Nt, Nr, Nx, Ny, forced_dt, offset_frac)
+
+    # applying the base frequency to get the field
     omega0 = laser.profile.omega0
-    env = laser.grid.get_temporal_field()
-    time_axis = laser.grid.axes[-1]
+    field = env * np.exp(-1j * omega0 * time_axis[None, :])
+    field = np.real(field)
 
-    # If the field is not an envelope, it is a full field, so no
-    # reason to recompute the full field.
-    assert laser.grid.is_envelope
-    if laser.dim == "rt":
-        # Cut off everything beyond Nr
-        if Nr is None:
-            Nr = env.shape[1]
-            frac = 1.0
-        else:
-            frac = env.shape[1] / Nr
-        env = env[:, :Nr, :]
-
-        # cut the laser at the right angle and prepare the field accordingly
-        # taken from Lasy
-        azimuthal_phase = np.exp(-1j * laser.grid.azimuthal_modes * theta)
-        env_upper = env * azimuthal_phase[:, None, None]
-        env_upper = env_upper.sum(0)
-        azimuthal_phase = np.exp(1j * laser.grid.azimuthal_modes * theta)
-        env_lower = env * azimuthal_phase[:, None, None]
-        env_lower = env_lower.sum(0)
-        env = np.vstack((env_lower[::-1][:-1], env_upper))
-
-        if Nt is not None or forced_dt is not None:
-            # Now interpolation is required.
-            # First preparation of the new time axis
-            if Nt is not None and forced_dt is not None:
-                if offset_frac > 0:
-                    assert forced_dt * Nt < (laser.grid.hi[-1] - laser.grid.lo[-1]) * (1 - offset_frac), (
-                        "forced_dt * Nt does not fit into field"
-                    )
-                    p = forced_dt * Nt / (laser.grid.hi[-1] - laser.grid.lo[-1])
-                    print(
-                        "Warning: Nt and forced_dt given. Can not return the entire field, just "
-                        + str(100 * p)[:5]
-                        + " percent."
-                    )
-                    print("Offsetting by " + str(100 * offset_frac)[:5] + " percent of the original field")
-                    time_axis_new = (
-                        np.arange(Nt) * forced_dt
-                        + laser.grid.hi[-1]
-                        - Nt * forced_dt
-                        - offset_frac * (laser.grid.hi[-1] - laser.grid.lo[-1])
-                    )
-                else:
-                    assert forced_dt * Nt < (laser.grid.hi[-1] - laser.grid.lo[-1]), (
-                        "forced_dt * Nt does not fit into field"
-                    )
-                    p = forced_dt * Nt / (laser.grid.hi[-1] - laser.grid.lo[-1])
-                    print(
-                        "Warning: Nt and forced_dt given. Can not return the entire field, just "
-                        + str(100 * p)[:5]
-                        + " percent."
-                    )
-                    time_axis_new = np.arange(Nt) * forced_dt + laser.grid.hi[-1] - Nt * forced_dt
-            elif forced_dt is None:
-                time_axis_new, dt = np.linspace(laser.grid.lo[-1], laser.grid.hi[-1], Nt, retstep=True)
-                print("dt =", dt)
-            elif Nt is None:
-                time_axis_new = (
-                    np.arange(int((laser.grid.hi[-1] - laser.grid.lo[-1]) / forced_dt)) * forced_dt + laser.grid.lo[-1]
-                )
-                Nt = len(time_axis_new)
-                print("Nt =", Nt)
-            # prepare new field
-            env_new = np.zeros((2 * Nr - 1, Nt), dtype=env.dtype)
-            if tqdm_available:
-                pbar = tqdm(total=2 * Nr - 1, bar_format=bar_format)
-            # and then interpolate the envelope for Nt and forced_dt
-            # taken from Lasy
-            for ir in range(2 * Nr - 1):
-                interp_fu_abs = interp1d(time_axis, np.abs(env[ir]))
-                slice_abs = interp_fu_abs(time_axis_new)
-                interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ir])))
-                slice_angl = interp_fu_angl(time_axis_new)
-                env_new[ir] = slice_abs * np.exp(1j * slice_angl)
-                if tqdm_available:
-                    pbar.update(1)
-                else:
-                    if ir % 20 == 19:
-                        print(ir + 1, "out of", 2 * Nr - 1)
-
-            if tqdm_available:
-                pbar.close()
-
-            # act as if nothing happend so the rest of the function does its thing
-            time_axis = time_axis_new
-            env = env_new
-
-    else:
-        # Cut out the section of size Nx, Ny, Nz
-        if Nx is not None:
-            midx = env.shape[0] // 2
-            xmin = midx - Nx // 2
-            xmax = midx + Nx // 2
-            fracx = env.shape[0] / Nx
-            env = env[xmin:xmax, :, :]
-            midx = (laser.grid.hi[0] + laser.grid.lo[0]) / 2
-            xlo = midx - (laser.grid.hi[0] - laser.grid.lo[0]) / 2 / fracx
-            xhi = midx + (laser.grid.hi[0] - laser.grid.lo[0]) / 2 / fracx
-        else:
-            Nx = env.shape[0]
-            fracx = 1.0
-            xlo = laser.grid.lo[0]
-            xhi = laser.grid.hi[0]
-        if Ny is not None:
-            midy = env.shape[1] // 2
-            ymin = midy - Ny // 2
-            ymax = midy + Ny // 2
-            fracy = env.shape[1] / Ny
-            env = env[:, ymin:ymax, :]
-            midy = (laser.grid.hi[1] + laser.grid.lo[1]) / 2
-            ylo = midy - (laser.grid.hi[1] - laser.grid.lo[1]) / 2 / fracy
-            yhi = midy + (laser.grid.hi[1] - laser.grid.lo[1]) / 2 / fracy
-        else:
-            Ny = env.shape[1]
-            fracy = 1.0
-            ylo = laser.grid.lo[1]
-            yhi = laser.grid.hi[1]
-
-        if Nt is not None or forced_dt is not None:
-            # Now interpolation is required.
-            # First preparation of the new time axis
-            if Nt is not None and forced_dt is not None:
-                if offset_frac > 0:
-                    assert forced_dt * Nt < (laser.grid.hi[-1] - laser.grid.lo[-1]) * (1 - offset_frac), (
-                        "forced_dt * Nt does not fit into field"
-                    )
-                    p = forced_dt * Nt / (laser.grid.hi[-1] - laser.grid.lo[-1])
-                    print(
-                        "Warning: Nt and forced_dt given. Can not return the entire field, just "
-                        + str(100 * p)[:5]
-                        + " percent."
-                    )
-                    print("Offsetting by " + str(offset_frac * 100)[:5] + " percent of the original field")
-                    time_axis_new = (
-                        np.arange(Nt) * forced_dt
-                        + laser.grid.hi[-1]
-                        - Nt * forced_dt
-                        - offset_frac * (laser.grid.hi[-1] - laser.grid.lo[-1])
-                    )
-                else:
-                    assert forced_dt * Nt < (laser.grid.hi[-1] - laser.grid.lo[-1]), (
-                        "forced_dt * Nt does not fit into field"
-                    )
-                    p = forced_dt * Nt / (laser.grid.hi[-1] - laser.grid.lo[-1])
-                    print(
-                        "Warning: Nt and forced_dt given. Can not return the entire field, just "
-                        + str(100 * p)[:5]
-                        + " percent."
-                    )
-                    time_axis_new = np.arange(Nt) * forced_dt + laser.grid.hi[-1] - Nt * forced_dt
-            elif forced_dt is None:
-                time_axis_new, dt = np.linspace(laser.grid.lo[-1], laser.grid.hi[-1], Nt, retstep=True)
-                print("dt =", dt)
-            elif Nt is None:
-                time_axis_new = (
-                    np.arange(int((laser.grid.hi[-1] - laser.grid.lo[-1]) / forced_dt)) * forced_dt + laser.grid.lo[-1]
-                )
-                Nt = len(time_axis_new)
-                print("Nt =", Nt)
-            # prepare new field
-            env_new = np.zeros((Nx, Ny, Nt), dtype=env.dtype)
-            if tqdm_available:
-                pbar = tqdm(total=Nx, bar_format=bar_format)
-            # and then interpolate the envelope for Nt and forced_dt
-            # taken from Lasy
-            for ix in range(Nx):
-                for iy in range(Ny):
-                    interp_fu_abs = interp1d(time_axis, np.abs(env[ix, iy]))
-                    slice_abs = interp_fu_abs(time_axis_new)
-                    interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ix, iy])))
-                    slice_angl = interp_fu_angl(time_axis_new)
-                    env_new[ix, iy] = slice_abs * np.exp(1j * slice_angl)
-                if tqdm_available:
-                    pbar.update(1)
-                else:
-                    if ix % 20 == 19:
-                        print(ix + 1, "out of", Nx)
-            if tqdm_available:
-                pbar.close()
-
-            # act as if nothing happend so the rest of the function does its thing
-            time_axis = time_axis_new
-            env = env_new
-
-    # applying the base frequency
-    # taken from Lasy
-    env *= np.exp(-1j * omega0 * time_axis[None, :])
-    env = np.real(env)
-
-    # getting the extent of the electric field
-
-    if laser.dim == "rt":
-        ext = np.array([np.min(time_axis), np.max(time_axis), -laser.grid.hi[0] / frac, laser.grid.hi[0] / frac])
-    else:
-        ext = np.array([np.min(time_axis), np.max(time_axis), ylo, yhi, xlo, xhi])
-
-    return env, ext
+    return field, ext
 
 
 def _gauss(x, mu, sigma, A):
@@ -314,12 +295,14 @@ def get_tpeak(laser, pos_offset=False, method="stat", nx=None, ny=None, nr=None)
     t_peak : float
         the intensity peak time.
     """
-    assert method in ["stat", "avstat", "fit", "avfit", "max", "avmax"], "the given method does not exist."
+    if method not in ["stat", "avstat", "fit", "avfit", "max", "avmax"]:
+        raise ValueError("the given method does not exist.")
     field = laser.grid.get_temporal_field()
     l_int = np.abs(field) ** 2
     s_int = np.sum(l_int, axis=(0, 1))
     if laser.dim == "xyt":
-        assert (ny is None) == (nx is None), "not only one of nx and ny can be specified."
+        if not ((ny is None) == (nx is None)):
+            raise ValueError("not only one of nx and ny can be specified.")
         if nx is not None:
             lineout = l_int[nx, ny, :]
         else:
@@ -374,9 +357,9 @@ def cfl_condition(xi=0.995, dx=0.1772e-6, dy=0.4430e-7, dz=0.1772e-6, dt=None):
         the ideal dt given the spacing
     """
     dt_cfl = xi / np.sqrt(1 / dx**2 + 1 / dy**2 + 1 / dz**2) / c
-    print("dt should be:", dt_cfl)
+    logger.info("dt should be:", dt_cfl)
     if dt is not None:
-        print("error:", (dt / dt_cfl - 1) * 100, "%")
+        logger.info("error:", (dt / dt_cfl - 1) * 100, "%")
     return dt_cfl
 
 
@@ -486,10 +469,10 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
     """turns the laser to xyt for saving in openPMD
     preserves the point distances, not the hi and lo"""
     field = laser.grid.get_temporal_field()
-    assert field.shape[0] == 1, "only supports 1 azimuthal mode"
-    assert np.sqrt((Nx / 2) ** 2 + (Ny / 2) ** 2) / points_between_r < field.shape[1] - 1, (
-        "Nx and Ny don't fit into the laser field"
-    )
+    if field.shape[0] > 1:
+        raise ValueError("laser_to_openPMD only supports 1 azimuthal mode in dime=`rt` lasers")
+    if np.sqrt((Nx / 2) ** 2 + (Ny / 2) ** 2) / points_between_r >= field.shape[1] - 1:
+        raise ValueError("Nx and Ny don't fit into the laser field")
 
     # calculate the new hi and lo
     xfrac = Nx / 2 / field.shape[1] / points_between_r
@@ -520,14 +503,17 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
 
 def _cut_first_frac(laser, cut_frac):
     """cuts the first points in t direction"""
-    assert cut_frac < 1, "Can't cut the entire field"
+    if cut_frac >= 1:
+        raise ValueError("Can't cut the entire field")
     field = laser.grid.get_temporal_field()
 
     # prep
     N = int(field.shape[-1] * cut_frac)
     if np.max(np.abs(field[:, :, :N])) > 0.01 * np.max(np.abs(field)):
-        print("Warning: Only cut unneccessary stuff")
-        print(np.max(np.abs(field[:, :, :N])) / np.max(np.abs(field)))
+        logger.warn(
+            "Only cut unneccessary stuff, max(E_cut)/max(E) = "
+            + str(np.max(np.abs(field[:, :, :N])) / np.max(np.abs(field)))
+        )
 
     # cut the field
     field_new = field[:, :, N:]
@@ -645,9 +631,7 @@ def write_to_openpmd_file(
 
     # Switch from x,y,t (internal to lasy) to t,y,x (in openPMD file)
     # This is because many PIC codes expect x to be the fastest index
-    print("transposing")
     data = np.transpose(array).astype(np.float32)
-    print("Data type:", data.dtype)
 
     # Define the dataset
     dataset = io.Dataset(data.dtype, data.shape)
@@ -667,7 +651,6 @@ def write_to_openpmd_file(
     E_pol[:, :, :] = data
     E_trans.make_constant(0.0)
     E_z.make_constant(0.0)
-    print("flushing")
     series.flush()
     series.close()
 
@@ -737,7 +720,6 @@ def show(
     """
     # 1. cut
     if len(array.shape) > 2:
-        assert len(array.shape) == 3
         if cutdim == 0:
             array = array[int(array.shape[0] * cutfrac), :, :]
             extent = extent[1:]
@@ -893,11 +875,10 @@ def laser_to_openPMD(
     append : bool (optional)
         needs to be set to True, if the file should be added to not overwritten.
     """
-    print("preparing the laser...")
-
     # 1. Check if cutting is neccessary
     changed = False
     if cut_first_frac > 0:
+        logger.info("preparing the laser...")
         laser_new = _cut_first_frac(laser, cut_first_frac)
         changed = True
 
@@ -913,6 +894,7 @@ def laser_to_openPMD(
                 points_between_r=points_between_r,
             )
         else:
+            logger.info("preparing the laser...")
             laser_new = _rt_to_xyt(
                 laser,
                 int(conversion_safety * Nx * data_step),
@@ -923,7 +905,7 @@ def laser_to_openPMD(
     if not changed:
         laser_new = laser
 
-    print("extracting full field...")
+    logger.info("extracting full field...")
     if Nx is not None:
         Nx *= data_step
     if Ny is not None:
@@ -932,7 +914,7 @@ def laser_to_openPMD(
     # 3. Actually extracting the full electric field.
     f, ext = get_full_field(laser_new, Nt=Nt, Nx=Nx, Ny=Ny, forced_dt=forced_dt, offset_frac=offset_frac)
 
-    print("saving...")
+    logger.info("saving...")
 
     # 4. Save to file
     write_to_openpmd_file(
@@ -951,7 +933,7 @@ def laser_to_openPMD(
     # 5. possibly show the saved field to the screen
     if show:
         _show(f, ext, True, 0.01, "Saved field", False)
-    print("done")
+    logger.info("done")
 
 
 def memory_calc(Nx, Ny, Nt):
@@ -1029,9 +1011,9 @@ def show_field(
     ax : pyplot axes object (optional)
         only returned if ret_ax is True
     """
-    print("Extracting full field")
+    logger.info("Extracting full field")
     if Ny is None:
         Ny = 2
     f, ext = get_full_field(laser, Nt=Nt, Nr=Nr, Nx=Nx, Ny=Ny, forced_dt=forced_dt, offset_frac=offset_frac)
-    print("Displaying")
+    logger.info("Displaying")
     return _show(f, ext, show_SI, linthresh_frac, title, ret_ax)
