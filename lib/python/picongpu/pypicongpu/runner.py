@@ -428,11 +428,7 @@ class Runner(BaseModel):
         """
         with self.workflow_input_path.open("r") as file:
             return WorkflowFactory().make(str(self.build_step_path))(
-                **{
-                    f"{key[len('build_') :]}": value
-                    for key, value in json.load(file).items()
-                    if key.startswith("build_")
-                }
+                **{key[len("build_") :]: value for key, value in json.load(file).items() if key.startswith("build_")}
             )
 
     def run(self):
