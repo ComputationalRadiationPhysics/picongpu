@@ -22,3 +22,13 @@ def translate_to_cpp_type(return_type):
     if isinstance(return_type, str):
         return return_type
     raise ValueError(f"Cannot translate {return_type=} to a C++ type.")
+
+
+def translate_from_cpp_type(return_type: str) -> type:
+    if return_type == "bool":
+        return bool
+    if "int" in return_type:
+        return int
+    if "float" in return_type or "double" in return_type:
+        return float
+    raise ValueError(f"No known translation from C++ {return_type=} to python.")
