@@ -29,7 +29,7 @@ Command line option                       Description
 ``--shadowgraphy.slicePoint``             Specifies at what ratio of the total depth of the z dimension, the slice for the field extraction should be set.
                                           The value given should lie between ``0.0`` and ``1.0``.                            
 ``--shadowgraphy.focusPos``               Focus position of lens system relative to slicePoint. The focus position is given in SI units. 
-``--shadowgraphy.fileName``               Output file prefix for openPMD output.          
+``--shadowgraphy.file``                   Output file prefix for openPMD output.          
 ``--shadowgraphy.ext``                    Backend for openPMD output.
 ``--shadowgraphy.fourierOutput``          If enabled, the fields will also be stored on disk in in ``(x, y, \omega)`` Fourier space in an openPMD file.
 ========================================= ==============================================================================================================================
