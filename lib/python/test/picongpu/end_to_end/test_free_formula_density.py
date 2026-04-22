@@ -80,7 +80,7 @@ def setup_sim():
         sim.add_species(s, LAYOUT)
     sim.diagnostics = diagnostics
 
-    sim.step(0)
+    sim.step(0, jobs=20)
     return sim
 
 

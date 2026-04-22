@@ -149,6 +149,7 @@ steps:
     run: steps/submit.cwl
     in:
       bin_directory: build_step/bin_directory
+      etc_directory: run_etc_directory
       tbg_link: prepare_submission_step/tbg_directory
       script: submission_script
       submit_system: run_submit_system

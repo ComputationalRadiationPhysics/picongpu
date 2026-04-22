@@ -10,6 +10,8 @@ requirements:
         entry: $(inputs.script)
       - entryname: input/bin
         entry: $(inputs.bin_directory)
+      - entryname: input/etc
+        entry: $(inputs.etc_directory)
       - entryname: tbg_link
         entry: $(inputs.tbg_link)
 
@@ -23,6 +25,8 @@ inputs:
   bin_directory:
     type: Directory
   tbg_link:
+    type: Directory
+  etc_directory:
     type: Directory
   submit_system:
     type: string?
