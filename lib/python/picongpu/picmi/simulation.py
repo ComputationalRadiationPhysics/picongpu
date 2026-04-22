@@ -468,7 +468,6 @@ class Simulation(picmistandard.PICMI_Simulation):
         """build and run PIConGPU simulation"""
         runner = self.picongpu_get_runner()
         runner.generate(**flags)
-        runner.build()
         runner.run()
 
     def picongpu_get_runner(self) -> Runner:

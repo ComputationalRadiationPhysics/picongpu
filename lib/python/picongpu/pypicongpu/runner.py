@@ -15,6 +15,7 @@ from pathlib import Path
 from shutil import copy2, copytree
 from typing import Annotated, Sequence
 
+from cwltool.context import RuntimeContext
 from cwltool.factory import Factory as WorkflowFactory
 from pydantic import (
     AfterValidator,
@@ -279,8 +280,16 @@ class Runner(BaseModel):
         return self.workflow_scripts_path / "build.sh"
 
     @property
-    def run_script_path(self):
-        return self.workflow_scripts_path / "run.sh"
+    def prepare_submission_script_path(self):
+        return self.workflow_scripts_path / "prepare_submission.sh"
+
+    @property
+    def submission_script_path(self):
+        return self.workflow_scripts_path / "submit.sh"
+
+    @property
+    def gather_results_script_path(self):
+        return self.workflow_scripts_path / "gather_results.sh"
 
     @property
     def workflow_definition_path(self):
@@ -302,6 +311,10 @@ class Runner(BaseModel):
     def run_step_path(self):
         return self.workflow_dir_path / "steps" / "run.cwl"
 
+    @property
+    def cwl_cachedir(self):
+        return self.setup_dir / "cwl_cache"
+
     def generate_profile(self):
         self.profile_path.parent.mkdir(parents=True, exist_ok=True)
         generate_bare_profile(self.profile_path)
@@ -313,21 +326,50 @@ class Runner(BaseModel):
             script.flush()
         chmod(self.build_script_path, 0o755)
 
-    def generate_run_command(self, rc_params=rc_params):
-        self.run_script_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.run_script_path.open("w") as script:
+    def generate_prepare_submission_command(self, rc_params=rc_params):
+        self.prepare_submission_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.prepare_submission_script_path.open("w") as script:
             script.write(
                 script_content_with(
                     [
                         f'export PIC_PROFILE="{str(self.profile_path)}"',
-                        "tbg -t $TBG_TPLFILE $@",
+                        "tbg $@",
+                        f'cp -arL bin "{self.run_dir}"',
                         f'ln -s "{self.run_dir}" "results"',
+                        f'echo "{self.run_dir}" > result_info.txt',
                     ],
                     rc_params=rc_params,
                 )
             )
             script.flush()
-        chmod(self.run_script_path, 0o755)
+        chmod(self.prepare_submission_script_path, 0o755)
+
+    def generate_submission_command(self, rc_params=rc_params):
+        self.submission_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.submission_script_path.open("w") as script:
+            script.write(
+                script_content_with(
+                    [
+                        'output_directory="$(pwd -P)"',
+                        'submission_location="$1/simOutput"',
+                        'submission_cmd="$2"',
+                        'submission_script="$1/tbg/submit.start"',
+                        'mkdir "$submission_location"',
+                        'cd "$submission_location"',
+                        """
+                        if [[ "$submission_cmd" =~ "bash .*" ]]; then
+                            $submission_cmd $submission_script &
+                            echo $! > "$output_directory/submission_info.txt";
+                        else
+                            $submission_cmd $submission_script > "$output_directory/submission_info.txt";
+                        fi
+                        """,
+                    ],
+                    rc_params=rc_params,
+                )
+            )
+            script.flush()
+        chmod(self.submission_script_path, 0o755)
 
     def generate_workflow_input(self, build_flags: PicBuildFlags, run_flags: TBGFlags):
         with (self.workflow_input_path).open("w") as file:
@@ -356,12 +398,19 @@ class Runner(BaseModel):
                         "path": str(self.setup_dir / "etc"),
                         "location": str(self.setup_dir / "etc"),
                     },
-                    "run_script": {
+                    "submission_script": {
                         "class": "File",
-                        "path": str(self.run_script_path),
+                        "path": str(self.submission_script_path),
                         # For some reason, the "location" must also be set.
                         # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
-                        "location": str(self.run_script_path),
+                        "location": str(self.submission_script_path),
+                    },
+                    "prepare_submission_script": {
+                        "class": "File",
+                        "path": str(self.prepare_submission_script_path),
+                        # For some reason, the "location" must also be set.
+                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
+                        "location": str(self.prepare_submission_script_path),
                     },
                     **{f"run_{key}": value for key, value in run_flags.model_dump(mode="json").items()},
                 },
@@ -403,7 +452,8 @@ class Runner(BaseModel):
 
         self.generate_profile()
         self.generate_build_command()
-        self.generate_run_command()
+        self.generate_prepare_submission_command()
+        self.generate_submission_command()
 
         self._render_templates()
 
@@ -411,6 +461,7 @@ class Runner(BaseModel):
             build_flags=PicBuildFlags(**flags),
             run_flags=TBGFlags(destination_path=self.run_dir, project_path=self.setup_dir, **flags),
         )
+        self.cwl_cachedir.mkdir()
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
@@ -418,22 +469,26 @@ class Runner(BaseModel):
         self._write_rocrate()
 
     def _write_rocrate(self):
-        rc_params.rocrate_info.add_metadata_to(ROCrate(self.setup_dir, version="1.1", init=True)).metadata.write(
+        rc_params.rocrate_info.add_metadata_to(ROCrate(self.setup_dir, version="1.2", init=True)).metadata.write(
             self.setup_dir
         )
-
-    def build(self):
-        """
-        build (compile) picongpu-compatible input files
-        """
-        with self.workflow_input_path.open("r") as file:
-            return WorkflowFactory().make(str(self.build_step_path))(
-                **{key[len("build_") :]: value for key, value in json.load(file).items() if key.startswith("build_")}
-            )
 
     def run(self):
         """
         run compiled picongpu simulation
         """
         with self.workflow_input_path.open("r") as file:
-            return WorkflowFactory().make(str(self.workflow_definition_path))(**json.load(file))
+            factory = WorkflowFactory(
+                runtime_context=RuntimeContext(
+                    kwargs={
+                        "outdir": str(self.setup_dir),
+                        "rm_tmpdir": False,
+                        "move_outputs": "copy",
+                        "basedir": self.workflow_dir_path,
+                        # "cachedir": self.cwl_cachedir,
+                    }
+                )
+            )
+            executor = factory.make(str(self.workflow_definition_path))
+            result = executor(**json.load(file))
+            return result

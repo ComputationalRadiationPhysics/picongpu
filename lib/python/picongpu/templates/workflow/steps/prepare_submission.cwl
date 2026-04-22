@@ -8,12 +8,12 @@ requirements:
     listing:
       - entryname: etc
         entry: $(inputs.etc_directory)
-      - entryname: run.sh
+      - entryname: prepare_submission.sh
         entry: $(inputs.script)
       - entryname: bin
         entry: $(inputs.bin_directory)
 
-baseCommand: ./run.sh
+baseCommand: ./prepare_submission.sh
 
 inputs:
   etc_directory:
@@ -22,8 +22,8 @@ inputs:
     doc: "Directory containing the run-time configuration files for PIConGPU"
   script:
     type: File
-    label: "Run script"
-    doc: "Shell script setting up the environment and running tbg"
+    label: "Prepare-submission script"
+    doc: "Shell script setting up the environment for submission of the job"
   cfg_file:
     type: string
     inputBinding:
@@ -32,14 +32,6 @@ inputs:
     label: "Configuration file"
     doc: "Configuration file to set up batch file"
     default: "etc/picongpu/N.cfg"
-  submit_system:
-    type: string?
-    inputBinding:
-      position: 3
-      prefix: "-s"
-    label: "Submit system"
-    doc: "Submit command (qsub, qsub -h, sbatch, ...)"
-    default: "bash"
   template_file:
     type: string?
     inputBinding:
@@ -95,3 +87,9 @@ outputs:
     doc: "Output files from the simulation (HDF5 format)"
     outputBinding:
       glob: "results"
+  result_information:
+    type: File
+    label: "Result info file"
+    doc: "File with information about how to retrieve the results."
+    outputBinding:
+      glob: "result_info.txt"
