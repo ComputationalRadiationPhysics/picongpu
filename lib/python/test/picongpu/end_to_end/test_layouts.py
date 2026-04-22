@@ -25,11 +25,7 @@ from picongpu.picmi.diagnostics import (
     TimeStepSpec,
 )
 
-from .arbitrary_parameters import (
-    CELL_SIZE,
-    NUMBER_OF_CELLS,
-    UPPER_BOUNDARY,
-)
+from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, gather_results
 from .compare_particles import (
     read_particles,
     sort_particles,
@@ -106,6 +102,7 @@ class TestLayouts(TestCase):
         if SIM is None:
             SIM = setup_sim()
         self.sim = SIM
+        gather_results(self.result_path)
         self.index = ["layout", "parameters"]
         self.offset_names = ["positionOffset_x", "positionOffset_y", "positionOffset_z"]
         self.position_names = ["position_x", "position_y", "position_z"]

@@ -40,11 +40,7 @@ from picongpu.picmi.particle_functor import Particle
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
 from sympy import And, Eq, Piecewise
 
-from .arbitrary_parameters import (
-    CELL_SIZE,
-    NUMBER_OF_CELLS,
-    UPPER_BOUNDARY,
-)
+from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, gather_results
 from .compare_particles import (
     apply_range,
     load_diagnostic_result,
@@ -335,6 +331,7 @@ class TestDiagnostics(TestCase):
         if SIM is None:
             SIM = setup_sim()
         self.sim = SIM
+        gather_results(self.result_path)
 
     @property
     def result_path(self):

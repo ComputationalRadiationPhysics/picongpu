@@ -13,11 +13,7 @@ import numpy as np
 from picongpu import picmi
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 
-from .arbitrary_parameters import (
-    CELL_SIZE,
-    NUMBER_OF_CELLS,
-    UPPER_BOUNDARY,
-)
+from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, gather_results
 from .binning_functors import binning_diagnostics
 from .compare_particles import (
     compare_particles,
@@ -101,6 +97,7 @@ class TestFreeFormulaDensity(TestCase):
             if SIM is None:
                 SIM = setup_sim()
             self.sim = SIM
+            gather_results(self.result_path)
         else:
             for d in DISTRIBUTIONS:
                 for f in DISTRIBUTIONS[d].values():
