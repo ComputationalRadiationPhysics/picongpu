@@ -7,7 +7,10 @@ License: GPLv3+
 
 import logging
 from pathlib import Path
+from subprocess import run
+from time import sleep
 from unittest import TestCase
+from psutil import pid_exists
 
 from picongpu.picmi import Cartesian3DGrid, ElectromagneticSolver, Simulation
 
@@ -47,6 +50,7 @@ def setup_sim():
 
 
 SIM = None
+TIMEOUT_COUNT = 10
 
 
 class TestMinimal(TestCase):
@@ -57,6 +61,18 @@ class TestMinimal(TestCase):
         if SIM is None:
             SIM = setup_sim()
         self.sim = SIM
+        self._gather_results()
+
+    def _gather_results(self):
+        # This currently only handles the case of a local process running:
+        with (self.result_path / "submission_information.txt").open("r") as file:
+            pid = int(file.read())
+        for _ in range(TIMEOUT_COUNT):
+            if pid_exists(pid):
+                sleep(5)
+            else:
+                return run([self.result_path / "link_results.sh", self.result_path])
+        raise Exception("Simulation is still running after {num_attempts=}.")
 
     @property
     def result_path(self):
