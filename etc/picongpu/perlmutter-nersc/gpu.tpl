@@ -92,6 +92,19 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
 ln -s ../stdout output
 
 cat << EOF > select_gpu
@@ -124,7 +137,7 @@ export SLURM_CPU_BIND="cores"
 if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
    # Run PIConGPU
    export MPICH_GPU_SUPPORT_ENABLED=1
-   srun --cpu-bind=cores ./select_gpu !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --mpiDirect
+   srun --cpu-bind=cores ./select_gpu "$EXE" !TBG_author !TBG_programParams --mpiDirect
    # the sleep command is needed for automatic resubmission of preempted job
    # otherwise the job may exit before second signal is being send and it does not get the preempted slurm status
    # uncomment if using preemptive jobs

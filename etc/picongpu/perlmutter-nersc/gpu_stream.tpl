@@ -98,6 +98,19 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
 ln -s ../stdout output
 
 cat << EOF > select_gpu
@@ -136,7 +149,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
    export MPICH_GPU_SUPPORT_ENABLED=1
    # Run PIConGPU
    # the --gpu-bind has to be none due to cgroups problem on perlmutter that breaks mpi when setting gpu affinity with slurm, set the affinity manually instead
-   srun --exclusive --network=single_node_vni,job_vni --ntasks=!TBG_tasks --nodes=!TBG_nodes --ntasks-per-node=!TBG_gpusPerNode --gres=gpu:!TBG_gpusPerNode --cpus-per-task=!TBG_coresPerPICDevice -K1 --cpu-bind=cores --gpu-bind=none  ./select_gpu !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --mpiDirect > ../pic.out 2> ../pic.err &
+   srun --exclusive --network=single_node_vni,job_vni --ntasks=!TBG_tasks --nodes=!TBG_nodes --ntasks-per-node=!TBG_gpusPerNode --gres=gpu:!TBG_gpusPerNode --cpus-per-task=!TBG_coresPerPICDevice -K1 --cpu-bind=cores --gpu-bind=none  ./select_gpu "$EXE" !TBG_author !TBG_programParams --mpiDirect > ../pic.out 2> ../pic.err &
 
    sleep 2
 

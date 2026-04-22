@@ -96,6 +96,19 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
 ln -s ../stdout output
 
 # test if cuda_memtest binary is available and we have the node exclusive
@@ -108,5 +121,5 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks "$EXE" !TBG_author !TBG_programParams
 fi

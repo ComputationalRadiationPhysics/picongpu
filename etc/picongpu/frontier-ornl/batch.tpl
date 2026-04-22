@@ -104,6 +104,19 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 ln -s ../stdout output
 
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
+
 # number of broken nodes
 n_broken_nodes=0
 
@@ -158,7 +171,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     # Run PIConGPU
     echo "Start PIConGPU."
     test $n_broken_nodes -ne 0 && exclude_nodes="-x./bad_nodes.txt"
-    srun -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+    srun -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 "$EXE" --mpiDirect !TBG_author !TBG_programParams
 else
     echo "Job stopped because of previous issues."
     echo "Job stopped because of previous issues." >&2

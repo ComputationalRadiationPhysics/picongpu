@@ -125,12 +125,25 @@ if [ $? -ne 0 ] ; then
 fi
 unset MODULES_NO_OUTPUT
 
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
+
 # Create a folder for putting our binaries inside the NVMe on every node.
 srun -N !TBG_nodes_adjusted --ntasks-per-node=1 mkdir -p "/mnt/bb/$USER/sync_bins"
 # Use sbcast to put the launch binaries and their libraries to node-local storage.
 # Note that this puts only the Python binary itself, but not its runtime dependency to node-local storage.
 # That seems to be the lesser problem anyway.
-for binary in "!TBG_dstPath/input/bin/picongpu" "$(which python)"; do
+for binary in "$EXE" "$(which python)"; do
     sbcast --send-libs=yes "$binary" "/mnt/bb/$USER/sync_bins/${binary##*/}"
     if [ ! "$?" == "0" ]; then
         # CHECK EXIT CODE. When SBCAST fails, it may leave partial files on the compute nodes, and if you continue to launch srun,

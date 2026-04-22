@@ -99,6 +99,19 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
 ln -s ../stdout output
 
 # number of broken nodes
@@ -178,7 +191,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     # As of 2025-08-22 with LUMI/24.03 software, `--mpiDirect` leads to errors of the form
     # `Memory access fault by GPU node-10 (Agent handle: 0xcc8ea0) on address 0x150bea400000. Reason: Unknown.`
     # Therefore, it is not applied.
-    srun --cpu-bind=${CPU_BIND}  -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 ./select_gpu !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+    srun --cpu-bind=${CPU_BIND}  -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 ./select_gpu "$EXE" --mpiDirect !TBG_author !TBG_programParams
 else
     echo "Job stopped because of previous issues."
     echo "Job stopped because of previous issues." >&2

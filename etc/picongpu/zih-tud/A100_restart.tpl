@@ -104,6 +104,19 @@ done
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+EXE="!TBG_dstPath/input/bin/picongpu"
+retry_count=0
+while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
+  retry_count=$((retry_count + 1))
+  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
+  sleep 30
+done
+
+if [ ! -f "$EXE" ]; then
+  echo "Error: $EXE was not found after $retry_count attempts" >&2
+  exit 1
+fi
+
 # we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
 #   support ticket [Ticket:2014052241001186] srun: mpi mca flags
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
@@ -176,7 +189,7 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/picongpu $stepSetup !TBG_author !TBG_programParams | tee output
+  mpiexec -hostfile ../machinefile.txt "$EXE" $stepSetup !TBG_author !TBG_programParams | tee output
 fi
 
 mpiexec -hostfile ../machinefile.txt /usr/bin/env bash -c "killall -9 picongpu 2>/dev/null || true"
