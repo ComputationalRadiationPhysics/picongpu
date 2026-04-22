@@ -10,12 +10,18 @@ requirements:
         entry: $(inputs.etc_directory)
       - entryname: prepare_submission.sh
         entry: $(inputs.script)
+      - entryname: include
+        entry: $(inputs.include_directory)
       - entryname: bin
         entry: $(inputs.bin_directory)
 
 baseCommand: ./prepare_submission.sh
 
 inputs:
+  include_directory:
+    type: Directory
+    label: "Compile-time parameter header directory"
+    doc: "Directory containing compile-time parameter headers for compilation of PIConGPU"
   etc_directory:
     type: Directory
     label: "Run-time configuration files for PIConGPU"
@@ -64,32 +70,16 @@ inputs:
     label: "Show help"
     doc: "Show the help message and exit"
     default: false
-  project_path:
-    type: string
-    inputBinding:
-      position: 8
-    label: "Setup path"
-    doc: "Directory with the simulation setup to run"
-  destination_path:
-    type: string
-    inputBinding:
-      position: 9
-    label: "Destination path"
-    doc: "Output directory for simulation results"
   bin_directory:
     type: Directory
     label: "PIConGPU executables"
     doc: "Compiled PIConGPU binaries from build step"
 outputs:
-  simulation_results:
+  input_directory:
     type: Directory
-    label: "Simulation results"
-    doc: "Output files from the simulation (HDF5 format)"
     outputBinding:
-      glob: "results"
-  result_information:
-    type: File
-    label: "Result info file"
-    doc: "File with information about how to retrieve the results."
+      glob: "run_dir/input"
+  tbg_directory:
+    type: Directory
     outputBinding:
-      glob: "result_info.txt"
+      glob: "run_dir/tbg"

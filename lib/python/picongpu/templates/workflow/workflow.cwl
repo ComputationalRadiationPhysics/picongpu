@@ -57,6 +57,8 @@ inputs:
     type: File
     label: "Submission script"
     doc: "Shell script for submitting the prepared job"
+  organize_output_script:
+    type: File
   run_cfg_file:
     type: string
     label: "Configuration file"
@@ -97,19 +99,21 @@ inputs:
     doc: "Output directory for simulation results"
 
 outputs:
-  bin_directory:
+  input_directory:
     type: Directory
-    outputSource: build_step/bin_directory
-    label: "Compiled PIConGPU executables"
-  result_information:
-    type: File
-    outputSource: prepare_submission_step/result_information
-    label: "Result info file"
-    doc: "File with information about how to retrieve the results."
+    outputSource: prepare_submission_step/input_directory
+    label: "Input directory"
+    doc: "Directory containing the original input as generated from Python"
+  tbg_directory:
+    type: Directory
+    outputSource: prepare_submission_step/input_directory
+    label: "Input directory"
+    doc: "Directory containing the original input as generated from Python"
   submission_information:
     type: File
     outputSource: submit_step/submission_information
     label: "Submission information"
+    doc: "This file contains sufficient information to manage the submitted job. Which precisely, depends on the submit_system."
 
 steps:
   build_step:
@@ -128,6 +132,7 @@ steps:
   prepare_submission_step:
     run: steps/prepare_submission.cwl
     in:
+      include_directory: build_include_directory
       etc_directory: run_etc_directory
       script: prepare_submission_script
       cfg_file: run_cfg_file
@@ -135,16 +140,14 @@ steps:
       template_file: run_template_file
       force: run_force
       help: run_help
-      project_path: run_project_path
-      destination_path: run_destination_path
       bin_directory: build_step/bin_directory
-    out: [simulation_results, result_information]
-    label: "Run PIConGPU simulation"
+    out: [input_directory, tbg_directory]
   submit_step:
     run: steps/submit.cwl
     in:
+      bin_directory: build_step/bin_directory
+      tbg_directory: prepare_submission_step/tbg_directory
       script: submission_script
       submit_system: run_submit_system
-      destination: prepare_submission_step/simulation_results
     out: [submission_information]
     label: "Submit PIConGPU simulation to the batch system"

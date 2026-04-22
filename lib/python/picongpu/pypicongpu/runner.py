@@ -149,21 +149,7 @@ class TBGFlags(BaseModel):
         validation_alias=AliasChoices("submit", "s"),
     )
 
-    # Currently, we can't really set this
-    # because we want the default to be `$TBG_TPLFILE`
-    # which is typically set inside of the profile
-    # but `cwltool` is clever enough to realise
-    # that it would be dangerous to pass this as a raw string
-    # and passes it as a literal string `'$TBG_TPLFILE'`
-    # such that it is not resolved within `bash`.
-    # Working around this by hard-coding it
-    # but I'll have to come back to this eventually.
-    #    template_file: str | None = Field(
-    #        default="$TBG_TPLFILE",
-    #        description="Template to create a batch file from.",
-    #        validation_alias=AliasChoices("tpl"),
-    #    )
-    template_file: None = Field(None, validation_alias=AliasChoices("tpl"))
+    template_file: str | None = Field(None, validation_alias=AliasChoices("tpl"))
 
     overwrite_vars: list[str] | None = Field(
         default=None,
@@ -313,7 +299,7 @@ class Runner(BaseModel):
 
     @property
     def cwl_cachedir(self):
-        return self.setup_dir / "cwl_cache"
+        return self.run_dir / ".cwl_cache"
 
     def generate_profile(self):
         self.profile_path.parent.mkdir(parents=True, exist_ok=True)
@@ -332,11 +318,8 @@ class Runner(BaseModel):
             script.write(
                 script_content_with(
                     [
-                        f'export PIC_PROFILE="{str(self.profile_path)}"',
-                        "tbg $@",
-                        f'cp -arL bin "{self.run_dir}"',
-                        f'ln -s "{self.run_dir}" "results"',
-                        f'echo "{self.run_dir}" > result_info.txt',
+                        f'export PIC_PROFILE="{self.profile_path}"',
+                        "tbg $@ . run_dir",
                     ],
                     rc_params=rc_params,
                 )
@@ -350,18 +333,14 @@ class Runner(BaseModel):
             script.write(
                 script_content_with(
                     [
-                        'output_directory="$(pwd -P)"',
-                        'submission_location="$1/simOutput"',
-                        'submission_cmd="$2"',
-                        'submission_script="$1/tbg/submit.start"',
-                        'mkdir "$submission_location"',
-                        'cd "$submission_location"',
+                        'submission_script="./tbg/submit.start"',
+                        'submission_cmd="$1"',
                         """
                         if [[ "$submission_cmd" =~ "bash .*" ]]; then
                             $submission_cmd $submission_script &
-                            echo $! > "$output_directory/submission_info.txt";
+                            echo $! > "submission_information.txt";
                         else
-                            $submission_cmd $submission_script > "$output_directory/submission_info.txt";
+                            $submission_cmd $submission_script > "submission_information.txt";
                         fi
                         """,
                     ],
@@ -412,6 +391,13 @@ class Runner(BaseModel):
                         # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
                         "location": str(self.prepare_submission_script_path),
                     },
+                    "organize_output_script": {
+                        "class": "File",
+                        "path": str(self.workflow_scripts_path / "organize_output.sh"),
+                        # For some reason, the "location" must also be set.
+                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
+                        "location": str(self.workflow_scripts_path / "organize_output.sh"),
+                    },
                     **{f"run_{key}": value for key, value in run_flags.model_dump(mode="json").items()},
                 },
                 file,
@@ -461,7 +447,7 @@ class Runner(BaseModel):
             build_flags=PicBuildFlags(**flags),
             run_flags=TBGFlags(destination_path=self.run_dir, project_path=self.setup_dir, **flags),
         )
-        self.cwl_cachedir.mkdir()
+        self.cwl_cachedir.mkdir(parents=True)
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
@@ -481,11 +467,10 @@ class Runner(BaseModel):
             factory = WorkflowFactory(
                 runtime_context=RuntimeContext(
                     kwargs={
-                        "outdir": str(self.setup_dir),
+                        "outdir": str(self.run_dir),
                         "rm_tmpdir": False,
-                        "move_outputs": "copy",
-                        "basedir": self.workflow_dir_path,
-                        # "cachedir": self.cwl_cachedir,
+                        "move_outputs": "move",
+                        "cachedir": str(self.cwl_cachedir),
                     }
                 )
             )
