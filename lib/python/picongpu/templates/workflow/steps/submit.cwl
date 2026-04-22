@@ -10,8 +10,8 @@ requirements:
         entry: $(inputs.script)
       - entryname: input/bin
         entry: $(inputs.bin_directory)
-      - entryname: tbg
-        entry: $(inputs.tbg_directory)
+      - entryname: tbg_link
+        entry: $(inputs.tbg_link)
 
 baseCommand: ./submit.sh
 
@@ -22,7 +22,7 @@ inputs:
     doc: "Shell script for submitting the prepared job"
   bin_directory:
     type: Directory
-  tbg_directory:
+  tbg_link:
     type: Directory
   submit_system:
     type: string?
@@ -38,3 +38,11 @@ outputs:
     doc: "This file contains sufficient information to manage the submitted job. Which precisely, depends on the submit_system."
     outputBinding:
       glob: "submission_information.txt"
+  link_results_script:
+    type: File
+    outputBinding:
+      glob: "link_results.sh"
+  tbg_directory:
+    type: Directory
+    outputBinding:
+      glob: "tbg"

@@ -30,6 +30,14 @@ inputs:
     type: File
     label: "Prepare-submission script"
     doc: "Shell script setting up the environment for submission of the job"
+  template_file:
+    type: string?
+    inputBinding:
+      position: 1
+      prefix: "-t"
+    label: "TBG template file"
+    doc: "Template to create a batch file from."
+    default: ""
   cfg_file:
     type: string
     inputBinding:
@@ -38,14 +46,6 @@ inputs:
     label: "Configuration file"
     doc: "Configuration file to set up batch file"
     default: "etc/picongpu/N.cfg"
-  template_file:
-    type: string?
-    inputBinding:
-      position: 4
-      prefix: "-t"
-    label: "TBG template file"
-    doc: "Template to create a batch file from."
-    default: null
   overwrite_vars:
     type: string?
     inputBinding:

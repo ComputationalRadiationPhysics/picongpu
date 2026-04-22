@@ -106,7 +106,7 @@ outputs:
     doc: "Directory containing the original input as generated from Python"
   tbg_directory:
     type: Directory
-    outputSource: prepare_submission_step/input_directory
+    outputSource: submit_step/tbg_directory
     label: "Input directory"
     doc: "Directory containing the original input as generated from Python"
   submission_information:
@@ -114,6 +114,9 @@ outputs:
     outputSource: submit_step/submission_information
     label: "Submission information"
     doc: "This file contains sufficient information to manage the submitted job. Which precisely, depends on the submit_system."
+  link_results_script:
+    type: File
+    outputSource: submit_step/link_results_script
 
 steps:
   build_step:
@@ -146,8 +149,8 @@ steps:
     run: steps/submit.cwl
     in:
       bin_directory: build_step/bin_directory
-      tbg_directory: prepare_submission_step/tbg_directory
+      tbg_link: prepare_submission_step/tbg_directory
       script: submission_script
       submit_system: run_submit_system
-    out: [submission_information]
+    out: [submission_information, link_results_script, tbg_directory]
     label: "Submit PIConGPU simulation to the batch system"

@@ -333,16 +333,20 @@ class Runner(BaseModel):
             script.write(
                 script_content_with(
                     [
+                        "cp -ar tbg_link tbg",
                         'submission_script="./tbg/submit.start"',
                         'submission_cmd="$1"',
+                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"'
                         """
-                        if [[ "$submission_cmd" =~ "bash .*" ]]; then
+                        if [[ "$submission_cmd" =~ "bash.*" ]] || [[ "$submission_cmd" =~ "zsh.*" ]]; then
                             $submission_cmd $submission_script &
                             echo $! > "submission_information.txt";
                         else
                             $submission_cmd $submission_script > "submission_information.txt";
                         fi
                         """,
+                        r'echo "#!/bin/bash\nln -s $(pwd -P)/simOutput \$1" > link_results.sh',
+                        "chmod +x link_results.sh",
                     ],
                     rc_params=rc_params,
                 )
@@ -469,7 +473,7 @@ class Runner(BaseModel):
                     kwargs={
                         "outdir": str(self.run_dir),
                         "rm_tmpdir": False,
-                        "move_outputs": "move",
+                        "move_outputs": "copy",
                         "cachedir": str(self.cwl_cachedir),
                     }
                 )
