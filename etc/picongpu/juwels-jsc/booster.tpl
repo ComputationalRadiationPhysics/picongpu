@@ -79,7 +79,8 @@ export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -95,7 +96,7 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-EXE="!TBG_dstPath/input/bin/picongpu"
+EXE="$TBG_dstPath/input/bin/picongpu"
 retry_count=0
 while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
   retry_count=$((retry_count + 1))

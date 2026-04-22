@@ -80,7 +80,8 @@
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -104,7 +105,7 @@ done
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-EXE="!TBG_dstPath/input/bin/picongpu"
+EXE="$TBG_dstPath/input/bin/picongpu"
 retry_count=0
 while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
   retry_count=$((retry_count + 1))
@@ -180,9 +181,9 @@ echo "--- end automated restart routine ---" | tee -a output
 sleep 1
 
 # test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
+if [ -f $TBG_dstPath/input/bin/cuda_memtest ] ; then
   # Run CUDA memtest to check GPU's health
-  mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/cuda_memtest.sh
+  mpiexec -hostfile ../machinefile.txt $TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
@@ -196,7 +197,7 @@ mpiexec -hostfile ../machinefile.txt /usr/bin/env bash -c "killall -9 picongpu 2
 
 if [ $nextStep -lt $finalStep ]
 then
-    ssh tauruslogin6 "/usr/bin/sbatch !TBG_dstPath/tbg/submit.start"
+    ssh tauruslogin6 "/usr/bin/sbatch $TBG_dstPath/tbg/submit.start"
     if [ $? -ne 0 ] ; then
         echo "error during job submission" | tee -a output
     else

@@ -81,7 +81,8 @@ export MPICH_GPU_SUPPORT_ENABLED=1
 
 echo "Preparing environment..."
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 # note: no need to source profile as environment is cloned from submit environment
 # source !TBG_profile
@@ -93,7 +94,7 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-EXE="!TBG_dstPath/input/bin/picongpu"
+EXE="$TBG_dstPath/input/bin/picongpu"
 retry_count=0
 while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
   retry_count=$((retry_count + 1))
@@ -124,11 +125,11 @@ export OMP_NUM_THREADS=!TBG_coresPerGPU
 export SLURM_CPU_BIND="cores"
 
   # test if cuda_memtest binary is available and we have the node exclusive
-  if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
+  if [ -f $TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
     run_cuda_memtest=1
    # Run CUDA memtest to check GPU's health
     export MPICH_GPU_SUPPORT_ENABLED=0
-    node_check_err=$(srun -n !TBG_tasks --nodes=$SLURM_JOB_NUM_NODES -K1 --gres=gpu:!TBG_gpusPerNode --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
+    node_check_err=$(srun -n !TBG_tasks --nodes=$SLURM_JOB_NUM_NODES -K1 --gres=gpu:!TBG_gpusPerNode --gpu-bind=none $TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
   else
    run_cuda_memtest=0
    echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2

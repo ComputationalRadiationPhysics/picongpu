@@ -115,7 +115,8 @@ availability and requires manual intervention:
 
 EOF
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -125,7 +126,7 @@ if [ $? -ne 0 ] ; then
 fi
 unset MODULES_NO_OUTPUT
 
-EXE="!TBG_dstPath/input/bin/picongpu"
+EXE="$TBG_dstPath/input/bin/picongpu"
 retry_count=0
 while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
   retry_count=$((retry_count + 1))
@@ -206,7 +207,7 @@ n_broken_nodes=0
 # return code of cuda_memcheck
 node_check_err=1
 
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_mpiTasksPerNode ] ; then
+if [ -f $TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_mpiTasksPerNode ] ; then
     run_cuda_memtest=1
 else
     run_cuda_memtest=0
@@ -226,7 +227,7 @@ if [ $run_cuda_memtest -eq 1 ] ; then
         # do not bind to any GPU, else we can not use the local MPI rank to select a GPU
         # - test always all except the broken nodes
         # - catch error to avoid that the batch script stops processing in case an error happened
-        node_check_err=$(srun -n $n_tasks --nodes=$((n_tasks / !TBG_numHostedDevicesPerNode)) $exclude_nodes -K1 --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
+        node_check_err=$(srun -n $n_tasks --nodes=$((n_tasks / !TBG_numHostedDevicesPerNode)) $exclude_nodes -K1 --gpu-bind=none $TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
         cd ..
         ls -1 "cuda_memtest_$i" | sed -n -e 's/cuda_memtest_\([^_]*\)_.*/\1/p' | sort -u >> ./bad_nodes.txt
         n_broken_nodes=$(cat ./bad_nodes.txt | sort -u | wc -l)

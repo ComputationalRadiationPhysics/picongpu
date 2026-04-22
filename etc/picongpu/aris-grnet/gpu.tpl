@@ -76,7 +76,8 @@
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -92,7 +93,7 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-EXE="!TBG_dstPath/input/bin/picongpu"
+EXE="$TBG_dstPath/input/bin/picongpu"
 retry_count=0
 while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
   retry_count=$((retry_count + 1))
@@ -106,9 +107,9 @@ if [ ! -f "$EXE" ]; then
 fi
 
 # test if cuda_memtest binary is available and we have the node exclusive
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
+if [ -f $TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
   # Run CUDA memtest to check GPU's health
-  srun -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+  srun -n !TBG_tasks $TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
 fi
