@@ -358,41 +358,27 @@ class Runner(BaseModel):
                 {
                     "build_include_directory": {
                         "class": "Directory",
-                        "path": str(self.setup_dir / "include"),
                         "location": str(self.setup_dir / "include"),
                     },
                     "build_script": {
                         "class": "File",
-                        "path": str(self.build_script_path),
-                        # For some reason, the "location" must also be set.
-                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
                         "location": str(self.build_script_path),
                     },
                     **{f"build_{key}": value for key, value in build_flags.model_dump(mode="json").items()},
                     "run_etc_directory": {
                         "class": "Directory",
-                        "path": str(self.setup_dir / "etc"),
                         "location": str(self.setup_dir / "etc"),
                     },
                     "submission_script": {
                         "class": "File",
-                        "path": str(self.submission_script_path),
-                        # For some reason, the "location" must also be set.
-                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
                         "location": str(self.submission_script_path),
                     },
                     "prepare_submission_script": {
                         "class": "File",
-                        "path": str(self.prepare_submission_script_path),
-                        # For some reason, the "location" must also be set.
-                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
                         "location": str(self.prepare_submission_script_path),
                     },
                     "organize_output_script": {
                         "class": "File",
-                        "path": str(self.workflow_scripts_path / "organize_output.sh"),
-                        # For some reason, the "location" must also be set.
-                        # See https://github.com/common-workflow-language/cwltool/issues/828#issuecomment-405820330
                         "location": str(self.workflow_scripts_path / "organize_output.sh"),
                     },
                     **{f"run_{key}": value for key, value in run_flags.model_dump(mode="json").items()},
