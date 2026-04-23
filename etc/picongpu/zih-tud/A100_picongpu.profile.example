@@ -76,6 +76,7 @@ function getNode() {
 
 # allocate an interactive shell for two hours
 #   getDevice 2  # allocates 2 interactive devices on one node (default: 1)
+#   getDevice 1 cmd  # run cmd on compute node (default: --pty bash)
 function getDevice() {
     if [ -z "$1" ] ; then
         numDevices=1

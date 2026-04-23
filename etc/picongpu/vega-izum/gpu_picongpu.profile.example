@@ -43,7 +43,7 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="$PIC_SYSTEM_TEMPLATE_PATH/gpu.tpl"
 
-# allocate an interactive shell for 30 minutes
+# allocate an interactive shell for 60 minutes
 function getDevice() {
     if [ -z "$1" ] ; then
         numGPUs=1

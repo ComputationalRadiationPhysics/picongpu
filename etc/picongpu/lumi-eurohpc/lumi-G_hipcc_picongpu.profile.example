@@ -94,6 +94,7 @@ export TBG_TPLFILE="etc/picongpu/lumi-eurohpc/standard-g.tpl"
 
 # allocate an interactive shell for one hour
 #   getDevice 2  # allocates two interactive devices (default: 1)
+#   getDevice 1 cmd  # run cmd on compute node (default: --pty bash)
 function getDevice() {
     if [ -z "$1" ] ; then
         numGPUs=1
