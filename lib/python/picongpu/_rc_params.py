@@ -432,7 +432,7 @@ class RCParams:
             return self._data["preamble"]
         else:
             return f"""
-set -euxo pipefail
+set -exo pipefail
 export PATH="{str(core.path("bin"))}:$PATH"
 """
 
