@@ -16,7 +16,10 @@ export EDITOR="nano"
 # General modules #############################################################
 #
 if ! type module; then
+# The following script uses undefined variable names.
+  set +u
   . /etc/profile.d/lmod.sh
+  set -u
 fi
 module purge
 module load volta
