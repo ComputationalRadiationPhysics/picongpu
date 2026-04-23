@@ -15,6 +15,9 @@ export EDITOR="nano"
 
 # General modules #############################################################
 #
+if ! type module; then
+  . /etc/profile.d/lmod.sh
+fi
 module purge
 module load volta
 
