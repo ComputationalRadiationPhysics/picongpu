@@ -101,14 +101,8 @@ function getDevice() {
         fi
     fi
 
-    if [ -z "$2" ] ; then
-        runCmd="bash"
-    else
-        runCmd="$2"
-    fi
-
     export OMP_NUM_THREADS=34
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $proj -p develbooster $runCmd
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $proj -p develbooster
 }
 
 # Load autocompletion for PIConGPU commands

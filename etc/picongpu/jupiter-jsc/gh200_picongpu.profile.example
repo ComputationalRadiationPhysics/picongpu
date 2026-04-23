@@ -120,14 +120,8 @@ function getDevice() {
         fi
     fi
 
-    if [ -z "$2" ] ; then
-        runCmd="--pty bash"
-    else
-        runCmd="$2"
-    fi
-
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=115G -A $account -p booster $runCmd
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=115G -A $account -p booster
 }
 
 # Load autocompletion for PIConGPU commands
