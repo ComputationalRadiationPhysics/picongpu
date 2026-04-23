@@ -139,12 +139,14 @@ class TBGFlags(BaseModel):
     )
 
     submit_system: str | None = Field(
-        default="bash",
+        default_factory=lambda: rc_params.get("tbg_submit", "bash"),
         description="Submit command (qsub, 'qsub -h', sbatch, ...).",
         validation_alias=AliasChoices("submit", "s"),
     )
 
-    template_file: str | None = Field(None, validation_alias=AliasChoices("tpl"))
+    template_file: str | None = Field(
+        default_factory=lambda: rc_params.get("tbg_tpl_file", None), validation_alias=AliasChoices("tpl")
+    )
 
     overwrite_vars: list[str] | None = Field(
         default=None,
