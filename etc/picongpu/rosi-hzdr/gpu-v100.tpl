@@ -76,6 +76,7 @@
 
 echo 'Running program...'
 
+START_PATH="$(pwd -P)"
 TBG_dstPath="!TBG_dstPath"
 cd $TBG_dstPath
 
@@ -105,7 +106,7 @@ if [ ! -f "$EXE" ]; then
   echo "Error: $EXE was not found after $retry_count attempts" >&2
   exit 1
 fi
-ln -s ../stdout output
+ln -s "$START_PATH/stdout" output
 
 export OMPI_MCA_pml=ucx
 export OMPI_MCA_btl=self,smcuda,vader
