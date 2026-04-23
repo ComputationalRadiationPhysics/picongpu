@@ -27,13 +27,31 @@ EPSILON = 1.0e-5
 TIMEOUT_COUNT = 100
 
 
-def gather_results(result_path: Path):
-    # This currently only handles the case of a local process running:
-    with (result_path / "submission_information.txt").open("r") as file:
-        pid = int(file.read())
-    for _ in range(TIMEOUT_COUNT):
-        if pid_exists(pid):
-            sleep(5)
+def _wait_until(function, sleep_interval=5, timeout_count=TIMEOUT_COUNT):
+    for _ in range(timeout_count):
+        if function():
+            sleep(sleep_interval)
         else:
-            return run([result_path / "link_results.sh", result_path])
-    raise Exception("Simulation is still running after {num_attempts=}.")
+            return
+    raise Exception("Waiting for function did not return after {num_attempts=}.")
+
+
+def _make_wait_function_from(submission_information, submission_system="bash"):
+    # This currently only handles the case of a local process running.
+    # For other submission systems, this would have to
+    # - parse the corresponding information from the submission_information.txt
+    # - and query the corresponding batch system.
+    if submission_system == "bash":
+        with submission_information.open("r") as file:
+            pid = int(file.read())
+        return lambda: pid_exists(pid)
+    raise NotImplementedError("Only bash submission information can be parsed at this point.")
+
+
+def gather_results(result_path: Path):
+    # job has to finish
+    _wait_until(_make_wait_function_from(result_path / "submission_information.txt", "bash"))
+    # CWLtool has to copy over the files
+    _wait_until(lambda: (result_path / "link_results.sh").exists())
+
+    run([result_path / "link_results.sh", result_path])
