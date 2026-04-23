@@ -87,12 +87,12 @@ function getDevice() {
     fi
 
     if [ -z "$2" ] ; then
-        run_cmd="--pty bash"
+        runCmd="--pty bash"
     else
-        run_cmd="$2"
+        runCmd="$2"
     fi
 
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((180000 * numDevices)) -p defq $run_cmd
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((180000 * numDevices)) -p defq $runCmd
 }
 
 # Load autocompletion for PIConGPU commands

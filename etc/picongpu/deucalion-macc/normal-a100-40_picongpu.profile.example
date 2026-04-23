@@ -65,12 +65,12 @@ function getDevice() {
     fi
 
     if [ -z "$2" ] ; then
-        run_cmd="--pty bash"
+        runCmd="--pty bash"
     else
-        run_cmd="$2"
+        runCmd="$2"
     fi
 
-    srun  --time=00:30:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=32 --gpus=$numGPUs --mem=$((121000 * numGPUs)) -p dev-a100-40 -A $account $run_cmd
+    srun  --time=00:30:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=32 --gpus=$numGPUs --mem=$((121000 * numGPUs)) -p dev-a100-40 -A $account $runCmd
 }
 
 # allocate an interactive shell for 240 minutes

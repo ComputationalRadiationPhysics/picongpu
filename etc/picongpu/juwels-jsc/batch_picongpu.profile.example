@@ -112,14 +112,14 @@ function getDevice() {
     fi
 
     if [ -z "$2" ] ; then
-        run_cmd="bash"
+        runCmd="bash"
     else
-        run_cmd="$2"
+        runCmd="$2"
     fi
 
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
     export OMP_NUM_THREADS=48
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $account -p batch $run_cmd
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $account -p batch $runCmd
 }
 
 # Load autocompletion for PIConGPU commands

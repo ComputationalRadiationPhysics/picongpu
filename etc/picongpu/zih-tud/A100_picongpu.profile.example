@@ -89,13 +89,13 @@ function getDevice() {
     fi
 
     if [ -z "$2" ] ; then
-        run_cmd="--pty bash"
+        runCmd="--pty bash"
     else
-        run_cmd="$2"
+        runCmd="$2"
     fi
 
     export OMP_NUM_THREADS=6
-    srun --time=2:00:00 --nodes=1 --ntasks=$numDevices --ntasks-per-node=$(($numDevices)) --cpus-per-task=6 --mem=$((990000 / $numDevices)) --gres=gpu:$numDevices -p alpha $run_cmd
+    srun --time=2:00:00 --nodes=1 --ntasks=$numDevices --ntasks-per-node=$(($numDevices)) --cpus-per-task=6 --mem=$((990000 / $numDevices)) --gres=gpu:$numDevices -p alpha $runCmd
 }
 
 # Load autocompletion for PIConGPU commands
