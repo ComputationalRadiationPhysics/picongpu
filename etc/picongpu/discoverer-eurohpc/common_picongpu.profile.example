@@ -90,8 +90,15 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
+
+    if [ -z "$2" ] ; then
+        run_cmd="--pty bash"
+    else
+        run_cmd="$2"
+    fi
+
     srun  --time=00:30:00 --ntasks-per-node=$numGPUs --cpus-per-task=13 --gres=gpu:$numGPUs \
-        --mem=$((245000 * numGPUs)) --hint=nomultithread -p ${disco_partition} --account=$account --qos=$qos --pty bash
+        --mem=$((245000 * numGPUs)) --hint=nomultithread -p ${disco_partition} --account=$account --qos=$qos $run_cmd
 }
 
 function getNode() {
