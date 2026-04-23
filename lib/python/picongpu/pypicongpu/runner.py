@@ -340,7 +340,9 @@ class Runner(BaseModel):
                             $submission_cmd $submission_script > "submission_information.txt";
                         fi
                         """,
-                        r'echo "#!/bin/bash\nln -s $(pwd -P)/simOutput \$1" > link_results.sh',
+                        r"""echo "#!/bin/bash
+                        ln -s $(pwd -P)/simOutput \$1" > link_results.sh
+                        """,
                         "chmod +x link_results.sh",
                     ],
                     rc_params=rc_params,
