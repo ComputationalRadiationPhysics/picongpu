@@ -32,13 +32,13 @@ namespace pmacc
             struct Assign
             {
                 template<typename Dst, typename Src>
-                HDINLINE void operator()(Dst& dst, Src const& src) const
+                HDINLINE constexpr void operator()(Dst& dst, Src const& src) const
                 {
                     dst = src;
                 }
 
                 template<typename Dst, typename Src, typename T_Worker>
-                HDINLINE void operator()(T_Worker const&, Dst& dst, Src const& src) const
+                HDINLINE constexpr void operator()(T_Worker const&, Dst& dst, Src const& src) const
                 {
                     dst = src;
                 }
