@@ -23,6 +23,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/functor/User.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
+#include "picongpu/unitless/precision.unitless"
 
 namespace picongpu
 {
@@ -52,10 +53,14 @@ namespace picongpu
                              * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
                              *                             normal random number generator type
                              * @tparam T_Particle particle type
+                             * @tparam T_Temperature float_X for isotropic temperature or float3_X for
+                             *                       per-component temperatures, in keV
                              *
                              * @param standardNormalRng standard normal random number generator
                              * @param particle particle to be manipulated
-                             * @param temperatureKeV temperature value in keV
+                             * @param temperatureKeV temperature in keV; scalar applies the same temperature
+                             *                       to all momentum components, float3_X sets each
+                             *                       component's temperature independently
                              */
                             template<typename T_StandardNormalRng, typename T_Particle, typename T_Temperature>
                             HDINLINE void operator()(
@@ -70,13 +75,13 @@ namespace picongpu
                                  * For the macroweighted momentums we store as particle[ momentum_ ],
                                  * the same relation holds, just m and E are also macroweighted
                                  */
-                                float_X const energy = sim.pic.conv().eV2Joule(temperatureKeV * 1.0e3);
+                                auto const energy = sim.pic.conv().eV2Joule(temperatureKeV * 1.0e3);
                                 float_X const macroWeighting = particle[weighting_];
-                                float_X const macroEnergy = macroWeighting * energy;
+                                auto const macroEnergy = macroWeighting * energy;
                                 float_X const macroMass
                                     = picongpu::traits::attribute::getMass(macroWeighting, particle);
-                                float_X const standardDeviation
-                                    = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
+                                auto const standardDeviation = precisionCast<float_X>(
+                                    math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
                                 float3_X const mom
                                     = float3_X(standardNormalRng(), standardNormalRng(), standardNormalRng())
                                       * standardDeviation;
