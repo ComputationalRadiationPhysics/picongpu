@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/math/math.hpp"
+#include "pmacc/math/vector/Vector.hpp"
 
 #include <cmath>
 #include <concepts>
@@ -80,6 +81,23 @@ namespace pmacc::math
     constexpr bool isApproxZero(T value, T atol = DefaultTolerances<T>::atol)
     {
         return pmacc::math::abs(value) <= atol;
+    }
+
+    /** @brief Checks if two vectors are approximately equal element-wise
+     * @tparam T Floating-point element type
+     * @tparam T_dim Vector dimension
+     */
+    template<std::floating_point T, uint32_t T_dim>
+    constexpr bool isApproxEqual(
+        Vector<T, T_dim> const& a,
+        Vector<T, T_dim> const& b,
+        T rtol = DefaultTolerances<T>::rtol,
+        T atol = DefaultTolerances<T>::atol)
+    {
+        for(uint32_t i = 0u; i < T_dim; ++i)
+            if(!isApproxEqual(a[i], b[i], rtol, atol))
+                return false;
+        return true;
     }
 
 } // namespace pmacc::math

@@ -23,6 +23,8 @@
 #pragma once
 
 #include "pmacc/algorithms/math.hpp"
+#include "pmacc/math/operation/Add.hpp"
+#include "pmacc/math/operation/Mul.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
@@ -307,16 +309,30 @@ namespace pmacc
                 return result;
             }
 
+            /** Reduces all components using a mutating binary operation.
+             *
+             * @tparam T_Result accumulator type
+             * @tparam T_AssignOp mutating binary operation, called as op(accumulator, element)
+             * @param init initial accumulator value
+             * @param op mutating binary operation that modifies the accumulator in place
+             * @return result of folding all components into the accumulator
+             */
+            template<typename T_Result, typename T_AssignOp>
+            constexpr T_Result reduce(T_Result init, T_AssignOp op) const
+            {
+                T_Result result = init;
+                for(uint32_t i = 0u; i < dim; i++)
+                    op(result, (*this)[i]);
+                return result;
+            }
+
             /** Returns product of all components.
              *
              * @return product of components
              */
             constexpr type productOfComponents() const
             {
-                type result = (*this)[0];
-                for(uint32_t i = 1u; i < dim; i++)
-                    result *= (*this)[i];
-                return result;
+                return reduce(type(1), operation::Mul{});
             }
 
             /** Returns sum of all components.
@@ -325,10 +341,7 @@ namespace pmacc
              */
             constexpr type sumOfComponents() const
             {
-                type result = (*this)[0];
-                for(uint32_t i = 1u; i < dim; i++)
-                    result += (*this)[i];
-                return result;
+                return reduce(type(0), operation::Add{});
             }
 
             /**
