@@ -45,17 +45,50 @@ export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/eli-np/gpu_v100.tpl"
 export TBG_partition="gpu"
 
-# allocate an interactive shell for two hours
-#   getNode 2  # allocates two interactive nodes (default: 1)
-function getNode() {
-    if [ -z "$1" ] ; then
-        numNodes=1
-    else
-        numNodes=$1
+# allocate resources for an interactive session (default: 2 hours)
+#   getResource -n 2            # allocate 2 full nodes
+#   getResource -d 4            # allocate 4 GPUs on a single node
+#   getResource -d 1 pic-build  # allocate 1 GPU, run pic-build
+function getResource() {
+    local mode=""
+    local count=1
+    while getopts ":d:n:h" opt; do
+        case $opt in
+            d) count=${OPTARG:-1}; mode="device";;
+            n) count=${OPTARG:-1}; mode="node";;
+            h) echo "Usage: getResource [-d [num] | -n [num]] [command ...]"; return 0;;
+            *) echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+               return 1;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    if [ -z "$mode" ]; then
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
     fi
+
+    local slurm_common="--time=2:00:00 --cpus-per-task=3 --exclusive -p $TBG_partition -A ${USER}_a+"
+    local srunArgs
     export OMP_NUM_THREADS=3
-    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((16 * $numNodes)) --ntasks-per-node=16 --cpus-per-task=3 --exclusive --gpus-per-node=16 -p $TBG_partition -A ${USER}_a+ --pty bash
+
+    if [ "$mode" = "node" ]; then
+        srunArgs="--nodes=$count --ntasks=$((16 * count)) --ntasks-per-node=16 --gpus-per-node=16 $slurm_common"
+    else
+        if [ "$count" -gt 16 ]; then
+            echo "The maximal number of devices per node is 16." 1>&2
+            return 1
+        fi
+        srunArgs="--nodes=1 --ntasks=$count --ntasks-per-node=$count --gpus-per-task=1 $slurm_common"
+    fi
+
+    if [ $# -gt 0 ]; then
+        srun $srunArgs "$@"
+    else
+        srun $srunArgs --pty bash
+    fi
 }
+
 
 # Load autocompletion for PIConGPU commands
 BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash

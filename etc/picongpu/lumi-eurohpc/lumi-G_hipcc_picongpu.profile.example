@@ -92,21 +92,49 @@ export PATH=$PICSRC/src/tools/bin:$PATH
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/lumi-eurohpc/standard-g.tpl"
 
-# allocate an interactive shell for one hour
-#   getDevice 2  # allocates two interactive devices (default: 1)
-function getDevice() {
-    if [ -z "$1" ] ; then
-        numGPUs=1
+# allocate resources for an interactive session (default: 1 hour)
+#   getResource -n 2            # allocate 2 full nodes
+#   getResource -d 2            # allocate 2 GPUs on a single node
+#   getResource -d 1 pic-build  # allocate 1 GPU, run pic-build
+function getResource() {
+    local mode=""
+    local count=1
+    while getopts ":d:n:h" opt; do
+        case $opt in
+            d) count=${OPTARG:-1}; mode="device";;
+            n) count=${OPTARG:-1}; mode="node";;
+            h) echo "Usage: getResource [-d [num] | -n [num]] [command ...]"; return 0;;
+            *) echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+               return 1;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    if [ -z "$mode" ]; then
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
+
+    local slurm_common="--time=1:00:00 --cpus-per-task=7 --gpus-per-task=1 --mem-per-gpu=64000 -p dev-g -A $PROJID"
+    local srunArgs
+
+    if [ "$mode" = "node" ]; then
+        srunArgs="--nodes=$count --ntasks=$((count * 8)) $slurm_common"
     else
-        if [ "$1" -gt 8 ] ; then
+        if [ "$count" -gt 8 ]; then
             echo "The maximal number of devices per node is 8." 1>&2
             return 1
-        else
-            numGPUs=$1
         fi
+        srunArgs="--nodes=1 --ntasks=${count} $slurm_common"
     fi
-    srun  --time=1:00:00 --nodes=1 --ntasks=${numGPUs} --cpus-per-task=7 --gpus-per-task=1 --mem-per-gpu=64000 -p dev-g -A $PROJID --pty bash
+
+    if [ $# -gt 0 ]; then
+        srun $srunArgs "$@"
+    else
+        srun $srunArgs --pty bash
+    fi
 }
+
 
 # Load autocompletion for PIConGPU commands
 BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
