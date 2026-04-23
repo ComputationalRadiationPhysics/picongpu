@@ -38,8 +38,9 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline
-            = pmacc::mp_list<CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Electrons>>;
+        using InitPipeline = pmacc::mp_list<
+            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Electrons>,
+            Manipulate<picongpu::particles::AddTemperature, PIC_Electrons>>;
 
     } // namespace particles
 } // namespace picongpu
