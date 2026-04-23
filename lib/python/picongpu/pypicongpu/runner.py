@@ -23,6 +23,7 @@ from pydantic import (
     BaseModel,
     BeforeValidator,
     Field,
+    field_serializer,
 )
 from rocrate.rocrate import ROCrate
 
@@ -127,12 +128,6 @@ class PicBuildFlags(BaseModel):
         validation_alias=AliasChoices("G"),
     )
 
-    help: bool = Field(
-        default=False,
-        description="Show the help message and exit.",
-        validation_alias=AliasChoices("help", "h"),
-    )
-
 
 class TBGFlags(BaseModel):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
@@ -163,13 +158,11 @@ class TBGFlags(BaseModel):
         validation_alias=AliasChoices("force", "f"),
     )
 
-    help: bool = Field(
-        default=False,
-        description="Show the help message and exit.",
-        validation_alias=AliasChoices("help", "h"),
-    )
-    destination_path: Path = Field(description="Directory to organise the results in and run in.")
     project_path: Path = Field(description="Simulation setup directory to run.")
+
+    @field_serializer("project_path")
+    def _serialize_project_path(self, value) -> dict[str, str]:
+        return {"class": "Directory", "location": str(value)}
 
 
 class Runner(BaseModel):
@@ -333,12 +326,12 @@ class Runner(BaseModel):
             script.write(
                 script_content_with(
                     [
-                        "cp -ar tbg_link tbg",
+                        "cp -r tbg_link tbg",
                         'submission_script="./tbg/submit.start"',
                         'submission_cmd="$1"',
                         'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"'
-                        """
-                        if [[ "$submission_cmd" =~ "bash.*" ]] || [[ "$submission_cmd" =~ "zsh.*" ]]; then
+                        r"""
+                        if [[ "$submission_cmd" =~ \s*bash.* ]] || [[ "$submission_cmd" =~ \s*zsh.* ]]; then
                             $submission_cmd $submission_script &
                             echo $! > "submission_information.txt";
                         else
@@ -449,7 +442,7 @@ class Runner(BaseModel):
 
         self.generate_workflow_input(
             build_flags=PicBuildFlags(**flags),
-            run_flags=TBGFlags(destination_path=self.run_dir, project_path=self.setup_dir, **flags),
+            run_flags=TBGFlags(project_path=self.setup_dir, **flags),
         )
         self.cwl_cachedir.mkdir(parents=True)
 
@@ -468,7 +461,7 @@ class Runner(BaseModel):
         run compiled picongpu simulation
         """
         with self.workflow_input_path.open("r") as file:
-            factory = WorkflowFactory(
+            return WorkflowFactory(
                 runtime_context=RuntimeContext(
                     kwargs={
                         "outdir": str(self.run_dir),
@@ -477,7 +470,4 @@ class Runner(BaseModel):
                         "cachedir": str(self.cwl_cachedir),
                     }
                 )
-            )
-            executor = factory.make(str(self.workflow_definition_path))
-            result = executor(**json.load(file))
-            return result
+            ).make(str(self.workflow_definition_path))(**json.load(file))

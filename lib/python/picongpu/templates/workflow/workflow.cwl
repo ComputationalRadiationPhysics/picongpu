@@ -90,33 +90,29 @@ inputs:
     doc: "Show the help message and exit"
     default: false
   run_project_path:
-    type: string
+    type: Directory
     label: "Setup path"
     doc: "Directory with the simulation setup to run"
-  run_destination_path:
-    type: string
-    label: "Destination path"
-    doc: "Output directory for simulation results"
 
 outputs:
   input_directory:
     type: Directory
-    outputSource: prepare_submission_step/input_directory
+    outputSource: organize_output_step/input_directory
     label: "Input directory"
     doc: "Directory containing the original input as generated from Python"
   tbg_directory:
     type: Directory
-    outputSource: submit_step/tbg_directory
+    outputSource: organize_output_step/tbg_directory
     label: "Input directory"
     doc: "Directory containing the original input as generated from Python"
   submission_information:
     type: File
-    outputSource: submit_step/submission_information
+    outputSource: organize_output_step/submission_information
     label: "Submission information"
     doc: "This file contains sufficient information to manage the submitted job. Which precisely, depends on the submit_system."
   link_results_script:
     type: File
-    outputSource: submit_step/link_results_script
+    outputSource: organize_output_step/link_results_script
 
 steps:
   build_step:
@@ -135,16 +131,13 @@ steps:
   prepare_submission_step:
     run: steps/prepare_submission.cwl
     in:
-      include_directory: build_include_directory
       etc_directory: run_etc_directory
       script: prepare_submission_script
       cfg_file: run_cfg_file
       overwrite_vars: run_overwrite_vars
       template_file: run_template_file
       force: run_force
-      help: run_help
-      bin_directory: build_step/bin_directory
-    out: [input_directory, tbg_directory]
+    out: [tbg_directory]
   submit_step:
     run: steps/submit.cwl
     in:
@@ -155,3 +148,13 @@ steps:
       submit_system: run_submit_system
     out: [submission_information, link_results_script, tbg_directory]
     label: "Submit PIConGPU simulation to the batch system"
+  organize_output_step:
+    run: steps/organize_output.cwl
+    in:
+      script: organize_output_script
+      project_path: run_project_path
+      bin_directory: build_step/bin_directory
+      tbg_directory: submit_step/tbg_directory
+      submission_information: submit_step/submission_information
+      link_results_script: submit_step/link_results_script
+    out: [input_directory, tbg_directory, submission_information, link_results_script]

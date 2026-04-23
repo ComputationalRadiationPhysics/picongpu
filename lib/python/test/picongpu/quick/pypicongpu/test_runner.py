@@ -88,4 +88,4 @@ def test_picbuild_and_tbg_flags_are_disjoint_enough():
             reduce(set.union, UnpackChain(cls.model_fields).values().validation_alias.choices, set())
             for cls in (PicBuildFlags, TBGFlags)
         )
-    ) == {"f", "force", "h", "help"}
+    ) == {"f", "force"}

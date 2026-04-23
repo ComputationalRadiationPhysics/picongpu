@@ -10,18 +10,10 @@ requirements:
         entry: $(inputs.etc_directory)
       - entryname: prepare_submission.sh
         entry: $(inputs.script)
-      - entryname: include
-        entry: $(inputs.include_directory)
-      - entryname: bin
-        entry: $(inputs.bin_directory)
 
 baseCommand: ./prepare_submission.sh
 
 inputs:
-  include_directory:
-    type: Directory
-    label: "Compile-time parameter header directory"
-    doc: "Directory containing compile-time parameter headers for compilation of PIConGPU"
   etc_directory:
     type: Directory
     label: "Run-time configuration files for PIConGPU"
@@ -62,23 +54,7 @@ inputs:
     label: "Force overwrite"
     doc: "Override if destinationPath exists"
     default: false
-  help:
-    type: boolean
-    inputBinding:
-      position: 7
-      prefix: "-h"
-    label: "Show help"
-    doc: "Show the help message and exit"
-    default: false
-  bin_directory:
-    type: Directory
-    label: "PIConGPU executables"
-    doc: "Compiled PIConGPU binaries from build step"
 outputs:
-  input_directory:
-    type: Directory
-    outputBinding:
-      glob: "run_dir/input"
   tbg_directory:
     type: Directory
     outputBinding:
