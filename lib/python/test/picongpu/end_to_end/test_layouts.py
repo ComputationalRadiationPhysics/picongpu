@@ -101,8 +101,9 @@ class TestLayouts(TestCase):
         global SIM
         if SIM is None:
             SIM = setup_sim()
+            self.sim = SIM
+            gather_results(self.result_path)
         self.sim = SIM
-        gather_results(self.result_path)
         self.index = ["layout", "parameters"]
         self.offset_names = ["positionOffset_x", "positionOffset_y", "positionOffset_z"]
         self.position_names = ["position_x", "position_y", "position_z"]

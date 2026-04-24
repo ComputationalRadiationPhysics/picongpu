@@ -96,8 +96,9 @@ class TestFreeFormulaDensity(TestCase):
             global SIM
             if SIM is None:
                 SIM = setup_sim()
+                self.sim = SIM
+                gather_results(self.result_path)
             self.sim = SIM
-            gather_results(self.result_path)
         else:
             for d in DISTRIBUTIONS:
                 for f in DISTRIBUTIONS[d].values():
