@@ -29,7 +29,7 @@ TIMEOUT_COUNT = 100
 
 def _wait_until(function, sleep_interval=5, timeout_count=TIMEOUT_COUNT):
     for _ in range(timeout_count):
-        if function():
+        if not function():
             sleep(sleep_interval)
         else:
             return
@@ -44,7 +44,7 @@ def _make_wait_function_from(submission_information, submission_system="bash"):
     if submission_system == "bash":
         with submission_information.open("r") as file:
             pid = int(file.read())
-        return lambda: pid_exists(pid)
+        return lambda: not pid_exists(pid)
     raise NotImplementedError("Only bash submission information can be parsed at this point.")
 
 
