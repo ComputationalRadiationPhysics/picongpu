@@ -20,8 +20,8 @@ from picongpu.pypicongpu.species import Species
 
 class BinSpec(RenderedObject, BaseModel):
     kind: str
-    start: float | int
-    stop: float | int
+    start: int | float
+    stop: int | float
     nsteps: int
 
 
