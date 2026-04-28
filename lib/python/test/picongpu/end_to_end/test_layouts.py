@@ -11,6 +11,7 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
+from picongpu import rc_params
 from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
@@ -25,7 +26,7 @@ from picongpu.picmi.diagnostics import (
     TimeStepSpec,
 )
 
-from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, gather_results
+from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
 from .compare_particles import (
     read_particles,
     sort_particles,
@@ -84,6 +85,10 @@ def setup_sim():
     for species, layout in SPECIES_AND_LAYOUTS.values():
         sim.add_species(species, layout)
     sim.diagnostics = [Checkpoint(TimeStepSpec[:])]
+    if "rosi-hzdr" in rc_params["preset"]:
+        # On ROSI, the tmp directories are inaccessible to compute nodes.
+        sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
+        sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
     if RUN_DIR:
         sim.picongpu_get_runner().run_dir = RUN_DIR
     else:

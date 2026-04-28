@@ -10,8 +10,9 @@ from pathlib import Path
 from unittest import TestCase
 
 from picongpu.picmi import Cartesian3DGrid, ElectromagneticSolver, Simulation
+from picongpu import rc_params
 
-from .arbitrary_parameters import NUMBER_OF_CELLS, UPPER_BOUNDARY, gather_results
+from .arbitrary_parameters import NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,6 +40,10 @@ RUN_DIR = ""
 
 def setup_sim():
     sim = basic_simulation()
+    if "rosi-hzdr" in rc_params["preset"]:
+        # On ROSI, the tmp directories are inaccessible to compute nodes.
+        sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
+        sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
     if RUN_DIR:
         sim.picongpu_get_runner().run_dir = RUN_DIR
     else:

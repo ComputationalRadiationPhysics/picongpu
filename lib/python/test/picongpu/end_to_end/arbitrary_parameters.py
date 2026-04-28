@@ -5,12 +5,14 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from os import environ
 from pathlib import Path
 from subprocess import run
 from time import sleep
 
 import numpy as np
 from picongpu import rc_params
+from picongpu.pypicongpu.util import alt
 from psutil import pid_exists
 
 NUMBER_OF_CELLS = [64, 64, 32]
@@ -90,3 +92,17 @@ def gather_results(result_path: Path):
     _wait_until(lambda: (result_path / "link_results.sh").exists())
 
     run([result_path / "link_results.sh", result_path])
+
+
+def directory_in(path, offset=0):
+    if not isinstance(path, Path):
+        return directory_in(Path(path))
+    new_offset = (
+        max([offset, *map(lambda p: alt(lambda: int(str(p.name)), 0, ignore=(ValueError,)), path.glob("*"))]) + 1
+    )
+    directory = path / f"{new_offset:>06}"
+    return directory if not directory.exists() else directory_in(path, offset=new_offset)
+
+
+def directory_in_home():
+    return directory_in(Path(environ["HOME"]) / "data")
