@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# /// script
+# requires-python = ">=3.11,<3.14"
+# dependencies = [
+#   "numpy",
+#   "scipy",
+#   "sympy",
+#   "picongpu @ git+https://github.com/chillenzer/picongpu@add-env-management-to-python-package#subdirectory=lib/python"
+# ]
+# ///
 """
 This file is part of PIConGPU.
 Copyright 2024 PIConGPU contributors
@@ -6,7 +16,8 @@ License: GPLv3+
 """
 
 import datetime
-import logging
+from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import sympy
@@ -15,10 +26,6 @@ from picongpu.picmi.diagnostics import binning
 from picongpu.picmi.diagnostics.radiation import RadiationObserverConfiguration
 from picongpu.picmi.particle_functor.unit_dimension import I, L, M, T
 from scipy.constants import c, elementary_charge
-
-# set log level:
-# options (in ascending order) are: DEBUG, INFO, WARNING, ERROR, CRITICAL
-logging.basicConfig(level=logging.WARNING)
 
 """
 @file PICMI user script reproducing the PIConGPU LWFA example
@@ -31,7 +38,9 @@ This Python script is example PICMI user script reproducing the LaserWakefield e
 ENABLE_IONS = True
 ENABLE_IONIZATION = True
 ADD_CUSTOM_INPUT = True
-OUTPUT_DIRECTORY_PATH = "lwfa"
+OUTPUT_DIRECTORY_PATH = Path("lwfa")
+MODE: Literal["run", "write"] = "run"
+
 
 numberCells = np.array([192, 2048, 192])
 cellSize = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])  # unit: meter
@@ -231,4 +240,10 @@ sim.diagnostics = [
 sim.add_laser(laser, None)
 
 if __name__ == "__main__":
-    sim.write_input_file(OUTPUT_DIRECTORY_PATH)
+    match MODE:
+        case "run":
+            sim.run(setup_dir=OUTPUT_DIRECTORY_PATH / "setup", run_dir=OUTPUT_DIRECTORY_PATH / "run")
+        case "write":
+            sim.write_input_file(OUTPUT_DIRECTORY_PATH / "setup")
+        case _:
+            raise ValueError(f"Unknown {MODE=}.")

@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# /// script
+# requires-python = ">=3.11,<3.14"
+# dependencies = [
+#   "picongpu @ git+https://github.com/chillenzer/picongpu@add-env-management-to-python-package#subdirectory=lib/python"
+# ]
+# ///
 """
 This file is part of PIConGPU.
 Copyright 2021-2024 PIConGPU contributors
@@ -5,16 +12,13 @@ Authors: Hannes Troepgen
 License: GPLv3+
 """
 
-import logging
+from pathlib import Path
+from typing import Literal
 
 from picongpu import picmi
 
-# set log level:
-# options (in ascending order) are: DEBUG, INFO, WARNING, ERROR, CRITICAL
-logging.basicConfig(level=logging.WARNING)
-
-
-OUTPUT_DIRECTORY_PATH = "warm_plasma"
+OUTPUT_DIRECTORY_PATH = Path("warm_plasma")
+MODE: Literal["run", "write"] = "run"
 
 boundary_conditions = ["periodic", "periodic", "periodic"]
 grid = picmi.Cartesian3DGrid(
@@ -53,4 +57,10 @@ layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=25)
 sim.add_species(electron, layout)
 
 if __name__ == "__main__":
-    sim.write_input_file(OUTPUT_DIRECTORY_PATH)
+    match MODE:
+        case "run":
+            sim.run(setup_dir=OUTPUT_DIRECTORY_PATH / "setup", run_dir=OUTPUT_DIRECTORY_PATH / "run")
+        case "write":
+            sim.write_input_file(OUTPUT_DIRECTORY_PATH / "setup")
+        case _:
+            raise ValueError(f"Unknown {MODE=}.")

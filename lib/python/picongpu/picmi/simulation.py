@@ -464,16 +464,22 @@ class Simulation(picmistandard.PICMI_Simulation):
     def _get_base_density(self) -> float:
         return self.picongpu_base_density or 1.0e25
 
-    def picongpu_run(self, **flags) -> None:
+    def run(self, *args, **kwargs) -> None:
+        return self.picongpu_run(*args, **kwargs)
+
+    def picongpu_run(self, setup_dir=None, run_dir=None, **flags) -> None:
         """build and run PIConGPU simulation"""
-        runner = self.picongpu_get_runner()
+        runner = self.picongpu_get_runner(setup_dir=setup_dir, run_dir=run_dir)
         runner.generate(**flags)
         runner.run()
 
-    def picongpu_get_runner(self) -> Runner:
+    def picongpu_get_runner(self, **kwargs) -> Runner:
         if self._runner is None:
             self._runner = Runner(
-                sim=self.get_as_pypicongpu(), template_dir=self.picongpu_template_dir or (templates.path(),)
+                **(
+                    dict(sim=self.get_as_pypicongpu(), template_dir=self.picongpu_template_dir or (templates.path(),))
+                    | kwargs
+                )
             )
         return self._runner
 
