@@ -451,25 +451,47 @@ namespace picongpu
 
     namespace traits
     {
-        /** Field position traits for checkpointing
+        /** Position in cell for split PML components.
          *
-         * PML fields do not fit well, for now just copy the normal fields.
-         * Specialize only for Yee cell type, as this is the only one supported.
+         * Split components inherit the position of their parent Yee-field component and
+         * duplicate it for the two transverse split parts:
+         * x -> (xy, xz), y -> (yx, yz), z -> (zx, zy).
+         */
+        template<typename T_MeshType, typename T_BaseField, uint32_t T_dim>
+        struct PmlFieldPositionFromBase
+        {
+            using Base = FieldPosition<T_MeshType, T_BaseField, T_dim>;
+            using ComponentPos = std::remove_cv_t<std::remove_reference_t<decltype(Base{}()[0])>>;
+            using Result = ::pmacc::math::Vector<ComponentPos, fields::absorber::pml::NodeValues::numComponents> const;
+
+            HDINLINE PmlFieldPositionFromBase() = default;
+
+            HDINLINE Result operator()() const
+            {
+                auto const base = Base{}();
+                return Result(base[0], base[0], base[1], base[1], base[2], base[2]);
+            }
+        };
+
+        /** Position in cell for split PML E components used for checkpointing.
+         *
+         * Split components inherit the position of their parent Yee-field component:
+         * Ex -> (xy, xz), Ey -> (yx, yz), Ez -> (zx, zy).
          */
         template<uint32_t T_dim>
         struct FieldPosition<fields::YeeCell, fields::absorber::pml::FieldE, T_dim>
-            : FieldPosition<fields::YeeCell, FieldE, T_dim>
+            : PmlFieldPositionFromBase<fields::YeeCell, FieldE, T_dim>
         {
         };
 
-        /** Field position traits for checkpointing
+        /** Position in cell for split PML B components used for checkpointing.
          *
-         * PML fields do not fit well, for now just copy the normal fields.
-         * Specialize only for Yee cell type, as this is the only one supported.
+         * Split components inherit the position of their parent Yee-field component:
+         * Bx -> (xy, xz), By -> (yx, yz), Bz -> (zx, zy).
          */
         template<uint32_t T_dim>
         struct FieldPosition<fields::YeeCell, fields::absorber::pml::FieldB, T_dim>
-            : FieldPosition<fields::YeeCell, FieldB, T_dim>
+            : PmlFieldPositionFromBase<fields::YeeCell, FieldB, T_dim>
         {
         };
 
