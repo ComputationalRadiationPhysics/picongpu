@@ -86,6 +86,21 @@ namespace picongpu
                     domain_offset = *domainOffset;
                     local_domain_size = *localDomainSize;
                 }
+
+                auto const numDataPoints = local_domain_size.productOfComponents();
+
+                if(numDataPoints == 0)
+                {
+                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                    eventSystem::getTransactionEvent().waitForFinished();
+                    // Agree on the number of flush operations
+                    for(uint32_t d = 0; d < numComponents; d++)
+                    {
+                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                    }
+                    return;
+                }
+
                 bool useLinearIdxAsDestination = false;
 
                 ::openPMD::Series& series = *params->openPMDSeries;
@@ -126,10 +141,8 @@ namespace picongpu
                     mesh.seriesFlush();
 
 
-                    int const elementCount = local_domain_size.productOfComponents();
-
 #    pragma omp parallel for simd
-                    for(int linearId = 0; linearId < elementCount; ++linearId)
+                    for(int linearId = 0; linearId < numDataPoints; ++linearId)
                     {
                         DataSpace<simDim> destIdx;
                         if(useLinearIdxAsDestination)

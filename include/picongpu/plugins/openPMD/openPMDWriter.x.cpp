@@ -1714,12 +1714,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     params->m_dumpTimes.now<std::chrono::milliseconds>("Begin write field " + name);
                 }
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep];
-                ::openPMD::Mesh mesh = iteration.meshes[name];
-
-                // set mesh attributes
-                writeFieldAttributes(params, currentStep, unitDimension, timeOffset, mesh);
-
                 /* data to describe source buffer */
                 GridLayout<simDim> bufferGridLayout = buffer.getGridLayout();
                 DataSpace<simDim> bufferSize = bufferGridLayout.sizeND();
@@ -1745,12 +1739,45 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 auto const numDataPoints = localWindowSize.productOfComponents();
 
+                // Ensure the Iteration is consistently accessed before any potential early returns
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep].open();
+
+                // PML is written as a sparse dataset.
+                // In the extreme case, sparse means that not a single coordinate in the dataset is defined. We need to
+                // deal with this differently in different backends:
+                //
+                // ADIOS2:
+                // ADIOS2 treats datasets without a single written block as non-existing. If the below code creates
+                // records for the dataset, but does not actually write any data, this will lead to a partial (read:
+                // broken) output. The simplest answer to this is: If our process does not contribute any data, we just
+                // skip the entire below operation. Datasets need not be created collectively in ADIOS2; so if any
+                // process has contributions to make, it will just make them.
+                //
+                // HDF5: Datasets need to be declared collectively, but they do not need to have any data actually
+                // written to them. The workaround is neither needed, nor possible.
+                if(numDataPoints == 0 && params->openPMDSeries->backend() == "ADIOS2")
+                {
+                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                    eventSystem::getTransactionEvent().waitForFinished();
+                    // Agree on the number of flush operations
+                    for(uint32_t d = 0; d < nComponents; d++)
+                    {
+                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                    }
+                    return;
+                }
+
                 {
                     std::stringstream description;
                     description << ": " << (numDataPoints * sizeof(ComponentType) * nComponents) << " bytes for "
                                 << numDataPoints << " cells";
                     params->m_dumpTimes.append(description.str());
                 }
+
+                ::openPMD::Mesh mesh = iteration.meshes[name];
+
+                // set mesh attributes
+                writeFieldAttributes(params, currentStep, unitDimension, timeOffset, mesh);
 
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
@@ -1788,14 +1815,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     // define record component level attributes
                     mrc.setPosition(inCellPosition.at(d));
                     mrc.setUnitSI(unit.at(d));
-
-                    if(numDataPoints == 0)
-                    {
-                        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                        eventSystem::getTransactionEvent().waitForFinished();
-                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
-                        continue;
-                    }
 
                     params->m_dumpTimes.now<std::chrono::milliseconds>(
                         "\tComponent " + std::to_string(d) + " prepare");
