@@ -21,10 +21,14 @@
 
 #include <pmacc/boost_workaround.hpp>
 
+#include "pmacc/math/operation/Max.hpp"
+
 #include <pmacc/Environment.hpp>
 #include <pmacc/algorithms/TypeCast.hpp>
 #include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/math/isApprox.hpp>
+#include <pmacc/math/vector/VectorOps.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/test/PMaccFixture.hpp>
 #include <pmacc/verify.hpp>
@@ -376,6 +380,146 @@ struct RunTimeKernel
         *numTestsOut = i;
     }
 };
+
+struct VectorOpsKernel
+{
+    template<typename T_Acc>
+    DINLINE void operator()(T_Acc const&, bool* data, size_t* numTestsOut) const
+    {
+        using namespace pmacc::math;
+        size_t i = 0u;
+
+        // transform: apply element-wise callable
+        {
+            auto vec = Vector<float, 3u>(1.f, 2.f, 3.f);
+            auto result = transform(vec, [](float x) { return x * 2.f; });
+            data[i++] = result == Vector<float, 3u>(2.f, 4.f, 6.f);
+        }
+        // abs: unary, sign removal
+        {
+            auto vec = Vector<float, 3u>(-1.f, 2.f, -3.f);
+            auto result = abs(vec);
+            data[i++] = result == Vector<float, 3u>(1.f, 2.f, 3.f);
+        }
+        // sqrt: unary root
+        {
+            auto vec = Vector<float, 3u>(4.f, 9.f, 16.f);
+            auto result = sqrt(vec);
+            data[i++] = result == Vector<float, 3u>(2.f, 3.f, 4.f);
+        }
+        // floor: unary rounding down
+        {
+            auto vec = Vector<float, 3u>(1.7f, 2.3f, 3.9f);
+            auto result = floor(vec);
+            data[i++] = result == Vector<float, 3u>(1.f, 2.f, 3.f);
+        }
+        // ceil: unary rounding up
+        {
+            auto vec = Vector<float, 3u>(1.1f, 2.2f, 3.8f);
+            auto result = ceil(vec);
+            data[i++] = result == Vector<float, 3u>(2.f, 3.f, 4.f);
+        }
+        // sin at zero: known exact value
+        {
+            auto vec = Vector<float, 3u>(0.f, 0.f, 0.f);
+            auto result = sin(vec);
+            data[i++] = result == Vector<float, 3u>(0.f, 0.f, 0.f);
+        }
+        // cos at zero: known exact value
+        {
+            auto vec = Vector<float, 3u>(0.f, 0.f, 0.f);
+            auto result = cos(vec);
+            data[i++] = result == Vector<float, 3u>(1.f, 1.f, 1.f);
+        }
+        // exp + log are inverse: log(exp(x)) ~= x
+        {
+            auto vec = Vector<float, 3u>(1.f, 2.f, 3.f);
+            auto result = log(exp(vec));
+            data[i++] = isApproxEqual(result, vec);
+        }
+        // min (vec, vec): binary element-wise minimum
+        {
+            auto a = Vector<float, 3u>(3.f, 1.f, 2.f);
+            auto b = Vector<float, 3u>(1.f, 3.f, 2.f);
+            auto result = pmacc::math::min(a, b);
+            data[i++] = result == Vector<float, 3u>(1.f, 1.f, 2.f);
+        }
+        // max (vec, vec): binary element-wise maximum
+        {
+            auto a = Vector<float, 3u>(3.f, 1.f, 2.f);
+            auto b = Vector<float, 3u>(1.f, 3.f, 2.f);
+            auto result = pmacc::math::max(a, b);
+            data[i++] = result == Vector<float, 3u>(3.f, 3.f, 2.f);
+        }
+        // fmod (vec, vec): binary element-wise floating-point remainder
+        {
+            auto a = Vector<float, 3u>(7.f, 8.f, 9.f);
+            auto b = Vector<float, 3u>(3.f, 3.f, 4.f);
+            auto result = fmod(a, b);
+            data[i++] = result == Vector<float, 3u>(1.f, 2.f, 1.f);
+        }
+        // pow (vec, scalar): binary with scalar exponent
+        {
+            auto vec = Vector<float, 3u>(2.f, 3.f, 4.f);
+            auto result = pow(vec, 2.f);
+            data[i++] = result == Vector<float, 3u>(4.f, 9.f, 16.f);
+        }
+        // reduce with Max: maximum component
+        {
+            auto vec = Vector<int, 3u>(3, 1, 2);
+            data[i++] = vec.reduce(0, operation::Max{}) == 3;
+        }
+        // reduce with custom lambda: sum of squares
+        {
+            auto vec = Vector<int, 3u>(1, 2, 3);
+            auto result = vec.reduce(0, [](int& acc, int x) { acc += x * x; });
+            data[i++] = result == 14;
+        }
+        // mixed scalar+vector chain
+        {
+            auto vec = Vector<float, 3u>(-1.f, 4.f, 9.f);
+            auto result = floor(sqrt(abs(vec) * 4.f));
+            data[i++] = result == Vector<float, 3u>(2.f, 4.f, 6.f);
+        }
+        // mixed scalar+vector chain
+        {
+            auto vec = Vector<float, 3u>(-2.f, 3.f, -4.f);
+            auto result = pow(abs(vec), 2.f) + 1.f;
+            data[i++] = result == Vector<float, 3u>(5.f, 10.f, 17.f);
+        }
+
+        *numTestsOut = i;
+    }
+};
+
+TEST_CASE("vector ops", "[vector]")
+{
+    using namespace pmacc;
+    using namespace pmacc::math;
+
+    size_t const numElements = 16u;
+
+    auto hostDeviceBuffer = HostDeviceBuffer<bool, DIM1>(DataSpace<DIM1>{numElements});
+    auto numTestsBuffer = HostDeviceBuffer<size_t, DIM1>(DataSpace<DIM1>{1});
+    numTestsBuffer.getDeviceBuffer().setValue(0u);
+
+    hostDeviceBuffer.getDeviceBuffer().setValue(false);
+
+    PMACC_KERNEL(VectorOpsKernel{})
+    (1, 1)(hostDeviceBuffer.getDeviceBuffer().data(), numTestsBuffer.getDeviceBuffer().data());
+    hostDeviceBuffer.deviceToHost();
+    numTestsBuffer.deviceToHost();
+
+    REQUIRE(numTestsBuffer.getHostBuffer().data()[0] == numElements);
+
+    for(size_t i = 0; i < hostDeviceBuffer.getHostBuffer().size(); ++i)
+    {
+        bool res = hostDeviceBuffer.getHostBuffer().data()[i] == true;
+        if(!res)
+            std::cerr << "vector ops test: " << i << " FAILED." << std::endl;
+        REQUIRE(res == true);
+    }
+}
 
 TEST_CASE("vector generic", "[vector]")
 {

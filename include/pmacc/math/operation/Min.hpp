@@ -36,13 +36,13 @@ namespace pmacc
             struct Min
             {
                 template<typename Dst, typename Src>
-                HDINLINE void operator()(Dst& dst, Src const& src) const
+                HDINLINE constexpr void operator()(Dst& dst, Src const& src) const
                 {
                     dst = pmacc::math::min(dst, src);
                 }
 
                 template<typename Dst, typename Src, typename T_Worker>
-                HDINLINE void operator()(T_Worker const& worker, Dst& dst, Src const& src) const
+                HDINLINE constexpr void operator()(T_Worker const& worker, Dst& dst, Src const& src) const
                 {
                     dst = alpaka::math::min(worker.getAcc(), dst, src);
                 }

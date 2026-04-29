@@ -28,6 +28,7 @@
 #include "pmacc/math/vector/UInt64.hpp"
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/math/vector/Vector.tpp"
+#include "pmacc/math/vector/VectorOps.hpp"
 
 #include "pmacc/math/vector/compile-time/Int.hpp"
 #include "pmacc/math/vector/compile-time/Size_t.hpp"

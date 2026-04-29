@@ -30,13 +30,13 @@ namespace pmacc::math::operation
     //! Bitwise or
     struct BitwiseOr
     {
-        HDINLINE void operator()(auto& destination, auto const& source) const
+        HDINLINE constexpr void operator()(auto& destination, auto const& source) const
         {
             destination |= source;
         }
 
         template<typename T_Worker>
-        HDINLINE void operator()(T_Worker const&, auto& destination, auto const& source) const
+        HDINLINE constexpr void operator()(T_Worker const&, auto& destination, auto const& source) const
         {
             destination |= source;
         }
