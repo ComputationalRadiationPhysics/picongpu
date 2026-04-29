@@ -46,6 +46,25 @@ namespace pmacc::math
         return result;
     }
 
+    template<
+        typename T_Type0,
+        typename T_Type1,
+        uint32_t T_dim,
+        typename T_Storage0,
+        typename T_Storage1,
+        typename T_Fn>
+    constexpr auto transform(
+        Vector<T_Type0, T_dim, T_Storage0> const& a,
+        Vector<T_Type1, T_dim, T_Storage1> const& b,
+        T_Fn&& fn)
+    {
+        using ResultType = decltype(fn(std::declval<T_Type0>(), std::declval<T_Type1>()));
+        Vector<ResultType, T_dim> result{};
+        for(uint32_t i = 0u; i < T_dim; ++i)
+            result[i] = fn(a[i], b[i]);
+        return result;
+    }
+
 /** Generate an element-wise vector overload for a unary pmacc::math function.
  *
  * The scalar version of `functionName` must already be declared in pmacc::math
@@ -55,11 +74,7 @@ namespace pmacc::math
     template<typename T_Type, uint32_t T_dim, typename T_Storage>                                                     \
     constexpr auto functionName(Vector<T_Type, T_dim, T_Storage> const& vec)                                          \
     {                                                                                                                 \
-        using ResultType = decltype(functionName(std::declval<T_Type>()));                                            \
-        Vector<ResultType, T_dim> result{};                                                                           \
-        for(uint32_t i = 0u; i < T_dim; ++i)                                                                          \
-            result[i] = functionName(vec[i]);                                                                         \
-        return result;                                                                                                \
+        return transform(vec, [](auto x) { return functionName(x); });                                                \
     }
 
     // Log
@@ -117,11 +132,7 @@ namespace pmacc::math
         Vector<T_Type, T_dim, T_Storage0> const& a,                                                                   \
         Vector<T_Type, T_dim, T_Storage1> const& b)                                                                   \
     {                                                                                                                 \
-        using ResultType = decltype(functionName(std::declval<T_Type>(), std::declval<T_Type>()));                    \
-        Vector<ResultType, T_dim> result{};                                                                           \
-        for(uint32_t i = 0u; i < T_dim; ++i)                                                                          \
-            result[i] = functionName(a[i], b[i]);                                                                     \
-        return result;                                                                                                \
+        return transform(a, b, [](auto x, auto y) { return functionName(x, y); });                                    \
     }
 
     // Trigonometric
@@ -148,11 +159,7 @@ namespace pmacc::math
     template<typename T_Type, uint32_t T_dim, typename T_Storage, typename T_Scalar>                                  \
     constexpr auto functionName(Vector<T_Type, T_dim, T_Storage> const& vec, T_Scalar const scalar)                   \
     {                                                                                                                 \
-        using ResultType = decltype(functionName(std::declval<T_Type>(), scalar));                                    \
-        Vector<ResultType, T_dim> result{};                                                                           \
-        for(uint32_t i = 0u; i < T_dim; ++i)                                                                          \
-            result[i] = functionName(vec[i], scalar);                                                                 \
-        return result;                                                                                                \
+        return transform(vec, [scalar](auto x) { return functionName(x, scalar); });                                  \
     }
 
     // Pow
