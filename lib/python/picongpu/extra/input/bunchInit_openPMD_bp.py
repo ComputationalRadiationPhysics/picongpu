@@ -793,7 +793,7 @@ class pipe:
         temp_dest = dest.particle_patches["numParticlesOffset"][opmd.Mesh_Record_Component.SCALAR]
 
         temp_dest.reset_dataset(opmd.Dataset(temp_src.dtype, temp_src.shape))
-        self.__particle_patches.append(particle_patch_load(self.particles.numParticles, temp_dest))
+        self.__particle_patches.append(particle_patch_load(self.particles.numParticlesOffset, temp_dest))
 
         # copy offset and extent from old checkpoint
         temp_src = src.particle_patches["offset"]
