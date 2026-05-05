@@ -84,11 +84,11 @@ namespace picongpu
              */
             struct DirectionalTemperatureFunctor
             {
-                DirectionalTemperatureFunctor()
-                {
-                }
-
-                /** Return per-direction temperature in keV
+                /** Return the temperature in keV for the given position
+                 *
+                 * Return type may be a scalar (float_X or float_64) for isotropic temperature,
+                 * or a float3_X vector for direction-dependent temperature,
+                 * e.g. float3_X{kT_x, kT_y, kT_z}.
                  *
                  * @param position_SI total offset including all slides [meter]
                  * @param cellSize_SI cell sizes [meter]
