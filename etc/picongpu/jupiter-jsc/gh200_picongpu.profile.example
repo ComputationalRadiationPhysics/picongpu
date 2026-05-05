@@ -69,6 +69,7 @@ export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH
 export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
 
 export PATH=$OPENPMD_ROOT/bin:$PATH
+export PATH=$ADIOS2_ROOT/bin:$PATH
 
 # Environment #################################################################
 
