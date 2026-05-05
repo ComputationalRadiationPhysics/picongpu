@@ -262,9 +262,22 @@ class SimpleMomentumOperation(DelayedConstruction):
         def constructor(self):
             species = self.metadata.kwargs["species"].get_as_pypicongpu()
             particle_mass_si = species.constants.mass.mass_si
-            rms_velocity_si_squared = np.linalg.norm(self.metadata.kwargs["rms_velocity"]) ** 2
-            temperature_kev = particle_mass_si * rms_velocity_si_squared / 3 * electron_volt**-1 * 10**-3
-            temperature = Temperature(temperature_kev=temperature_kev) if temperature_kev > 0 else None
+            rms_velocity = np.asarray(self.metadata.kwargs["rms_velocity"])
+            kev_factor = (particle_mass_si / electron_volt) / 1000.0
+            if np.allclose(rms_velocity, rms_velocity[0]):
+                # Isotropic case: compute scalar temperature
+                rms_velocity_si_squared = np.linalg.norm(rms_velocity) ** 2
+                temperature_kev_scalar = kev_factor * rms_velocity_si_squared / 3.0
+                temperature = (
+                    Temperature(temperature_kev=temperature_kev_scalar) if temperature_kev_scalar > 0 else None
+                )
+            else:
+                # Anisotropic case: compute directional temperatures
+                directional_kev = kev_factor * (rms_velocity**2)
+                if np.any(directional_kev > 0):
+                    temperature = Temperature(temperature_kev_directional=tuple(directional_kev))
+                else:
+                    temperature = None
             return SimpleMomentum(species=species, drift=self.metadata.kwargs["drift"], temperature=temperature)
 
         metadata = {

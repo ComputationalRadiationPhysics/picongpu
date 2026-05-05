@@ -138,8 +138,14 @@ namespace picongpu
                         {{! -> simple momentum does not require a temperature }}
                             struct AddTemperature_{{{species.typename}}}_Param
                             {
+                                {{#temperature_kev_directional}}
+                                //! Initial temperature per direction, unit: keV
+                                static constexpr auto temperature = float3_X({{{x}}}, {{{y}}}, {{{z}}});
+                                {{/temperature_kev_directional}}
+                                {{^temperature_kev_directional}}
                                 //! Initial temperature, unit: keV
                                 static constexpr float_64 temperature = {{{temperature_kev}}};
+                                {{/temperature_kev_directional}}
                             };
                             using AddTemperature_{{{species.typename}}} = unary::Temperature<AddTemperature_{{{species.typename}}}_Param>;
                     {{/temperature}}
