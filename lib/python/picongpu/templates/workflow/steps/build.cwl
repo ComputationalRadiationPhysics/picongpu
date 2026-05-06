@@ -62,14 +62,6 @@ inputs:
     label: "CMake build system"
     doc: "Select the build system used by CMake (e.g. Ninja)"
     default: null
-  help:
-    type: boolean
-    inputBinding:
-      position: 7
-      prefix: "-h"
-    label: "Show help"
-    doc: "Show the help message and exit"
-    default: false
 outputs:
   bin_directory:
     type: Directory
