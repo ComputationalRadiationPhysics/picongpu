@@ -84,7 +84,9 @@ namespace pmacc
     class MallocMCBuffer : public ISimulationData
     {
     public:
-        MallocMCBuffer(T_DeviceHeap const&);
+        MallocMCBuffer(T_DeviceHeap const&)
+        {
+        }
 
         ~MallocMCBuffer() override = default;
 
