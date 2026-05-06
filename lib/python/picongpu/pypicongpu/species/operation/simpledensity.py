@@ -45,9 +45,7 @@ class SimpleDensity(BaseModel):
     def validate_species(cls, species):
         return sorted(
             set(species),
-            key=lambda species: (
-                None if species.constants.density_ratio is None else species.constants.density_ratio.ratio
-            ),
+            key=lambda species: 0 if species.constants.density_ratio is None else species.constants.density_ratio.ratio,
         )
 
     @computed_field

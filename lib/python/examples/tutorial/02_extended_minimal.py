@@ -19,11 +19,10 @@ from picongpu.picmi import (
     Simulation,
     Species,
 )
+from picongpu.picmi.constants import c
 from picongpu.picmi.diagnostics import Checkpoint, MacroParticleCount, TimeStepSpec
 from picongpu.picmi.distribution import GaussianDistribution
 from picongpu.picmi.lasers import GaussianLaser, PolarizationType
-from picongpu.picmi.constants import c
-
 
 NUM_CELLS = np.array([192, 2048, 192])
 CELL_SIZE = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])
@@ -73,9 +72,10 @@ particle_distribution = GaussianDistribution(
 )
 particle_layout = PseudoRandomLayout(n_macroparticles_per_cell=2)
 
-electrons = Species(particle_type="electron", initial_distribution=particle_distribution)
+electrons = Species(particle_type="electron", name="electrons", initial_distribution=particle_distribution)
 hydrogen_ions = Species(
     particle_type="H",
+    name="hydrogen",
     charge_state=0,
     initial_distribution=particle_distribution,
 )
@@ -98,7 +98,7 @@ macro_particle_count = MacroParticleCount(
 sim = Simulation(
     max_steps=1000,
     solver=solver,
-    picongpu_laser=laser,
+    picongpu_lasers=laser,
     picongpu_species=[electrons, hydrogen_ions],
     picongpu_particle_layout=particle_layout,
     picongpu_diagnostics=[checkpoint, macro_particle_count],

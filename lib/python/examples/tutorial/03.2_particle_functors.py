@@ -154,7 +154,7 @@ random_electrons = ParticleDump(species=FilteredSpecies(species=electrons, funct
 sim = Simulation(
     max_steps=1000,
     solver=solver,
-    picongpu_laser=laser,
+    picongpu_lasers=laser,
     picongpu_species=[electrons, hydrogen_ions],
     picongpu_particle_layout=particle_layout,
     picongpu_diagnostics=[

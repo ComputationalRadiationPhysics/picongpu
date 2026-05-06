@@ -16,7 +16,19 @@ from .phase_space import PhaseSpace
 from .radiation import Radiation
 from .timestepspec import TimeStepSpec
 
+AnyDiagnostic = (
+    Binning
+    | Checkpoint
+    | EnergyHistogram
+    | DerivedFieldDump
+    | NativeFieldDump
+    | MacroParticleCount
+    | ParticleDump
+    | PhaseSpace
+    | Radiation
+)
 __all__ = [
+    "AnyDiagnostic",
     "BackendConfig",
     "OpenPMDConfig",
     "Binning",
