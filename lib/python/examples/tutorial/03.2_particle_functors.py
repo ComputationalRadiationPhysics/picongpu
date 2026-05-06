@@ -41,7 +41,7 @@ grid = Cartesian3DGrid(
     lower_boundary_conditions=["periodic", "periodic", "periodic"],
     upper_boundary_conditions=["periodic", "periodic", "periodic"],
 )
-solver = ElectromagneticSolver(method="Yee", grid=grid, cfl=1.0)
+solver = ElectromagneticSolver(method="Yee", grid=grid, cfl=0.95)
 
 LASER_DURATION = 5.0e-15
 PULSE_INIT = 15.0
