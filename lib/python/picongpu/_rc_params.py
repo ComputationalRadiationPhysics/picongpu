@@ -337,6 +337,9 @@ class RCParams:
     def get(self, *args, **kwargs):
         return self._data.get(*args, **kwargs)
 
+    def items(self, *args, **kwargs):
+        return self._data.items(*args, **kwargs)
+
     def __contains__(self, *args, **kwargs):
         return self._data.__contains__(*args, **kwargs)
 
