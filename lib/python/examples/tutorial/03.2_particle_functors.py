@@ -79,9 +79,10 @@ particle_distribution = GaussianDistribution(
 )
 particle_layout = PseudoRandomLayout(n_macroparticles_per_cell=2)
 
-electrons = Species(particle_type="electron", initial_distribution=particle_distribution)
+electrons = Species(particle_type="electron", name="electrons", initial_distribution=particle_distribution)
 hydrogen_ions = Species(
     particle_type="H",
+    name="hydrogen",
     charge_state=0,
     initial_distribution=particle_distribution,
 )
