@@ -334,6 +334,7 @@ namespace pmacc
     }
 
     // Explicit template instantiation to provide symbols for usage together with PMacc
+    template class CommunicatorMPI<DIM1>;
     template class CommunicatorMPI<DIM2>;
     template class CommunicatorMPI<DIM3>;
 } // namespace pmacc

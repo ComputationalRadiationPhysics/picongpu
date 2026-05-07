@@ -289,11 +289,17 @@ namespace pmacc
 
     // Explicit template instantiation to provide symbols for usage together with PMacc
     template class SimulationHelper<
+        DIM1,
+        simulationControl::Checkpointing<simulationControl::CheckpointingAvailability::ENABLED>>;
+    template class SimulationHelper<
         DIM2,
         simulationControl::Checkpointing<simulationControl::CheckpointingAvailability::ENABLED>>;
     template class SimulationHelper<
         DIM3,
         simulationControl::Checkpointing<simulationControl::CheckpointingAvailability::ENABLED>>;
+    template class SimulationHelper<
+        DIM1,
+        simulationControl::Checkpointing<simulationControl::CheckpointingAvailability::DISABLED>>;
     template class SimulationHelper<
         DIM2,
         simulationControl::Checkpointing<simulationControl::CheckpointingAvailability::DISABLED>>;
