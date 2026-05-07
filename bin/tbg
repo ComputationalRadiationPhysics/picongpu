@@ -54,7 +54,7 @@ function resolve_vars
         done
         if [[ "$data_set" =~ \![[:alpha:]][[:alnum:]_]* ]]; then
             echo "Possible cyclic dependency detected or unknown variables used!" >&2
-            echo "Check the following varaibles:" >&2
+            echo "Check the following variables:" >&2
             unresolved_vars=$(printf '%s\n' "$data_set" | grep -o "\![[:alpha:]][[:alnum:]_]*")
             for i in $unresolved_vars; do
                 echo "  $i" >&2
@@ -99,7 +99,7 @@ function resolve_data_stream
         done
         if [[ "$data_set" =~ \![[:alpha:]][[:alnum:]_]* ]]; then
             echo "Unknown variables used in template file!" >&2
-            echo "Check the following varaibles:" >&2
+            echo "Check the following variables:" >&2
             unresolved_vars=$(printf '%s\n' "$data_set" | grep -o '![[:alpha:]][[:alnum:]_]*')
             for i in $unresolved_vars; do
                 echo "  $i" >&2
@@ -387,7 +387,7 @@ fi
 # only one parameter is allowed
 # an empty parameter list is handled later
 if [ $# -ge 2 ] ; then
-    echo "To many output directories are given '$*'" >&2
+    echo "Too many output directories are given '$*'" >&2
     exit 1;
 fi
 
