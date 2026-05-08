@@ -10,8 +10,8 @@
 # ///
 """
 This file is part of PIConGPU.
-Copyright 2024 PIConGPU contributors
-Authors: Masoud Afshari, Brian Edward Marre, Richard Pausch
+Copyright 2024-2026 PIConGPU contributors
+Authors: Masoud Afshari, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 

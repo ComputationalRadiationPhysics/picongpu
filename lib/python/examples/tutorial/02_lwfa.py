@@ -6,6 +6,12 @@
 #   "picongpu @ git+https://github.com/chillenzer/picongpu@add-env-management-to-python-package#subdirectory=lib/python"
 # ]
 # ///
+"""
+This file is part of PIConGPU.
+Copyright 2026 PIConGPU contributors
+Authors: Julian Lenz
+License: GPLv3+
+"""
 
 from pathlib import Path
 

@@ -7,8 +7,8 @@
 # ///
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen
+Copyright 2021-2026 PIConGPU contributors
+Authors: Hannes Troepgen, Julian Lenz
 License: GPLv3+
 """
 
