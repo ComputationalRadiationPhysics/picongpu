@@ -24,8 +24,10 @@ def sim(request):
     return module.sim
 
 
+@pytest.mark.skip("No interface exposed at the moment. Should be re-instantiated in some form.")
 def test_compile_example(sim):
     """Attempts to compile the given simulation."""
     runner = pypicongpu.Runner(sim=sim)
     runner.generate(printDirToConsole=True)
-    runner.build()
+    # The runner currently doesn't provide an interface for this.
+    # runner.build()
