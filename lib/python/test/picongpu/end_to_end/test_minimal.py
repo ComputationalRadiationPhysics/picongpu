@@ -47,7 +47,7 @@ def setup_sim():
     if RUN_DIR:
         sim.picongpu_get_runner().run_dir = RUN_DIR
     else:
-        sim.step(0, jobs=20)
+        sim.step(0)
     return sim
 
 
