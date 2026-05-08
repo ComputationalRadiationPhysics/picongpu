@@ -40,7 +40,7 @@ RUN_DIR = ""
 
 def setup_sim():
     sim = basic_simulation()
-    if "rosi-hzdr" in rc_params["preset"]:
+    if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
         sim.picongpu_get_runner().run_dir = directory_in_home() / "run"

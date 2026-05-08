@@ -314,7 +314,7 @@ def setup_sim():
     for species in SPECIES:
         sim.add_species(species, LAYOUT)
     sim.diagnostics = [Checkpoint(TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
-    if "rosi-hzdr" in rc_params["preset"]:
+    if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
         sim.picongpu_get_runner().run_dir = directory_in_home() / "run"

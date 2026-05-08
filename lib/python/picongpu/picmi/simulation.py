@@ -503,7 +503,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def picongpu_get_runner(self, **kwargs) -> Runner:
         if self._runner is None:
             self._runner = Runner(
-                **(
+                **_drop_none(
                     dict(sim=self.get_as_pypicongpu(), template_dir=self.picongpu_template_dir or (templates.path(),))
                     | kwargs
                 )
@@ -544,3 +544,7 @@ def _mid_window(iterable):
 
     mi, ma = reduce(lambda lhs, rhs: (min(lhs[0], rhs), max(lhs[1], rhs)), iterable, (start, start))
     return int((ma - mi) // 2 + mi)
+
+
+def _drop_none(d):
+    return {key: value for key, value in d.items() if value is not None}

@@ -80,7 +80,7 @@ def setup_sim():
         sim.add_species(s, LAYOUT)
     sim.diagnostics = diagnostics
 
-    if "rosi-hzdr" in rc_params["preset"]:
+    if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
         sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
