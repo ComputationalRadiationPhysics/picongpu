@@ -463,7 +463,7 @@ def _generate_rocrate_defaults(data):
             See the `workflow.cwl` for details.
             """,
         "mainEntity": "workflow/workflow.cwl",
-        "license": "https://spdx.org/licenses/GPL-3.0-or-later",
+        # "license": "https://spdx.org/licenses/GPL-3.0-or-later",
         "keywords": ["PIConGPU", "Plasma Physics", "Particle-in-Cell", "Simulation"],
     }
 

@@ -99,5 +99,6 @@ def test_adds_default_information_to_datasets(crate):
     assert all(["description" in dataset.properties() for dataset in crate.get_by_type("Dataset")])
 
 
+@mark.xfail(reason="Decided to disable license until we have a proper interface.")
 def test_validate_rocrate(setup_dir):
     assert not validate(settings={"rocrate_uri": setup_dir, "requirement_severity": "REQUIRED"}).get_issues()
