@@ -44,13 +44,6 @@ class Distribution(pydantic.BaseModel):
     fill_in: bool = True
     """whether to fill in the empty space opened up when the simulation window moves"""
 
-    @pydantic.field_validator("rms_velocity", mode="after")
-    @classmethod
-    def isotropic_temperature(cls, value):
-        if not (value[0] == value[1] == value[2]):
-            raise ValueError("all thermal velcoity spread (rms velocity) components must be equal")
-        return value
-
     def __hash__(self):
         """custom hash function for indexing in dicts"""
         hash_value = hash(type(self))

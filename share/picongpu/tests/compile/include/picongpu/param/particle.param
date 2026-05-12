@@ -79,6 +79,28 @@ namespace picongpu
 
             using Sparse = picongpu::particles::manipulators::unary::SparserMacroParticlesPerSuperCell<SparserParam>;
 
+            /** Example functor returning a direction-dependent temperature as float3_X.
+             *  Demonstrates that FreeTemperature accepts vector return types.
+             */
+            struct DirectionalTemperatureFunctor
+            {
+                /** Return the temperature in keV for the given position
+                 *
+                 * Return type may be a scalar (float_X or float_64) for isotropic temperature,
+                 * or a float3_X vector for direction-dependent temperature,
+                 * e.g. float3_X{kT_x, kT_y, kT_z}.
+                 *
+                 * @param position_SI total offset including all slides [meter]
+                 * @param cellSize_SI cell sizes [meter]
+                 */
+                HDINLINE float3_X operator()(floatD_64 const& position_SI, float3_64 const& cellSize_SI)
+                {
+                    return float3_X{0.0005_X, 0.0005_X, 0.0_X};
+                }
+            };
+
+            using AddDirectionalTemperature = unary::FreeTemperature<DirectionalTemperatureFunctor>;
+
         } // namespace manipulators
     } // namespace particles
 } // namespace picongpu

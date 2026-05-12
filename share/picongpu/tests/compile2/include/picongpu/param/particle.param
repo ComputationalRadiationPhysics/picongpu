@@ -69,5 +69,24 @@ namespace picongpu
          *  unit: none */
         constexpr float_X MIN_WEIGHTING = 10.0;
 
+        struct TemperatureParam
+        {
+            /** Initial temperature
+             *
+             *  Can be a scalar (float_X or float_64) for isotropic temperature,
+             *  or a float3_X vector for direction-dependent temperature,
+             *  e.g. float3_X{kT_x, kT_y, kT_z}.
+             *
+             *  unit: keV
+             */
+            static constexpr auto temperature = float3_X{0.0005, 0.0005, 0.};
+        };
+
+        /** Definition of manipulator assigning a temperature
+         *  using parameters from struct TemperatureParam.
+         */
+        using AddTemperature = manipulators::unary::Temperature<TemperatureParam>;
+
+
     } // namespace particles
 } // namespace picongpu

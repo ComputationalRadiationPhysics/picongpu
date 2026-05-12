@@ -105,6 +105,11 @@ namespace picongpu
             struct TemperatureParam
             {
                 /** Initial temperature
+                 *
+                 *  Can be a scalar (float_X or float_64) for isotropic temperature,
+                 *  or a float3_X vector for direction-dependent temperature,
+                 *  e.g. float3_X{kT_x, kT_y, kT_z}.
+                 *
                  *  unit: keV
                  */
                 static constexpr float_64 temperature = 0.0005;
