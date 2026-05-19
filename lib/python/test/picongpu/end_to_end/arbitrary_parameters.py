@@ -36,7 +36,7 @@ def _wait_until(function, sleep_interval=5, timeout_count=TIMEOUT_COUNT):
             sleep(sleep_interval)
         else:
             return
-    raise Exception("Waiting for function did not return after {num_attempts=}.")
+    raise Exception(f"Waiting for function did not return after {timeout_count=} attempts.")
 
 
 def _parse_submission_system(submission_cmd):
