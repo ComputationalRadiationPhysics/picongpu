@@ -1,19 +1,11 @@
 """
-PIConGPU python modules
-
-Contains tools to both to directly interact with PIConGPU and other auxiliary
-tools.
-
-Note that with the PICMI integration the previously existing modules have been
-moved into the "extra" submodule to keep the naming schemes consistent.
+This file is part of PIConGPU.
+Copyright 2026 PIConGPU contributors
+Authors: Julian Lenz
+License: GPLv3+
 """
 
-from . import extra
-from . import picmi
-from . import pypicongpu
-
-__all__ = [
-    "extra",
-    "picmi",
-    "pypicongpu",
-]
+from . import core as core
+from ._rc_params import DirtyResetError as DirtyResetError
+from ._rc_params import rc_params as rc_params
+from ._version import __version__ as __version__

@@ -14,6 +14,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 export EDITOR="vim"
 
 # load packages
+. /home/spack/share/spack/setup-env.sh
 spack unload
 
 # PIConGPU build dependencies #################################################

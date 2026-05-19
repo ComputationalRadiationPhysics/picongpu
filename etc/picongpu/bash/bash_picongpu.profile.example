@@ -21,7 +21,8 @@ export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURC
 
 # Environment #################################################################
 #
-export PIC_BACKEND="omp2b:native" # running on cpu
+# running on cpu
+export PIC_BACKEND="omp2b:native"
 # For more examples on possible backends, depending on your hardware, see
 # https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
 # or the provided profiles of other systems.
@@ -30,7 +31,7 @@ export PIC_BACKEND="omp2b:native" # running on cpu
 # relative to the PIConGPU source code of the tool bin/pic-create.
 export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}
 
-export PICSRC=$HOME/src/picongpu
+export PICSRC="$HOME/src/picongpu"
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 
 export PATH=$PICSRC/bin:$PATH

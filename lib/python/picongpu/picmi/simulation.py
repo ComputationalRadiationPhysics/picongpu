@@ -9,23 +9,25 @@ License: GPLv3+
 import datetime
 import logging
 import math
-from typing import Iterable
 from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
 from pathlib import Path
+from typing import Iterable
 
 import picmistandard
 import typeguard
 from pydantic import BaseModel, ConfigDict
 
-from picongpu import pypicongpu
+from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
+from picongpu.picmi.diagnostics import AnyDiagnostic
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
+from picongpu.picmi.lasers import AnyLaser
 from picongpu.picmi.layout import AnyLayout
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
@@ -37,10 +39,11 @@ from picongpu.picmi.species_requirements import (
 )
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
+from picongpu.pypicongpu.runner import Runner
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
-from picongpu.pypicongpu.util import UnpackChain, unique
+from picongpu.pypicongpu.util import UnpackChain, alt, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
@@ -197,7 +200,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_distributions = pypicongpu.util.build_typesafe_property(list[_DensityImpl])
 
-    __runner = pypicongpu.util.build_typesafe_property(pypicongpu.runner.Runner | None)
+    _runner = pypicongpu.util.build_typesafe_property(Runner | None)
 
     # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
     #   pydantic, Brian Marre, 2024
@@ -211,6 +214,10 @@ class Simulation(picmistandard.PICMI_Simulation):
         picongpu_base_density: float | None = None,
         picongpu_walltime: datetime.timedelta | None = None,
         picongpu_binomial_current_interpolation: bool = False,
+        picongpu_lasers: AnyLaser | list[AnyLaser] | None = None,
+        picongpu_species: Species | list[Species] | None = None,
+        picongpu_particle_layout: AnyLayout | list[AnyLayout] | None = None,
+        picongpu_diagnostics: AnyDiagnostic | list[AnyDiagnostic] | None = None,
         **keyword_arguments,
     ):
         self.picongpu_distributions = []
@@ -221,7 +228,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_walltime = picongpu_walltime
         self.picongpu_binomial_current_interpolation = picongpu_binomial_current_interpolation
         self.picongpu_custom_user_input = None
-        self.__runner = None
+        self._runner = None
 
         if picongpu_typical_ppc is not None and picongpu_typical_ppc <= 0:
             raise ValueError(f"Typical ppc should be > 0, not {picongpu_typical_ppc=}.")
@@ -239,6 +246,27 @@ class Simulation(picmistandard.PICMI_Simulation):
             and isinstance(self.solver.grid, Cartesian3DGrid)
         ):
             self.__yee_compute_cfl_or_delta_t()
+
+        if picongpu_lasers is not None:
+            try:
+                for laser in picongpu_lasers:
+                    self.add_laser(laser, None)
+            except TypeError:
+                self.add_laser(picongpu_lasers, None)
+
+        if picongpu_diagnostics is not None:
+            try:
+                for diagnostic in picongpu_diagnostics:
+                    self.add_diagnostic(diagnostic)
+            except TypeError:
+                self.add_diagnostic(picongpu_diagnostics)
+
+        if picongpu_species is not None:
+            try:
+                for i, species in enumerate(picongpu_species):
+                    self.add_species(species, alt(lambda: picongpu_particle_layout[i], picongpu_particle_layout))
+            except TypeError:
+                self.add_species(picongpu_species, picongpu_particle_layout)
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """
@@ -307,11 +335,8 @@ class Simulation(picmistandard.PICMI_Simulation):
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    def write_input_file(
-        self,
-        file_name: str,
-        pypicongpu_simulation: pypicongpu.simulation.Simulation | None = None,
-    ) -> None:
+    # file_name annotation should be PathLike but typeguard can't handle that.
+    def write_input_file(self, file_name: str | Path, exist_ok=False, **flags) -> None:
         """
         generate input data set for picongpu
 
@@ -320,15 +345,13 @@ class Simulation(picmistandard.PICMI_Simulation):
         :param file_name: not yet existing directory
         :param pypicongpu_simulation: manipulated pypicongpu simulation
         """
-        if self.__runner is not None:
+        if self._runner is not None:
             logging.warning("runner already initialized, overwriting")
 
-        # if not overwritten generate from current state
-        if pypicongpu_simulation is None:
-            pypicongpu_simulation = self.get_as_pypicongpu()
-
-        self.__runner = pypicongpu.runner.Runner(pypicongpu_simulation, self.picongpu_template_dir, setup_dir=file_name)
-        self.__runner.generate()
+        self._runner = Runner(
+            sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), setup_dir=Path(file_name)
+        )
+        self._runner.generate(exist_ok=exist_ok, **flags)
 
     def picongpu_add_custom_user_input(self, custom_user_input: pypicongpu.customuserinput.CustomUserInput):
         """add custom user input to previously stored input"""
@@ -340,12 +363,12 @@ class Simulation(picmistandard.PICMI_Simulation):
         )
 
     # @todo add refactor once restarts are supported by the Runner, Brian Marre, 2024
-    def step(self, nsteps: int = 1):
+    def step(self, nsteps: int = 1, **flags):
         if nsteps != self.max_steps:
             raise ValueError(
                 "PIConGPU does not support stepwise running. Invoke step() with max_steps (={})".format(self.max_steps)
             )
-        self.picongpu_run()
+        self.picongpu_run(**flags)
 
     def _generate_openpmd_plugins(self, diagnostics, num_steps):
         diagnostics = list(diagnostics)
@@ -468,17 +491,24 @@ class Simulation(picmistandard.PICMI_Simulation):
     def _get_base_density(self) -> float:
         return self.picongpu_base_density or 1.0e25
 
-    def picongpu_run(self) -> None:
+    def run(self, *args, **kwargs) -> None:
+        return self.picongpu_run(*args, **kwargs)
+
+    def picongpu_run(self, setup_dir=None, run_dir=None, **flags) -> None:
         """build and run PIConGPU simulation"""
-        runner = self.picongpu_get_runner()
-        runner.generate()
-        runner.build()
+        runner = self.picongpu_get_runner(setup_dir=setup_dir, run_dir=run_dir)
+        runner.generate(**flags)
         runner.run()
 
-    def picongpu_get_runner(self) -> pypicongpu.runner.Runner:
-        if self.__runner is None:
-            self.__runner = pypicongpu.runner.Runner(self.get_as_pypicongpu(), self.picongpu_template_dir)
-        return self.__runner
+    def picongpu_get_runner(self, **kwargs) -> Runner:
+        if self._runner is None:
+            self._runner = Runner(
+                **_drop_none(
+                    dict(sim=self.get_as_pypicongpu(), template_dir=self.picongpu_template_dir or (templates.path(),))
+                    | kwargs
+                )
+            )
+        return self._runner
 
     def _picongpu_add_species(self, species, layout):
         self.species.append(species)
@@ -514,3 +544,7 @@ def _mid_window(iterable):
 
     mi, ma = reduce(lambda lhs, rhs: (min(lhs[0], rhs), max(lhs[1], rhs)), iterable, (start, start))
     return int((ma - mi) // 2 + mi)
+
+
+def _drop_none(d):
+    return {key: value for key, value in d.items() if value is not None}

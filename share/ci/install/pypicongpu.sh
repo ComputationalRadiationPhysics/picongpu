@@ -19,6 +19,7 @@ function script_error {
 
 export PICSRC=$CI_PROJECT_DIR
 export PATH=$PATH:$PICSRC/bin
+echo 'preset = "bash"' >/.picongpurc.toml
 
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 

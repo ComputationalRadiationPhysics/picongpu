@@ -4,13 +4,11 @@
 # License: GPLv3+
 
 [build-system]
-build-backend = "uv_build"
-
-requires = [ "uv-build>=0.10.9,<0.11" ]
+build-backend = "hatchling.build"
+requires = [ "hatchling" ]
 
 [project]
 name = "picongpu"
-# should be always identical with PIConGPU version
 version = "0.9.0.dev"
 description = "Python package for PIConGPU"
 license = "GPL-3.0-or-later"
@@ -26,6 +24,7 @@ classifiers = [
 # dependecies list generated with
 # https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
 dependencies = [
+  "cwltool",
   "h5py",
   "imageio",
   "jsonschema>=4.23",
@@ -42,7 +41,13 @@ dependencies = [
   "pillow",
   "pint",
   "pydantic>=2.6.4",
+  "pyyaml",
   "referencing>=0.35.1",
+  "roc-validator",
+  # Temporarily choosing the master here
+  # because the latest release doesn't yet support RO-Crate v1.2
+  # and it doesn't seem reasonable to build a new feature on top of an outdated standard.
+  "rocrate @ git+https://github.com/ResearchObject/ro-crate-py@master",
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",
@@ -51,6 +56,30 @@ dependencies = [
 
 optional-dependencies.test = [ "pytest>=9" ]
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = [ "picongpu" ]
+
+[tool.hatch.build.targets.wheel.force-include]
+"../../include" = "picongpu/core/include"
+"../../etc" = "picongpu/core/etc"
+"../../bin" = "picongpu/core/bin"
+"../../src/tools/bin" = "picongpu/core/bin"
+"../../share/picongpu/examples" = "picongpu/core/share/picongpu/examples"
+"../../thirdParty" = "picongpu/core/thirdParty"
+
+[tool.hatch.build.targets.sdist]
+packages = [ "picongpu" ]
+[tool.hatch.build.targets.sdist.force-include]
+"../../include" = "picongpu/core/include"
+"../../etc" = "picongpu/core/etc"
+"../../bin" = "picongpu/core/bin"
+"../../src/tools/bin" = "picongpu/core/bin"
+"../../share/picongpu/examples" = "picongpu/core/share/picongpu/examples"
+"../../thirdParty" = "picongpu/core/thirdParty"
+
 [tool.pytest.ini_options]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -58,8 +87,3 @@ markers = [
   "end_to_end: end-to-end simulation tests",
 ]
 filterwarnings = [ "error" ]
-
-[tool.uv.build-backend]
-module-name = "picongpu"
-module-root = ""
-namespace = true

@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
+Copyright 2021-2026 PIConGPU contributors
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
@@ -10,17 +10,16 @@ import os
 import shutil
 import tempfile
 import typing
-from unittest import TestCase
 from pathlib import Path
+from unittest import TestCase
 
-import typeguard
 import pytest
+import typeguard
 from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
 
 
-@typeguard.typechecked
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     # sets delta_[x,y,z] implicitly by providing bounding box+cell count
     return picmi.Cartesian3DGrid(
@@ -33,7 +32,6 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     )
 
 
-@typeguard.typechecked
 def get_sim_cfl_helper(
     delta_t: typing.Optional[float],
     cfl: typing.Optional[float],
@@ -431,7 +429,9 @@ class TestPicmiSimulation(TestCase):
             assert rendered_file.read() == "128"
 
         # JSON has been dumped
-        assert os.path.isfile(out_dir + "/pypicongpu.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_rendering_context.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_runner.json")
+        assert os.path.isfile(out_dir + "/metadata/rc_params.json")
 
     def test_custom_input_basic_write_input_file(self):
         """test custom input may be rendered"""
@@ -457,17 +457,16 @@ class TestPicmiSimulation(TestCase):
         sim.picongpu_add_custom_user_input(i_1)
         sim.picongpu_add_custom_user_input(i_2)
 
-        # get pypicongpu simualtion
-        pypicongpu_simulation = sim.get_as_pypicongpu()
-
         # write simulation
-        sim.write_input_file(out_dir, pypicongpu_simulation=pypicongpu_simulation)
+        sim.write_input_file(out_dir)
 
         # check for generated (rendered) dir
         assert os.path.isdir(out_dir)
 
         # JSON has been dumped
-        assert os.path.isfile(out_dir + "/pypicongpu.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_rendering_context.json")
+        assert os.path.isfile(out_dir + "/metadata/pypicongpu_runner.json")
+        assert os.path.isfile(out_dir + "/metadata/rc_params.json")
 
     def test_custom_template_dir_basic_get_runner(self):
         """using picongpu_get_runner() directly sets template dir"""
@@ -483,7 +482,7 @@ class TestPicmiSimulation(TestCase):
             )
             runner = sim.picongpu_get_runner()
 
-            assert list(map(Path.absolute, runner._pypicongpu_template_dir)) == [Path(tmpdir).absolute()]
+            assert list(map(Path.absolute, runner.template_dir)) == [Path(tmpdir).absolute()]
 
     def test_custom_template_dir_optional(self):
         """custom template dir is optional"""
@@ -497,8 +496,8 @@ class TestPicmiSimulation(TestCase):
         runner = sim.picongpu_get_runner()
 
         # good default template dir is selected
-        assert runner._pypicongpu_template_dir is not None
-        assert runner._pypicongpu_template_dir != ""
+        assert runner.template_dir is not None
+        assert runner.template_dir != ""
 
     def test_custom_template_dir_checks(self):
         """sanity checks are run on template dir"""

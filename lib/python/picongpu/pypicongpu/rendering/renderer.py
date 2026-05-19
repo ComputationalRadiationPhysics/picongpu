@@ -5,16 +5,17 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-import typing
-import typeguard
-import math
 import datetime
-import sympy
-from moosetash import render, MissingVariable
-import re
-import logging
-import pathlib
 import functools
+import logging
+import math
+import pathlib
+import re
+import typing
+
+import sympy
+import typeguard
+from moosetash import MissingVariable, render
 
 
 @typeguard.typechecked

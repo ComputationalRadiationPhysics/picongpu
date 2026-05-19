@@ -10,14 +10,10 @@ from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
-from picongpu import picmi
+from picongpu import picmi, rc_params
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 
-from .arbitrary_parameters import (
-    CELL_SIZE,
-    NUMBER_OF_CELLS,
-    UPPER_BOUNDARY,
-)
+from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
 from .binning_functors import binning_diagnostics
 from .compare_particles import (
     compare_particles,
@@ -84,6 +80,10 @@ def setup_sim():
         sim.add_species(s, LAYOUT)
     sim.diagnostics = diagnostics
 
+    if "rosi-hzdr" in rc_params.get("preset", "bash"):
+        # On ROSI, the tmp directories are inaccessible to compute nodes.
+        sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
+        sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
     sim.step(0)
     return sim
 
@@ -100,6 +100,8 @@ class TestFreeFormulaDensity(TestCase):
             global SIM
             if SIM is None:
                 SIM = setup_sim()
+                self.sim = SIM
+                gather_results(self.result_path)
             self.sim = SIM
         else:
             for d in DISTRIBUTIONS:
@@ -109,7 +111,7 @@ class TestFreeFormulaDensity(TestCase):
     @property
     def result_path(self):
         if self._result_path is None:
-            self._result_path = Path(self.sim._Simulation__runner.run_dir)
+            self._result_path = Path(self.sim.picongpu_get_runner().run_dir)
         return self._result_path
 
     def test_compare_particles_pairwise(self):

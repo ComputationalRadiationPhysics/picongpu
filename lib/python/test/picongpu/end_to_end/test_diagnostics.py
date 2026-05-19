@@ -14,6 +14,7 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
+from picongpu import rc_params
 from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
@@ -40,11 +41,7 @@ from picongpu.picmi.particle_functor import Particle
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
 from sympy import And, Eq, Piecewise
 
-from .arbitrary_parameters import (
-    CELL_SIZE,
-    NUMBER_OF_CELLS,
-    UPPER_BOUNDARY,
-)
+from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
 from .compare_particles import (
     apply_range,
     load_diagnostic_result,
@@ -317,6 +314,10 @@ def setup_sim():
     for species in SPECIES:
         sim.add_species(species, LAYOUT)
     sim.diagnostics = [Checkpoint(TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
+    if "rosi-hzdr" in rc_params.get("preset", "bash"):
+        # On ROSI, the tmp directories are inaccessible to compute nodes.
+        sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
+        sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
     if RUN_DIR:
         sim.picongpu_get_runner().run_dir = RUN_DIR
     else:
@@ -334,6 +335,8 @@ class TestDiagnostics(TestCase):
         global SIM
         if SIM is None:
             SIM = setup_sim()
+            self.sim = SIM
+            gather_results(self.result_path)
         self.sim = SIM
 
     @property

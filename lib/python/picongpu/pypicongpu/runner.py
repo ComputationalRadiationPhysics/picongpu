@@ -8,57 +8,77 @@ License: GPLv3+
 import datetime
 import json
 import logging
-import re
-import subprocess
 import tempfile
-import typing
-from contextlib import contextmanager
-from importlib.resources import files, as_file
-from os import chdir, environ, path
+from importlib.util import module_from_spec, spec_from_file_location
+from os import chmod
 from pathlib import Path
+from shutil import copy2, copytree
+from typing import Annotated, Sequence
 
-import typeguard
+from cwltool.context import RuntimeContext
+from cwltool.factory import Factory as WorkflowFactory
+from pydantic import (
+    AfterValidator,
+    AliasChoices,
+    BaseModel,
+    BeforeValidator,
+    Field,
+    field_serializer,
+)
+from rocrate.rocrate import ROCrate
 
-from . import util
+from picongpu import core, rc_params
+from picongpu.templates import path as tpath
+
 from .rendering import Renderer
 from .simulation import Simulation
-
-# This uses a very simplified way to think about `resources.path`:
-# In general, imports are not necessarily from files actually existent on disk
-# but can come from downloading on-the-fly or unpacking a zip or the like.
-# `resources.path` provides a context manager to clean up
-# whatever mess was created by performing that import.
-# For the moment, we assume that those files reside on disk
-# such that storing their path for later use is safe.
-# We might need to come back to this, if we ever need to support more general imports.
-with as_file(files("picongpu.templates")) as template_path:
-    DEFAULT_TEMPLATE_DIRECTORY = template_path.absolute()
+from .util import alt
 
 
-@contextmanager
-def cd(path):
-    cwd = Path().absolute()
-    try:
-        chdir(path)
-        yield
-    finally:
-        chdir(cwd)
+def script_content_with(commands, rc_params=rc_params):
+    if not isinstance(commands, str):
+        commands = "\n".join(commands)
+    return f"""{rc_params.shebang}
+
+# preamble
+{rc_params.preamble}
+
+# profile content
+{rc_params.profile_content}
+
+# commands
+{commands}
+"""
 
 
-def runArgs(name, args):
-    assert list(filter(lambda x: x is None, args)) == [], "arguments must not be None!"
-    logging.info("running {}...".format(name))
-    logging.debug("command for {}: {}".format(name, " ".join(args)))
-    proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    logging.info("{} done, returned {}".format(name, proc.returncode))
+def generate_bare_profile(path=None, rc_params=rc_params):
+    if path is None:
+        return generate_bare_profile(
+            path=Path(tempfile.NamedTemporaryFile("w", delete=False, delete_on_close=False).name), rc_params=rc_params
+        )
+    if not isinstance(path, Path):
+        return generate_bare_profile(path=Path(path), rc_params=rc_params)
 
-    if 0 != proc.returncode:
-        logging.error(">>>>>>> Command failed (output below): {}\n{}".format(" ".join(proc.args), proc.stdout.decode()))
-        logging.error(">>>>>>> Command failed (output above): {}".format(" ".join(proc.args)))
-        raise RuntimeError("subprocess failed")
+    with rc_params.set_temporarily(preamble="", override_existing=False):
+        with path.open("w") as file:
+            file.write(script_content_with("", rc_params=rc_params))
+
+    return path
 
 
-def get_tmpdir_with_name(name, parent: str = None):
+def generate_bare_profile_as_in(script_path, path=None):
+    if not isinstance(script_path, Path):
+        return generate_bare_profile_as_in(Path(script_path).absolute(), path=path)
+    if not script_path.is_absolute():
+        return generate_bare_profile_as_in(script_path.absolute(), path=path)
+
+    module_spec = spec_from_file_location("script", script_path)
+    module = module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    return generate_bare_profile(path=path, rc_params=module.rc_params)
+
+
+def get_tmpdir_with_name(name, parent: Path | None = None):
     """
     returns a not existing temporary directory path,
     which contains the given name
@@ -66,27 +86,88 @@ def get_tmpdir_with_name(name, parent: str = None):
     :param parent: if given: create the tmpdir there
     :return: not existing path to directory
     """
-    assert re.match("^[0-9a-zA-Z._-]*$", name), "generated dir name may only contain a-zA-Z0-9._-"
-
-    # Note: Do *not* use isotime here,
-    # the colon (:) seems to screw with pic-build.
-    # Also, don't use "T" as separator, to not get confuse with isotime format.
-    prefix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-
-    # important note on how these directories are created:
-    # the TemporaryDirectory() object *creates* the directory,
-    # immediately goes out of scope and deletes the dir again
-    # -> we are left with purely a name
-    dir_name = None
-    with tempfile.TemporaryDirectory(prefix="pypicongpu-{}-{}-".format(prefix, name), dir=parent) as tmpdir:
-        # dir now exists
-        dir_name = tmpdir
-    assert not path.exists(dir_name), "freshly generated tmp dir name should not exist (anymore)"
-    return dir_name
+    with tempfile.TemporaryDirectory(
+        prefix=f"pypicongpu-{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}-{name}-", dir=parent
+    ) as tmpdir:
+        return Path(tmpdir).absolute()
 
 
-@typeguard.typechecked
-class Runner:
+class PicBuildFlags(BaseModel):
+    # We explicitly disallow the some shorthands like `-c`, `-t`, ...
+    # because they overlap with tbg flags and could thus lead to confusion.
+    jobs: int | None = Field(
+        default=4,
+        description="allow N jobs at once; infinite jobs if set to None",
+        validation_alias=AliasChoices("jobs", "j"),
+    )
+
+    cmake: str | None = Field(
+        default=None,
+        description=(
+            'Extra arguments that are passed straight to CMake, e.g. "-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug".'
+        ),
+        validation_alias=AliasChoices("cmake"),
+    )
+
+    preset: int | None = Field(
+        default=None,
+        description="Configure this preset number from CMake flags.",
+        ge=0,
+        validation_alias=AliasChoices("preset"),
+    )
+
+    force: bool = Field(
+        default=False,
+        description=("When set, clears the CMake file cache and forces a scan for new .param files."),
+        validation_alias=AliasChoices("force", "f"),
+    )
+
+    cmake_build_system: str | None = Field(
+        default=None,
+        description=("Select the build system used by CMake (e.g. ``Ninja``)."),
+        validation_alias=AliasChoices("G"),
+    )
+
+
+class TBGFlags(BaseModel):
+    # We explicitly disallow the some shorthands like `-c`, `-t`, ...
+    # because they overlap with pic-build flags and could thus lead to confusion.
+    cfg_file: str = Field(
+        default="etc/picongpu/N.cfg",
+        description="Configuration file to set up batch file.",
+        validation_alias=AliasChoices("cfg"),
+    )
+
+    submit_system: str | None = Field(
+        default_factory=lambda: rc_params.get("tbg_submit", "bash"),
+        description="Submit command (qsub, 'qsub -h', sbatch, ...).",
+        validation_alias=AliasChoices("submit", "s"),
+    )
+
+    template_file: str | None = Field(
+        default_factory=lambda: rc_params.get("tbg_tpl_file", None), validation_alias=AliasChoices("tpl")
+    )
+
+    overwrite_vars: list[str] | None = Field(
+        default=None,
+        description="Overwrite any template variable.",
+        validation_alias=AliasChoices("o"),
+    )
+
+    force: bool = Field(
+        default=False,
+        description="Override if 'destinationPath' exists.",
+        validation_alias=AliasChoices("force", "f"),
+    )
+
+    project_path: Path = Field(description="Simulation setup directory to run.")
+
+    @field_serializer("project_path")
+    def _serialize_project_path(self, value) -> dict[str, str]:
+        return {"class": "Directory", "location": str(value)}
+
+
+class Runner(BaseModel):
     """
     Accepts a PyPIConGPU Simulation and runs it
 
@@ -97,8 +178,6 @@ class Runner:
 
     Where:
 
-    - scratch_dir: (optional) directory where many simulation results can be
-      stored
     - run_dir: directory where data for an execution is stored
     - setup_dir: directory where data is generated to and the simulation
       executable is built
@@ -128,181 +207,22 @@ class Runner:
     (and collected into an internal buffer).
     """
 
-    SCRATCH_ENV_NAME = "SCRATCH"
-    """name of the environment variable where the scratch dir defaults to"""
+    template_dir: Annotated[Sequence[Path], AfterValidator(lambda t: tuple(p.absolute() for p in t))] = (tpath(),)
+    setup_dir: Annotated[Path, AfterValidator(Path.absolute)] = Field(
+        default_factory=lambda: Path(get_tmpdir_with_name("setup")).absolute()
+    )
+    run_dir: Annotated[Path, AfterValidator(Path.absolute)] = Field(
+        default_factory=lambda: Path(get_tmpdir_with_name("run")).absolute()
+    )
+    sim: Annotated[Simulation, BeforeValidator(lambda s: alt(lambda: s.get_as_pypicongpu(), s))]
 
-    setup_dir = util.build_typesafe_property(str)
-    """
-    directory containing the experiment setup (scenario)
-
-    pic-build is called here
-    """
-
-    scratch_dir = util.build_typesafe_property(typing.Optional[str])
-    """directory where run directories can be store"""
-
-    run_dir = util.build_typesafe_property(str)
-    """directory where run results (and a copy of the inputs) will be stored"""
-
-    sim = util.build_typesafe_property(Simulation)
-    """the picongpu simulation to be run"""
-
-    __valid_path_re = re.compile("^[a-zA-Z0-9/._-]+$")
-    """
-    regex that matches a valid path. Note: allows *less* characters than the OS
-    """
-
-    def __init__(
-        self,
-        sim,
-        pypicongpu_template_dir: typing.Iterable[Path] | None = None,
-        scratch_dir: typing.Optional[str] = None,
-        setup_dir: typing.Optional[str] = None,
-        run_dir: typing.Optional[str] = None,
-    ):
-        """
-        initialize self using simulation and (maybe) given paths
-
-        - A *scratch dir* is a directory of semi-permanent storage,
-          where results of runs are collected.
-          Typically it holds many run directories.
-        - A *setup dir* describes one experiment (scenario).
-          You can call pic-build there.
-        - A *run dir* holds data of a single PIConGPU run:
-          All input including the built binary in input/,
-          the results in a directory simOutput/
-          (and maybe additional files, e.g. tbg/).
-
-        If not given the paths are guessed as follows:
-
-        - If not given the scratch dir is the value of the environment variable
-          $SCRATCH
-        - If not given the run dir is derived from the scratch dir.
-        - If neither run nor scratch dir are given,
-          a warning is printed that the run is considered temporary and
-          the run dir created as temporary directory.
-          The scratch dir is left at None.
-          TODO in this case multi-device support is disabled.
-        - If the setup directory is not given a
-          temporary directory will be used
-          (as the setup itself and its built results will be copied to
-          the run dir's subdir input/ anyways).
-
-        After the paths have been set the following applies:
-
-        - setup_dir does not exist (will be filled by generate() and build())
-        - run_dir does not exist (will be filled by run()).
-          If scratch_dir is given, run_dir is a child of it.
-
-        Note: Catch type of sim not via typeguard b/c that would
-        require circular imports. Type of sim is checked manually.
-
-        :param sim: simulation to be built
-        :param pypicongpu_template_dir: path to pypicongpu template to be
-        copied, guessed by default
-        :param scratch_dir: directory where results can be stored
-        :param setup_dir: not-yet existing directory where build files
-        (.params, built binary, etc.) will be stored
-        :param run_dir: not-yet existing directory where results will be stored
-        """
-
-        # note: only import here to prevent circular imports
-        from .. import picmi
-
-        if isinstance(sim, Simulation):
-            self.sim = sim
-        elif isinstance(sim, picmi.Simulation):
-            self.sim = sim.get_as_pypicongpu()
-        else:
-            raise typeguard.TypeCheckError(
-                "sim must be pypicongpu simulation or picmi simulation, got: {}".format(type(sim))
-            )
-
-        # use helper to perform various checks
-        # note that the order matters: run_dir depends on scratch_dir
-        self._pypicongpu_template_dir = pypicongpu_template_dir or (DEFAULT_TEMPLATE_DIRECTORY,)
-        self.__helper_set_scratch_dir(scratch_dir)
-        self.__helper_set_setup_dir(setup_dir)
-        self.__helper_set_run_dir(run_dir)
-
-        # dump used paths for diagnostics
-        self.__log_dirs()
-
-        # collision checks
-        assert self.scratch_dir != self.setup_dir, "scratch dir must not be equal to the setup dir"
-        assert self.setup_dir != self.run_dir, "setup dir must not be equal to the run dir"
-        assert self.run_dir != self.scratch_dir, "run dir must not be equal to the scratch dir"
-
-    def __helper_set_setup_dir(self, setup_dir: typing.Optional[str]) -> None:
-        """sets the setup dir according to description in __init__()"""
-        assert setup_dir is None or self.__valid_path_re.match(setup_dir), "setup dir contains invalid characters"
-        # setup dir (given or /tmp)
-        if setup_dir is not None:
-            self.setup_dir = path.abspath(setup_dir)
-        else:
-            # just place in /tmp, will (1) be needed on local machine only
-            # and (2) be copied to run_dir/input by tbg
-            self.setup_dir = get_tmpdir_with_name("setup")
-        assert not path.isdir(self.setup_dir), "setup dir must NOT exist yet"
-
-    def __helper_set_scratch_dir(self, scratch_dir: typing.Optional[str]) -> None:
-        """sets the scratch dir according to description in __init__()"""
-        assert scratch_dir is None or self.__valid_path_re.match(scratch_dir), "scratch dir contains invalid characters"
-        # scratch dir (given, or environment, else None)
-        if scratch_dir is not None:
-            self.scratch_dir = path.abspath(scratch_dir)
-        else:
-            # try to retrieve from environment var
-            if self.SCRATCH_ENV_NAME in environ:
-                logging.info(
-                    "loading scratch directory (implicitly) from environment var ${}".format(self.SCRATCH_ENV_NAME)
-                )
-                self.scratch_dir = path.abspath(environ[self.SCRATCH_ENV_NAME])
-            else:
-                self.scratch_dir = None
-
-        if self.scratch_dir is not None and self.scratch_dir.startswith(str(Path.home())):
-            logging.warning(
-                "You specified your scratch directory to be inside your $HOME. THIS IS NOT ACCEPTABLE ON HPC!"
-            )
-        assert self.scratch_dir is None or path.isdir(self.scratch_dir), "scratch directory must exist"
-
-    def __helper_set_run_dir(self, run_dir: typing.Optional[str]) -> None:
-        """sets the run dir according to description in __init__()"""
-        assert run_dir is None or self.__valid_path_re.match(run_dir), "run dir contains invalid characters"
-        # run dir
-        # (given or placed in scratch dir or put into /tmp with warning)
-        if run_dir is not None:
-            self.run_dir = path.abspath(run_dir)
-        else:
-            if self.scratch_dir is not None:
-                self.run_dir = get_tmpdir_with_name("run", self.scratch_dir)
-            else:
-                # note: do not print warning yet,
-                # because maybe the user will never use this run dir
-                self.run_dir = get_tmpdir_with_name("run")
-        assert not path.isdir(self.run_dir), "run dir must NOT exist yet"
-
-    def __params_file(self):
-        return path.join(self.setup_dir, "include/picongpu/param/pypicongpu.param")
-
-    def __cfg_file(self):
-        return path.join(self.setup_dir, "etc/picongpu/pypicongpu.cfg")
-
-    def __log_dirs(self):
+    def _log_dirs(self):
         """print human-readble list of paths to log"""
-        logging.info(" template dir: {}".format(self._pypicongpu_template_dir))
+        logging.info(" template dir: {}".format(self.template_dir))
         logging.info("    setup dir: {}".format(self.setup_dir))
         logging.info("      run dir: {}".format(self.run_dir))
-        logging.info("  params file: {}".format(self.__params_file()))
-        logging.info("     cfg file: {}".format(self.__cfg_file()))
 
-    def __copy_template(self):
-        """copy template files to be built from"""
-        for d in self._pypicongpu_template_dir:
-            runArgs("add template", ["pic-create", "--force", str(d), self.setup_dir])
-
-    def __render_templates(self):
+    def _render_templates(self):
         """
         render the templates in the setup dir into a picongpu input
 
@@ -316,39 +236,167 @@ class Runner:
         # check 2: structure suitable for renderer?
         Renderer.check_rendering_context(context)
         # dump checked context
-        with open("{}/pypicongpu.json".format(self.setup_dir), "w") as file:
-            json.dump(context, file, indent=4)
-
+        self.store_metadata(context, filename="pypicongpu_rendering_context.json")
         # preprocess (floats to str, add _special properties, ...)
-        preprocessed_context = Renderer.get_context_preprocessed(context)
+        Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir))
 
-        Renderer.render_directory(preprocessed_context, self.setup_dir)
+    @property
+    def metadata_path(self):
+        return self.setup_dir / "metadata"
 
-    def __build(self):
-        """launch build of PIConGPU"""
-        with cd(self.setup_dir):
-            runArgs("pic-build", ["pic-build", "-j", "4"])
+    @property
+    def workflow_dir_path(self):
+        return self.setup_dir / "workflow"
 
-    def __run(self):
-        """
-        execute PIConGPU
+    @property
+    def workflow_scripts_path(self):
+        return self.workflow_dir_path / "scripts"
 
-        this uses the N.cfg provided by the template,
-        therefore will not work with any other configuration
-        TODO multi-device support
-        """
-        with cd(self.setup_dir):
-            runArgs(
-                "PIConGPU",
-                (
-                    (
-                        "tbg -s bash -c etc/picongpu/N.cfg -t " + environ["PIC_SYSTEM_TEMPLATE_PATH"] + "/mpiexec.tpl"
-                    ).split()
-                    + [self.run_dir]
-                ),
+    @property
+    def profile_path(self):
+        return self.workflow_scripts_path / "picongpu.profile"
+
+    @property
+    def build_script_path(self):
+        return self.workflow_scripts_path / "build.sh"
+
+    @property
+    def prepare_submission_script_path(self):
+        return self.workflow_scripts_path / "prepare_submission.sh"
+
+    @property
+    def submission_script_path(self):
+        return self.workflow_scripts_path / "submit.sh"
+
+    @property
+    def gather_results_script_path(self):
+        return self.workflow_scripts_path / "gather_results.sh"
+
+    @property
+    def workflow_definition_path(self):
+        return self.workflow_dir_path / "workflow.cwl"
+
+    @property
+    def workflow_input_path(self):
+        return self.workflow_dir_path / "input.yaml"
+
+    @property
+    def workflow_path(self):
+        return self.workflow_dir_path / "workflow.cwl"
+
+    @property
+    def build_step_path(self):
+        return self.workflow_dir_path / "steps" / "build.cwl"
+
+    @property
+    def run_step_path(self):
+        return self.workflow_dir_path / "steps" / "run.cwl"
+
+    @property
+    def cwl_cachedir(self):
+        return self.run_dir / ".cwl_cache"
+
+    def generate_profile(self):
+        self.profile_path.parent.mkdir(parents=True, exist_ok=True)
+        generate_bare_profile(self.profile_path)
+
+    def generate_build_command(self, rc_params=rc_params):
+        self.build_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.build_script_path.open("w") as script:
+            script.write(script_content_with("pic-build $@", rc_params=rc_params))
+            script.flush()
+        chmod(self.build_script_path, 0o755)
+
+    def generate_prepare_submission_command(self, rc_params=rc_params):
+        self.prepare_submission_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.prepare_submission_script_path.open("w") as script:
+            script.write(
+                script_content_with(
+                    [
+                        f'export PIC_PROFILE="{self.profile_path}"',
+                        "tbg $@ . run_dir",
+                    ],
+                    rc_params=rc_params,
+                )
+            )
+            script.flush()
+        chmod(self.prepare_submission_script_path, 0o755)
+
+    def generate_submission_command(self, rc_params=rc_params):
+        self.submission_script_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.submission_script_path.open("w") as script:
+            script.write(
+                script_content_with(
+                    [
+                        "cp -r tbg_link tbg",
+                        'submission_script="./tbg/submit.start"',
+                        'submission_cmd="$1"',
+                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"'
+                        r"""
+                        if [[ "$submission_cmd" =~ \s*bash.* ]] || [[ "$submission_cmd" =~ \s*zsh.* ]]; then
+                            $submission_cmd $submission_script &
+                            echo $! > "submission_information.txt";
+                        else
+                            $submission_cmd $submission_script > "submission_information.txt";
+                        fi
+                        """,
+                        r"""echo "#!/bin/bash
+                        ln -s $(pwd -P)/simOutput \$1" > link_results.sh
+                        """,
+                        "chmod +x link_results.sh",
+                    ],
+                    rc_params=rc_params,
+                )
+            )
+            script.flush()
+        chmod(self.submission_script_path, 0o755)
+
+    def generate_workflow_input(self, build_flags: PicBuildFlags, run_flags: TBGFlags):
+        with (self.workflow_input_path).open("w") as file:
+            # Technically, we are writing json into a yaml file here,
+            # but yaml is a superset of json, so that's fine.
+            json.dump(
+                # We follow the comvention of prefixing with `build_` (resp. `run_`)
+                # because this makes it easy to filter and parse the arguments
+                # in cases when one wants to run the steps individually.
+                {
+                    "build_include_directory": {
+                        "class": "Directory",
+                        "location": str(self.setup_dir / "include"),
+                    },
+                    "build_script": {
+                        "class": "File",
+                        "location": str(self.build_script_path),
+                    },
+                    **{f"build_{key}": value for key, value in build_flags.model_dump(mode="json").items()},
+                    "run_etc_directory": {
+                        "class": "Directory",
+                        "location": str(self.setup_dir / "etc"),
+                    },
+                    "submission_script": {
+                        "class": "File",
+                        "location": str(self.submission_script_path),
+                    },
+                    "prepare_submission_script": {
+                        "class": "File",
+                        "location": str(self.prepare_submission_script_path),
+                    },
+                    "organize_output_script": {
+                        "class": "File",
+                        "location": str(self.workflow_scripts_path / "organize_output.sh"),
+                    },
+                    **{f"run_{key}": value for key, value in run_flags.model_dump(mode="json").items()},
+                },
+                file,
+                indent=4,
             )
 
-    def generate(self, printDirToConsole=False):
+    def store_metadata(self, metadata, filename):
+        self.metadata_path.mkdir(parents=True, exist_ok=True)
+        with (self.metadata_path / filename).open("w") as file:
+            json.dump(metadata, file, indent=4)
+
+    def generate(self, printDirToConsole=False, exist_ok=False, **flags):
         """
         generate the picongpu-compatible input files
         """
@@ -356,37 +404,60 @@ class Runner:
         if printDirToConsole:
             print(" [" + str(self.setup_dir) + "]")
 
-        assert not path.isdir(self.setup_dir), (
-            "setup directory must not exist before generation -- did you call generate() already?"
-        )
-        self.__copy_template()
-        self.__render_templates()
+        if not exist_ok:
+            assert not self.setup_dir.is_dir(), (
+                "setup directory must not exist before generation -- did you call generate() already?"
+            )
+        preset = rc_params.preset_dir
+        copytree(core.path("etc") / f"picongpu/{preset}", self.setup_dir / f"etc/picongpu/{preset}")
+        for path in (core.path("etc") / "picongpu").iterdir():
+            if path.is_file():
+                copy2(path, self.setup_dir / f"etc/picongpu/{path.name}")
 
-    def build(self):
-        """
-        build (compile) picongpu-compatible input files
-        """
-        assert path.isdir(self.setup_dir), (
-            "setup directory must exist (and contain generated files) -- did you call generate()?"
+        for t in self.template_dir:
+            for src, dst in map(
+                lambda f: (t / f, self.setup_dir / f),
+                ("etc/picongpu", "bin", "include/picongpu", "lib", "validation", "workflow"),
+            ):
+                if src.is_dir():
+                    dst.mkdir(parents=True, exist_ok=True)
+                    copytree(src, dst, dirs_exist_ok=True)
+
+        self.generate_profile()
+        self.generate_build_command()
+        self.generate_prepare_submission_command()
+        self.generate_submission_command()
+
+        self._render_templates()
+
+        self.generate_workflow_input(
+            build_flags=PicBuildFlags(**flags),
+            run_flags=TBGFlags(project_path=self.setup_dir, **flags),
         )
-        assert not path.isdir(path.join(self.setup_dir, ".build")), (
-            "build dir (.build in setup dir) must not exist -- did you call build() already?"
+        self.cwl_cachedir.mkdir(parents=True)
+
+        self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
+        self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")
+
+        self._write_rocrate()
+
+    def _write_rocrate(self):
+        rc_params.rocrate_info.add_metadata_to(ROCrate(self.setup_dir, version="1.2", init=True)).metadata.write(
+            self.setup_dir
         )
-        self.__build()
 
     def run(self):
         """
         run compiled picongpu simulation
         """
-        assert path.isdir(path.join(self.setup_dir, ".build")), (
-            "build dir (.build in setup dir) must exist -- did you call build()?"
-        )
-        assert not path.isdir(self.run_dir), "run dir must not exist yet -- did you call run() already?"
-
-        if self.run_dir.startswith(path.abspath(tempfile.gettempdir())):
-            logging.warning(
-                "run dir is inside the temporary directory. THE SIMULATION RESULTS ARE NOT ON PERMANENT STORAGE!"
-            )
-            # TODO: maybe note that multi-device support is disabled
-
-        self.__run()
+        with self.workflow_input_path.open("r") as file:
+            return WorkflowFactory(
+                runtime_context=RuntimeContext(
+                    kwargs={
+                        "outdir": str(self.run_dir),
+                        "rm_tmpdir": False,
+                        "move_outputs": "copy",
+                        "cachedir": str(self.cwl_cachedir),
+                    }
+                )
+            ).make(str(self.workflow_definition_path))(**json.load(file))
