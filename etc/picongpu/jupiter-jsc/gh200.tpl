@@ -76,8 +76,7 @@ export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
 echo 'Running program...'
 
-TBG_dstPath="!TBG_dstPath"
-cd $TBG_dstPath
+cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -95,19 +94,6 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
-
-EXE="$TBG_dstPath/input/bin/picongpu"
-retry_count=0
-while [ ! -f "$EXE" ] && [ $retry_count -lt 10 ]; do
-  retry_count=$((retry_count + 1))
-  echo "Waiting for $EXE to be available (attempt $retry_count of 10)..."
-  sleep 30
-done
-
-if [ ! -f "$EXE" ]; then
-  echo "Error: $EXE was not found after $retry_count attempts" >&2
-  exit 1
-fi
 ln -s ../stdout output
 
 # cuda_memtest omitted since GPU mapping is achieved via CUDA_VISIBLE_DEVICES on the Booster
@@ -115,4 +101,4 @@ ln -s ../stdout output
 
 # Run PIConGPU
 # Workaround threads-per-core. See https://apps.fz-juelich.de/jsc/hps/jureca/affinity.html
-srun --threads-per-core=1 "$EXE" !TBG_author !TBG_programParams
+srun --threads-per-core=1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams

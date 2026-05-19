@@ -31,7 +31,7 @@ export LD_LIBRARY_PATH=/data/rosi/shared/eb/easybuild/volta/software/GCCcore/13.
 export OMPI_MCA_pml=ucx
 export OMPI_MCA_btl=self,smcuda,vader
 
-module load python/3.14.2
+module load python/3.12.4
 module load cmake/4.0.3
 module load zlib/1.2.13-GCCcore-12.3.0
 
