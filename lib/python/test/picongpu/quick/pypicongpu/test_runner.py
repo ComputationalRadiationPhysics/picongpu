@@ -22,7 +22,7 @@ from pytest import fixture
 
 
 @fixture
-def my_rc_params():
+def empty_rc_params():
     return type(rc_params)()
 
 
@@ -31,10 +31,10 @@ def arbitrary_string():
     return "Hello World"
 
 
-def test_generate_bare_profile(my_rc_params, arbitrary_string):
-    my_rc_params["profile_content"] = arbitrary_string
+def test_generate_bare_profile(empty_rc_params, arbitrary_string):
+    empty_rc_params["profile_content"] = arbitrary_string
     with NamedTemporaryFile(mode="r") as file:
-        result_path = generate_bare_profile(path=file.name, rc_params=my_rc_params)
+        result_path = generate_bare_profile(path=file.name, rc_params=empty_rc_params)
         assert arbitrary_string in file.read()
         assert Path(file.name) == result_path
 
