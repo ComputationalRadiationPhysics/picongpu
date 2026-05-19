@@ -107,6 +107,7 @@ sim = Simulation(
     picongpu_lasers=laser,
     picongpu_species=[electrons, hydrogen_ions],
     picongpu_particle_layout=particle_layout,
+    picongpu_interaction=[adk_ionization],
     picongpu_diagnostics=[checkpoint, macro_particle_count],
 )
 
