@@ -5,7 +5,7 @@
 #   "matplotlib",
 #   "mpl_ascii",
 #   "numpy",
-#   "picongpu @ git+https://github.com/chillenzer/picongpu@add-env-management-to-python-package#subdirectory=lib/python",
+#   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python",
 #   "sympy"
 # ]
 # ///
