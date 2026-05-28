@@ -86,7 +86,7 @@ namespace picongpu
             std::function<void(::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh)>
                 writeOpenPMDFunctor = std::function<
                     void(::openPMD::Series& series, ::openPMD::Iteration& iteration, ::openPMD::Mesh& mesh)>();
-            std::string openPMDJsonCfg = "{}";
+            std::string openPMDBackendConfig = "{}";
 
             BinningDataBase(
                 std::string const& binnerName,
@@ -156,10 +156,10 @@ namespace picongpu
                 return interpretAsChild();
             }
 
-            /** @brief Set miscellaneous configuration options for openPMD output */
-            Child& setOpenPMDJsonCfg(std::string cfg)
+            /** @brief Set backend-specific configuration for openPMD in JSON format (used when writing) */
+            Child& setOpenPMDBackendConfig(std::string cfg)
             {
-                openPMDJsonCfg = std::move(cfg);
+                openPMDBackendConfig = std::move(cfg);
                 return interpretAsChild();
             }
 

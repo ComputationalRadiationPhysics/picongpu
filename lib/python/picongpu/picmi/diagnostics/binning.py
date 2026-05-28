@@ -58,7 +58,7 @@ class Binning:
         axes: list[BinningAxis],
         species: Species | FilteredSpecies | list[Species | FilteredSpecies],
         period: TimeStepSpec | None = None,
-        openPMD: dict | None = None,
+        openPMDBackendConfig: dict | None = None,
         openPMDExt: str | None = None,
         openPMDInfix: str | None = None,
         dumpPeriod: int = 1,
@@ -70,7 +70,7 @@ class Binning:
             species = [species]
         self.species = species
         self.period = period or TimeStepSpec[:]
-        self.openPMD = openPMD
+        self.openPMDBackendConfig = openPMDBackendConfig
         self.openPMDExt = openPMDExt
         self.openPMDInfix = openPMDInfix
         self.dumpPeriod = dumpPeriod
@@ -91,7 +91,7 @@ class Binning:
             axes=list(map(BinningAxis.get_as_pypicongpu, self.axes)),
             species=[s.get_as_pypicongpu(mode="Binning") for s in self.species],
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
-            openPMD=self.openPMD,
+            openPMDBackendConfig=self.openPMDBackendConfig,
             openPMDExt=self.openPMDExt,
             openPMDInfix=self.openPMDInfix,
             dumpPeriod=self.dumpPeriod,

@@ -375,9 +375,9 @@ This is a lambda with the following signature, and is set using the ``setWriteOp
   Make sure to capture by copy only, as the objects defined in the param file are not kept alive
 
 
-OpenPMD JSON Configuration
---------------------------
-Users can set a json configuration string for the OpenPMD output format using the ``setOpenPMDJsonCfg`` setter method.
+OpenPMD Backend Configuration
+-----------------------------
+Users can set a JSON configuration string for the OpenPMD backend using the ``setOpenPMDBackendConfig`` setter method.
 
 Configuration Options Summary
 -----------------------------
@@ -405,8 +405,8 @@ The following table summarizes the configuration options available for the binne
    * - ``setOpenPMDWriteFunctor``
      - Sets a functor to write custom data to the openPMD output file.
      - An empty functor.
-   * - ``setOpenPMDJsonCfg``
-     - Sets a JSON configuration string for the openPMD output format.
+   * - ``setOpenPMDBackendConfig``
+     - Sets a backend-specific JSON configuration string for the openPMD output (used when writing).
      - ``"{}"``
    * - ``setOpenPMDExtension``
      - Sets the file extension for the openPMD output.

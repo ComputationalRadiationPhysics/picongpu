@@ -48,13 +48,13 @@ class Binning(BaseModel):
     axes: list[BinningAxis]
     species: list[Species | FilteredSpecies]
     period: TimeStepSpec
-    openPMD: dict[str, Any] | None
+    openPMDBackendConfig: dict[str, Any] | None
     openPMDExtension: str | None = Field(alias="openPMDExt")
     openPMDInfix: str | None
     dumpPeriod: int
 
     type_binning: Literal[True] = True
 
-    @field_serializer("openPMD")
-    def _serialize_openPMD(self, value) -> str | None:
+    @field_serializer("openPMDBackendConfig")
+    def _serialize_openPMDBackendConfig(self, value) -> str | None:
         return None if value is None else json.dumps(value)

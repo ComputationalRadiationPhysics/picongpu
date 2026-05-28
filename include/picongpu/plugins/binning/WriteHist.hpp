@@ -41,7 +41,7 @@ namespace picongpu
             std::string const& outputName;
             std::string const& infix;
             std::string const& extension;
-            std::string const& jsonConfig;
+            std::string const& backendConfig;
         };
 
         /**
@@ -94,7 +94,7 @@ namespace picongpu
                     maybe_series = ::openPMD::Series(
                         params.dir + '/' + filename.str(),
                         ::openPMD::Access::CREATE,
-                        params.jsonConfig);
+                        params.backendConfig);
                 }
 
                 auto& series = *maybe_series;

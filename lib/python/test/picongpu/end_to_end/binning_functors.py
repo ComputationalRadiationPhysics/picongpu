@@ -130,7 +130,7 @@ def position_binning_for(species, timestep):
         ],
         species=species,
         period=TimeStepSpec[:],
-        openPMD={"hdf5": {"dataset": {"chunks": "auto"}}},
+        openPMDBackendConfig={"hdf5": {"dataset": {"chunks": "auto"}}},
         openPMDExt="h5",
     )
     return [
