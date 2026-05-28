@@ -40,11 +40,6 @@ inputs:
     label: "CMake build system"
     doc: "Select the build system used by CMake (e.g. Ninja)"
     default: null
-  build_help:
-    type: boolean
-    label: "Show help"
-    doc: "Show the help message and exit"
-    default: false
   run_etc_directory:
     type: Directory
     label: "Compile-time parameter header directory"
@@ -84,11 +79,6 @@ inputs:
     label: "Force overwrite"
     doc: "Override if destinationPath exists"
     default: false
-  run_help:
-    type: boolean
-    label: "Show help"
-    doc: "Show the help message and exit"
-    default: false
   run_project_path:
     type: Directory
     label: "Setup path"
@@ -125,7 +115,6 @@ steps:
       preset: build_preset
       force: build_force
       cmake_build_system: build_cmake_build_system
-      help: build_help
     out: [bin_directory]
     label: "Build PIConGPU"
   prepare_submission_step:
@@ -141,10 +130,10 @@ steps:
   submit_step:
     run: steps/submit.cwl
     in:
+      script: submission_script
       bin_directory: build_step/bin_directory
       etc_directory: run_etc_directory
       tbg_link: prepare_submission_step/tbg_directory
-      script: submission_script
       submit_system: run_submit_system
     out: [submission_information, link_results_script, tbg_directory]
     label: "Submit PIConGPU simulation to the batch system"

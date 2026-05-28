@@ -76,7 +76,8 @@ export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -101,4 +102,4 @@ ln -s ../stdout output
 
 # Run PIConGPU
 # Workaround threads-per-core. See https://apps.fz-juelich.de/jsc/hps/jureca/affinity.html
-srun --threads-per-core=1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+srun --threads-per-core=1 $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams

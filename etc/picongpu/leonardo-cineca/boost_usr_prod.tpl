@@ -74,7 +74,8 @@
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -100,14 +101,14 @@ export NCCL_DEBUG=INFO                     # Enable NCCL debugging (for multi-GP
 # tells us that we need to repeat the  --cpus-per-task flag argument in the srun command
 
 # test if cuda_memtest binary is available and we have the node exclusive
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_devicesPerNode ] ; then
+if [ -f $TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode -eq !TBG_devicesPerNode ] ; then
   # Run CUDA memtest to check GPU's health
-  srun --cpus-per-task=!TBG_coresPerTask !TBG_dstPath/input/bin/cuda_memtest.sh
+  srun --cpus-per-task=!TBG_coresPerTask $TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  srun --cpus-per-task=!TBG_coresPerTask -- !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  srun --cpus-per-task=!TBG_coresPerTask -- $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi

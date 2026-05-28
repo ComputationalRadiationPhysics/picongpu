@@ -69,7 +69,8 @@
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -88,4 +89,4 @@ ln -s ../stdout output
 
 # Run PIConGPU
 export OMP_NUM_THREADS=24
-srun --cpu_bind=sockets !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+srun --cpu_bind=sockets $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
