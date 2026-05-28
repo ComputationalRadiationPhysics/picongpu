@@ -77,8 +77,19 @@ namespace picongpu
                  * Allocate and manage global histogram memory here, to facilitate time averaging
                  * @todo for auto n_bins. allocate full size buffer here. dont init axisExtents yet
                  */
-                this->histBuffer = std::make_unique<HostDeviceBuffer<TDepositedQuantity, 1>>(
-                    binningData.axisExtentsND.productOfComponents());
+                auto const nBins = binningData.axisExtentsND.productOfComponents();
+                auto const sizeMiB = nBins * sizeof(TDepositedQuantity) / (1024u * 1024u);
+                try
+                {
+                    this->histBuffer = std::make_unique<HostDeviceBuffer<TDepositedQuantity, 1>>(nBins);
+                }
+                catch(std::exception const& e)
+                {
+                    throw std::runtime_error(
+                        "Binner '" + this->pluginName + "': failed to allocate histogram buffer ("
+                        + std::to_string(nBins) + " bins, " + std::to_string(sizeMiB) + " MiB). "
+                        + "Check your axis bin counts. Original error: " + e.what());
+                }
                 this->histBuffer->getDeviceBuffer().setValue(
                     pmacc::math::operation::traits::NeutralElement<ReductionOp, TDepositedQuantity>::value);
                 isMain = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -88,7 +99,20 @@ namespace picongpu
             {
                 if(m_series.has_value())
                 {
-                    m_series->close();
+                    try
+                    {
+                        m_series->close();
+                    }
+                    catch(std::exception const& e)
+                    {
+                        std::cerr << "Binner '" << pluginName << "': error closing openPMD series: " << e.what()
+                                  << std::endl;
+                    }
+                    catch(...)
+                    {
+                        std::cerr << "Binner '" << pluginName << "': unknown error closing openPMD series"
+                                  << std::endl;
+                    }
                 }
             }
 
