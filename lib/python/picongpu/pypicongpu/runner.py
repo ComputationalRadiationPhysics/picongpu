@@ -331,7 +331,8 @@ class Runner(BaseModel):
                         "cp -r tbg_link tbg",
                         'submission_script="./tbg/submit.start"',
                         'submission_cmd="$1"',
-                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"'
+                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"',
+                        'sed -i "s|--chdir=.*|--chdir=$(pwd -P)|" "$submission_script"',
                         r"""
                         if [[ "$submission_cmd" =~ \s*bash.* ]] || [[ "$submission_cmd" =~ \s*zsh.* ]]; then
                             $submission_cmd $submission_script &
