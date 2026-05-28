@@ -79,7 +79,8 @@
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -97,14 +98,14 @@ cd simOutput
 ln -s ../stdout output
 
 # test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
+if [ -f $TBG_dstPath/input/bin/cuda_memtest ] ; then
   # Run CUDA memtest to check GPU's health
-  mpirun -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+  mpirun -n !TBG_tasks $TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpirun -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  mpirun -n !TBG_tasks $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi

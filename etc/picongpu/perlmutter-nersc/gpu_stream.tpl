@@ -87,7 +87,8 @@ export MPICH_GPU_SUPPORT_ENABLED=1
 
 echo "Preparing environment..."
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 # note: no need to source profile as environment is cloned from submit environment
 # source !TBG_profile
@@ -121,11 +122,11 @@ export SstVerbose=5
 export SLURM_CPU_BIND="cores"
 
   # test if cuda_memtest binary is available and we have the node exclusive
-  if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
+  if [ -f $TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
     run_cuda_memtest=1
    # Run CUDA memtest to check GPU's health
     export MPICH_GPU_SUPPORT_ENABLED=0
-    node_check_err=$(srun -n !TBG_tasks --nodes=$SLURM_JOB_NUM_NODES -K1 --gres=gpu:!TBG_gpusPerNode --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
+    node_check_err=$(srun -n !TBG_tasks --nodes=$SLURM_JOB_NUM_NODES -K1 --gres=gpu:!TBG_gpusPerNode --gpu-bind=none $TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
   else
    run_cuda_memtest=0
    echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
@@ -136,7 +137,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
    export MPICH_GPU_SUPPORT_ENABLED=1
    # Run PIConGPU
    # the --gpu-bind has to be none due to cgroups problem on perlmutter that breaks mpi when setting gpu affinity with slurm, set the affinity manually instead
-   srun --exclusive --network=single_node_vni,job_vni --ntasks=!TBG_tasks --nodes=!TBG_nodes --ntasks-per-node=!TBG_gpusPerNode --gres=gpu:!TBG_gpusPerNode --cpus-per-task=!TBG_coresPerPICDevice -K1 --cpu-bind=cores --gpu-bind=none  ./select_gpu !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --mpiDirect > ../pic.out 2> ../pic.err &
+   srun --exclusive --network=single_node_vni,job_vni --ntasks=!TBG_tasks --nodes=!TBG_nodes --ntasks-per-node=!TBG_gpusPerNode --gres=gpu:!TBG_gpusPerNode --cpus-per-task=!TBG_coresPerPICDevice -K1 --cpu-bind=cores --gpu-bind=none  ./select_gpu $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --mpiDirect > ../pic.out 2> ../pic.err &
 
    sleep 2
 
@@ -145,7 +146,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
    export OMP_PLACES=threads
    export OMP_NUM_THREADS=!TBG_coresPerReader
    export NUMBA_THREADING_LAYER=omp
-   srun --exclusive --network=single_node_vni,job_vni --ntasks=!TBG_tasks_reader --nodes=!TBG_nodes --ntasks-per-node=!TBG_readersPerNode --gres=gpu:0 --cpus-per-task=!TBG_coresPerReader  --cpu-bind=cores !TBG_dstPath/input/bin/reader > ../reader.out 2> ../reader.err &
+   srun --exclusive --network=single_node_vni,job_vni --ntasks=!TBG_tasks_reader --nodes=!TBG_nodes --ntasks-per-node=!TBG_readersPerNode --gres=gpu:0 --cpus-per-task=!TBG_coresPerReader  --cpu-bind=cores $TBG_dstPath/input/bin/reader > ../reader.out 2> ../reader.err &
 
   wait
   # the sleep comand is needed for automatic resubmission of preempted job

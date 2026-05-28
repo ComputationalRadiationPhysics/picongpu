@@ -80,7 +80,8 @@ export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
 echo 'Running program...'
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
 source !TBG_profile
@@ -138,7 +139,7 @@ srun                                    \
   --gres=gpu:!TBG_devicesPerNode        \
   --cpus-per-task=!TBG_coresPerGPU      \
   -K1                                   \
-  !TBG_dstPath/input/bin/picongpu       \
+  $TBG_dstPath/input/bin/picongpu       \
     --mpiDirect                         \
     !TBG_author                         \
     !TBG_programParams                  \

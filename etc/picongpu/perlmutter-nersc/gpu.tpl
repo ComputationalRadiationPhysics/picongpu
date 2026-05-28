@@ -81,7 +81,8 @@ export MPICH_GPU_SUPPORT_ENABLED=1
 
 echo "Preparing environment..."
 
-cd !TBG_dstPath
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
 
 # note: no need to source profile as environment is cloned from submit environment
 # source !TBG_profile
@@ -111,11 +112,11 @@ export OMP_NUM_THREADS=!TBG_coresPerGPU
 export SLURM_CPU_BIND="cores"
 
   # test if cuda_memtest binary is available and we have the node exclusive
-  if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
+  if [ -f $TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
     run_cuda_memtest=1
    # Run CUDA memtest to check GPU's health
     export MPICH_GPU_SUPPORT_ENABLED=0
-    node_check_err=$(srun -n !TBG_tasks --nodes=$SLURM_JOB_NUM_NODES -K1 --gres=gpu:!TBG_gpusPerNode --gpu-bind=none !TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
+    node_check_err=$(srun -n !TBG_tasks --nodes=$SLURM_JOB_NUM_NODES -K1 --gres=gpu:!TBG_gpusPerNode --gpu-bind=none $TBG_dstPath/input/bin/cuda_memtest.sh && echo 0 || echo 1)
   else
    run_cuda_memtest=0
    echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
@@ -124,7 +125,7 @@ export SLURM_CPU_BIND="cores"
 if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
    # Run PIConGPU
    export MPICH_GPU_SUPPORT_ENABLED=1
-   srun --cpu-bind=cores ./select_gpu !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --mpiDirect
+   srun --cpu-bind=cores ./select_gpu $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams --mpiDirect
    # the sleep command is needed for automatic resubmission of preempted job
    # otherwise the job may exit before second signal is being send and it does not get the preempted slurm status
    # uncomment if using preemptive jobs

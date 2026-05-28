@@ -48,6 +48,9 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
+TBG_dstPath="!TBG_dstPath"
+cd $TBG_dstPath
+
 ## end tbg calculation
 
 echo 'Running program...'
@@ -73,8 +76,8 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 
 # test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
-  mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/input/bin/cuda_memtest.sh
+if [ -f $TBG_dstPath/input/bin/cuda_memtest ] ; then
+  mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 $TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
