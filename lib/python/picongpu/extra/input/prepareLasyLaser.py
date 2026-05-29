@@ -34,6 +34,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+console = logging.StreamHandler()
+
+logger.addHandler(console)
+
 
 def _prepare_env_spatial_rt(env, Nr, theta, azimuthal_modes, lo, hi):
     """Helper function for get_full_field() preparing the envelope spatially. Also returns frac for extent calculation later."""
@@ -62,31 +66,31 @@ def _prepare_env_spatial_xyt(env, Nx, Ny, lo, hi):
     """Helper function for get_full_field() preparing the envelope spatially. Also returns lo and hi spatially for extent of the new field."""
     # Cut out the section of size Nx, Ny, Nz
     if Nx is not None:
+        if Nx > env.shape[0]:
+            raise ValueError("Nx does not fit into the laser field.")
         midx = env.shape[0] // 2
         xmin = midx - Nx // 2
-        xmax = midx + Nx // 2
+        xmax = midx + (Nx + 1) // 2
         fracx = env.shape[0] / Nx
         env = env[xmin:xmax, :, :]
         midx = (hi[0] + lo[0]) / 2
         xlo = midx - (hi[0] - lo[0]) / 2 / fracx
         xhi = midx + (hi[0] - lo[0]) / 2 / fracx
     else:
-        Nx = env.shape[0]
-        fracx = 1.0
         xlo = lo[0]
         xhi = hi[0]
     if Ny is not None:
+        if Ny > env.shape[1]:
+            raise ValueError("Ny does not fit into the laser field.")
         midy = env.shape[1] // 2
         ymin = midy - Ny // 2
-        ymax = midy + Ny // 2
+        ymax = midy + (Ny + 1) // 2
         fracy = env.shape[1] / Ny
         env = env[:, ymin:ymax, :]
         midy = (hi[1] + lo[1]) / 2
         ylo = midy - (hi[1] - lo[1]) / 2 / fracy
         yhi = midy + (hi[1] - lo[1]) / 2 / fracy
     else:
-        Ny = env.shape[1]
-        fracy = 1.0
         ylo = lo[1]
         yhi = hi[1]
 
@@ -131,6 +135,8 @@ def _interpolate_env_temporal_rt(env, Nr, time_axis, Nt, forced_dt, offset_frac)
     """Helper function for get_full_field(). Interpolates the envelope in the temporal direction. also returns new time axis."""
     time_axis_new = _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac)
     # prepare new field
+    if Nr is None:
+        Nr = env.shape[0]
     env_new = np.zeros((2 * Nr - 1, len(time_axis_new)), dtype=env.dtype)
     if tqdm_available:
         pbar = tqdm(total=2 * Nr - 1, bar_format=bar_format)
@@ -158,6 +164,10 @@ def _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_
     """Helper function for get_full_field(). Interpolates the envelope in the temporal direction. also returns new time axis."""
     time_axis_new = _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac)
     # prepare new field
+    if Nx is None:
+        Nx = env.shape[0]
+    if Ny is None:
+        Ny = env.shape[1]
     env_new = np.zeros((Nx, Ny, len(time_axis_new)), dtype=env.dtype)
     if tqdm_available:
         pbar = tqdm(total=Nx, bar_format=bar_format)
@@ -182,7 +192,8 @@ def _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_
 
 
 def _prepare_interpolate_env(laser, theta, Nt, Nr, Nx, Ny, forced_dt, offset_frac):
-    """Helper function for get_full_field(). Prepares and potentially interpolates the envelope for field calculation. Also calcualtes the extent of the new field and returns the new time axis."""
+    """Helper function for get_full_field(). Prepares and potentially interpolates the envelope for field calculation.
+    Also calcualtes the extent of the new field and returns the new time axis."""
     env = laser.grid.get_temporal_field()
     time_axis = laser.grid.axes[-1]
 
@@ -475,8 +486,8 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
         raise ValueError("Nx and Ny don't fit into the laser field")
 
     # calculate the new hi and lo
-    xfrac = Nx / 2 / field.shape[1] / points_between_r
-    yfrac = Ny / 2 / field.shape[1] / points_between_r
+    xfrac = Nx / 2.0 / field.shape[1] / points_between_r
+    yfrac = Ny / 2.0 / field.shape[1] / points_between_r
 
     lo = (-xfrac * laser.grid.hi[0], -yfrac * laser.grid.hi[0], laser.grid.lo[1])
     hi = (xfrac * laser.grid.hi[0], yfrac * laser.grid.hi[0], laser.grid.hi[1])
@@ -487,9 +498,9 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
         pbar = tqdm(total=Nx, bar_format=bar_format)
     for ix in range(Nx):
         for iy in range(Ny):
-            r = np.sqrt((ix - Nx / 2) ** 2 + (iy - Ny / 2) ** 2) / points_between_r
+            r = np.sqrt((ix - Nx / 2.0 + 1) ** 2 + (iy - Ny / 2.0 + 1) ** 2) / points_between_r
             frac = r - int(r)
-            field_new[ix, iy, :] = frac * field[0, int(r), :] + (1 - frac) * field[0, int(r) + 1, :]
+            field_new[ix, iy, :] = (1 - frac) * field[0, int(r), :] + frac * field[0, int(r) + 1, :]
         if tqdm_available:
             pbar.update(1)
 
@@ -631,7 +642,11 @@ def write_to_openpmd_file(
 
     # Switch from x,y,t (internal to lasy) to t,y,x (in openPMD file)
     # This is because many PIC codes expect x to be the fastest index
+    # Also it needs to be done in such a complicated way, because otherwise openPMD-api reads it incorrectly.
+    # See Issue #1882 in the openPMD-api
     data = np.transpose(array).astype(np.float32)
+    data2 = np.zeros(data.shape, dtype=np.float32)
+    data2[:, :, :] = data[:, :, :]
 
     # Define the dataset
     dataset = io.Dataset(data.dtype, data.shape)
@@ -648,7 +663,7 @@ def write_to_openpmd_file(
     E_z.reset_dataset(dataset)
 
     # put in the data
-    E_pol[:, :, :] = data
+    E_pol[:, :, :] = data2
     E_trans.make_constant(0.0)
     E_z.make_constant(0.0)
     series.flush()
