@@ -103,9 +103,9 @@ namespace picongpu::plugins::binning
           deposition
       )
       .setNotifyPeriod("{{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}")
-      {{#openPMD}}
-      .setOpenPMDJsonCfg(R"({{{openPMD}}})")
-      {{/openPMD}}
+      {{#openPMDBackendConfig}}
+      .setOpenPMDBackendConfig(R"({{{openPMDBackendConfig}}})")
+      {{/openPMDBackendConfig}}
       {{#openPMDExtension}}
       .setOpenPMDExtension("{{{openPMDExtension}}}")
       {{/openPMDExtension}}

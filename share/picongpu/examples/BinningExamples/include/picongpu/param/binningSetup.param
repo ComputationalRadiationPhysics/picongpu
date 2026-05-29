@@ -138,7 +138,7 @@ namespace picongpu
 
             binningCreator.addParticleBinner("eSpec", axisTuple, speciesTuple, chargeDepositionData)
                 .setNotifyPeriod("100")
-                .setOpenPMDJsonCfg(R"({"adios2":{"dataset":{"chunks":"auto"}}})")
+                .setOpenPMDBackendConfig(R"({"adios2":{"dataset":{"chunks":"auto"}}})")
                 .setOpenPMDExtension("bp");
         }
 
@@ -280,7 +280,7 @@ namespace picongpu
 
             binningCreator.addParticleBinner("larmorPowerDens", axisTuplePos, speciesTuple, larmorPowerDepositionData)
                 .setNotifyPeriod("100")
-                .setOpenPMDJsonCfg(R"({"adios2":{"dataset":{"chunks":"auto"}}})")
+                .setOpenPMDBackendConfig(R"({"adios2":{"dataset":{"chunks":"auto"}}})")
                 .setOpenPMDExtension("bp");
         }
     } // namespace plugins::binning

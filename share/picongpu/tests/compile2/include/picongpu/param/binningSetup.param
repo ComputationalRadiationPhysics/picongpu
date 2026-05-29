@@ -172,7 +172,7 @@ namespace picongpu
 
             binningCreator.addParticleBinner("chargeDensityBinning", axisTuple, speciesTuple, chargeDepositionData)
                 .setNotifyPeriod("1:500")
-                .setOpenPMDJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
+                .setOpenPMDBackendConfig(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
                 .setOpenPMDExtension("h5")
                 .setOpenPMDWriteFunctor(writeOpenPMD);
 

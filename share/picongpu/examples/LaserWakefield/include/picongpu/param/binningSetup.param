@@ -131,7 +131,7 @@ namespace picongpu
 
             binningCreator.addParticleBinner("eSpec", axisTuple, speciesTuple, chargeDepositionData)
                 .setNotifyPeriod("100")
-                .setOpenPMDJsonCfg(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
+                .setOpenPMDBackendConfig(R"({"hdf5":{"dataset":{"chunks":"auto"}}})")
                 .setOpenPMDExtension("h5");
         }
     } // namespace plugins::binning

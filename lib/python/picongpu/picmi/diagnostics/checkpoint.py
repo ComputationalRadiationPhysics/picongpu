@@ -64,7 +64,7 @@ class Checkpoint:
         Number of times to restart the simulation after it finishes.
 
     openPMD: Dict, optional
-        Dictionary of openPMD-specific settings (e.g., ext, json, infix).
+        Dictionary of openPMD-specific settings (e.g., ext, backendConfig, infix).
     """
 
     def check(self, *args, **kwargs):
