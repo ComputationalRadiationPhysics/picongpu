@@ -114,7 +114,7 @@ namespace picongpu
                                 char filterCurrent = filterKeep;
                                 for(size_t d = 0; d < simDim; ++d)
                                 {
-                                    signed long long p = positionVec[d];
+                                    auto p = positionVec[d];
                                     signed long long o = positionOffsetVec[d];
                                     signed long long patch_bottom = patchTotalOffset[d];
                                     signed long long patch_up = patchUpperCorner[d];
