@@ -347,15 +347,18 @@ namespace picongpu
                                 "openPMD: Keeping %1% of the current batch's %2% particles after filtering.")
                                 % numParticlesAfterFiltering % numParticlesCurrentBatch;
 
-                            pmacc::particles::operations::splitIntoListOfFrames(
-                                *speciesTmp,
-                                mappedFrame,
-                                // @attention not numParticlesCurrentBatch, filtered vs. unfiltered number
-                                numParticlesAfterFiltering,
-                                cellOffsetToTotalDomain,
-                                totalCellIdx_,
-                                *threadParams->cellDescription,
-                                picLog::INPUT_OUTPUT());
+                            if(numParticlesAfterFiltering > 0)
+                            {
+                                pmacc::particles::operations::splitIntoListOfFrames(
+                                    *speciesTmp,
+                                    mappedFrame,
+                                    // @attention not numParticlesCurrentBatch, filtered vs. unfiltered number
+                                    numParticlesAfterFiltering,
+                                    cellOffsetToTotalDomain,
+                                    totalCellIdx_,
+                                    *threadParams->cellDescription,
+                                    picLog::INPUT_OUTPUT());
+                            }
                         });
                 }
             };
