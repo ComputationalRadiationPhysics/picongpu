@@ -135,6 +135,84 @@ namespace pmacc
 
 namespace alpaka
 {
+    namespace math
+    {
+        namespace trait
+        {
+            /* Specialise min/max for vectors so that `pmacc::math::min`/`max` operate element-wise.
+             *
+             * Unlike the other math functions, these cannot be left to the element-wise overloads in
+             * VectorOps.hpp: the generic alpaka Min/Max trait falls back to the unconstrained
+             * `std::min`/`std::max` templates, which match whole vectors and break (ambiguity on the host,
+             * `Vector<bool>`-to-`bool` conversion on CUDA). Specialising the trait keeps the generic
+             * `pmacc::math::min`/`max` well-formed for vector arguments.
+             */
+            template<
+                typename T_Ctx,
+                typename T_ScalarType1,
+                typename T_ScalarType2,
+                uint32_t T_dim,
+                typename T_Storage1,
+                typename T_Storage2>
+            struct Min<
+                T_Ctx,
+                ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1>,
+                ::pmacc::math::Vector<T_ScalarType2, T_dim, T_Storage2>,
+                void>
+            {
+                using ScalarResultType = std::decay_t<decltype(alpaka::math::min(
+                    std::declval<T_Ctx>(),
+                    std::declval<T_ScalarType1>(),
+                    std::declval<T_ScalarType2>()))>;
+                using ResultType = ::pmacc::math::Vector<ScalarResultType, T_dim>;
+
+                ALPAKA_FN_HOST_ACC auto operator()(
+                    T_Ctx const& mathConcept,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1> const& vector1,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage2> const& vector2) -> ResultType
+                {
+                    PMACC_CASSERT(T_dim > 0);
+                    ResultType tmp;
+                    for(uint32_t i = 0; i < T_dim; ++i)
+                        tmp[i] = alpaka::math::min(mathConcept, vector1[i], vector2[i]);
+                    return tmp;
+                }
+            };
+
+            template<
+                typename T_Ctx,
+                typename T_ScalarType1,
+                typename T_ScalarType2,
+                uint32_t T_dim,
+                typename T_Storage1,
+                typename T_Storage2>
+            struct Max<
+                T_Ctx,
+                ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1>,
+                ::pmacc::math::Vector<T_ScalarType2, T_dim, T_Storage2>,
+                void>
+            {
+                using ScalarResultType = std::decay_t<decltype(alpaka::math::max(
+                    std::declval<T_Ctx>(),
+                    std::declval<T_ScalarType1>(),
+                    std::declval<T_ScalarType2>()))>;
+                using ResultType = ::pmacc::math::Vector<ScalarResultType, T_dim>;
+
+                ALPAKA_FN_HOST_ACC auto operator()(
+                    T_Ctx const& mathConcept,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage1> const& vector1,
+                    ::pmacc::math::Vector<T_ScalarType1, T_dim, T_Storage2> const& vector2) -> ResultType
+                {
+                    PMACC_CASSERT(T_dim > 0);
+                    ResultType tmp;
+                    for(uint32_t i = 0; i < T_dim; ++i)
+                        tmp[i] = alpaka::math::max(mathConcept, vector1[i], vector2[i]);
+                    return tmp;
+                }
+            };
+        } // namespace trait
+    } // namespace math
+
     namespace trait
     {
         //! dimension get trait specialization
