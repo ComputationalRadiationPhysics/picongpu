@@ -133,56 +133,20 @@ namespace pmacc
     } // namespace math
 } // namespace pmacc
 
-/* Using the free alpaka functions `alpaka::math::*` will result into `__host__ __device__`
- * errors, therefore the alpaka math trait must be used.
- */
-#define PMACC_UNARY_APAKA_MATH_SPECIALIZATION(functionName, alpakaMathTrait)                                          \
-    template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim, typename T_Storage>                               \
-    struct alpakaMathTrait<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage>, void>                        \
-    {                                                                                                                 \
-        using ResultType = ::pmacc::math::Vector<T_ScalarType, T_dim>;                                                \
-                                                                                                                      \
-        ALPAKA_FN_ACC auto operator()(                                                                                \
-            T_Ctx const& mathConcept,                                                                                 \
-            ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage> const& vector) -> ResultType                        \
-        {                                                                                                             \
-            PMACC_CASSERT(T_dim > 0);                                                                                 \
-                                                                                                                      \
-            ResultType tmp;                                                                                           \
-            for(uint32_t i = 0; i < T_dim; ++i)                                                                       \
-                tmp[i] = alpaka::math::functionName(mathConcept, vector[i]);                                          \
-            return tmp;                                                                                               \
-        }                                                                                                             \
-    }
-
 namespace alpaka
 {
     namespace math
     {
         namespace trait
         {
-            /*! Specialisation of pow where base is a vector and exponent is a scalar
+            /* Specialise min/max for vectors so that `pmacc::math::min`/`max` operate element-wise.
              *
-             * Create pow separately for every component of the vector.
+             * Unlike the other math functions, these cannot be left to the element-wise overloads in
+             * VectorOps.hpp: the generic alpaka Min/Max trait falls back to the unconstrained
+             * `std::min`/`std::max` templates, which match whole vectors and break (ambiguity on the host,
+             * `Vector<bool>`-to-`bool` conversion on CUDA). Specialising the trait keeps the generic
+             * `pmacc::math::min`/`max` well-formed for vector arguments.
              */
-            template<typename T_Ctx, typename T_ScalarType, uint32_t T_dim, typename T_Storage>
-            struct Pow<T_Ctx, ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage>, T_ScalarType, void>
-            {
-                using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
-
-                ALPAKA_FN_HOST_ACC auto operator()(
-                    T_Ctx const& mathConcept,
-                    ::pmacc::math::Vector<T_ScalarType, T_dim, T_Storage> const& vector,
-                    T_ScalarType const& exponent) -> ResultType
-                {
-                    PMACC_CASSERT(T_dim > 0);
-                    ResultType tmp;
-                    for(uint32_t i = 0; i < T_dim; ++i)
-                        tmp[i] = pow(vector[i], exponent);
-                    return tmp;
-                }
-            };
-
             template<
                 typename T_Ctx,
                 typename T_ScalarType1,
@@ -246,16 +210,6 @@ namespace alpaka
                     return tmp;
                 }
             };
-
-            // Exp specialization
-            PMACC_UNARY_APAKA_MATH_SPECIALIZATION(exp, Exp);
-
-            // Floor specialization
-            PMACC_UNARY_APAKA_MATH_SPECIALIZATION(floor, Floor);
-
-            // Abs specialization
-            PMACC_UNARY_APAKA_MATH_SPECIALIZATION(abs, Abs);
-
         } // namespace trait
     } // namespace math
 
