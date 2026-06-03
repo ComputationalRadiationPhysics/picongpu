@@ -39,13 +39,13 @@ export CMAKE_PREFIX_PATH=$PIC_LIBS/openPMD-api:$CMAKE_PREFIX_PATH
 export CMAKE_PREFIX_PATH=$PIC_LIBS/pngwriter:$CMAKE_PREFIX_PATH
 
 
-export PICSRC=$HOME/picongpu/
+export PICSRC=$HOME/src/picongpu/
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:90"
 
 # Path to the required templates of the system,
 # relative to the PIConGPU source code of the tool bin/pic-create.
-export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/taurus-tud"}
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/zih-tud"}
 
 export PATH=$PICSRC/bin:$PATH
 export PATH=$PICSRC/src/tools/bin:$PATH
@@ -61,7 +61,7 @@ export CXXFLAGS="-Dlinux"
 #   - SLURM (sbatch)
 #   - "alpha" queue
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="etc/picongpu/taurus-tud/capella.tpl"
+export TBG_TPLFILE="etc/picongpu/zih-tud/capella.tpl"
 
 # allocate an interactive shell for two hours
 #   getNode 2  # allocates 2 interactive nodes (default: 1)
