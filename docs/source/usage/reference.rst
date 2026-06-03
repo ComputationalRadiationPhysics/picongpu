@@ -167,6 +167,7 @@ Diagnostic methods
  - phase space analysis: [Huebl2014]_
  - beam emittance: [Rudat2019]_
  - coherent transistion radiation (CTR): [Carstens2019]_
+ - optical imaging plugin (Shadowgraphy): [Carstens2022]_, [Carstens2026]_
 
 Visualization
 """""""""""""
@@ -202,6 +203,7 @@ Theses
  - PhD thesis: Laser ion acceleration (mainly experiment) [Obst-Huebl2019]_
  - PhD thesis: Exascale simulations with PIConGPU, laser ion acceleration  [Huebl2019]_
  - Bachelor thesis: Synthetic coherent transistion radiation [Carstens2019]_
+ - Master thesis: Synthetic in-situ shadowgrams [Carstens2022]_
  - Bachelor thesis: PWFA driver dynamics and peak energy loss [Wrobel2023]_
  - Master thesis: Sensitivity analysis of LWFA using STII [Tiebel2024]_
  - PhD thesis: Electron Acceleration in Carbon Nanotubes [BontoiuPhD2025]_
@@ -420,6 +422,12 @@ List of PIConGPU references in chronological order
        Phys. Rev. Accel. Beams 24, 091302 – 20 September 2021,
        https://doi.org/10.1103/PhysRevAccelBeams.24.091302
 
+.. [Carstens2022]
+       F.-O. Carstens,
+       *Synthetic few-cycle shadowgraphy diagnostics in particle-in-cell codes for characterizing laser-plasma accelerators*,
+       Master Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2022),
+       https://doi.org/10.5281/zenodo.7755263
+
 .. [Wrobel2023]
        Wrobel, N.,
        *Studying the impact of electron bunch characteristics on plasma wakefield performance using particle-in-cell simulations*,
@@ -479,6 +487,14 @@ List of PIConGPU references in chronological order
        *Numerical study of self-injected electron acceleration in CNT structured targets driven by an 800 nm laser*
        Sci Rep (2025)
        https://doi.org/10.1038/s41598-025-29386-4
+
+.. [Carstens2026]
+       Carstens, F.-O., et al.
+       *Synthetic optical imaging in PIConGPU*
+       2026 Plasma Phys. Control. Fusion 68 062502
+       https://doi.org/10.1088/1361-6587/ae6bb8
+
+
 
 List of other references in chronological order
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
