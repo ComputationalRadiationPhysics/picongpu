@@ -40,6 +40,9 @@ namespace pmacc
     {
         /** Array storge for vector data
          *
+         * Default initialization does NOT do zero initialization. `Vector<int,3> x;` has indeterminate values
+         * Value initialization (with () or {}) WILL do zero initialization. `Vector<int,3> x{};` has zeroes
+         *
          * This class is a workaround and is simply wrapping std::array. It is required because the size in std::array
          * in the template signature is size_t. This produces template deduction issues for math::Vector if we sue
          * array as default storage without this wrapper.
@@ -49,6 +52,8 @@ namespace pmacc
         {
             using BaseType = std::array<T_Type, T_dim>;
             using BaseType::operator[];
+
+            constexpr ArrayStorage() = default;
 
             // constructor is required because exposing the array constructors does not work
             template<typename... T_Args>
@@ -70,6 +75,9 @@ namespace pmacc
             /*Vectors without elements are not allowed*/
             PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed, dim > 0u);
 
+            /**
+             * Deafult initializtion behaviour depends on the storage policy.
+             */
             constexpr Vector() = default;
 
             /** Initialize via a generator expression
