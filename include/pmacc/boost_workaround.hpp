@@ -36,6 +36,19 @@
 #include <boost/utility/typed_in_place_factory.hpp>
 #include <boost/optional/optional.hpp>
 
+// disable warnings created from inside boost mp11 with CUDA13+
+#if defined(__CUDACC__) && (__CUDACC_VER_MAJOR__ >= 13)
+#    pragma nv_diag_push
+#    pragma nv_diag_suppress 186
+// warning #186-D: pointless comparison of unsigned integer with zero
+#endif
+
+#include <boost/mp11/detail/mp_count.hpp>
+
+#if defined(__CUDACC__) && (__CUDACC_VER_MAJOR__ >= 13)
+#    pragma nv_diag_pop
+#endif
+
 #if defined(__clang__) && defined(__CUDACC__)
 // Boost.Config wrongly detects the BOOST_CUDA_VERSION with clang as CUDA compiler and disables variadic templates.
 // See: https://github.com/boostorg/config/issues/297
