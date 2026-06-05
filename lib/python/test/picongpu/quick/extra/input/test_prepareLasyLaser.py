@@ -17,12 +17,23 @@ xyt_lo = (-1e-3, -1e-3, -1e-13)
 rt_lo = (0, -1e-13)
 xyt_hi = (1e-3, 1e-3, 1e-13)
 rt_hi = (2e-3, 1e-13)
-xyt_npoints = (10, 10, 12)
-rt_npoints = (10, 12)
+xyt_npoints = (60, 60, 12)
+rt_npoints = (60, 12)
 lambda_0 = 7e-7
 E_laser = 1e-2
 w0 = 5e-4
 tau0 = 1e-13
+
+
+# functions to change some params
+def set_xyt_npoints(npoints):
+    global xyt_npoints
+    xyt_npoints = npoints
+
+
+def set_rt_npoints(npoints):
+    global rt_npoints
+    rt_npoints = npoints
 
 
 # helper functions
@@ -74,22 +85,23 @@ def get_grid_axes(dim, Nt=None):
 def grid_cell_volume(dim, Nt=None):
     """calculates the volume each point on the grid describes"""
     if dim == "xyt":
-        dx = (xyt_hi[0] - xyt_lo[0]) / xyt_npoints[0]
-        dy = (xyt_hi[1] - xyt_lo[1]) / xyt_npoints[1]
+        dx = (xyt_hi[0] - xyt_lo[0]) / (xyt_npoints[0] - 1)
+        dy = (xyt_hi[1] - xyt_lo[1]) / (xyt_npoints[1] - 1)
         if Nt is None:
-            dt = (xyt_hi[-1] - xyt_lo[-1]) / xyt_npoints[-1]
+            dt = (xyt_hi[-1] - xyt_lo[-1]) / (xyt_npoints[-1] - 1)
         else:
-            dt = (xyt_hi[-1] - xyt_lo[-1]) / Nt
+            dt = (xyt_hi[-1] - xyt_lo[-1]) / (Nt - 1)
         return dx * dy * dt * c
 
     else:
         r, dr = np.linspace(-rt_hi[0], rt_hi[0], 2 * rt_npoints[0] - 1, retstep=True)
         if Nt is None:
-            dt = (rt_hi[-1] - rt_lo[-1]) / rt_npoints[-1]
+            dt = (rt_hi[-1] - rt_lo[-1]) / (rt_npoints[-1] - 1)
         else:
-            dt = (rt_hi[-1] - rt_lo[-1]) / Nt
-        dV = np.pi * ((r + dr) ** 2 - (r) ** 2) * dt * c / 2
+            dt = (rt_hi[-1] - rt_lo[-1]) / (Nt - 1)
+        dV = np.pi * ((abs(r) + dr / 2) ** 2 - (abs(r) - dr / 2) ** 2) * dt * c / 2
         # dV[len(dV)//2] = np.pi * (dr/2) ** 2 * dt * c
+        # That should be neccessary but Lasy does not do it so I dont either.
         return dV[:, None]
 
 
@@ -98,9 +110,6 @@ def normalize_energy(dim, field, energy, Nt=None):
     dV = grid_cell_volume(dim, Nt=Nt)
     E_curr = np.sum(np.abs(field) ** 2 * dV) * epsilon_0 / 2
     scale = np.sqrt(energy / E_curr)
-    scale *= 0.86169  # I really don't know, why this needs to be here but without it the difference
-    # between Lasy and the code here are quite large
-    # Somehow the neccessary value also depends on the number of points...
 
     return field * scale
 
@@ -119,11 +128,6 @@ def gaussian_pulse(dim, Nt=None):
         r = axes[0]
         tr_gauss = np.exp(-r * r / (w0 * w0))
 
-    # E0 = np.sqrt(E_laser / (tau0 * np.pi * w0 * w0))
-    # print(E0)
-    # E0 *= 35 * 1.003363
-    # print(E0)
-
     E = np.real(normalize_energy(dim, t_gauss * tr_gauss, E_laser, Nt=Nt))
 
     return E
@@ -135,7 +139,6 @@ def show(field, marks=["", "", ""], **kwargs):
     ax = fig.add_subplot()
     if len(field.shape) > 2:
         field = field[field.shape[0] // 2, :, :]
-    # print(field)
     img = ax.imshow(field, **kwargs)
     clb = plt.colorbar(img)
     ax.set_xlabel(marks[0])
@@ -147,18 +150,21 @@ def show(field, marks=["", "", ""], **kwargs):
 
 
 def double_inputs(lo, hi, npoints):
-    lo = (lo[0] * 2, lo[1] * 2, lo[2])
-    hi = (hi[0] * 2, hi[1] * 2, hi[2])
+    dx = (hi[0] - lo[0]) / (npoints[0] - 1)
+    dy = (hi[1] - lo[1]) / (npoints[1] - 1)
+    # this is neccessary, because for N points there are only N-1 steps, that need to be covered by lo and hi.
+    # Therefore when we double N we need to add half a step to lo and hi in addition to doubling them.
+    lo = (lo[0] * 2 - dx / 2, lo[1] * 2 - dy / 2, lo[2])
+    hi = (hi[0] * 2 + dx / 2, hi[1] * 2 + dy / 2, hi[2])
     npoints = (npoints[0] * 2, npoints[1] * 2, npoints[2])
     return lo, hi, npoints
 
 
 def isclose(f1, f2, rtol=1e-5):
     """determines, whether the fields f1 and f2 are close to being f1 = const * f2 with some constant."""
-    quotient = np.average(f1 / f2)
-    if quotient > 1.1 or quotient < 0.9:
-        print("trying quotient " + str(quotient))
-    return np.all(np.isclose(f1, f2 * quotient, rtol=rtol))
+    maxerr = np.max(np.abs((f1 - f2) / f2))
+    print("maximum relative error is " + str(maxerr) + "; should be less than " + str(rtol))
+    return np.all(np.isclose(f1, f2, rtol=rtol))
 
 
 # test functions
@@ -167,7 +173,7 @@ def isclose(f1, f2, rtol=1e-5):
 def test_basic():
     """test basic process"""
     laser = Laser("xyt", xyt_lo, xyt_hi, xyt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(laser, "test_laser", write_dir=td.name)
 
@@ -178,7 +184,7 @@ def test_basic():
 def show_test_basic():
     """test basic process"""
     laser = Laser("xyt", xyt_lo, xyt_hi, xyt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(laser, "test_laser", write_dir=td.name)
 
@@ -199,26 +205,27 @@ def show_test_basic():
 def test_rt_to_xyt():
     """test rt->xyt conversion"""
     laser = Laser("rt", rt_lo, rt_hi, rt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(laser, "test_laser", write_dir=td.name, Nx=xyt_npoints[0], Ny=xyt_npoints[1])
 
     E = read_file(td, "test_laser.bp")
+    # tolerance because of linear interpolation. it can not get much better.
     assert isclose(E, gaussian_pulse("xyt"), rtol=2e-2)
 
 
 def show_test_rt_to_xyt():
     """test rt->xyt conversion and show effects"""
     laser = Laser("rt", rt_lo, rt_hi, rt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(laser, "test_laser", write_dir=td.name, Nx=xyt_npoints[0], Ny=xyt_npoints[1])
 
-    E = read_file(td, "test_laser.bp")
+    show(np.abs(pll.get_full_field(laser)[0]), norm="log")
+
+    E, ext = read_file(td, "test_laser.bp", ret_ext=True)
     E_th = gaussian_pulse("xyt")
-    # print(E)
-    # print(gaussian_pulse("xyt"))
-    print(np.isclose(E, E_th, rtol=0.2))
+
     for i in range(E.shape[-1]):
         show(np.abs(E)[:, :, i], marks=["x", "y", "", "E_lasy " + str(i)], norm="log")
         show(np.abs(E_th)[:, :, i], marks=["x", "y", "", "E_gauss " + str(i)], norm="log")
@@ -227,7 +234,9 @@ def show_test_rt_to_xyt():
 
 
         """)
-    # print(E/gaussian_pulse("xyt"))
+    print(ext)
+
+    # tolerance because of linear interpolation. it can not get much better.
     assert isclose(E, E_th, rtol=2e-2)
 
 
@@ -236,7 +245,7 @@ def test_rt_to_xyt_advanced():
     laser = Laser(
         "rt", rt_lo, rt_hi, (rt_npoints[0] * 2, rt_npoints[1]), GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0)
     )
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(
         laser, "test_laser", write_dir=td.name, Nx=xyt_npoints[0], Ny=xyt_npoints[1], points_between_r=0.5
@@ -244,6 +253,7 @@ def test_rt_to_xyt_advanced():
 
     E, ext = read_file(td, "test_laser.bp", ret_ext=True)
     assert np.all(np.isclose(ext, [xyt_lo, xyt_hi]))
+    # tolerance because of linear interpolation. it can not get much better.
     assert isclose(E, gaussian_pulse("xyt"), rtol=2e-2)
 
 
@@ -252,7 +262,7 @@ def show_test_rt_to_xyt_advanced():
     laser = Laser(
         "rt", rt_lo, rt_hi, (rt_npoints[0] * 2, rt_npoints[1]), GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0)
     )
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(
         laser, "test_laser", write_dir=td.name, Nx=xyt_npoints[0], Ny=xyt_npoints[1], points_between_r=0.5
@@ -271,6 +281,7 @@ def show_test_rt_to_xyt_advanced():
         """)
     print(ext)
     assert np.all(np.isclose(ext, [xyt_lo, xyt_hi]))
+    # tolerance because of linear interpolation. it can not get much better.
     assert isclose(E, E_th, rtol=2e-2)
 
 
@@ -280,7 +291,6 @@ def test_field_rt():
     E_th = gaussian_pulse("rt")
     E, ext = pll.get_full_field(laser)
 
-    # E_th *= 0.85932188 # I have no idea, why this is neccessary, but it makes the relative error tiny...
     assert isclose(E, E_th)
 
 
@@ -290,12 +300,10 @@ def show_test_field_rt():
     E_th = gaussian_pulse("rt")
     E, ext = pll.get_full_field(laser)
 
-    # E_th *= 0.85932188 # I have no idea, why this is neccessary, but it makes the relative error tiny...
     show(np.abs(E)[:, :], marks=["x", "y", "", "E_lasy"], norm="log")
     show(np.abs(E_th)[:, :], marks=["x", "y", "", "E_gauss"], norm="log")
     show(np.abs((E - E_th) / E_th)[:, :], marks=["x", "y", "", "error"], norm="log")
 
-    print((E - E_th) / E_th)
     assert isclose(E, E_th)
 
 
@@ -324,18 +332,19 @@ def show_test_field_xyt():
 def test_t_interpolate():
     """test the basic process with time interpolation"""
     laser = Laser("xyt", xyt_lo, xyt_hi, xyt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(laser, "test_laser", write_dir=td.name, Nt=20)
 
     E = read_file(td, "test_laser.bp", reshape_npoints=(xyt_npoints[0], xyt_npoints[1], 20))
+    # tolerance because of linear interpolation. it can not get much better.
     assert isclose(E, gaussian_pulse("xyt", Nt=20), rtol=2e-2)
 
 
 def show_test_t_interpolate():
     """test the basic process with time interpolation"""
     laser = Laser("xyt", xyt_lo, xyt_hi, xyt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
-    # temp file
+
     td = tempfile.TemporaryDirectory()
     pll.laser_to_openPMD(laser, "test_laser", write_dir=td.name, Nt=20)
 
@@ -350,6 +359,7 @@ def show_test_t_interpolate():
 
 
         """)
+    # tolerance because of linear interpolation. it can not get much better.
     assert isclose(E, E_th, rtol=2e-2)
 
 
@@ -362,7 +372,9 @@ def test_cut_xy():
     E, ext = pll.get_full_field(laser, Nx=xyt_npoints[0], Ny=xyt_npoints[1])
 
     assert np.all(np.isclose(ext, [xyt_lo[2], xyt_hi[2], xyt_lo[1], xyt_hi[1], xyt_lo[0], xyt_hi[0]]))
-    assert isclose(E, E_th, rtol=0.05)
+    # tolerance because of slightly different normalisation
+    # (A different amount of field is used for the total energy calculation)
+    assert isclose(E, E_th, rtol=5e-5)
 
 
 def show_test_cut_xy():
@@ -383,4 +395,17 @@ def show_test_cut_xy():
 
 
         """)
-    assert isclose(E, E_th, rtol=0.05)
+    # tolerance because of slightly different normalisation
+    # (A different amount of field is used for the total energy calculation)
+    assert isclose(E, E_th, rtol=5e-5)
+
+
+def test_gaussian_pulse_xyt():
+    """compares the gaussian pulse generation in this test suite and Lasy"""
+    profile = GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0)
+    axes = get_grid_axes("xyt")
+    E = profile.evaluate(*axes)
+    E = np.real(normalize_energy("xyt", E * np.exp(-2j * np.pi * axes[-1] * c / lambda_0), E_laser))
+
+    E_th = gaussian_pulse("xyt")
+    assert np.all(np.isclose(E, E_th))

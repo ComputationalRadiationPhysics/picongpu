@@ -34,10 +34,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-console = logging.StreamHandler()
-
-logger.addHandler(console)
-
 
 def _prepare_env_spatial_rt(env, Nr, theta, azimuthal_modes, lo, hi):
     """Helper function for get_full_field() preparing the envelope spatially. Also returns frac for extent calculation later."""
@@ -46,7 +42,7 @@ def _prepare_env_spatial_rt(env, Nr, theta, azimuthal_modes, lo, hi):
         Nr = env.shape[1]
         frac = 1.0
     else:
-        frac = env.shape[1] / Nr
+        frac = (env.shape[1] - 1) / (Nr - 1)
     env = env[:, :Nr, :]
 
     # cut the laser at the right angle and prepare the field accordingly
@@ -71,7 +67,7 @@ def _prepare_env_spatial_xyt(env, Nx, Ny, lo, hi):
         midx = env.shape[0] // 2
         xmin = midx - Nx // 2
         xmax = midx + (Nx + 1) // 2
-        fracx = env.shape[0] / Nx
+        fracx = (env.shape[0] - 1) / (Nx - 1)
         env = env[xmin:xmax, :, :]
         midx = (hi[0] + lo[0]) / 2
         xlo = midx - (hi[0] - lo[0]) / 2 / fracx
@@ -85,7 +81,7 @@ def _prepare_env_spatial_xyt(env, Nx, Ny, lo, hi):
         midy = env.shape[1] // 2
         ymin = midy - Ny // 2
         ymax = midy + (Ny + 1) // 2
-        fracy = env.shape[1] / Ny
+        fracy = (env.shape[1] - 1) / (Ny - 1)
         env = env[:, ymin:ymax, :]
         midy = (hi[1] + lo[1]) / 2
         ylo = midy - (hi[1] - lo[1]) / 2 / fracy
@@ -476,6 +472,27 @@ class _PartialLaser(Laser):
         self.profile = profile
 
 
+def _lasy_like_coords(idx, N):
+    """helper function for _rt_to_xyt. Returns the coordinates for the radius calculation."""
+    # first we correct for the fact, that lasy uses np.linspace with endpoint=True (the default)
+    coord = idx + idx / (N - 1)
+    # then we shift the coord to the middle of the field
+    coord -= N / 2.0
+    return coord
+
+
+def _lasy_like_index(coord, N):
+    """helper function for _rt_to_xyt. Returns the closest indices to the given coord,
+    as well as the fraction describing, how far along the difference between the indices the coord sits."""
+    # first we correct again for the fact, that np.linspace with endpoint=True was used for the generation of this
+    coord *= 1 - 1 / N
+    # then we calculate the fraction and the indices
+    frac = coord - int(coord)
+    idx0 = int(coord)
+    idx1 = int(coord) + 1
+    return idx0, idx1, frac
+
+
 def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
     """turns the laser to xyt for saving in openPMD
     preserves the point distances, not the hi and lo"""
@@ -486,21 +503,26 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
         raise ValueError("Nx and Ny don't fit into the laser field")
 
     # calculate the new hi and lo
-    xfrac = Nx / 2.0 / field.shape[1] / points_between_r
-    yfrac = Ny / 2.0 / field.shape[1] / points_between_r
+    # the -1 is because for N points there are only N-1 steps covering the space between lo and hi.
+    xfrac = (Nx - 1) / 2.0 / (field.shape[1] * points_between_r - 1)
+    yfrac = (Ny - 1) / 2.0 / (field.shape[1] * points_between_r - 1)
 
     lo = (-xfrac * laser.grid.hi[0], -yfrac * laser.grid.hi[0], laser.grid.lo[1])
     hi = (xfrac * laser.grid.hi[0], yfrac * laser.grid.hi[0], laser.grid.hi[1])
 
     # interpolate the field to get a 3D representation
     field_new = np.zeros((Nx, Ny, field.shape[-1]), dtype=field.dtype)
+
     if tqdm_available:
         pbar = tqdm(total=Nx, bar_format=bar_format)
     for ix in range(Nx):
         for iy in range(Ny):
-            r = np.sqrt((ix - Nx / 2.0 + 1) ** 2 + (iy - Ny / 2.0 + 1) ** 2) / points_between_r
-            frac = r - int(r)
-            field_new[ix, iy, :] = (1 - frac) * field[0, int(r), :] + frac * field[0, int(r) + 1, :]
+            # first we calculate the distance from the grid point to the center, correcting for lasy-like xyt coordinates
+            r = np.sqrt(_lasy_like_coords(ix, Nx) ** 2 + _lasy_like_coords(iy, Ny) ** 2) / points_between_r
+            # we need to correct for lasy-like rt coordinates as well
+            idx0, idx1, frac = _lasy_like_index(r, field.shape[1])
+            # now we can interpolate
+            field_new[ix, iy, :] = (1 - frac) * field[0, idx0, :] + frac * field[0, idx1, :]
         if tqdm_available:
             pbar.update(1)
 
@@ -519,7 +541,7 @@ def _cut_first_frac(laser, cut_frac):
     field = laser.grid.get_temporal_field()
 
     # prep
-    N = int(field.shape[-1] * cut_frac)
+    N = int((field.shape[-1] - 1) * cut_frac) + 1
     if np.max(np.abs(field[:, :, :N])) > 0.01 * np.max(np.abs(field)):
         logger.warn(
             "Only cut unneccessary stuff, max(E_cut)/max(E) = "
@@ -826,7 +848,6 @@ def laser_to_openPMD(
     forced_dt=None,
     offset_frac=0,
     data_step=1,
-    conversion_safety=1.1,
     append=False,
     show=False,
 ):
@@ -884,9 +905,6 @@ def laser_to_openPMD(
         Only saves every (data_step)th data point to the file transversally.
         The number Nx is still reached.
 
-    conversion_safety : float (optional)
-        Only relevant, when laser is 'rt'. Gives the safety factor for the conversion to 'xyt'.
-
     append : bool (optional)
         needs to be set to True, if the file should be added to not overwritten.
     """
@@ -904,16 +922,16 @@ def laser_to_openPMD(
         if changed:
             laser_new = _rt_to_xyt(
                 laser_new,
-                int(conversion_safety * Nx * data_step),
-                int(conversion_safety * Ny * data_step),
+                int(Nx * data_step),
+                int(Ny * data_step),
                 points_between_r=points_between_r,
             )
         else:
             logger.info("preparing the laser...")
             laser_new = _rt_to_xyt(
                 laser,
-                int(conversion_safety * Nx * data_step),
-                int(conversion_safety * Ny * data_step),
+                int(Nx * data_step),
+                int(Ny * data_step),
                 points_between_r=points_between_r,
             )
         changed = True
@@ -929,9 +947,8 @@ def laser_to_openPMD(
     # 3. Actually extracting the full electric field.
     f, ext = get_full_field(laser_new, Nt=Nt, Nx=Nx, Ny=Ny, forced_dt=forced_dt, offset_frac=offset_frac)
 
-    logger.info("saving...")
-
     # 4. Save to file
+    logger.info("saving...")
     write_to_openpmd_file(
         write_dir,
         file_prefix,
