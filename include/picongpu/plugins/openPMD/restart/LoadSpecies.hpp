@@ -114,8 +114,11 @@ namespace picongpu
                                 char filterCurrent = filterKeep;
                                 for(size_t d = 0; d < simDim; ++d)
                                 {
-                                    auto positionInD = positionVec[d] + positionOffsetVec[d];
-                                    if(positionInD < patchTotalOffset[d] || positionInD >= patchUpperCorner[d])
+                                    auto p = positionVec[d];
+                                    signed long long o = positionOffsetVec[d];
+                                    signed long long patch_bottom = patchTotalOffset[d];
+                                    signed long long patch_up = patchUpperCorner[d];
+                                    if(p < patch_bottom - o || p >= patch_up - o)
                                     {
                                         filterCurrent = filterRemove;
                                         break;
@@ -344,15 +347,18 @@ namespace picongpu
                                 "openPMD: Keeping %1% of the current batch's %2% particles after filtering.")
                                 % numParticlesAfterFiltering % numParticlesCurrentBatch;
 
-                            pmacc::particles::operations::splitIntoListOfFrames(
-                                *speciesTmp,
-                                mappedFrame,
-                                // @attention not numParticlesCurrentBatch, filtered vs. unfiltered number
-                                numParticlesAfterFiltering,
-                                cellOffsetToTotalDomain,
-                                totalCellIdx_,
-                                *threadParams->cellDescription,
-                                picLog::INPUT_OUTPUT());
+                            if(numParticlesAfterFiltering > 0)
+                            {
+                                pmacc::particles::operations::splitIntoListOfFrames(
+                                    *speciesTmp,
+                                    mappedFrame,
+                                    // @attention not numParticlesCurrentBatch, filtered vs. unfiltered number
+                                    numParticlesAfterFiltering,
+                                    cellOffsetToTotalDomain,
+                                    totalCellIdx_,
+                                    *threadParams->cellDescription,
+                                    picLog::INPUT_OUTPUT());
+                            }
                         });
                 }
             };
