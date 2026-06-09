@@ -89,7 +89,7 @@ def main():
                 (f"Yes, to {path}.", "write_existing"),
                 ("Yes, but ask for a new path.", "write_new"),
             ],
-            default="Don't write.",
+            default="abort",
         ).ask()
     else:
         choice = questionary.select(
@@ -98,7 +98,7 @@ def main():
                 ("Don't write.", "abort"),
                 ("Yes, but ask for a path.", "write_new"),
             ],
-            default="Don't write.",
+            default="abort",
         ).ask()
 
     if choice == "write_existing":
