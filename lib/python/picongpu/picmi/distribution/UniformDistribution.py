@@ -11,7 +11,6 @@ from ...pypicongpu import util
 import picmistandard
 
 import typeguard
-import typing
 
 """
 note on rms_velocity:
@@ -39,7 +38,7 @@ this method returns None.
 class UniformDistribution(picmistandard.PICMI_UniformDistribution):
     """Uniform Particle Distribution as defined by PICMI"""
 
-    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
     def get_as_pypicongpu(self, grid):
@@ -57,7 +56,7 @@ class UniformDistribution(picmistandard.PICMI_UniformDistribution):
 
         return profile
 
-    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> species.operation.momentum.Drift | None:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None

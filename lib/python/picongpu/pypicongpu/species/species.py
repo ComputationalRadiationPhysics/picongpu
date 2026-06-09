@@ -7,7 +7,6 @@ License: GPLv3+
 
 import re
 from pydantic import BaseModel, computed_field, field_validator
-import typing
 from enum import Enum
 
 import typeguard
@@ -58,7 +57,7 @@ class Constants(BaseModel):
     synchrotron: SynchrotronConstant | None
 
 
-def has_constant_of_type(constants, needle_type: typing.Type[Constant]) -> bool:
+def has_constant_of_type(constants, needle_type: type[Constant]) -> bool:
     """
     lookup if constant of given type is present
 
@@ -73,7 +72,7 @@ def has_constant_of_type(constants, needle_type: typing.Type[Constant]) -> bool:
     return needle_type in constants_types
 
 
-def get_constant_by_type(constants, needle_type: typing.Type[Constant]) -> Constant:
+def get_constant_by_type(constants, needle_type: type[Constant]) -> Constant:
     """
     retrieve constant of given type, raise if not found
 

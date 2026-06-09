@@ -5,12 +5,12 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-import pydantic
+from pydantic import BaseModel
 import typeguard
 
 
 @typeguard.typechecked
-class IonizationCurrent(pydantic.BaseModel):
+class IonizationCurrent(BaseModel):
     """common interface of all ionization current models"""
 
     MODEL_NAME: str

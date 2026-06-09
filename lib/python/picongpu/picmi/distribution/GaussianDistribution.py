@@ -12,7 +12,6 @@ from ...pypicongpu import util
 from .Distribution import Distribution
 
 import typeguard
-import typing
 import numpy as np
 
 
@@ -57,12 +56,12 @@ class GaussianDistribution(Distribution):
     vacuum_front: float
     """size of the vacuum in front of density, gets rounded down to full cells, [m]"""
 
-    lower_bound: typing.Tuple[float, float, float] | typing.Tuple[None, None, None] = (
+    lower_bound: tuple[float, float, float] | tuple[None, None, None] = (
         None,
         None,
         None,
     )
-    upper_bound: typing.Tuple[float, float, float] | typing.Tuple[None, None, None] = (
+    upper_bound: tuple[float, float, float] | tuple[None, None, None] = (
         None,
         None,
         None,

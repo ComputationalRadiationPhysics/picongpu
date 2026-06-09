@@ -7,7 +7,6 @@ License: GPLv3+
 
 import logging
 import traceback
-import typing
 
 import numpy as np
 import sympy
@@ -131,10 +130,10 @@ class AnalyticDistribution:
     def get_as_pypicongpu(self, _):
         return species.operation.densityprofile.FreeFormula(density_expression=self.density_expression)
 
-    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> tuple[float, float, float]:
         return self.rms_velocity
 
-    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> species.operation.momentum.Drift | None:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None

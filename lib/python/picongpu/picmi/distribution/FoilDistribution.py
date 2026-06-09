@@ -11,7 +11,6 @@ from ...pypicongpu import util
 import picmistandard
 
 import typeguard
-import typing
 import numpy as np
 
 """
@@ -38,7 +37,7 @@ this method returns None.
 
 @typeguard.typechecked
 class FoilDistribution(picmistandard.PICMI_FoilDistribution):
-    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
     def get_as_pypicongpu(self, grid):
@@ -98,7 +97,7 @@ class FoilDistribution(picmistandard.PICMI_FoilDistribution):
             post_foil_plasmaRamp=post_foil_plasmaRamp,
         )
 
-    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> species.operation.momentum.Drift | None:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None

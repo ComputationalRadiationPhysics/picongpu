@@ -8,7 +8,6 @@ License: GPLv3+
 from ..groundstateionizationmodel import GroundStateIonizationModel
 from .ionizationcurrent import IonizationCurrent
 
-import typing
 import typeguard
 
 
@@ -16,5 +15,5 @@ import typeguard
 class FieldIonization(GroundStateIonizationModel):
     """common interface of all field ionization models"""
 
-    ionization_current: typing.Optional[IonizationCurrent]
+    ionization_current: IonizationCurrent | None
     """ionization current for energy conservation of field ionization"""
