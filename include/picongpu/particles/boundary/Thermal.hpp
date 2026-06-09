@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /* Copyright 2021-2024 Sergei Bastrakov, Lennert Sprenger
  *
  * This file is part of PIConGPU.

@@ -1,4 +1,9 @@
 #!/usr/bin/env -S uv run
+
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # /// script
 # requires-python = ">=3.11,<3.14"
 # dependencies = [

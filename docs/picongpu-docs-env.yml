@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
 # Create a separate Micromamba environment which fulfills the package requirements
 # for building the documentation
 # E.g. run `micromamba env create --file picongpu-docs-env.yml`

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 /* Copyright 2003-2024 Alexander Debus, C. Bond
  *
  * This file is part of PMacc.

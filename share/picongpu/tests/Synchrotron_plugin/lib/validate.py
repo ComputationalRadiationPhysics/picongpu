@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import sys
 import openpmd_api as opmd
 import numpy as np

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /* Copyright 2024-2025 Rene Widera, Alexander Debus
  *
  * This file is part of PIConGPU.

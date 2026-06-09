@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 ============================================================
 

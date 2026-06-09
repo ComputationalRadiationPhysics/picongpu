@@ -1,0 +1,98 @@
+version = 1
+
+# Catch2 (nested inside alpaka)
+[[annotations]]
+path = "thirdParty/alpaka/thirdParty/catch2/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "BSL-1.0"
+
+# Alpaka source files (include/, test/ -- catches files missing SPDX headers)
+[[annotations]]
+path = "thirdParty/alpaka/include/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = "thirdParty/alpaka/test/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Alpaka docs, scripts, and misc
+[[annotations]]
+path = "thirdParty/alpaka/docs/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = "thirdParty/alpaka/script/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = "thirdParty/alpaka/example/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = "thirdParty/alpaka/benchmarks/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Alpaka root and config files
+[[annotations]]
+path = [
+    "thirdParty/alpaka/.clang-format",
+    "thirdParty/alpaka/.dockerignore",
+    "thirdParty/alpaka/.gitignore",
+    "thirdParty/alpaka/.github/**",
+    "thirdParty/alpaka/.gitlab-ci.yml",
+    "thirdParty/alpaka/.pre-commit-config.yaml",
+    "thirdParty/alpaka/.readthedocs.yml",
+    "thirdParty/alpaka/.zenodo.json",
+    "thirdParty/alpaka/CHANGELOG.md",
+    "thirdParty/alpaka/CONTRIBUTING.md",
+    "thirdParty/alpaka/CMakePresets.json",
+    "thirdParty/alpaka/README.md",
+    "thirdParty/alpaka/README_SYCL.md",
+    "thirdParty/alpaka/CITATION.cff",
+    "thirdParty/alpaka/thirdParty/.clang-format",
+]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Nlohmann JSON cmake files
+[[annotations]]
+path = "thirdParty/nlohmann_json/cmake/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = [
+    "thirdParty/nlohmann_json/CMakeLists.txt",
+]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MIT"
+
+# CMake modules
+[[annotations]]
+path = "thirdParty/cmake-modules/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "ISC"
+
+# CUDA memtest
+[[annotations]]
+path = "thirdParty/cuda_memtest/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "LicenseRef-IOSL"
+
+# TOML11
+[[annotations]]
+path = "thirdParty/toml11/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MIT"
+
+# MallocMC
+[[annotations]]
+path = "thirdParty/mallocMC/**"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "MIT"

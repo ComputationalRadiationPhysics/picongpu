@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from .constant import Constant
 from .mass import Mass
 from .charge import Charge

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from .energy_histogram import EnergyHistogramData
 from .phase_space import PhaseSpaceData
 from .png import PNGData

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 config:
   input_params: "params.csv"
   pic_project: "path/to/project" # path to project directory with PIC project

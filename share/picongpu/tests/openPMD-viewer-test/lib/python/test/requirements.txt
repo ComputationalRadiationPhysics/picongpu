@@ -1,2 +1,6 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 numpy
 openpmd_viewer>=1.9.0

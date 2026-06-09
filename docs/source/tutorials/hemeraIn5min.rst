@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: PIConGPU contributors
+..
+.. SPDX-License-Identifier: CC-BY-4.0
+
 .. _hemeraIn5min:
 
 PIConGPU in 5 Minutes on Hemera

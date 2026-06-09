@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
 # The following parameters need not be specified
 # If a parameter is left unspecified, it falls back to its default value
 file = "simData"   # replaces --openPMD.file,

@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: PIConGPU contributors
+..
+.. SPDX-License-Identifier: CC-BY-4.0
+
 Kelvin-Helmholtz instability: mushroom instability (MI)
 =======================================================
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # PIConGPU on Perlmutter
 ## General Remarks
 PIConGPU can be compiled on a login node, but remember to limit the number of used CPU cores. `pic-build -j 16` works fine; reduce the number if the compiler gets killed.

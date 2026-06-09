@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 .base_pypicongpu_quick_test:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-gcc-pic:${CONTAINER_TAG}
   variables:

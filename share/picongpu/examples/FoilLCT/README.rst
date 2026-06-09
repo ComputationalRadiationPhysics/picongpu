@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: PIConGPU contributors
+..
+.. SPDX-License-Identifier: GPL-3.0-or-later
+
 .. _usage-examples-foilLCT:
 
 FoilLCT: Ion Acceleration from a Liquid-Crystal Target

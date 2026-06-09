@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: PIConGPU contributors
+..
+.. SPDX-License-Identifier: CC-BY-4.0
+
 How to Add a Species Constant (“Flag”)
 ======================================
 

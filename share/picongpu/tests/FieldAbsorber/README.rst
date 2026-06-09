@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: PIConGPU contributors
+..
+.. SPDX-License-Identifier: GPL-3.0-or-later
+
 .. _tests-fieldAbsorber:
 
 Current Source Radiating in an Unbounded Three-Dimensional Region

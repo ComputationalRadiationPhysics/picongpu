@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /* Copyright 2022-2024 Franz Poeschel
  *
  * This file is part of PIConGPU.

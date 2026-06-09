@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 ```
 @inproceedings{PIConGPU2013,
  author = {Bussmann, M. and Burau, H. and Cowan, T. E. and Debus, A. and Huebl, A. and Juckeland, G. and Kluge, T. and Nagel, W. E. and Pausch, R. and Schmitt, F. and Schramm, U. and Schuchart, J. and Widera, R.},

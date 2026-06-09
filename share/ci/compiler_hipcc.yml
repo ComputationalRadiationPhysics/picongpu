@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 ################################################################################
 #   [clang-X] : X = {12}
 # clang compiler is located under /opt/rocm/llvm/bin

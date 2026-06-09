@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 - install the Spack package manager
 
   git clone -c feature.manyFiles=true https://github.com/spack/spack.git

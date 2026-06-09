@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 minimum_pre_commit_version: 3.2.0 # necessitated by Lucas-C's hooks
 default_install_hook_types: [pre-commit, pre-push]
 exclude: "thirdParty"
@@ -16,6 +20,7 @@ repos:
       - id: check-merge-conflict
       - id: trailing-whitespace
         exclude_types: [markdown, rst]
+        exclude: LICENSES/
       - id: end-of-file-fixer
       - id: check-toml
       - id: check-yaml
@@ -34,9 +39,11 @@ repos:
       - id: forbid-tabs
         types_or: [file]
         exclude_types: [rst, tex, tsv]
+        exclude: LICENSES/
       - id: remove-tabs
         types_or: [file]
         exclude_types: [rst, tex, tsv]
+        exclude: LICENSES/
       - id: forbid-crlf
       - id: remove-crlf
   - repo: local
@@ -78,7 +85,7 @@ repos:
         # - .zenodo.json: Contains author names that might include special characters for correct spelling.
         # - unit_dimension.py: Contains theta as the symbol for temperature.
         exclude_types: [rst]
-        exclude: CHANGELOG.md|.zenodo.json|lib/python/picongpu/picmi/particle_functor/unit_dimension.py
+        exclude: CHANGELOG.md|.zenodo.json|lib/python/picongpu/picmi/particle_functor/unit_dimension.py|LICENSES/
   - repo: https://github.com/BlankSpruce/gersemi
     rev: 0.22.1
     hooks:
@@ -90,3 +97,7 @@ repos:
     rev: "v2.5.0"
     hooks:
       - id: pyproject-fmt
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: "v6.2.0"
+    hooks:
+      - id: reuse

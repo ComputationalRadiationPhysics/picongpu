@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /* Copyright 2019-2026 Sergei Bastrakov, Alexander Debus
  *
  * This file is part of PIConGPU.

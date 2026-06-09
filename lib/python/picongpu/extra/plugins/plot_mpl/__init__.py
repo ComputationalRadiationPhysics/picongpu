@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from .energy_histogram_visualizer import Visualizer as EnergyHistogramMPL
 from .energy_waterfall_visualizer import Visualizer as EnergyWaterfallMPL
 from .phase_space_visualizer import Visualizer as PhaseSpaceMPL

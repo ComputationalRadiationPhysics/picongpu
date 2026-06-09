@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
 #
 # Copyright 2024-2024 Julian J. Lenz
 #

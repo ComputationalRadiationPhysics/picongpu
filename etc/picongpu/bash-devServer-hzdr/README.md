@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 Spack install scripts and profiles
 ==================================
 This folder contains the scripts for installing the picongpu dependencies using spack and corresponding profiles.

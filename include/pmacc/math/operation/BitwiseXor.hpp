@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 /* Copyright 2025 Tapish Narwal
  *
  * This file is part of PMacc.

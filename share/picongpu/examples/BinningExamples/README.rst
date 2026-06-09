@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: PIConGPU contributors
+..
+.. SPDX-License-Identifier: GPL-3.0-or-later
+
 BinningExample: a collection of example binning-plugin options 
 ==============================================================
 

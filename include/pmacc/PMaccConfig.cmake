@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 # Copyright 2015-2024 Erik Zenker, Rene Widera, Axel Huebl, Jan Stephan
 #
 # This file is part of PMacc.

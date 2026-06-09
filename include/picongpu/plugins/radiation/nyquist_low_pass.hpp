@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /* Copyright 2013-2024 Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov
  *
  * This file is part of PIConGPU.

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 /***************************************************************************
  *
  *  Copyright (C) 2018 Codeplay Software Limited

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Copyright 2013-2024 Axel Huebl, Rene Widera
+# SPDX-FileCopyrightText: PIConGPU contributors
 #
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # This file is part of PIConGPU.
 #
 # PIConGPU is free software: you can redistribute it and/or modify
@@ -36,55 +38,47 @@ rename="s/psychocoder/Rene Widera/g;
     s/bussmann/Michael Bussmann/g
     "
 
-#author=`svn log "$fileName" --quiet | grep "^r" | awk '{print $3}' | sort | uniq | tr "\n" "," | sed 's/,$//g' | sed 's/,/, /g'`
-#author=`echo "$author" | sed "$rename"`
-
 author=`git log --follow --pretty=format:%an "$fileName" | sort | uniq | sed "$rename" | uniq | tr "\n" "," | sed 's/,$//g' | sed 's/,/, /g'`
 
-if [ $projectName = "PIConGPU" ] ; then
-text=' *\
- * This file is part of '"$projectName"'.\
- *\
- * '"$projectName"' is free software: you can redistribute it and/or modify\
- * it under the terms of the GNU General Public License as published by\
- * the Free Software Foundation, either version 3 of the License, or\
- * (at your option) any later version.\
- *\
- * '"$projectName"' is distributed in the hope that it will be useful,\
- * but WITHOUT ANY WARRANTY; without even the implied warranty of\
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\
- * GNU General Public License for more details.\
- *\
- * You should have received a copy of the GNU General Public License\
- * along with '"$projectName"'.\
- * If not, see <http://www.gnu.org/licenses/>.\
- */\
- '
+year=$(date +%G)
+
+if [ "$projectName" = "PIConGPU" ]; then
+    spdx_license="GPL-3.0-or-later"
 else
-text=' *\
- * This file is part of '"$projectName"'.\
- *\
- * '"$projectName"' is free software: you can redistribute it and/or modify\
- * it under the terms of either the GNU General Public License or\
- * the GNU Lesser General Public License as published by\
- * the Free Software Foundation, either version 3 of the License, or\
- * (at your option) any later version.\
- *\
- * '"$projectName"' is distributed in the hope that it will be useful,\
- * but WITHOUT ANY WARRANTY; without even the implied warranty of\
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\
- * GNU General Public License and the GNU Lesser General Public License\
- * for more details.\
- *\
- * You should have received a copy of the GNU General Public License\
- * and the GNU Lesser General Public License along with '"$projectName"'.\
- * If not, see <http://www.gnu.org/licenses/>.\
- */\
- '
+    spdx_license="LGPL-3.0-or-later"
 fi
 
-sed -s -i '1i\'"$text"  $fileName
+tmpfile=$(mktemp)
+cat > "$tmpfile" << HEADER
+/*
+ * SPDX-FileCopyrightText: ${year} ${author}
+ *
+ * SPDX-License-Identifier: ${spdx_license}
+ */
 
-sed -s -i '1i\/* Copyright '`date +%G`' '"$author" $fileName
+/* Copyright ${year} ${author}
+ *
+ * This file is part of ${projectName}.
+ *
+ * ${projectName} is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ${projectName} is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with ${projectName}.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+HEADER
+
+cat "$tmpfile" "$fileName" > "${tmpfile}.2"
+mv "${tmpfile}.2" "$fileName"
+rm "$tmpfile"
 
 exit 0

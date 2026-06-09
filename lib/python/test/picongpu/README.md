@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # PIConGPU Python Test Suite
 
 This directory contains the test suite for the Python bindings of PIConGPU.

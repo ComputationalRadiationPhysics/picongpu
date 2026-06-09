@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np

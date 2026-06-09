@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 -r input/requirements.txt
 -r plugins/requirements.txt
 -r utils/requirements.txt

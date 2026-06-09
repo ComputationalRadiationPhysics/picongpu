@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: PIConGPU contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /* Copyright 2013-2024 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz, Erik Zenker, Finn-Ole Carstens,

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
 """Ionization prediction module and example.
 
 This file is part of PIConGPU.

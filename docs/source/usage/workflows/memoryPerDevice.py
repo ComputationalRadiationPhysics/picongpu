@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
 """
 This file is part of PIConGPU.
 

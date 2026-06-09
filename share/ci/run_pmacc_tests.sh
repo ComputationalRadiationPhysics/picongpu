@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: PIConGPU contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 source $CI_PROJECT_DIR/share/ci/pmacc_env.sh
 
 # compile and run catch2 tests
