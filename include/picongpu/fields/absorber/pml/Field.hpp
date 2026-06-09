@@ -281,6 +281,15 @@ namespace picongpu
                     //! Get slab size in local grid coordinates
                     HINLINE pmacc::DataSpace<simDim> getSlabSize(uint32_t slabIdx) const;
 
+                    //! Get active slab-view begin index in local grid coordinates without guard
+                    HINLINE pmacc::DataSpace<simDim> getSlabViewBegin(uint32_t slabIdx) const;
+
+                    //! Get active slab-view end index in local grid coordinates without guard
+                    HINLINE pmacc::DataSpace<simDim> getSlabViewEnd(uint32_t slabIdx) const;
+
+                    //! Get active slab-view size in local grid coordinates
+                    HINLINE pmacc::DataSpace<simDim> getSlabViewSize(uint32_t slabIdx) const;
+
                     /** Set per-step slab view geometry for kernel access
                      *
                      * View geometry follows the PML layer exclusion logic z -> x -> y
@@ -325,10 +334,10 @@ namespace picongpu
                     //! Host-device slab buffers for field values
                     std::array<std::unique_ptr<Buffer>, numPmlLayers> slabData;
 
-                    //! Allocation/storage geometry of each slab (used by I/O)
+                    //! Allocation/storage geometry of each slab
                     std::array<SlabInfo, numPmlLayers> slabInfo;
 
-                    //! Per-step kernel view geometry with overlap exclusion
+                    //! Per-step active, kernel view slab geometry with overlap exclusion
                     std::array<SlabInfo, numPmlLayers> slabViewInfo;
 
                     //! Grid layout for normal (non-PML) fields

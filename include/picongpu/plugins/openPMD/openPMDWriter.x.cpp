@@ -835,9 +835,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
                         {
                             auto const slabBegin = field->getSlabBegin(slabIdx);
-                            auto const slabSize = field->getSlabSize(slabIdx);
-                            auto const slabOffset = localDomain.offset + slabBegin;
-                            auto const slabBufferOffset = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND();
+                            auto const slabViewBegin = field->getSlabViewBegin(slabIdx);
+                            auto const slabViewSize = field->getSlabViewSize(slabIdx);
+                            if(slabViewSize.productOfComponents() == 0)
+                                continue;
+                            auto const slabOffset = localDomain.offset + slabViewBegin;
+                            auto const slabBufferOffset = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND()
+                                                          + (slabViewBegin - slabBegin);
                             openPMDWriter::writeField<ComponentType>(
                                 params,
                                 currentStep,
@@ -851,7 +855,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 isDomainBound,
                                 true,
                                 slabOffset,
-                                slabSize,
+                                slabViewSize,
                                 globalDomain.size,
                                 slabBufferOffset);
                         }
