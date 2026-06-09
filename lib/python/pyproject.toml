@@ -56,6 +56,9 @@ dependencies = [
 
 optional-dependencies.test = [ "pytest>=9" ]
 
+[project.scripts]
+picrc-builder = "picongpu.picrc_builder:main"
+
 [tool.hatch.metadata]
 allow-direct-references = true
 
