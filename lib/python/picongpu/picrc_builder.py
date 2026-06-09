@@ -46,12 +46,26 @@ def main():
             print(f"Error: {path} does not exist or is not a file.", file=sys.stderr)
             sys.exit(1)
 
+    questionary.print(
+        "Welcome to picrc-builder!\n"
+        "This tool helps you create or complete a .picongpurc.toml configuration "
+        "file for your PIConGPU simulation setup.\n"
+        "You will be asked to fill in any missing values required by your chosen preset.\n"
+    )
+
     if path is not None:
+        questionary.print(f"Loading existing configuration from {path}:")
         p = RCParams(picongpurc_path=path)
     else:
-        p = RCParams(preset=questionary.text("preset = ").ask())
+        questionary.print("First, let's choose a preset.")
+        preset = questionary.text("preset = ").ask()
+        questionary.print(f"Using preset '{preset}'.")
+        p = RCParams(preset=preset)
 
+    questionary.print("\nGathering missing information:")
     _gather_missing(p)
+
+    questionary.print("\nAll done collecting values. Here is what will be written:")
 
     data = p.model_dump()
     internal_keys = {
@@ -76,10 +90,10 @@ def main():
     for key in sorted(k for k in data if k not in internal_keys and data[k] is not None and k != "preset"):
         output[key] = data[key]
 
-    questionary.print("\nInformation is complete. Here is the full file:\n")
+    questionary.print("")
     _display_toml(output)
-
-    questionary.print("\nDo you want to write this? If so, where?")
+    questionary.print("")
+    questionary.print("Do you want to write this configuration?")
 
     if path is not None:
         choice = questionary.select(
@@ -104,14 +118,16 @@ def main():
     if choice == f"Yes, to {path}.":
         with path.open("wb") as f:
             tomli_w.dump(output, f)
-        questionary.print(f"Written to {path}")
+        questionary.print(f"Written to {path}.")
+        questionary.print("You can start your simulation now.")
     elif choice in ("Yes, but ask for a path.", "Yes, but ask for a new path."):
         new_path = Path(questionary.path("Path to write: ").ask())
         with new_path.open("wb") as f:
             tomli_w.dump(output, f)
-        questionary.print(f"Written to {new_path}")
+        questionary.print(f"Written to {new_path}.")
+        questionary.print("You can start your simulation now.")
     else:
-        questionary.print("Aborted.")
+        questionary.print("Aborted. Nothing was written.")
 
 
 if __name__ == "__main__":
