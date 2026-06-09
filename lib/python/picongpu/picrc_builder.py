@@ -63,6 +63,7 @@ def main():
         "required_information",
         "module_section",
         "spack_section",
+        "pic_src_path",
         "pic_backend",
         "tbg_submit",
         "tbg_tpl_file",
