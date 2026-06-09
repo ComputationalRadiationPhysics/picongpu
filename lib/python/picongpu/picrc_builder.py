@@ -122,6 +122,13 @@ def main():
         questionary.print("You can start your simulation now.")
     elif choice in ("Yes, but ask for a path.", "Yes, but ask for a new path."):
         new_path = Path(questionary.path("Path to write: ").ask())
+        if new_path.exists():
+            if not questionary.confirm(
+                f"{new_path} already exists. Overwrite?",
+                default=False,
+            ).ask():
+                questionary.print("Aborted. Nothing was written.")
+                sys.exit(0)
         with new_path.open("wb") as f:
             tomli_w.dump(output, f)
         questionary.print(f"Written to {new_path}.")
