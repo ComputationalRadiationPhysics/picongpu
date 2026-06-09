@@ -8,15 +8,12 @@ License: GPLv3+
 import sys
 from pathlib import Path
 
+import questionary
 import tomli_w
 
 from moosetash import MissingVariable
 
 from picongpu._rc_params import RCParams
-
-
-def _prompt(prompt_text):
-    return input(prompt_text).strip()
 
 
 def _gather_missing(p):
@@ -26,8 +23,8 @@ def _gather_missing(p):
             break
         except MissingVariable as e:
             var = e.__cause__.args[0] if e.__cause__ else e.args[0]
-            print(f'Found missing variable "{var}". Please provide a value:')
-            p[var] = _prompt(f'{var} = ')
+            questionary.print(f'Found missing variable "{var}". Please provide a value:')
+            p[var] = questionary.text(f'{var} = ').ask()
 
 
 def _toml_serialize(value):
@@ -38,7 +35,7 @@ def _toml_serialize(value):
 
 def _display_toml(output):
     for key, value in output.items():
-        print(f'{key} = {_toml_serialize(value)}')
+        questionary.print(f'{key} = {_toml_serialize(value)}')
 
 
 def main():
@@ -52,8 +49,7 @@ def main():
     if path is not None:
         p = RCParams(picongpurc_path=path)
     else:
-        preset = _prompt("preset = ")
-        p = RCParams(preset=preset)
+        p = RCParams(preset=questionary.text("preset = ").ask())
 
     _gather_missing(p)
 
@@ -72,7 +68,6 @@ def main():
         "tbg_tpl_file",
         "tbg_partition",
     }
-    # Build ordered output: preset first, then the rest sorted
     output = {}
     for key in ("preset",):
         if key not in internal_keys and data.get(key) is not None:
@@ -80,32 +75,42 @@ def main():
     for key in sorted(k for k in data if k not in internal_keys and data[k] is not None and k != "preset"):
         output[key] = data[key]
 
-    print("\nInformation is complete. Here is the full file:\n")
+    questionary.print("\nInformation is complete. Here is the full file:\n")
     _display_toml(output)
 
-    print("\nDo you want to write this? If so, where?")
-    if path is not None:
-        print("(1) No.")
-        print(f"(2) Yes, to {path}.")
-        print("(3) Yes, but ask for a new path.")
-        choice = _prompt("Please choose [1]")
-    else:
-        print("(1) No.")
-        print("(2) Yes, but ask for a path.")
-        choice = _prompt("Please choose [1]")
+    questionary.print("\nDo you want to write this? If so, where?")
 
-    if choice == "2" and path is not None:
+    if path is not None:
+        choice = questionary.select(
+            "Please choose",
+            choices=[
+                ("Don't write.", "abort"),
+                (f"Yes, to {path}.", "write_existing"),
+                ("Yes, but ask for a new path.", "write_new"),
+            ],
+            default="Don't write.",
+        ).ask()
+    else:
+        choice = questionary.select(
+            "Please choose",
+            choices=[
+                ("Don't write.", "abort"),
+                ("Yes, but ask for a path.", "write_new"),
+            ],
+            default="Don't write.",
+        ).ask()
+
+    if choice == "write_existing":
         with path.open("wb") as f:
             tomli_w.dump(output, f)
-        print(f"Written to {path}")
-    elif choice in ("2", "3"):
-        new_path = _prompt("Path to write: ")
-        out = Path(new_path)
-        with out.open("wb") as f:
+        questionary.print(f"Written to {path}")
+    elif choice == "write_new":
+        new_path = Path(questionary.path("Path to write: ").ask())
+        with new_path.open("wb") as f:
             tomli_w.dump(output, f)
-        print(f"Written to {out}")
+        questionary.print(f"Written to {new_path}")
     else:
-        print("Aborted.")
+        questionary.print("Aborted.")
 
 
 if __name__ == "__main__":

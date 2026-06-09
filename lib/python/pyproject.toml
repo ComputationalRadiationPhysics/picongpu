@@ -38,6 +38,7 @@ dependencies = [
   "particle>=0.25.1",
   "periodictable>=1.7.1",
   "picmistandard>=0.27",
+  "questionary>=2.0",
   "pillow",
   "pint",
   "pydantic>=2.6.4",
