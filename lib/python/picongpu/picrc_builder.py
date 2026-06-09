@@ -85,27 +85,27 @@ def main():
         choice = questionary.select(
             "Please choose",
             choices=[
-                ("Don't write.", "abort"),
-                (f"Yes, to {path}.", "write_existing"),
-                ("Yes, but ask for a new path.", "write_new"),
+                "Don't write.",
+                f"Yes, to {path}.",
+                "Yes, but ask for a new path.",
             ],
         ).ask()
-        choice = choice if choice is not None else "abort"
+        choice = choice if choice is not None else "Don't write."
     else:
         choice = questionary.select(
             "Please choose",
             choices=[
-                ("Don't write.", "abort"),
-                ("Yes, but ask for a path.", "write_new"),
+                "Don't write.",
+                "Yes, but ask for a path.",
             ],
         ).ask()
-        choice = choice if choice is not None else "abort"
+        choice = choice if choice is not None else "Don't write."
 
-    if choice == "write_existing":
+    if choice == f"Yes, to {path}.":
         with path.open("wb") as f:
             tomli_w.dump(output, f)
         questionary.print(f"Written to {path}")
-    elif choice == "write_new":
+    elif choice in ("Yes, but ask for a path.", "Yes, but ask for a new path."):
         new_path = Path(questionary.path("Path to write: ").ask())
         with new_path.open("wb") as f:
             tomli_w.dump(output, f)
