@@ -6,7 +6,6 @@ License: GPLv3+
 """
 
 import math
-import typing
 
 import typeguard
 
@@ -130,7 +129,7 @@ class TWTSLaser(BaseLaser):
         # @todo create check for insufficient dimension
         # @todo create check in simulation for conflict between PMLs and
         # Huygens-surfaces
-        picongpu_huygens_surface_positions: typing.List[typing.List[int]] = [
+        picongpu_huygens_surface_positions: list[list[int]] = [
             [16, -16],
             [16, -16],
             [16, -16],

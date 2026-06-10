@@ -15,29 +15,28 @@ from .thomasfermi import ThomasFermi
 from .ionizationmodel import IonizationModel
 
 import copy
-import typing
-import pydantic
+from pydantic import BaseModel
 
 
-class IonizationModelGroups(pydantic.BaseModel):
+class IonizationModelGroups(BaseModel):
     """
     grouping of ionization models into sub groups that may not be used at the same time
 
     every instance of this class is immutable, all method always return copies of the data contained
     """
 
-    by_group: dict[str, list[typing.Type[IonizationModel]]] = {
+    by_group: dict[str, list[type[IonizationModel]]] = {
         "BSI_like": [BSI, BSIEffectiveZ, BSIStarkShifted],
         "ADK_like": [ADKLinearPolarization, ADKCircularPolarization],
         "Keldysh_like": [Keldysh],
         "electronic_collisional_equilibrium": [ThomasFermi],
     }
 
-    def get_by_group(self) -> dict[str, list[typing.Type[IonizationModel]]]:
+    def get_by_group(self) -> dict[str, list[type[IonizationModel]]]:
         return copy.deepcopy(self.by_group)
 
-    def get_by_model(self) -> dict[typing.Type[IonizationModel], str]:
-        return_dict: dict[typing.Type[IonizationModel], str] = {}
+    def get_by_model(self) -> dict[type[IonizationModel], str]:
+        return_dict: dict[type[IonizationModel], str] = {}
 
         for ionization_model_type, list_ionization_model in self.by_group.items():
             for ionization_model in list_ionization_model:

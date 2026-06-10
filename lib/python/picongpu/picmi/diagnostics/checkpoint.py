@@ -5,8 +5,6 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from typing import Dict, Optional
-
 import typeguard
 
 from picongpu.picmi.copy_attributes import default_converts_to
@@ -81,18 +79,18 @@ class Checkpoint:
 
     def __init__(
         self,
-        period: Optional[TimeStepSpec] = None,
-        timePeriod: Optional[int] = None,
-        directory: Optional[str] = None,
-        file: Optional[str] = None,
-        restart: Optional[bool] = None,
-        tryRestart: Optional[bool] = None,
-        restartStep: Optional[int] = None,
-        restartDirectory: Optional[str] = None,
-        restartFile: Optional[str] = None,
-        restartChunkSize: Optional[int] = None,
-        restartLoop: Optional[int] = None,
-        openPMD: Optional[Dict] = None,
+        period: TimeStepSpec | None = None,
+        timePeriod: int | None = None,
+        directory: str | None = None,
+        file: str | None = None,
+        restart: bool | None = None,
+        tryRestart: bool | None = None,
+        restartStep: int | None = None,
+        restartDirectory: str | None = None,
+        restartFile: str | None = None,
+        restartChunkSize: int | None = None,
+        restartLoop: int | None = None,
+        openPMD: dict | None = None,
     ):
         self.period = period
         self.timePeriod = timePeriod

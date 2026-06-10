@@ -31,5 +31,5 @@ class IonizationModel(Constant):
     ionization_electron_species: typing.Any
     """species to be used as electrons"""
 
-    ionization_current: typing.Optional[IonizationCurrent] = None
+    ionization_current: IonizationCurrent | None = None
     """ionization current implementation to use"""

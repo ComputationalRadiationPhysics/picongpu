@@ -8,7 +8,7 @@ License: GPLv3+
 import collections
 import particle
 
-import pydantic
+from pydantic import BaseModel
 import typeguard
 
 from scipy import constants as consts
@@ -16,7 +16,7 @@ from scipy import constants as consts
 PropertyTuple: collections.namedtuple = collections.namedtuple("_PropertyTuple", ["mass", "charge"])
 
 
-class PredefinedParticleTypeProperties(pydantic.BaseModel):
+class PredefinedParticleTypeProperties(BaseModel):
     _particle_type_to_pdgid: dict[str, int] = {
         "down": 1,
         "up": 2,

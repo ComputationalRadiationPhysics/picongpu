@@ -7,8 +7,7 @@ License: GPLv3+
 
 from ...pypicongpu import species
 
-import typing
-import pydantic
+from pydantic import BaseModel
 import typeguard
 
 """
@@ -34,11 +33,11 @@ this method returns None.
 
 
 @typeguard.typechecked
-class Distribution(pydantic.BaseModel):
-    rms_velocity: typing.Tuple[float, float, float] = (0, 0, 0)
+class Distribution(BaseModel):
+    rms_velocity: tuple[float, float, float] = (0, 0, 0)
     """thermal velocity spread [m/s]"""
 
-    directed_velocity: typing.Tuple[float, float, float] = (0, 0, 0)
+    directed_velocity: tuple[float, float, float] = (0, 0, 0)
     """Directed, average, proper velocity [m/s]"""
 
     fill_in: bool = True
@@ -51,10 +50,10 @@ class Distribution(pydantic.BaseModel):
             hash_value += hash(value)
         return hash_value
 
-    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_picongpu_drift(self) -> typing.Optional[species.operation.momentum.Drift]:
+    def get_picongpu_drift(self) -> species.operation.momentum.Drift | None:
         """
         Get drift for pypicongpu
         :return: pypicongpu drift object or None
