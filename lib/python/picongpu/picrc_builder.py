@@ -11,7 +11,6 @@ PIConGPU preset, then writes the resulting TOML file to disk.
 """
 
 import argparse
-import sys
 from pathlib import Path
 
 import questionary
@@ -24,7 +23,7 @@ from picongpu._rc_params import RCParams
 __all__ = ["main"]
 
 _DESC = (
-    "picrc-builder — interactive .picongpurc.toml configuration builder\n"
+    "picrc-builder -- interactive .picongpurc.toml configuration builder\n"
     "\n"
     "Guides you through creating or completing a PIConGPU configuration file."
     " If a path to an existing .picongpurc.toml is given, the tool loads it"
@@ -46,7 +45,7 @@ def _gather_missing(p):
         except MissingVariable as e:
             var = e.__cause__.args[0] if e.__cause__ else e.args[0]
             questionary.print(f'Found missing variable "{var}". Please provide a value:')
-            p[var] = questionary.text(f'{var} = ').ask()
+            p[var] = questionary.text(f"{var} = ").ask()
 
 
 def _toml_serialize(value):
@@ -58,7 +57,7 @@ def _toml_serialize(value):
 def _display_toml(output):
     """Print each key-value pair in *output* as a TOML line."""
     for key, value in output.items():
-        questionary.print(f'{key} = {_toml_serialize(value)}')
+        questionary.print(f"{key} = {_toml_serialize(value)}")
 
 
 def _filter_user_keys(data):

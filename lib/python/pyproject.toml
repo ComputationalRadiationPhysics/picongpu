@@ -38,11 +38,11 @@ dependencies = [
   "particle>=0.25.1",
   "periodictable>=1.7.1",
   "picmistandard>=0.27",
-  "questionary>=2.0",
   "pillow",
   "pint",
   "pydantic>=2.6.4",
   "pyyaml",
+  "questionary>=2",
   "referencing>=0.35.1",
   "roc-validator",
   # Temporarily choosing the master here
@@ -57,8 +57,7 @@ dependencies = [
 
 optional-dependencies.test = [ "pytest>=9" ]
 
-[project.scripts]
-picrc-builder = "picongpu.picrc_builder:main"
+scripts.picrc-builder = "picongpu.picrc_builder:main"
 
 [tool.hatch.metadata]
 allow-direct-references = true
