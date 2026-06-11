@@ -44,6 +44,10 @@
 # https://apps.fz-juelich.de/jsc/hps/jureca/faq.html#my-job-failed-with-transport-retry-count-exceeded
 export UCX_RC_TIMEOUT=3000000.00us # 3s instead of 1s
 
+# Workaround for UCX Memory pool allocation failures
+# See PIConGPU issuse #5702 and #5706
+export UCX_MEMTYPE_CACHE=n
+
 ## calculations will be performed by tbg ##
 .TBG_queue="booster"
 
