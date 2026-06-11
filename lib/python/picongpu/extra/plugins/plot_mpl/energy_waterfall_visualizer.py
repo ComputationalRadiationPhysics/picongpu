@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Sophie Rudat, Sebastian Starke
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2017-2024 PIConGPU contributors
-Authors: Sophie Rudat, Sebastian Starke
-License: GPLv3+
 """
 
 from ..data import EnergyHistogramData

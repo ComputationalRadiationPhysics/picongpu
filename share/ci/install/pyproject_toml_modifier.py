@@ -1,12 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Simeon Ehrig
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-Copyright 2023-2024 PIConGPU contributors
-Authors: Simeon Ehrig
-License: GPLv3+
 
 @file Fix package version in pyproject.toml to a specific version.
 

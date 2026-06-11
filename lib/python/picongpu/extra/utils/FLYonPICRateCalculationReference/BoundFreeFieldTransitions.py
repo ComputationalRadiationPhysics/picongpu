@@ -5,11 +5,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
+
 atomicPhysics(FLYonPIC) reference rate calculation
-This file is part of the PIConGPU.
-Copyright 2023-2024 PIConGPU contributors
-Authors: Brian Marre, Marco Garten
-License: GPLv3+
+
 """
 
 import numpy as np

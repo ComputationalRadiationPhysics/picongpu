@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Mika Soren Voss
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2022-2024 PIConGPU contributors
-Authors: Mika Soren Voss
-License: GPLv3+
 
 This library contains some functions for calculating some mathematical
 and physics functions, as well as some deviation calculations. It is

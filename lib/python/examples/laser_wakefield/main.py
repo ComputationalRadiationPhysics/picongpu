@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 # /// script
 # requires-python = ">=3.11,<3.14"
 # dependencies = [
@@ -14,10 +9,9 @@
 # ]
 # ///
 """
-This file is part of PIConGPU.
-Copyright 2024-2026 PIConGPU contributors
-Authors: Masoud Afshari, Brian Edward Marre, Richard Pausch, Julian Lenz
-License: GPLv3+
+# SPDX-FileCopyrightText: Masoud Afshari, Brian Edward Marre, Richard Pausch, Julian Lenz
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 import datetime

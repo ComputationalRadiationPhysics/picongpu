@@ -1,12 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Richard Pausch, Brian Edward Marre
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Richard Pausch, Brian Edward Marre
-License: GPLv3+
 """
 
 from picongpu import picmi

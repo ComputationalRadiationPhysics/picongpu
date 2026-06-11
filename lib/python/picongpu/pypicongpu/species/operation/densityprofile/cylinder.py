@@ -1,12 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Kristin Tippey, Brian Edward Marre
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-Copyright 2023-2024 PIConGPU contributors
-Authors: Kristin Tippey, Brian Edward Marre
-License: GPLv3+
 """
 
 from math import sqrt

@@ -1,12 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Richard Pausch, Julian Lenz
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-Copyright 2025 PIConGPU contributors
-Authors: Richard Pausch, Julian Lenz
-License: GPLv3+
 """
 
 import numpy as np

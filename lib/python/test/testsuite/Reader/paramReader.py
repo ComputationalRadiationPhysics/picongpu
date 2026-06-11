@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Mika Soren Voss
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2023-2024 PIConGPU contributors
-Authors: Mika Soren Voss
-License: GPLv3+
 
 Contains functions to read .param files.
 

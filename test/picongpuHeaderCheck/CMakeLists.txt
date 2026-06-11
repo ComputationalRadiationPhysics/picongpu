@@ -1,19 +1,8 @@
+# SPDX-FileCopyrightText: Benjamin Worpitz, Axel Huebl, Jan Stephan, Rene Widera
 #
-# Copyright 2014-2024 Benjamin Worpitz, Axel Huebl, Jan Stephan, Rene Widera
-#
-# This file is part of PIConGPU.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-cmake_minimum_required(VERSION 3.28)
-project(PIConGPUHeaderTest)
-
-# Add common functions from alpaka.
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/alpaka/cmake/common.cmake)
-
+#
 ################################################################################
 # Directory of this file.
 ################################################################################

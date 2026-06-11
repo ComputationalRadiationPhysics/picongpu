@@ -96,3 +96,196 @@ SPDX-License-Identifier = "MIT"
 path = "thirdParty/mallocMC/**"
 SPDX-FileCopyrightText = "NONE"
 SPDX-License-Identifier = "MIT"
+
+# ============================================================
+# PIConGPU project files (replaces per-file .license sidecars)
+# Default precedence is CLOSEST, so inline SPDX in a file
+# always takes priority over these bulk annotations.
+# ============================================================
+
+# --- Source code types (GPL-3.0-or-later) ---
+
+[[annotations]]
+path = "**/*.def"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.kernel"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.unitless"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.param"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.tpp"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- Config files (GPL for share/picongpu/, CC-BY-4.0 for docs/) ---
+
+[[annotations]]
+path = "docs/**/*.cfg"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "share/picongpu/**/*.cfg"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- HPC profile and job templates (GPL-3.0-or-later) ---
+
+[[annotations]]
+path = "**/*.example"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.tpl"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- Data, notebooks, CSV (GPL-3.0-or-later) ---
+
+[[annotations]]
+path = "**/*.data"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.ipynb"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.csv"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- PNG images (CC-BY-4.0 for docs/, GPL for root + share/) ---
+
+[[annotations]]
+path = "docs/**/*.png"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["libraryDependencies.png", "docs/source/install/libraryDependencies.png", "share/**/*.png"]
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- JSON files (CC-BY-4.0 for docs/, GPL for root) ---
+
+[[annotations]]
+path = "docs/**/*.json"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ".zenodo.json"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- Documentation media (CC-BY-4.0) ---
+
+[[annotations]]
+path = [
+    "docs/**/*.svg",
+    "docs/**/*.pdf",
+    "docs/**/*.odg",
+    "docs/**/*.zip",
+    "docs/**/*.tex",
+    "docs/**/*.plantuml",
+    "docs/**/*.dot",
+    "docs/**/*.html",
+]
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# --- Extensionless files (GPL - scripts and build configs) ---
+
+[[annotations]]
+path = [
+    "src/tools/bin/addLicense",
+    "src/tools/bin/deleteHeadComment",
+    "src/tools/bin/findAndDo",
+    "src/tools/bin/plotSumEnergyRange",
+    "src/tools/bin/transpose",
+    "share/picongpu/benchmarks/Thermal/cmakeFlags",
+    "share/picongpu/benchmarks/TWEAC-FOM/cmakeFlags",
+    "share/picongpu/examples/Bunch/cmakeFlags",
+    "share/picongpu/examples/FoilLCT/cmakeFlags",
+    "share/picongpu/examples/KelvinHelmholtz/cmakeFlags",
+    "share/picongpu/examples/LaserWakefield/cmakeFlags",
+    "share/picongpu/examples/AtomicPhysics/cmakeFlags",
+    "share/picongpu/tests/CollisionsBeamRelaxation/cmakeFlags",
+    "share/picongpu/tests/KHI_growthRate/cmakeFlags",
+    "share/picongpu/examples/LaserWakefield/lib/python/snakemake/Snakefile_LSF",
+]
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- Extensionless files (CC-BY-4.0 for docs) ---
+
+[[annotations]]
+path = [
+    "docs/Makefile",
+    "docs/Doxyfile",
+    "docs/source/pypicongpu/img/Makefile",
+]
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# --- Dotfiles and repo config (GPL-3.0-or-later) ---
+
+[[annotations]]
+path = [
+    "**/.gitignore",
+    ".gitattributes",
+    ".gitmodules",
+    ".clang-format",
+    ".clang-tidy",
+    ".gersemirc",
+]
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- CMakeLists.txt (GPL-3.0-or-later) ---
+
+[[annotations]]
+path = "**/CMakeLists.txt"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- README.txt (GPL-3.0-or-later) ---
+
+[[annotations]]
+path = "**/README.txt"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# --- Special single files ---
+
+[[annotations]]
+path = "include/mpiInfo/mpiInfo.cpp"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/submit.cwl"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "**/*.mustache"
+SPDX-FileCopyrightText = "PIConGPU contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

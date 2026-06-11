@@ -2,12 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""
-This file is part of PIConGPU.
-
-Copyright 2024-2024 Fabia Dietrich
-"""
-
 import openpmd_api as openpmd
 import numpy as np
 import h5py

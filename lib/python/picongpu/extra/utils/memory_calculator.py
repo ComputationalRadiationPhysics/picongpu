@@ -1,17 +1,9 @@
 #!/usr/bin/env python
 
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Marco Garten, Sergei Bastrakov, Brian Marre
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-@file implements estimators for the memory requirement of a PIConGPU simulation per device.
-
-Copyright 2018-2024 PIConGPU contributors
-Authors: Marco Garten, Sergei Bastrakov, Brian Marre
-License: GPLv3+
 """
 
 import numpy as np

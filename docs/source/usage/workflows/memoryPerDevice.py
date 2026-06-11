@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: CC-BY-4.0
-
 """
-This file is part of PIConGPU.
-
-Copyright 2018-2024 PIConGPU contributors
-Authors: Marco Garten, Pawel Ordyna,Brian Marre
-License: GPLv3+
+# SPDX-FileCopyrightText: Marco Garten, Pawel Ordyna,Brian Marre
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 from picongpu.extra.utils.memory_calculator import MemoryCalculator

@@ -1,14 +1,7 @@
 #!/bin/bash
-
-# SPDX-FileCopyrightText: PIConGPU contributors
+# SPDX-FileCopyrightText: Mika Soren Voss, Hannes Wolf, Klaus Steiniger, Filip Optolowicz
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-#
-# This file is part of PIConGPU.
-# Copyright 2023-2024 PIConGPU contributors
-# Authors: Mika Soren Voss, Hannes Wolf, Klaus Steiniger, Filip Optolowicz
-# License: GPLv3+
 #
 
 set -o pipefail

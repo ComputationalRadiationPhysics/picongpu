@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Hannes Wolf
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2023-2024 PIConGPU contributors
-Authors: Hannes Wolf
-License: GPLv3+
 
 This script reads the data provided by the PIConGPU simulation of the Current
 Deposition test with the help of the openPMD-api.

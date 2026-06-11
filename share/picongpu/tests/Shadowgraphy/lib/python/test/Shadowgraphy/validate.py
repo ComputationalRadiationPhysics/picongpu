@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Klaus Steiniger, Finn-Ole Carstens
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2023-2024 PIConGPU contributors
-Authors: Klaus Steiniger, Finn-Ole Carstens
-License: GPLv3+
 """
 
 import itertools

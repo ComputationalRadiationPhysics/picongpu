@@ -1,12 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Julian Lenz, Masoud Afshari
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-Copyright 2025 PIConGPU contributors
-Authors: Julian Lenz, Masoud Afshari
-License: GPLv3+
 """
 
 import typeguard

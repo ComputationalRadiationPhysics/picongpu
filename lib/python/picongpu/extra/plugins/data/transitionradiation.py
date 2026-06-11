@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Axel Huebl, Finn-Ole Carstens
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2017-2024 PIConGPU contributors
-Authors: Axel Huebl, Finn-Ole Carstens
-License: GPLv3+
 """
 
 from .base_reader import DataReader

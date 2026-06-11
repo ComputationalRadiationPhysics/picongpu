@@ -1,13 +1,8 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: CC-BY-4.0
-
 """Ionization prediction module and example.
 
-This file is part of PIConGPU.
-Copyright 2019-2024 PIConGPU contributors
-Authors: Marco Garten
-License: GPLv3+
+# SPDX-FileCopyrightText: Marco Garten
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 import sys

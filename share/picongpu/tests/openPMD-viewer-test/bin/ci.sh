@@ -1,14 +1,7 @@
 #!/bin/bash
-
-# SPDX-FileCopyrightText: PIConGPU contributors
+# SPDX-FileCopyrightText: Mika Soren Voss, Hannes Wolf, Klaus Steiniger, Max Lehmann
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-#
-# This file is part of PIConGPU.
-# Copyright 2023-2024 PIConGPU contributors
-# Authors: Mika Soren Voss, Hannes Wolf, Klaus Steiniger, Max Lehmann
-# License: GPLv3+
 #
 
 function absolute_path()

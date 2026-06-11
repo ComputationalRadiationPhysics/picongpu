@@ -1,15 +1,9 @@
 #!/usr/bin/env python
-
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 """Field ionization models implemented in PIConGPU.
 
-This file is part of PIConGPU.
-Copyright 2019-2024 PIConGPU contributors
-Authors: Marco Garten, Brian Marre
-License: GPLv3+
+# SPDX-FileCopyrightText: Marco Garten, Brian Marre
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 import numpy as np

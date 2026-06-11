@@ -1,9 +1,4 @@
 #!/usr/bin/env -S uv run
-
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 # /// script
 # requires-python = ">=3.11,<3.14"
 # dependencies = [
@@ -11,10 +6,9 @@
 # ]
 # ///
 """
-This file is part of PIConGPU.
-Copyright 2026 PIConGPU contributors
-Authors: Julian Lenz
-License: GPLv3+
+# SPDX-FileCopyrightText: Julian Lenz
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 from pathlib import Path

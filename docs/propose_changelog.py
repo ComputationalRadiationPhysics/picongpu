@@ -5,9 +5,6 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 #
-# Copyright 2024-2024 Julian J. Lenz
-#
-# License: GPLv3+
 #
 # requirements:
 #   PyGithub

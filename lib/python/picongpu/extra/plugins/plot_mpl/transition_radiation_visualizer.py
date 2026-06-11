@@ -1,12 +1,6 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+# SPDX-FileCopyrightText: Finn-Ole Carstens, Sebastian Starke
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU and based on energy_histogram_visualizer.py.
-
-Authors: Finn-Ole Carstens, Sebastian Starke
-"""
 
 from ..data import TransitionRadiationData
 from .base_visualizer import Visualizer as BaseVisualizer

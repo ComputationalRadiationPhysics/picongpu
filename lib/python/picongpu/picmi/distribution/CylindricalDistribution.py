@@ -1,12 +1,7 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Brian Edward Marre, Pawel Ordyna
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-Copyright 2024-2024 PIConGPU contributors
-Authors: Brian Edward Marre, Pawel Ordyna
-License: GPLv3+
 """
 
 from ...pypicongpu import species

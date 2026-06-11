@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
-
-# SPDX-FileCopyrightText: PIConGPU contributors
+"""
+# SPDX-FileCopyrightText: Sebastian Starke
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-"""
-This file is part of PIConGPU.
-
-Copyright 2017-2024 PIConGPU contributors
-Authors: Sebastian Starke
-License: GPLv3+
 """
 
 import os

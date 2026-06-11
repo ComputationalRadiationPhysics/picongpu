@@ -1,16 +1,9 @@
 #!/usr/bin/env python
-
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 #
 """
-This file is part of PIConGPU.
-
-Copyright 2017-2024 PIConGPU contributors
-Authors: Axel Huebl
-License: GPLv3+
+# SPDX-FileCopyrightText: Axel Huebl
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 import matplotlib.pyplot as plt

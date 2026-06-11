@@ -3,10 +3,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-This file is part of the PIConGPU.
-Copyright 2024-2025 PIConGPU contributors
-Authors: Brian Edward Marre, Richard Pausch, Julian Lenz
-License: GPLv3+
+
+
 """
 
 from datetime import timedelta

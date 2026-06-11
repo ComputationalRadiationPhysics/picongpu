@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: PIConGPU contributors
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 from typing import List, Dict, Callable
 import sys
 import tomllib
@@ -13,10 +9,9 @@ import yaml
 import typeguard
 
 """
-This file is part of PIConGPU.
-Copyright 2023-2024 PIConGPU contributors
-Authors: Simeon Ehrig
-License: GPLv3+
+# SPDX-FileCopyrightText: Simeon Ehrig
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 
 """@file Generate different CI test jobs for different Python version and
