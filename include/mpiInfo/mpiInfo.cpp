@@ -40,91 +40,22 @@
 
 namespace po = boost::program_options;
 
-enum
-{
-    gridInitTag = 1,
-    gridHostnameTag = 2,
-    gridHostRankTag = 3,
-    gridExitTag = 4,
-    gridExchangeTag = 5
-};
-
-/* Set the first found non charactor or number to 0 (nullptr)
- * name like p1223(Pid=1233) is than p1223
- * in some MPI implementation /mpich) the hostname is unique
- */
-void cleanHostname(char* name)
-{
-    for(int i = 0; i < MPI_MAX_PROCESSOR_NAME; ++i)
-    {
-        if(!(name[i] >= 'A' && name[i] <= 'Z') && !(name[i] >= 'a' && name[i] <= 'z')
-           && !(name[i] >= '0' && name[i] <= '9') && !(name[i] == '_') && !(name[i] == '-'))
-        {
-            name[i] = 0;
-            return;
-        }
-    }
-}
-
 /*! gets hostRank
  *
- * process with MPI-rank 0 is the master and builds a map with hostname
- * and number of already known processes on this host.
- * Each rank will provide its hostname via MPISend and gets its HostRank
- * from the master.
- *
+ * Computes the node-local rank (the index of this process among all processes
+ * sharing the same node) via MPI_Comm_split_type.
  */
 int getHostRank()
 {
-    char hostname[MPI_MAX_PROCESSOR_NAME];
-    int length;
     int hostRank;
-
-    int totalnodes;
     int myrank;
 
-    MPI_CHECK(MPI_Get_processor_name(hostname, &length));
-    cleanHostname(hostname);
-    hostname[length++] = '\0';
-
-    // int totalnodes;
-
-    MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &totalnodes));
     MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myrank));
 
-    if(myrank == 0)
-    {
-        std::map<std::string, int> hosts;
-        hosts[hostname] = 0;
-        hostRank = 0;
-        for(int rank = 1; rank < totalnodes; ++rank)
-        {
-            MPI_CHECK(MPI_Recv(
-                hostname,
-                MPI_MAX_PROCESSOR_NAME,
-                MPI_CHAR,
-                rank,
-                gridHostnameTag,
-                MPI_COMM_WORLD,
-                MPI_STATUS_IGNORE));
-
-            // printf("Hostname: %s\n", hostname);
-            int hostrank = 0;
-            if(hosts.count(hostname) > 0)
-                hostrank = hosts[hostname] + 1;
-
-            MPI_CHECK(MPI_Send(&hostrank, 1, MPI_INT, rank, gridHostRankTag, MPI_COMM_WORLD));
-
-            hosts[hostname] = hostrank;
-        }
-    }
-    else
-    {
-        MPI_CHECK(MPI_Send(hostname, length, MPI_CHAR, 0, gridHostnameTag, MPI_COMM_WORLD));
-
-        MPI_CHECK(MPI_Recv(&hostRank, 1, MPI_INT, 0, gridHostRankTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE));
-        // if(hostRank!=0) hostRank--; //!\todo fix mpi hostrank start with 1
-    }
+    MPI_Comm nodeComm;
+    MPI_CHECK(MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, myrank, MPI_INFO_NULL, &nodeComm));
+    MPI_CHECK(MPI_Comm_rank(nodeComm, &hostRank));
+    MPI_CHECK(MPI_Comm_free(&nodeComm));
 
     return hostRank;
 }

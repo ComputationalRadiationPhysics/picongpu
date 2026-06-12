@@ -24,11 +24,6 @@
 
 #include "pmacc/dimensions/Definition.hpp"
 
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include <mpi.h>
 
 namespace pmacc
@@ -191,67 +186,16 @@ namespace pmacc
     }
 
     template<unsigned DIM>
-    void CommunicatorMPI<DIM>::cleanHostname(char* name)
-    {
-        for(int i = 0; i < MPI_MAX_PROCESSOR_NAME; ++i)
-        {
-            if(!(name[i] >= 'A' && name[i] <= 'Z') && !(name[i] >= 'a' && name[i] <= 'z')
-               && !(name[i] >= '0' && name[i] <= '9') && !(name[i] == '_') && !(name[i] == '-'))
-            {
-                name[i] = 0;
-                return;
-            }
-        }
-    }
-
-    template<unsigned DIM>
     void CommunicatorMPI<DIM>::updateHostRank()
     {
-        char hostname[MPI_MAX_PROCESSOR_NAME];
-        int length;
-
-        MPI_CHECK(MPI_Get_processor_name(hostname, &length));
-        cleanHostname(hostname);
-        hostname[length++] = '\0';
-
         MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &mpiSize));
         MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank));
 
-        if(mpiRank == 0)
-        {
-            std::map<std::string, int> hosts;
-            hosts[hostname] = 0;
-            hostRank = 0;
-            for(int rank = 1; rank < mpiSize; ++rank)
-            {
-                MPI_CHECK(MPI_Recv(
-                    hostname,
-                    MPI_MAX_PROCESSOR_NAME,
-                    MPI_CHAR,
-                    rank,
-                    gridHostnameTag,
-                    MPI_COMM_WORLD,
-                    MPI_STATUS_IGNORE));
-
-                // printf("Hostname: %s\n", hostname);
-                int hostrank = 0;
-                if(hosts.count(hostname) > 0)
-                    hostrank = hosts[hostname] + 1;
-
-                MPI_CHECK(MPI_Send(&hostrank, 1, MPI_INT, rank, gridHostRankTag, MPI_COMM_WORLD));
-
-                hosts[hostname] = hostrank;
-            }
-        }
-        else
-        {
-            MPI_CHECK(MPI_Send(hostname, length, MPI_CHAR, GridManagerRank, gridHostnameTag, MPI_COMM_WORLD));
-
-            MPI_CHECK(
-                MPI_Recv(&hostRank, 1, MPI_INT, GridManagerRank, gridHostRankTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE));
-
-            // if(hostRank!=0) hostRank--; //!\todo fix mpi hostrank start with 1
-        }
+        // Determine the node-local rank, used to assign one GPU per rank on a node.
+        MPI_Comm nodeComm;
+        MPI_CHECK(MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, mpiRank, MPI_INFO_NULL, &nodeComm));
+        MPI_CHECK(MPI_Comm_rank(nodeComm, &hostRank));
+        MPI_CHECK(MPI_Comm_free(&nodeComm));
     }
 
     template<unsigned DIM>
