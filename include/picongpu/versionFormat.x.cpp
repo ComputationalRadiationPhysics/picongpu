@@ -123,7 +123,8 @@ namespace picongpu
 
         // CLI Formatting
         cliText << "PIConGPU: " << picongpu.str() << std::endl;
-        cliText << "  Build-Type: " << buildType.str() << std::endl << std::endl;
+        cliText << "  Build-Type: " << buildType.str() << std::endl;
+        cliText << "  Commit:     " << PICONGPU_GIT_COMMIT << std::endl << std::endl;
         cliText << "Third party:" << std::endl;
         cliText << "  OS:         " << os.str() << std::endl;
         cliText << "  arch:       " << arch.str() << std::endl;

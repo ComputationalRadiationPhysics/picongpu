@@ -269,6 +269,18 @@ option(PIC_ADD_RPATH "Add RPATH's to binaries." ON)
 add_definitions(-DCMAKE_VERSION=${CMAKE_VERSION})
 add_definitions(-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 
+# Git commit info (may be empty for non-git builds)
+execute_process(
+    COMMAND git -C "${CMAKE_CURRENT_SOURCE_DIR}" describe --always --dirty --match=never-match-anything
+    OUTPUT_VARIABLE PICONGPU_GIT_COMMIT
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(NOT PICONGPU_GIT_COMMIT)
+    set(PICONGPU_GIT_COMMIT "unknown")
+endif()
+add_definitions(-DPICONGPU_GIT_COMMIT="${PICONGPU_GIT_COMMIT}")
+
 # OS & Host Architecture
 add_definitions(-DCMAKE_SYSTEM=${CMAKE_SYSTEM})
 add_definitions(-DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR})
