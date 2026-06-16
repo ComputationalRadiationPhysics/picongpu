@@ -139,20 +139,11 @@ namespace pmacc
 
 
     protected:
-        /* Set the first found non charactor or number to 0 (nullptr)
-         * name like p1223(Pid=1233) is than p1223
-         * in some MPI implementation /mpich) the hostname is unique
-         */
-        void cleanHostname(char* name);
-
-
         /*! gets hostRank
          *
-         * process with MPI-rank 0 is the master and builds a map with hostname
-         * and number of already known processes on this host.
-         * Each rank will provide its hostname via MPISend and gets its HostRank
-         * from the master.
-         *
+         * Computes the node-local rank (the index of this process among all
+         * processes sharing the same node) via MPI_Comm_split_type. This is used
+         * to assign one GPU per process on a node.
          */
         void updateHostRank();
 
