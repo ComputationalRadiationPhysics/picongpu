@@ -143,6 +143,12 @@ function getResource() {
     fi
 }
 
+
+# allocate an interactive shell for compilation (without gpus)
+function getShell() {
+    srun --time=1:00:00 --nodes=1 --ntasks 1 --cpus-per-task=32 -A $proj -C cpu --pty bash
+}
+
 # Load autocompletion for PIConGPU commands
 BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
 if [ -f $BASH_COMP_FILE ] ; then

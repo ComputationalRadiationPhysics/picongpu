@@ -148,17 +148,6 @@ function getResource() {
     fi
 }
 
-# Backward-compatible wrapper functions
-# allocate an interactive shell for one full node (default: 1)
-function getNode() {
-    getResource -n "$@"
-}
-
-# allocate an interactive shell for one GPU device (default: 1)
-function getDevice() {
-    getResource -d "$@"
-}
-
 # Load autocompletion for PIConGPU commands
 BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
 if [ -f $BASH_COMP_FILE ] ; then
