@@ -61,17 +61,30 @@ export TBG_partition="qgpu"
 #   getResource -d 1 pic-build  # allocate 1 GPU, run pic-build
 function getResource() {
     local mode=""
+    local device_mode=""
+    local node_mode=""
     local count=1
     while getopts ":d:n:h" opt; do
         case $opt in
-            d) count=${OPTARG:-1}; mode="device";;
-            n) count=${OPTARG:-1}; mode="node";;
+            d) count=${OPTARG:-1}; mode="device"; device_mode=1;;
+            n) count=${OPTARG:-1}; mode="node"; node_mode=1;;
             h) echo "Usage: getResource [-d [num] | -n [num]] [command ...]"; return 0;;
             *) echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
                return 1;;
         esac
     done
     shift $((OPTIND - 1))
+
+    if [ "$mode" = "device" ] && [ -n "$node_mode" ]; then
+        echo "Error: cannot specify both -d and -n options" >&2
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
+    if [ "$mode" = "node" ] && [ -n "$device_mode" ]; then
+        echo "Error: cannot specify both -d and -n options" >&2
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
 
     if [ -z "$mode" ]; then
         echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
@@ -98,7 +111,6 @@ function getResource() {
         srun $srunArgs --pty bash
     fi
 }
-
 
 # Load autocompletion for PIConGPU commands
 BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
