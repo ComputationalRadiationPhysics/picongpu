@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus, Benjamin Worpitz, Finn-Ole Carstens
+ * SPDX-FileCopyrightText: Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus, Benjamin Worpitz, Finn-Ole
+ * Carstens
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

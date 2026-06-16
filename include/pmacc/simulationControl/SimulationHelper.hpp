@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus, Benjamin Worpitz, Alexander Grund, Sergei Bastrakov, Pawel Ordyna
+ * SPDX-FileCopyrightText: Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus, Benjamin Worpitz, Alexander Grund,
+ * Sergei Bastrakov, Pawel Ordyna
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

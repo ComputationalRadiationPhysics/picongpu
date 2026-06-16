@@ -2,10 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""
-
-
-"""
+""" """
 
 from datetime import timedelta
 from typing import Annotated

@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Richard Pausch, Benjamin Worpitz, Sophie Rudat
+ * SPDX-FileCopyrightText: Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Richard Pausch, Benjamin Worpitz,
+ * Sophie Rudat
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

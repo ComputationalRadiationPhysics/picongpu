@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+ * SPDX-FileCopyrightText: Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund,
+ * Sergei Bastrakov
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

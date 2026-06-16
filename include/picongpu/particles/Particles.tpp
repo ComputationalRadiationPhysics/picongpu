@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt, Alexander Grund, Sergei Bastrakov
+ * SPDX-FileCopyrightText: Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt, Alexander Grund, Sergei
+ * Bastrakov
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

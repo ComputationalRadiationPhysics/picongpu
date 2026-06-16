@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Axel Huebl, Heiko Burau, Rene Widera, Wen Fu, Marco Garten, Alexander Grund, Richard Pausch, Lennert Sprenger
+ * SPDX-FileCopyrightText: Axel Huebl, Heiko Burau, Rene Widera, Wen Fu, Marco Garten, Alexander Grund, Richard Pausch,
+ * Lennert Sprenger
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

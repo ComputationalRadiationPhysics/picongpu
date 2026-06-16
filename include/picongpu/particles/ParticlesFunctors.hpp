@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Rene Widera, Marco Garten, Alexander Grund, Heiko Burau, Axel Huebl, Sergei Bastrakov Filip Optolowicz
+ * SPDX-FileCopyrightText: Rene Widera, Marco Garten, Alexander Grund, Heiko Burau, Axel Huebl, Sergei Bastrakov Filip
+ * Optolowicz
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

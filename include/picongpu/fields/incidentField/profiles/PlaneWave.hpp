@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov, Julian Lenz, Klaus Steiniger
+ * SPDX-FileCopyrightText: Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov, Julian Lenz, Klaus
+ * Steiniger
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
