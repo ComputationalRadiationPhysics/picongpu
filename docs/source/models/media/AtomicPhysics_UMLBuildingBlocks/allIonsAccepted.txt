@@ -1,6 +1,0 @@
-@startuml
-entity allMacroIonsAccepted<per superCell>
-{
-    allAccepted? : bool
-}
-@enduml

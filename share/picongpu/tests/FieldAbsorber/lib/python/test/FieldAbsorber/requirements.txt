@@ -1,2 +1,0 @@
-numpy
-openpmd_api

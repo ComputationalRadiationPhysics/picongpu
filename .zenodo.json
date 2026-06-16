@@ -1,313 +1,64 @@
 {
-  "creators": [
-    {
-      "affiliation": "ELI-NP",
-      "name": "Berceanu, Andrei"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Carstens, Finn-Ole"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Debus, Alexander",
-      "orcid": "0000-0002-3844-3697"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Dietrich, Fabia"
-    },
-    {
-      "affiliation": "CASUS, HZDR",
-      "name": "Ehrig, Simeon",
-      "orcid": "0000-0002-8218-3116"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Ermakov, Sergey Konstantin"
-    },
-    {
-      "name": "Marre, Brian Edward",
-      "affiliation": "HZDR, TU Dresden",
-      "orcid": "0009-0005-6873-8292"
-    },
-    {
-      "name": "Lenz, Julian",
-      "affiliation": "CASUS, HZDR",
-      "orcid": "0000-0001-5250-0005"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Lehmann, Max"
-    },
-    {
-      "affiliation": "CASUS, HZDR",
-      "name": "Afshari, Masoud",
-      "orcid": "0000-0003-4486-9683"
-    },
-    {
-      "affiliation": "CASUS, HZDR",
-      "name": "Narwal, Tapish",
-      "orcid": "0000-0002-5726-2330"
-    },
-    {
-      "name": "Ordyna, Paweł",
-      "affiliation": "HZDR, TU Dresden"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Pausch, Richard",
-      "orcid": "0000-0001-7990-9564"
-    },
-    {
-      "name": "Poeschel, Franz",
-      "affiliation": "CASUS, HZDR",
-      "orcid": "0000-0001-7042-5088"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Sprenger, Lennert"
-    },
-    {
-      "affiliation": "CASUS, HZDR",
-      "name": "Steiniger, Klaus",
-      "orcid": "0000-0001-8965-1149"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Tiebel, Jessica"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Widera, René",
-      "orcid": "0000-0003-1642-0459"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Wolf, Hannes"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Wrobel, Nico"
-    }
-  ],
-  "contributors": [
-    {
-      "affiliation": "LOA",
-      "name": "Andriyash, Igor",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Bastrakova, Kseniia",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Bastrakov, Sergei",
-      "orcid": "0000-0003-3396-6154",
-      "type": "Other"
-    },
-    {
-      "affiliation": "University Jena",
-      "name": "Bifeng, Lei",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Burau, Heiko",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, CASUS",
-      "name": "Bussmann, Michael",
-      "orcid": "0000-0002-8258-3881",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Eckert, Carlchristian",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Voß, Mika Soren",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Garten, Marco",
-      "orcid": "0000-0001-6994-2475",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Göthel, Ilja",
-      "type": "Other"
-    },
-    {
-      "name": "Gruber, Bernhard Manfred",
-      "affiliation": "CASUS, HZDR, CERN",
-      "orcid": "0000-0001-7848-1690",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Grund, Alexander",
-      "orcid": "0000-0002-7196-8452",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Hahn, Sebastian",
-      "type": "Other"
-    },
-    {
-      "affiliation": "TU-Dresden",
-      "name": "Hoehnig, Wolfgang",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden, LBNL",
-      "name": "Huebl, Axel",
-      "orcid": "0000-0003-1943-7141",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Kelling, Jeffrey",
-      "orcid": "0000-0003-1761-2591",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Knespel, Maximilian",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Lebedev, Anton",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Matthes, Alexander",
-      "orcid": "0000-0002-6702-2015",
-      "type": "Other"
-    },
-    {
-      "name": "Meyer, Felix",
-      "affiliation": "HZDR, TU Dresden",
-      "type": "Other"
-    },
-    {
-      "affiliation": "ELI-NP",
-      "name": "Ong, Jian Fuh",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Prinz, Nils",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Rudat, Sophie",
-      "type": "Other"
-    },
-    {
-      "affiliation": "TU-Dresden",
-      "name": "Schmitt, Felix",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Schneider, Benjamin",
-      "type": "Other"
-    },
-    {
-      "affiliation": "TU-Dresden",
-      "name": "Schumann, Conrad",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR",
-      "name": "Starke, Sebastian",
-      "type": "Other"
-    },
-    {
-      "name": "Stephan, Jan",
-      "affiliation": "CASUS, HZDR, TU Dresden",
-      "orcid": "0000-0001-7839-4386",
-      "type": "Other"
-    },
-    {
-      "name": "Thévenet, Maxence",
-      "affiliation": "Desy",
-      "type": "Other"
-    },
-    {
-      "affiliation": "University Jena",
-      "name": "Tietze, Stefan",
-      "type": "Other"
-    },
-    {
-      "name": "Trojok, Jakob",
-      "affiliation": "HZDR, TU Dresden",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU Dresden",
-      "name": "Tröpgen, Hannes",
-      "type": "Other"
-    },
-    {
-      "name": "Wang, Manhui",
-      "affiliation": "University of Liverpool",
-      "type": "Other"
-    },
-    {
-      "affiliation": "TU-Dresden",
-      "name": "Winkler, Frank",
-      "type": "Other"
-    },
-    {
-      "affiliation": "LogMeIn, Inc.",
-      "name": "Worpitz, Benjamin",
-      "type": "Other"
-    },
-    {
-      "affiliation": "HZDR, TU-Dresden",
-      "name": "Zenker, Erik",
-      "type": "Other"
-    }
-  ],
+  "title": "mallocMC - Memory Allocator for Many Core Architectures",
+  "description": "This project provides a framework for fast memory managers on many core accelerators. It is based on alpaka to run on many different accelerators and implements multiple algorithms.",
   "keywords": [
-    "PIConGPU",
+    "mallocMC",
     "CUDA",
-    "OpenMP",
     "manycore",
-    "Plasma Physics",
     "GPU",
-    "HIP",
-    "C++"
+    "allocator"
   ],
   "language": "eng",
   "access_right": "open",
   "license": {
-    "id": "GPL-3.0"
+    "id": "MIT"
   },
-  "references": [
-    "L. V. Keldysh (1965). Ionization in the field of a strong electromagnetic wave.",
-    "D. Bauer and P. Mulser (1999). Exact field ionization rates in the barrier-suppression regime from numerical time-dependent Schrödinger-equation calculations. DOI:10.1103/PhysRevA.59.569",
-    "R. Pausch et al. (2014). How to test and verify radiation diagnostics simulations within particle-in-cell frameworks. DOI:10.1016/j.nima.2013.10.073",
-    "A. Huebl (2014). Injection Control for Electrons in Laser-Driven Plasma Wakes on the Femtosecond Time Scale. DOI:10.5281/zenodo.15924",
-    "A. Gonoskov et al. (2015). Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments. DOI:10.1103/PhysRevE.92.023305",
-    "A. Huebl et al. (2015). openPMD: A meta data standard for particle and mesh based data. DOI:10.5281/zenodo.591699",
-    "M. Vranic et al. (2016). Classical radiation reaction in particle-in-cell simulations. DOI:10.1016/j.cpc.2016.04.002",
-    "A. Matthes et al. (2016). In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC. DOI:10.14529/jsfi160403",
-    "A. Huebl et al. (2017). On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective. DOI:10.1007/978-3-319-67630-2_2",
-    "R. Pausch et al. (2018). Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles. DOI:10.1016/j.nima.2018.02.020",
-    "A. Huebl (2019). PIConGPU: Predictive Simulations of Laser-Particle Accelerators with Manycore Hardware. DOI:10.5281/zenodo.3266820"
+  "creators": [
+    {
+      "name": "Widera, René",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1642-0459"
+    },
+    {
+      "name": "Lenz, Julian",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-5250-0005"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Eckert, Carlchristian",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
+      "orcid": "0000-0002-6459-0842",
+      "type": "Other"
+    },
+    {
+      "name": "Worpitz, Benjamin",
+      "type": "Other"
+    },
+    {
+      "name": "Grund, Alexander",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0002-7196-8452",
+      "type": "Other"
+    },
+    {
+      "name": "Huebl, Axel",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1943-7141",
+      "type": "Other"
+    },
+    {
+      "name": "Gruber, Bernhard Manfred",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, CASUS, CERN",
+      "orcid": "0000-0001-7848-1690",
+      "type": "Other"
+    },
+    {
+      "name": "Bastrakov, Sergei",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-3396-6154",
+      "type": "Other"
+    }
   ]
 }

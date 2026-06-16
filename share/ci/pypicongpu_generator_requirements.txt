@@ -1,4 +1,0 @@
-pyyaml
-requests
-typeguard
-packaging

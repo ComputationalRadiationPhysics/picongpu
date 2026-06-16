@@ -1,8 +1,0 @@
-@startuml
-entity localRejectionProbabilityCache<per SuperCell>
-{
-    static constexpr numberAtomicStates
-    ----
-    [rejectionProbability : float32] [numberAtomicStates]
-}
-@enduml

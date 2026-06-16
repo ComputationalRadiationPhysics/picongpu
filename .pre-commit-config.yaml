@@ -1,92 +1,40 @@
 minimum_pre_commit_version: 3.2.0 # necessitated by Lucas-C's hooks
 default_install_hook_types: [pre-commit, pre-push]
-exclude: "thirdParty"
 repos:
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v20.1.8
+    rev: v19.1.7
     hooks:
       - id: clang-format
-        types_or: [file]
-        files: \.(cpp|def|h|cu|tpp|kernel|loader|unitless|hpp|param)$
+        files: \.(cpp|hpp)
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: v5.0.0
     hooks:
       - id: no-commit-to-branch
         args: [-b, dev]
       - id: check-merge-conflict
       - id: trailing-whitespace
-        exclude_types: [markdown, rst]
       - id: end-of-file-fixer
       - id: check-toml
       - id: check-yaml
+        args: ["--allow-multiple-documents"]
       - id: mixed-line-ending
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
-        exclude: \.tpl$
-      - id: pretty-format-json
-        args:
-          - "--autofix"
-          - "--no-ensure-ascii"
-          - "--no-sort-keys"
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
     hooks:
       - id: forbid-tabs
-        types_or: [file]
-        exclude_types: [rst, tex, tsv]
       - id: remove-tabs
-        types_or: [file]
-        exclude_types: [rst, tex, tsv]
       - id: forbid-crlf
       - id: remove-crlf
-  - repo: local
+  - repo: meta
     hooks:
-      - id: check_cpp_code_style
-        name: check_cpp_code_style
-        entry: share/ci/check_cpp_code_style.sh
-        language: system
-        files: \.(cpp|def|h|cu|tpp|kernel|loader|unitless|hpp|param)$
-        pass_filenames: false
-        # This hook runs on all files which is why it feels a bit too heavy-weight
-        # for running before every commit. The CI currently runs manually, so it's
-        # still running there and can be run manually and pre-push on demand.
-        # TODO: Adjust the script to take filenames, so that we can pass the
-        # filenames and speed things up before commits.
-        stages: [manual, pre-push]
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
-    rev: v0.12.10
+      - id: check-useless-excludes
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.15.0
     hooks:
-      # Run the linter.
-      - id: ruff
-        types_or: [python, pyi, jupyter]
-        # Rule E721 is about using isinstance()
-        # but lib/python/picongpu/pypicongpu/rendering/renderer.py
-        # is strict about types. Could be solved locally but I think this is fine.
-        args: [--fix, --ignore, E721]
-      # Run the formatter.
-      - id: ruff-format
-        types_or: [python, pyi, jupyter]
-        args: ["--line-length", "120"]
-  - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 3.0.0
+      - id: yamlfmt
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
     hooks:
-      - id: require-ascii
-        # Reasons for exclusion:
-        # - rst files: This is documentation.
-        # - CHANGELOG.md: Contains author names that might include special characters for correct spelling.
-        # - .zenodo.json: Contains author names that might include special characters for correct spelling.
-        # - unit_dimension.py: Contains theta as the symbol for temperature.
-        exclude_types: [rst]
-        exclude: CHANGELOG.md|.zenodo.json|lib/python/picongpu/picmi/diagnostics/unit_dimension.py
-  - repo: https://github.com/BlankSpruce/gersemi
-    rev: 0.22.1
-    hooks:
-      - id: gersemi
-        args: [-c, --diff, --no-warn-about-unknown-commands]
-      - id: gersemi
-        args: [-i, --no-warn-about-unknown-commands]
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.5.0"
-    hooks:
-      - id: pyproject-fmt
+      - id: yamllint

@@ -1,3 +1,0 @@
-numpy
-openpmd_api
-typeguard

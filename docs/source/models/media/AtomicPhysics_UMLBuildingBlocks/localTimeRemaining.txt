@@ -1,6 +1,0 @@
-@startuml
-entity localTimeRemaining<per superCell>
-{
-    timeRemaining : float32
-}
-@enduml
