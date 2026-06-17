@@ -65,13 +65,10 @@ namespace pmacc
         {
         }
 
-        constexpr DataSpace(DataSpace const&) = default;
-
-        HDINLINE constexpr DataSpace& operator=(DataSpace const&) = default;
-
         /** constructor.
          *
          * Sets size of all dimensions from alpaka.
+         * Reverses (permutes) the order of the dimensions.
          */
         template<typename T_MemberType>
         HDINLINE explicit DataSpace(alpaka::Vec<::alpaka::DimInt<T_dim>, T_MemberType> const& value)
@@ -86,7 +83,8 @@ namespace pmacc
          *
          * @param args size of each dimension, x,y,z,...
          */
-        template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, int> && ...)>>
+        template<std::convertible_to<int>... T_Args>
+        requires(sizeof...(T_Args) == T_dim)
         constexpr DataSpace(T_Args&&... args) : BaseType(std::forward<T_Args>(args)...)
         {
             static_assert(sizeof...(T_Args) == T_dim, "Number of arguments must be equal to the DataSpace dimension.");
