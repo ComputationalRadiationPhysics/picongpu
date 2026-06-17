@@ -73,6 +73,11 @@ namespace mallocMC
             return ptr_[index];
         }
 
+        [[nodiscard]] constexpr auto data() const -> decltype(auto)
+        {
+            return ptr_;
+        }
+
         [[nodiscard]] constexpr auto begin() const -> decltype(auto)
         {
             return ptr_;

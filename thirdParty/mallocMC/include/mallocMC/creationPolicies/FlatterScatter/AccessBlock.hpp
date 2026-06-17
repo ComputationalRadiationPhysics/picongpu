@@ -147,7 +147,7 @@ namespace mallocMC::CreationPolicies::FlatterScatterAlloc
          *
          * @return The number of pages in the access block.
          */
-        ALPAKA_FN_INLINE ALPAKA_FN_ACC constexpr static auto numPages() -> uint32_t
+        ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC constexpr static auto numPages() -> uint32_t
         {
             constexpr auto numberOfPages = blockSize / (pageSize + sizeof(PageTable<1>));
             // check that the page table entries does not have a padding
