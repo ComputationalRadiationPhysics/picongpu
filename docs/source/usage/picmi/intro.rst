@@ -35,17 +35,17 @@ Example User Script for a warm plasma setup:
 --------------------------------------
 .. _example_PICMI_setup_warm_plasma:
 
-.. literalinclude:: ../../../../share/picongpu/pypicongpu/examples/warm_plasma/main.py
+.. literalinclude:: ../../../../lib/python/examples/warm_plasma/main.py
    :language: python
 
 Creates a directory ``warm_plasma``, where you can run ``pic-build`` and subsequently ``tbg``.
-You can find this and more elaborate examples in `share/picongpu/pypicongpu/examples`.
+You can find this and more elaborate examples in `lib/python/examples`.
 
 Example User Script for a laser wakefield setup:
 --------------------------------------
 .. _example_PICMI_setup_lwfa:
 
-.. literalinclude:: ../../../../share/picongpu/pypicongpu/examples/laser_wakefield/main.py
+.. literalinclude:: ../../../../lib/python/examples/laser_wakefield/main.py
    :language: python
 
 Creates a directory ``LWFA``, where you can run ``pic-build`` and subsequently ``tbg``.
