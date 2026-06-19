@@ -144,9 +144,12 @@ Now build the scenario::
 
   # switch to the scenario directory if you haven't already
   cd ~/picongpu-projects/laser-wakefield-example/try01
-  pic-build
+  pic-build -j 6
 
 This will take a while, go grab a coffee.
+The ``-j 6`` behind ``pic-build`` tells the compiler to compile in parallel.
+You can speed up the compile process by requesting more cores here. 
+However this will also require more memory for the compile process.
 If this fails, read the manual or ask a colleague.
 
 After a successful build, run (still on the compute node, still inside your scenario directory)::
