@@ -15,6 +15,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Modules #####################################################################
 #
+source /software/foundation/x86_64/lmod/lmod/init/bash
 module load release/25.06
 module load GCC/13.3.0
 module load CUDA/12.6.0
