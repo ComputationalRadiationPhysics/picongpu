@@ -16,6 +16,9 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   We try to guess the project and account using the first and last entry.
 #   Here: selects the last available project.
 #   EDIT THESE IN CASE THE AUTO SELECTION DOESN'T WORK
+
+source /etc/profile.d/jsc-profile.sh
+
 export proj=$( jutil user projects --noheader | awk '{print $1}' | tail -n 1 )
 export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 
@@ -33,6 +36,7 @@ fi
 
 # General modules #############################################################
 #
+source /e/software/default/lmod/lmod/init/bash
 module purge
 module load Stages/2026
 module load GCC/14.3.0
