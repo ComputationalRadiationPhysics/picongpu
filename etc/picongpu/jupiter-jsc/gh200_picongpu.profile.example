@@ -36,6 +36,8 @@ fi
 
 # General modules #############################################################
 #
+#source /e/software/default/lmod/lmod/init/profile
+export MODULEPATH=/e/software/default/stages/2026/modules/all/Compiler/sidecompiler/GCCcore/14.3.0:/e/software/default/stages/2026/modules/all/Compiler/GCCcore/14.3.0:/e/software/default/stages/2026/UI/Defaults:/e/software/default/stages/2026/UI/Tools:/e/software/default/stages/2026/UI/Compilers:/e/software/default/supercomputer_modules:/e/software/default/productionstages:/e/software/default/userinstallations
 source /e/software/default/lmod/lmod/init/bash
 module purge
 module load Stages/2026
