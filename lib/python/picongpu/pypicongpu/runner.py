@@ -459,6 +459,7 @@ class Runner(BaseModel):
                         "rm_tmpdir": False,
                         "move_outputs": "copy",
                         "cachedir": str(self.cwl_cachedir),
+                        "preserve_entire_environment": True,
                     }
                 )
             ).make(str(self.workflow_definition_path))(**json.load(file))
