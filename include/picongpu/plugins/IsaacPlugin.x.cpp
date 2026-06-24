@@ -1,5 +1,4 @@
 /*
-/*
  * SPDX-FileCopyrightText: Alexander Matthes, Pawel Ordyna, Richard Pausch
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
