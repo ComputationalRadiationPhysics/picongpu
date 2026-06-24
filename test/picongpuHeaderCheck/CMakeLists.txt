@@ -2,7 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-#
+cmake_minimum_required(VERSION 3.28)
+project(PIConGPUHeaderTest)
+
+# Add common functions from alpaka.
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/alpaka/cmake/common.cmake)
+
 ################################################################################
 # Directory of this file.
 ################################################################################
