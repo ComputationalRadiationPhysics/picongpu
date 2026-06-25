@@ -105,14 +105,16 @@ namespace pmacc
             template<typename... Ts>
             constexpr auto fromStlTuple(std::tuple<Ts...> const& t)
             {
-                return std::apply([](auto&&... args) { return make_tuple(std::forward<decltype(args)>(args)...); }, t);
+                return std::apply(
+                    [](auto&&... args) { return tuple::make_tuple(std::forward<decltype(args)>(args)...); },
+                    t);
             }
 
             template<typename... Ts>
             constexpr auto fromStlTuple(std::tuple<Ts...>&& t)
             {
                 return std::apply(
-                    [](auto&&... args) { return make_tuple(std::forward<decltype(args)>(args)...); },
+                    [](auto&&... args) { return tuple::make_tuple(std::forward<decltype(args)>(args)...); },
                     std::move(t));
             }
 
