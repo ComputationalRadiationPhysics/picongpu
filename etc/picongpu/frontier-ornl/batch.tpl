@@ -159,7 +159,7 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     # Run PIConGPU
     echo "Start PIConGPU."
     test $n_broken_nodes -ne 0 && exclude_nodes="-x./bad_nodes.txt"
-    srun -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 $TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
+    srun -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 $TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 else
     echo "Job stopped because of previous issues."
     echo "Job stopped because of previous issues." >&2
