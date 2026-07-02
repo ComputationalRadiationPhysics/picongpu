@@ -82,7 +82,7 @@ electrons = Species(particle_type="electron", name="electrons", initial_distribu
 hydrogen_ions = Species(
     particle_type="H",
     name="hydrogen",
-    charge_state=0,
+    charge_state=1,
     initial_distribution=particle_distribution,
 )
 

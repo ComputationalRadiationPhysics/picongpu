@@ -38,7 +38,7 @@ profile = picmi.UniformDistribution(
     # most probable E_kin = 5 mc^2
     # approx. 9000 keV for electrons
     # must be equal for all three components
-    rms_velocity=[4.18 * picmi.constants.c] * 3,
+    rms_velocity=[0.1 * picmi.constants.c] * 3,
 )
 electron = picmi.Species(
     name="e",
