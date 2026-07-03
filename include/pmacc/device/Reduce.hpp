@@ -57,6 +57,13 @@ namespace pmacc
             {
             }
 
+            void tmpBufferAlloc()
+            {
+                // lazy allocation of the result buffer
+                if(!reduceBuffer)
+                    reduceBuffer = std::make_unique<GridBuffer<char, DIM1>>(DataSpace<DIM1>(byte));
+            }
+
             /** Reduce elements in global gpu memory
              *
              * @param func binary functor for reduce which takes two arguments, first argument is the source and
@@ -89,8 +96,7 @@ namespace pmacc
                     threads = n;
 
                 // lazy allocation of the result buffer
-                if(!reduceBuffer)
-                    reduceBuffer = std::make_unique<GridBuffer<char, DIM1>>(DataSpace<DIM1>(byte));
+                tmpBufferAlloc();
 
                 auto* dest = (Type*) reduceBuffer->getDeviceBuffer().data();
 
