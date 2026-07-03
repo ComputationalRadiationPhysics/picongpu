@@ -191,36 +191,9 @@ Active Team
 - Dr. Richard Pausch
 - Dr. Klaus Steiniger
 
-### Maintainers* and core developers
+### current and former developers
 
-- Finn-Ole Carstens
-- Dr. Alexander Debus
-- Dr. Marco Garten*
-- Dr. Axel Huebl*
-- Dr. Jeffrey Kelling*
-- Dr. Julian Lenz* 
-- Brian Edward Marre
-- Tapish Narwal*
-- Pawel Ordyna 
-- Dr. Richard Pausch*
-- Franz Poeschel
-- Dr. Klaus Steiniger*
-- Rene Widera*
-
-### Former Members, Contributions and Thanks
-
-The PIConGPU team expresses its gratitude to:
-
-Dr. Sergei Bastrakov, Florian Berninger, Heiko Burau, Fabia Dietrich, Robert Dietrich, Carlchristian Eckert,
-Simeon Ehrig, Ph.D. Wen Fu, Alexander Grund, Sebastian Hahn, Anton Helm, Wolfgang Hoehnig,
-Dr.-Ing. Guido Juckeland, Jeffrey Kelling, Maximilian Knespel, Dr. Remi Lehe,
-Felix Schmitt, Frank Winkler, Benjamin Schneider, Joseph Schuchart, Conrad Schumann,
-Stefan Tietze, Ph.D. Marija Vranic, Benjamin Worpitz, Erik Zenker,
-Sophie Rudat, Sebastian Starke, Alexander Matthes, Kseniia Bastrakova, 
-Bernhard Manfred Gruber, Jakob Trojok, Anton Lebedev, Nils Prinz,
-Felix Meyer, Lennert Sprenger, Manhui Wang, Maxence Thevenet, Ilja Goethel,
-Mika Soren Voß, Lei Bifeng, Andrei Berceanu, Felix Meyer,
-Lennert Sprenger and Nico Wrobel.
+A list of all developers that contributed to PIConGPU can be found in the file `.zenodo.json`.
 
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
 way!
