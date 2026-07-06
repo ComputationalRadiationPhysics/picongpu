@@ -161,7 +161,12 @@ def get_available_presets() -> list[str]:
 
 
 def _preset_path(preset) -> Path:
-    candidates = list(filter(lambda p: preset in str(p), get_available_presets()))
+    # The `or` enables the following feature:
+    # `preset = "bash" is first matched against `bash/` and uniquely determines `bash/bash_picongpu.profile.example`
+    # without the first option in the `or` it would be ambiguous because `bash-devServer-hzdr/...` would match as well.
+    candidates = list(filter(lambda p: f"{preset}/" in str(p), get_available_presets())) or list(
+        filter(lambda p: preset in str(p), get_available_presets())
+    )
     if len(candidates) > 1:
         raise ValueError(f"The given {preset=} is ambiguous ({candidates=}). Please be more specific!")
     if len(candidates) == 0:
