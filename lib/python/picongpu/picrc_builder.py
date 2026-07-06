@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.11,<3.14"
+# dependencies = [
+#   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
+# ]
+# ///
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
@@ -18,7 +24,7 @@ import tomli_w
 
 from moosetash import MissingVariable
 
-from picongpu._rc_params import RCParams
+from picongpu._rc_params import RCParams, get_available_presets
 
 __all__ = ["main"]
 
@@ -133,7 +139,21 @@ def main(argv=None):
         p = RCParams(picongpurc_path=path)
     else:
         questionary.print("First, let's choose a preset.")
-        preset = questionary.text("preset = ").ask()
+
+        available_presets = [
+            name.removesuffix(".example").removesuffix(".profile").removesuffix("_picongpu")
+            for name in get_available_presets()
+        ]
+        if not available_presets:
+            print("Error: No presets found in etc/picongpu.")
+            return
+
+        preset = questionary.select("Select a preset:", choices=available_presets).ask()
+
+        if preset is None:
+            print("Aborted.")
+            return
+
         questionary.print(f"Using preset '{preset}'.")
         p = RCParams(preset=preset)
 
@@ -173,7 +193,15 @@ def main(argv=None):
         questionary.print(f"Written to {path}.")
         questionary.print("You can start your simulation now.")
     elif choice in ("Yes, but ask for a path.", "Yes, but ask for a new path."):
-        new_path = Path(questionary.path("Path to write: ").ask())
+        default_path = Path("./.picongpurc.toml")
+        new_path_str = questionary.path("Path to write:", default=str(default_path)).ask()
+
+        if new_path_str is None:
+            print("Aborted.")
+            return
+
+        new_path = Path(new_path_str)
+
         if new_path.exists():
             if not questionary.confirm(
                 f"{new_path} already exists. Overwrite?",
