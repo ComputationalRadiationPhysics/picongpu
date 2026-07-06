@@ -152,22 +152,25 @@ def _make_template_from_example(profile_content):
     return "\n".join(lines)
 
 
+PRESET_STORAGE_PATH = core.path("etc") / "picongpu"
+
+
+def get_available_presets() -> list[str]:
+    """Return a list of available preset names from etc/picongpu."""
+    return list(map(lambda p: str(p.relative_to(PRESET_STORAGE_PATH)), PRESET_STORAGE_PATH.rglob("*.profile*")))
+
+
+def _preset_path(preset) -> Path:
+    candidates = list(filter(lambda p: preset in str(p), get_available_presets()))
+    if len(candidates) > 1:
+        raise ValueError(f"The given {preset=} is ambiguous ({candidates=}). Please be more specific!")
+    if len(candidates) == 0:
+        raise ValueError(f"No matching {preset=} found from {get_available_presets()=}.")
+    return PRESET_STORAGE_PATH / candidates[0]
+
+
 def _read_preset(preset):
-    etc_path = core.path("etc") / "picongpu" / preset
-    if etc_path.is_dir():
-        candidates = list(etc_path.glob("*.profile.example"))
-        if len(candidates) == 0:
-            raise ValueError(f"{preset=} not found in {etc_path=}.")
-        if len(candidates) > 1:
-            raise ValueError(
-                f"{preset=} is ambiguous. Please use one of the following instead: {[f'{preset}/{c.name}' for c in candidates]}."
-            )
-        etc_path = candidates[0]
-    if not etc_path.is_file() and not preset.endswith(".profile.example"):
-        etc_path = Path(str(etc_path) + ".profile.example")
-    if not etc_path.is_file():
-        raise ValueError(f"{preset=} not found in {etc_path=}.")
-    with etc_path.open("r") as file:
+    with _preset_path(preset).open("r") as file:
         return file.read()
 
 
