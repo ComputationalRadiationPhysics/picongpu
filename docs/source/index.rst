@@ -44,10 +44,19 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    install/instructions
    install/dependencies
    install/profile
-   install/changelog.md
+install/changelog.md
 
 .. toctree::
-   :caption: TUTORIALS
+    :caption: PIConGPU PYTHON PACKAGE
+    :maxdepth: 1
+    :hidden:
+
+    python_package/quickstart
+    python_package/user_guide/index
+    python_package/api/index
+
+.. toctree::
+    :caption: TUTORIALS
    :maxdepth: 1
    :hidden:
 
