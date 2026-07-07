@@ -20,6 +20,28 @@ The PIConGPU Python frontend is a thin Python wrapper with 3 core capabilities:
    available on every machine you want to run on
 #. Orchestrating the workflow of compiling and running your simulation
 
+Usage Overview
+--------------
+
+The PIConGPU Python package aims at reducing the user's input to the bare necessary.
+In order to run a simulation you will
+
+#. Define your simulation experiment (laser, grid, ...)
+#. Configure runtime aspects (system to run on, author information, ...)
+#. Execute your input file as a Python script
+
+The two kinds of configuration (simulation vs. runtime) are supposed to be orthogonal in that
+the definition of your simulation captures your experimental intention
+("I want to investigate this LWFA scenario.")
+while the runtime configuration captures the concrete circumstances of execution
+("I want to run on system X.").
+The former is supposed to be portable and reusable among researchers/projects/machines/...
+while fixing the simulation setup
+("I want to run my colleague's experiment on another machine.")
+while the latter is bound to the machine and user
+but reusable among different simulation setups
+("I want to investigate this PWFA scenario next.").
+
 Components
 ----------
 
