@@ -10,6 +10,10 @@ requirements:
         entry: $(inputs.include_directory)
       - entryname: build.sh
         entry: $(inputs.script)
+  EnvVarRequirement:
+    envDef:
+      - envName: PICONGPU_RUNNING_AS_CWL
+        envValue: "1"
 
 baseCommand: ./build.sh
 

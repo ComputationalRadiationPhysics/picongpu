@@ -14,6 +14,10 @@ requirements:
         entry: $(inputs.etc_directory)
       - entryname: tbg_link
         entry: $(inputs.tbg_link)
+  EnvVarRequirement:
+    envDef:
+      - envName: PICONGPU_RUNNING_AS_CWL
+        envValue: "1"
 
 baseCommand: ./submit.sh
 

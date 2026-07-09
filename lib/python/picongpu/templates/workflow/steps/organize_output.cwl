@@ -8,6 +8,10 @@ requirements:
     listing:
       - entryname: organize_output.sh
         entry: $(inputs.script)
+  EnvVarRequirement:
+    envDef:
+      - envName: PICONGPU_RUNNING_AS_CWL
+        envValue: "1"
 
 baseCommand: ./organize_output.sh
 
