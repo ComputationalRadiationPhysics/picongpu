@@ -47,6 +47,7 @@ to build and run PIConGPU on the configured system
 (if you've used ``simulation.run()`` and not ``simulation.write_input_file()``).
 CAUTION: ``uv run`` (and potentially others) might try to set a file lock.
 This can cause problems on parallel file system.
+Use one of the other methods below if you run into trouble.
 
 For most HPC systems, this means that we'll submit (at least) the main simulation job
 to a set of dedicated compute nodes.
@@ -65,6 +66,8 @@ about your submission:
     # default linking, restoring the behaviour as found in the legacy workflow
     cd $RUN_DIR
     ./link_results.sh
+
+  You can also just read the script to find out where your data ended up.
 
 From installation
 -----------------
@@ -99,6 +102,8 @@ Make sure to use ``-e`` in order for the installation
 to take into account changes in your repository.
 Afterwards, you can proceed as in `From installation`_.
 This is intended for development purposes.
+Developers should also look into the `pyproject.toml`_ file
+to find out about optional dependencies (like test or development dependencies).
 
 Advanced Workflows
 ==================
