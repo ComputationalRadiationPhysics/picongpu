@@ -45,6 +45,8 @@ generate the necessary input files
 and immediately execute the necessary steps (i.e. the workflow)
 to build and run PIConGPU on the configured system
 (if you've used ``simulation.run()`` and not ``simulation.write_input_file()``).
+CAUTION: ``uv run`` (and potentially others) might try to set a file lock.
+This can cause problems on parallel file system.
 
 For most HPC systems, this means that we'll submit (at least) the main simulation job
 to a set of dedicated compute nodes.
