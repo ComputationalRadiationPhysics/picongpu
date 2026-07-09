@@ -10,6 +10,10 @@ requirements:
         entry: $(inputs.etc_directory)
       - entryname: prepare_submission.sh
         entry: $(inputs.script)
+  EnvVarRequirement:
+    envDef:
+      - envName: PICONGPU_RUNNING_AS_CWL
+        envValue: "1"
 
 baseCommand: ./prepare_submission.sh
 

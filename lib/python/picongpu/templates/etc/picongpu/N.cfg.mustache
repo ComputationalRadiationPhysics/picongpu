@@ -234,6 +234,10 @@ TBG_tasks="$(( TBG_devices_x * TBG_devices_y * TBG_devices_z ))"
 # restore shell opt u to previous state
 $SHELL_OPT_U_RESTORE
 
+if [ -z $PICONGPU_RUNNING_AS_CWL ]; then
+  "$TBG_cfgPath"/submitAction.sh
+fi
+
 # picmi specific input copy (outside of submitAction.sh)
 if [ -f $TBG_projectPath/metadata/pypicongpu_rendering_context.json ]
 then
