@@ -84,7 +84,7 @@ namespace picongpu
 
             MPI_Comm communicator; /* MPI communicator for openPMD API */
 
-            std::optional<std::string> jsonConfig;
+            std::optional<std::string> backendConfigResolved;
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 

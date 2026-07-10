@@ -159,7 +159,7 @@ namespace picongpu
                      * backend_config. The reading routines (for restarting from a checkpoint) are configured via
                      * --checkpoint.openPMD.jsonRestart.
                      */
-                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonConfig.value());
+                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : backendConfigResolved.value());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -651,14 +651,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 throw std::runtime_error("Command line option openPMD.json was renamed as openPMD.backendConfig.");
             }
-            if(!jsonConfig.has_value())
+            if(!backendConfigResolved.has_value())
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                jsonConfig.emplace(resolveJsonConfig(backendConfigString, communicator));
+                backendConfigResolved.emplace(resolveJsonConfig(backendConfigString, communicator));
             }
 
-            log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % *jsonConfig;
+            log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % *backendConfigResolved;
             if(!help.backendConfigRestartForbidden.empty())
             {
                 throw std::runtime_error(
