@@ -166,8 +166,7 @@ namespace picongpu
                     // treated as an MPI-collective call.
                     for(uint32_t d = 0; d < components; d++)
                     {
-                        ::openPMD::RecordComponent recordComponent
-                            = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+                        ::openPMD::RecordComponent recordComponent = components > 1 ? record[name_lookup[d]] : record;
 
                         recordComponent.storeChunk<ComponentType>(
                             ::openPMD::Offset{globalOffset},
