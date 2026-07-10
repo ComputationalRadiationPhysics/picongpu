@@ -104,13 +104,7 @@ A full example:
 
 .. literalinclude:: openPMD_extended_config.json
 
-<<<<<<< HEAD
-The extended format is only available for configuration of the writing procedures.
 The reading procedures (i.e. for restarting from a checkpoint) can be configured via ``--checkpoint.openPMD.backendConfigRestart``, e.g. see the example below for configuring the number of blosc decompression threads in ADIOS2.
-Note that most sensible use cases for this command line option (including this example) require openPMD-api >= 0.15 (or a recent dev version until the 0.15 release).
-=======
-The reading procedures (i.e. for restarting from a checkpoint) can be configured via ``--checkpoint.openPMD.jsonRestart``, e.g. see the example below for configuring the number of blosc decompression threads in ADIOS2.
->>>>>>> 38e68caca (Update some bits and pieces in the documentation)
 
 .. literalinclude:: openPMD_restart_config.json
 
