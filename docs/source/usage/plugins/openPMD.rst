@@ -36,20 +36,33 @@ See the next section for further information: `Configuring the openPMD plugin wi
 
 You can use ``--openPMD.period`` to specify the output period.
 The base filename is specified via ``--openPMD.file``.
-The openPMD API will parse the file name to decide the chosen backend and iteration layout:
 
-* The filename extension will determine the backend.
-* The openPMD will either create one file encompassing all iterations (group-based iteration layout) or one file per iteration (file-based iteration layout).
-  The filename will be searched for a pattern describing how to derive a concrete iteration's filename.
-  If no such pattern is found, the group-based iteration layout will be chosen.
-  Please refer to the documentation of the openPMD API for further information.
+The openPMD API will parse the file name to decide the default chosen backend and iteration layout:
+
+* The filename extension will determine the default backend.
+* The openPMD plugin will by default create one file per iteration (file-based iteration layout), determined by the expansion pattern supplied in ``--openPMD.infix`` (default value: ``--openPMD.infix _%06T``).
+  In order to write all iterations to a single file (variable-based or group-based iteration encoding, depending on openPMD-api version and backend), remove the filename expansion pattern by erasing the ``--openPMD.infix`` parameter, e.g. by ``--openPMD.infix NULL``.
+
+These chosen defaults may be overridden through a JSON/TOML options ``"iteration_encoding"`` and ``"backend"`` inside ``--openPMD.backendConfig``.
+Please refer to the `documentation of the openPMD API <https://openpmd-api.readthedocs.io/en/0.17.1/details/backendconfig.html#backend-independent-json-configuration>`_ for further information.
+
+Note that writing all data to a single file is only advisable for ADIOS2 as it natively supports such workflows through IO steps, used in openPMD by variable-based iteration encoding; example:
+
+.. literalinclude:: variablebased.txt
+
+File-based iteration encoding remains the first-class IO method of PIConGPU, and should only be replaced by another method if a specific reason is at hand.
+
+Group-based iteration encoding alternatively allows writing all data to a single file, supported for all IO backends, by creating new subhierarchies for every iteration.
+This has various undesirable performance and stability implications for the different backends and should not be treated as a scalable approach for IO:
+
+.. literalinclude:: groupbased.txt
 
 In order to set defaults for these value, two further options control the filename:
 
 * ``--openPMD.ext`` sets the filename extension.
   Possible extensions include ``bp5`` (default), ``bp4``, ``bp`` (discouraged) for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
 * ``--openPMD.infix`` sets the filename pattern that controls the iteration layout, default is "_%06T" for a six-digit number specifying the iteration.
-  Leave empty to pick group-based iteration layout.
+  Leave empty to pick variable-based or group-based iteration layout (openPMD will pick variable-based encoding if possible, and fall back to group-based otherwise).
   Since passing an empty string may be tricky in some workflows, specifying ``--openPMD.infix=NULL`` is also possible.
 
   Note that streaming IO does not work with file-based iteration layout in openPMD, i.e. ``--openPMD.infix=NULL`` is mandatory.
@@ -130,7 +143,8 @@ PIConGPU command line option          description
                                       Default is ``:,:,:``, which dumps all cells.
 ``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
 ``--openPMD.ext``                     openPMD filename extension (this controls the backend picked by the openPMD API).
-``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).
+``--openPMD.infix``                   openPMD filename infix (use to pick file-, variable-, or group-based layout in openPMD).
+                                      Set to NULL to keep empty (e.g. to pick variable-/group-based iteration layout).
 ``--openPMD.backendConfig``           Set backend-specific parameters for openPMD backends in JSON format. Used in writing procedures.
 ``--checkpoint.openPMD.backendConfigRestart`` Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
 ``--openPMD.dataPreparationStrategy`` Strategy for preparation of particle data ('doubleBuffer' or 'mappedMemory'). Aliases 'adios' and 'hdf5' may be used respectively.
