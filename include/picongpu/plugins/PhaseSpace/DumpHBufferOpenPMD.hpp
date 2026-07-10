@@ -149,7 +149,6 @@ namespace picongpu
             /** write local domain ********************************************/
 
             ::openPMD::Mesh mesh = iteration.meshes[dataSetName.str()];
-            // ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
             mesh.resetDataset({::openPMD::determineDatatype<Type>(), globalPhaseSpace_extent});
             std::shared_ptr<Type> data(hBuffer.data(), [](auto const&) {});
