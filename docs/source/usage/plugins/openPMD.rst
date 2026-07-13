@@ -5,6 +5,11 @@ openPMD
 
 Stores simulation data such as fields and particles according to the `openPMD standard <https://github.com/openPMD/openPMD-standard>`_ using the `openPMD API <https://openpmd-api.readthedocs.io>`_.
 
+.. tip::
+
+    Refer also to the :ref:`5 minute tutorial <hemeraIn5min>` for a quick introduction.
+
+
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
