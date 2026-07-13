@@ -1,0 +1,52 @@
+  float     /data/0/fields/B/x                                        {192, 1024, 192}
+  float     /data/0/fields/B/y                                        {192, 1024, 192}
+  float     /data/0/fields/B/z                                        {192, 1024, 192}
+  float     /data/0/fields/E/x                                        {192, 1024, 192}
+  float     /data/0/fields/E/y                                        {192, 1024, 192}
+  float     /data/0/fields/E/z                                        {192, 1024, 192}
+  float     /data/0/fields/e_all_chargeDensity                        {192, 1024, 192}
+  float     /data/0/fields/e_all_energyDensity                        {192, 1024, 192}
+  float     /data/0/particles/e/momentum/x                            {71811072}
+  float     /data/0/particles/e/momentum/y                            {71811072}
+  float     /data/0/particles/e/momentum/z                            {71811072}
+  uint64_t  /data/0/particles/e/particlePatches/extent/x              {1}
+  uint64_t  /data/0/particles/e/particlePatches/extent/y              {1}
+  uint64_t  /data/0/particles/e/particlePatches/extent/z              {1}
+  uint64_t  /data/0/particles/e/particlePatches/numParticles          {1}
+  uint64_t  /data/0/particles/e/particlePatches/numParticlesOffset    {1}
+  uint64_t  /data/0/particles/e/particlePatches/offset/x              {1}
+  uint64_t  /data/0/particles/e/particlePatches/offset/y              {1}
+  uint64_t  /data/0/particles/e/particlePatches/offset/z              {1}
+  float     /data/0/particles/e/position/x                            {71811072}
+  float     /data/0/particles/e/position/y                            {71811072}
+  float     /data/0/particles/e/position/z                            {71811072}
+  int32_t   /data/0/particles/e/positionOffset/x                      {71811072}
+  int32_t   /data/0/particles/e/positionOffset/y                      {71811072}
+  int32_t   /data/0/particles/e/positionOffset/z                      {71811072}
+  float     /data/0/particles/e/weighting                             {71811072}
+  float     /data/100/fields/B/x                                      {192, 1024, 192}
+  float     /data/100/fields/B/y                                      {192, 1024, 192}
+  float     /data/100/fields/B/z                                      {192, 1024, 192}
+  float     /data/100/fields/E/x                                      {192, 1024, 192}
+  float     /data/100/fields/E/y                                      {192, 1024, 192}
+  float     /data/100/fields/E/z                                      {192, 1024, 192}
+  float     /data/100/fields/e_all_chargeDensity                      {192, 1024, 192}
+  float     /data/100/fields/e_all_energyDensity                      {192, 1024, 192}
+  float     /data/100/particles/e/momentum/x                          {71811072}
+  float     /data/100/particles/e/momentum/y                          {71811072}
+  float     /data/100/particles/e/momentum/z                          {71811072}
+  uint64_t  /data/100/particles/e/particlePatches/extent/x            {4}
+  uint64_t  /data/100/particles/e/particlePatches/extent/y            {4}
+  uint64_t  /data/100/particles/e/particlePatches/extent/z            {4}
+  uint64_t  /data/100/particles/e/particlePatches/numParticles        {4}
+  uint64_t  /data/100/particles/e/particlePatches/numParticlesOffset  {4}
+  uint64_t  /data/100/particles/e/particlePatches/offset/x            {4}
+  uint64_t  /data/100/particles/e/particlePatches/offset/y            {4}
+  uint64_t  /data/100/particles/e/particlePatches/offset/z            {4}
+  float     /data/100/particles/e/position/x                          {71811072}
+  float     /data/100/particles/e/position/y                          {71811072}
+  float     /data/100/particles/e/position/z                          {71811072}
+  int32_t   /data/100/particles/e/positionOffset/x                    {71811072}
+  int32_t   /data/100/particles/e/positionOffset/y                    {71811072}
+  int32_t   /data/100/particles/e/positionOffset/z                    {71811072}
+  float     /data/100/particles/e/weighting                           {71811072}

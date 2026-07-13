@@ -44,9 +44,11 @@ The base filename is specified via ``--openPMD.file``.
 
 The openPMD API will parse the file name to decide the default chosen backend and iteration layout:
 
-* The filename extension will determine the default backend.
-* The openPMD plugin will by default create one file per iteration (file-based iteration layout), determined by the expansion pattern supplied in ``--openPMD.infix`` (default value: ``--openPMD.infix _%06T``).
-  In order to write all iterations to a single file (variable-based or group-based iteration encoding, depending on openPMD-api version and backend), remove the filename expansion pattern by erasing the ``--openPMD.infix`` parameter, e.g. by ``--openPMD.infix NULL``.
+* The filename extension, specified in ``--openPMD.ext``, will determine the default backend.
+  Possible extensions include ``bp5`` (default), ``bp4``, ``bp`` (discouraged) for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
+* The openPMD plugin will by default create one file per iteration (file-based iteration layout), determined by the expansion pattern supplied in ``--openPMD.infix`` (default value: ``--openPMD.infix _%06T`` for a six-digit number specifying the iteration).
+  In order to write all iterations to a single file (variable-based or group-based iteration encoding, depending on openPMD-api version and backend), remove the filename expansion pattern by passing an empty string to the ``--openPMD.infix`` parameter.  Since passing an empty string may be tricky in some workflows, specifying ``--openPMD.infix=NULL`` is also possible.
+
 
 These chosen defaults may be overridden through a JSON/TOML options ``"iteration_encoding"`` and ``"backend"`` inside ``--openPMD.backendConfig``.
 Please refer to the `documentation of the openPMD API <https://openpmd-api.readthedocs.io/en/0.17.1/details/backendconfig.html#backend-independent-json-configuration>`_ for further information.
@@ -55,27 +57,19 @@ Note that writing all data to a single file is only advisable for ADIOS2 as it n
 
 .. literalinclude:: variablebased.txt
 
-File-based iteration encoding remains the first-class IO method of PIConGPU, and should only be replaced by another method if a specific reason is at hand.
+File-based iteration encoding remains the first-class IO method for disk output from PIConGPU, and should only be replaced by another method if a specific reason is at hand.
+
+A common reason is the use of streaming IO, which is incompatible with file-based iteration encoding.
+If PIConGPU detects a streaming backend (e.g. by ``--openPMD.ext=sst``), it will automatically set ``--openPMD.infix=NULL``, overriding the user's choice.
+Note however that the ADIOS2 backend can also be selected via ``--openPMD.backendConfig`` and via environment variables which PIConGPU does not check.
+It is hence recommended to set ``--openPMD.infix=NULL`` explicitly.
 
 Group-based iteration encoding alternatively allows writing all data to a single file, supported for all IO backends, by creating new subhierarchies for every iteration.
 This has various undesirable performance and stability implications for the different backends and should not be treated as a scalable approach for IO:
 
 .. literalinclude:: groupbased.txt
 
-In order to set defaults for these value, two further options control the filename:
-
-* ``--openPMD.ext`` sets the filename extension.
-  Possible extensions include ``bp5`` (default), ``bp4``, ``bp`` (discouraged) for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
-* ``--openPMD.infix`` sets the filename pattern that controls the iteration layout, default is "_%06T" for a six-digit number specifying the iteration.
-  Leave empty to pick variable-based or group-based iteration layout (openPMD will pick variable-based encoding if possible, and fall back to group-based otherwise).
-  Since passing an empty string may be tricky in some workflows, specifying ``--openPMD.infix=NULL`` is also possible.
-
-  Note that streaming IO does not work with file-based iteration layout in openPMD, i.e. ``--openPMD.infix=NULL`` is mandatory.
-  If PIConGPU detects a streaming backend (e.g. by ``--openPMD.ext=sst``), it will automatically set ``--openPMD.infix=NULL``, overriding the user's choice.
-  Note however that the ADIOS2 backend can also be selected via ``--openPMD.backendConfig`` and via environment variables which PIConGPU does not check.
-  It is hence recommended to set ``--openPMD.infix=NULL`` explicitly.
-
-Option ``--openPMD.source`` controls which data is output.
+Option ``--openPMD.source`` controls which data is put out.
 Its value is a comma-separated list of combinations of a data set name and a filter name.
 A user can see all possible combinations for the current setup in the command-line help for this option.
 Note that addding species and particle filters to ``.param`` files will automatically extend the number of combinations available.
