@@ -97,7 +97,7 @@ fi
 #   openPMD-api
 if [ ! -d "OPENPMD_ROOT" ]; then
     cd $SOURCE_DIR
-    git clone -b 0.16.1 https://github.com/openPMD/openPMD-api.git \
+    git clone -b 0.17.1 https://github.com/openPMD/openPMD-api.git \
         $SOURCE_DIR/openpmd-api
     mkdir $SOURCE_DIR/openpmd-api-build
     cd $SOURCE_DIR/openpmd-api-build
