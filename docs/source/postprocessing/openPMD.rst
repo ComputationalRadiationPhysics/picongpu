@@ -6,6 +6,12 @@ openPMD
 .. sectionauthor:: Axel Huebl
 .. moduleauthor:: Axel Huebl
 
+.. tip::
+
+	This section collects links to external resources for the openPMD data standard.
+	For a description of PIConGPU's openPMD plugin, refer to :ref:`the plugin documentation <usage-plugins-openPMD>`, or to the :ref:`5 minute tutorial <hemeraIn5min>`.
+
+
 If you hear about *openPMD** for the first time you can find a quick `online tutorial <http://www.openpmd.org>`_ on it here.
 
 As a user of PIConGPU, you will be mainly interested in our :ref:`python tools <pp-python>` and readers, that can read openPMD, e.g. into:
