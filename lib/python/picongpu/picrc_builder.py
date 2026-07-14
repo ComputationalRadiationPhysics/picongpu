@@ -73,7 +73,7 @@ def _offer_param_edits(p):
     if not all_entries:
         return set()
 
-    if not questionary.confirm("\nWant to see all set parameters to make edits?").ask():
+    if not questionary.confirm("\nWant to see all set parameters to make edits?", default=False).ask():
         return set()
 
     short_entries = sorted((k, v) for k, v in all_entries if k not in _MULTI_LINE_KEYS)
@@ -87,13 +87,13 @@ def _offer_param_edits(p):
         questionary.print(
             "  (<multi-line content hidden for module_section, profile_content, profile_template_content>)"
         )
-        show = questionary.confirm("Show multi-line content?").ask()
+        show = questionary.confirm("Show multi-line content?", default=False).ask()
         if show:
             for key, value in multi_entries:
                 questionary.print(f"\n--- {key} ---")
                 questionary.print(f"{value}\n")
 
-    if not questionary.confirm("\nWant to change any of these parameters?").ask():
+    if not questionary.confirm("\nWant to change any of these parameters?", default=False).ask():
         return set()
 
     all_keys = [k for k, _ in all_entries]
@@ -115,7 +115,7 @@ def _offer_param_edits(p):
 
 def _offer_custom_params(p):
     """Allow the user to add arbitrary custom key-value pairs."""
-    if not questionary.confirm("\nWant to add custom parameters?").ask():
+    if not questionary.confirm("\nWant to add custom parameters?", default=False).ask():
         return
 
     questionary.print("Enter key names and values. Leave key empty to finish.")
