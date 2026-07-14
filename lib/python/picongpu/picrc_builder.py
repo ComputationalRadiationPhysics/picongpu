@@ -54,6 +54,59 @@ def _gather_missing(p):
             p[var] = questionary.text(f"{var} = ").ask()
 
 
+def _offer_param_edits(p):
+    """Show all current parameters and let the user edit any of them.
+
+    Returns
+    -------
+    set[str]
+        Keys that the user actually changed.
+    """
+    data = p.model_dump()
+    entries = sorted((k, v) for k, v in data.items() if v is not None and k != "preset")
+    if not entries:
+        return set()
+
+    questionary.print("\nYour configuration contains the following parameters:")
+    for key, value in entries:
+        questionary.print(f"  {key} = {_toml_serialize(value)}")
+
+    if not questionary.confirm("\nWant to change any of these parameters?").ask():
+        return set()
+
+    keys_to_edit = (
+        questionary.checkbox(
+            "Which parameters would you like to change?",
+            choices=[k for k, _ in entries],
+        ).ask()
+        or []
+    )
+
+    overridden = set()
+    for key in keys_to_edit:
+        questionary.print(f"\nCurrent value: {key} = {_toml_serialize(p[key])}")
+        new_value = questionary.text(f"New value for {key}: ").ask()
+        if new_value is not None:
+            p[key] = new_value
+            overridden.add(key)
+    return overridden
+
+
+def _offer_custom_params(p):
+    """Allow the user to add arbitrary custom key-value pairs."""
+    if not questionary.confirm("\nWant to add custom parameters?").ask():
+        return
+
+    questionary.print("Enter key names and values. Leave key empty to finish.")
+    while True:
+        key = questionary.text("Key name (empty to finish): ").ask()
+        if not key or key == "":
+            break
+        value = questionary.text(f"Value for {key}: ").ask()
+        if value is not None:
+            p[key] = value
+
+
 def _toml_serialize(value):
     """Return a TOML scalar representation of *value*."""
     s = tomli_w.dumps({"_": value})
@@ -66,10 +119,12 @@ def _display_toml(output):
         questionary.print(f"{key} = {_toml_serialize(value)}")
 
 
-def _filter_user_keys(data):
+def _filter_user_keys(data, /, *overridden_keys):
     """Return dict of user-facing keys (preset first, then sorted).
 
     Internal / preset-derived keys are excluded so the preview stays clean.
+    Keys listed in *overridden_keys* are included because the user explicitly
+    changed them.
     """
     internal_keys = {
         "picongpurc_path",
@@ -81,17 +136,14 @@ def _filter_user_keys(data):
         "module_section",
         "spack_section",
         "pic_src_path",
-        "pic_backend",
-        "tbg_submit",
-        "tbg_tpl_file",
-        "tbg_partition",
     }
     output = {}
     for key in ("preset",):
-        if key not in internal_keys and data.get(key) is not None:
+        if (key in overridden_keys or key not in internal_keys) and data.get(key) is not None:
             output[key] = data[key]
-    for key in sorted(k for k in data if k not in internal_keys and data[k] is not None and k != "preset"):
-        output[key] = data[key]
+    for key in sorted(k for k in data if k != "preset" and data[k] is not None):
+        if key in overridden_keys or key not in internal_keys:
+            output[key] = data[key]
     return output
 
 
@@ -160,7 +212,10 @@ def main(argv=None):
     questionary.print("\nGathering missing information:")
     _gather_missing(p)
 
-    output = _filter_user_keys(p.model_dump())
+    overridden = _offer_param_edits(p)
+    _offer_custom_params(p)
+
+    output = _filter_user_keys(p.model_dump(), *overridden)
 
     questionary.print("\nAll done collecting values. Here is what will be written:")
     questionary.print("")
