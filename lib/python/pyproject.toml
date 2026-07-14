@@ -37,7 +37,7 @@ dependencies = [
   "pandas>=2.2.3",
   "particle>=0.25.1",
   "periodictable>=1.7.1",
-  "picmistandard @ git+https://github.com/chillenzer/picmi.git@b9d7e33c39830d4d1372b9d8383c7d4ff4eddd61",
+  "picmistandard @ git+https://github.com/chillenzer/picmi.git@c1d662238fc6642ca683826df688ccca12ed3765",
   "pillow",
   "pint",
   "pydantic>=2.6.4",
