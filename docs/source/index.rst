@@ -51,9 +51,10 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    :maxdepth: 1
    :hidden:
 
-   python_package/quickstart
-   python_package/user_guide/index
-   python_package/api/index
+python_package/quickstart
+    python_package/foundations/index
+    python_package/selected_topics/index
+    python_package/api/index
 
 .. toctree::
    :caption: TUTORIALS
