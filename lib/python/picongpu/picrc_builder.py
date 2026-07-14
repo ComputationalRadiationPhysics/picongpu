@@ -70,11 +70,14 @@ def _offer_param_edits(p):
     """
     data = p.model_dump()
     all_entries = [(k, v) for k, v in data.items() if v is not None and k != "preset"]
+    if not all_entries:
+        return set()
+
+    if not questionary.confirm("\nWant to see all set parameters to make edits?").ask():
+        return set()
+
     short_entries = sorted((k, v) for k, v in all_entries if k not in _MULTI_LINE_KEYS)
     multi_entries = sorted((k, v) for k, v in all_entries if k in _MULTI_LINE_KEYS)
-
-    if not short_entries:
-        return set()
 
     questionary.print("\nYour configuration contains the following parameters:")
     for key, value in short_entries:
