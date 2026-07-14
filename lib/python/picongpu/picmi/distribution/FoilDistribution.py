@@ -38,7 +38,7 @@ class FoilDistribution(PICMI_FoilDistribution):
     def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
-    def get_as_pypicongpu(self, _) -> species.operation.densityprofile.DensityProfile:
+    def get_as_pypicongpu(self, _) -> species.operation.densityprofile.AnyDensityProfile:
         util.unsupported("fill in", self.fill_in)
         util.unsupported("lower bound", self.lower_bound, (None, None, None))
         util.unsupported("upper bound", self.upper_bound, (None, None, None))
