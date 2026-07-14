@@ -54,7 +54,7 @@ Tutorial: Setting up a simple LWFA
 We will now add some interesting physics to our minimal example.
 This tutorial is supposed to give you a good introduction to the features
 you will typically use in your daily work.
-More details can be found in the various chapters of `the deep dive`_.
+More details can be found in `Selected Topics`_.
 
 Extracting global constants
 ---------------------------
@@ -97,7 +97,7 @@ Diagnostics
 
 Diagnostics, i.e. simulation output, are an important part of your simulation.
 PIConGPU allows to define general diagnostics in a flexible way.
-See `the corresponding deep dive`_ for a full overview of the capabilities.
+See `the corresponding topic`_ for a full overview of the capabilities.
 There are also various `predefined diagnostics`_ you can choose from.
 Some of these provide quick access to heavily used features/debugging tools.
 Others provide some optimized code for the diagnostic.
