@@ -24,7 +24,7 @@ import tomli_w
 
 from moosetash import MissingVariable
 
-from picongpu._rc_params import RCParams, get_available_presets
+from picongpu._rc_params import RCParams, _KEEP_AS_DEFAULT, get_available_presets
 
 __all__ = ["main"]
 
@@ -154,14 +154,8 @@ def _filter_user_keys(data, /, original_data):
         "dirty_reset_policy",
         "missing_variable_policy",
         "required_information",
-        "module_section",
-        "spack_section",
         "pic_src_path",
-        "pic_backend",
-        "tbg_submit",
-        "tbg_tpl_file",
-        "tbg_partition",
-    }
+    } | set(_KEEP_AS_DEFAULT)
     output = {}
     for key in ("preset",):
         if data.get(key) is not None:
