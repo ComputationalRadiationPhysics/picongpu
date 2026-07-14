@@ -10,7 +10,7 @@ from functools import partial
 from hashlib import sha256 as compute_hash
 from itertools import chain
 from pathlib import Path
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,6 @@ from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
     FilteredSpecies,
-    OnePosition,
     ParticleFilter,
     ParticleFunctor,
     Simulation,

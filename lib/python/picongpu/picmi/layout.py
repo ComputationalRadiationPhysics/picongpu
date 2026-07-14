@@ -11,7 +11,6 @@ from typing import Self
 
 import numpy as np
 import picmistandard
-from picmistandard.base import broadcast_validation
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 from ..pypicongpu.species.operation.layout import OnePosition as PyPIConGPU_OnePosition
