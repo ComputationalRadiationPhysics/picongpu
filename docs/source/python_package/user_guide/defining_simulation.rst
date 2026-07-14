@@ -2,7 +2,148 @@
 Defining Your Simulation
 ************************
 
-...
+Our frontend implements the `PICMI standard`_.
+This is a declarative Python interface for particle-in-cell simulation codes
+standardized in the community.
+We comply with the standard in the following sense:
+
+  * If a feature of PIConGPU can be expressed in terms of the elements defined in the standard,
+    we strive to do so.
+  * If a feature of PIConGPU cannot be expressed as such,
+    we provide an interoperable extension.
+    If this feature could be of general interest,
+    we strive to feed it back into the PICMI standard.
+  * If the PICMI standard contains elements that are not supported by PIConGPU,
+    we strive to provide a clear error message.
+
+Very generally, a PICMI input file is a Python script
+that defines and uses one or more `Simulation`_ objects.
+A minimal PICMI input file is thus::
+
+  <see minimal example>
+
+This short script defines a ``Simulation`` instance
+with a fixed number of simulations steps to run.
+The only other necessary piece of information is
+the electromagnetic field solver which -- in turn -- contains information about the grid.
+We will see more elements to add to a ``Simulation`` further below.
+
+At the top of the script, you can see `Python script inline metadata`_.
+Tools like `uv`_, `pipx`_ and others can use this to install necessary dependencies on-the-fly.
+We recommend this approach to fix the version of PIConGPU you are running in your script.
+In order to do so, replace the ``@dev`` with a concrete ``@<commit hash>``.
+This will make your input file reproducible and clearly document the version to everyone encountering it.
+See `Running your simulation`_ for more details on actually running your script.
+
+The PICMI standard defines various methods to interact with a ``Simulation`` instance.
+The most useful for interacting with PIConGPU are:
+
+``simulation.run()``
+  Generates PIConGPU input files, compiles a tailored binary and runs this all in one go.
+  This is convenient in most scenarios.
+
+``simulation.write_input_file()``
+  Only generate the PIConGPU input files.
+  This can be useful in more complex workflows and/or for fine-grained control and debugging.
+
+For other means of interacting with your simulation, see the corresponding `API documentation`_.
+
+Tutorial: Setting up a simple LWFA
+==================================
+
+We will now add some interesting physics to our minimal example.
+This tutorial is supposed to give you a good introduction to the features
+you will typically use in your daily work.
+More details can be found in the various chapters of `the deep dive`_.
+
+Extracting global constants
+---------------------------
+
+For starters, it is typically helpful to have access to some parameters in different parts of your input.
+In order to do so, we extract some constants and decompose the definition of the solver::
+
+  <NUM_CELLS, CELL_SIZE, grid and solver defined>
+
+Lasers
+------
+
+There are various lasers defined in `the PICMI standard`_ and its `PIConGPU extension`_.
+We define a Gaussian laser as moving into positive ``y`` direction
+(this is the convention PIConGPU is optimized for)::
+
+  <laser definition>
+
+Species and particles
+---------------------
+
+In the PICMI standard we define `abstract species`_
+and `distribute`_ particles belonging to such species among the cells.
+The precise location of a particle inside of a cell is finally determined by the `layout`_.
+Thus, in order to add particles to our simulation we need three components::
+
+  <define distribution, layout and MultiSpecies>
+
+A `MultiSpecies`_ consists of multiple individual `Species`_
+but ensures that the various species are consistently intialized together
+(i.e. typically at the same positions to ensure charge neutrality).
+
+We can add various `interactions`_ among our species.
+As an example, we allow to ionize the hydrogen into the corresponding electron species::
+
+  <ADK>
+
+Diagnostics
+-----------
+
+Diagnostics, i.e. simulation output, are an important part of your simulation.
+PIConGPU allows to define general diagnostics in a flexible way.
+See `the corresponding deep dive`_ for a full overview of the capabilities.
+There are also various `predefined diagnostics`_ you can choose from.
+Some of these provide quick access to heavily used features/debugging tools.
+Others provide some optimized code for the diagnostic.
+For example, we add a checkpoint and a macro-particle counter
+(a useful tool for debugging the particle content of your simulation)::
+
+  <Checkpoint, MacroParticleCount>
+
+Running the simulation
+----------------------
+
+As a last step, we add the following lines to run the simulation upon execution of the script::
+
+  <run lines>
+
+(De-)serializing a ``Simulation``
+=================================
+
+The PICMI standard is based on `pydantic`_.
+This provides automatic validation and (de-)serialization capabilities.
+You can serialize your ``Simulation`` into a machine-readable `json`_ representation via::
+
+  simulation.model_dump()
+
+We refer the reader to the `official documentation`_ for further details.
+Such a `json`_ representation can be found in ``metadata/picmi_simulation.json``
+in every generated set of input files.
+
+A ``Simulation`` can be deserialized from such a representation.
+This is particularly useful from a file, e.g.::
+
+  def deserialize_simulation(path):
+    with Path(path).open('r') as file:
+      return Simulation(json.load(file))
+
+This allows you to recover a PICMI ``Simulation`` instance from the generated input files.
+
+It is also possible to recover individual elements,
+if you know what you are looking for.
+For example, we could recover the species definitions from a previously run simulation::
+
+  def deserialize_species(path):
+    with Path(path).open('r') as file:
+      return [Species(spec) for spec in json.load(file)['species']]
+
+As such, you can flexibly reuse various aspects of your previous simulations.
 
 Multiple simulations in a single script
 =======================================
