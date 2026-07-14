@@ -2,7 +2,7 @@
 Defining Your Simulation
 ************************
 
-Our frontend implements the `PICMI standard`_.
+Our frontend implements the `PICMI standard <https://picmi-standard.github.io/>`__.
 This is a declarative Python interface for particle-in-cell simulation codes
 standardized in the community.
 We comply with the standard in the following sense:
@@ -17,7 +17,7 @@ We comply with the standard in the following sense:
     we strive to provide a clear error message.
 
 Very generally, a PICMI input file is a Python script
-that defines and uses one or more `Simulation`_ objects.
+that defines and uses one or more ``Simulation`` objects.
 A minimal PICMI input file is thus::
 
   <see minimal example>
@@ -28,12 +28,12 @@ The only other necessary piece of information is
 the electromagnetic field solver which -- in turn -- contains information about the grid.
 We will see more elements to add to a ``Simulation`` further below.
 
-At the top of the script, you can see `Python script inline metadata`_.
-Tools like `uv`_, `pipx`_ and others can use this to install necessary dependencies on-the-fly.
+At the top of the script, you can see `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__.
+Tools like `uv <https://docs.astral.sh/uv/>`__ and `pipx <https://pipx.pypa.io/>`__ and others can use this to install necessary dependencies on-the-fly.
 We recommend this approach to fix the version of PIConGPU you are running in your script.
 In order to do so, replace the ``@dev`` with a concrete ``@<commit hash>``.
 This will make your input file reproducible and clearly document the version to everyone encountering it.
-See `Running your simulation`_ for more details on actually running your script.
+See :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>` for more details on actually running your script.
 
 The PICMI standard defines various methods to interact with a ``Simulation`` instance.
 The most useful for interacting with PIConGPU are:
@@ -46,7 +46,7 @@ The most useful for interacting with PIConGPU are:
   Only generate the PIConGPU input files.
   This can be useful in more complex workflows and/or for fine-grained control and debugging.
 
-For other means of interacting with your simulation, see the corresponding `API documentation`_.
+For other means of interacting with your simulation, see the corresponding :ref:`API Documentation <python_package/api/index:API Documentation>`.
 
 Tutorial: Setting up a simple LWFA
 ==================================
@@ -54,7 +54,7 @@ Tutorial: Setting up a simple LWFA
 We will now add some interesting physics to our minimal example.
 This tutorial is supposed to give you a good introduction to the features
 you will typically use in your daily work.
-More details can be found in `Selected Topics`_.
+More details can be found in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
 
 Extracting global constants
 ---------------------------
@@ -67,7 +67,7 @@ In order to do so, we extract some constants and decompose the definition of the
 Lasers
 ------
 
-There are various lasers defined in `the PICMI standard`_ and its `PIConGPU extension`_.
+There are various lasers defined in `the PICMI standard <https://picmi-standard.github.io/>`__ and its :ref:`PIConGPU extension <PICMI_Extensions>`.
 We define a Gaussian laser as moving into positive ``y`` direction
 (this is the convention PIConGPU is optimized for)::
 
@@ -76,18 +76,18 @@ We define a Gaussian laser as moving into positive ``y`` direction
 Species and particles
 ---------------------
 
-In the PICMI standard we define `abstract species`_
-and `distribute`_ particles belonging to such species among the cells.
-The precise location of a particle inside of a cell is finally determined by the `layout`_.
+In the PICMI standard we define `abstract species <https://picmi-standard.github.io/>`__
+and `distributions <https://picmi-standard.github.io/>`__ of particles belonging to such species among the cells.
+The precise location of a particle inside of a cell is finally determined by `the layout <https://picmi-standard.github.io/>`__.
 Thus, in order to add particles to our simulation we need three components::
 
   <define distribution, layout and MultiSpecies>
 
-A `MultiSpecies`_ consists of multiple individual `Species`_
-but ensures that the various species are consistently intialized together
+A ``MultiSpecies`` consists of multiple individual ``Species``
+but ensures that the various species are consistently initialized together
 (i.e. typically at the same positions to ensure charge neutrality).
 
-We can add various `interactions`_ among our species.
+We can add various `interactions <https://picmi-standard.github.io/>`__ among our species.
 As an example, we allow to ionize the hydrogen into the corresponding electron species::
 
   <ADK>
@@ -97,8 +97,8 @@ Diagnostics
 
 Diagnostics, i.e. simulation output, are an important part of your simulation.
 PIConGPU allows to define general diagnostics in a flexible way.
-See `the corresponding topic`_ for a full overview of the capabilities.
-There are also various `predefined diagnostics`_ you can choose from.
+See :ref:`the diagnostics topic <python_package/selected_topics/index:Selected Topics>` for a full overview of the capabilities.
+There are also various predefined diagnostics you can choose from.
 Some of these provide quick access to heavily used features/debugging tools.
 Others provide some optimized code for the diagnostic.
 For example, we add a checkpoint and a macro-particle counter
@@ -116,14 +116,14 @@ As a last step, we add the following lines to run the simulation upon execution 
 (De-)serializing a ``Simulation``
 =================================
 
-The PICMI standard is based on `pydantic`_.
+The PICMI standard is based on `Pydantic <https://docs.pydantic.dev/>`__.
 This provides automatic validation and (de-)serialization capabilities.
-You can serialize your ``Simulation`` into a machine-readable `json`_ representation via::
+You can serialize your ``Simulation`` into a machine-readable `JSON <https://json.org/>`__ representation via::
 
   simulation.model_dump()
 
-We refer the reader to the `official documentation`_ for further details.
-Such a `json`_ representation can be found in ``metadata/picmi_simulation.json``
+We refer the reader to the `official documentation <https://docs.pydantic.dev/latest/concepts/serialization/>`__ for further details.
+Such a JSON representation can be found in ``metadata/picmi_simulation.json``
 in every generated set of input files.
 
 A ``Simulation`` can be deserialized from such a representation.
@@ -155,12 +155,11 @@ While more complex workflows will probably benefit from a full-blown workflow en
 there are still some interesting applications for this.
 
 As an example application we will consider
-an optimization of the focal position in an `LWFA`_ simulation.
+an optimization of the focal position in a Laser Wakefield Acceleration (LWFA) simulation.
 We can maximize the ejection of electrons from the plasma
 in a particular energy range by adjusting the focal position of the laser.
 Very loosely speaking:
 The earlier we focus, the more energy can be transferred to the plasma.
-The full example code can be found `here`_.
 
 Wrap ``Simulation`` definition into function
 --------------------------------------------
@@ -210,12 +209,8 @@ If we want to programmatically post-process the results in the same script,
 we have to wait until all simulations have run.
 As this is very system specific,
 we don't provide an officially supported method for doing so.
-But a good-enough solution is defined `in the example script`_ as ``wait_for``::
 
-  for simulation in simulations:
-    wait_for(simulation)
-
-We can now use the output of the `EnergyHistogram`_ and plot it::
+We can now use the output of the ``EnergyHistogram`` diagnostic and plot it::
 
   def count_electrons_in_energy_range(simulation, min_energy, max_energy):
     counts, bins = EnergyHistogram(energy_histogram_path(simulation)).get(species="electrons", iteration=[FIXED_KWARGS["max_steps"]])[:2]

@@ -8,8 +8,8 @@ a clear separation between environment definition and user input.
 This section is concerned with the environment configuration
 which is typically tailored to a specific machine and user,
 sometimes also to a particular project.
-This is in contrast to the `input files`_
-which are used to specify the simulations and physical intent
+This is in contrast to the :ref:`Defining Your Simulation` chapter,
+which is used to specify the simulations and physical intent
 independent of the machine, user, project, ... running this.
 We use the name "runtime configuration" for all aspects orthogonal to simulation definition.
 This includes aspects that in C/C++ jargon are considered "compiletime".
@@ -18,6 +18,8 @@ At the time of writing, the runtime configuration is used for the following aspe
 
   * On a specific machine making the correct compilers, libraries, etc. available.
   * For a specific user configuring the correct metadata to facilitate FAIR workflows.
+
+.. _configuring_env_picrc_builder:
 
 Recommended: The ``picrc-builder`` tool
 =======================================
@@ -33,11 +35,11 @@ You can run it via::
   picrc-builder
 
 from any environment in which the PIConGPU python package is installed.
-You can run it without installation via, e.g., the `uv`_ tool::
+You can run it without installation via, e.g., the `uv <https://docs.astral.sh/uv/>`__ tool::
 
   uv run --with="picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python" picrc-builder
 
-Make sure to save the generated file in a `location where it is picked up`_
+Make sure to save the generated file in a `configuring_env_toml_search`_,
 when you actually run your simulation.
 
 
@@ -45,7 +47,7 @@ when you actually run your simulation.
 ========================================================
 
 The PIConGPU python package's approach to runtime configuration
-is inspired by `matplotlib`_:
+is inspired by `Matplotlib's rcParams <https://matplotlib.org/stable/users/explain/customizing.html>`__:
 The code interacts with the runtime configuration
 via a global instance of a ``dict``-like ``RCParams`` class named ``picongpu.rc_params``.
 The information available in this instance at the time of querying
@@ -64,26 +66,31 @@ You can interact with this instance directly, e.g., defining or reading content 
     print("It worked!")
 
 This can be useful to define, e.g., machine-specific aspects of your simulation.
-Say, on a specific cluster you want to use a specific `openPMD`_ configuration::
+Say, on a specific cluster you want to use a specific `openPMD <https://www.openpmd.org/>`__ configuration::
 
   OPENPMD_CONFIG = ... if "jupiter" in rc_params['preset'] else ...
 
 This will define the ``OPENPMD_CONFIG`` in a particular way
 if the string ``"jupiter"`` is found in the name of the preset
-(this is a good indicator that you are running on the `JUPITER`_ cluster).
+(this is a good indicator that you are running on the `JUPITER <https://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUPITER/JUPITER_node.html>`__ supercomputer at JSC).
+
+.. _configuring_env_toml_search:
 
 The ``.picongpurc.toml`` file
 -----------------------------
 
 More generally, however, we expect you to keep
 your runtime configuration separate from your input files.
-In order to so, you can define it in a `toml`_ file
+In order to so, you can define it in a `TOML <https://toml.io/>`__ file
 that will be read when importing the PIConGPU python package for the first time.
 This file is named ``.picongpurc.toml``
 (with an optional ``.`` in the beginning to hide it on Unix systems)
-and can be located in one of the following locations::
+and can be located in one of the following locations (searched in order of decreasing precedence)::
 
-  <list search order>
+  search order (first match wins):
+  1. The file pointed to by the ``PIC_RC`` environment variable (if set)
+  2. The first ``*.picongpurc.toml`` or ``.picongpurc.toml`` found in the current directory or any parent directory
+  3. ``$XDG_CONFIG_HOME/picongpu/picongpurc.toml`` (typically ``~/.config/picongpu/picongpurc.toml``)
 
 Oftentimes, it is convenient to have one ``.picongpurc.toml`` file
 in a central (user-specific) location
@@ -97,12 +104,14 @@ if they are closer to the input in the directory tree.
 The ``pic_src_path`` parameter
 ------------------------------
 
+.. _configuring_env_pic_src_path:
+
 The ``pic_src_path`` parameter is a special parameter.
 You can override it with an explicit value
 but its intention is to be automatically deduced
 to point to the PIConGPU installation in use.
     
-
+    
 Presets
 =======
 
@@ -138,7 +147,7 @@ You can temporarily or permamently disable this via::
   rc_params['dirty_reset_policy'] = 'warn'
 
 The ``dirty_reset_policy`` can take an arbitrary handler to finetune the behaviour.
-We generally recommend to do runtime configuration via `.picongpurc.toml` outside of your script.
+We generally recommend to do runtime configuration via `configuring_env_toml_search`_ outside of your script.
 
 A full list of presets can be obtained via::
 
@@ -150,7 +159,7 @@ Finetuning presets
 
 Presets can be thought of as "just setting a bunch of parameters at once".
 Consequently, any of these parameters can be given another value.
-The `picrc-builder`_ allows you to change these values.
+The `configuring_env_picrc_builder`_ allows you to change these values.
 Otherwise, you can inspect the ``rc_params`` instance directly to see what has been set::
 
   for key, value in rc_params.items():
@@ -161,7 +170,7 @@ Otherwise, you can inspect the ``rc_params`` instance directly to see what has b
 
 The above code shows all parameters that have been set on the ``rc_params`` variable
 (typically by the preset)
-and then adjusts the `tbg_partition` to have a different value.
+and then adjusts the `tbg_partition` parameter to have a different value.
 The same could have been achieved in the ``.picongpurc.toml`` file directly
 because the preset is always applied first
 and all other configuration modifies a given preset::
@@ -178,12 +187,6 @@ providing a machine-specific environment to run the code in.
 Upon execution, PIConGPU's Python frontend generates
 self-contained scripts to run all the different steps (compilation, submission, ...)
 as well as a general profile that can be sourced to drop into the PIConGPU environment.
-Scripts are generally composed as follows::
-
-  <include script f-string>
-
-with the ``{commands}`` reflecting the different steps
-and ``{shebang}``, ``{preamble}`` and ``{profile_content}`` being configurable through ``rc_params``.
 
 Any of the above can be overriden using an ``rc_params`` entry, e.g.,::
 
@@ -193,9 +196,13 @@ and are given reasonable defaults otherwise.
 
 A manual configuration of the ``profile_content`` can be useful for running on a system
 for which we do not provide a preset yet.
-The ``profile_content`` is determined by the following cascade of prioritized defaults::
+The ``profile_content`` is determined by the following cascade of prioritized defaults:
 
-  <include .profile_content property code from RCParams>
+  1. A literal ``profile_content`` value in rc_params
+  2. The content of a file referenced by ``profile_path``
+  3. A ``profile_template_content`` string rendered as a `mustache <https://mustache.github.io/>`__ template using ``rendering_context``
+  4. The content of a file referenced by ``profile_template_path``, rendered as a mustache template
+  5. A minimal profile that only adds the PIConGPU tools to ``$PATH`` (insufficient for running)
 
 The following list gives a redundant configuration with strictly decreasing precedence::
 
@@ -215,7 +222,7 @@ The above configuration has the following effect:
   * Removing the first line
     would make it read ``/path/to/my/profile`` and use that as ``profile_content``.
   * Removing the second line as well
-    would make it render the given string in ``profile_template_content`` as a `mustache`_ template.
+    would make it render the given string in ``profile_template_content`` as a mustache template.
     Considering the custom parameter at the top,
     the result would be ``echo Rendering template content directly``.
   * Removing all but the last line would read the content of ``/path/to/my/profile-template``
@@ -231,4 +238,4 @@ If an undefined variable is encountered,
 the ``missing_variable_policy`` is called to determine how to proceed.
 By default it raises an exception.
 The special variable ``pic_src_path`` can be used to refer to
-the installation path of PIConGPU itself (see `above`_).
+the installation path of PIConGPU itself (see `configuring_env_pic_src_path`_ above).
