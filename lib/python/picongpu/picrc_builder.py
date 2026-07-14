@@ -54,8 +54,14 @@ def _gather_missing(p):
             p[var] = questionary.text(f"{var} = ").ask()
 
 
+_MULTI_LINE_KEYS = {"module_section", "profile_content", "profile_template_content"}
+
+
 def _offer_param_edits(p):
-    """Show all current parameters and let the user edit any of them.
+    """Show current parameters (excluding large multi-line content) and let the user edit any.
+
+    Multi-line fields (module_section, profile_content, profile_template_content)
+    are shown only if the user requests them via an expand option.
 
     Returns
     -------
@@ -63,28 +69,40 @@ def _offer_param_edits(p):
         Keys that the user actually changed.
     """
     data = p.model_dump()
-    entries = sorted((k, v) for k, v in data.items() if v is not None and k != "preset")
-    if not entries:
+    all_entries = [(k, v) for k, v in data.items() if v is not None and k != "preset"]
+    short_entries = sorted((k, v) for k, v in all_entries if k not in _MULTI_LINE_KEYS)
+    multi_entries = sorted((k, v) for k, v in all_entries if k in _MULTI_LINE_KEYS)
+
+    if not short_entries:
         return set()
 
     questionary.print("\nYour configuration contains the following parameters:")
-    for key, value in entries:
+    for key, value in short_entries:
         questionary.print(f"  {key} = {_toml_serialize(value)}")
+
+    if multi_entries:
+        questionary.print(
+            "  (<multi-line content hidden for module_section, profile_content, profile_template_content>)"
+        )
+        show = questionary.confirm("Show multi-line content?").ask()
+        if show:
+            for key, value in multi_entries:
+                questionary.print(f"\n--- {key} ---")
+                questionary.print(f"{value}\n")
 
     if not questionary.confirm("\nWant to change any of these parameters?").ask():
         return set()
 
-    keys_to_edit = (
-        questionary.checkbox(
-            "Which parameters would you like to change?",
-            choices=[k for k, _ in entries],
-        ).ask()
-        or []
-    )
+    all_keys = [k for k, _ in all_entries]
+    keys_to_edit = questionary.checkbox("Which parameters would you like to change?", choices=all_keys).ask() or []
 
     overridden = set()
     for key in keys_to_edit:
-        questionary.print(f"\nCurrent value: {key} = {_toml_serialize(p[key])}")
+        if key in _MULTI_LINE_KEYS:
+            questionary.print(f"\nCurrent value of {key}:")
+            questionary.print(f"{p[key]}\n")
+        else:
+            questionary.print(f"\nCurrent value: {key} = {_toml_serialize(p[key])}")
         new_value = questionary.text(f"New value for {key}: ").ask()
         if new_value is not None:
             p[key] = new_value
