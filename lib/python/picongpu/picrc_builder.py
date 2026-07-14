@@ -140,12 +140,12 @@ def _display_toml(output):
         questionary.print(f"{key} = {_toml_serialize(value)}")
 
 
-def _filter_user_keys(data, /, *overridden_keys):
+def _filter_user_keys(data, /, original_data):
     """Return dict of user-facing keys (preset first, then sorted).
 
     Internal / preset-derived keys are excluded so the preview stays clean.
-    Keys listed in *overridden_keys* are included because the user explicitly
-    changed them.
+    A default parameter only appears in the output if its value differs from
+    the snapshot taken before the user was allowed to edit it.
     """
     internal_keys = {
         "picongpurc_path",
@@ -157,13 +157,17 @@ def _filter_user_keys(data, /, *overridden_keys):
         "module_section",
         "spack_section",
         "pic_src_path",
+        "pic_backend",
+        "tbg_submit",
+        "tbg_tpl_file",
+        "tbg_partition",
     }
     output = {}
     for key in ("preset",):
-        if (key in overridden_keys or key not in internal_keys) and data.get(key) is not None:
+        if data.get(key) is not None:
             output[key] = data[key]
     for key in sorted(k for k in data if k != "preset" and data[k] is not None):
-        if key in overridden_keys or key not in internal_keys:
+        if key not in internal_keys or data.get(key) != original_data.get(key):
             output[key] = data[key]
     return output
 
@@ -232,11 +236,12 @@ def main(argv=None):
 
     questionary.print("\nGathering missing information:")
     _gather_missing(p)
+    original_data = p.model_dump()
 
-    overridden = _offer_param_edits(p)
+    _offer_param_edits(p)
     _offer_custom_params(p)
 
-    output = _filter_user_keys(p.model_dump(), *overridden)
+    output = _filter_user_keys(p.model_dump(), original_data)
 
     questionary.print("\nAll done collecting values. Here is what will be written:")
     questionary.print("")
