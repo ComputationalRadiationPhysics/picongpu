@@ -9,14 +9,14 @@ and look at some advanced usecases afterwards.
 
 In order to run a PIConGPU simulation, you need
 
-#. a PICMI input file (see `Defining Your Simulation`_) in which
+#. a PICMI input file (see :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>`) in which
    ``simulation.run()`` (or ``simulation.write_input_file()`` if that's what you want to do)
    gets called eventually and
-#. a valid runtime configuration (see `Configuring Your Environment`_).
+#. a valid runtime configuration (see :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`).
 
 The user should be aware
 that nothing prevents us from calling ``simulation.run()`` or ``simulation.write_input_file()``
-multiple times in the same script (see `Defining Your Simulation`_ for inspirations on how to use this).
+multiple times in the same script (see :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>` for inspirations on how to use this).
 For simplicity, the following guide assumes that a single simulation setup/run is handled
 but the concepts apply equally to multi-simulation scripts.
 
@@ -26,8 +26,8 @@ Full execution
 Recommended: From script inline metadata
 ----------------------------------------
 
-As discussed in the `Defining Your Simulation`_ section,
-we recommend to use `Python inline metadata`_ in your input files
+As discussed in the :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>` section,
+we recommend to use `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__ in your input files
 to document and fix the version of PIConGPU you are running.
 In this case, you can use::
 
@@ -69,6 +69,8 @@ about your submission:
 
   You can also just read the script to find out where your data ended up.
 
+.. _running_simulation_from_installation:
+
 From installation
 -----------------
 
@@ -80,7 +82,7 @@ You can install PIConGPU via ``pip`` via::
   pip install "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
 
 We recommend to replace the ``@dev`` with a specific ``@<commit hash>`` to fix the version.
-We recommend to install into a `virtual environment`_ (e.g. via `venv`_, `uv`_, `mamba`_, ...)
+We recommend to install into a `virtual environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/>`__ (e.g. via `venv <https://docs.python.org/3/library/venv.html>`__, `uv <https://docs.astral.sh/uv/>`__, `mamba <https://mamba.readthedocs.io/>`__, ...)
 
 This has downloaded the full source code of PIconPGU under the hood
 and has made the Python library and tooling available.
@@ -100,9 +102,10 @@ you can install the Python package via::
 
 Make sure to use ``-e`` in order for the installation
 to take into account changes in your repository.
-Afterwards, you can proceed as in `From installation`_.
+Afterwards, you can proceed as in `running_simulation_from_installation`_.
 This is intended for development purposes.
-Developers should also look into the `pyproject.toml`_ file
+Developers should also look into the ``pyproject.toml`` file
+at `lib/python/pyproject.toml <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/lib/python/pyproject.toml>`__
 to find out about optional dependencies (like test or development dependencies).
 
 Advanced Workflows
@@ -113,6 +116,8 @@ But under specific circumstances, more fine-grained control for the user is requ
 For such cases, the following workflows are supported.
 The following assumes that the variables ``$SETUP_DIR`` and ``$RUN_DIR`` are set to the same values
 that they would have in the equivalent ``simulation.run()`` invocation.
+
+.. _running_simulation_legacy_workflow:
 
 Input for the legacy workflow
 --------------------------------------
@@ -125,9 +130,9 @@ instead of ``simulation.run()``
 to write a simulation setup the specified location
 without executing it.
 
-If you are familiar with the `legacy interface of core PIConGPU`_,
+If you are familiar with the legacy ``pic-create``/``pic-build``/``tbg`` interface of core PIConGPU (`:ref:`TBG documentation <usage-tbg>``),
 you can use the generated setup in the same manner that you would have used a ``pic-create`` setup.
-Furthermore, you can find a tailored `profile`_ in ``workflow/scripts/picongpu.profile``.
+Furthermore, you can find a tailored :ref:`profile <install-profile>` in ``workflow/scripts/picongpu.profile``.
 In effect, you can run::
 
   cd $SETUP_DIR
@@ -144,10 +149,10 @@ Manual and partial workflow execution
 Manually running the full workflow
 """"""""""""""""""""""""""""""""""
 
-Starting from a generated setup (see `Input for the legacy workflow`_),
-we can find a full workflow definition in `Common Workflow Language (CWL)`_ in ``workflow/``.
+Starting from a generated setup (see `running_simulation_legacy_workflow`_),
+we can find a full workflow definition in `Common Workflow Language (CWL) <https://www.commonwl.org/>`__ in ``workflow/``.
 The exact equivalent of using ``simulation.run()`` directly
-can be achieved on a generated setup the following invocation of the `cwltool`_::
+can be achieved on a generated setup the following invocation of the `cwltool <https://github.com/common-workflow-language/cwltool>`__::
 
   CWL_ARGS="--leave-tmpdir --preserve-entire-environment --cachedir=.cwl_cache"
   cd $RUN_DIR
@@ -155,7 +160,7 @@ can be achieved on a generated setup the following invocation of the `cwltool`_:
   ./link_results.sh
 
 In here, the ``workflow/workflow.cwl`` contains the full definition of
-the workflow of building and submitting your simulation. 
+the workflow of building and submitting your simulation.
 ``workflow/input.yaml`` and ``CWL_ARGS``
 contain the input parameters resp. ``cwltool`` runtime context
 as the default orchestration via ``simulation.run()`` would have used them.
@@ -170,10 +175,10 @@ These can be executed individually in the following manner (exemplified by the `
   cd $RUN_DIR
 
   # either provide the necessary input definitions on the commandline
-  # (e.g. `build.cwl` requires at least `include_directory` and `script`):
+  # (e.g. ``build.cwl`` requires at least ``include_directory`` and ``script``):
   cwltool $CWL_ARGS $SETUP_DIR/workflow/steps/build.cwl --include_directory $SETUP_DIR/include --script $SETUP_DIR/workflow/scripts/build.sh
 
-  # or write a custom `my_input.yaml` file with content like:
+  # or write a custom ``my_input.yaml`` file with content like:
   # include_directory: <SETUP_DIR>
   # script: <SETUP_DIR>/workflow/scripts/build.sh
   cwltool $CWL_ARGS $SETUP_DIR/workflow/steps/build.cwl my_input.yaml
