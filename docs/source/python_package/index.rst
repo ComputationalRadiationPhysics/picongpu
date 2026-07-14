@@ -6,5 +6,6 @@ PIConGPU Python Package
     :hidden:
 
     quickstart
-    user_guide/index
+    foundations/index
+    selected_topics/index
     api/index
