@@ -48,13 +48,10 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 
 .. toctree::
    :caption: PIConGPU PYTHON PACKAGE
-   :maxdepth: 1
+   :maxdepth: 2
    :hidden:
 
-   python_package/quickstart
-   python_package/foundations/index
-   python_package/selected_topics/index
-   python_package/api/index
+   python_package/index
 
 .. toctree::
    :caption: TUTORIALS
