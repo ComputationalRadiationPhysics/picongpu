@@ -24,7 +24,7 @@ import tomli_w
 
 from moosetash import MissingVariable
 
-from picongpu._rc_params import RCParams, get_available_presets
+from picongpu._rc_params import RCParams, _KEEP_AS_DEFAULT, get_available_presets
 
 __all__ = ["main"]
 
@@ -54,6 +54,80 @@ def _gather_missing(p):
             p[var] = questionary.text(f"{var} = ").ask()
 
 
+_MULTI_LINE_KEYS = {"module_section", "profile_content", "profile_template_content"}
+
+
+def _offer_param_edits(p):
+    """Show current parameters (excluding large multi-line content) and let the user edit any.
+
+    Multi-line fields (module_section, profile_content, profile_template_content)
+    are shown only if the user requests them via an expand option.
+
+    Returns
+    -------
+    set[str]
+        Keys that the user actually changed.
+    """
+    data = p.model_dump()
+    all_entries = [(k, v) for k, v in data.items() if v is not None and k != "preset"]
+    if not all_entries:
+        return set()
+
+    if not questionary.confirm("\nWant to see all set parameters to make edits?", default=False).ask():
+        return set()
+
+    short_entries = sorted((k, v) for k, v in all_entries if k not in _MULTI_LINE_KEYS)
+    multi_entries = sorted((k, v) for k, v in all_entries if k in _MULTI_LINE_KEYS)
+
+    questionary.print("\nYour configuration contains the following parameters:")
+    for key, value in short_entries:
+        questionary.print(f"  {key} = {_toml_serialize(value)}")
+
+    if multi_entries:
+        questionary.print(
+            "  (<multi-line content hidden for module_section, profile_content, profile_template_content>)"
+        )
+        show = questionary.confirm("Show multi-line content?", default=False).ask()
+        if show:
+            for key, value in multi_entries:
+                questionary.print(f"\n--- {key} ---")
+                questionary.print(f"{value}\n")
+
+    if not questionary.confirm("\nWant to change any of these parameters?", default=False).ask():
+        return set()
+
+    all_keys = [k for k, _ in all_entries]
+    keys_to_edit = questionary.checkbox("Which parameters would you like to change?", choices=all_keys).ask() or []
+
+    overridden = set()
+    for key in keys_to_edit:
+        if key in _MULTI_LINE_KEYS:
+            questionary.print(f"\nCurrent value of {key}:")
+            questionary.print(f"{p[key]}\n")
+        else:
+            questionary.print(f"\nCurrent value: {key} = {_toml_serialize(p[key])}")
+        new_value = questionary.text(f"New value for {key}: ").ask()
+        if new_value is not None:
+            p[key] = new_value
+            overridden.add(key)
+    return overridden
+
+
+def _offer_custom_params(p):
+    """Allow the user to add arbitrary custom key-value pairs."""
+    if not questionary.confirm("\nWant to add custom parameters?", default=False).ask():
+        return
+
+    questionary.print("Enter key names and values. Leave key empty to finish.")
+    while True:
+        key = questionary.text("Key name (empty to finish): ").ask()
+        if not key or key == "":
+            break
+        value = questionary.text(f"Value for {key}: ").ask()
+        if value is not None:
+            p[key] = value
+
+
 def _toml_serialize(value):
     """Return a TOML scalar representation of *value*."""
     s = tomli_w.dumps({"_": value})
@@ -66,10 +140,12 @@ def _display_toml(output):
         questionary.print(f"{key} = {_toml_serialize(value)}")
 
 
-def _filter_user_keys(data):
+def _filter_user_keys(data, /, original_data):
     """Return dict of user-facing keys (preset first, then sorted).
 
     Internal / preset-derived keys are excluded so the preview stays clean.
+    A default parameter only appears in the output if its value differs from
+    the snapshot taken before the user was allowed to edit it.
     """
     internal_keys = {
         "picongpurc_path",
@@ -78,20 +154,15 @@ def _filter_user_keys(data):
         "dirty_reset_policy",
         "missing_variable_policy",
         "required_information",
-        "module_section",
-        "spack_section",
         "pic_src_path",
-        "pic_backend",
-        "tbg_submit",
-        "tbg_tpl_file",
-        "tbg_partition",
-    }
+    } | set(_KEEP_AS_DEFAULT)
     output = {}
     for key in ("preset",):
-        if key not in internal_keys and data.get(key) is not None:
+        if data.get(key) is not None:
             output[key] = data[key]
-    for key in sorted(k for k in data if k not in internal_keys and data[k] is not None and k != "preset"):
-        output[key] = data[key]
+    for key in sorted(k for k in data if k != "preset" and data[k] is not None):
+        if key not in internal_keys or data.get(key) != original_data.get(key):
+            output[key] = data[key]
     return output
 
 
@@ -159,8 +230,12 @@ def main(argv=None):
 
     questionary.print("\nGathering missing information:")
     _gather_missing(p)
+    original_data = p.model_dump()
 
-    output = _filter_user_keys(p.model_dump())
+    _offer_param_edits(p)
+    _offer_custom_params(p)
+
+    output = _filter_user_keys(p.model_dump(), original_data)
 
     questionary.print("\nAll done collecting values. Here is what will be written:")
     questionary.print("")
