@@ -20,8 +20,8 @@ At the time of writing, the runtime configuration is used for the following aspe
 
 .. _configuring_env_picrc_builder:
 
-Recommended: The ``picrc-builder`` tool
-=======================================
+Recommended: The ``picrc-builder`` Tool
+---------------------------------------
 
 In order to streamline the onboarding onto a new system,
 we provide the ``picrc-builder`` tool.
@@ -42,8 +42,8 @@ Make sure to save the generated file in one of the locations listed in `configur
 when you actually run your simulation.
 
 
-``rc_params`` and the ``.picongpurc.toml`` file
-========================================================
+``rc_params`` and the ``.picongpurc.toml`` File
+-----------------------------------------------
 
 The PIConGPU python package's approach to runtime configuration
 is inspired by `Matplotlib's rcParams <https://matplotlib.org/stable/users/explain/customizing.html>`__:
@@ -52,8 +52,8 @@ via a global instance of a ``dict``-like ``RCParams`` class named ``picongpu.rc_
 The information available in this instance at the time of querying
 is the ground truth for what configuration something is executed with.
 
-The ``rc_params`` object
-------------------------
+The ``rc_params`` Object
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can interact with this instance directly, e.g., defining or reading content from it::
 
@@ -75,8 +75,8 @@ if the string ``"jupiter"`` is found in the name of the preset
 
 .. _configuring_env_toml_search:
 
-The ``.picongpurc.toml`` file
------------------------------
+The ``.picongpurc.toml`` File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 More generally, however, we expect you to keep
 your runtime configuration separate from your input files.
@@ -100,8 +100,8 @@ On some occasions, project- or run-specific configurations might be necessary.
 The above search order ensures that more specific configurations take precedence,
 if they are closer to the input in the directory tree.
 
-The ``pic_src_path`` parameter
-------------------------------
+The ``pic_src_path`` Parameter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _configuring_env_pic_src_path:
 
@@ -112,14 +112,14 @@ to point to the PIConGPU installation in use.
     
     
 Presets
-=======
+-------
 
 The PIConGPU team has run on a wide variety of the largest supercomputers in the world.
 For all systems we have access to, we curate a library of presets
 that allow to run PIConGPU on the corresponding system.
 
-Using presets
--------------
+Using Presets
+^^^^^^^^^^^^^
 
 Presets are special keys in ``rc_params``.
 Setting them will reset the ``rc_params`` instance
@@ -153,8 +153,8 @@ A full list of presets can be obtained via::
   picongpu.get_available_presets()
 
 
-Finetuning presets
-------------------
+Finetuning Presets
+^^^^^^^^^^^^^^^^^^
 
 Presets can be thought of as "just setting a bunch of parameters at once".
 Consequently, any of these parameters can be given another value.
@@ -178,8 +178,8 @@ and all other configuration modifies a given preset::
   tbg_partition = "a100"
   # ...
 
-Manually configuring profile content
-====================================
+Manually Configuring Profile Content
+------------------------------------
 
 The main functionality provided by the runtime configuration is
 providing a machine-specific environment to run the code in.
