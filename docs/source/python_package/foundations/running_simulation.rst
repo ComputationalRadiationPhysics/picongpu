@@ -28,16 +28,36 @@ Recommended: From Script Inline Metadata
 As discussed in the :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>` section,
 we recommend to use `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__ in your input files
 to document and fix the version of PIConGPU you are running.
-In this case, you can use::
+In this case, you can use one of the following:
 
-  uv run my_input.py
-  pip-run my_input.py
-  hatch run my_input.py
+.. tab-set::
 
-  # With the corresponding shebang, e.g.,
-  #   #!/usr/bin/env -S uv run
-  # and `chmod +x my_input.py` you can even do:
-  ./my_input.py
+    .. tab-item:: uv
+
+        .. code-block:: bash
+
+          uv run my_input.py
+
+    .. tab-item:: pip-run
+
+        .. code-block:: bash
+
+          pip-run my_input.py
+
+    .. tab-item:: hatch
+
+        .. code-block:: bash
+
+          hatch run my_input.py
+
+    .. tab-item:: executable shebang
+
+        With a suitable shebang (e.g., ``#!/usr/bin/env -S uv run``)
+        and ``chmod +x my_input.py`` you can also run it directly:
+
+        .. code-block:: bash
+
+          ./my_input.py
 
 Any of these will download the specified version of PIConGPU (and other dependencies),
 generate the necessary input files
