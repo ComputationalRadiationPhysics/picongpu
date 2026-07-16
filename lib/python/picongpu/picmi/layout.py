@@ -7,11 +7,10 @@ License: GPLv3+
 
 from functools import partial
 from operator import gt, le
-from typing import Self
 
 import numpy as np
 import picmistandard
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 from ..pypicongpu.species.operation.layout import OnePosition as PyPIConGPU_OnePosition
 from ..pypicongpu.species.operation.layout import Quiet, Random
@@ -31,13 +30,8 @@ class PseudoRandomLayout(picmistandard.PICMI_PseudoRandomLayout):
 class GriddedLayout(picmistandard.PICMI_GriddedLayout):
     n_macroparticles_per_cell: list[int] = Field([0], init_var=False)
 
-    @model_validator(mode="after")
-    def _validate(self) -> Self:
-        self.n_macroparticles_per_cell = self.n_macroparticle_per_cell
-        return self
-
     def get_as_pypicongpu(self):
-        return Quiet(ppc=np.prod(self.n_macroparticle_per_cell), n_points=self.n_macroparticle_per_cell)
+        return Quiet(ppc=np.prod(self.n_macroparticles_per_cell), n_points=self.n_macroparticles_per_cell)
 
     @computed_field
     def in_cell_offsets(self) -> np.ndarray:

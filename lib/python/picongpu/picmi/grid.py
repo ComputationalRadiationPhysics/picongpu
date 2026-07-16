@@ -5,8 +5,9 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
+from typing import Annotated
 import picmistandard
-import typeguard
+from pydantic import AfterValidator, Field, computed_field
 
 from ..pypicongpu import grid, util
 from .copy_attributes import converts_to
@@ -55,38 +56,21 @@ def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
     },
     remove_prefix="picongpu_",
 )
-@typeguard.typechecked
 class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
-    def __init__(
-        self,
-        picongpu_n_gpus: list[int] | None = None,
-        picongpu_grid_dist: tuple[list[int], list[int], list[int]] | None = None,
-        picongpu_super_cell_size: tuple[int, int, int] = (8, 8, 4),
-        **kw,
-    ):
-        """overwriting PICMI init to extract gpu distribution for PIConGPU
-        :param picongpu_n_gpus: number of gpus for each dimension
-            None matches to a single GPU (1, 1, 1)
-            a single integer assumes parallelization in y (1, N, 1)
-            a 3-integer-long list is distributed directly as (Nx, Ny, Nz)
-        """
-        self.picongpu_n_gpus = _normalise_n_gpus(picongpu_n_gpus)
-        _normalise_type(kw, "lower_bound", float)
-        _normalise_type(kw, "upper_bound", float)
-        _normalise_type(kw, "number_of_cells", int)
-        self.picongpu_grid_dist = picongpu_grid_dist
-        self.picongpu_super_cell_size = picongpu_super_cell_size
+    picongpu_n_gpus: Annotated[tuple[int, int, int], AfterValidator(_normalise_n_gpus)] = Field(default=(1, 1, 1))
+    picongpu_grid_dist: list[list[int]] = Field(default_factory=lambda: [[1], [1], [1]])
+    picongpu_super_cell_size: tuple[int, int, int] = Field(default=(8, 8, 4))
 
-        # continue with regular init
-        super().__init__(**kw)
-        self.picongpu_cell_size_si = self.get_cell_size()
-
-    def get_cell_size(self):
-        return (
+    @computed_field
+    def picongpu_cell_size(self) -> tuple[int, int, int]:
+        return tuple(
             (self.upper_bound[0] - self.lower_bound[0]) / self.number_of_cells[0],
             (self.upper_bound[1] - self.lower_bound[1]) / self.number_of_cells[1],
             (self.upper_bound[2] - self.lower_bound[2]) / self.number_of_cells[2],
         )
+
+    def get_cell_size(self):
+        return self.picongpu_cell_size
 
     def check(self):
         # todo check
