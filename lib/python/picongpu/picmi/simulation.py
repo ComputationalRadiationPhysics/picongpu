@@ -13,11 +13,10 @@ from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
 from pathlib import Path
-from typing import Iterable
+from typing import Annotated, Iterable
 
 import picmistandard
-import typeguard
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
+from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
@@ -95,7 +94,9 @@ def _normalise_template_dir(directory: None | PathLike | Iterable[PathLike]) -> 
         except TypeError:
             pass
 
-    if any(filter(lambda p: not isinstance(p, Path), directory)):
+    if not isinstance(directory, (tuple, list)) or any(
+        filter(lambda p: not isinstance(p, Path), directory)
+    ):
         raise ValueError(
             f"Can't understand {directory=} of {type(directory)=}. Must be one of str, Path or iterable thereof."
         )
@@ -140,7 +141,6 @@ def _validate_collisional_physics_setup(interactions):
 
 
 # may not use pydantic since inherits from _DocumentedMetaClass
-@typeguard.typechecked
 class Simulation(picmistandard.PICMI_Simulation):
     """
     Simulation as defined by PICMI
@@ -158,10 +158,17 @@ class Simulation(picmistandard.PICMI_Simulation):
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    picongpu_interaction: list[Interaction] = Field(default_factory=list)
+    picongpu_interaction: Annotated[list[Interaction], BeforeValidator(_validate_collisional_physics_setup)] = Field(
+        default_factory=list
+    )
     """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
 
-    picongpu_typical_ppc: int | None = Field(default=None)
+    def _validate_typical_ppc(value: int | None) -> int | None:
+        if value is not None and value <= 0:
+            raise ValueError(f"Typical ppc should be > 0, not {value=}.")
+        return value
+
+    picongpu_typical_ppc: Annotated[int | None, AfterValidator(_validate_typical_ppc)] = Field(default=None)
     """
     typical number of particle in a cell in the simulation
 
@@ -170,7 +177,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir: tuple[Path, ...] = Field(default_factory=tuple)
+    picongpu_template_dir: Annotated[tuple[Path, ...], BeforeValidator(_normalise_template_dir)] = Field(
+        default_factory=tuple
+    )
     """directory containing templates to use for generating picongpu setups"""
 
     picongpu_moving_window_move_point: float | None = Field(default=None)
@@ -201,37 +210,8 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
-    #   pydantic, Brian Marre, 2024
-    def __init__(
-        self,
-        picongpu_template_dir: None | PathLike | Iterable[PathLike] = None,
-        picongpu_typical_ppc: int | None = None,
-        picongpu_moving_window_move_point: float | None = None,
-        picongpu_moving_window_stop_iteration: int | None = None,
-        picongpu_interaction: list[Interaction] | None = None,
-        picongpu_base_density: float | None = None,
-        picongpu_walltime: datetime.timedelta | None = None,
-        picongpu_binomial_current_interpolation: bool = False,
-        **keyword_arguments,
-    ):
-        if picongpu_typical_ppc is not None and picongpu_typical_ppc <= 0:
-            raise ValueError(f"Typical ppc should be > 0, not {picongpu_typical_ppc=}.")
-
-        super().__init__(
-            picongpu_template_dir=_normalise_template_dir(picongpu_template_dir),
-            picongpu_typical_ppc=picongpu_typical_ppc,
-            picongpu_moving_window_move_point=picongpu_moving_window_move_point,
-            picongpu_moving_window_stop_iteration=picongpu_moving_window_stop_iteration,
-            picongpu_base_density=picongpu_base_density,
-            picongpu_walltime=picongpu_walltime,
-            picongpu_binomial_current_interpolation=picongpu_binomial_current_interpolation,
-            picongpu_custom_user_input=None,
-            picongpu_distributions=[],
-            picongpu_interaction=_validate_collisional_physics_setup(picongpu_interaction or []),
-            **keyword_arguments,
-        )
-
+    @model_validator(mode="after")
+    def _post_init(self):
         # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
         ## throw if both cfl & delta_t are set
         if (
@@ -240,6 +220,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             and isinstance(self.solver.grid, Cartesian3DGrid)
         ):
             self.__yee_compute_cfl_or_delta_t()
+        return self
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """

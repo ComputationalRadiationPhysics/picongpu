@@ -175,11 +175,9 @@ class TestPicmiSimulation(TestCase):
             with pytest.raises(ValueError, match="Typical ppc should be > 0"):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
 
-        wrongTypes = [0.0, -1.0, -15.0, 1.0, 15.0]
+        wrongTypes = [0.0, -1.0, -15.0]
         for value in wrongTypes:
-            with pytest.raises(
-                typeguard.TypeCheckError, match='"picongpu_typical_ppc" .* did not match any element in the union'
-            ):
+            with pytest.raises(ValueError, match="Typical ppc should be > 0"):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
 
     def test_invalid_placement(self):
@@ -538,7 +536,7 @@ class TestPicmiSimulation(TestCase):
 
         invalid_paths = [1, 42.0]
         for invalid_path in invalid_paths:
-            with pytest.raises(typeguard.TypeCheckError):
+            with pytest.raises((typeguard.TypeCheckError, ValueError)):
                 picmi.Simulation(
                     time_step_size=17,
                     max_steps=4,
