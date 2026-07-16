@@ -47,7 +47,7 @@ def _pass_first_parameter_to(f, parameter, kwargs):
         raise Exception("This path should be unreachable!")
 
 
-def decorating_class(cls):
+def decorating_class(cls_or_name, parameter=None):
     """
     A decorating class can be used as decorator, i.e., in the following example `a` and `b` are identical:
 
@@ -57,12 +57,14 @@ def decorating_class(cls):
         def b():
             print("Hello World!")
     """
+    if isinstance(cls_or_name, str):
+        return lambda cls: decorating_class(cls, parameter=Parameter(name=cls_or_name, kind=Parameter.KEYWORD_ONLY))
     # It is important to extract the signature before decorating the class.
     # Otherwise, we'll only see the names of the decorator's arguments.
-    parameter = _extract_first_parameter(cls)
+    parameter = parameter or _extract_first_parameter(cls_or_name)
 
-    @wraps(cls, updated=tuple())
-    class Tmp(cls):
+    @wraps(cls_or_name, updated=tuple())
+    class Tmp(cls_or_name):
         def __new__(cls, decorated=None, **kwargs):
             decorated = kwargs.pop(parameter.name, None) or decorated
             if decorated is None:

@@ -39,7 +39,7 @@ this method returns None.
 """
 
 
-@decorating_class
+@decorating_class("density_function")
 class AnalyticDistribution(PICMI_Extension):
     """
     This class represents a plasma with a density defined by an analytic expression.
