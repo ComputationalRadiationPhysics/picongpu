@@ -34,6 +34,36 @@
 
 namespace pmacc
 {
+    namespace detail
+    {
+        /** Tag wrapper marking a set-value fill value that is passed indirectly
+         *
+         * Used by TaskSetValue for values too large to be passed as a kernel
+         * launch parameter directly: the value is staged in device memory
+         * beforehand and only a pointer to it is passed to the kernel, wrapped
+         * in this type so KernelSetValue can unambiguously tell apart "the fill
+         * value itself" from "a pointer to the fill value" - irrespective of
+         * whether the fill value's own type happens to be a pointer.
+         *
+         * @tparam T_ValueType type of the staged fill value
+         */
+        template<typename T_ValueType>
+        struct IndirectValue
+        {
+            T_ValueType* ptr;
+        };
+
+        /** trait to detect specializations of IndirectValue
+         *
+         * @tparam T_Type type to check
+         */
+        template<typename T_Type>
+        constexpr bool isIndirectValue = false;
+
+        template<typename T_ValueType>
+        constexpr bool isIndirectValue<IndirectValue<T_ValueType>> = true;
+    } // namespace detail
+
     /** set a value to all elements of a box
      *
      * @tparam T_xChunkSize number of elements in x direction to prepare with one alpaka block
@@ -44,13 +74,17 @@ namespace pmacc
         /** set value to all elements
          *
          * @tparam T_DataBox pmacc::DataBox, type of the memory box
-         * @tparam T_ValueType type of the value
+         * @tparam T_ValueType type of the value, either the fill value itself (passed by value) or a
+         *                     @see detail::IndirectValue wrapping a pointer to a fill value staged in
+         *                     device memory
          * @tparam T_SizeVecType pmacc::math::Vector, index type
          * @tparam T_Acc alpaka accelerator type
          * @tparam T_BlockCfg lockstep worker configuration type
          *
          * @param memBox box of which all elements shall be set to value
-         * @param value value to set to all elements of memBox
+         * @param value value to set to all elements of memBox; if T_ValueType is a
+         *              detail::IndirectValue<...> the actual fill value is read by dereferencing
+         *              @c value.ptr, otherwise @c value itself is the fill value
          * @param size extents of memBox
          */
         template<typename T_DataBox, typename T_ValueType, typename T_SizeVecType, typename T_Acc, typename T_BlockCfg>
@@ -76,9 +110,9 @@ namespace pmacc
                     SizeVecType const idx(blockSize * blockIndex + virtualWorkerIdx);
                     if(idx.x() < size.x())
                     {
-                        constexpr bool isPointer = std::is_pointer_v<T_ValueType>;
-                        if constexpr(isPointer)
-                            memBox(idx) = *value;
+                        constexpr bool isIndirect = detail::isIndirectValue<T_ValueType>;
+                        if constexpr(isIndirect)
+                            memBox(idx) = *value.ptr;
                         else
                             memBox(idx) = value;
                     }
@@ -265,7 +299,7 @@ namespace pmacc
                     workDiv,
                     KernelSetValue<xChunkSize>{},
                     destBox,
-                    alpaka::getPtrNative(firstElemBuffer),
+                    detail::IndirectValue<ValueType>{alpaka::getPtrNative(firstElemBuffer)},
                     areaSizeND,
                     blockCfg);
                 alpaka::enqueue(queue, kernel);
