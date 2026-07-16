@@ -12,6 +12,7 @@ from scipy.constants import c
 
 from picongpu.picmi import AnalyticDistribution
 import pytest
+from pydantic import ValidationError
 
 # allow numpy broadcasting (see https://numpy.org/doc/stable/user/basics.broadcasting.html)
 # some examples to check:
@@ -28,8 +29,8 @@ VALID_CALLS = [
 
 INVALID_DENSITIES = [
     # not a function
-    ("string", TypeError),
-    (1, TypeError),
+    ("string", (TypeError, ValidationError)),
+    (1, (TypeError, ValidationError)),
     # wrong number of arguments
     (lambda x, y: x + y, TypeError),
     (lambda x, y, z, too_much: x + y + z + too_much, TypeError),

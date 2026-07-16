@@ -17,7 +17,7 @@ from typing import Iterable
 
 import picmistandard
 import typeguard
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
@@ -151,8 +151,8 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
-    picongpu_custom_user_input = pypicongpu.util.build_typesafe_property(
-        list[pypicongpu.customuserinput.CustomUserInput] | None
+    picongpu_custom_user_input: list[pypicongpu.customuserinput.CustomUserInput] | None = Field(
+        default=None, exclude=True
     )
     """
     list of custom user input objects
@@ -160,10 +160,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    picongpu_interaction = pypicongpu.util.build_typesafe_property(list[Interaction])
+    picongpu_interaction: list[Interaction] = Field(default_factory=list)
     """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
 
-    picongpu_typical_ppc = pypicongpu.util.build_typesafe_property(int | None)
+    picongpu_typical_ppc: int | None = Field(default=None)
     """
     typical number of particle in a cell in the simulation
 
@@ -172,10 +172,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir = pypicongpu.util.build_typesafe_property(Iterable[Path])
+    picongpu_template_dir: tuple[Path, ...] = Field(default_factory=tuple)
     """directory containing templates to use for generating picongpu setups"""
 
-    picongpu_moving_window_move_point = pypicongpu.util.build_typesafe_property(float | None)
+    picongpu_moving_window_move_point: float | None = Field(default=None)
     """
     point a light ray reaches in y from the left border until we begin sliding the simulation window with the speed of
     light
@@ -186,18 +186,22 @@ class Simulation(picmistandard.PICMI_Simulation):
         thereby reducing the simulation window size accordingrelative spot at which to start moving the simulation window
     """
 
-    picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(int | None)
+    picongpu_moving_window_stop_iteration: int | None = Field(default=None)
     """iteration, at which to stop moving the simulation window"""
 
-    picongpu_base_density = pypicongpu.util.build_typesafe_property(float | None)
+    picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
-    picongpu_walltime = pypicongpu.util.build_typesafe_property(datetime.timedelta | None)
+    picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
 
-    picongpu_distributions = pypicongpu.util.build_typesafe_property(list[_DensityImpl])
+    picongpu_distributions: list[_DensityImpl] = Field(default_factory=list)
 
-    _runner = pypicongpu.util.build_typesafe_property(Runner | None)
+    _runner: Runner | None = PrivateAttr(default=None)
+
+    picongpu_binomial_current_interpolation: bool = Field(default=False)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
     # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
     #   pydantic, Brian Marre, 2024
@@ -217,23 +221,22 @@ class Simulation(picmistandard.PICMI_Simulation):
         picongpu_diagnostics: AnyDiagnostic | list[AnyDiagnostic] | None = None,
         **keyword_arguments,
     ):
-        self.picongpu_distributions = []
-        self.picongpu_template_dir = _normalise_template_dir(picongpu_template_dir)
-        self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
-        self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
-        self.picongpu_base_density = picongpu_base_density
-        self.picongpu_walltime = picongpu_walltime
-        self.picongpu_binomial_current_interpolation = picongpu_binomial_current_interpolation
-        self.picongpu_custom_user_input = None
-        self._runner = None
-
         if picongpu_typical_ppc is not None and picongpu_typical_ppc <= 0:
             raise ValueError(f"Typical ppc should be > 0, not {picongpu_typical_ppc=}.")
-        self.picongpu_typical_ppc = picongpu_typical_ppc
 
-        self.picongpu_interaction = _validate_collisional_physics_setup(picongpu_interaction or [])
-
-        picmistandard.PICMI_Simulation.__init__(self, **keyword_arguments)
+        super().__init__(
+            picongpu_template_dir=_normalise_template_dir(picongpu_template_dir),
+            picongpu_typical_ppc=picongpu_typical_ppc,
+            picongpu_moving_window_move_point=picongpu_moving_window_move_point,
+            picongpu_moving_window_stop_iteration=picongpu_moving_window_stop_iteration,
+            picongpu_base_density=picongpu_base_density,
+            picongpu_walltime=picongpu_walltime,
+            picongpu_binomial_current_interpolation=picongpu_binomial_current_interpolation,
+            picongpu_custom_user_input=None,
+            picongpu_distributions=[],
+            picongpu_interaction=_validate_collisional_physics_setup(picongpu_interaction or []),
+            **keyword_arguments,
+        )
 
         # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
         ## throw if both cfl & delta_t are set

@@ -11,7 +11,7 @@ from typing import Callable, Literal
 
 import numpy as np
 from picmistandard import PICMI_Extension
-from pydantic import Field, PrivateAttr, computed_field
+from pydantic import ConfigDict, Field, PrivateAttr, computed_field
 from sympy import Expr, Symbol, lambdify, symbols
 
 from picongpu.pypicongpu import species
@@ -122,8 +122,7 @@ class AnalyticDistribution(PICMI_Extension):
     directed_velocity: list[float] = Field(default_factory=lambda: [0, 0, 0])
     _warned_about_lambdify_failure: bool = PrivateAttr(False)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and "density_function" not in kwargs:

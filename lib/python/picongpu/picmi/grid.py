@@ -58,12 +58,12 @@ def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
 )
 class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
     picongpu_n_gpus: Annotated[tuple[int, int, int], AfterValidator(_normalise_n_gpus)] = Field(default=(1, 1, 1))
-    picongpu_grid_dist: list[list[int]] = Field(default_factory=lambda: [[1], [1], [1]])
+    picongpu_grid_dist: None | list[list[int]] = Field(default=None)
     picongpu_super_cell_size: tuple[int, int, int] = Field(default=(8, 8, 4))
 
     @computed_field
     def picongpu_cell_size(self) -> tuple[int, int, int]:
-        return tuple(
+        return (
             (self.upper_bound[0] - self.lower_bound[0]) / self.number_of_cells[0],
             (self.upper_bound[1] - self.lower_bound[1]) / self.number_of_cells[1],
             (self.upper_bound[2] - self.lower_bound[2]) / self.number_of_cells[2],

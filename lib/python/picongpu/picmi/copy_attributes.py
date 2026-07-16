@@ -87,12 +87,31 @@ def copy_attributes(
         - `default_converter` is applied to all values retrieved from `from_instance`
           before they are put into `to`.
     """
+    # Build a mapping of target field names (and aliases) to source fields
+    def _target_field_key(target_field_name):
+        """Get the key to use for assignment (alias if available, else field name)."""
+        if isinstance(to, type) and issubclass(to, BaseModel):
+            field = to.model_fields.get(target_field_name)
+            if field and field.alias:
+                return field.alias
+        return target_field_name
+
     assignments = {
-        to_name: _value_generator(from_name)
+        _target_field_key(to_name): _value_generator(from_name)
         for from_name, _ in (
             type(from_instance).model_fields.items()
             if isinstance(from_instance, BaseModel)
             else inspect.getmembers(from_instance)
+        )
+        if from_name not in ignore
+        and not from_name.startswith("_")
+        and has_attribute(to, to_name := from_name.removeprefix(remove_prefix))
+    } | {
+        _target_field_key(to_name): _value_generator(from_name)
+        for from_name, _ in (
+            type(from_instance).model_computed_fields.items()
+            if isinstance(from_instance, BaseModel)
+            else {}
         )
         if from_name not in ignore
         and not from_name.startswith("_")
