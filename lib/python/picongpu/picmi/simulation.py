@@ -21,13 +21,11 @@ from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import AnyDiagnostic
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
-from picongpu.picmi.lasers import AnyLaser
 from picongpu.picmi.layout import AnyLayout
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
