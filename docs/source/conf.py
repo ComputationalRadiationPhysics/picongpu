@@ -45,6 +45,7 @@ show_authors = True
 extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "sphinx-design",
     "breathe",
     "sphinxcontrib.programoutput",
     "matplotlib.sphinxext.plot_directive",
