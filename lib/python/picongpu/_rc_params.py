@@ -620,7 +620,7 @@ def search_in_environment_variables():
 
 
 def search_in_user_config():
-    path = environ.get("XDG_CONFIG_HOME", None)
+    path = environ.get("XDG_CONFIG_HOME", Path.home() / ".config")
     if path is None:
         return None
     path = Path(path) / "picongpu" / "picongpurc.toml"
