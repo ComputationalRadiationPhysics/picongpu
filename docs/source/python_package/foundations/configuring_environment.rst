@@ -8,7 +8,7 @@ a clear separation between environment definition and user input.
 This section is concerned with the environment configuration
 which is typically tailored to a specific machine and user,
 sometimes also to a particular project.
-This is in contrast to the :ref:`Defining Your Simulation` chapter,
+This is in contrast to the :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>` chapter,
 which is used to specify the simulations and physical intent
 independent of the machine, user, project, ... running this.
 We use the name "runtime configuration" for all aspects orthogonal to simulation definition.
