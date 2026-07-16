@@ -14,11 +14,9 @@ import re
 import typing
 
 import sympy
-import typeguard
 from moosetash import MissingVariable, render
 
 
-@typeguard.typechecked
 class Renderer:
     """
     helper class to render Mustache templates

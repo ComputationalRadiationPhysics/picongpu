@@ -10,12 +10,7 @@ from itertools import chain
 from functools import partial, wraps
 from inspect import Parameter, signature
 from operator import itemgetter
-from types import GenericAlias, UnionType
 from typing import Any, Self
-
-import typeguard
-
-attr_cnt = 0
 
 
 def _extract_first_parameter(cls):
@@ -230,29 +225,6 @@ def unique(iterable):
     return result
 
 
-@typeguard.typechecked
-def build_typesafe_property(type_: type | GenericAlias | UnionType, name: str | None = None) -> property:
-    if name is None:
-        global attr_cnt
-        name = str(attr_cnt)
-        attr_cnt += 1
-    # don't use private prefix '__' to avoid name mangling
-    actual_var_name = "magic_string_private_____{}".format(name)
-
-    @typeguard.typechecked
-    def getter(self) -> type_:
-        if not hasattr(self, actual_var_name):
-            raise AttributeError("variable is not initialized")
-        return getattr(self, actual_var_name)
-
-    @typeguard.typechecked
-    def setter(self, value: type_):
-        setattr(self, actual_var_name, value)
-
-    return property(getter, setter)
-
-
-@typeguard.typechecked
 def unsupported(name: str, value: Any = 1, default: Any = None) -> None:
     """
     Print a msg that the feature/parameter/thing is unsupported.

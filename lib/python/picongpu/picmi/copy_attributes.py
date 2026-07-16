@@ -16,14 +16,8 @@ def has_attribute(instance, name):
     if isinstance(instance, type) and issubclass(instance, BaseModel):
         return name in instance.model_fields or name in map(lambda x: x.alias, instance.model_fields.values())
 
-    # It should be this:
-    #
-    #     return hasattr(instance, name)
-    #
-    # But this seems to interact weirdly with our util.build_typesafe_property.
-    #
-    # This version works fine but throws a warning for pydantic models.
-    # We could get rid of this by using instance.model_dump() instead.
+    # Using hasattr() interacts weirdly with pydantic models,
+    # so we use dir() directly.
     return name in dir(instance)
 
 
