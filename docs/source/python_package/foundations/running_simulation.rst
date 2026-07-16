@@ -84,7 +84,7 @@ You can install PIConGPU via ``pip`` via::
 We recommend to replace the ``@dev`` with a specific ``@<commit hash>`` to fix the version.
 We recommend to install into a `virtual environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/>`__ (e.g. via `venv <https://docs.python.org/3/library/venv.html>`__, `uv <https://docs.astral.sh/uv/>`__, `mamba <https://mamba.readthedocs.io/>`__, ...)
 
-This has downloaded the full source code of PIconPGU under the hood
+This has downloaded the full source code of PIConGPU under the hood
 and has made the Python library and tooling available.
 You can simply run the script as Python script (from your environment)::
 

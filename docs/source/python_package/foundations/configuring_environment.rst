@@ -39,7 +39,7 @@ You can run it without installation via, e.g., the `uv <https://docs.astral.sh/u
 
   uv run --with="picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python" picrc-builder
 
-Make sure to save the generated file in a `configuring_env_toml_search`_,
+Make sure to save the generated file in one of the locations listed in `configuring_env_toml_search`_,
 when you actually run your simulation.
 
 
@@ -81,7 +81,7 @@ The ``.picongpurc.toml`` file
 
 More generally, however, we expect you to keep
 your runtime configuration separate from your input files.
-In order to so, you can define it in a `TOML <https://toml.io/>`__ file
+In order to do so, you can define it in a `TOML <https://toml.io/>`__ file
 that will be read when importing the PIConGPU python package for the first time.
 This file is named ``.picongpurc.toml``
 (with an optional ``.`` in the beginning to hide it on Unix systems)
@@ -188,7 +188,7 @@ Upon execution, PIConGPU's Python frontend generates
 self-contained scripts to run all the different steps (compilation, submission, ...)
 as well as a general profile that can be sourced to drop into the PIConGPU environment.
 
-Any of the above can be overriden using an ``rc_params`` entry, e.g.,::
+Any of the above can be overridden using an ``rc_params`` entry, e.g.,::
 
   shebang = "#!/usr/bin/env zsh"
 
