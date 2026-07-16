@@ -9,10 +9,7 @@ from .ionizationmodel import IonizationModel
 
 from .... import pypicongpu
 
-import typeguard
 
-
-@typeguard.typechecked
 class GroundStateIonizationModel(IonizationModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

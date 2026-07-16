@@ -12,7 +12,6 @@ from .....pypicongpu.species.constant.ionizationcurrent import None_
 from .....pypicongpu.species.constant import ionizationmodel
 
 import enum
-import typeguard
 
 
 class BSIExtension(enum.Enum):
@@ -21,7 +20,6 @@ class BSIExtension(enum.Enum):
     # add additional extensions here
 
 
-@typeguard.typechecked
 class BSI(FieldIonization):
     """Barrier Suppression Ionization model"""
 

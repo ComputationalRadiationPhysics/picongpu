@@ -16,7 +16,6 @@ from .....pypicongpu.species.constant.ionizationmodel import (
 
 
 import enum
-import typeguard
 
 
 class ADKVariant(enum.Enum):
@@ -24,7 +23,6 @@ class ADKVariant(enum.Enum):
     CircularPolarization = 1
 
 
-@typeguard.typechecked
 class ADK(FieldIonization):
     """ADK Tunneling Ionization model"""
 

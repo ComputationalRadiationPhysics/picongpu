@@ -5,7 +5,6 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-import typeguard
 from pydantic import BaseModel, model_validator
 
 from picongpu.picmi.species import DependsOn, Species
@@ -19,7 +18,6 @@ from picongpu.pypicongpu.species.util import Element
 from picongpu import pypicongpu
 
 
-@typeguard.typechecked
 class IonizationModel(BaseModel):
     """
     common interface for all ionization models
