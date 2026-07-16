@@ -34,17 +34,51 @@ In this case, you can use one of the following:
 
     .. tab-item:: uv
 
+        `uv <https://docs.astral.sh/uv/>`__ is a fast Python package installer
+        and runner, written in Rust.
+        Install it with
+
+        .. code-block:: bash
+
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+
+        or follow the installation instructions on `GitHub <https://github.com/astral-sh/uv#installation>`__.
+
+        Once installed, run
+
         .. code-block:: bash
 
           uv run my_input.py
 
     .. tab-item:: pip-run
 
+        `pip-run <https://pip-tools.readthedocs.io/>`__ is part of the ``pip-tools``
+        project, a small set of plugins around ``pip``
+        for running scripts with transient, isolated dependencies.
+        Install it with
+
+        .. code-block:: bash
+
+          pip install pip-run
+
+        Then run
+
         .. code-block:: bash
 
           pip-run my_input.py
 
     .. tab-item:: hatch
+
+        `hatch <https://hatch.pypa.io/>`__ is a Python project manager
+        that also supports running scripts from a single file using the
+        `hatch-run <https://hatch.pypa.io/latest/config/cli/#run>`__ plugin.
+        Install it with
+
+        .. code-block:: bash
+
+          pipx install hatch hatch-run
+
+        Then run
 
         .. code-block:: bash
 
