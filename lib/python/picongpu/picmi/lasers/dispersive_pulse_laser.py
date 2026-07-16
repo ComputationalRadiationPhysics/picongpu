@@ -5,8 +5,6 @@ Authors: Julian Lenz, Masoud Afshari
 License: GPLv3+
 """
 
-import typeguard
-
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
 from .gaussian_laser import GaussianLaser  # inherit standard Gaussian laser fields
@@ -19,7 +17,6 @@ from .gaussian_laser import GaussianLaser  # inherit standard Gaussian laser fie
     # i.e. PULSE_DURATION = duration / 2 (#5739)
     conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
 )
-@typeguard.typechecked
 class DispersivePulseLaser(GaussianLaser):
     """
     PICMI Dispersive Pulse Laser.

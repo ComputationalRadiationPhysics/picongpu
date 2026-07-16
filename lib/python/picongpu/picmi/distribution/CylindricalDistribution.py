@@ -11,11 +11,9 @@ import numpy as np
 
 from .Distribution import Distribution
 
-import typeguard
 import math
 
 
-@typeguard.typechecked
 class CylindricalDistribution(Distribution):
     """
     Describes a cylindrical density distribution of particles with gaussian up-ramp

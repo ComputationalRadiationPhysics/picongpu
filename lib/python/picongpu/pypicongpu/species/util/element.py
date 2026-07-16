@@ -9,13 +9,11 @@ import re
 
 import periodictable
 import scipy
-import typeguard
 from pydantic import BaseModel, computed_field
 
 from picongpu.pypicongpu.rendering import RenderedObject
 
 
-@typeguard.typechecked
 class Element(RenderedObject, BaseModel):
     """
     Denotes an element from the periodic table of elements

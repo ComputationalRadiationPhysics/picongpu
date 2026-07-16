@@ -11,7 +11,6 @@ from ...pypicongpu import util
 
 from .Distribution import Distribution
 
-import typeguard
 import numpy as np
 
 
@@ -21,7 +20,6 @@ import numpy as np
     preamble=lambda self, grid: setattr(self, "cell_size", grid.get_cell_size()) or self.check(),
     ignore=["check"],
 )
-@typeguard.typechecked
 class GaussianDistribution(Distribution):
     """
     Describes a density distribution of particles with gaussian up- and down-ramps with a constant density region in

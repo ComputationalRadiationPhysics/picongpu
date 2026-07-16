@@ -8,13 +8,11 @@ License: GPLv3+
 from pathlib import Path
 from typing import Annotated, Literal
 
-import typeguard
 from pydantic import BaseModel, Field, model_validator
 
 from .timestepspec import TimeStepSpec
 
 
-@typeguard.typechecked
 class Checkpoint(BaseModel):
     period: TimeStepSpec | None
     timePeriod: Annotated[int, Field(..., ge=0)] | None

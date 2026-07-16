@@ -9,7 +9,6 @@ import collections
 import particle
 
 from pydantic import BaseModel
-import typeguard
 
 from scipy import constants as consts
 
@@ -54,7 +53,6 @@ class PredefinedParticleTypeProperties(BaseModel):
     def get_known_particle_types(self) -> list[str]:
         return list(self._directDefinitions.keys()) + list(self._particle_type_to_pdgid.keys())
 
-    @typeguard.typechecked
     def get_mass_and_charge_of_non_element(self, particle_type: str) -> PropertyTuple:
         """mass and charge of physical particle of specified non element particle type
 

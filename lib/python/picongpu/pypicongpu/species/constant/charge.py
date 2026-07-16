@@ -5,12 +5,9 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-import typeguard
-
 from .constant import Constant
 
 
-@typeguard.typechecked
 class Charge(Constant):
     """
     charge of a physical particle
