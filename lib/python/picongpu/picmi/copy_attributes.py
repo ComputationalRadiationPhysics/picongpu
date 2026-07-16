@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import inspect
+from itertools import chain
 from typing import Callable
 
 from pydantic import BaseModel, ValidationError
@@ -87,6 +88,7 @@ def copy_attributes(
         - `default_converter` is applied to all values retrieved from `from_instance`
           before they are put into `to`.
     """
+
     # Build a mapping of target field names (and aliases) to source fields
     def _target_field_key(target_field_name):
         """Get the key to use for assignment (alias if available, else field name)."""
@@ -99,19 +101,9 @@ def copy_attributes(
     assignments = {
         _target_field_key(to_name): _value_generator(from_name)
         for from_name, _ in (
-            type(from_instance).model_fields.items()
+            chain(type(from_instance).model_fields.items(), type(from_instance).model_computed_fields.items())
             if isinstance(from_instance, BaseModel)
             else inspect.getmembers(from_instance)
-        )
-        if from_name not in ignore
-        and not from_name.startswith("_")
-        and has_attribute(to, to_name := from_name.removeprefix(remove_prefix))
-    } | {
-        _target_field_key(to_name): _value_generator(from_name)
-        for from_name, _ in (
-            type(from_instance).model_computed_fields.items()
-            if isinstance(from_instance, BaseModel)
-            else {}
         )
         if from_name not in ignore
         and not from_name.startswith("_")
@@ -213,7 +205,7 @@ def default_converts_to(to_class, conversions=None, preamble=None, remove_prefix
         or (lambda self, *args, **kwargs: self.check(*args, **kwargs) if has_attribute(self, "check") else None),
         remove_prefix=remove_prefix or "picongpu_",
         ignore=ignore or ("check",),
-        default_converter=lambda self, *args, **kwargs: self.get_as_pypicongpu(*args, **kwargs)
-        if has_attribute(self, "get_as_pypicongpu")
-        else self,
+        default_converter=lambda self, *args, **kwargs: (
+            self.get_as_pypicongpu(*args, **kwargs) if has_attribute(self, "get_as_pypicongpu") else self
+        ),
     )
