@@ -13,11 +13,11 @@ from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, Iterable
+from typing import Iterable
 
 import picmistandard
 import typeguard
-from pydantic import BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
@@ -45,12 +45,6 @@ from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.util import UnpackChain, alt, unique
 from picongpu.pypicongpu.walltime import Walltime
-
-
-def _ensure_list(value):
-    if value is None:
-        return None
-    return list(value) if isinstance(value, (list, tuple)) else [value]
 
 
 class _DensityImpl(BaseModel):
@@ -207,29 +201,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_binomial_current_interpolation: bool = Field(default=False)
 
-    picongpu_lasers: Annotated[list[AnyLaser] | AnyLaser | None, BeforeValidator(_ensure_list)] = Field(
-        default=None, exclude=True
-    )
-    picongpu_diagnostics: Annotated[list[AnyDiagnostic] | AnyDiagnostic | None, BeforeValidator(_ensure_list)] = Field(
-        default=None, exclude=True
-    )
-    picongpu_species: Annotated[list[Species] | Species | None, BeforeValidator(_ensure_list)] = Field(
-        default=None, exclude=True
-    )
-    picongpu_particle_layout: Annotated[list[AnyLayout] | AnyLayout | None, BeforeValidator(_ensure_list)] = Field(
-        default=None, exclude=True
-    )
-
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
-
-    @model_validator(mode="after")
-    def _apply_picongpu_fields(self):
-        if self.picongpu_lasers:
-            self.lasers = self.picongpu_lasers
-            self.laser_injection_methods = [None] * len(self.lasers)
-        if self.picongpu_diagnostics:
-            self.diagnostics = self.picongpu_diagnostics
-        return self
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
     #   pydantic, Brian Marre, 2024
@@ -270,13 +242,6 @@ class Simulation(picmistandard.PICMI_Simulation):
             and isinstance(self.solver.grid, Cartesian3DGrid)
         ):
             self.__yee_compute_cfl_or_delta_t()
-
-        if self.picongpu_species:
-            for i, species in enumerate(self.picongpu_species):
-                self.add_species(
-                    species,
-                    alt(lambda j=i: self.picongpu_particle_layout[j], self.picongpu_particle_layout),
-                )
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """
