@@ -1,6 +1,5 @@
-************************
 Defining Your Simulation
-************************
+========================
 
 Our frontend implements the `PICMI standard <https://picmi-standard.github.io/>`__.
 This is a declarative Python interface for particle-in-cell simulation codes
@@ -49,7 +48,7 @@ The most useful for interacting with PIConGPU are:
 For other means of interacting with your simulation, see the corresponding :ref:`API Documentation <python_package/api/index:API Documentation>`.
 
 Tutorial: Setting up a simple LWFA
-==================================
+----------------------------------
 
 We will now add some interesting physics to our minimal example.
 This tutorial is supposed to give you a good introduction to the features
@@ -57,7 +56,7 @@ you will typically use in your daily work.
 More details can be found in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
 
 Extracting global constants
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For starters, it is typically helpful to have access to some parameters in different parts of your input.
 In order to do so, we extract some constants and decompose the definition of the solver::
@@ -65,7 +64,7 @@ In order to do so, we extract some constants and decompose the definition of the
   <NUM_CELLS, CELL_SIZE, grid and solver defined>
 
 Lasers
-------
+^^^^^^
 
 There are various lasers defined in `the PICMI standard <https://picmi-standard.github.io/>`__ and its :ref:`PIConGPU extension <PICMI_Extensions>`.
 We define a Gaussian laser as moving into positive ``y`` direction
@@ -74,7 +73,7 @@ We define a Gaussian laser as moving into positive ``y`` direction
   <laser definition>
 
 Species and particles
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 In the PICMI standard we define `abstract species <https://picmi-standard.github.io/>`__
 and `distributions <https://picmi-standard.github.io/>`__ of particles belonging to such species among the cells.
@@ -93,7 +92,7 @@ As an example, we allow to ionize the hydrogen into the corresponding electron s
   <ADK>
 
 Diagnostics
------------
+^^^^^^^^^^^
 
 Diagnostics, i.e. simulation output, are an important part of your simulation.
 PIConGPU allows to define general diagnostics in a flexible way.
@@ -107,14 +106,14 @@ For example, we add a checkpoint and a macro-particle counter
   <Checkpoint, MacroParticleCount>
 
 Running the simulation
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 As a last step, we add the following lines to run the simulation upon execution of the script::
 
   <run lines>
 
 (De-)serializing a ``Simulation``
-=================================
+---------------------------------
 
 The PICMI standard is based on `Pydantic <https://docs.pydantic.dev/>`__.
 This provides automatic validation and (de-)serialization capabilities.
@@ -146,7 +145,7 @@ For example, we could recover the species definitions from a previously run simu
 As such, you can flexibly reuse various aspects of your previous simulations.
 
 Multiple simulations in a single script
-=======================================
+---------------------------------------
 
 With Python as a base language,
 there's nothing hindering us from defining, manipulating or even running
@@ -162,7 +161,7 @@ Very loosely speaking:
 The earlier we focus, the more energy can be transferred to the plasma.
 
 Wrap ``Simulation`` definition into function
---------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As a first step, it typically makes sense
 to wrap the definition of our simulation into a tailored interface
@@ -188,7 +187,7 @@ We will use ``make_simulation`` as a shortcut to defining many simulations
 that are identical up to the laser focal position in propagation direction.
 
 Static parameter scans
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 In order to get a general idea where to look for optimal parameters
 we will start with a static parameter scan::
@@ -201,7 +200,7 @@ we will start with a static parameter scan::
     simulation.run()
 
 Immediate post-processing
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Our static parameter scan is now submitted to the cluster
 and we have to wait for the simulations run and finish.
@@ -220,7 +219,7 @@ We can now use the output of the ``EnergyHistogram`` diagnostic and plot it::
   plt.show()
 
 Dynamic parameter scans / optimization
---------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 From the above plot, you can easily read off a good estimate for the ``focal_position``.
 But we want to do better and run a full optimization on the problem.
