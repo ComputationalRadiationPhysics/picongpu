@@ -130,7 +130,7 @@ instead of ``simulation.run()``
 to write a simulation setup the specified location
 without executing it.
 
-If you are familiar with the legacy ``pic-create``/``pic-build``/``tbg`` interface of core PIConGPU (`:ref:`TBG documentation <usage-tbg>``),
+If you are familiar with the legacy ``pic-create``/``pic-build``/``tbg`` interface of core PIConGPU (:ref:`TBG documentation <usage-tbg>`),
 you can use the generated setup in the same manner that you would have used a ``pic-create`` setup.
 Furthermore, you can find a tailored :ref:`profile <install-profile>` in ``workflow/scripts/picongpu.profile``.
 In effect, you can run::
