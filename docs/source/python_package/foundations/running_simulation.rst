@@ -19,11 +19,11 @@ multiple times in the same script (see :ref:`Defining Your Simulation <python_pa
 For simplicity, the following guide assumes that a single simulation setup/run is handled
 but the concepts apply equally to multi-simulation scripts.
 
-Full execution
-==============
+Full Execution
+--------------
 
-Recommended: From script inline metadata
-----------------------------------------
+Recommended: From Script Inline Metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As discussed in the :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>` section,
 we recommend to use `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__ in your input files
@@ -70,8 +70,8 @@ about your submission:
 
 .. _running_simulation_from_installation:
 
-From installation
------------------
+From Installation
+^^^^^^^^^^^^^^^^^
 
 Under some circumstances,
 it might be beneficial to install PIConGPU manually
@@ -91,8 +91,8 @@ You can simply run the script as Python script (from your environment)::
 
 and proceed as above.
 
-From source
------------
+From Source
+^^^^^^^^^^^
 
 From the full source code (e.g. a clone of the repository)
 you can install the Python package via::
@@ -108,7 +108,7 @@ at `lib/python/pyproject.toml <https://github.com/ComputationalRadiationPhysics/
 to find out about optional dependencies (like test or development dependencies).
 
 Advanced Workflows
-==================
+------------------
 
 PIConGPU's Python package can take full control of orchestrating the various steps for running your simulation.
 But under specific circumstances, more fine-grained control for the user is required.
@@ -118,8 +118,8 @@ that they would have in the equivalent ``simulation.run()`` invocation.
 
 .. _running_simulation_legacy_workflow:
 
-Input for the legacy workflow
---------------------------------------
+Input for the Legacy Workflow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In your PICMI input script you can use::
 
@@ -142,8 +142,8 @@ In effect, you can run::
 to achieve roughly the same result that a call to ``simulation.run()`` would have had.
 You will still benefit in parts from the additional features like better metadata, etc.
 
-Manual and partial workflow execution
--------------------------------------
+Manual and Partial Workflow Execution
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Manually running the full workflow
 """"""""""""""""""""""""""""""""""
