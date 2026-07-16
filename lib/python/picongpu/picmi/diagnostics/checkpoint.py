@@ -5,7 +5,9 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-import typeguard
+from pathlib import Path
+
+from pydantic import BaseModel, Field, model_validator
 
 from picongpu.picmi.copy_attributes import default_converts_to
 
@@ -14,8 +16,8 @@ from .timestepspec import TimeStepSpec
 
 
 @default_converts_to(PyPIConGPUCheckpoint)
-@typeguard.typechecked
-class Checkpoint:
+class Checkpoint(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
     """
     Specifies the parameters for creating checkpoints in PIConGPU simulations.
 
@@ -28,79 +30,48 @@ class Checkpoint:
     ----------
     period: TimeStepSpec, optional
         Specify on which time steps to create checkpoints.
-        Unit: steps (simulation time steps). Required if timePeriod is not provided.
-
     timePeriod: int, optional
         Specify the interval in minutes for creating checkpoints.
-        Unit: minutes (must be a non-negative integer). Required if period is not provided.
-
-    directory: str, optional
-        Directory inside simOutput for writing checkpoints (default: "checkpoints").
-
+    directory: str | Path, optional
+        Directory inside simOutput for writing checkpoints.
     file: str, optional
         Relative or absolute fileset prefix for checkpoint files.
-
     restart: bool, optional
         If True, restart simulation from the latest checkpoint.
-
     tryRestart: bool, optional
-        If True, restart from the latest checkpoint if available, else start from scratch.
-
+        If True, restart from the latest checkpoint if available.
     restartStep: int, optional
         Specific checkpoint step to restart from.
-
     restartDirectory: str, optional
-        Directory inside simOutput containing checkpoints for restart (default: "checkpoints").
-
+        Directory inside simOutput containing checkpoints for restart.
     restartFile: str, optional
         Relative or absolute fileset prefix for reading checkpoints.
-
     restartChunkSize: int, optional
-        Number of particles processed in one kernel call during restart.
-
+        Number of particles processed per kernel call during restart.
     restartLoop: int, optional
         Number of times to restart the simulation after it finishes.
-
-    openPMD: Dict, optional
-        Dictionary of openPMD-specific settings (e.g., ext, backendConfig, infix).
+    openPMD: dict, optional
+        Dictionary of openPMD-specific settings.
     """
 
-    def check(self, *args, **kwargs):
+    period: TimeStepSpec | None = None
+    timePeriod: int | None = Field(default=None, ge=0)
+    directory: str | Path | None = None
+    file: str | None = None
+    restart: bool | None = None
+    tryRestart: bool | None = None
+    restartStep: int | None = Field(default=None, ge=0)
+    restartDirectory: str | None = None
+    restartFile: str | None = None
+    restartChunkSize: int | None = Field(default=None, gt=0)
+    restartLoop: int | None = Field(default=None, ge=0)
+    openPMD: dict | None = None
+
+    @model_validator(mode="after")
+    def _validate(self):
         if self.period is None and self.timePeriod is None:
             raise ValueError("At least one of period or timePeriod must be provided")
-        if self.timePeriod is not None and self.timePeriod < 0:
-            raise ValueError("timePeriod must be a non-negative integer")
-        if self.restartStep is not None and self.restartStep < 0:
-            raise ValueError("restartStep must be non-negative")
-        if self.restartChunkSize is not None and self.restartChunkSize < 1:
-            raise ValueError("restartChunkSize must be positive")
-        if self.restartLoop is not None and self.restartLoop < 0:
-            raise ValueError("restartLoop must be non-negative")
+        return self
 
-    def __init__(
-        self,
-        period: TimeStepSpec | None = None,
-        timePeriod: int | None = None,
-        directory: str | None = None,
-        file: str | None = None,
-        restart: bool | None = None,
-        tryRestart: bool | None = None,
-        restartStep: int | None = None,
-        restartDirectory: str | None = None,
-        restartFile: str | None = None,
-        restartChunkSize: int | None = None,
-        restartLoop: int | None = None,
-        openPMD: dict | None = None,
-    ):
-        self.period = period
-        self.timePeriod = timePeriod
-        self.directory = directory
-        self.file = file
-        self.restart = restart
-        self.tryRestart = tryRestart
-        self.restartStep = restartStep
-        self.restartDirectory = restartDirectory
-        self.restartFile = restartFile
-        self.restartChunkSize = restartChunkSize
-        self.restartLoop = restartLoop
-        self.openPMD = openPMD
+    def check(self, *args, **kwargs):
+        pass
