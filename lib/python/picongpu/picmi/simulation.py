@@ -289,7 +289,6 @@ class Simulation(picmistandard.PICMI_Simulation):
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    # file_name annotation should be PathLike but typeguard can't handle that.
     def write_input_file(self, file_name: str | Path, exist_ok=False, **flags) -> None:
         """
         generate input data set for picongpu

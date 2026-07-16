@@ -19,7 +19,6 @@ import enum
 import typeguard
 
 
-@typeguard.typechecked
 class ADKVariant(enum.Enum):
     LinearPolarization = 0
     CircularPolarization = 1

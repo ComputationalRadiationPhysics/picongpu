@@ -15,7 +15,6 @@ import enum
 import typeguard
 
 
-@typeguard.typechecked
 class BSIExtension(enum.Enum):
     StarkShift = 0
     EffectiveZ = 1
