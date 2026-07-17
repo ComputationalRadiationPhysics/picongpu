@@ -8,6 +8,7 @@ License: GPLv3+
 from ..groundstateionizationmodel import GroundStateIonizationModel
 from ..... import pypicongpu
 
+
 class ThomasFermi(GroundStateIonizationModel):
     """thomas fermi ionization model"""
 

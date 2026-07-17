@@ -24,4 +24,6 @@ class FromOpenPMDPulseLaser(BaseModel):
     datatype: str
     polarisationAxisOpenPMD: str
     propagationAxisOpenPMD: str
-    picongpu_huygens_surface_positions: list[list[int]] = Field(default_factory=lambda: [[16, -16], [16, -16], [16, -16]])
+    picongpu_huygens_surface_positions: list[list[int]] = Field(
+        default_factory=lambda: [[16, -16], [16, -16], [16, -16]]
+    )

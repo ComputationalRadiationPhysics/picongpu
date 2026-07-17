@@ -40,7 +40,7 @@ from picongpu.pypicongpu.runner import Runner
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
-from picongpu.pypicongpu.util import UnpackChain, alt, unique
+from picongpu.pypicongpu.util import UnpackChain, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
@@ -94,9 +94,7 @@ def _normalise_template_dir(directory: None | PathLike | Iterable[PathLike]) -> 
         except TypeError:
             pass
 
-    if not isinstance(directory, (tuple, list)) or any(
-        filter(lambda p: not isinstance(p, Path), directory)
-    ):
+    if not isinstance(directory, (tuple, list)) or any(filter(lambda p: not isinstance(p, Path), directory)):
         raise ValueError(
             f"Can't understand {directory=} of {type(directory)=}. Must be one of str, Path or iterable thereof."
         )

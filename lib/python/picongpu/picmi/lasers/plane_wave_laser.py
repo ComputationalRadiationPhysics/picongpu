@@ -16,15 +16,19 @@ from ..copy_attributes import default_converts_to
 from .base_laser import BaseLaser
 from .polarization_type import PolarizationType
 
-PositiveFloat = Annotated[float, BeforeValidator(
-    lambda v: float(v) if (float(v) > 0) else (_ for _ in ()).throw(ValueError("value must be > 0"))
-)]
+PositiveFloat = Annotated[
+    float,
+    BeforeValidator(lambda v: float(v) if (float(v) > 0) else (_ for _ in ()).throw(ValueError("value must be > 0"))),
+]
 
 
-@default_converts_to(laser.PlaneWaveLaser, conversions={
-    "focal_position": "focus_pos",
-    "laser_nofocus_constant_si": lambda self: 0.0,
-})
+@default_converts_to(
+    laser.PlaneWaveLaser,
+    conversions={
+        "focal_position": "focus_pos",
+        "laser_nofocus_constant_si": lambda self: 0.0,
+    },
+)
 class PlaneWaveLaser(BaseModel, BaseLaser):
     """
     Specifies a plane wave with a temporal shape

@@ -132,9 +132,7 @@ class ParticleFunctor(BaseModel, metaclass=_DecoratingMeta):
         if self.name is None:
             self.name = self._functor.__name__
         if self.return_type is None:
-            self.return_type = (
-                float if sig.return_annotation == sig.empty else sig.return_annotation
-            )
+            self.return_type = float if sig.return_annotation == sig.empty else sig.return_annotation
         if self.unit_dimension is None:
             self.unit_dimension = UnitDimension()
         rng_classes = [
@@ -195,9 +193,7 @@ class AbstractParticle(Particle):
             origin = kwargs.get("origin", "total")
             precision = kwargs.get("precision", "cell")
             unit = kwargs.get("unit", "cell")
-            self.needs_total_position = self.needs_total_position or (
-                origin.lower() not in ["cell", "local"]
-            )
+            self.needs_total_position = self.needs_total_position or (origin.lower() not in ["cell", "local"])
             my_symbols = _COORDINATE_SYSTEM[(origin, precision, unit)]
             self.used_attributes |= {my_symbols: ("position", origin, precision, unit)}
 
