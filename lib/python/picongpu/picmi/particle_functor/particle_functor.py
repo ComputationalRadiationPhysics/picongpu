@@ -8,8 +8,7 @@ License: GPLv3+
 from inspect import signature
 from typing import Any, Callable, Iterable
 
-from pydantic import BaseModel, PrivateAttr, model_validator
-from pydantic._internal._model_construction import ModelMetaclass
+from pydantic import BaseModel, model_validator
 from sympy import Expr, Symbol, symbols
 
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
@@ -19,7 +18,7 @@ from picongpu.pypicongpu.particle_functor import (
     UnitDimension as PyPIConGPUUnitDimension,
     generate_preamble,
 )
-from picongpu.pypicongpu.util import alt
+from picongpu.pypicongpu.util import alt, decorating_class
 
 _COORDINATE_SYSTEM = {
     (
@@ -40,46 +39,13 @@ _COORDINATE_SYSTEM = {
 }
 
 
-class _DecoratingMeta(ModelMetaclass):
-    """
-    Metaclass that adds decorator-style instantiation to pydantic models.
-
-    Enables both:
-        @ParticleFunctor
-        def kinetic_energy(particle): ...
-
-        @ParticleFunctor(unit_dimension=M * L / T)
-        def momentum_x(particle): ...
-    """
-
-    def __call__(cls, *args, **kwargs):
-        sig = signature(cls)
-        first_param_name = next(iter(sig.parameters.values())).name
-
-        # Case 1: @ParticleFunctor (callable as first positional arg, no kwargs)
-        if args and callable(args[0]) and not kwargs:
-            return super().__call__(**{first_param_name: args[0]}, **kwargs)
-
-        # Case 2: @ParticleFunctor(unit_dimension=...) (kwargs only)
-        # Return a decorator that accepts the callable
-        if not args and first_param_name not in kwargs:
-            decorator_kwargs = dict(kwargs)
-
-            def decorator(func):
-                decorator_kwargs[first_param_name] = func
-                return super(_DecoratingMeta, cls).__call__(**decorator_kwargs)
-
-            return decorator
-
-        return super().__call__(*args, **kwargs)
-
-
 class Particle:
     def get(self, attribute, **kwargs) -> Expr | Iterable[Expr]:
         NotImplementedError()
 
 
-class ParticleFunctor(BaseModel, metaclass=_DecoratingMeta):
+@decorating_class("functor")
+class ParticleFunctor(BaseModel):
     """
     A functor that operates on a Particle and returns a sympy expression.
 
@@ -98,12 +64,11 @@ class ParticleFunctor(BaseModel, metaclass=_DecoratingMeta):
 
     model_config = {"arbitrary_types_allowed": True}
 
+    functor: Callable[[Any], Any]
     name: str | Callable[[Any], Any] | None = None
     return_type: type | str | None = None
     unit_dimension: UnitDimension | None = None
-
-    _functor: Callable[[Any], Any] = PrivateAttr()
-    _rng_class: Callable = PrivateAttr()
+    rng_class: Callable[[Any], Any] = lambda: None
 
     @model_validator(mode="before")
     @classmethod
@@ -144,20 +109,12 @@ class ParticleFunctor(BaseModel, metaclass=_DecoratingMeta):
             raise ValueError(
                 f"ParticleFunctor can take at most one RNG. You have requested {rng_classes=} in your signature."
             )
-        self._rng_class = alt(lambda: rng_classes[0], None) or (lambda: None)
+        self.rng_class = alt(lambda: rng_classes[0], None) or (lambda: None)
         return self
-
-    @property
-    def functor(self):
-        return self._functor
-
-    @property
-    def rng_class(self):
-        return self._rng_class
 
     def get_as_pypicongpu(self, mode) -> PyPIConGPUParticleFunctor:
         particle = AbstractParticle()
-        rng = self._rng_class()
+        rng = self.rng_class()
         functor_expression = self(particle) if rng is None else self(particle, rng)
         return PyPIConGPUParticleFunctor(
             name=self.name,
