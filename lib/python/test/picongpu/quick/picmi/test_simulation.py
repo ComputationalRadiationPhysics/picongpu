@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest import TestCase
 
 import pytest
-import typeguard
+from pydantic import ValidationError
 from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
@@ -536,7 +536,7 @@ class TestPicmiSimulation(TestCase):
 
         invalid_paths = [1, 42.0]
         for invalid_path in invalid_paths:
-            with pytest.raises((typeguard.TypeCheckError, ValueError)):
+            with pytest.raises((ValidationError, ValueError)):
                 picmi.Simulation(
                     time_step_size=17,
                     max_steps=4,

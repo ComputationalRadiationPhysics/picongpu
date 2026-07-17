@@ -8,7 +8,6 @@ License: GPLv3+
 from picongpu import picmi
 
 from unittest import TestCase
-import typeguard
 import pytest
 
 

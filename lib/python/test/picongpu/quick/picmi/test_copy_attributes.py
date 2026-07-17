@@ -7,7 +7,6 @@ License: GPLv3+
 
 from unittest import TestCase
 import inspect
-import typeguard
 import pytest
 from picongpu.picmi.copy_attributes import copy_attributes, converts_to, default_converts_to
 
@@ -48,7 +47,6 @@ class MiniMock:
         self.kwargs = kwargs
 
 
-@typeguard.typechecked
 class ClassWithProperty:
     _attribute = 0
 

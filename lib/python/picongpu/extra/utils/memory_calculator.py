@@ -15,7 +15,6 @@ import numpy.typing as nptype
 
 import pydantic
 from pydantic import ConfigDict
-import typeguard
 
 
 class MemoryCalculator(pydantic.BaseModel):
@@ -108,7 +107,6 @@ class MemoryCalculator(pydantic.BaseModel):
             "totalCellIdx": simulation_dimension * size_uint32,
         }
 
-    @typeguard.typechecked
     def _check_cell_extent(self, cell_extent: nptype.NDArray):
         """check cell extent is consistent with configuration"""
         if (cell_extent).ndim != 1:
@@ -145,7 +143,6 @@ class MemoryCalculator(pydantic.BaseModel):
             if (self.guard_size).shape[0] == 3:
                 self.guard_size = self.guard_size[:2]
 
-    @typeguard.typechecked
     def _check(self):
         """check configuration is sensible"""
         if self.simulation_dimension > 3 or self.simulation_dimension < 2:
@@ -157,7 +154,6 @@ class MemoryCalculator(pydantic.BaseModel):
         if not (np.all(self.super_cell_size > 0)):
             raise ValueError("super_cell_size must be > 0 in all dimensions")
 
-    @typeguard.typechecked
     def memory_required_by_cell_fields(
         self, cell_extent: nptype.NDArray, number_of_temporary_field_slots: int = 1
     ) -> int:
@@ -198,7 +194,6 @@ class MemoryCalculator(pydantic.BaseModel):
 
         return cell_memory + double_buffer_memory + pml_memory
 
-    @typeguard.typechecked
     def memory_required_by_super_cell_fields(
         self,
         super_cell_extent: nptype.NDArray,
@@ -283,7 +278,6 @@ class MemoryCalculator(pydantic.BaseModel):
 
         return number_local_super_cells * per_super_cell_memory
 
-    @typeguard.typechecked
     def memory_required_by_particles_of_species(
         self,
         particle_filled_cells: nptype.NDArray,
@@ -342,7 +336,6 @@ class MemoryCalculator(pydantic.BaseModel):
 
         return req_mem
 
-    @typeguard.typechecked
     def memory_required_by_random_number_generator(
         self, cell_extent: nptype.NDArray, generator_method: str = "XorMin"
     ) -> int:
@@ -385,7 +378,6 @@ class MemoryCalculator(pydantic.BaseModel):
         req_mem = state_size_per_cell * number_local_cells
         return req_mem
 
-    @typeguard.typechecked
     def memory_required_by_calorimeter(self, number_energy_bins: int, number_yaw_bins: int, number_pitch_bins: int):
         """
         Memory required by the particle calorimeter plugin.

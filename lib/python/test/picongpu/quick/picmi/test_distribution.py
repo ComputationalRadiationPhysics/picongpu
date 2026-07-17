@@ -7,7 +7,6 @@ License: GPLv3+
 
 from unittest import TestCase
 
-import typeguard
 import pytest
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian3DGrid
@@ -23,7 +22,6 @@ ARBITRARY_GRID = Cartesian3DGrid(
 )
 
 
-@typeguard.typechecked
 class HelperTestPicmiBoundaries:
     """
     provides test functions to check proper handling of boundaries
