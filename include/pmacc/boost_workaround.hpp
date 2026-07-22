@@ -22,6 +22,12 @@
 
 // clang-format off
 
+// Work around for Boost.System inline function with
+// BOOST_NOINLINE (GCC emits -Wattributes for that combination).
+#undef BOOST_NOINLINE
+#define BOOST_NOINLINE
+#include <boost/config.hpp>
+
 /** @file This file should be included in each `cpp`-file before any other boost include
  * to workaround different compiler errors triggered by boost includes.
  */
@@ -37,7 +43,7 @@
 #include <boost/optional/optional.hpp>
 
 // disable warnings created from inside boost mp11 with CUDA13+
-#if defined(__CUDACC__) && (__CUDACC_VER_MAJOR__ >= 13)
+#if defined(__CUDACC__)
 #    pragma nv_diag_push
 #    pragma nv_diag_suppress 186
 // warning #186-D: pointless comparison of unsigned integer with zero
@@ -45,7 +51,7 @@
 
 #include <boost/mp11/detail/mp_count.hpp>
 
-#if defined(__CUDACC__) && (__CUDACC_VER_MAJOR__ >= 13)
+#if defined(__CUDACC__)
 #    pragma nv_diag_pop
 #endif
 
