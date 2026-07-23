@@ -37,6 +37,8 @@ dependencies = [
   "pandas>=2.2.3",
   "particle>=0.25.1",
   "periodictable>=1.7.1",
+  # This commit hash points to branch: pydantic-refactoring-picongpu-base,
+  # so we don't loose it if someone force-pushes to the main feature branch.
   "picmistandard @ git+https://github.com/chillenzer/picmi.git@c1d662238fc6642ca683826df688ccca12ed3765",
   "pillow",
   "pint",

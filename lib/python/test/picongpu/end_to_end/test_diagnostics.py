@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import logging
+from typing import Any
 from functools import partial
 from hashlib import sha256 as compute_hash
 from itertools import chain
@@ -14,6 +15,7 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
+from pydantic import ConfigDict, BaseModel
 from picongpu import rc_params
 from picongpu.picmi import (
     Cartesian3DGrid,
@@ -200,6 +202,10 @@ def _compute_threshold(distribution, rng, percent):
 
 
 class RandomParticleFilter(ParticleFilter):
+    percent: int
+    distribution: Any
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     def __init__(self, percent: int, name, distribution):
         def f(_: Particle, rng: RNGArg):
             nums = rng.get(**distribution)
@@ -216,7 +222,9 @@ class RandomParticleFilter(ParticleFilter):
             threshold = _compute_threshold(distribution, rng, percent)
             return And(*(num < threshold for num in nums))
 
-        super().__init__(name=f"random_filtered_{name}_{percent}", functor=f)
+        BaseModel.__init__(
+            self, percent=percent, distribution=distribution, functor=f, name=f"random_filtered_{name}_{percent}"
+        )
 
 
 def _name_of(distribution):
