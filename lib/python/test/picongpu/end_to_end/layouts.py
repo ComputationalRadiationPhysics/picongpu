@@ -87,7 +87,7 @@ def setup_sim():
     sim = basic_simulation()
     for species, layout in SPECIES_AND_LAYOUTS.values():
         sim.add_species(species, layout)
-    sim.diagnostics = [Checkpoint(TimeStepSpec[:])]
+    sim.diagnostics = [Checkpoint(period=TimeStepSpec[:])]
     if RUN_DIR:
         sim.picongpu_get_runner().run_dir = RUN_DIR
     else:

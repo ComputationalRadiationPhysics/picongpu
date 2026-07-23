@@ -217,8 +217,6 @@ class RandomParticleFilter(ParticleFilter):
             return And(*(num < threshold for num in nums))
 
         super().__init__(name=f"random_filtered_{name}_{percent}", functor=f)
-        self.distribution = distribution
-        self.percent = percent
 
 
 def _name_of(distribution):
@@ -313,7 +311,7 @@ def setup_sim():
     sim = basic_simulation()
     for species in SPECIES:
         sim.add_species(species, LAYOUT)
-    sim.diagnostics = [Checkpoint(TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
+    sim.diagnostics = [Checkpoint(period=TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"

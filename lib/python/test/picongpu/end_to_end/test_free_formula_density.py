@@ -12,6 +12,7 @@ from unittest import TestCase
 import numpy as np
 from picongpu import picmi, rc_params
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
+from picongpu.picmi.diagnostics.checkpoint import Checkpoint
 
 from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
 from .binning_functors import binning_diagnostics
@@ -74,7 +75,7 @@ def setup_sim():
         [],
     )
 
-    diagnostics = [picmi.diagnostics.Checkpoint(TimeStepSpec[:])] + binning_diagnostics(species, sim.time_step_size)
+    diagnostics = [Checkpoint(period=TimeStepSpec[:])] + binning_diagnostics(species, sim.time_step_size)
 
     for s in species:
         sim.add_species(s, LAYOUT)

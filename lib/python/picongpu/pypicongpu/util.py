@@ -92,7 +92,7 @@ def decorating_class(cls_or_name, parameter=None):
             try:
                 return _pass_first_parameter_to(constructor, parameter, kwargs)(decorated)
             except TypeError:
-                return super(cls, cls).__new__(cls)
+                return object.__new__(cls)
 
     return Tmp
 
