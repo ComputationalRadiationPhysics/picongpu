@@ -71,9 +71,7 @@ def decorating_class(cls_or_name, parameter=None):
             """
             if decorated is not None:
                 if parameter.name in kwargs:
-                    raise TypeError(
-                        f"got multiple values for argument '{parameter.name}'"
-                    )
+                    raise TypeError(f"got multiple values for argument '{parameter.name}'")
                 super().__init__(**{parameter.name: decorated}, **kwargs)
             else:
                 super().__init__(**kwargs)
@@ -81,9 +79,9 @@ def decorating_class(cls_or_name, parameter=None):
         def __new__(cls, decorated=None, **kwargs):
             decorated = kwargs.pop(parameter.name, None) or decorated
             if decorated is None:
-                # @MyClass(extra=...)  — return a callable that accepts the decorator
+                # @MyClass(extra=...)  - return a callable that accepts the decorator
                 return _pass_first_parameter_to(cls, parameter, kwargs)
-            # @MyClass(func)  — try to call the original __new__ with the
+            # @MyClass(func)  - try to call the original __new__ with the
             # decorated arg.  For plain classes this exercises their custom
             # __new__.  For pydantic models the call fails (BaseModel.__new__
             # doesn't accept positional args), so we fall back to a bare
