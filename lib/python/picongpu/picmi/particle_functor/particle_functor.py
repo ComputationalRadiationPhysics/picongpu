@@ -9,7 +9,6 @@ from inspect import signature
 from typing import Any, Callable, Iterable
 
 from pydantic import BaseModel, model_validator
-from pydantic._internal._model_construction import ModelMetaclass
 from sympy import Expr, Symbol, symbols
 
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
@@ -19,7 +18,7 @@ from picongpu.pypicongpu.particle_functor import (
     UnitDimension as PyPIConGPUUnitDimension,
     generate_preamble,
 )
-from picongpu.pypicongpu.util import alt
+from picongpu.pypicongpu.util import alt, decorating_class
 
 _COORDINATE_SYSTEM = {
     (
@@ -45,38 +44,8 @@ class Particle:
         NotImplementedError()
 
 
-class _DecoratingMeta(ModelMetaclass):
-    """
-    Metaclass enabling @ParticleFunctor and @ParticleFunctor(kwargs) decorator syntax.
-
-    decorating_class cannot be used with pydantic BaseModel because pydantic's
-    __init__ only accepts **data as keyword arguments, while decorating_class
-    passes the decorated callable as a class-level positional argument.
-    """
-
-    def __call__(cls, *args, **kwargs):
-        sig = signature(cls)
-        first_param_name = next(iter(sig.parameters.values())).name
-
-        # Case 1: @ParticleFunctor (callable as first positional arg, no kwargs)
-        if args and callable(args[0]) and first_param_name not in kwargs:
-            return super().__call__(**{first_param_name: args[0]}, **kwargs)
-
-        # Case 2: @ParticleFunctor(unit_dimension=...) (kwargs only, no callable)
-        # Returns a decorator that accepts the decorated function
-        if not args and first_param_name not in kwargs:
-            decorator_kwargs = dict(kwargs)
-
-            def decorator(func):
-                decorator_kwargs[first_param_name] = func
-                return super(_DecoratingMeta, cls).__call__(**decorator_kwargs)
-
-            return decorator
-
-        return super().__call__(*args, **kwargs)
-
-
-class ParticleFunctor(BaseModel, metaclass=_DecoratingMeta):
+@decorating_class("functor")
+class ParticleFunctor(BaseModel):
     """
     A functor that operates on a Particle and returns a sympy expression.
 

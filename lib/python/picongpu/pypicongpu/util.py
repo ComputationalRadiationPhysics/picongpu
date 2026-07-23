@@ -60,15 +60,27 @@ def decorating_class(cls_or_name, parameter=None):
 
     @wraps(cls_or_name, updated=tuple())
     class Tmp(cls_or_name):
+        def __init__(self, decorated=None, **kwargs):
+            """Intercept positional decorator arg and pass as keyword.
+
+            For pydantic models, ``type.__call__`` passes original positional args
+            to ``__init__``, but pydantic BaseModel.__init__ only accepts keyword
+            arguments. We extract the positional arg and convert it to the named
+            keyword, then delegate to super().__init__ with only kwargs.
+            """
+            decorated = kwargs.pop(parameter.name, None) or decorated
+            if decorated is not None:
+                super().__init__(**{parameter.name: decorated}, **kwargs)
+            else:
+                super().__init__(**kwargs)
+
         def __new__(cls, decorated=None, **kwargs):
             decorated = kwargs.pop(parameter.name, None) or decorated
             if decorated is None:
+                # @MyClass(extra=...) — return a callable that accepts the decorator
                 return _pass_first_parameter_to(cls, parameter, kwargs)
-            constructor = partial(super().__new__, cls)
-            try:
-                return _pass_first_parameter_to(constructor, parameter, kwargs)(decorated)
-            except TypeError:
-                return constructor()
+            # @MyClass(func) — create a bare instance; let __init__ handle validation
+            return super(cls, cls).__new__(cls)
 
     return Tmp
 
