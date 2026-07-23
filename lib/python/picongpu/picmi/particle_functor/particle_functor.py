@@ -9,6 +9,7 @@ from inspect import signature
 from typing import Any, Callable, Iterable
 
 from pydantic import BaseModel, model_validator
+from pydantic._internal._model_construction import ModelMetaclass
 from sympy import Expr, Symbol, symbols
 
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
@@ -18,7 +19,7 @@ from picongpu.pypicongpu.particle_functor import (
     UnitDimension as PyPIConGPUUnitDimension,
     generate_preamble,
 )
-from picongpu.pypicongpu.util import alt, decorating_class
+from picongpu.pypicongpu.util import alt
 
 _COORDINATE_SYSTEM = {
     (
@@ -44,12 +45,43 @@ class Particle:
         NotImplementedError()
 
 
-@decorating_class("functor")
-class ParticleFunctor(BaseModel):
+class _DecoratingMeta(ModelMetaclass):
+    """
+    Metaclass enabling @ParticleFunctor and @ParticleFunctor(kwargs) decorator syntax.
+
+    decorating_class cannot be used with pydantic BaseModel because pydantic's
+    __init__ only accepts **data as keyword arguments, while decorating_class
+    passes the decorated callable as a class-level positional argument.
+    """
+
+    def __call__(cls, *args, **kwargs):
+        sig = signature(cls)
+        first_param_name = next(iter(sig.parameters.values())).name
+
+        # Case 1: @ParticleFunctor (callable as first positional arg, no kwargs)
+        if args and callable(args[0]) and first_param_name not in kwargs:
+            return super().__call__(**{first_param_name: args[0]}, **kwargs)
+
+        # Case 2: @ParticleFunctor(unit_dimension=...) (kwargs only, no callable)
+        # Returns a decorator that accepts the decorated function
+        if not args and first_param_name not in kwargs:
+            decorator_kwargs = dict(kwargs)
+
+            def decorator(func):
+                decorator_kwargs[first_param_name] = func
+                return super(_DecoratingMeta, cls).__call__(**decorator_kwargs)
+
+            return decorator
+
+        return super().__call__(*args, **kwargs)
+
+
+class ParticleFunctor(BaseModel, metaclass=_DecoratingMeta):
     """
     A functor that operates on a Particle and returns a sympy expression.
 
-    Usage:
+    Usage as decorator::
+
         @ParticleFunctor
         def kinetic_energy(particle):
             return particle.get("kinetic energy")
@@ -58,44 +90,24 @@ class ParticleFunctor(BaseModel):
         def momentum_x(particle):
             return particle.get("momentum")[0]
 
-        # Or constructor:
+    Or as constructor::
+
         pf = ParticleFunctor(functor=lambda p: p.get("weighting"), name="density")
     """
 
     model_config = {"arbitrary_types_allowed": True}
 
     functor: Callable[[Any], Any]
-    name: str | Callable[[Any], Any] | None = None
+    name: str | None = None
     return_type: type | str | None = None
     unit_dimension: UnitDimension | None = None
     rng_class: Callable[[Any], Any] = lambda: None
 
-    @model_validator(mode="before")
-    @classmethod
-    def _before(cls, data):
-        if isinstance(data, dict):
-            n = data.get("name")
-            if callable(n):
-                data["__f__"] = n
-                data["name"] = getattr(n, "__name__", None)
-            f = data.pop("functor", None)
-            if f is not None:
-                data["__f__"] = f
-        return data
-
-    @model_validator(mode="wrap")
-    @classmethod
-    def _wrap(cls, data, handler):
-        result = handler(data)
-        if isinstance(data, dict) and "__f__" in data:
-            result._functor = data["__f__"]
-        return result
-
     @model_validator(mode="after")
     def _init(self):
-        sig = signature(self._functor)
+        sig = signature(self.functor)
         if self.name is None:
-            self.name = self._functor.__name__
+            self.name = self.functor.__name__
         if self.return_type is None:
             self.return_type = float if sig.return_annotation == sig.empty else sig.return_annotation
         if self.unit_dimension is None:
@@ -129,7 +141,7 @@ class ParticleFunctor(BaseModel):
         )
 
     def __call__(self, *args):
-        return self._functor(*args)
+        return self.functor(*args)
 
 
 class AbstractParticle(Particle):
