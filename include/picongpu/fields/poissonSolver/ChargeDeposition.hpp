@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Rene Widera
+/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,12 +17,4 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
-
-#include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/FieldTmp.hpp"
-#include "picongpu/fields/Fields.def"
-#include "picongpu/fields/poissonSolver/FieldV.hpp"

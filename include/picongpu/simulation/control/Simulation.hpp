@@ -53,6 +53,7 @@
 #include "picongpu/simulation/stage/ParticleInit.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
+#include "picongpu/simulation/stage/Poisson.hpp"
 #include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
@@ -157,6 +158,9 @@ namespace picongpu
             fieldBackground->registerHelp(desc);
             particleBoundaries.registerHelp(desc);
             runtimeDensityFile.registerHelp(desc);
+
+            poissonSolver = std::make_shared<simulation::stage::Poisson>();
+            poissonSolver->registerHelp(desc);
         }
 
         void startSimulation() override
@@ -343,6 +347,9 @@ namespace picongpu
             // initialize runtime density file paths
             runtimeDensityFile.init();
 
+            // create memory for poisson solver
+            poissonSolver->init(*cellDescription);
+
             // create factory for the random number generator
             uint32_t const userSeed = random::seed::ISeed<random::SeedGenerator>{}();
             uint32_t const seed = std::hash<std::string>{}(std::to_string(userSeed));
@@ -460,6 +467,7 @@ namespace picongpu
                 {
                     simulation::stage::ParticleInit{}(step);
                     (*atomicPhysics).fixAtomicStateInit(*cellDescription);
+                    (*poissonSolver)(step);
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);
                 }
@@ -591,6 +599,8 @@ namespace picongpu
         simulation::stage::RuntimeDensityFile runtimeDensityFile;
 
         InitialiserController* initialiserController{nullptr};
+
+        std::shared_ptr<simulation::stage::Poisson> poissonSolver;
 
         std::unique_ptr<MappingDesc> cellDescription;
 
