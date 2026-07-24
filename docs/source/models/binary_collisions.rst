@@ -523,7 +523,7 @@ The theoretical curves are obtained from the same formula that was used by ``smi
 
 .. math::
 
-   \nu_\epsilon = \frac{2}{3}\sqrt\frac{2}{\pi} \frac{e^4\,Z^{\star 2} \sqrt{m_em_i}\,n_i\,\ln\Lambda }{ 4 \pi\varepsilon_0^2 \,\qty(m_eT_e+m_iT_i)^{3/2} }
+   \nu_\epsilon = \frac{2}{3}\sqrt\frac{2}{\pi} \frac{e^4\,Z^{\star 2} \sqrt{m_em_i}\,n_i\,\ln\Lambda }{ 4 \pi\varepsilon_0^2 \,\qty(m_eT_i+m_iT_e)^{3/2} }
 
 Since the collisions in different cells are independent of each other, one can treat each cells as an individual randomized run.
 The simulation values are obtained by averaging over the individual simulation cells.
