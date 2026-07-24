@@ -68,4 +68,8 @@ namespace picongpu
     /** Current Density j, @see FieldJ.hpp */
     class FieldJ;
 
+    namespace fields::poissonSolver
+    {
+        struct FieldV;
+    } // namespace fields::poissonSolver
 } // namespace picongpu

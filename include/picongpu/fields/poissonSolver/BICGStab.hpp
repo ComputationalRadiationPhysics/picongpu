@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Rene Widera
+/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,12 +17,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/FieldTmp.hpp"
-#include "picongpu/fields/Fields.def"
-#include "picongpu/fields/poissonSolver/FieldV.hpp"
+#include "picongpu/defines.hpp"
+#include "picongpu/fields/FieldTmpOperations.hpp"
+
+namespace picongpu::fields::poissonSolver
+{
+    struct BICGStab
+    {
+        // return residual
+        // return number of iterations
+        void operator()(FieldTmp& fieldV, FieldTmp& fiedlRho, MappingDesc* cellDescription)
+        {
+            // set boundary conditions on fieldV (Dirichlet or Neuman)
+
+            // normalize the problem based on norm(fieldRho)
+        }
+    };
+} // namespace picongpu::fields::poissonSolver
