@@ -210,7 +210,7 @@ openPMD
 ^^^^^^^
 
 The PNG output is great for having a quick look at the example results, but it is a rather inefficient way of generating and storing your simulation results.
-In general, we write simulation data into ADIOS2 (``.bp``, ``.bp5``, ``.bp4`` extensions) or HDF5 (``.h5``) files with parallel I/O that follow the structure defined by the community openPMD standard.
+In general, we write simulation data into ADIOS2 (``.bp5`` and ``.bp4`` extensions, and (deprecated) ``.bp``) or HDF5 (``.h5``) files with parallel I/O that follow the structure defined by the community openPMD standard.
 The output can be configured using the :ref:`openPMD plugin <usage-plugins-openPMD>`.
 The example you just run also provides some basic openPMD output that can be now found under :file:`simOutput/openPMD/`.
 You should make yourself familiar with how to read and visualize such data.
@@ -224,6 +224,8 @@ Here are some useful resources:
 - `openPMD pandas support <https://openpmd-api.readthedocs.io/en/latest/analysis/pandas.html>`_ Straightforward solution for working with particle data.
 - `openpmd-ls <https://openpmd-api.readthedocs.io/en/latest/utilities/cli.html#openpmd-ls>`_ Command for getting an overview over the content of an openPMD output via command line.
 - `bpls <https://adios2.readthedocs.io/en/latest/ecosystem/utilities.html#bpls-inspecting-data>`_ Powerful tool for inspecting individual ADIOS2 files via command line.
+- `h5ls <https://support.hdfgroup.org/documentation/hdf5/latest/_h5_t_o_o_l__l_s__u_g.html>`_ and `h5dump <https://support.hdfgroup.org/documentation/hdf5/latest/_h5_t_o_o_l__d_p__u_g.html>`_: CLI tools for quick inspection of HDF5 output.
+- `myHDF5 <https://myhdf5.hdfgroup.org/>`_ Easy to use Web GUI for inspection of HDF5 files based on `H5Web <https://github.com/silx-kit/h5web>`_. Also available as a `plugin for VS Code <https://github.com/silx-kit/vscode-h5web>`_.
 
 We recommend trying out the openPMD-viewer and the openPMD-scipp tools first, followed by a quick read through the standard itself and the python part of the `first read API example <https://openpmd-api.readthedocs.io/en/latest/usage/firstread.html>`_.
 

@@ -328,7 +328,7 @@ pic_dependency(openPMD "API for IO" AUTO)
 
 if(PIC_SEARCH_openPMD)
     # find openPMD installation
-    find_package(openPMD 0.15 CONFIG COMPONENTS MPI)
+    find_package(openPMD 0.17 CONFIG COMPONENTS MPI)
     if(openPMD_FOUND)
         # HDF5 and ADIOS require linking against C libraries but this is not correctly
         # exposed.

@@ -119,12 +119,10 @@ namespace picongpu
         ::openPMD::RecordComponent& ThreadParams::initDataset(
             ::openPMD::RecordComponent& recordComponent,
             ::openPMD::Datatype datatype,
-            pmacc::math::UInt64<DIM> const& globalDimensions,
-            std::string const& datasetName)
+            pmacc::math::UInt64<DIM> const& globalDimensions)
         {
             std::vector<uint64_t> v = asStandardVector(globalDimensions);
             ::openPMD::Dataset dataset{datatype, std::move(v)};
-            dataset.options = jsonMatcher->get(datasetName);
             recordComponent.resetDataset(std::move(dataset));
             return recordComponent;
         }
@@ -161,7 +159,7 @@ namespace picongpu
                      * backend_config. The reading routines (for restarting from a checkpoint) are configured via
                      * --checkpoint.openPMD.jsonRestart.
                      */
-                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : jsonMatcher->getDefault());
+                    at == ::openPMD::Access::READ_ONLY ? backendConfigRestartString : backendConfigResolved.value());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -653,14 +651,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 throw std::runtime_error("Command line option openPMD.json was renamed as openPMD.backendConfig.");
             }
-            if(!jsonMatcher)
+            if(!backendConfigResolved.has_value())
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
-                jsonMatcher = AbstractJsonMatcher::construct(backendConfigString, communicator);
+                backendConfigResolved.emplace(resolveJsonConfig(backendConfigString, communicator));
             }
 
-            log<picLog::INPUT_OUTPUT>("openPMD: global JSON output config: %1%") % jsonMatcher->getDefault();
+            log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % *backendConfigResolved;
             if(!help.backendConfigRestartForbidden.empty())
             {
                 throw std::runtime_error(
@@ -1011,9 +1009,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 auto const timeOffset = 0.0_X;
                 writeFieldAttributes(params, currentStep, unitDimension, timeOffset, mesh);
 
-                ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
-                std::string datasetName = params->openPMDSeries->meshesPath() + name;
-
                 auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
                 numRNGsPerSuperCell.x() = numFrameSlots;
                 // rng states are always of the domain size therefore query sizes from domain information
@@ -1037,22 +1032,21 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 recordOffsetDims[0] *= sizeof(ValueType);
 
                 params->initDataset<simDim>(
-                    mrc,
+                    mesh,
                     ::openPMD::determineDatatype<ReinterpretedType>(),
-                    recordGlobalSizeDims,
-                    datasetName);
+                    recordGlobalSizeDims);
 
                 // define record component level attributes
                 auto const inCellPosition = std::vector<float_X>(simDim, 0.0_X);
-                mrc.setPosition(inCellPosition);
+                mesh.setPosition(inCellPosition);
                 auto const unit = 1.0_X;
-                mrc.setUnitSI(unit);
+                mesh.setUnitSI(unit);
 
                 auto& buffer = rngProvider->getStateBuffer();
                 // getPointer() will wait for device->host transfer
                 ValueType* nativePtr = buffer.getHostBuffer().data();
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
-                mrc.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
+                mesh.storeChunkRaw(rawPtr, asStandardVector(recordOffsetDims), asStandardVector(recordLocalSizeDims));
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
                 eventSystem::getTransactionEvent().waitForFinished();
                 params->openPMDSeries->flush(PreferredFlushTarget::Disk);
@@ -1076,7 +1070,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 ::openPMD::Iteration iteration = params->openPMDSeries->iterations[restartStep].open();
                 ::openPMD::Mesh mesh = iteration.meshes[name];
-                ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
 
                 auto numRNGsPerSuperCell = DataSpace<simDim>::create(1);
                 numRNGsPerSuperCell.x() = numFrameSlots;
@@ -1105,7 +1098,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* Explicit template parameters to asStandardVector required
                  * as we need to change the element type as well
                  */
-                mrc.loadChunkRaw(
+                mesh.loadChunkRaw(
                     rawPtr,
                     asStandardVector<VecUInt64, ::openPMD::Offset>(recordOffsetDims),
                     asStandardVector<VecUInt64, ::openPMD::Extent>(recordLocalSizeDims));
@@ -1782,35 +1775,29 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
                 {
-                    auto pathToRecordComponent = [&]() -> std::string
+                    ::openPMD::MeshRecordComponent mrc = [&]() -> ::openPMD::MeshRecordComponent
                     {
                         // Normally, the name of the record component is implicitly defined by the
                         // inherent dimensionality of the mesh: x, y, z.
                         if(nComponents > 1)
                         {
-                            return name_lookup_tpl[d];
+                            return mesh[name_lookup_tpl[d]];
                         }
                         // But it might also have been specified as part of ::getName(),
                         // e.g. as "C_all_momentumDensity/x".
                         // In that case, writeField() is called multiple times for each component.
                         else if(pathToRecordComponentSpecifiedViaMeshName.has_value())
                         {
-                            return *pathToRecordComponentSpecifiedViaMeshName;
+                            return mesh[*pathToRecordComponentSpecifiedViaMeshName];
                         }
-                        // If none of the above apply, the component is scalar and we use a special
-                        // openPMD-defined string to indicate that we skip the last level in the
-                        // openPMD hierarchy.
+                        // If none of the above apply, the component is scalar and we use the mesh directly.
                         else
                         {
-                            return ::openPMD::RecordComponent::SCALAR;
+                            return mesh;
                         }
                     }();
-                    ::openPMD::MeshRecordComponent mrc = mesh[pathToRecordComponent];
-                    std::string datasetName
-                        = nComponents > 1 ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
-                                          : params->openPMDSeries->meshesPath() + name;
 
-                    params->initDataset<simDim>(mrc, openPMDType, recordGlobalSizeDims, datasetName);
+                    params->initDataset<simDim>(mrc, openPMDType, recordGlobalSizeDims);
 
                     // define record component level attributes
                     mrc.setPosition(inCellPosition.at(d));
@@ -1821,7 +1808,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     // ask openPMD to create a buffer for us
                     // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = mrc.storeChunk<ComponentType>(
+                    auto span = mrc.template storeChunk<ComponentType>(
                         asStandardVector(recordOffsetDims),
                         asStandardVector(recordLocalSizeDims),
                         [&fieldBuffer](size_t size)
