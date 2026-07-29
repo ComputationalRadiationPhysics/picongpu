@@ -158,4 +158,3 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    pypicongpu/misc
    pypicongpu/faq
    pypicongpu/howto/index
-   pypicongpu/autoapi/picongpu/pypicongpu/index
