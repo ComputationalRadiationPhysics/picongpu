@@ -117,38 +117,38 @@ Two data preparation strategies are available for downloading particle data off 
   This strategy has a small host-side memory footprint (<< GPU main memory).
   The alias ``openPMD.dataPreparationStrategy hdf5`` may be used.
 
-===================================== ====================================================================================================================================================
-PIConGPU command line option          description
-===================================== ====================================================================================================================================================
-``--openPMD.period``                  Period after which simulation data should be stored on disk.
-``--openPMD.source``                  Select data sources and filters to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
-                                      Only deterministic filters will be shown.
-``--openPMD.range``                   Define a contiguous range of cells per dimension to dump. Each dimension is separated by a comma.
-                                      A range is defined as ``[BEGIN:END)`` where out of range indices will be clipped.
-                                      A single value e.g. ``10,:,:`` for a dimension will only dump a slice.
-                                      Default is ``:,:,:``, which dumps all cells.
-``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
-``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).
-``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).
-``--openPMD.backendConfig``           Set backend-specific parameters for openPMD backends in JSON format. Used in writing procedures.
-``--checkpoint.openPMD.backendConfigRestart`` Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
-``--openPMD.dataPreparationStrategy`` Strategy for preparation of particle data ('doubleBuffer' or 'mappedMemory'). Aliases 'adios' and 'hdf5' may be used respectively.
-``--openPMD.pluginConfig``            Alternatively configure the openPMD plugin via a TOML file (see below).
-``--openPMD.particleIOChunkSize``     Particle data will be written in chunks of the given size. unit: MiB
-                                      The memory footprint on the host side is reduced compared to writing all particles with one write call.
-                                      Currently the memory footprint is only reduced if bp5 is used, HDF5 and bp4 does not support partial data dump.
-                                      If your system host memory is small compared to the accelerator memory you should use ``--openPMD.dataPreparationStrategy mappedMemory`` to have
-                                      a smaller host memory footprint.
-                                      The memory footprint required to dump fields will not be affected by this parameter.
-``--openPMD.writeAccess``             openPMD Access mode for file writing. Default: ``create``. Selecting ``append`` can be useful for checkpoint-restart workflows for avoiding
-                                      truncation of data upon reopening the output Series. Note that the Append mode in openPMD-api is used for adding new Iterations to a data Series
-                                      that (possibly) already exists, but does not specify what happens when an Iteration is written for a second time.
-                                      This situation will typically occur in checkpoint-restart workflows where a handful of iterations is usually recomputed.
-                                      In this situation, the backends will pick a sensible, but unspecified implementation for proceeding. This may include:
-                                      Adding the Iteration in a new IO step, leading to data duplication (ADIOS2 non-file-based encoding);
-                                      replacing the old Iteration with the new one entirely (all file-based encodings); writing new data into the existing Iteration and leaving other
-                                      data unmodified (HDF5 in non-file-based encoding).
-===================================== ====================================================================================================================================================
+==================================================== ====================================================================================================================================================
+PIConGPU command line option                         Description
+==================================================== ====================================================================================================================================================
+``--openPMD.period``                                 Period after which simulation data should be stored on disk.
+``--openPMD.source``                                 Select data sources and filters to dump. The default is ``species_all,fields_all``, which dumps all fields and particle species.
+                                                     Only deterministic filters are shown.
+``--openPMD.range``                                  Define a contiguous range of cells per dimension to dump. Each dimension is separated by a comma.
+                                                     A range is defined as ``[BEGIN:END)``, where out-of-range indices are clipped.
+                                                     A single value, e.g. ``10,:,:``, for a dimension will only dump a slice.
+                                                     The default is ``:,:,:``, which dumps all cells.
+``--openPMD.file``                                   Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
+``--openPMD.ext``                                    openPMD filename extension (this controls the backend selected by the openPMD API).
+``--openPMD.infix``                                  openPMD filename infix (used to select file- or group-based layout in openPMD). Set to ``NULL`` to leave it empty (e.g. to select group-based iteration layout).
+``--openPMD.backendConfig``                          Set backend-specific parameters for openPMD backends in JSON format. Used for writing procedures.
+``--checkpoint.openPMD.backendConfigRestart``        Set backend-specific parameters for openPMD backends in JSON format for restarting from a checkpoint.
+``--openPMD.dataPreparationStrategy``                Strategy for preparing particle data (``doubleBuffer`` or ``mappedMemory``). The aliases ``adios`` and ``hdf5`` may be used, respectively.
+``--openPMD.pluginConfig``                           Alternatively configure the openPMD plugin via a TOML file (see below).
+``--openPMD.particleIOChunkSize``                    Particle data is written in chunks of the given size. Unit: MiB.
+                                                     The host-side memory footprint is reduced compared to writing all particles in a single write call.
+                                                     Currently, the memory footprint is only reduced if BP5 is used. HDF5 and BP4 do not support partial data dumps.
+                                                     If your system host memory is small compared to the accelerator memory, you should use ``--openPMD.dataPreparationStrategy mappedMemory`` to achieve
+                                                     a smaller host-side memory footprint.
+                                                     The memory footprint required to dump fields is not affected by this parameter.
+``--openPMD.writeAccess``                            openPMD access mode for file writing. Default: ``create``. Selecting ``append`` can be useful for checkpoint-restart workflows to avoid
+                                                     truncating data when reopening the output Series. Note that the Append mode in openPMD-api is used for adding new Iterations to a data Series
+                                                     that (possibly) already exists, but it does not specify what happens when an Iteration is written for a second time.
+                                                     This situation typically occurs in checkpoint-restart workflows where a handful of iterations is recomputed.
+                                                     In this situation, the backend will choose a sensible, but unspecified, implementation. This may include:
+                                                     adding the Iteration in a new I/O step, leading to data duplication (ADIOS2 non-file-based encoding);
+                                                     replacing the old Iteration entirely with the new one (all file-based encodings); or writing new data into the existing Iteration while leaving other
+                                                     data unmodified (HDF5 in non-file-based encoding).
+==================================================== ====================================================================================================================================================
 
 .. note::
 
@@ -254,12 +254,12 @@ Memory Complexity
 ^^^^^^^^^^^^^^^^^
 
 Accelerator
-"""""""""""
+===========
 
 no extra allocations.
 
 Host
-""""
+====
 
 As soon as the openPMD plugin is compiled in, one extra ``mallocMC`` heap for the particle buffer is permanently reserved.
 During I/O, particle attributes are allocated one after another.
