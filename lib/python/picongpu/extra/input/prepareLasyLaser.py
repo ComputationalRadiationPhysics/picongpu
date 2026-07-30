@@ -218,36 +218,36 @@ def get_full_field(laser, theta=0, Nt=None, Nr=None, Nx=None, Ny=None, forced_dt
 
     Parameters
     ----------
-    laser : laser laser object
+    laser : lasy laser object
         The laser for which the full field needs to be calculated.
 
     Nt : int (optional)
-        Number of time points on which field should be sampled. If is None,
-        the orignal time grid is used, otherwise field is interpolated on a
+        Number of time points on which field should be sampled. If it is None,
+        the original time grid is used, otherwise the field is interpolated on a
         new grid.
 
     Nx : int (optional)
-        Number of x-points the field should be cut dow to. Does not interpolate.
+        Number of x-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     Ny : int (optional)
-        Number of y-points the field should be cut dow to. Does not interpolate.
+        Number of y-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     Nr : int (optional)
-        Number of r-points the field should be cut dow to. Does not interpolate.
+        Number of r-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     theta : float (optional)
-        for the dim=rt case. defines the angle around the pulse the field
+        For the dim=rt case. Defines the angle around the pulse the field
         should be calculated in.
 
-    froced_dt : float (optional)
-        if not None it forces dt to be this value, if possible.
-        if forced_dt and Nt is given the section is taken from the end of the field.
+    forced_dt : float (optional)
+        If not None it forces dt to be this value, if possible.
+        If forced_dt and Nt is given the resulting section is taken from the end of the field.
 
     offset_frac : float between 0 and 1 (optional)
-        only relevant, when both Nt and forced_dt are given. offsets the Nt * forced_dt
+        Only relevant, when both Nt and forced_dt are given. Offsets the Nt * forced_dt
         range from the upper end. This is interpreted as the fraction of the original field
         the offset is supposed to be.
 
@@ -276,31 +276,31 @@ def _gauss(x, mu, sigma, A):
 
 
 def get_tpeak(laser, pos_offset=False, method="stat", nx=None, ny=None, nr=None):
-    """calculates the position of the intensity peak
+    """calculates the position of the intensity peak on the temporal axis of the laser field.
 
     Parameters:
     laser : lasy laser object
         The laser for which to calculate the peak time.
 
     pos_offset : bool (optional)
-        Wether to take the grid position into account.
+        Whether to take the grid position into account.
 
     method : str in {"stat", "fit", "max", "avmax"} (optiona)
         The method of calculation.
-        "stat": calculates the statistical average of the intensity on the axis.
-        "avstat": calculates the statistical average of the intensity.
-        "fit": fits a gaussian onto the intensity on axis.
-        "avfit": fits a gaussian onto the intensity.
-        "max": finds the maximum value in the laser field and returns its time.
-        "avmax": like "max" but averages the transversal directionas first.
+        "stat": Calculates the statistical average of the intensity on the axis.
+        "avstat": Calculates the statistical average of the intensity.
+        "fit": Fits a gaussian onto the intensity on axis.
+        "avfit": Fits a gaussian onto the intensity.
+        "max": Finds the maximum value in the laser field and returns its time.
+        "avmax": Like "max" but averages the transversal directionas first.
 
     nx, ny, nr : int (optional)
-        if the method does not start with "av" this specifies the xy coordinate or the r respectively,
+        If the method does not start with "av", this specifies the xy coordinate or the r respectively,
         where the t_peak is calculated. These are the indices for the coordiates.
 
     Returns:
     t_peak : float
-        the intensity peak time.
+        The intensity peak time.
     """
     if method not in ["stat", "avstat", "fit", "avfit", "max", "avmax"]:
         raise ValueError("the given method does not exist.")
@@ -354,14 +354,14 @@ def cfl_condition(xi=0.995, dx=0.1772e-6, dy=0.4430e-7, dz=0.1772e-6, dt=None):
         How close to the condition do you want to be? 1 is at the condition, 0 is dt=0
 
     dx, dy, dz : float
-        the spacing in the three directions.
+        The spacing in the three directions.
 
     dt : float (optional)
-        if not None this will print, how far off this dt is from the ideal value
+        If not None, this will print how far off this dt is from the ideal value
 
     Returns:
     dt_cfl : (float)
-        the ideal dt given the spacing
+        The ideal dt given the spacing
     """
     dt_cfl = xi / np.sqrt(1 / dx**2 + 1 / dy**2 + 1 / dz**2) / c
     logger.info("dt should be:", dt_cfl)
@@ -610,10 +610,10 @@ def write_to_openpmd_file(
         Only saves every (data_step)th data point to the file transversally.
 
     append : bool (optional)
-        needs to be set to True, if the file should be added to not overwritten.
+        Needs to be set to True, if the file should be added to not overwritten.
 
     ittime : float (optional)
-        sets the time of the saved iteration. Otherwise the number of iterations so far is used.
+        Sets the time of the saved iteration. Otherwise the number of iterations so far is used.
     """
     # Create file and open it as openPMD series
     full_filepath = os.path.join(write_dir, "{}.{}".format(file_prefix, file_format))
@@ -714,46 +714,46 @@ def show(
         The array containing the data.
 
     extent : list of 2 or 3 lists of 2 float
-        low end then high end of each dimension.
+        Low end then high end of each dimension.
 
     cutdim : int {0,1,2} (optional)
         Only relevant when using a 3D array.
-        defines the dimension of the array going out of the screen in the plot.
+        Defines the dimension of the array going out of the screen in the plot.
 
     cutfrac : float [0,1] (optional)
         Only relevant when using a 3D array.
-        defines where along the cutdim the plot should be in terms of fraction along it.
+        Defines where along the cutdim the plot should be in terms of fraction along it.
 
     transpose : bool (optional)
-        transpose the array before diplaying it.
+        Transpose the array before displaying it.
 
     linthresh_frac : float (optional)
-        fraction of the absolute maximum from where the normalistion should be linear.
+        Fraction of the absolute maximum from where the normalisation should be linear.
 
     xlabel, ylabel : str (optional)
-        labels for the plot axes.
+        Labels for the plot axes.
 
     alabel : str (optional)
-        label for the colorbar describing the arraydata.
+        Label for the colorbar describing the arraydata.
 
     title : str (optional)
-        title for the plot.
+        Title for the plot.
 
     flipx : bool (optional)
-        flips the x direction of the plot
+        Flips the x direction of the plot
 
     figsize : tuple of float (optional)
         Sets the size of the matplotlib figure.
 
     ret_ax : bool (optional)
-        Whether to return the axes oject and the fig object instead of showing it.
+        Whether to return the axes object and the fig object instead of showing it.
 
     Returns:
     fig : pyplot figure object (optional)
-        only returned if ret_ax is True.
+        Only returned if ret_ax is True.
 
     ax : pyplot axes object (optional)
-        only returned if ret_ax is True.
+        Only returned if ret_ax is True.
     """
     # 1. cut
     if len(array.shape) > 2:
@@ -860,16 +860,16 @@ def laser_to_openPMD(
         The laser to be written into the openPMD-file. If it is dim='rt' it is first turned into an 'xyt'-laser.
 
     Nt : int (optional)
-        Number of time points on which field should be sampled. If is None,
-        the orignal time grid is used, otherwise field is interpolated on a
+        Number of time points on which field should be sampled. If it is None,
+        the orignal time grid is used, otherwise the field is interpolated on a
         new grid.
 
     Nx : int (optional)
-        Number of x-points the field should be cut dow to. Does not interpolate.
+        Number of x-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     Ny : int (optional)
-        Number of y-points the field should be cut dow to. Does not interpolate.
+        Number of y-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     file_prefix : string
@@ -885,19 +885,19 @@ def laser_to_openPMD(
         The iteration number for the file to be written.
 
     points_between_r : int or float (optional)
-        if laser.dim=="rt" the field is converted to xyt to write into the file. T
-        his argument describes, how many points in x and y directions should be placed
+        If laser.dim=="rt" the field is converted to xyt to write into the file.
+        This argument describes, how many points in x and y directions should be placed
         (interpolated) between two given values in the r direction.
 
     cut_first_frac : float between 0 and 1 (optional)
-        fraction of the points in the t-direction to be cut
+        Fraction of the points in the t-direction to be cut
 
     forced_dt : float (optional)
-        forces dt to be this value, if possible.
-        if forced_dt and Nt is given the section is taken from the end of the field.
+        Forces dt to be this value, if possible.
+        If forced_dt and Nt is given the resulting section is taken from the end of the field.
 
     offset_frac : float between 0 and 1 (optional)
-        only relevant, when both Nt and forced_dt are given. offsets the Nt * forced_dt
+        Only relevant, when both Nt and forced_dt are given. Offsets the Nt * forced_dt
         range from the upper end. This is interpreted as the fraction of the original field
         the offset is supposed to be.
 
@@ -906,7 +906,7 @@ def laser_to_openPMD(
         The number Nx is still reached.
 
     append : bool (optional)
-        needs to be set to True, if the file should be added to not overwritten.
+        Needs to be set to True, if the file should be added to not overwritten.
     """
     # 1. Check if cutting is neccessary
     changed = False
@@ -999,49 +999,49 @@ def show_field(
         The laser to be shown.
 
     Nt : int (optional)
-        Number of time points on which field should be sampled. If is None,
-        the orignal time grid is used, otherwise field is interpolated on a
+        Number of time points on which field should be sampled. If it is None,
+        the orignal time grid is used, otherwise the field is interpolated on a
         new grid.
 
     Nx : int (optional)
-        Number of x-points the field should be cut dow to. Does not interpolate.
+        Number of x-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     Ny : int (optional)
-        Number of y-points the field should be cut dow to. Does not interpolate.
+        Number of y-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     Nr : int (optional)
-        Number of r-points the field should be cut dow to. Does not interpolate.
+        Number of r-points the field should be cut down to. Does not interpolate.
         Always in the middle.
 
     forced_dt : float (optional)
-        forces dt to be this value, if possible.
-        if forced_dt and Nt is given the section is taken from the end of the field.
+        Forces dt to be this value, if possible.
+        If forced_dt and Nt is given the resulting section is taken from the end of the field.
 
     offset_frac : float between 0 and 1 (optional)
-        only relevant, when both Nt and forced_dt are given. offsets the Nt * forced_dt
+        Only relevant, when both Nt and forced_dt are given. Offsets the Nt * forced_dt
         range from the upper end. This is interpreted as the fraction of the original field
         the offset is supposed to be.
 
     linthresh_frac : float (optional)
-        fraction of the absolute maximum from where the normalistion should be linear.
+        Fraction of the absolute maximum from where the normalisation should be linear.
 
     show_SI : bool (optional)
-        If True the axes are written in SI-units, otherwise they are written in points.
+        If True, the axes are written in SI-units, otherwise they are written in points.
 
     title : str (optional)
         The title of the plot.
 
     ret_ax : bool (optional)
-        if True the figure object and the axes object are returned, otherwise displayed.
+        If True, the figure object and the axes object are returned, otherwise displayed.
 
     Returns:
     fig : pyplot figure object (optional)
-        only returned if ret_ax is True
+        Only returned if ret_ax is True
 
     ax : pyplot axes object (optional)
-        only returned if ret_ax is True
+        Only returned if ret_ax is True
     """
     logger.info("Extracting full field")
     if Ny is None:
