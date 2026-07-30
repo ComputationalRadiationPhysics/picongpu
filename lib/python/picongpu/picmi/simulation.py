@@ -43,6 +43,7 @@ from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.util import UnpackChain, unique
 from picongpu.pypicongpu.walltime import Walltime
+from picongpu.pypicongpu.poissonsolver import PoissonSolver as PIConGPUPoissonSolver
 
 
 class _DensityImpl(BaseModel):
@@ -199,6 +200,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
+    picongpu_poisson_solver: PIConGPUPoissonSolver | None = Field(default=None)
+    """Poisson solver to use for electrostatic calculations for the starting conditions, set to None to disable"""
+
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
 
@@ -207,6 +211,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     _runner: Runner | None = PrivateAttr(default=None)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
 
     @model_validator(mode="after")
     def _post_init(self):
@@ -429,6 +434,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             grid=self.solver.grid.get_as_pypicongpu(),
             binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
+            poisson_solver=self.picongpu_poisson_solver,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
