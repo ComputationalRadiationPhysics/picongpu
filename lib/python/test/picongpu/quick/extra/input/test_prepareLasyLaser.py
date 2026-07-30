@@ -1,3 +1,11 @@
+"""
+This file is part of PIConGPU.
+
+Copyright 2025-2026 Edgar Marquardt
+
+Test the prepareLasyLaser module. It is not a unit test, but a quick test to see if the basic functionality works.
+"""
+
 import picongpu.extra.input.prepareLasyLaser as pll
 
 from lasy.laser import Laser
