@@ -81,6 +81,22 @@ TBG_steps="{{{time_steps}}}"
   {{/stop_iteration}}
 {{/moving_window}}
 
+{{#poisson_solver}}
+  TBG_poissonsolver="--poisson.activate"
+  {{#max_steps}}
+    TBG_poissonsolver="$TBG_poissonsolver --poisson.maxSteps {{{max_steps}}}"
+  {{/max_steps}}
+  {{#epsilon}}
+    TBG_poissonsolver="$TBG_poissonsolver --poisson.epsilon {{{epsilon}}}"
+  {{/epsilon}}
+  {{#preconditioner_disabled}}
+    TBG_poissonsolver="$TBG_poissonsolver --poisson.preconditioner.disable"
+  {{/preconditioner_disabled}}
+  {{#preconditioner_max_steps}}
+    TBG_poissonsolver="$TBG_poissonsolver --poisson.preconditioner.maxSteps {{{preconditioner_max_steps}}}"
+  {{/preconditioner_max_steps}}
+{{/poisson_solver}}
+
 {{#binomial_current_interpolation}}
 TBG_currentInterpolation="--currentInterpolation binomial"
 {{/binomial_current_interpolation}}
@@ -226,6 +242,9 @@ TBG_programParams="-d !TBG_deviceDist   \
                      !TBG_stopWindow      \
                     {{/stop_iteration}}
                    {{/moving_window}}
+                   {{#poisson_solver}}
+                     !TBG_poissonsolver  \
+                   {{/poisson_solver}}
                    --versionOnce"
 
 # TOTAL number of devices
