@@ -1739,33 +1739,23 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 auto const numDataPoints = localWindowSize.productOfComponents();
                 bool const hasLocalData = numDataPoints != 0;
-                bool const isAdios2 = params->openPMDSeries->backend() == "ADIOS2";
-                bool hasAnyData = hasLocalData;
-                if(isAdios2)
-                {
-                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                    eventSystem::getTransactionEvent().waitForFinished();
-                    int const localData = static_cast<int>(hasLocalData);
-                    int anyData = 0;
-                    MPI_CHECK(MPI_Allreduce(&localData, &anyData, 1, MPI_INT, MPI_LOR, params->communicator));
-                    hasAnyData = anyData != 0;
-                }
+                // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                eventSystem::getTransactionEvent().waitForFinished();
+                int const localData = static_cast<int>(hasLocalData);
+                int anyData = 0;
+                MPI_CHECK(MPI_Allreduce(&localData, &anyData, 1, MPI_INT, MPI_LOR, params->communicator));
+                bool const hasAnyData = anyData != 0;
 
                 // Ensure the Iteration is consistently accessed before any potential early returns
                 ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep].open();
 
-                // PML is written as a sparse dataset.
-                // In the extreme case, sparse means that not a single coordinate in the dataset is defined. We need to
-                // deal with this differently in different backends:
-                //
-                // ADIOS2 treats datasets without a single written block as non-existing. Therefore, do not create a
-                // mesh if no rank contributes data. If any rank contributes data, all ranks create the mesh and its
-                // components so that rank 0, which writes ADIOS2 attributes, writes their metadata even when it has no
-                // local data.
-                //
-                // HDF5: Datasets need to be declared collectively, but they do not need to have any data actually
-                // written to them. The workaround is neither needed, nor possible.
-                if(isAdios2 && !hasAnyData)
+                // PML is written as a sparse dataset. In the extreme case, sparse means that not a single coordinate
+                // in the dataset is defined. Do not create a mesh if no rank contributes data: ADIOS2 treats datasets
+                // without a single written block as non-existing. If any rank contributes data, all ranks participate
+                // in creating the mesh and its components. This allows for the optimization with ADIOS2 that a single
+                // rank 0 writes metadata even when it has no local data, and keeps HDF5 metadata declarations
+                // collective.
+                if(!hasAnyData)
                 {
                     // Agree on the number of flush operations
                     for(uint32_t d = 0; d < nComponents; d++)
@@ -1827,7 +1817,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     params->m_dumpTimes.now<std::chrono::milliseconds>(
                         "\tComponent " + std::to_string(d) + " prepare");
 
-                    if(!isAdios2 || hasLocalData)
+                    if(hasLocalData)
                     {
                         // ask openPMD to create a buffer for us
                         // in some backends (ADIOS2), this allows avoiding memcopies
