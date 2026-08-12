@@ -7,7 +7,7 @@ License: GPLv3+
 
 import logging
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import (
     BaseModel,
@@ -17,6 +17,9 @@ from pydantic import (
     computed_field,
     model_validator,
 )
+
+from lasy.laser import Laser as LasyLaser
+from ..extra.input.prepareLasyLaser import laser_to_openPMD
 
 
 class PolarizationType(Enum):
@@ -205,6 +208,46 @@ class FromOpenPMDPulseLaser(BaseModel):
     huygens_surface_positions: Annotated[list[list[int]], PlainSerializer(_get_huygens_surface_serialized)]
     """Position in cells of the Huygens surface relative to start/
        edge(negative numbers) of the total domain"""
+
+
+class FromLasyLaser(FromOpenPMDPulseLaser):
+    """
+    Lasy laser converter using PIConGPU FromOpenPMDPulseLaser
+
+    Holds Parameters to specify a laser pulse from a Lasy laser
+    """
+
+    lasyLaser: LasyLaser
+    """The Lasy laser to be converted"""
+    Nt: int | None = None
+    Nx: int | None = None
+    Ny: int | None = None
+    points_between_r: float = 1.0
+    forced_dt: float | None = None
+    data_step: int = 1
+
+    def _split_filepath(self) -> list[str]:
+        filename = self.file_path.rsplit(sep="/", maxsplit=1)[1].rsplit(sep=".", maxsplit=1)[0]
+        directory = self.file_path.rsplit(sep="/", maxsplit=1)[0]
+        extension = self.file_path.rsplit(sep=".")[-1]
+        return [filename, directory, extension]
+
+    def _get_serialized(self) -> dict[str, Any] | None:
+        path = self._split_filepath()
+        laser_to_openPMD(
+            self.lasyLaser,
+            path[0],
+            write_dir=path[1],
+            file_format=path[2],
+            iteration=self.iteration,
+            Nt=self.Nt,
+            Nx=self.Nx,
+            Ny=self.Ny,
+            points_between_r=self.points_between_r,
+            forced_dt=self.forced_dt,
+            data_step=self.data_step,
+        )
+        return self.super()._get_serialized()
 
 
 class TWTSLaser(_BaseLaser):
