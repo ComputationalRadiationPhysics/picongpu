@@ -87,7 +87,7 @@ logger = logging.getLogger(__name__)
 
 
 def _prepare_env_spatial_rt(env, Nr, theta, azimuthal_modes, lo, hi):
-    """Helper function for get_full_field() preparing the envelope spatially. Also returns frac for extent calculation later."""
+    """Helper function for get_full_field() preparing the envelope spatially. Also returns new low and hi transversally."""
     # Cut off everything beyond Nr
     if Nr is None:
         Nr = env.shape[1]
