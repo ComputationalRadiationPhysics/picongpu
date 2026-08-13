@@ -6,7 +6,7 @@ Copyright 2025-2026 Edgar Marquardt
 Get the full electric field from a Lasy laser and save it to an openPMD compatible file in a way that PIConGPU understands.
 
 Some of the code taken from lasy 0.6.2 and then modified. Those parts are marked.
-For these parts the following license applies:
+For these parts the following license (BSD-3-Clause) applies:
 
 "lasy Copyright (c) 2023, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory (subject to receipt of
@@ -354,7 +354,7 @@ def get_tpeak(laser, pos_offset=False, method="stat", nx=None, ny=None, nr=None)
         The intensity peak time.
     """
     if method not in ["stat", "avstat", "fit", "avfit", "max", "avmax"]:
-        raise ValueError("the given method does not exist.")
+        raise ValueError(f"the given method ({method}) does not exist.")
     field = laser.grid.get_temporal_field()
     l_int = np.abs(field) ** 2
     s_int = np.sum(l_int, axis=(0, 1))
@@ -396,7 +396,7 @@ def get_tpeak(laser, pos_offset=False, method="stat", nx=None, ny=None, nr=None)
     return t_peak
 
 
-def cfl_condition(xi=0.995, dx=0.1772e-6, dy=0.4430e-7, dz=0.1772e-6, dt=None):
+def cfl_condition(dx, dy, dz, xi=0.995, dt=None):
     """returns and prints the ideal time step given the spacing to get close to the
     limits of the Courant-Friedrich-Levy condition.
 
@@ -417,7 +417,7 @@ def cfl_condition(xi=0.995, dx=0.1772e-6, dy=0.4430e-7, dz=0.1772e-6, dt=None):
     dt_cfl = xi / np.sqrt(1 / dx**2 + 1 / dy**2 + 1 / dz**2) / c
     logger.info("dt should be:", dt_cfl)
     if dt is not None:
-        logger.info("error:", (dt / dt_cfl - 1) * 100, "%")
+        logger.info("CFL numerical deviation:", (dt / dt_cfl - 1) * 100, "%")
     return dt_cfl
 
 
@@ -538,7 +538,7 @@ def _lasy_like_index(coord, N):
     # first we correct again for the fact, that np.linspace with endpoint=True was used for the generation of this
     coord *= 1 - 1 / N
     # then we calculate the fraction and the indices
-    frac = coord - int(coord)
+    frac = coord % 1
     idx0 = int(coord)
     idx1 = int(coord) + 1
     return idx0, idx1, frac
