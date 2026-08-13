@@ -67,6 +67,7 @@ from .interaction.ionization.fieldionization import FieldIonization as FieldIoni
 from .interaction.ionization.fieldionization import Keldysh as Keldysh
 from .lasers import DispersivePulseLaser as DispersivePulseLaser
 from .lasers import FromOpenPMDPulseLaser as FromOpenPMDPulseLaser
+from .lasers import FromLasyLaser as FromLasyLaser
 from .lasers import GaussianLaser as GaussianLaser
 from .lasers import PlaneWaveLaser as PlaneWaveLaser
 from .lasers import PolarizationType as PolarizationType
