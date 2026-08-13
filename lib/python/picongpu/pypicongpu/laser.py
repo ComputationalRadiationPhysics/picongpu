@@ -8,6 +8,7 @@ License: GPLv3+
 import logging
 from enum import Enum
 from typing import Annotated, Any, Literal
+from pathlib import Path
 
 from pydantic import (
     BaseModel,
@@ -16,6 +17,8 @@ from pydantic import (
     PlainSerializer,
     computed_field,
     model_validator,
+    ConfigDict,
+    model_serializer,
 )
 
 from lasy.laser import Laser as LasyLaser
@@ -191,7 +194,7 @@ class FromOpenPMDPulseLaser(BaseModel):
         tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
     ]
     """direction of polarization (normalized vector)"""
-    file_path: str
+    file_path: Path
     """File path to the OpenPMD file containing the pulse data"""
     iteration: int
     """Iteration in the OpenPMD file to use"""
@@ -217,6 +220,8 @@ class FromLasyLaser(BaseModel):
     Holds Parameters to specify a laser pulse from a Lasy laser
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     propagation_direction: Annotated[
         tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
     ]
@@ -225,7 +230,7 @@ class FromLasyLaser(BaseModel):
         tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
     ]
     """direction of polarization (normalized vector)"""
-    file_path: str
+    file_path: Path
     """File path to the OpenPMD file meant to contain the pulse data"""
     iteration: int = 0
     """Iteration in the OpenPMD file to use"""
@@ -254,9 +259,9 @@ class FromLasyLaser(BaseModel):
     """append to an existing file intead of potentially overwriting it."""
 
     def _create_openPMD_file(self) -> None:
-        filename = self.file_path.rsplit(sep="/", maxsplit=1)[1].rsplit(sep=".", maxsplit=1)[0]
-        directory = self.file_path.rsplit(sep="/", maxsplit=1)[0]
-        extension = self.file_path.rsplit(sep=".")[-1]
+        filename = self.file_path.name.rsplit(sep=".", maxsplit=1)[0]
+        directory = str(self.file_path.parent)
+        extension = self.file_path.name.rsplit(sep=".")[-1]
         laser_to_openPMD(
             self.lasyLaser,
             filename,
@@ -272,6 +277,7 @@ class FromLasyLaser(BaseModel):
             append=self.append,
         )
 
+    @model_serializer(mode="plain")
     def _get_serialized(self) -> dict[str, Any] | None:
         self._create_openPMD_file()
 
@@ -282,7 +288,7 @@ class FromLasyLaser(BaseModel):
         fromOpenPMDPulseLaser = FromOpenPMDPulseLaser(
             propagation_direction=self.propagation_direction,
             polarization_direction=self.polarization_direction,
-            file_path=self.file_path,
+            file_path=self.file_path.absolute(),
             iteration=self.iteration,
             dataset_name="E",
             datatype="float",
@@ -291,7 +297,7 @@ class FromLasyLaser(BaseModel):
             propagationAxisOpenPMD="z",
             huygens_surface_positions=self.huygens_surface_positions,
         )
-        return fromOpenPMDPulseLaser._get_serialized()
+        return fromOpenPMDPulseLaser.model_dump(mode="json")
 
 
 class TWTSLaser(_BaseLaser):
