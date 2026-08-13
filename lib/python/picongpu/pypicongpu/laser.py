@@ -210,35 +210,58 @@ class FromOpenPMDPulseLaser(BaseModel):
        edge(negative numbers) of the total domain"""
 
 
-class FromLasyLaser(FromOpenPMDPulseLaser):
+class FromLasyLaser(BaseModel):
     """
     Lasy laser converter using PIConGPU FromOpenPMDPulseLaser
 
     Holds Parameters to specify a laser pulse from a Lasy laser
     """
 
+    propagation_direction: Annotated[
+        tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
+    ]
+    """propagation direction (normalized vector)"""
+    polarization_direction: Annotated[
+        tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
+    ]
+    """direction of polarization (normalized vector)"""
+    file_path: str
+    """File path to the OpenPMD file meant to contain the pulse data"""
+    iteration: int = 0
+    """Iteration in the OpenPMD file to use"""
+    time_offset_si: float
+    """Time offset in seconds to apply to the pulse data [s]"""
+    huygens_surface_positions: Annotated[list[list[int]], PlainSerializer(_get_huygens_surface_serialized)]
+    """Position in cells of the Huygens surface relative to start/
+       edge(negative numbers) of the total domain"""
     lasyLaser: LasyLaser
     """The Lasy laser to be converted"""
     Nt: int | None = None
+    """Number of time points on which field should be sampled. None for the original grid"""
     Nx: int | None = None
+    """Number of x-points the field should be cut down to. None for the original grid"""
     Ny: int | None = None
+    """Number of y-points the field should be cut down to. None for the original grid"""
     points_between_r: float = 1.0
+    """If laser.dim=="rt" the field is converted to xyt to write into the file.
+    This argument describes, how many points in x and y directions should be placed
+    (interpolated) between two given values in the r direction."""
     forced_dt: float | None = None
+    """Forces dt to be this value, if possible."""
     data_step: int = 1
+    """Only saves every (data_step)th data point to the file transversally."""
+    append: bool = False
+    """append to an existing file intead of potentially overwriting it."""
 
-    def _split_filepath(self) -> list[str]:
+    def _create_openPMD_file(self) -> None:
         filename = self.file_path.rsplit(sep="/", maxsplit=1)[1].rsplit(sep=".", maxsplit=1)[0]
         directory = self.file_path.rsplit(sep="/", maxsplit=1)[0]
         extension = self.file_path.rsplit(sep=".")[-1]
-        return [filename, directory, extension]
-
-    def _get_serialized(self) -> dict[str, Any] | None:
-        path = self._split_filepath()
         laser_to_openPMD(
             self.lasyLaser,
-            path[0],
-            write_dir=path[1],
-            file_format=path[2],
+            filename,
+            write_dir=directory,
+            file_format=extension,
             iteration=self.iteration,
             Nt=self.Nt,
             Nx=self.Nx,
@@ -246,8 +269,29 @@ class FromLasyLaser(FromOpenPMDPulseLaser):
             points_between_r=self.points_between_r,
             forced_dt=self.forced_dt,
             data_step=self.data_step,
+            append=self.append,
         )
-        return self.super()._get_serialized()
+
+    def _get_serialized(self) -> dict[str, Any] | None:
+        self._create_openPMD_file()
+
+        if self.lasyLaser.profile.pol[0] > self.lasyLaser.profile.pol[1]:
+            pol = "x"
+        else:
+            pol = "y"
+        fromOpenPMDPulseLaser = FromOpenPMDPulseLaser(
+            propagation_direction=self.propagation_direction,
+            polarization_direction=self.polarization_direction,
+            file_path=self.file_path,
+            iteration=self.iteration,
+            dataset_name="E",
+            datatype="float",
+            time_offset_si=self.time_offset_si,
+            polarisationAxisOpenPMD=pol,
+            propagationAxisOpenPMD="z",
+            huygens_surface_positions=self.huygens_surface_positions,
+        )
+        return fromOpenPMDPulseLaser._get_serialized()
 
 
 class TWTSLaser(_BaseLaser):
@@ -289,4 +333,4 @@ class TWTSLaser(_BaseLaser):
        edge(negative numbers) of the total domain"""
 
 
-AnyLaser = DispersivePulseLaser | FromOpenPMDPulseLaser | GaussianLaser | PlaneWaveLaser | TWTSLaser
+AnyLaser = DispersivePulseLaser | FromOpenPMDPulseLaser | FromLasyLaser | GaussianLaser | PlaneWaveLaser | TWTSLaser
