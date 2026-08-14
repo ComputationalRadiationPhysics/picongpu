@@ -189,7 +189,8 @@ TEST_CASE("unit::MovingWindow_origin", "[movingWindow test]")
 
     SECTION("Window position evolution")
     {
-        float_64 const movePoint = GENERATE(0, 0.341, 0.6);
+        // The pre-movement for the negative move point is 45 cells and thus fits into the 100-cell hidden GPU row.
+        float_64 const movePoint = GENERATE(-0.05, 0, 0.341, 0.6, 1.5);
         uint32_t const endStep = 10000;
         movingWindow.setMovePoint(movePoint);
         movingWindow.setEndSlideOnStep(endStep);

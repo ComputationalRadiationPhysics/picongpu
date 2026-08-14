@@ -47,7 +47,7 @@ namespace picongpu
             uint32_t gpuNumberOfCellsInMoveDirection;
             float_64 cellSizeInMoveDirection;
             float_64 deltaWayPerStep;
-            uint32_t virtualParticleInitialStartCell;
+            int64_t virtualParticleInitialStartCell;
             uint32_t firstSlideStep;
             int32_t firstMoveStep;
 
@@ -82,18 +82,17 @@ namespace picongpu
                 /* Is the time step when the virtual particle **passed** the GPU next to the last
                  * in the current to the next step
                  */
-                firstSlideStep
-                    = static_cast<uint32_t>(math::ceil(
-                          static_cast<float_64>(
-                              subGrid.getGlobalDomain().size[moveDirection] - virtualParticleInitialStartCell)
-                          * cellSizeInMoveDirection / deltaWayPerStep))
-                      - 1;
+                firstSlideStep = static_cast<uint32_t>(math::ceil(
+                                     (static_cast<float_64>(subGrid.getGlobalDomain().size[moveDirection])
+                                      - static_cast<float_64>(virtualParticleInitialStartCell))
+                                     * cellSizeInMoveDirection / deltaWayPerStep))
+                                 - 1;
 
                 /* way which the virtual particle must move before the window begins
                  * to move the first time [in pic length] */
-                auto const wayToFirstMove
-                    = static_cast<float_64>(globalWindowSizeInMoveDirection - virtualParticleInitialStartCell)
-                      * cellSizeInMoveDirection;
+                auto const wayToFirstMove = (static_cast<float_64>(globalWindowSizeInMoveDirection)
+                                             - static_cast<float_64>(virtualParticleInitialStartCell))
+                                            * cellSizeInMoveDirection;
                 /* Is the time step when the virtual particle **passed** the moving window
                  * in the current to the next step
                  * Signed type of firstMoveStep to allow for edge case movePoint = 0.0
