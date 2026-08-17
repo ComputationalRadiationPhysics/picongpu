@@ -99,6 +99,15 @@ namespace picongpu
                             updatePsiB};
                     }
 
+                    /** Update PML slab views for the local domain
+                     *
+                     * @param currentStep index of the current time iteration
+                     */
+                    void updateSlabViews(float_X const currentStep)
+                    {
+                        applySlabViews(getLocalThickness(currentStep));
+                    }
+
                     /** Get parameters for the local domain
                      *
                      * @param currentStep index of the current time iteration
@@ -106,9 +115,7 @@ namespace picongpu
                     LocalParameters updateAndGetLocalParameters(float_X const currentStep)
                     {
                         Thickness localThickness = getLocalThickness(currentStep);
-                        checkLocalThickness(localThickness);
-                        psiE->setSlabViews(localThickness);
-                        psiB->setSlabViews(localThickness);
+                        applySlabViews(localThickness);
                         return LocalParameters(
                             parameters,
                             localThickness,
@@ -173,6 +180,14 @@ namespace picongpu
                                 localThickness(axis, direction) = 0;
                         }
                         return localThickness;
+                    }
+
+                    //! Apply validated local thickness to the PML slab views
+                    void applySlabViews(Thickness const& localThickness)
+                    {
+                        checkLocalThickness(localThickness);
+                        psiE->setSlabViews(localThickness);
+                        psiB->setSlabViews(localThickness);
                     }
 
                     //! Verify that PML fits the local domain

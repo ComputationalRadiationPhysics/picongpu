@@ -29,6 +29,7 @@
 #    include "picongpu/fields/FieldJ.hpp"
 #    include "picongpu/fields/FieldTmp.hpp"
 #    include "picongpu/fields/absorber/pml/Field.hpp"
+#    include "picongpu/fields/absorber/pml/Pml.hpp"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
@@ -1460,6 +1461,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* set window for restart, complete global domain */
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
                 mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
+
+                auto& absorber = fields::absorber::Absorber::get();
+                if(absorber.getKind() == fields::absorber::Absorber::Kind::Pml)
+                {
+                    auto& pmlImpl = fields::absorber::AbsorberImpl::getImpl(*m_cellDescription).asPmlImpl();
+                    pmlImpl.updateSlabViews(float_X(restartStep));
+                }
 
                 /* load all fields */
                 meta::ForEach<FileCheckpointFields, LoadFields<boost::mpl::_1>> ForEachLoadFields;
