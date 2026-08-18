@@ -1738,27 +1738,25 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
 
                 auto const numDataPoints = localWindowSize.productOfComponents();
+                bool const hasLocalData = numDataPoints != 0;
+                // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                eventSystem::getTransactionEvent().waitForFinished();
+                int const localData = static_cast<int>(hasLocalData);
+                int anyData = 0;
+                MPI_CHECK(MPI_Allreduce(&localData, &anyData, 1, MPI_INT, MPI_LOR, params->communicator));
+                bool const hasAnyData = anyData != 0;
 
                 // Ensure the Iteration is consistently accessed before any potential early returns
                 ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep].open();
 
-                // PML is written as a sparse dataset.
-                // In the extreme case, sparse means that not a single coordinate in the dataset is defined. We need to
-                // deal with this differently in different backends:
-                //
-                // ADIOS2:
-                // ADIOS2 treats datasets without a single written block as non-existing. If the below code creates
-                // records for the dataset, but does not actually write any data, this will lead to a partial (read:
-                // broken) output. The simplest answer to this is: If our process does not contribute any data, we just
-                // skip the entire below operation. Datasets need not be created collectively in ADIOS2; so if any
-                // process has contributions to make, it will just make them.
-                //
-                // HDF5: Datasets need to be declared collectively, but they do not need to have any data actually
-                // written to them. The workaround is neither needed, nor possible.
-                if(numDataPoints == 0 && params->openPMDSeries->backend() == "ADIOS2")
+                // PML is written as a sparse dataset. In the extreme case, sparse means that not a single coordinate
+                // in the dataset is defined. Do not create a mesh if no rank contributes data: ADIOS2 treats datasets
+                // without a single written block as non-existing. If any rank contributes data, all ranks participate
+                // in creating the mesh and its components. This allows for the optimization with ADIOS2 that a single
+                // rank 0 writes metadata even when it has no local data, and keeps HDF5 metadata declarations
+                // collective.
+                if(!hasAnyData)
                 {
-                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-                    eventSystem::getTransactionEvent().waitForFinished();
                     // Agree on the number of flush operations
                     for(uint32_t d = 0; d < nComponents; d++)
                     {
@@ -1819,49 +1817,52 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     params->m_dumpTimes.now<std::chrono::milliseconds>(
                         "\tComponent " + std::to_string(d) + " prepare");
 
-                    // ask openPMD to create a buffer for us
-                    // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = mrc.storeChunk<ComponentType>(
-                        asStandardVector(recordOffsetDims),
-                        asStandardVector(recordLocalSizeDims),
-                        [&fieldBuffer](size_t size)
-                        {
-                            // if there is no special backend support for creating buffers,
-                            // reuse the fieldBuffer
-                            fieldBuffer.resize(sizeof(ComponentType) * size);
-                            return std::shared_ptr<ComponentType>{
-                                reinterpret_cast<ComponentType*>(fieldBuffer.data()),
-                                [](auto*) {}};
-                        });
-                    auto dstBuffer = span.currentBuffer();
-
-                    size_t const bufferSizeXYPlane = bufferSize[1] * bufferSize[0] * nComponents;
-                    size_t const dateSizeXYPlane = localWindowSize[1] * localWindowSize[0];
-
-                    /* copy strided data from source to temporary buffer
-                     *
-                     * \todo use d1Access as in
-                     * `include/plugins/hdf5/writer/Field.hpp`
-                     */
-                    int const maxZ = simDim == DIM3 ? localWindowSize[2] : 1;
-                    int const guardZ = simDim == DIM3 ? bufferOffset[2] : 0;
-                    auto const* ptr = hostDataBox.getPointer();
-                    auto const* scalarPtr = reinterpret_cast<ComponentType const*>(ptr);
-                    for(int z = 0; z < maxZ; ++z)
+                    if(hasLocalData)
                     {
-                        for(int y = 0; y < localWindowSize[1]; ++y)
-                        {
-                            size_t const base_index_src = (z + guardZ) * bufferSizeXYPlane
-                                                          + (y + bufferOffset[1]) * bufferSize[0] * nComponents;
-
-                            size_t const base_index_dst = z * dateSizeXYPlane + y * localWindowSize[0];
-
-                            for(int x = 0; x < localWindowSize[0]; ++x)
+                        // ask openPMD to create a buffer for us
+                        // in some backends (ADIOS2), this allows avoiding memcopies
+                        auto span = mrc.storeChunk<ComponentType>(
+                            asStandardVector(recordOffsetDims),
+                            asStandardVector(recordLocalSizeDims),
+                            [&fieldBuffer](size_t size)
                             {
-                                size_t index_src = base_index_src + (x + bufferOffset[0]) * nComponents + d;
-                                size_t index_dst = base_index_dst + x;
+                                // if there is no special backend support for creating buffers,
+                                // reuse the fieldBuffer
+                                fieldBuffer.resize(sizeof(ComponentType) * size);
+                                return std::shared_ptr<ComponentType>{
+                                    reinterpret_cast<ComponentType*>(fieldBuffer.data()),
+                                    [](auto*) {}};
+                            });
+                        auto dstBuffer = span.currentBuffer();
 
-                                dstBuffer[index_dst] = scalarPtr[index_src];
+                        size_t const bufferSizeXYPlane = bufferSize[1] * bufferSize[0] * nComponents;
+                        size_t const dateSizeXYPlane = localWindowSize[1] * localWindowSize[0];
+
+                        /* copy strided data from source to temporary buffer
+                         *
+                         * \todo use d1Access as in
+                         * `include/plugins/hdf5/writer/Field.hpp`
+                         */
+                        int const maxZ = simDim == DIM3 ? localWindowSize[2] : 1;
+                        int const guardZ = simDim == DIM3 ? bufferOffset[2] : 0;
+                        auto const* ptr = hostDataBox.getPointer();
+                        auto const* scalarPtr = reinterpret_cast<ComponentType const*>(ptr);
+                        for(int z = 0; z < maxZ; ++z)
+                        {
+                            for(int y = 0; y < localWindowSize[1]; ++y)
+                            {
+                                size_t const base_index_src = (z + guardZ) * bufferSizeXYPlane
+                                                              + (y + bufferOffset[1]) * bufferSize[0] * nComponents;
+
+                                size_t const base_index_dst = z * dateSizeXYPlane + y * localWindowSize[0];
+
+                                for(int x = 0; x < localWindowSize[0]; ++x)
+                                {
+                                    size_t index_src = base_index_src + (x + bufferOffset[0]) * nComponents + d;
+                                    size_t index_dst = base_index_dst + x;
+
+                                    dstBuffer[index_dst] = scalarPtr[index_src];
+                                }
                             }
                         }
                     }
