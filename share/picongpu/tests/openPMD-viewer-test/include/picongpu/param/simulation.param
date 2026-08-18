@@ -52,9 +52,6 @@ namespace picongpu
 
         /** equals X
          *  unit: meter */
-
-        /** equals X
-         *  unit: meter */
         constexpr float_64 CELL_WIDTH_SI = 9.34635e-8;
         /** equals Y
          *  unit: meter */

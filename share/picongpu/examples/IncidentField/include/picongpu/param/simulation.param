@@ -46,6 +46,8 @@ namespace picongpu
 {
     namespace SI
     {
+        /** equals any cell size
+         *  unit: meter */
         constexpr float_64 CELL_SIZE_SI = 0.5e-3; // 0.5 mm
 
         /** equals X

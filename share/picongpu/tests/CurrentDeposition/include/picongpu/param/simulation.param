@@ -46,8 +46,8 @@ namespace picongpu
 {
     namespace SI
     {
-        /** Duration of one timestep
-         *  unit: seconds */
+        /** equals X
+         *  unit: meter */
         constexpr float_64 CELL_WIDTH_SI = 1.0;
         /** equals Y
          *  unit: meter */
