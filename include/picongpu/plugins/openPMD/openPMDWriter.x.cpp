@@ -1145,6 +1145,17 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
+            //! Update PML slab views for the current local domain geometry
+            void updatePmlSlabViewsIfEnabled(uint32_t const currentStep)
+            {
+                auto& absorber = fields::absorber::Absorber::get();
+                if(absorber.getKind() == fields::absorber::Absorber::Kind::Pml)
+                {
+                    auto& pmlImpl = fields::absorber::AbsorberImpl::getImpl(*m_cellDescription).asPmlImpl();
+                    pmlImpl.updateSlabViews(float_X(currentStep));
+                }
+            }
+
         public:
             /** constructor
              *
@@ -1338,6 +1349,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mThreadParams.initFromConfig(*m_help, m_id, currentStep, checkpointDirectory, checkpointFilename);
 
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+                updatePmlSlabViewsIfEnabled(currentStep);
 
                 dumpData(currentStep);
             }
@@ -1462,12 +1474,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
                 mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
 
-                auto& absorber = fields::absorber::Absorber::get();
-                if(absorber.getKind() == fields::absorber::Absorber::Kind::Pml)
-                {
-                    auto& pmlImpl = fields::absorber::AbsorberImpl::getImpl(*m_cellDescription).asPmlImpl();
-                    pmlImpl.updateSlabViews(float_X(restartStep));
-                }
+                updatePmlSlabViewsIfEnabled(restartStep);
 
                 /* load all fields */
                 meta::ForEach<FileCheckpointFields, LoadFields<boost::mpl::_1>> ForEachLoadFields;

@@ -215,6 +215,7 @@ namespace picongpu
                         ++slabIdx;
                     }
 
+                    // Initialize view metadata only; local PML geometry must be applied before use.
                     setSlabViews(globalThickness);
                 }
 
