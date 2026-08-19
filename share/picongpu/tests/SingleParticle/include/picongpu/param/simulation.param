@@ -46,7 +46,7 @@ namespace picongpu
 {
     namespace SI
     {
-        /** Duration of one timestep
+        /** Duration of gyration
          *  unit: seconds */
         constexpr float_64 T_GYRO_SI = 0.825e-12;
 
