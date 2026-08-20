@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
 from picongpu.picmi.diagnostics import AnyDiagnostic
-from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
+from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _BuiltinDerivedFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
@@ -37,6 +37,7 @@ from picongpu.picmi.species_requirements import (
     resolving_add,
     run_construction,
 )
+from picongpu.pypicongpu.output.openpmd_plugin import BuiltinFieldSolver
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
@@ -381,9 +382,25 @@ class Simulation(picmistandard.PICMI_Simulation):
                         if isinstance(diagnostic, ParticleDump)
                         else PyPIConGPUFieldDump(
                             name=diagnostic.fieldname,
+                            species=(
+                                None
+                                if isinstance(diagnostic, NativeFieldDump)
+                                else "species_"
+                                + (
+                                    diagnostic.species.name
+                                    if isinstance(diagnostic.species, Species)
+                                    else diagnostic.species.species.name
+                                )
+                            ),
                             filtername=diagnostic.filtername,
+                            builtin_solver=(
+                                BuiltinFieldSolver(type=solver[0], typename=solver[1])
+                                if isinstance(diagnostic, _BuiltinDerivedFieldDump)
+                                and (solver := diagnostic.get_builtin_solver())
+                                else None
+                            ),
                             functor=None
-                            if isinstance(diagnostic, NativeFieldDump)
+                            if isinstance(diagnostic, (NativeFieldDump, _BuiltinDerivedFieldDump))
                             else diagnostic.functor.get_as_pypicongpu(mode="DerivedField"),
                         ),
                     )

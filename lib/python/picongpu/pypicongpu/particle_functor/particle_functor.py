@@ -5,8 +5,9 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from hashlib import sha256
+from json import dumps
 from typing import Annotated, Literal
-from uuid import uuid4 as uuid
 
 from pydantic import BaseModel, BeforeValidator, computed_field, model_validator
 
@@ -138,7 +139,9 @@ class ParticleFunctor(RenderedObject, BaseModel):
 
     @computed_field
     def typename(self) -> str:
-        return f"{self.name}_{uuid().hex}"
+        definition = self.model_dump(mode="json", exclude={"typename"})
+        digest = sha256(dumps(definition, sort_keys=True).encode()).hexdigest()[:32]
+        return f"{self.name}_{digest}"
 
     @model_validator(mode="after")
     def _validate(self):

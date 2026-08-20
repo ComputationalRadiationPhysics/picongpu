@@ -28,7 +28,7 @@ from picongpu.picmi import (
 from picongpu.picmi.constants import c
 from picongpu.picmi.diagnostics import Checkpoint, MacroParticleCount, TimeStepSpec
 from picongpu.picmi.diagnostics.binning import Binning, BinningAxis, BinSpec
-from picongpu.picmi.diagnostics.field_dump import DerivedFieldDump
+from picongpu.picmi.diagnostics.field_dump import AverageDerivedFieldDump, DerivedFieldDump, NativeDerivedFieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.distribution import GaussianDistribution
 from picongpu.picmi.lasers import GaussianLaser, PolarizationType
@@ -118,6 +118,16 @@ electron_energy_density = DerivedFieldDump(
     species=electrons, functor=kinetic_energy_density, period=TimeStepSpec[::100]
 )
 
+# Built-in particle-to-grid fields use PIConGPU's native C++ implementations and
+# therefore do not require or generate a ParticleFunctor.
+electron_density = NativeDerivedFieldDump(species=electrons, field="Density", period=TimeStepSpec[::100])
+electron_weighted_velocity_x = NativeDerivedFieldDump(
+    species=electrons, field="WeightedVelocity", direction="x", period=TimeStepSpec[::100]
+)
+electron_average_velocity_x = AverageDerivedFieldDump(
+    species=electrons, field="WeightedVelocity", direction="x", period=TimeStepSpec[::100]
+)
+
 
 @ParticleFunctor(unit_dimension=M * L / T)
 def momentum_x(macro_particle):
@@ -168,6 +178,9 @@ sim = Simulation(
         checkpoint,
         macro_particle_count,
         electron_energy_density,
+        electron_density,
+        electron_weighted_velocity_x,
+        electron_average_velocity_x,
         electron_momentum,
         random_electrons,
     ],

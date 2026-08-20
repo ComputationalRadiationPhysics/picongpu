@@ -33,7 +33,7 @@ namespace picongpu
     namespace deriveField = particles::particleToGrid;
 
     namespace particles::particleToGrid::derivedAttributes {
-{{#output}} {{#type_openPMD}} {{#derived_fields}} {{#functor}}
+{{#derived_field_functors}}
 
     struct {{{typename}}} {
          HDINLINE float1_64 getUnit() const
@@ -65,22 +65,36 @@ namespace picongpu
 
     template<>
     struct IsWeighted<{{{typename}}}> : std::true_type {};
-{{/functor}} {{/derived_fields}} {{/type_openPMD}} {{/output}}
+{{/derived_field_functors}}
     }
 
-{{#output}} {{#type_openPMD}} {{#derived_fields}} {{#functor}}
+{{#field_tmp_solvers}}
+    using {{{typename}}}_Attribute = {{{attribute_type}}};
+    using {{{typename}}}_Filter = {{{filter_type}}};
+
+    static_assert(
+        particles::traits::SpeciesEligibleForSolver<
+            {{{species}}},
+            deriveField::FilteredDerivedAttribute<
+                {{{typename}}}_Attribute,
+                {{{typename}}}_Filter
+            >
+        >::type::value,
+        "Derived field {{{attribute_typename}}} with filter {{{filter_type}}} is not supported for {{{species}}}"
+    );
+
     using {{{typename}}}_Seq
-        = deriveField::CreateEligible_t<
-            VectorAllSpecies,
-            deriveField::derivedAttributes::{{{typename}}}
-            {{#filtername}},picongpu::particles::filter::{{{filtername}}}{{/filtername}}
-        >;
-{{/functor}} {{/derived_fields}} {{/type_openPMD}} {{/output}}
+        = MakeSeq_t<deriveField::CreateFieldTmpOperation_t<
+            {{{species}}},
+            {{{typename}}}_Attribute,
+            {{{typename}}}_Filter
+        >>;
+{{/field_tmp_solvers}}
 
     using FieldTmpSolvers = MakeSeq_t<
-    {{#output}}{{#type_openPMD}}{{#derived_fields}}{{#functor}}
+    {{#field_tmp_solvers}}
       {{{typename}}}_Seq,
-    {{/functor}}{{/derived_fields}}{{/type_openPMD}}{{/output}}
+    {{/field_tmp_solvers}}
       MakeSeq_t<>
     >;
 
