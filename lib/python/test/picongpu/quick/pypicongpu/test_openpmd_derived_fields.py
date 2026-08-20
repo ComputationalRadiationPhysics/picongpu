@@ -27,11 +27,13 @@ def test_builtin_solver_rendering_has_no_functor_struct():
 
     rendered = Renderer.get_rendered_template(Renderer.get_context_preprocessed(context), template)
 
-    assert "struct" not in rendered
+    assert "struct Native_WeightedVelocity_0" not in rendered
     assert "Native_WeightedVelocity_0_species_electrons_All_Seq" not in rendered
     assert "deriveField::derivedAttributes::WeightedVelocity<0>" in rendered
     assert "species_electrons" in rendered
     assert "deriveField::CreateFieldTmpOperation_t<" in rendered
+    assert "FieldTmpSolverConfig<" in rendered
+    assert "pmacc::mp_transform<ValidateFieldTmpSolver_t, FieldTmpSolverConfigs>" in rendered
     assert "CreateEligible_t" not in rendered
     assert "VectorAllSpecies" not in rendered.split("using FieldTmpSolvers", maxsplit=1)[0]
     assert "static_assert" in rendered

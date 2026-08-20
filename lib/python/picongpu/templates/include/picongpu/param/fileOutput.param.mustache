@@ -68,32 +68,50 @@ namespace picongpu
 {{/derived_field_functors}}
     }
 
-{{#field_tmp_solvers}}
-    using {{{typename}}}_Attribute = {{{attribute_type}}};
-    using {{{typename}}}_Filter = {{{filter_type}}};
+    template<typename T_Species, typename T_Attribute, typename T_Filter>
+    struct FieldTmpSolverConfig
+    {
+        using Species = T_Species;
+        using Attribute = T_Attribute;
+        using Filter = T_Filter;
+    };
 
-    static_assert(
-        particles::traits::SpeciesEligibleForSolver<
-            {{{species}}},
-            deriveField::FilteredDerivedAttribute<
-                {{{typename}}}_Attribute,
-                {{{typename}}}_Filter
-            >
-        >::type::value,
-        "Derived field {{{attribute_typename}}} with filter {{{filter_type}}} is not supported for {{{species}}}"
-    );
-
-{{/field_tmp_solvers}}
-
-    using FieldTmpSolvers = MakeSeq_t<
+    using FieldTmpSolverConfigs = MakeSeq_t<
     {{#field_tmp_solvers}}
-      deriveField::CreateFieldTmpOperation_t<
+      FieldTmpSolverConfig<
           {{{species}}},
-          {{{typename}}}_Attribute,
-          {{{typename}}}_Filter
+          {{{attribute_type}}},
+          {{{filter_type}}}
       >{{^_last}},{{/_last}}
     {{/field_tmp_solvers}}
     >;
+
+    template<typename T_Config>
+    struct ValidateFieldTmpSolver
+    {
+        static_assert(
+            particles::traits::SpeciesEligibleForSolver<
+                typename T_Config::Species,
+                deriveField::FilteredDerivedAttribute<
+                    typename T_Config::Attribute,
+                    typename T_Config::Filter
+                >
+            >::type::value,
+            "Derived-field solver is not supported for this species"
+        );
+
+        using type = deriveField::CreateFieldTmpOperation_t<
+            typename T_Config::Species,
+            typename T_Config::Attribute,
+            typename T_Config::Filter
+        >;
+    };
+
+    template<typename T_Config>
+    using ValidateFieldTmpSolver_t = typename ValidateFieldTmpSolver<T_Config>::type;
+
+    // mp_transform instantiates the validator, including its individual static_assert, for every configuration.
+    using FieldTmpSolvers = pmacc::mp_transform<ValidateFieldTmpSolver_t, FieldTmpSolverConfigs>;
 
 
     using NativeFileOutputFields = MakeSeq_t<FieldE, FieldB, FieldJ>;
