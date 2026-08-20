@@ -191,10 +191,10 @@ Derived-field solvers are generated only for the species selected in the diagnos
 CreateEligible_t<VectorAllSpecies, ...>
 ```
 
-Instead, the generated `fileOutput.param` contains a species-specific operation, for example:
+Instead, the generated `fileOutput.param` places each species-specific operation directly in the common solver sequence:
 
 ```cpp
-using Native_Density_species_electrons_All_Seq = MakeSeq_t<
+using FieldTmpSolvers = MakeSeq_t<
     deriveField::CreateFieldTmpOperation_t<
         species_electrons,
         Native_Density_species_electrons_All_Attribute,
@@ -262,7 +262,7 @@ Expected checks:
 
 - Native fields do not generate custom C++ functor structs.
 - Custom `DerivedFieldDump` functors are each defined once.
-- `FieldTmpSolvers` contains species-specific aliases.
+- `FieldTmpSolvers` directly contains the species-specific `CreateFieldTmpOperation_t` types, without one-element intermediate sequences.
 - Derived-field aliases do not use `VectorAllSpecies` or `CreateEligible_t`.
 - Every derived-field solver has an eligibility `static_assert`.
 - The openPMD TOML lists the expected record names and periods.

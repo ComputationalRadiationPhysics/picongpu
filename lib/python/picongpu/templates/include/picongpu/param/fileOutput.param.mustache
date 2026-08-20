@@ -83,19 +83,16 @@ namespace picongpu
         "Derived field {{{attribute_typename}}} with filter {{{filter_type}}} is not supported for {{{species}}}"
     );
 
-    using {{{typename}}}_Seq
-        = MakeSeq_t<deriveField::CreateFieldTmpOperation_t<
-            {{{species}}},
-            {{{typename}}}_Attribute,
-            {{{typename}}}_Filter
-        >>;
 {{/field_tmp_solvers}}
 
     using FieldTmpSolvers = MakeSeq_t<
     {{#field_tmp_solvers}}
-      {{{typename}}}_Seq,
+      deriveField::CreateFieldTmpOperation_t<
+          {{{species}}},
+          {{{typename}}}_Attribute,
+          {{{typename}}}_Filter
+      >{{^_last}},{{/_last}}
     {{/field_tmp_solvers}}
-      MakeSeq_t<>
     >;
 
 
