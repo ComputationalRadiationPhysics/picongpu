@@ -10,7 +10,7 @@ from .attribute import Attribute
 
 class Momentum(Attribute):
     """
-    Position of a macroparticle
+    Momentum of a macroparticle
     """
 
     picongpu_name: str = "momentum"

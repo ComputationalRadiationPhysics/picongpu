@@ -10,7 +10,7 @@ from .attribute import Attribute
 
 class BoundElectrons(Attribute):
     """
-    Position of a macroparticle
+    Number of bound electrons per nucleus of a macroparticle
     """
 
     picongpu_name: str = "boundElectrons"

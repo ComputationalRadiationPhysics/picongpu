@@ -10,7 +10,7 @@ from .attribute import Attribute
 
 class Weighting(Attribute):
     """
-    Position of a macroparticle
+    Weighting of a macroparticle
     """
 
     picongpu_name: str = "weighting"

@@ -10,7 +10,7 @@ from .attribute import Attribute
 
 class MomentumPrev1(Attribute):
     """
-    Position of a macroparticle
+    Momentum of previous time step of a macroparticle
     """
 
     picongpu_name: str = "momentumPrev1"
