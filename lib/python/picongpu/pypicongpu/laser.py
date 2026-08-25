@@ -77,7 +77,7 @@ class _BaseLaser(BaseModel):
     wave_length_si: float = Field(alias="wavelength", gt=0.0)
     """wave length in m"""
     pulse_duration_si: float = Field(alias="duration", gt=0.0)
-    """duration in s (1 sigma)"""
+    """duration in s (1 sigma of a standard gaussian for the intensity (E^2))"""
     focus_pos_si: Annotated[tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)] = (
         Field(alias="focal_position")
     )

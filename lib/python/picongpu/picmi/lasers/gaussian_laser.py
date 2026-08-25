@@ -13,11 +13,17 @@ import typeguard
 
 from ...pypicongpu import laser, util
 from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser
+from .base_laser import BaseLaser, picmi_laser_duration_to_pulse_duration
 from .polarization_type import PolarizationType
 
 
-@default_converts_to(laser.GaussianLaser)
+@default_converts_to(
+    laser.GaussianLaser,
+    # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
+    # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
+    # i.e. PULSE_DURATION = duration / 2 (#5739)
+    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
+)
 @typeguard.typechecked
 class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
     """
@@ -32,7 +38,9 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
         Spot size (1/e^2 radius) of the laser at focus [m].
 
     - duration : float
-        Full-width-half-maximum (FWHM) duration of the pulse [s].
+        Duration of the Gaussian laser pulse [s], defined as ``tau`` in the
+        electric-field envelope ``E ~ exp(-t^2 / tau^2)`` (i.e. the 1/e half
+        width of the field amplitude), consistent with the PICMI standard.
 
     - propagation_direction : list[float]
         Normalized vector of propagation direction.
@@ -135,6 +143,12 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
         self.phi0 = self.phi0 or 0.0
         self._validate_common_properties()
         self.pulse_init = self._compute_pulse_init()
+
+    def _pulse_duration_sigma_si(self):
+        # PICMI's `duration` is the standard 1/e field width (tau), while
+        # PIConGPU's laser parameters use PULSE_DURATION = tau / 2 (1 sigma of
+        # the intensity).
+        return picmi_laser_duration_to_pulse_duration(self.duration)
 
     def check(self):
         util.unsupported("laser name", self.name)
