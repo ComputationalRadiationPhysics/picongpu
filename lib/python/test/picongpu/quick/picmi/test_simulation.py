@@ -389,6 +389,35 @@ class TestPicmiSimulation(TestCase):
         assert os.path.isdir(outdir)
         assert os.path.exists(outdir + "/include/picongpu/param/simulation.param")
 
+    def test_write_input_file_regenerates_existing_setup(self):
+        """regenerating input into an already generated setup dir overwrites the old files (#5752)"""
+        sim = self.sim
+        outdir = self.__get_tmpdir_name()
+        sim.write_input_file(outdir)
+
+        # a rendered file from a nested template dir, rendered by the runner itself
+        nested_file = outdir + "/etc/picongpu/N.cfg"
+        assert os.path.exists(nested_file)
+        with open(nested_file) as file:
+            nested_content = file.read()
+        # a param rendered from a default template
+        param_file = outdir + "/include/picongpu/param/simulation.param"
+        assert os.path.exists(param_file)
+        with open(param_file) as file:
+            param_content = file.read()
+
+        # simulate stale/modified output from the previous generation
+        for file in (nested_file, param_file):
+            with open(file, "w") as f:
+                f.write("stale")
+
+        sim.write_input_file(outdir, exist_ok=True)
+
+        with open(nested_file) as file:
+            assert file.read() == nested_content
+        with open(param_file) as file:
+            assert file.read() == param_content
+
     def test_custom_template_dir_basic_write_input_file(self):
         """providing custom template dir possible or write_input_file"""
         # note: automatically cleaned up in teardown
