@@ -238,9 +238,7 @@ class Runner(BaseModel):
         # dump checked context
         self.store_metadata(context, filename="pypicongpu_rendering_context.json")
         # preprocess (floats to str, add _special properties, ...)
-        Renderer.render_directory(
-            Renderer.get_context_preprocessed(context), str(self.setup_dir), exist_ok=exist_ok
-        )
+        Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir), exist_ok=exist_ok)
 
     @property
     def metadata_path(self):
