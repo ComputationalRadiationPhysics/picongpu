@@ -15,6 +15,7 @@ from unittest import TestCase
 import pytest
 from pydantic import ValidationError
 from picongpu import picmi
+from picongpu.picmi.interaction import Collision, CollisionalPhysicsSetup, ConstLogCollision, Synchrotron
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
 
@@ -379,6 +380,100 @@ class TestPicmiSimulation(TestCase):
             assert op.species.name in expected_charge_states, f"no charge state requested for {op.species.name=}"
             assert op.charge_state == expected_charge_states.pop(op.species.name)
         assert not expected_charge_states, f"missing SetChargeState op for {expected_charge_states}"
+
+    def __get_interaction_species(self):
+        e = picmi.Species(name="e", particle_type="electron")
+        p = picmi.Species(name="p", particle_type="proton")
+        gamma = picmi.Species(name="gamma", particle_type="photon")
+        return e, p, gamma
+
+    def test_interaction_only_collisions(self):
+        """interaction list consisting only of collisions is merged into one setup (#5753)"""
+        e, p, _gamma = self.__get_interaction_species()
+        col_1 = Collision(species_pairs=[(e, p)], functor=ConstLogCollision(coulomb_log=2.0))
+        col_2 = Collision(species_pairs=[(p, e)], functor=ConstLogCollision(coulomb_log=3.0))
+
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            picongpu_interaction=[col_1, col_2],
+        )
+
+        interactions = sim.picongpu_interaction
+        assert len(interactions) == 1
+        assert isinstance(interactions[0], CollisionalPhysicsSetup)
+        assert interactions[0].collisions == [col_1, col_2]
+
+        # a single bare collision works as well
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            picongpu_interaction=[col_1],
+        )
+        interactions = sim.picongpu_interaction
+        assert len(interactions) == 1
+        assert isinstance(interactions[0], CollisionalPhysicsSetup)
+        assert interactions[0].collisions == [col_1]
+
+    def test_interaction_only_other(self):
+        """interaction list without any collisions is passed through unchanged (#5753)"""
+        e, _p, gamma = self.__get_interaction_species()
+        synchrotron = Synchrotron(electron_species=e, photon_species=gamma)
+
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            picongpu_interaction=[synchrotron],
+        )
+
+        interactions = sim.picongpu_interaction
+        assert interactions == [synchrotron]
+
+    def test_interaction_mixed_other_and_collisions(self):
+        """other interactions plus bare collisions are merged with the other interactions kept (#5753)"""
+        e, p, gamma = self.__get_interaction_species()
+        synchrotron = Synchrotron(electron_species=e, photon_species=gamma)
+        col = Collision(species_pairs=[(e, p)], functor=ConstLogCollision(coulomb_log=2.0))
+
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            picongpu_interaction=[synchrotron, col],
+        )
+
+        interactions = sim.picongpu_interaction
+        assert len(interactions) == 2
+        assert synchrotron in interactions
+        setups = list(filter(lambda x: isinstance(x, CollisionalPhysicsSetup), interactions))
+        assert len(setups) == 1
+        assert setups[0].collisions == [col]
+
+    def test_interaction_setup_with_collisions(self):
+        """a CollisionalPhysicsSetup subsuming the collisions is kept as-is (#5753)"""
+        e, p, _gamma = self.__get_interaction_species()
+        col = Collision(species_pairs=[(e, p)], functor=ConstLogCollision(coulomb_log=2.0))
+        setup = CollisionalPhysicsSetup(collisions=[col])
+
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            picongpu_interaction=[setup],
+        )
+
+        assert sim.picongpu_interaction == [setup]
 
     def test_write_input_file(self):
         """sanity check picmi upstream: write input file"""
