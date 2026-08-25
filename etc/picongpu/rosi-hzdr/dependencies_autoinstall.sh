@@ -83,20 +83,22 @@ fi
 
 
 # TODO: we need to update PNGwriter to work with a modern cmake
+# currently fixed by manually increasing minimal cmake version
 
 #   PNGwriter
-#if [ ! -d "$PNGwriter_ROOT" ]; then
-#    echo "Installing PNGwriter"
-#    cd $SOURCE_DIR
-#    git clone -b 0.7.0 https://github.com/pngwriter/pngwriter.git \
-#        $SOURCE_DIR/pngwriter
-#    mkdir pngwriter-build
-#    cd pngwriter-build
-#    cmake --version
-#    cmake -DCMAKE_INSTALL_PREFIX=$PNGwriter_ROOT \
-#        $SOURCE_DIR/pngwriter
-#    make -j 16 install
-#fi
+if [ ! -d "$PNGwriter_ROOT" ]; then
+   echo "Installing PNGwriter"
+   cd $SOURCE_DIR
+   git clone -b 0.7.0 https://github.com/pngwriter/pngwriter.git \
+       $SOURCE_DIR/pngwriter
+   mkdir pngwriter-build
+   cd pngwriter-build
+   cmake --version
+   cmake -DCMAKE_INSTALL_PREFIX=$PNGwriter_ROOT \
+         -DCMAKE_POLICY_VERSION_MINIMUM=3.5     \
+       $SOURCE_DIR/pngwriter
+   make -j 16 install
+fi
 
 
 
