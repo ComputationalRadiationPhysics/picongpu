@@ -66,7 +66,8 @@ namespace picongpu
                 uint32_t const currentStep,
                 bool const isDomainBound,
                 std::optional<DataSpace<simDim>> const& domainOffset = std::nullopt,
-                std::optional<DataSpace<simDim>> const& localDomainSize = std::nullopt)
+                std::optional<DataSpace<simDim>> const& localDomainSize = std::nullopt,
+                std::optional<DataSpace<simDim>> const& destinationBufferOffset = std::nullopt)
             {
                 log<picLog::INPUT_OUTPUT>("Begin loading field '%1%'") % objectName;
 
@@ -81,10 +82,12 @@ namespace picongpu
                 ::pmacc::math::Vector<uint64_t, simDim> domain_offset = localDomain.offset;
                 DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
                 bool const useCustomReadLayout = domainOffset.has_value() && localDomainSize.has_value();
+                DataSpace<simDim> destination_buffer_offset = field_guard;
                 if(useCustomReadLayout)
                 {
                     domain_offset = *domainOffset;
                     local_domain_size = *localDomainSize;
+                    destination_buffer_offset = destinationBufferOffset.value_or(field_guard);
                 }
 
                 auto const numDataPoints = local_domain_size.productOfComponents();
@@ -100,8 +103,6 @@ namespace picongpu
                     }
                     return;
                 }
-
-                bool useLinearIdxAsDestination = false;
 
                 ::openPMD::Series& series = *params->openPMDSeries;
                 ::openPMD::Mesh& mesh = series.iterations[currentStep].open().meshes[objectName];
@@ -145,13 +146,10 @@ namespace picongpu
                     for(int linearId = 0; linearId < numDataPoints; ++linearId)
                     {
                         DataSpace<simDim> destIdx;
-                        if(useLinearIdxAsDestination)
-                        {
-                            destIdx[0] = linearId;
-                        }
-                        else if(useCustomReadLayout)
+                        if(useCustomReadLayout)
                         {
                             destIdx = pmacc::math::mapToND(local_domain_size, linearId);
+                            destIdx += destination_buffer_offset;
                         }
                         else
                         {
@@ -242,7 +240,11 @@ namespace picongpu
                     {
                         auto const slabName = getPmlSlabName(T_Field::getName(), slabIdx);
                         auto const slabBegin = field->getSlabBegin(slabIdx);
-                        auto const slabSize = field->getSlabSize(slabIdx);
+                        auto const slabViewBegin = field->getSlabViewBegin(slabIdx);
+                        auto const slabViewSize = field->getSlabViewSize(slabIdx);
+                        auto const destinationBufferOffset
+                            = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND()
+                              + (slabViewBegin - slabBegin);
                         auto& slabBuffer = field->getGridBuffer(slabIdx);
                         RestartFieldLoader::loadField(
                             slabBuffer,
@@ -251,8 +253,9 @@ namespace picongpu
                             tp,
                             restartStep,
                             isDomainBound,
-                            localDomain.offset + slabBegin,
-                            slabSize);
+                            localDomain.offset + slabViewBegin,
+                            slabViewSize,
+                            destinationBufferOffset);
                     }
                 }
                 else

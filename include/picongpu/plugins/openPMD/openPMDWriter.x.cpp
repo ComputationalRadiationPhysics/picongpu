@@ -29,6 +29,7 @@
 #    include "picongpu/fields/FieldJ.hpp"
 #    include "picongpu/fields/FieldTmp.hpp"
 #    include "picongpu/fields/absorber/pml/Field.hpp"
+#    include "picongpu/fields/absorber/pml/Pml.hpp"
 #    include "picongpu/particles/filter/filter.hpp"
 #    include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
 #    include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
@@ -835,9 +836,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         for(uint32_t slabIdx = 0u; slabIdx < T_Field::getNumSlabs(); ++slabIdx)
                         {
                             auto const slabBegin = field->getSlabBegin(slabIdx);
-                            auto const slabSize = field->getSlabSize(slabIdx);
-                            auto const slabOffset = localDomain.offset + slabBegin;
-                            auto const slabBufferOffset = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND();
+                            auto const slabViewBegin = field->getSlabViewBegin(slabIdx);
+                            auto const slabViewSize = field->getSlabViewSize(slabIdx);
+                            auto const slabOffset = localDomain.offset + slabViewBegin;
+                            auto const slabBufferOffset = field->getGridBuffer(slabIdx).getGridLayout().guardSizeND()
+                                                          + (slabViewBegin - slabBegin);
                             openPMDWriter::writeField<ComponentType>(
                                 params,
                                 currentStep,
@@ -851,7 +854,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 isDomainBound,
                                 true,
                                 slabOffset,
-                                slabSize,
+                                slabViewSize,
                                 globalDomain.size,
                                 slabBufferOffset);
                         }
@@ -1142,6 +1145,17 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
+            //! Update PML slab views for the current local domain geometry
+            void updatePmlSlabViewsIfEnabled(uint32_t const currentStep)
+            {
+                auto& absorber = fields::absorber::Absorber::get();
+                if(absorber.getKind() == fields::absorber::Absorber::Kind::Pml)
+                {
+                    auto& pmlImpl = fields::absorber::AbsorberImpl::getImpl(*m_cellDescription).asPmlImpl();
+                    pmlImpl.updateSlabViews(float_X(currentStep));
+                }
+            }
+
         public:
             /** constructor
              *
@@ -1335,6 +1349,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mThreadParams.initFromConfig(*m_help, m_id, currentStep, checkpointDirectory, checkpointFilename);
 
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+                updatePmlSlabViewsIfEnabled(currentStep);
 
                 dumpData(currentStep);
             }
@@ -1458,6 +1473,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* set window for restart, complete global domain */
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
                 mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
+
+                updatePmlSlabViewsIfEnabled(restartStep);
 
                 /* load all fields */
                 meta::ForEach<FileCheckpointFields, LoadFields<boost::mpl::_1>> ForEachLoadFields;

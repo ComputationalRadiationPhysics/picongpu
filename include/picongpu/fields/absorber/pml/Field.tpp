@@ -215,6 +215,7 @@ namespace picongpu
                         ++slabIdx;
                     }
 
+                    // Initialize view metadata only; local PML geometry must be applied before use.
                     setSlabViews(globalThickness);
                 }
 
@@ -292,6 +293,24 @@ namespace picongpu
                 {
                     PMACC_ASSERT(slabIdx < numPmlLayers);
                     return slabInfo[slabIdx].end - slabInfo[slabIdx].begin;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabViewBegin(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabViewInfo[slabIdx].begin;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabViewEnd(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabViewInfo[slabIdx].end;
+                }
+
+                pmacc::DataSpace<simDim> Field::getSlabViewSize(uint32_t const slabIdx) const
+                {
+                    PMACC_ASSERT(slabIdx < numPmlLayers);
+                    return slabViewInfo[slabIdx].end - slabViewInfo[slabIdx].begin;
                 }
 
                 void Field::setSlabViews(Thickness const& localThickness)
