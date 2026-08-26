@@ -10,7 +10,7 @@ from .attribute import Attribute
 
 class RadiationMask(Attribute):
     """
-    Position of a macroparticle
+    Radiation mask of a macroparticle
     """
 
     picongpu_name: str = "radiationMask"
