@@ -125,7 +125,7 @@ namespace picongpu
                         % SpeciesType::FrameType::getName() % filename;
                     auto series
                         = ::openPMD::Series{filename, ::openPMD::Access::READ_ONLY, gc.getCommunicator().getMPIComm()};
-                    auto mesh = series.iterations[ParamClass::iteration].meshes[ParamClass::datasetName];
+                    auto mesh = series.iterations[ParamClass::iteration].open().meshes[ParamClass::datasetName];
                     ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
                     auto const indexConverter = IndexConverter{mesh};
                     auto const datasetExtent = indexConverter.openPMDToXyz(dataset.getExtent());
@@ -162,7 +162,7 @@ namespace picongpu
                             indexConverter.xyzToOpenPMD(chunkExtent));
                     }
                     // This is MPI collective and so has to be done by all ranks
-                    series.flush();
+                    mesh.seriesFlush();
 
                     if(readFromFile)
                     {
