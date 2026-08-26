@@ -5,21 +5,16 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from typing import Annotated, Sequence
+from typing import Sequence
 
 import math
 
-from pydantic import BaseModel, BeforeValidator, Field, computed_field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser
+from .base_laser import BaseLaser, PositiveFloat
 from .polarization_type import PolarizationType
-
-PositiveFloat = Annotated[
-    float,
-    BeforeValidator(lambda v: float(v) if (float(v) > 0) else (_ for _ in ()).throw(ValueError("value must be > 0"))),
-]
 
 
 @default_converts_to(

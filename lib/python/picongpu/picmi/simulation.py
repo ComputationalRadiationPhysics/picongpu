@@ -147,6 +147,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
+    # Excluded from model dumps because it is passed through to the pypicongpu
+    # Simulation as-is (single owner is the pypicongpu model) and because
+    # CustomUserInput.rendering_context may hold arbitrary, non-serializable user data.
     picongpu_custom_user_input: list[pypicongpu.customuserinput.CustomUserInput] | None = Field(
         default=None, exclude=True
     )
@@ -175,9 +178,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir: Annotated[tuple[Path, ...], BeforeValidator(_normalise_template_dir)] = Field(
-        default_factory=tuple
-    )
+    picongpu_template_dir: Annotated[tuple[Path, ...], BeforeValidator(_normalise_template_dir)] = Field(default=())
     """directory containing templates to use for generating picongpu setups"""
 
     picongpu_moving_window_move_point: float | None = Field(default=None)

@@ -6,32 +6,19 @@ License: GPLv3+
 """
 
 import math
+from typing import Sequence
 
-import numpy as np
-from typing import Annotated, Sequence
-
-from pydantic import BaseModel, BeforeValidator, computed_field, model_validator
+from pydantic import BaseModel, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser
+from .base_laser import BaseLaser, PositiveFloat
 from .polarization_type import PolarizationType
 
 from .. import constants
 
-PositiveFloat = Annotated[
-    float,
-    BeforeValidator(lambda v: float(v) if (float(v) > 0) else (_ for _ in ()).throw(ValueError("value must be > 0"))),
-]
 
-
-@default_converts_to(
-    laser.TWTSLaser,
-    conversions={
-        "focal_position": "focal_position",
-        "laserIncidenceAnglePositive": "laserIncidenceAnglePositive",
-    },
-)
+@default_converts_to(laser.TWTSLaser)
 class TWTSLaser(BaseModel, BaseLaser):
     """
     Specifies a Traveling-Wave Thomson Scattering (TWTS) laser
@@ -114,10 +101,5 @@ class TWTSLaser(BaseModel, BaseLaser):
         ]
         self.laserIncidenceAnglePositive = self.laserIncidenceAngle > 0
         self.time_offset_si = (self.focal_position[1] - self.centroid_position[1]) / (self.beta0 * constants.c)
-        if not np.allclose(n := np.linalg.norm(self.propagation_direction), 1):
-            raise ValueError(f"Propagation direction must be normalized. Got norm {n}.")
-        if self.centroid_position[1] > 0:
-            raise ValueError(
-                f"Laser maximum must be outside the simulation box. centroid_y <= 0. Got {self.centroid_position=}."
-            )
+        self._validate_common_properties()
         return self

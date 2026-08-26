@@ -20,10 +20,7 @@ from .polarization_type import PolarizationType
     # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
     # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
     # i.e. PULSE_DURATION = duration / 2 (#5739)
-    conversions={
-        "pulse_init": "pulse_init",
-        "duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si(),
-    },
+    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
 )
 class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     """
@@ -94,7 +91,7 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     phi0: float = 0.0
 
     @computed_field
-    def pulse_init(self) -> int:
+    def pulse_init(self) -> float:
         return self._compute_pulse_init()
 
     def _pulse_duration_sigma_si(self):

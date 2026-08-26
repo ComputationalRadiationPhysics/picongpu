@@ -17,10 +17,7 @@ from .gaussian_laser import GaussianLaser
     # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
     # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
     # i.e. PULSE_DURATION = duration / 2 (#5739)
-    conversions={
-        "pulse_init": "pulse_init",
-        "duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si(),
-    },
+    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
 )
 class DispersivePulseLaser(GaussianLaser):
     """

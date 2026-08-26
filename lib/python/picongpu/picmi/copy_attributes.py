@@ -84,16 +84,20 @@ def copy_attributes(
     """
 
     # Build a mapping of target field names (and aliases) to source fields
-    def _target_field_key(target_field_name):
-        """Get the key to use for assignment (alias if available, else field name)."""
-        if isinstance(to, type) and issubclass(to, BaseModel):
-            field = to.model_fields.get(target_field_name)
+    def _target_field_key(target, target_field_name):
+        """Get the key to use for assignment (alias if available, else field name).
+
+        `target` is the copy target of the surrounding `copy_attributes()` call:
+        either a class (constructed on the fly) or an instance (populated in place).
+        """
+        if isinstance(target, type) and issubclass(target, BaseModel):
+            field = target.model_fields.get(target_field_name)
             if field and field.alias:
                 return field.alias
         return target_field_name
 
     assignments = {
-        _target_field_key(to_name): _value_generator(from_name)
+        _target_field_key(to, to_name): _value_generator(from_name)
         for from_name, _ in (
             chain(type(from_instance).model_fields.items(), type(from_instance).model_computed_fields.items())
             if isinstance(from_instance, BaseModel)
