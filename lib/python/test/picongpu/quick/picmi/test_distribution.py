@@ -10,6 +10,8 @@ from unittest import TestCase
 import pytest
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian3DGrid
+from picongpu.picmi.species import Species
+from picongpu.picmi.species_requirements import SimpleMomentumOperation, run_construction
 from picongpu.pypicongpu import species
 from picongpu.pypicongpu.util import UnsupportedFeatureError
 from pydantic import ValidationError
@@ -497,3 +499,55 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
         # minimal valid
         dist = self._get_distribution()
         dist.get_as_pypicongpu(ARBITRARY_GRID)
+
+
+def _gaussian_distribution(rms_velocity):
+    return picmi.GaussianDistribution(
+        density=1.0,
+        lower_bound=[0, 0, 0],
+        upper_bound=[1, 1, 1],
+        center_front=0.2,
+        center_rear=0.8,
+        sigma_front=0.01,
+        sigma_rear=0.02,
+        power=2.0,
+        factor=-9.0,
+        vacuum_front=0.0,
+        vacuum_rear=0.0,
+        rms_velocity=rms_velocity,
+    )
+
+
+def _momentum_of(rms_velocity):
+    """translate the temperature of a distribution with the given rms_velocity"""
+    species = Species(name="e", particle_type="electron", initial_distribution=_gaussian_distribution(rms_velocity))
+    return run_construction(SimpleMomentumOperation(species)).temperature
+
+
+class TestDirectionalTemperature(TestCase):
+    """
+    rms_velocity may be anisotropic; it is translated to a directional (per-component)
+    temperature (see #5677) instead of requiring isotropic components.
+    """
+
+    def test_anisotropic_rms_velocity_accepted(self):
+        distribution = _gaussian_distribution([1e5, 2e5, 3e5])
+        assert distribution.rms_velocity == (1e5, 2e5, 3e5)
+
+    def test_anisotropic_rms_velocity_gives_directional_temperature(self):
+        temperature = _momentum_of([1e5, 2e5, 3e5])
+        assert temperature is not None
+        assert temperature.temperature_kev is None
+        assert temperature.temperature_kev_directional is not None
+        expected = (5.685630111285689e-05, 2.2742520445142756e-04, 5.11706710015712e-04)
+        for given, want in zip(temperature.temperature_kev_directional, expected):
+            assert abs(given - want) < 1e-12
+
+    def test_isotropic_rms_velocity_gives_scalar_temperature(self):
+        temperature = _momentum_of([1e5, 1e5, 1e5])
+        assert temperature is not None
+        assert temperature.temperature_kev_directional is None
+        assert abs(temperature.temperature_kev - 5.685630111285689e-05) < 1e-12
+
+    def test_zero_rms_velocity_gives_no_temperature(self):
+        assert _momentum_of([0, 0, 0]) is None

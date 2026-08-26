@@ -6,7 +6,6 @@ License: GPLv3+
 """
 
 from picmistandard import PICMI_Extension
-from pydantic import field_validator
 
 from ...pypicongpu import species
 
@@ -41,13 +40,6 @@ class Distribution(PICMI_Extension):
 
     fill_in: bool = True
     """whether to fill in the empty space opened up when the simulation window moves"""
-
-    @field_validator("rms_velocity", mode="after")
-    @classmethod
-    def isotropic_temperature(cls, value):
-        if not (value[0] == value[1] == value[2]):
-            raise ValueError("all thermal velcoity spread (rms velocity) components must be equal")
-        return value
 
     def __hash__(self):
         """custom hash function for indexing in dicts"""
