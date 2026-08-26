@@ -193,7 +193,7 @@ Active Team
 
 ### current and former developers
 
-A list of all developers that contributed to PIConGPU can be found in the file `.zenodo.json`.
+A list of all developers that contributed to PIConGPU can be found in the file [`.zenodo.json`](.zenodo.json).
 
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
 way!
