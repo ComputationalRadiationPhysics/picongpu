@@ -6,6 +6,8 @@ Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Richard Pausch,
 License: GPLv3+
 """
 
+from typing import Annotated
+
 from picmistandard import PICMI_GaussianLaser
 from pydantic import Field, computed_field, model_validator
 
@@ -90,6 +92,13 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     ]
     phi0: float = 0.0
 
+    # PICMI-standard laser options that PIConGPU does not implement are
+    # rejected at construction time.
+    name: Annotated[str | None, util.rejects_unsupported("laser name")] = None
+    zeta: Annotated[float | None, util.rejects_unsupported("laser zeta")] = None
+    beta: Annotated[float | None, util.rejects_unsupported("laser beta")] = None
+    phi2: Annotated[float | None, util.rejects_unsupported("laser phi2")] = None
+
     @computed_field
     def pulse_init(self) -> float:
         return self._compute_pulse_init()
@@ -112,13 +121,6 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
 
     @model_validator(mode="after")
     def _validate(self):
-        util.unsupported("laser name", self.name)
-        util.unsupported("laser zeta", self.zeta)
-        util.unsupported("laser beta", self.beta)
-        util.unsupported("laser phi2", self.phi2)
-        # unsupported: fill_in (do not warn, b/c we don't know if it has been
-        # set explicitly, and always warning is bad)
-
         if len(self.picongpu_laguerre_modes) != len(self.picongpu_laguerre_phases):
             raise ValueError(
                 "Your setup specifies a different number of Laguerre modes and phases. "
