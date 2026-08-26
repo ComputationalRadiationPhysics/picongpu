@@ -164,6 +164,7 @@ namespace pmacc
         ~DeviceBuffer() override
         {
             eventSystem::startOperation(ITask::TASK_DEVICE);
+            eventSystem::startOperation(ITask::TASK_HOST);
         }
 
         void reset(bool preserveData = true) override
