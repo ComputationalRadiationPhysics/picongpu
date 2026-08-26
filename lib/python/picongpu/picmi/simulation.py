@@ -133,7 +133,7 @@ def _validate_collisional_physics_setup(interactions):
     if "collision" in types:
         # We've found one or more bare collision flying around in the list,
         # so we've gotta merge them into one setup.
-        return list(types["other"]) + [CollisionalPhysicsSetup(collisions=list(types["collision"]))]
+        return list(types.get("other", [])) + [CollisionalPhysicsSetup(collisions=list(types["collision"]))]
 
     # No collisions whatsoever...
     return interactions
@@ -414,6 +414,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError(
                 f"You have configured the Synchrotron extension multiple times with different arguments. This is not allowed! You gave {synchrotron_params[:-1]=}."
             )
+        # We need to make sure that bare collisions are merged into a setup,
+        # no matter if the interactions were assembled at construction time or later.
+        self.picongpu_interaction = _validate_collisional_physics_setup(self.picongpu_interaction)
         # We provide the default as last element and we'll only read the first element:
         collisions = [x for x in self.picongpu_interaction if isinstance(x, CollisionalPhysicsSetup)] + [
             CollisionalPhysicsSetup()
