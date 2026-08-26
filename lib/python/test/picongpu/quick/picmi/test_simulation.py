@@ -373,10 +373,10 @@ class TestPicmiSimulation(TestCase):
         assert operation_types.count(species.operation.SetChargeState) == 2
 
         for op in operations:
-            if isinstance(op, species.operation.SetChargeState) and op.species.name == "Nitrogen":
-                assert op.bound_electrons == 5
-            if isinstance(op, species.operation.SetChargeState) and op.species.name == "Hydrogen":
-                assert op.bound_electrons == 0
+            if isinstance(op, species.operation.SetChargeState) and op.species.name == "nitrogen":
+                assert op.charge_state == 2
+            if isinstance(op, species.operation.SetChargeState) and op.species.name == "hydrogen":
+                assert op.charge_state == 1
             # other ops (position...): ignore
 
     def test_write_input_file(self):

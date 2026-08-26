@@ -70,12 +70,7 @@ class Species(PICMI_Species):
                 f"Species {self.name} specified fixed charge without also specifying particle_type"
             )
         # Returns None if it is not an element, so is False-y in those cases, and True-y otherwise:
-        elif self.picongpu_element:
-            if self.charge_state is not None:
-                assert Element(self.particle_type).get_atomic_number() >= self.charge_state, (
-                    f"Species {self.name} intial charge state is unphysical"
-                )
-        else:
+        elif not self.picongpu_element:
             assert self.charge_state is None, "charge_state may only be set for ions"
             assert self.picongpu_fixed_charge is False, (
                 f"Species {self.name} configured with fixed charge state but particle_type indicates non ion"
