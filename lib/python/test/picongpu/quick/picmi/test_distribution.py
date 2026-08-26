@@ -11,6 +11,7 @@ import pytest
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.pypicongpu import species
+from picongpu.pypicongpu.util import UnsupportedFeatureError
 from pydantic import ValidationError
 
 ARBITRARY_GRID = Cartesian3DGrid(
@@ -54,11 +55,19 @@ class TestPicmiUniformDistribution(TestCase, HelperTestPicmiBoundaries):
 
     def test_full(self):
         """full paramset"""
-        uniform = picmi.UniformDistribution(density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666])
+        uniform = picmi.UniformDistribution(density=42.42)
         pypic = uniform.get_as_pypicongpu(ARBITRARY_GRID)
         assert isinstance(pypic, species.operation.densityprofile.Uniform)
 
         assert pypic.density_si == 42.42
+
+    def test_lower_upper_bound_not_supported(self):
+        """the uniform profile has no bound support, so setting bounds must raise"""
+        uniform = picmi.UniformDistribution(
+            density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666]
+        )
+        with pytest.raises(UnsupportedFeatureError, match="lower bound"):
+            uniform.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_density_zero(self):
         """density set to zero is not accepted"""
@@ -117,8 +126,6 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_cutoff=4.0,
             exponential_post_plasma_length=5.0,
             exponential_post_plasma_cutoff=6.0,
-            lower_bound=[111, 222, 333],
-            upper_bound=[444, 555, 666],
         )
 
         pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
@@ -131,6 +138,18 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         assert pypic.pre_foil_plasmaRamp.PlasmaCutoff == 4.0
         assert pypic.post_foil_plasmaRamp.PlasmaLength == 5.0
         assert pypic.post_foil_plasmaRamp.PlasmaCutoff == 6.0
+
+    def test_lower_upper_bound_not_supported(self):
+        """the foil profile has no bound support, so setting bounds must raise"""
+        foil = picmi.FoilDistribution(
+            density=42.42,
+            front=1.0,
+            thickness=2.0,
+            lower_bound=[111, 222, 333],
+            upper_bound=[444, 555, 666],
+        )
+        with pytest.raises(UnsupportedFeatureError, match="lower bound"):
+            foil.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_density_zero(self):
         """density set to zero is not accepted"""

@@ -12,6 +12,8 @@ from inspect import Parameter, signature
 from operator import itemgetter
 from typing import Any, Self
 
+from pydantic import BeforeValidator
+
 
 def _extract_first_parameter(cls):
     sig = signature(cls).parameters
@@ -247,22 +249,86 @@ def unique(iterable):
     return result
 
 
-def unsupported(name: str, value: Any = 1, default: Any = None) -> None:
+class UnsupportedFeatureError(ValueError):
     """
-    Print a msg that the feature/parameter/thing is unsupported.
+    Raised when the user requests a feature/parameter that PIConGPU does not implement.
+
+    Unifies the error for both rejection points:
+      - at construction time, via `rejects_unsupported` (pydantic models), and
+      - at PICMI-to-pypicongpu conversion time, via `unsupported` (call sites that
+        can only know the offending value after translation).
+    """
+
+    def __init__(self, feature: str, given: Any):
+        self.feature = feature
+        self.given = given
+        super().__init__(
+            f"'{feature}' is not (yet) implemented by PIConGPU. "
+            f"You gave: {given!r}. Leave the parameter at its supported value, "
+            "or track the feature at https://github.com/ComputationalRadiationPhysics/picongpu (label: PICMI)."
+        )
+
+
+def _handle_unsupported(feature: str, given: Any) -> None:
+    """
+    Single choke point for reacting to unsupported features.
+
+    Currently always raises. Centralized so that the behaviour
+    (raise/warn/ignore) can be made configurable in one place later on.
+    """
+
+    raise UnsupportedFeatureError(feature, given)
+
+
+def _normalize_for_comparison(value: Any) -> Any:
+    """List and tuple are compared element-wise, so a list/tuple mix-up isn't a mismatch."""
+    if isinstance(value, (list, tuple)):
+        return tuple(value)
+    return value
+
+
+def rejects_unsupported(feature: str, *, default: Any = None) -> BeforeValidator:
+    """
+    Return a pydantic BeforeValidator for a PICMI-standard field that PIConGPU
+    does not implement yet.
+
+    The field keeps its standard type (and usual default), so construction stays
+    standard-conformant; any value different from `default` (the accepted no-op
+    value, usually the standard default) raises `UnsupportedFeatureError`,
+    which pydantic surfaces as a `ValidationError` naming the feature.
+
+    Usage:
+        class Model(BaseModel):
+            stencil_order: Annotated[int | None, rejects_unsupported("higher order solvers")] = None
+    """
+
+    def _check(value: Any) -> Any:
+        if _normalize_for_comparison(value) != _normalize_for_comparison(default):
+            _handle_unsupported(feature, value)
+        return value
+
+    return BeforeValidator(_check)
+
+
+_always_unsupported = object()
+
+
+def unsupported(name: str, value: Any = _always_unsupported, default: Any = None) -> None:
+    """
+    Raise `UnsupportedFeatureError` for the feature/parameter `name`.
 
     If 2nd param (value) and 3rd param (default) are set:
-    supress msg if value == default
+    raise if value != default
 
     If 2nd param (value) is set and 3rd is missing:
-    supress msg if value is None
+    raise if value is not None
 
-    If only 1st param (name) is set: always print msg
+    If only 1st param (name) is set: always raise
 
     :param name: name of the feature/parameter/thing that is unsupported
-    :param value: If set: only print warning if this is not None
+    :param value: If set: only raise if this is not None
     :param default: If set: check value against this param instead of none
     """
 
-    if value != default:
-        logging.warning("unsupported: {}".format(name))
+    if value is _always_unsupported or _normalize_for_comparison(value) != _normalize_for_comparison(default):
+        _handle_unsupported(name, None if value is _always_unsupported else value)
