@@ -7,6 +7,7 @@ License: GPLv3+
 
 from pydantic import BaseModel, ConfigDict
 
+from picongpu.picmi import constants
 from picongpu.picmi.copy_attributes import default_converts_to
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
@@ -14,7 +15,14 @@ from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.energy_histogram import EnergyHistogram as PyPIConGPUEnergyHistogram
 
 
-@default_converts_to(PyPIConGPUEnergyHistogram)
+@default_converts_to(
+    PyPIConGPUEnergyHistogram,
+    conversions={
+        # the underlying plugin's minEnergy/maxEnergy options are given in keV
+        "min_energy": lambda self, *_, **__: self.min_energy / constants.keV,
+        "max_energy": lambda self, *_, **__: self.max_energy / constants.keV,
+    },
+)
 class EnergyHistogram(BaseModel):
     """
     Specifies the parameters for the output of Energy Histogram of species such as electrons.
@@ -38,13 +46,11 @@ class EnergyHistogram(BaseModel):
 
     min_energy: float
         Minimum value for the energy histogram range.
-        Unit: keV
-        Default is 0, meaning 0 keV.
+        Unit: J (energy in SI units).
 
     max_energy: float
         Maximum value for the energy histogram range.
-        Unit: keV
-        There is no default value.
+        Unit: J (energy in SI units).
 
     name: string, optional
         Optional name for the energy histogram plugin.
