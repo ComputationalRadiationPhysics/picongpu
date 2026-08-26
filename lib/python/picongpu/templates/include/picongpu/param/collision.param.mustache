@@ -67,7 +67,7 @@ namespace picongpu
             {{#functor.type_constlog}}
             struct CollisionParams_{{{_idx}}}
             {
-                static constexpr float_X coulombLog = {{{functor.data.coulomb_log}}}_X;
+                static constexpr float_X coulombLog = {{{functor.coulomb_log}}}_X;
             };
             using ColliderFunctor_{{{_idx}}} = relativistic::RelativisticCollisionConstLog<CollisionParams_{{{_idx}}}, false>;
             {{/functor.type_constlog}}

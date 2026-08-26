@@ -12,8 +12,8 @@ from pydantic import (
     BaseModel,
     Field,
     computed_field,
-    field_serializer,
     field_validator,
+    model_validator,
 )
 
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
@@ -41,40 +41,48 @@ def functor(s: Species | FilteredSpecies):
     return alt(lambda: s.functor, None)
 
 
-class Collision(BaseModel):
-    species_pairs: list[tuple[Species | FilteredSpecies, Species | FilteredSpecies]]
-    functor: CollisionFunctor
+class SpeciesPair(BaseModel):
+    """
+    Two species that collide with each other.
 
-    @field_validator("species_pairs", mode="after")
+    A pair may also be given as a bare two-element ``(species_lhs, species_rhs)``
+    sequence, which is accepted for convenience.
+    """
+
+    species_lhs: Species | FilteredSpecies
+    species_rhs: Species | FilteredSpecies
+
+    @model_validator(mode="before")
     @classmethod
-    def _validate_species_pairs(cls, pairs):
-        invalid_pairs = [
-            pair for pair in pairs if species(pair[0]) == species(pair[1]) and functor(pair[0]) != functor(pair[1])
-        ]
-        if invalid_pairs:
+    def _from_pair(cls, data):
+        if isinstance(data, (tuple, list)) and len(data) == 2:
+            return {"species_lhs": data[0], "species_rhs": data[1]}
+        return data
+
+    @model_validator(mode="after")
+    def _validate_intra_species_filters(self):
+        if species(self.species_lhs) == species(self.species_rhs) and functor(self.species_lhs) != functor(
+            self.species_rhs
+        ):
             raise ValueError(
-                f"Intra-species collisions with differently filtered species are not supported by PIConGPU. You gave: {invalid_pairs=}."
+                "Intra-species collisions with differently filtered species are not"
+                " supported by PIConGPU. You gave: "
+                f"{self=}."
             )
-        return pairs
+        return self
+
+
+class Collision(BaseModel):
+    species_pairs: list[SpeciesPair]
+    functor: CollisionFunctor
 
     @computed_field
     def species(self) -> list[Species]:
-        return unique(sum(self.species_pairs, tuple()))
+        return unique([s for p in self.species_pairs for s in (p.species_lhs, p.species_rhs)])
 
     @computed_field
     def has_filters(self) -> bool:
-        return any(isinstance(s, FilteredSpecies) for p in self.species_pairs for s in p)
-
-    @field_serializer("species_pairs", mode="plain")
-    def _species_pairs_serializer(self, value):
-        return [
-            {"species_lhs": pair[0].model_dump(mode="json"), "species_rhs": pair[1].model_dump(mode="json")}
-            for pair in value
-        ]
-
-    @field_serializer("functor")
-    def _serialize_functor(self, value):
-        return value.get_rendering_context()
+        return any(isinstance(s, FilteredSpecies) for p in self.species_pairs for s in (p.species_lhs, p.species_rhs))
 
 
 class CollisionNumericsConfig(BaseModel):
