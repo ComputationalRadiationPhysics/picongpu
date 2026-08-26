@@ -65,9 +65,7 @@ class TestPicmiUniformDistribution(TestCase, HelperTestPicmiBoundaries):
 
     def test_lower_upper_bound_not_supported(self):
         """the uniform profile has no bound support, so setting bounds must raise"""
-        uniform = picmi.UniformDistribution(
-            density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666]
-        )
+        uniform = picmi.UniformDistribution(density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666])
         with pytest.raises(UnsupportedFeatureError, match="lower bound"):
             uniform.get_as_pypicongpu(ARBITRARY_GRID)
 

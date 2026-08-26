@@ -37,9 +37,7 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
     does not implement are rejected at construction time.
     """
 
-    field_smoother: Annotated[
-        PICMI_BinomialSmoother | None, util.rejects_unsupported("field smoothers")
-    ] = None
+    field_smoother: Annotated[PICMI_BinomialSmoother | None, util.rejects_unsupported("field smoothers")] = None
     method: Literal["Yee", "Lehe"]
     stencil_order: Annotated[Sequence[int] | None, util.rejects_unsupported("higher order solver stencils")] = None
     subcycling: Annotated[int | None, util.rejects_unsupported("subcycling")] = None
