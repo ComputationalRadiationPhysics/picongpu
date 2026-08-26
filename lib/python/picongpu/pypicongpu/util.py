@@ -5,7 +5,6 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-import logging
 from itertools import chain
 from functools import partial, wraps
 from inspect import Parameter, signature
