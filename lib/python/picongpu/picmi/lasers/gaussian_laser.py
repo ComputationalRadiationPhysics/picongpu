@@ -13,7 +13,7 @@ import typeguard
 
 from ...pypicongpu import laser, util
 from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser, picmi_laser_duration_to_pulse_duration
+from .base_laser import BaseLaser
 from .polarization_type import PolarizationType
 
 
@@ -145,10 +145,20 @@ class GaussianLaser(picmistandard.PICMI_GaussianLaser, BaseLaser):
         self.pulse_init = self._compute_pulse_init()
 
     def _pulse_duration_sigma_si(self):
-        # PICMI's `duration` is the standard 1/e field width (tau), while
-        # PIConGPU's laser parameters use PULSE_DURATION = tau / 2 (1 sigma of
-        # the intensity).
-        return picmi_laser_duration_to_pulse_duration(self.duration)
+        """Convert the PICMI-standard laser ``duration`` to the PIConGPU
+        ``PULSE_DURATION`` parameter.
+
+        The PICMI standard defines the Gaussian temporal envelope as
+        ``E ~ exp(-t^2 / duration^2)``, i.e. ``duration`` is the 1/e half width
+        of the electric-field amplitude (see ``PICMI_GaussianLaser``).
+        PIConGPU's Gaussian temporal envelope is
+        ``E ~ exp(-t^2 / (4 * PULSE_DURATION^2))`` (see ``GaussianPulse.hpp``),
+        i.e. ``PULSE_DURATION`` is the 1 sigma of the intensity (see
+        ``BaseParam.def``; ``DispersivePulse.hpp`` documents
+        ``tau_0 = 2 * PULSE_DURATION``). Matching the two envelopes gives
+        ``duration = 2 * PULSE_DURATION``, hence ``PULSE_DURATION = duration / 2``.
+        """
+        return self.duration / 2.0
 
     def check(self):
         util.unsupported("laser name", self.name)
