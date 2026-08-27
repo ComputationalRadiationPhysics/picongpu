@@ -18,7 +18,7 @@ namespace alpaka
     //! A non-modifiable wrapper around a view. This view acts as the wrapped view, but the underlying data is only
     //! exposed const-qualified.
     template<typename TView>
-    struct ViewConst : internal::ViewAccessOps<ViewConst<TView>>
+    struct ViewConst : internal::ViewAccessorType<alpaka::Dev<TView>, ViewConst<TView>>
     {
         static_assert(!std::is_const_v<TView>, "ViewConst must be instantiated with a non-const type");
         static_assert(

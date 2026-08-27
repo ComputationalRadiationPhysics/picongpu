@@ -11,7 +11,6 @@
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/dim/Traits.hpp"
 #include "alpaka/idx/Traits.hpp"
-#include "alpaka/kernel/Traits.hpp"
 #include "alpaka/platform/Traits.hpp"
 #include "alpaka/queue/Traits.hpp"
 
@@ -21,13 +20,19 @@
 
 namespace alpaka
 {
-    struct ConceptAcc
+    struct InterfaceAcc
     {
     };
 
-    //! True if TAcc is an accelerator, i.e. if it implements the ConceptAcc concept.
+    namespace concepts
+    {
+        template<typename T>
+        concept Acc = requires { requires alpaka::interface::ImplementsInterface<alpaka::InterfaceAcc, T>::value; };
+    } // namespace concepts
+
+    //! True if TAcc is an accelerator, i.e. if it implements the InterfaceAcc concept.
     template<typename TAcc>
-    inline constexpr bool isAccelerator = interface::ImplementsInterface<ConceptAcc, TAcc>::value;
+    [[deprecated("use the alpaka::concepts::Acc instead.")]] inline constexpr bool isAccelerator = concepts::Acc<TAcc>;
 
     //! The accelerator traits.
     namespace trait
@@ -57,13 +62,13 @@ namespace alpaka
         };
 
         //! The device properties get trait.
-        template<typename TAcc, typename TSfinae = void>
+        template<concepts::Acc TAcc>
         struct GetAccDevProps;
 
         //! The accelerator name trait.
         //!
         //! The default implementation returns the mangled class name.
-        template<typename TAcc, typename TSfinae = void>
+        template<concepts::Acc TAcc>
         struct GetAccName
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
@@ -86,17 +91,17 @@ namespace alpaka
     inline constexpr bool isMultiThreadAcc = trait::IsMultiThreadAcc<TAcc>::value;
 
     //! \return The acceleration properties on the given device.
-    template<typename TAcc, typename TDev>
+    template<concepts::Acc TAcc, typename TDev>
     ALPAKA_FN_HOST auto getAccDevProps(TDev const& dev) -> AccDevProps<Dim<TAcc>, Idx<TAcc>>
     {
-        using ImplementationBase = interface::ImplementationBase<ConceptAcc, TAcc>;
+        using ImplementationBase = interface::ImplementationBase<InterfaceAcc, TAcc>;
         return trait::GetAccDevProps<ImplementationBase>::getAccDevProps(dev);
     }
 
     //! \return The accelerator name
     //!
     //! \tparam TAcc The accelerator type.
-    template<typename TAcc>
+    template<concepts::Acc TAcc>
     ALPAKA_FN_HOST auto getAccName() -> std::string
     {
         return trait::GetAccName<TAcc>::getAccName();
@@ -104,8 +109,8 @@ namespace alpaka
 
     namespace trait
     {
-        template<typename TAcc, typename TProperty>
-        struct QueueType<TAcc, TProperty, std::enable_if_t<interface::ImplementsInterface<ConceptAcc, TAcc>::value>>
+        template<concepts::Acc TAcc, typename TProperty>
+        struct QueueType<TAcc, TProperty>
         {
             using type = typename QueueType<typename alpaka::trait::PlatformType<TAcc>::type, TProperty>::type;
         };

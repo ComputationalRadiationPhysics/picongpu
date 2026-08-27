@@ -21,14 +21,14 @@ class RandTestKernel
         {
             auto dist = alpaka::rand::distribution::createNormalReal<float>(acc);
             [[maybe_unused]] auto const r = dist(gen);
-            if constexpr(!BOOST_ARCH_PTX)
+            if constexpr(!ALPAKA_ARCH_PTX)
                 ALPAKA_CHECK(*success, std::isfinite(r));
         }
 
         {
             auto dist = alpaka::rand::distribution::createNormalReal<double>(acc);
             [[maybe_unused]] auto const r = dist(gen);
-            if constexpr(!BOOST_ARCH_PTX)
+            if constexpr(!ALPAKA_ARCH_PTX)
                 ALPAKA_CHECK(*success, std::isfinite(r));
         }
         {

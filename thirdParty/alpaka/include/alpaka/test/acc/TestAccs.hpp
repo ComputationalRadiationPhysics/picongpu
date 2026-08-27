@@ -1,4 +1,4 @@
-/* Copyright 2024 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan,
+/* Copyright 2025 Benjamin Worpitz, Erik Zenker, Matthias Werner, Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan,
  * Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
@@ -17,8 +17,8 @@
 // we have to dramatically reduce the number of tested combinations.
 // Else the log length would be exceeded.
 #if defined(ALPAKA_CI)
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA                                                       \
-        || defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && ALPAKA_LANG_CUDA                                                      \
+        || defined(ALPAKA_ACC_GPU_HIP_ENABLED) && ALPAKA_LANG_HIP
 #        define ALPAKA_CUDA_CI
 #    endif
 #endif
@@ -63,14 +63,14 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccCpuOmp2ThreadsIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (BOOST_LANG_CUDA || defined(ALPAKA_HOST_ONLY))
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && (ALPAKA_LANG_CUDA || defined(ALPAKA_HOST_ONLY))
         template<typename TDim, typename TIdx>
         using AccGpuCudaRtIfAvailableElseInt = AccGpuCudaRt<TDim, TIdx>;
 #else
         template<typename TDim, typename TIdx>
         using AccGpuCudaRtIfAvailableElseInt = int;
 #endif
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && (BOOST_LANG_HIP || defined(ALPAKA_HOST_ONLY))
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && (ALPAKA_LANG_HIP || defined(ALPAKA_HOST_ONLY))
         template<typename TDim, typename TIdx>
         using AccGpuHipRtIfAvailableElseInt =
             typename std::conditional<std::is_same_v<TDim, DimInt<3u>> == false, AccGpuHipRt<TDim, TIdx>, int>::type;
@@ -99,6 +99,20 @@ namespace alpaka::test
         template<typename TDim, typename TIdx>
         using AccGpuSyclIntelIfAvailableElseInt = int;
 #endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_GPU_NVIDIA)
+        template<typename TDim, typename TIdx>
+        using AccGpuSyclNvidiaIfAvailableElseInt = AccGpuSyclNvidia<TDim, TIdx>;
+#else
+        template<typename TDim, typename TIdx>
+        using AccGpuSyclNvidiaIfAvailableElseInt = int;
+#endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_GPU_AMD)
+        template<typename TDim, typename TIdx>
+        using AccGpuSyclAmdIfAvailableElseInt = AccGpuSyclAmd<TDim, TIdx>;
+#else
+        template<typename TDim, typename TIdx>
+        using AccGpuSyclAmdIfAvailableElseInt = int;
+#endif
 
         //! A vector containing all available accelerators and int's.
         template<typename TDim, typename TIdx>
@@ -112,7 +126,9 @@ namespace alpaka::test
             AccGpuHipRtIfAvailableElseInt<TDim, TIdx>,
             AccCpuSyclIfAvailableElseInt<TDim, TIdx>,
             AccFpgaSyclIntelIfAvailableElseInt<TDim, TIdx>,
-            AccGpuSyclIntelIfAvailableElseInt<TDim, TIdx>>;
+            AccGpuSyclIntelIfAvailableElseInt<TDim, TIdx>,
+            AccGpuSyclNvidiaIfAvailableElseInt<TDim, TIdx>,
+            AccGpuSyclAmdIfAvailableElseInt<TDim, TIdx>>;
     } // namespace detail
 
     //! A vector containing all available accelerators.

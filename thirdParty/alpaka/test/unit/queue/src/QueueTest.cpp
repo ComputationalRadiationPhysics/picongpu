@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+#include <alpaka/core/ApiCudaRt.hpp>
+#include <alpaka/core/ApiHipRt.hpp>
 #include <alpaka/meta/Concatenate.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/test/queue/Queue.hpp>
@@ -278,3 +280,21 @@ TEMPLATE_LIST_TEST_CASE("isQueue", "[queue]", alpaka::test::TestQueues)
 
     REQUIRE(alpaka::isQueue<decltype(f.m_queue)>);
 }
+
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+using TApi = alpaka::ApiCudaRt;
+#    elif defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+using TApi = alpaka::ApiHipRt;
+#    endif
+
+TEMPLATE_LIST_TEST_CASE("constructQueueWithStream", "[queue]", alpaka::test::TestQueues)
+{
+    TApi::Stream_t stream;
+    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::streamCreate(&stream));
+    auto queue = alpaka::QueueUniformCudaHipRtBlocking<TApi>(stream);
+    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::streamDestroy(stream));
+}
+
+#endif

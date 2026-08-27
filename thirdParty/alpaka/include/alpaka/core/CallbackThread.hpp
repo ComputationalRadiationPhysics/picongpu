@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 
 #include <cassert>
 #include <condition_variable>
@@ -19,7 +19,7 @@ namespace alpaka::core
 {
     class CallbackThread
     {
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
@@ -27,7 +27,7 @@ namespace alpaka::core
         // std::future which will keep the task alive and we cannot control the moment the future is set.
         //! \todo with C++23 std::move_only_function should be used
         struct Task
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
         {

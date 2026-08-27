@@ -6,7 +6,7 @@
 
 #include "alpaka/acc/AccGenericSycl.hpp"
 #include "alpaka/acc/Traits.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Sycl.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/dim/Traits.hpp"
@@ -29,7 +29,7 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wunused-lambda-capture"
 #        pragma clang diagnostic ignored "-Wunused-parameter"
@@ -41,7 +41,7 @@
         cgh.parallel_for(                                                                                             \
             sycl::nd_range<TDim::value>{global_size, local_size},                                                     \
             [item_elements, dyn_shared_accessor, st_shared_accessor, k_func, k_args](                                 \
-                sycl::nd_item<TDim::value> work_item) [[intel::reqd_sub_group_size(sub_group_size)]]                  \
+                sycl::nd_item<TDim::value> work_item) [[sycl::reqd_sub_group_size(sub_group_size)]]                   \
             {                                                                                                         \
                 auto acc = TAcc{item_elements, work_item, dyn_shared_accessor, st_shared_accessor};                   \
                 std::apply(                                                                                           \
@@ -238,7 +238,7 @@ namespace alpaka
 
 } // namespace alpaka
 
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
 

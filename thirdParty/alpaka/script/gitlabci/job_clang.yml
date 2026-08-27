@@ -6,7 +6,6 @@ linux_clang-14_release:
     ALPAKA_CI_CLANG_VER: 14
     ALPAKA_CI_STDLIB: libstdc++
     CMAKE_BUILD_TYPE: Release
-    ALPAKA_BOOST_VERSION: 1.75.0
     ALPAKA_CI_CMAKE_VER: 3.25.3
     CMAKE_CXX_EXTENSIONS: "OFF"
     alpaka_CXX_STANDARD: 20
@@ -17,7 +16,6 @@ linux_clang-15_debug:
     ALPAKA_CI_CLANG_VER: 15
     ALPAKA_CI_STDLIB: libstdc++ # libc++ is not compatible with TBB
     CMAKE_BUILD_TYPE: Debug
-    ALPAKA_BOOST_VERSION: 1.80.0
     ALPAKA_CI_CMAKE_VER: 3.25.3
     alpaka_CXX_STANDARD: 20
 
@@ -27,7 +25,6 @@ linux_clang-16_relwithdebinfo_asan_c++20:
     ALPAKA_CI_CLANG_VER: 16
     ALPAKA_CI_STDLIB: libstdc++ # Don't change until https://github.com/alpaka-group/alpaka/issues/1753 is resolved.
     CMAKE_BUILD_TYPE: RelWithDebInfo
-    ALPAKA_BOOST_VERSION: 1.81.0
     ALPAKA_CI_CMAKE_VER: 3.25.2
     alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: "OFF"
     alpaka_CXX_STANDARD: 20

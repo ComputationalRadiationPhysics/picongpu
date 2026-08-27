@@ -85,7 +85,7 @@ namespace alpaka::trait
         }
     };
 
-    //! The std::vector idx type trait specialization.
+    //! The std::array idx type trait specialization.
     template<typename TElem, std::size_t Tsize>
     struct IdxType<std::array<TElem, Tsize>>
     {

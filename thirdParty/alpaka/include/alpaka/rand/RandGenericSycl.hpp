@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/dev/DevGenericSycl.hpp"
 #include "alpaka/rand/Traits.hpp"
@@ -13,7 +13,7 @@
 
 // Backend specific imports.
 #    include <sycl/sycl.hpp>
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wcast-align"
 #        pragma clang diagnostic ignored "-Wcast-qual"
@@ -26,7 +26,7 @@
 #        pragma clang diagnostic ignored "-Wundef"
 #    endif
 #    include <oneapi/dpl/random>
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
 

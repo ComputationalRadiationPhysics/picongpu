@@ -18,7 +18,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/doxygen/html
-  
+
   deploy:
     if: github.ref == 'refs/heads/develop' && github.repository_owner == 'alpaka-group'
     permissions:

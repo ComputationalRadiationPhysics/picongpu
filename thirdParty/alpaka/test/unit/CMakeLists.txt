@@ -14,6 +14,7 @@ cmake_minimum_required(VERSION 3.25)
 ################################################################################
 
 add_subdirectory("acc/")
+add_subdirectory("algo/")
 add_subdirectory("atomic/")
 add_subdirectory("block/shared/")
 add_subdirectory("block/sharedSharing/")

@@ -143,7 +143,7 @@ namespace alpaka::test
     }
 
     //! Compares iterators element-wise
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wfloat-equal" // "comparing floating point with == or != is unsafe"
 #endif
@@ -160,18 +160,18 @@ namespace alpaka::test
         {
             for(; beginA != endA; ++beginA, ++beginB)
             {
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wfloat-equal" // "comparing floating point with == or != is unsafe"
 #endif
                 ALPAKA_CHECK(*success, *beginA == *beginB);
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
             }
         }
     };
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
 

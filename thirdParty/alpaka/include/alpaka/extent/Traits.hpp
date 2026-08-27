@@ -43,12 +43,12 @@ namespace alpaka
     [[deprecated("use getExtents(extent)[Tidx] instead")]] ALPAKA_FN_HOST_ACC auto getExtent(
         TExtent const& extent = TExtent()) -> Idx<TExtent>
     {
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
         return trait::GetExtent<DimInt<Tidx>, TExtent>::getExtent(extent);
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
     }

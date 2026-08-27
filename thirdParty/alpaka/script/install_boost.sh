@@ -10,9 +10,6 @@ source ./script/setup_utilities.sh
 
 echo_green "<SCRIPT: install boost>"
 
-: "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
-: "${ALPAKA_BOOST_VERSION?'ALPAKA_BOOST_VERSION must be specified'}"
-: "${ALPAKA_CI_BOOST_LIB_DIR?'ALPAKA_CI_BOOST_LIB_DIR must be specified'}"
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
@@ -29,6 +26,44 @@ if [ -z ${ALPAKA_CI_STDLIB+x} ]
 then
     ALPAKA_CI_STDLIB=""
 fi
+
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]; then
+    : "${ALPAKA_CI_CMAKE_DIR?'ALPAKA_CI_CMAKE_DIR must be specified'}"
+    _CMAKE_EXE=${ALPAKA_CI_CMAKE_DIR}/bin/cmake
+    _CTEST_EXE=${ALPAKA_CI_CMAKE_DIR}/bin/ctest
+else
+    _CMAKE_EXE=cmake
+    _CTEST_EXE=ctest
+fi
+
+# check for C++ 20 std::atomic_ref support
+# if std::atomic_ref is not available, install boost::atomic_ref instead
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] && [ "${ALPAKA_CI_STDLIB}" == "libc++" ]; then
+    ${_CMAKE_EXE} ./script/hasStdAtomicRef -DCMAKE_CXX_COMPILER=${ALPAKA_CI_CXX} -DCMAKE_CXX_FLAGS="-stdlib=libc++" -B /tmp/hasStdAtomicRef
+else
+    ${_CMAKE_EXE} ./script/hasStdAtomicRef -DCMAKE_CXX_COMPILER=${ALPAKA_CI_CXX} -B /tmp/hasStdAtomicRef
+fi
+${_CMAKE_EXE} --build /tmp/hasStdAtomicRef
+
+unset _CMAKE_EXE
+
+if ${_CTEST_EXE} -Q --test-dir /tmp/hasStdAtomicRef; then
+    echo_green "has C++ std::atomic_ref support"
+    unset _CTEST_EXE
+    return
+else
+    echo_yellow "requires boost::atomic_ref"
+    unset _CTEST_EXE
+fi
+
+export ALPAKA_BOOST_VERSION=1.78.0
+export BOOST_ROOT=$HOME/boost
+export ALPAKA_CI_BOOST_LIB_DIR=$HOME/boost_lib
+export BOOST_LIBRARYDIR=/opt/boost/${ALPAKA_BOOST_VERSION}/lib
+
+: "${ALPAKA_BOOST_VERSION?'ALPAKA_BOOST_VERSION must be specified'}"
+: "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
+: "${ALPAKA_CI_BOOST_LIB_DIR?'ALPAKA_CI_BOOST_LIB_DIR must be specified'}"
 
 if [ "${ALPAKA_CI_CXX}" != "icpc" ] && [ "${ALPAKA_CI_STDLIB}" != "libc++" ]
 then

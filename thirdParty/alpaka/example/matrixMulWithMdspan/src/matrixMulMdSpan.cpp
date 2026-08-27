@@ -6,22 +6,21 @@
 // Needed for running example for all backends available; one by one
 #include <alpaka/example/ExecuteForEachAccTag.hpp>
 
-#include <experimental/mdspan>
 #include <iostream>
 
 //! Matrix multiplication example by using mdspan data structure
 
 //! Some simple type traits for checking the types
-//! isMdspan simply checks if a type is of type std::experimental::mdspan or not
+//! isMdspan simply checks if a type is of type alpaka::experimental::mdspan or not
 //! Primary template for is_mdspan (defaults to false)
 template<typename T>
 struct IsMdspan : std::false_type
 {
 };
 
-//! Specialization for mdspan with four template arguments
-template<typename ElementType, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
-struct IsMdspan<std::experimental::mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>> : std::true_type
+//! Specialization for mdspan
+template<typename... TArgs>
+struct IsMdspan<alpaka::experimental::mdspan<TArgs...>> : std::true_type
 {
 };
 
@@ -31,7 +30,7 @@ inline constexpr bool is_mdspan = IsMdspan<T>::value;
 // Index type
 using Idx = std::size_t;
 // Set data type
-using DataType = float;
+using DataType = std::uint64_t;
 
 /**
  * @brief Kernel for performing multiplication of two 2D matrices. Each element is computed by a different thread.
@@ -102,7 +101,7 @@ auto example(TAccTag const&) -> int
     Idx const K = 1024;
 
     // Define device and queue
-    using Acc = alpaka::AccCpuSerial<Dim, Idx>;
+    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
     using Queue = alpaka::Queue<Acc, alpaka::Blocking>;
     using Vec = alpaka::Vec<Dim, Idx>;
 
@@ -165,17 +164,19 @@ auto example(TAccTag const&) -> int
     auto mdHostC = alpaka::experimental::getMdSpan(bufHostC);
     for(Idx i = 0; i < M; ++i)
     {
-        for(Idx j = 0; j < N; ++j)
+        if(success)
         {
-            DataType expectedValue = 0.0f;
-            for(Idx k = 0; k < K; ++k)
+            for(Idx j = 0; j < N; ++j)
             {
-                expectedValue += mdHostA(i, k) * mdHostB(k, j);
-            }
-            if(mdHostC(i, j) != expectedValue)
-            {
-                success = false;
-                break;
+                DataType expectedValue = 0.0f;
+                for(Idx k = 0; k < K; ++k)
+                {
+                    expectedValue += mdHostA(i, k) * mdHostB(k, j);
+                }
+                if(mdHostC(i, j) != expectedValue)
+                {
+                    success = false;
+                }
             }
         }
     }

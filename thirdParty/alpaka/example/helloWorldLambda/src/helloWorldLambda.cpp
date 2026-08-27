@@ -56,7 +56,8 @@ auto example(TAccTag const&) -> int
     using Idx = std::size_t;
 
     // Define the accelerator
-    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
+    using Tag = TAccTag;
+    using Acc = alpaka::TagToAcc<Tag, Dim, Idx>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
@@ -122,7 +123,7 @@ auto example(TAccTag const&) -> int
     // Let alpaka calculate good block and grid sizes given our full problem extent
     auto const workDiv = alpaka::getValidWorkDiv(kernelCfg, devAcc, kernelLambda, nExclamationMarks);
 
-    alpaka::exec<Acc>(queue, workDiv, kernelLambda, nExclamationMarks);
+    alpaka::exec<Tag>(queue, workDiv, kernelLambda, nExclamationMarks);
     alpaka::wait(queue);
 
     return EXIT_SUCCESS;

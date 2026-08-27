@@ -1,4 +1,4 @@
-/* Copyright 2025 Anton Reinhard
+/* Copyright 2025 Anton Reinhard, Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -7,6 +7,7 @@
 #include "alpaka/mem/buf/Traits.hpp"
 #include "alpaka/mem/buf/cpu/BufCpu.hpp"
 #include "alpaka/mem/buf/uniformCudaHip/BufUniformCudaHipRt.hpp"
+#include "alpaka/mem/view/Traits.hpp"
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
@@ -256,7 +257,7 @@ namespace alpaka::trait
 
     //! The CUDA/HIP stream-ordered memory allocation capability trait specialization.
     template<typename TApi, typename TDim>
-    struct HasAsyncBufSupport<TDim, DevUniformCudaHipRt<TApi>> : std::bool_constant<TDim::value <= 1>
+    struct HasAsyncBufSupport<TDim, DevUniformCudaHipRt<TApi>> : std::true_type
     {
     };
 
@@ -264,27 +265,58 @@ namespace alpaka::trait
     template<typename TApi, typename TElem, typename TDim, typename TIdx>
     struct AsyncBufAlloc<TElem, TDim, TIdx, DevUniformCudaHipRt<TApi>>
     {
-        static_assert(
-            TDim::value <= 1,
-            "CUDA/HIP devices support only one-dimensional stream-ordered memory buffers.");
-
-        template<typename TQueue, typename TExtent>
-        ALPAKA_FN_HOST static auto allocAsyncBuf(TQueue queue, [[maybe_unused]] TExtent const& extent)
+        template<typename TQueue>
+        ALPAKA_FN_HOST static auto allocAsyncBuf(TQueue queue, [[maybe_unused]] Vec<TDim, TIdx> const& extent)
             -> BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-            static_assert(TDim::value == Dim<TExtent>::value, "extent must have the same dimension as the buffer");
-            auto const width = getExtentProduct(extent); // handles 1D and 0D buffers
+            std::size_t bytes, pitch;
+            if constexpr(TDim::value == 0)
+            {
+                bytes = pitch = sizeof(TElem);
+            }
+            else if constexpr(TDim::value == 1)
+            {
+                bytes = pitch = static_cast<std::size_t>(extent.back()) * sizeof(TElem);
+            }
+            else
+            {
+                std::size_t const width = static_cast<std::size_t>(extent.back()) * sizeof(TElem);
+                // On all tested NVIDIA and AMD GPUs the alignment used for pitched allocations is the same value
+                // reported by the textureAlignment device property (512 bytes on NVIDA GPUs, 256 bytes on AMD GPUs).
+                // This was tested on: NVIDIA Tesla T4, A100, L40S, H100, and RTX 3050 Ti Laptop GPUs,
+                // and on AMD Radeon Pro WX 9100, Radeon Pro W7800/W7900, Instinct MI250X, and Instinct MI300X.
+                // However, it is expected that an alignment of 128 bytes (32 threads per warp times 4 bytes per float
+                // or int) should be sufficient to achieve coalesced memory accesses, and would reduce the amount of
+                // wasted memory.
+                constexpr std::size_t alignment = 128;
+                pitch = (width + alignment - 1) / alignment * alignment;
+                // Replace the last entry in the extent vector (i.e. the number of elements per row) with the pitch
+                // (the number of bytes per row, including padding), and compute the total size in bytes, removing
+                // the padding after the last row.
+                auto aligned = alpaka::castVec<std::size_t>(extent);
+                aligned.back() = pitch;
+                bytes = aligned.prod() - pitch + width;
+            }
 
             auto const& dev = getDev(queue);
             ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::setDevice(dev.getNativeHandle()));
             void* memPtr = nullptr;
-            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                TApi::mallocAsync(&memPtr, static_cast<std::size_t>(width) * sizeof(TElem), queue.getNativeHandle()));
+            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::mallocAsync(&memPtr, bytes, queue.getNativeHandle()));
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-            std::cout << __func__ << " ew: " << width << " ptr: " << memPtr << std::endl;
+            std::cout << __func__;
+            if constexpr(Dim::value >= 1)
+                std::cout << " ew: " << getWidth(extent);
+            if constexpr(Dim::value >= 2)
+                std::cout << " eh: " << getHeight(extent);
+            if constexpr(Dim::value >= 3)
+                std::cout << " ed: " << getDepth(extent);
+            std::cout << " ptr: " << memPtr;
+            if constexpr(Dim::value >= 2)
+                std::cout << " rowpitch: " << pitch;
+            std::cout << std::endl;
 #    endif
             return {
                 dev,
@@ -292,7 +324,7 @@ namespace alpaka::trait
                 [q = std::move(queue)](TElem* ptr)
                 { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::freeAsync(ptr, q.getNativeHandle())); },
                 extent,
-                static_cast<std::size_t>(width) * sizeof(TElem)};
+                pitch};
         }
     };
 
@@ -322,6 +354,30 @@ namespace alpaka::trait
                 sizeof(TElem) * static_cast<std::size_t>(getExtentProduct(extent)),
                 TApi::hostMallocMapped | TApi::hostMallocPortable));
             auto deleter = [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::hostFree(ptr)); };
+
+            return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);
+        }
+    };
+
+    //! The unified/managed memory allocation trait specialization for the CUDA/HIP devices.
+    template<typename TApi, typename TElem, typename TDim, typename TIdx>
+    struct BufAllocManaged<PlatformUniformCudaHipRt<TApi>, TElem, TDim, TIdx>
+    {
+        template<typename TExtent>
+        ALPAKA_FN_HOST static auto allocManagedBuf(
+            DevCpu const& host,
+            PlatformUniformCudaHipRt<TApi> const& /*platform*/,
+            TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            // Allocate CUDA/HIP unified (managed) memory accessible by both host and all CUDA/HIP devices.
+            TElem* memPtr = nullptr;
+            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(TApi::mallocManaged(
+                reinterpret_cast<void**>(&memPtr),
+                sizeof(TElem) * static_cast<std::size_t>(getExtentProduct(extent)),
+                TApi::memAttachGlobal));
+            auto deleter = [](TElem* ptr) { ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_NOEXCEPT(TApi::free(ptr)); };
 
             return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);
         }

@@ -15,7 +15,7 @@
 //!   - entry kernels, which are executed with alpaka::exec cannot be specialized with tags
 
 //! Function specialization via template specialization
-template<typename TAcc>
+template<typename TTag>
 std::string host_function_ver1()
 {
     return "generic host function v1";
@@ -85,7 +85,8 @@ auto example(TAccTag const&) -> int
 {
     // Define the accelerator
     // For simplicity this examples always uses 1 dimensional indexing, and index type size_t
-    using Acc = alpaka::TagToAcc<TAccTag, alpaka::DimInt<1>, std::size_t>;
+    using Tag = TAccTag;
+    using Acc = alpaka::TagToAcc<Tag, alpaka::DimInt<1>, std::size_t>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Call the specialized functions
@@ -112,7 +113,7 @@ auto example(TAccTag const&) -> int
     // Run the wrapper kernel, which calls the actual specialized
     // Specializing the entry kernel with tags is not possible. Therefore pre processor guards are required, see
     // kernelSpecialization example.
-    alpaka::exec<Acc>(queue, workDiv, WrapperKernel{});
+    alpaka::exec<Tag>(queue, workDiv, WrapperKernel{});
     alpaka::wait(queue);
     return EXIT_SUCCESS;
 }

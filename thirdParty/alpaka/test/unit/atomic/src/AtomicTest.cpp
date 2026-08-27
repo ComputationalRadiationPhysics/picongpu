@@ -1,5 +1,5 @@
-/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Matthias Werner, Sergei Bastrakov, René Widera, Jan Stephan,
- *                Bernhard Manfred Gruber, Antonio Di Pilato, Andrea Bocci
+/* Copyright 2025 Axel Hübl, Benjamin Worpitz, Matthias Werner, Sergei Bastrakov, René Widera, Jan Stephan,
+ *                Bernhard Manfred Gruber, Antonio Di Pilato, Andrea Bocci, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -155,6 +155,12 @@ ALPAKA_FN_ACC auto testAtomicInc(TAcc const& acc, bool* success, T operandOrig) 
         ALPAKA_CHECK(*success, equals(operandOrig, ret));
         ALPAKA_CHECK(*success, equals(operand, reference));
     }
+    {
+        operand = operandOrig;
+        T const ret = alpaka::atomicInc(acc, &operand);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
+    }
 }
 
 ALPAKA_NO_HOST_ACC_WARNING
@@ -174,6 +180,12 @@ ALPAKA_FN_ACC auto testAtomicDec(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicDec(acc, &operand, value);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
+    }
+    {
+        operand = operandOrig;
+        T const ret = alpaka::atomicDec(acc, &operand);
         ALPAKA_CHECK(*success, equals(operandOrig, ret));
         ALPAKA_CHECK(*success, equals(operand, reference));
     }
@@ -342,7 +354,8 @@ public:
     }
 };
 
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && ALPAKA_LANG_CUDA)                                                         \
+    || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && ALPAKA_LANG_HIP)
 
 template<typename TApi, typename TDim, typename TIdx, typename T>
 class AtomicTestKernel<

@@ -77,7 +77,7 @@
         },
         "CUDAnvcc": {
             "state": "yes",
-            "comment": "(CUDA 12.4 - 12.5)"
+            "comment": "(CUDA 12.4 - 13.0)"
         },
         "CUDAclang": {
             "state": "none"
@@ -107,7 +107,7 @@
         },
         "CUDAnvcc": {
             "state": "yes",
-            "comment": "(CUDA 12.0)"
+            "comment": "(CUDA 12.2 - 12.3)"
         },
         "CUDAclang": {
             "state": "no"
@@ -137,10 +137,11 @@
         },
         "CUDAnvcc": {
             "state": "yes",
-            "comment": "(CUDA 12.2)"
+            "comment": "(CUDA 12.9)"
         },
         "CUDAclang": {
-            "state": "no"
+            "state": "yes",
+            "comment": "(12.9)"
         },
         "hip": {
             "state": "no"
@@ -167,7 +168,7 @@
         },
         "CUDAnvcc": {
             "state": "yes",
-            "comment": "(CUDA 12.3)"
+            "comment": "(CUDA 12.6 - 12.9)"
         },
         "CUDAclang": {
             "state": "no"
@@ -197,7 +198,7 @@
         },
         "CUDAnvcc": {
             "state": "yes",
-            "comment": "(CUDA 12.4 - 12.5)"
+            "comment": "(CUDA 12.5 - 12.9)"
         },
         "CUDAclang": {
             "state": "no"
@@ -228,14 +229,14 @@
         },
         "CUDAnvcc": {
             "state": "yes",
-            "comment": "(CUDA 12.4 - 12.5)"
+            "comment": "(CUDA 12.6 - 12.9)"
         },
         "CUDAclang": {
             "state": "no"
         },
         "hip": {
             "state": "yes",
-            "comment": "(HIP 6.2)"
+            "comment": "(HIP 6.2 - 6.3)"
         },
         "sycl": {
             "state": "no"
@@ -258,13 +259,76 @@
             "state": "yes"
         },
         "CUDAnvcc": {
+            "state": "yes",
+            "comment": "(CUDA 12.8 - 12.9)"
+        },
+        "CUDAclang": {
+            "state": "no"
+        },
+        "hip": {
+            "state": "yes",
+            "comment": "(HIP 6.4)"
+        },
+        "sycl": {
+            "state": "no"
+        }
+    },
+    "clang 20 (Linux)": {
+        "serial": {
+            "state": "yes"
+        },
+        "OMPblock": {
+            "state": "yes"
+        },
+        "OMPthread": {
+            "state": "yes"
+        },
+        "thread": {
+            "state": "yes"
+        },
+        "tbb": {
+            "state": "yes"
+        },
+        "CUDAnvcc": {
+            "state": "yes",
+            "comment": "(CUDA 13.0)"
+        },
+        "CUDAclang": {
+            "state": "no"
+        },
+        "hip": {
+            "state": "yes",
+            "comment": "(HIP 7.0, 7.1)"
+        },
+        "sycl": {
+            "state": "no"
+        }
+    },
+    "clang 22 (Linux)": {
+        "serial": {
+            "state": "no"
+        },
+        "OMPblock": {
+            "state": "no"
+        },
+        "OMPthread": {
+            "state": "no"
+        },
+        "thread": {
+            "state": "no"
+        },
+        "tbb": {
+            "state": "no"
+        },
+        "CUDAnvcc": {
             "state": "no"
         },
         "CUDAclang": {
             "state": "no"
         },
         "hip": {
-            "state": "no"
+            "state": "yes",
+            "comment": "(HIP 7.2)"
         },
         "sycl": {
             "state": "no"

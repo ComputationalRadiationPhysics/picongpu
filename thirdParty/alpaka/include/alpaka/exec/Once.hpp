@@ -23,7 +23,7 @@ namespace alpaka
      * Usually the condition is true for block 0 and thread 0, but these indices should not be relied upon.
      */
 
-    template<typename TAcc, typename = std::enable_if_t<isAccelerator<TAcc>>>
+    template<concepts::Acc TAcc>
     ALPAKA_FN_ACC inline constexpr bool oncePerGrid(TAcc const& acc)
     {
         using Dim = alpaka::Dim<TAcc>;
@@ -47,7 +47,7 @@ namespace alpaka
      * Usually the condition is true for thread 0, but this index should not be relied upon.
      */
 
-    template<typename TAcc, typename = std::enable_if_t<isAccelerator<TAcc>>>
+    template<concepts::Acc TAcc>
     ALPAKA_FN_ACC inline constexpr bool oncePerBlock(TAcc const& acc)
     {
         return getIdx<Block, Threads>(acc) == Vec<Dim<TAcc>, Idx<TAcc>>::zeros();

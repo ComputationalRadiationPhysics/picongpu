@@ -31,7 +31,7 @@ namespace alpaka
 {
     namespace cpu::detail
     {
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 // avoid diagnostic warning: "has no out-of-line virtual method definitions; its vtable will be emitted in every
 // translation unit [-Werror,-Wweak-vtables]" https://stackoverflow.com/a/29288300
 #        pragma clang diagnostic push
@@ -39,7 +39,7 @@ namespace alpaka
 #    endif
         //! The CPU collective device queue implementation.
         struct QueueCpuOmp2CollectiveImpl final : cpu::ICpuQueue
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
         {

@@ -1,8 +1,8 @@
-/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2026 Axel Hübl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Config.hpp>
 #include <alpaka/mem/view/ViewPlainPtr.hpp>
 #include <alpaka/meta/ForEachType.hpp>
 #include <alpaka/test/Extent.hpp>
@@ -12,15 +12,10 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 
+#include <algorithm>
 #include <numeric>
 #include <tuple>
 #include <type_traits>
-
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-// "cast from 'std::uint8_t*' to 'Elem*' increases required alignment of target type"
-#    pragma GCC diagnostic ignored "-Wcast-align"
-#endif
 
 namespace alpaka::test
 {
@@ -91,9 +86,6 @@ namespace alpaka::test
         CHECK(alpaka::getPtrNative(viewMove) == nativePtr2);
     }
 } // namespace alpaka::test
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
 
 TEMPLATE_LIST_TEST_CASE("viewPlainPtrTest", "[memView]", alpaka::test::TestAccs)
 {
@@ -121,6 +113,7 @@ TEMPLATE_LIST_TEST_CASE("createView", "[memView]", CreateViewTestTypes)
     using Dev = alpaka::DevCpu;
     auto const platform = alpaka::PlatformCpu{};
     auto const dev = alpaka::getDevByIdx(platform, 0);
+    alpaka::test::DefaultQueue<Dev> queue(dev);
 
     TestType a{1, 2, 3, 4};
 
@@ -130,11 +123,21 @@ TEMPLATE_LIST_TEST_CASE("createView", "[memView]", CreateViewTestTypes)
         STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, int>>);
         STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
         CHECK(alpaka::getExtents(view)[0] == 4);
+
+        auto view_from_queue = alpaka::createView(queue, a.data(), 4);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, int>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
     }
 
     // container and size overload
     {
         auto view = alpaka::createView(dev, a, 4L);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, long>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+
+        auto view_from_queue = alpaka::createView(queue, a, 4L);
         STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, long>>);
         STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
         CHECK(alpaka::getExtents(view)[0] == 4);
@@ -147,18 +150,158 @@ TEMPLATE_LIST_TEST_CASE("createView", "[memView]", CreateViewTestTypes)
             std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, std::size_t>>);
         STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
         CHECK(alpaka::getExtents(view)[0] == 4);
+
+        auto view_from_queue = alpaka::createView(queue, a);
+        STATIC_REQUIRE(
+            std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, float, alpaka::DimInt<1>, std::size_t>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
     }
 
-    alpaka::test::DefaultQueue<Dev> queue(dev);
     decltype(a) b{0, 0, 0, 0};
 
     // test as temporaries to memcpy
-    alpaka::memcpy(queue, alpaka::createView(dev, b, std::size_t{4}), alpaka::createView(dev, a));
+    alpaka::memcpy(queue, alpaka::createView(queue, b, std::size_t{4}), alpaka::createView(queue, a));
     alpaka::wait(queue);
     CHECK(a == b);
 
     // test as temporaries to memset
-    alpaka::memset(queue, alpaka::createView(dev, a), 0);
+    alpaka::memset(queue, alpaka::createView(queue, a), 0);
     alpaka::wait(queue);
     CHECK(a == decltype(a){0, 0, 0, 0});
+}
+
+TEMPLATE_LIST_TEST_CASE("createViewSpan", "[memView]", std::tuple<std::span<int>>)
+{
+    using Dev = alpaka::DevCpu;
+    auto const platform = alpaka::PlatformCpu{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
+
+    std::vector vec{1, 2, 3, 4};
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic push
+#    if __has_warning("-Wunsafe-buffer-usage-in-container")
+#        pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
+#    endif
+#endif
+
+    std::span<int> a(vec.begin(), vec.end());
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+
+
+    // pointer overload
+    {
+        auto view = alpaka::createView(dev, a.data(), 4);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, int, alpaka::DimInt<1>, int>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+    }
+
+    // container and size overload
+    {
+        auto view = alpaka::createView(dev, a, 4L);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, int, alpaka::DimInt<1>, long>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+    }
+
+    // container overload
+    {
+        auto view = alpaka::createView(dev, a);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, int, alpaka::DimInt<1>, std::size_t>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+    }
+
+    alpaka::test::DefaultQueue<Dev> queue(dev);
+    std::vector vec2{0, 0, 0, 0};
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic push
+#    if __has_warning("-Wunsafe-buffer-usage-in-container")
+#        pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
+#    endif
+#endif
+    std::span<int> b(vec2.begin(), vec2.end());
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+
+    // test as temporaries to memcpy
+    alpaka::memcpy(queue, alpaka::createView(queue, b, std::size_t{4}), alpaka::createView(queue, a));
+    alpaka::wait(queue);
+    CHECK(std::equal(a.begin(), a.end(), b.begin()));
+
+    // test as temporaries to memset
+    alpaka::memset(queue, alpaka::createView(queue, a), 0);
+    alpaka::wait(queue);
+    for(auto x : a)
+    {
+        CHECK(x == 0);
+    }
+}
+
+TEMPLATE_LIST_TEST_CASE("createViewConstSpan", "[memView]", std::tuple<std::span<int const>>)
+{
+    using Dev = alpaka::DevCpu;
+    auto const platform = alpaka::PlatformCpu{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
+
+    std::vector vec{1, 2, 3, 4};
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic push
+#    if __has_warning("-Wunsafe-buffer-usage-in-container")
+#        pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
+#    endif
+#endif
+
+    std::span<int const> a(vec.begin(), vec.end());
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+
+
+    // pointer overload
+    {
+        auto view = alpaka::createView(dev, a.data(), 4);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, int const, alpaka::DimInt<1>, int>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+    }
+
+    // container and size overload
+    {
+        auto view = alpaka::createView(dev, a, 4L);
+        STATIC_REQUIRE(std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, int const, alpaka::DimInt<1>, long>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+    }
+
+    // container overload
+    {
+        auto view = alpaka::createView(dev, a);
+        STATIC_REQUIRE(
+            std::is_same_v<decltype(view), alpaka::ViewPlainPtr<Dev, int const, alpaka::DimInt<1>, std::size_t>>);
+        STATIC_REQUIRE(alpaka::Dim<decltype(view)>::value == 1);
+        CHECK(alpaka::getExtents(view)[0] == 4);
+    }
+
+    alpaka::test::DefaultQueue<Dev> queue(dev);
+    std::vector vec2{0, 0, 0, 0};
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic push
+#    if __has_warning("-Wunsafe-buffer-usage-in-container")
+#        pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
+#    endif
+#endif
+    std::span<int> b(vec2.begin(), vec2.end());
+#if ALPAKA_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+
+    // test as temporaries to memcpy
+    alpaka::memcpy(queue, alpaka::createView(queue, b, std::size_t{4}), alpaka::createView(queue, a));
+    alpaka::wait(queue);
+    CHECK(std::equal(a.begin(), a.end(), b.begin()));
 }

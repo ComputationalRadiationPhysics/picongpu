@@ -19,7 +19,20 @@ struct GetSizeTestKernel
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, std::int32_t expectedWarpSize) const -> void
     {
-        ALPAKA_CHECK(*success, alpaka::warp::getSize(acc) == expectedWarpSize);
+        // run-time warp size
+        std::int32_t size = alpaka::warp::getSize(acc);
+        ALPAKA_CHECK(*success, size != 0);
+        // compare with the warp size requested when launching the kernel
+        ALPAKA_CHECK(*success, size == expectedWarpSize);
+        // compare with the compile-time upper limit on the warp size
+        constexpr std::int32_t upperLimit = alpaka::warp::getSizeUpperLimit<TAcc>();
+        ALPAKA_CHECK(*success, size <= upperLimit);
+        // if the warp size is defined at compile-time, compare it with the run-time value
+        constexpr std::int32_t constexprSize = alpaka::warp::getSizeCompileTime<TAcc>();
+        if constexpr(constexprSize != 0)
+        {
+            ALPAKA_CHECK(*success, size == constexprSize);
+        }
     }
 };
 

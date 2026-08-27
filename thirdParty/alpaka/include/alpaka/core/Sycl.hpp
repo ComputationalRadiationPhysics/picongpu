@@ -35,7 +35,7 @@ using AlpakaFormat = char const* [[clang::opencl_constant]];
 using AlpakaFormat = char const*;
 #        endif
 
-#        if BOOST_COMP_CLANG
+#        if ALPAKA_COMP_CLANG
 #            pragma clang diagnostic push
 #            pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #        endif
@@ -47,7 +47,7 @@ using AlpakaFormat = char const*;
                 sycl::ext::oneapi::experimental::printf(format, ##__VA_ARGS__);                                       \
             } while(false)
 
-#        if BOOST_COMP_CLANG
+#        if ALPAKA_COMP_CLANG
 #            pragma clang diagnostic pop
 #        endif
 

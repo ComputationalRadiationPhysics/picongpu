@@ -1,4 +1,4 @@
-/* Copyright 2024 Jan Stephan, Luca Ferragina, Aurora Perego
+/* Copyright 2025 Jan Stephan, Luca Ferragina, Aurora Perego, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -21,7 +21,7 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wswitch-default"
 #    endif
@@ -41,64 +41,88 @@ namespace alpaka
     struct PlatformGenericSycl : interface::Implements<ConceptPlatform, PlatformGenericSycl<TTag>>
     {
         PlatformGenericSycl()
-            : platform{detail::SYCLDeviceSelector<TTag>{}}
-            , devices(platform.get_devices())
-            , context{sycl::context{
-                  devices,
-                  [](sycl::exception_list exceptions)
-                  {
-                      auto ss_err = std::stringstream{};
-                      ss_err << "Caught asynchronous SYCL exception(s):\n";
-                      for(std::exception_ptr e : exceptions)
-                      {
-                          try
-                          {
-                              std::rethrow_exception(e);
-                          }
-                          catch(sycl::exception const& err)
-                          {
-                              ss_err << err.what() << " (" << err.code() << ")\n";
-                          }
-                      }
-                      throw std::runtime_error(ss_err.str());
-                  }}}
         {
+            try
+            {
+                m_platform = sycl::platform(detail::SYCLDeviceSelector<TTag>{});
+                m_devices = m_platform->get_devices();
+                m_context = sycl::context{
+                    m_devices,
+                    [](sycl::exception_list exceptions)
+                    {
+                        auto ss_err = std::stringstream{};
+                        ss_err << "Caught asynchronous SYCL exception(s):\n";
+                        for(std::exception_ptr e : exceptions)
+                        {
+                            try
+                            {
+                                std::rethrow_exception(e);
+                            }
+                            catch(sycl::exception const& err)
+                            {
+                                ss_err << err.what() << " (" << err.code() << ")\n";
+                            }
+                        }
+                        throw std::runtime_error(ss_err.str());
+                    }};
+            }
+            catch(sycl::exception const&)
+            {
+                // An error was encountered while constructing the platform. For example, the platform
+                // may not be available, or it may not have any devices associated with it.
+                // Make sure that platform, devices and context data members are empty.
+                m_context.reset();
+                m_devices.clear();
+                m_platform.reset();
+            }
         }
 
         [[nodiscard]] auto syclPlatform() -> sycl::platform&
         {
-            return platform;
+            if(not m_platform.has_value())
+                throw std::runtime_error("The underlying SYCL platform is empty and invalid.");
+
+            return m_platform.value();
         }
 
         [[nodiscard]] auto syclPlatform() const -> sycl::platform const&
         {
-            return platform;
+            if(not m_platform.has_value())
+                throw std::runtime_error("The underlying SYCL platform is empty and invalid.");
+
+            return m_platform.value();
         }
 
         [[nodiscard]] auto syclDevices() -> std::vector<sycl::device>&
         {
-            return devices;
+            return m_devices;
         }
 
         [[nodiscard]] auto syclDevices() const -> std::vector<sycl::device> const&
         {
-            return devices;
+            return m_devices;
         }
 
         [[nodiscard]] auto syclContext() -> sycl::context&
         {
-            return context;
+            if(not m_context.has_value())
+                throw std::runtime_error("The underlying SYCL platform is empty and invalid.");
+
+            return m_context.value();
         }
 
         [[nodiscard]] auto syclContext() const -> sycl::context const&
         {
-            return context;
+            if(not m_context.has_value())
+                throw std::runtime_error("The underlying SYCL platform is empty and invalid.");
+
+            return m_context.value();
         }
 
     private:
-        sycl::platform platform;
-        std::vector<sycl::device> devices;
-        sycl::context context;
+        std::optional<sycl::platform> m_platform;
+        std::vector<sycl::device> m_devices;
+        std::optional<sycl::context> m_context;
     };
 
     namespace trait
@@ -207,15 +231,15 @@ namespace alpaka
 
                 std::cout << "SYCL version: " << device.get_info<sycl::info::device::version>() << '\n';
 
-#        if !defined(BOOST_COMP_ICPX)
+#        if !defined(ALPAKA_COMP_ICPX)
                 // Not defined by Level Zero back-end
                 std::cout << "Backend version: " << device.get_info<sycl::info::device::backend_version>() << '\n';
 #        endif
 
                 std::cout << "Aspects: " << '\n';
 
-#        if defined(BOOST_COMP_ICPX)
-#            if BOOST_COMP_ICPX >= BOOST_VERSION_NUMBER(53, 2, 0)
+#        if defined(ALPAKA_COMP_ICPX)
+#            if ALPAKA_COMP_ICPX >= ALPAKA_VERSION_NUMBER(2023, 2, 0)
                 // These aspects are missing from oneAPI versions < 2023.2.0
                 if(device.has(sycl::aspect::emulated))
                     std::cout << "\t* emulated\n";
@@ -514,7 +538,7 @@ namespace alpaka
                         case sycl::memory_order::seq_cst:
                             std::cout << "seq_cst";
                             break;
-#        if defined(BOOST_COMP_ICPX)
+#        if defined(ALPAKA_COMP_ICPX)
                         // Stop icpx from complaining about its own internals.
                         case sycl::memory_order::__consume_unsupported:
                             break;
@@ -529,8 +553,8 @@ namespace alpaka
                 auto const mem_orders = device.get_info<sycl::info::device::atomic_memory_order_capabilities>();
                 print_memory_orders(mem_orders);
 
-#        if defined(BOOST_COMP_ICPX)
-#            if BOOST_COMP_ICPX >= BOOST_VERSION_NUMBER(53, 2, 0)
+#        if defined(ALPAKA_COMP_ICPX)
+#            if ALPAKA_COMP_ICPX >= ALPAKA_VERSION_NUMBER(2023, 2, 0)
                 // Not implemented in oneAPI < 2023.2.0
                 std::cout << "Supported memory orderings for sycl::atomic_fence: ";
                 auto const fence_orders = device.get_info<sycl::info::device::atomic_fence_order_capabilities>();
@@ -573,8 +597,8 @@ namespace alpaka
                 auto const mem_scopes = device.get_info<sycl::info::device::atomic_memory_scope_capabilities>();
                 print_memory_scopes(mem_scopes);
 
-#        if defined(BOOST_COMP_ICPX)
-#            if BOOST_COMP_ICPX >= BOOST_VERSION_NUMBER(53, 2, 0)
+#        if defined(ALPAKA_COMP_ICPX)
+#            if ALPAKA_COMP_ICPX >= ALPAKA_VERSION_NUMBER(2023, 2, 0)
                 // Not implemented in oneAPI < 2023.2.0
                 std::cout << "Supported memory scopes for sycl::atomic_fence: ";
                 auto const fence_scopes = device.get_info<sycl::info::device::atomic_fence_scope_capabilities>();
@@ -620,7 +644,7 @@ namespace alpaka
                             std::cout << "by affinity domain";
                             has_affinity_domains = true;
                             break;
-#        if defined(BOOST_COMP_ICPX)
+#        if defined(ALPAKA_COMP_ICPX)
                         case sycl::info::partition_property::ext_intel_partition_by_cslice:
                             std::cout << "by compute slice (Intel extension; deprecated)";
                             break;
@@ -690,7 +714,7 @@ namespace alpaka
                         std::cout << "partitioned by affinity domain";
                         break;
 
-#        if defined(BOOST_COMP_ICPX)
+#        if defined(ALPAKA_COMP_ICPX)
                     case sycl::info::partition_property::ext_intel_partition_by_cslice:
                         std::cout << "partitioned by compute slice (Intel extension; deprecated)";
                         break;
@@ -739,7 +763,7 @@ namespace alpaka
     } // namespace trait
 } // namespace alpaka
 
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
 

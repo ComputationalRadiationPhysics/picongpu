@@ -18,7 +18,7 @@ public:
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
-#if BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0)
+#if ALPAKA_COMP_GNUC >= ALPAKA_VERSION_NUMBER(6, 0, 0)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored                                                                                    \
         "-Waddress" // warning: the compiler can assume that the address of 'a' will never be NULL [-Waddress]
@@ -51,7 +51,7 @@ public:
             auto& h = alpaka::declareSharedVar<alpaka::test::Array<double, 16>, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<double*>(nullptr) != &h[0]);
         }
-#if BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0)
+#if ALPAKA_COMP_GNUC >= ALPAKA_VERSION_NUMBER(6, 0, 0)
 #    pragma GCC diagnostic pop
 #endif
     }

@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alpaka-bashi"
+maintainers = [
+    {name = "Simeon Ehrig", email = "s.ehrig@hzdr.de"},
+]
+authors = [
+    {name = "Simeon Ehrig", email = "s.ehrig@hzdr.de"},
+]
+readme = "README.md"
+requires-python = ">=3.10"
+description = "Job generator application for the alpaka CI."
+version = "1.0"
+dependencies = [
+    "bashi-ci == 1.1",
+    "pyaml",
+    "types-PyYAML",
+    "typeguard",
+    "python-gitlab"
+]
+
+[project.scripts]
+# creates a python script named bashi-validate
+# in principal, the script does the following: from bashi.validate import main; main()
+alpaka-validate = "apps.validate:main"
+job-generator = "apps.job_generator:main"
+
+[project.urls]
+Homepage = "https://github.com/alpaka-group/alpaka"
+Repository = "https://github.com/alpaka-group/alpaka"
+Issues = "https://github.com/alpaka-group/alpaka/issues"
+
+[tool.black]
+line-length = 100

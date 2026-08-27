@@ -19,10 +19,11 @@
 #include <array>
 #include <cmath>
 #include <functional>
+#include <iterator>
 #include <set>
 #include <type_traits>
 
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wswitch-default"
 #endif
@@ -160,7 +161,14 @@ namespace alpaka
             Vec r;
             for(DimLoopInd i(0u); i < TDim::value; ++i)
                 r[i] = core::divCeil(gridElemExtent[i], clippedThreadElemExtent[i]);
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wnrvo"
+#endif
             return r;
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic pop
+#endif
         }();
 
         ///////////////////////////////////////////////////////////////////
@@ -196,6 +204,10 @@ namespace alpaka
         }
         else if(blockThreadExtent.prod() > blockThreadCountMax)
         {
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wswitch-default"
+#endif
             switch(gridBlockExtentSubDivRestrictions)
             {
             case GridBlockExtentSubDivRestrictions::EqualExtent:
@@ -225,12 +237,19 @@ namespace alpaka
                 }
                 break;
             }
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#    pragma clang diagnostic pop
+#endif
         }
 
 
         // Make the block thread extent divide the grid thread extent.
         if(blockThreadMustDivideGridThreadExtent)
         {
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wswitch-default"
+#endif
             switch(gridBlockExtentSubDivRestrictions)
             {
             case GridBlockExtentSubDivRestrictions::EqualExtent:
@@ -270,6 +289,9 @@ namespace alpaka
                 }
                 break;
             }
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#    pragma clang diagnostic pop
+#endif
         }
 
         // grid blocks extent = grid thread / block thread extent. quotient is rounded up.
@@ -278,7 +300,14 @@ namespace alpaka
             Vec r;
             for(DimLoopInd i = 0; i < TDim::value; ++i)
                 r[i] = core::divCeil(gridThreadExtent[i], blockThreadExtent[i]);
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wnrvo"
+#endif
             return r;
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic pop
+#endif
         }();
 
 
@@ -549,6 +578,6 @@ namespace alpaka
     }
 } // namespace alpaka
 
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif

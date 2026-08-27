@@ -23,7 +23,7 @@ namespace alpaka
     {
         namespace detail
         {
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 // avoid diagnostic warning: "has no out-of-line virtual method definitions; its vtable will be emitted in every
 // translation unit [-Werror,-Wweak-vtables]" https://stackoverflow.com/a/29288300
 #    pragma clang diagnostic push
@@ -32,7 +32,7 @@ namespace alpaka
             //! The CPU device queue implementation.
             template<typename TDev>
             class QueueGenericThreadsBlockingImpl final : public IGenericThreadsQueue<TDev>
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
             {

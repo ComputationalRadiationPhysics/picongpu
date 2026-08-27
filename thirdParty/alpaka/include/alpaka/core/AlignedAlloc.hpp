@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/Common.hpp"
+#include "alpaka/core/Config.hpp"
 
 #include <new>
 
@@ -13,7 +13,14 @@ namespace alpaka::core
 {
     ALPAKA_FN_INLINE ALPAKA_FN_HOST auto alignedAlloc(size_t alignment, size_t size) -> void*
     {
-        return ::operator new(size, std::align_val_t{alignment});
+        if(size == 0)
+        {
+            return nullptr;
+        }
+        else
+        {
+            return ::operator new(size, std::align_val_t{alignment});
+        }
     }
 
     ALPAKA_FN_INLINE ALPAKA_FN_HOST void alignedFree(size_t alignment, void* ptr)

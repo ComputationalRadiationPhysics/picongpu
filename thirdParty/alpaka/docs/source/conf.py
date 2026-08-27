@@ -8,12 +8,12 @@ import subprocess
 # -- Project information -----------------------------------------------------
 
 project = "alpaka"
-copyright = "Documentation under CC-BY 4.0, Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann"
-author = "Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann"
+copyright = "Documentation under CC-BY 4.0."
+author = "The alpaka team."
 # The short X.Y version.
-version = "1.0.0"
+version = "2.2.0"
 # The full version, including alpha/beta/rc tags.
-release = "1.0.0-rc1"
+release = "2.2.0-rc"
 
 # The master toctree document.
 master_doc = "index"

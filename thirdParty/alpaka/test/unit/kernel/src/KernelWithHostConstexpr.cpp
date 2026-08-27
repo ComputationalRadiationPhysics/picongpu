@@ -19,7 +19,7 @@ public:
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& /* acc */, bool* success) const -> void
     {
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #    pragma warning(push)
 #    pragma warning(disable : 4127) // warning C4127: conditional expression is constant
 #endif
@@ -27,7 +27,7 @@ public:
         constexpr auto max = std::numeric_limits<std::uint32_t>::max();
 
         ALPAKA_CHECK(*success, 0 != max);
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #    pragma warning(pop)
 #endif
     }

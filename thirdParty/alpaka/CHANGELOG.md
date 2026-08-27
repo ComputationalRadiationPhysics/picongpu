@@ -3,6 +3,102 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2025-12-12
+
+### Added
+
+- Implement creation of CUDA/HIP Queue with external Stream #2531
+- Implement `alpaka::transform` #2544
+- Implement `concept alpaka::concepts::Acc` #2547
+- Implement `alpaka::exec<Tag>` #2550
+- Implement `alpaka::allocAsyncBuf()` for SYCL devices #2565
+- Implement compile-time warp size for SYCL, when available #2570
+- HIP: add `ALPAKA_ARCH_AMD` definition #2577
+- Feature accessors and span conversion for buffers #2579
+- Add new backends: CUDA and HIP backends of oneAPI #2580
+
+### Changed
+
+- Use `__builtin_assume_aligned()` to promise the correct alignment #2537
+- Update Catch2 to v3.8.1 #2539
+- Separate ViewAccessOps for host and device views #2562
+- Extend `alpaka::allocAsyncBuf()` to N-dimensional buffers on CUDA/HIP devices #2566
+- Provide `atomicInc/Dec` overloads with deduced limit values #2583
+- Specialize DevType for accelerator Tags #2584
+
+### Fixed
+
+- Add missing `#include` for SYCL tags #2534
+- Fix windows operation system detection #2558
+- Fix version macros #2561
+- Do not crash if a SYCL platform is invalid or empty #2564
+- Do not include the null terminaton character in the demangled string_view #2571
+- Fix `SYCL_SUBGROUP_SIZE` macro for Sycl #2576
+- Fix `atomicDec()` for CPU #2581
+
+
+## [2.0.0] - 2025-06-25
+
+### Added
+
+- C++ concepts: for `Tag` #2403
+- add static function `dim()` to `alpaka::Vec` #2415
+- `CMake`
+  - check in CMake if the compiler supports the minimum required C++ standard #2422
+  - add option for installation #2476
+- an example using rocBLAS and cuBLAS in alpaka code #2433
+- `CI`
+  - add CI job, which verifies that the README.md contains the generated compiler support table #2439
+  - add `alpaka_ACC_GPU_CUDA_ONLY_MODE` job to the CI #2480
+- use deploy-pages GitHub Action to build and deploy doxygen doc #2446
+- implement a c++20 constexpr type demangler #2472 #2508
+- add `ConstBuf` #2475
+- implement a fill function for buffers of arbitrary types #2500
+
+### Changed
+
+- switch to C++20 as minimum C++ standard #2402
+- make boost an optional dependency #2503
+- rename namespace `alpaka::concepts` to `alpaka::interface` #2410
+- `CI`
+  - set default environment variables in the CI #2424
+  - update MacOS runner to 14 and 15 #2425
+  - update oneAPI to 2025.0 #2427
+  - Windows CI: use preinstalled CMake instead installing specific version #2438
+  - update GitHub Action checkout action and upload-artifact action to v4 #2454
+- CMake: rework `std::mdspan` support for nvcc #2445
+- limit babelstream `DotKernel` block size for multithreaded CPUs #2467
+
+### Fixed
+
+- `CI` 
+  - add bash variable guards in CI install scripts #2315
+  - optimize job generation #2412
+  - fix printing environment variables in GitLab CI #2423
+  - install specific CMake version in Windows CI tests #2442
+  - alpaka job generator: add rule which requires that the sycl backend is enabled if icpx is the compiler #2443
+- `Sycl`
+  - fix template arguments of SYCL buffer specializations #2426
+  - Intel FPGA SYCL backend does not support 64-bit atomics #2452
+  - fix parallelLoopPatterns for the Intel FPGA SYCL back-end #2456
+  - disable test not supported by SYCL #2468 #2501
+  - fix index order in translation from Sycl to alpaka indices and back #2488
+  - Change attribute `intel::reqd_sub_group_size` to `sycl::reqd_sub_group_size` #2509
+- `Cuda/Hip`
+  - fix `ALPAKA_THROW_ACC` for CUDA/HIP-only mode #2511
+- `example`
+  - fix bablestream benchmark #2420
+  - add missing wait to get correct timer information #2432
+- rename directory `cuda_hip` to `cuda-hip` to fix amalgamation #2437
+- fix `math::isfinite()`, `math::isnan()` and `math::isinf()` to support `-ffast-math` on CPU #2482
+- remove deprecated ciso646 includes #2502
+
+### Removed
+
+- remove workarounds for CUDA 11.x and ROCm 5.x #2461
+- remove clang 13 support #2487
+- remove g++ 10 support #2489
+
 ## [1.2.0] - 2024-10-02
 
 ### Added

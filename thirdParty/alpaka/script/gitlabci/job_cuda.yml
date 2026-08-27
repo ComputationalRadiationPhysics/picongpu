@@ -3,13 +3,12 @@
 # nvcc + g++
 linux_nvcc12.0_gcc11_debug_relocatable_device_code_compile_only:
   extends: .base_cuda_gcc_compile_only
-  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda110-gcc:3.2
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu24.04-cuda120-gcc:4.0
   variables:
-    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_UBUNTU_VER: "24.04"
     ALPAKA_CI_CUDA_VERSION: "12.0"
     ALPAKA_CI_GCC_VER: 11
     CMAKE_BUILD_TYPE: Debug
-    ALPAKA_BOOST_VERSION: 1.81.0
     ALPAKA_CI_CMAKE_VER: 3.26.5
     alpaka_CXX_STANDARD: 20
     alpaka_RELOCATABLE_DEVICE_CODE: "ON"
@@ -19,13 +18,12 @@ linux_nvcc12.0_gcc11_debug_relocatable_device_code_compile_only:
 
 linux_nvcc12.0_gcc11_release_extended_lambda_off_compile_only:
   extends: .base_cuda_gcc_compile_only
-  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda110-gcc:3.2
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu24.04-cuda120-gcc:4.0
   variables:
-    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_UBUNTU_VER: "24.04"
     ALPAKA_CI_CUDA_VERSION: "12.0"
     ALPAKA_CI_GCC_VER: 11
     CMAKE_BUILD_TYPE: Release
-    ALPAKA_BOOST_VERSION: 1.82.0
     ALPAKA_CI_CMAKE_VER: 3.27.1
     alpaka_CXX_STANDARD: 20
     alpaka_ACC_GPU_CUDA_ENABLE: "ON"
@@ -33,3 +31,29 @@ linux_nvcc12.0_gcc11_release_extended_lambda_off_compile_only:
     alpaka_CUDA_SHOW_REGISTER: "OFF"
     alpaka_CUDA_KEEP_FILES: "OFF"
     alpaka_CUDA_EXPT_EXTENDED_LAMBDA: "OFF"
+
+linux_nvcc12.5_gcc13_release_cuda_only_mode:
+  extends: .base_cuda_gcc
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-ubuntu24.04-cuda125-gcc:4.0
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "24.04"
+    ALPAKA_CI_CUDA_VERSION: "12.5"
+    ALPAKA_CI_GCC_VER: 13
+    CMAKE_BUILD_TYPE: Release
+    ALPAKA_CI_CMAKE_VER: 3.30.3
+    alpaka_CXX_STANDARD: 20
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: 'OFF'
+    alpaka_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: 'OFF'
+    alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE: 'OFF'
+    alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE: 'OFF'
+    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: 'OFF'
+    alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE: 'OFF'
+    alpaka_ACC_GPU_HIP_ENABLE: 'OFF'
+    alpaka_ACC_GPU_HIP_ONLY_MODE: 'OFF'
+    alpaka_ACC_SYCL_ENABLE: 'OFF'
+    alpaka_ACC_GPU_CUDA_ENABLE: "ON"
+    alpaka_ACC_GPU_CUDA_ONLY_MODE: "ON"
+    alpaka_RELOCATABLE_DEVICE_CODE: "OFF"
+    alpaka_CUDA_SHOW_REGISTER: "OFF"
+    alpaka_CUDA_KEEP_FILES: "OFF"
+    alpaka_CUDA_EXPT_EXTENDED_LAMBDA: "ON"

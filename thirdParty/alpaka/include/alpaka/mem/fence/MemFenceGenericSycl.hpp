@@ -1,10 +1,11 @@
-/* Copyright 2023 Jan Stephan, Luca Ferragina, Andrea Bocci
+/* Copyright 2023 Jan Stephan, Luca Ferragina, Andrea Bocci, Tapish Narwal
  * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
 #include "alpaka/mem/fence/Traits.hpp"
+#include "alpaka/mem/order/MemoryOrderGenericSycl.hpp"
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
@@ -46,13 +47,20 @@ namespace alpaka
 
 namespace alpaka::trait
 {
-    template<typename TMemScope>
-    struct MemFence<MemFenceGenericSycl, TMemScope>
+    template<>
+    struct MemFenceDefaultOrder<MemFenceGenericSycl>
     {
-        static auto mem_fence(MemFenceGenericSycl const&, TMemScope const&)
+        using type = mem_order::AcqRel;
+        static constexpr auto value = mem_order::acq_rel;
+    };
+
+    template<MemoryOrder TMemOrder, MemoryScope TMemScope>
+    struct MemFence<MemFenceGenericSycl, TMemOrder, TMemScope>
+    {
+        static auto mem_fence(MemFenceGenericSycl const&, TMemOrder order, TMemScope const&)
         {
             static constexpr auto scope = alpaka::detail::SyclFenceProps<TMemScope>::scope;
-            sycl::atomic_fence(sycl::memory_order::acq_rel, scope);
+            sycl::atomic_fence(MemOrderSycl::get(order), scope);
         }
     };
 } // namespace alpaka::trait

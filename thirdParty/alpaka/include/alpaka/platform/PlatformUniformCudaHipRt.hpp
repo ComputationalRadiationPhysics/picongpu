@@ -28,8 +28,8 @@ namespace alpaka
     template<typename TApi>
     struct PlatformUniformCudaHipRt : interface::Implements<ConceptPlatform, PlatformUniformCudaHipRt<TApi>>
     {
-#    if defined(BOOST_COMP_GNUC) && BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(11, 0, 0)                                 \
-        && BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(12, 0, 0)
+#    if defined(ALPAKA_COMP_GNUC) && ALPAKA_COMP_GNUC >= ALPAKA_VERSION_NUMBER(11, 0, 0)                              \
+        && ALPAKA_COMP_GNUC < ALPAKA_VERSION_NUMBER(12, 0, 0)
         // This is a workaround for g++-11 bug: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96295
         // g++-11 complains in *all* places where a PlatformCpu is used, that it "may be used uninitialized"
         char c = {};

@@ -90,7 +90,7 @@ option(alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE "Enable the threads CPU block threa
 option(alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE "Enable the TBB CPU grid block back-end" OFF)
 option(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block back-end" OFF)
 option(alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread back-end" OFF)
-option(alpaka_ACC_CPU_DISABLE_ATOMIC_REF "Disable boost::atomic_ref for CPU back-ends" OFF)
+option(alpaka_ACC_CPU_DISABLE_ATOMIC_REF "Disable atomic_ref for CPU back-ends" OFF)
 option(alpaka_ACC_SYCL_ENABLE "Enable the SYCL back-end" OFF)
 
 # Unified compiler options
@@ -227,20 +227,6 @@ else()
                                          "$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang,AppleClang,IntelLLVM>>:SHELL:-O0>")
 endif()
 
-#-------------------------------------------------------------------------------
-# Find Boost.
-set(_alpaka_BOOST_MIN_VER "1.74.0")
-
-if(${alpaka_DEBUG} GREATER 1)
-    SET(Boost_DEBUG ON)
-    SET(Boost_DETAILED_FAILURE_MSG ON)
-endif()
-
-find_package(Boost ${_alpaka_BOOST_MIN_VER} REQUIRED
-        OPTIONAL_COMPONENTS atomic)
-
-target_link_libraries(alpaka INTERFACE Boost::headers)
-
 if(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
    alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE OR
    alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE OR
@@ -264,66 +250,26 @@ if(alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE OR
             endif()
         endif()
 
-        if(Boost_ATOMIC_FOUND AND (NOT alpaka_HAS_STD_ATOMIC_REF))
-            message(STATUS "boost::atomic_ref<T> found")
-            target_link_libraries(alpaka INTERFACE Boost::atomic)
-        endif()
+        if (NOT alpaka_HAS_STD_ATOMIC_REF)
+            # search for boost only if std::atomic_ref is not supported
+            set(_alpaka_BOOST_MIN_VER "1.74.0")
+            find_package(Boost ${_alpaka_BOOST_MIN_VER} REQUIRED CONFIG
+                    OPTIONAL_COMPONENTS atomic)
+            target_link_libraries(alpaka INTERFACE Boost::headers)
+
+            if (Boost_ATOMIC_FOUND)
+                message(STATUS "boost::atomic_ref<T> found")
+                target_link_libraries(alpaka INTERFACE Boost::atomic)
+            else ()
+                message(STATUS "boost::atomic_ref<T> NOT found")
+            endif ()
+        endif ()
     endif()
 
     if(alpaka_ACC_CPU_DISABLE_ATOMIC_REF OR ((NOT alpaka_HAS_STD_ATOMIC_REF) AND (NOT Boost_ATOMIC_FOUND)))
         message(STATUS "atomic_ref<T> was not found or manually disabled. Falling back to lock-based CPU atomics.")
         target_compile_definitions(alpaka INTERFACE ALPAKA_DISABLE_ATOMIC_ATOMICREF)
     endif()
-endif()
-
-if(${alpaka_DEBUG} GREATER 1)
-    message(STATUS "Boost in:")
-    cmake_print_variables(BOOST_ROOT)
-    cmake_print_variables(BOOSTROOT)
-    cmake_print_variables(BOOST_INCLUDEDIR)
-    cmake_print_variables(BOOST_LIBRARYDIR)
-    cmake_print_variables(Boost_NO_SYSTEM_PATHS)
-    cmake_print_variables(Boost_ADDITIONAL_VERSIONS)
-    cmake_print_variables(Boost_USE_MULTITHREADED)
-    cmake_print_variables(Boost_USE_STATIC_LIBS)
-    cmake_print_variables(Boost_USE_STATIC_RUNTIME)
-    cmake_print_variables(Boost_USE_DEBUG_RUNTIME)
-    cmake_print_variables(Boost_USE_DEBUG_PYTHON)
-    cmake_print_variables(Boost_USE_STLPORT)
-    cmake_print_variables(Boost_USE_STLPORT_DEPRECATED_NATIVE_IOSTREAMS)
-    cmake_print_variables(Boost_COMPILER)
-    cmake_print_variables(Boost_THREADAPI)
-    cmake_print_variables(Boost_NAMESPACE)
-    cmake_print_variables(Boost_DEBUG)
-    cmake_print_variables(Boost_DETAILED_FAILURE_MSG)
-    cmake_print_variables(Boost_REALPATH)
-    cmake_print_variables(Boost_NO_BOOST_CMAKE)
-    message(STATUS "Boost out:")
-    cmake_print_variables(Boost_FOUND)
-    cmake_print_variables(Boost_INCLUDE_DIRS)
-    cmake_print_variables(Boost_LIBRARY_DIRS)
-    cmake_print_variables(Boost_LIBRARIES)
-    cmake_print_variables(Boost_CONTEXT_FOUND)
-    cmake_print_variables(Boost_CONTEXT_LIBRARY)
-    cmake_print_variables(Boost_SYSTEM_FOUND)
-    cmake_print_variables(Boost_SYSTEM_LIBRARY)
-    cmake_print_variables(Boost_THREAD_FOUND)
-    cmake_print_variables(Boost_THREAD_LIBRARY)
-    cmake_print_variables(Boost_ATOMIC_FOUND)
-    cmake_print_variables(Boost_ATOMIC_LIBRARY)
-    cmake_print_variables(Boost_CHRONO_FOUND)
-    cmake_print_variables(Boost_CHRONO_LIBRARY)
-    cmake_print_variables(Boost_DATE_TIME_FOUND)
-    cmake_print_variables(Boost_DATE_TIME_LIBRARY)
-    cmake_print_variables(Boost_VERSION)
-    cmake_print_variables(Boost_LIB_VERSION)
-    cmake_print_variables(Boost_MAJOR_VERSION)
-    cmake_print_variables(Boost_MINOR_VERSION)
-    cmake_print_variables(Boost_SUBMINOR_VERSION)
-    cmake_print_variables(Boost_LIB_DIAGNOSTIC_DEFINITIONS)
-    message(STATUS "Boost cached:")
-    cmake_print_variables(Boost_INCLUDE_DIR)
-    cmake_print_variables(Boost_LIBRARY_DIR)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -450,11 +396,15 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
         if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
             message(STATUS "clang is used as CUDA compiler")
 
-            if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 14.0)
-                # clang-14 is the first version to fully support CUDA 11.x
-                message(FATAL_ERROR "clang as CUDA compiler requires at least clang-14.")
-            else()
-                message(WARNING "If you are using CUDA 11.3 please note of the following issue: https://github.com/alpaka-group/alpaka/issues/1857")
+            if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 17.0)
+                # clang-17 is the first version to support CUDA 12.x
+                message(FATAL_ERROR "clang as CUDA compiler requires at least clang-17.")
+            endif()
+
+            # workaround: ISA code parsing when compiling as debug with clang as CUDA compiler
+            # https://github.com/llvm/llvm-project/issues/58491
+            if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+                alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-g -Xarch_device -g0>")
             endif()
 
             if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
@@ -467,9 +417,6 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             # clang: warning: argument unused during compilation: '--cuda-gpu-arch=sm_XX'
             # This seems to be a false positive as all flags are 'unused' for an empty file.
             alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Qunused-arguments>")
-
-            # Silences warnings that are produced by boost because clang is not correctly identified.
-            alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Wno-unused-local-typedef>")
 
             if(alpaka_FAST_MATH STREQUAL ON)
                 # -ffp-contract=fast enables the usage of FMA
@@ -600,8 +547,8 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         enable_language(HIP)
         find_package(hip REQUIRED)
 
-        set(_alpaka_HIP_MIN_VER 5.1)
-        set(_alpaka_HIP_MAX_VER 6.2)
+        set(_alpaka_HIP_MIN_VER 6.0)
+        set(_alpaka_HIP_MAX_VER 7.2)
 
         checkCompilerCXXSupport(HIP ${alpaka_MIN_CXX_STANDARD})
 
@@ -620,9 +567,6 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
 
         target_link_libraries(alpaka INTERFACE "$<$<LINK_LANGUAGE:CXX>:hip::host>")
         alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_AMD__>")
-        if(${_hip_MAJOR_MINOR_VERSION} VERSION_EQUAL "5.1")
-            alpaka_set_compiler_options(HOST_DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CXX>:-D__HIP_PLATFORM_HCC__>")
-        endif()
 
         alpaka_compiler_option(HIP_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps 'CMakeFiles/<targetname>.dir'" OFF)
         if(alpaka_HIP_KEEP_FILES)
@@ -675,6 +619,8 @@ if(alpaka_ACC_SYCL_ENABLE)
         cmake_dependent_option(alpaka_SYCL_ONEAPI_CPU "Enable oneAPI CPU targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
         cmake_dependent_option(alpaka_SYCL_ONEAPI_FPGA "Enable oneAPI FPGA targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
         cmake_dependent_option(alpaka_SYCL_ONEAPI_GPU "Enable oneAPI GPU targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
+        cmake_dependent_option(alpaka_SYCL_ONEAPI_GPU_NVIDIA "Enable NVIDIA GPU targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
+        cmake_dependent_option(alpaka_SYCL_ONEAPI_GPU_AMD "Enable AMD GPU targets for the SYCL back-end" OFF "alpaka_ACC_SYCL_ENABLE" OFF)
         # Intel FPGA emulation / simulation
         if(alpaka_SYCL_ONEAPI_FPGA)
             set(alpaka_SYCL_ONEAPI_FPGA_MODE "emulation" CACHE STRING "Synthesis type for oneAPI FPGA targets")
@@ -699,7 +645,7 @@ if(alpaka_ACC_SYCL_ENABLE)
             list(APPEND alpaka_SYCL_TARGETS ${alpaka_SYCL_ONEAPI_FPGA_TARGET})
         endif()
 
-        if(alpaka_SYCL_ONEAPI_GPU)
+        if(alpaka_SYCL_ONEAPI_GPU OR alpaka_SYCL_ONEAPI_GPU_NVIDIA OR alpaka_SYCL_ONEAPI_GPU_AMD)
             list(APPEND alpaka_SYCL_TARGETS ${alpaka_SYCL_ONEAPI_GPU_TARGET})
         endif()
 
@@ -756,6 +702,30 @@ if(alpaka_ACC_SYCL_ENABLE)
             string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
 
             target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
+        endif()
+
+        if(alpaka_SYCL_ONEAPI_GPU_NVIDIA)
+            # Create a drop-down list (in cmake-gui) of valid Intel GPU targets. On the command line the user can specifiy
+            # additional targets, such as ranges: "Gen8-Gen12LP" or lists: "icllp;skl".
+            set(alpaka_SYCL_ONEAPI_GPU_DEVICES "nvidia_gpu_sm_89" CACHE STRING "NVIDIA GPU devices / generations to compile for")
+            set_property(CACHE alpaka_SYCL_ONEAPI_GPU_DEVICES
+                        PROPERTY STRINGS "nvidia_gpu_sm_50;nvidia_gpu_sm_52;nvidia_gpu_sm_53;nvidia_gpu_sm_60;nvidia_gpu_sm_61;nvidia_gpu_sm_62;nvidia_gpu_sm_70;nvidia_gpu_sm_72;nvidia_gpu_sm_75;nvidia_gpu_sm_80;nvidia_gpu_sm_86;nvidia_gpu_sm_87;nvidia_gpu_sm_89;nvidia_gpu_sm_90")
+            # If the user has given us a list turn all ';' into ',' to pacify the Intel OpenCL compiler.
+            string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
+
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU_NVIDIA")
+        endif()
+
+        if(alpaka_SYCL_ONEAPI_GPU_AMD)
+            # Create a drop-down list (in cmake-gui) of valid Intel GPU targets. On the command line the user can specifiy
+            # additional targets, such as ranges: "Gen8-Gen12LP" or lists: "icllp;skl".
+            set(alpaka_SYCL_ONEAPI_GPU_DEVICES "amd_gpu_gfx1200" CACHE STRING "AMD GPU devices / generations to compile for")
+            set_property(CACHE alpaka_SYCL_ONEAPI_GPU_DEVICES
+                        PROPERTY STRINGS "amd_gpu_gfx700;amd_gpu_gfx701;amd_gpu_gfx702;amd_gpu_gfx801;amd_gpu_gfx802;amd_gpu_gfx803;amd_gpu_gfx805;amd_gpu_gfx810;amd_gpu_gfx900;amd_gpu_gfx902;amd_gpu_gfx904;amd_gpu_gfx906;amd_gpu_gfx908;amd_gpu_gfx909;amd_gpu_gfx90a;amd_gpu_gfx90c;amd_gpu_gfx940;amd_gpu_gfx941;amd_gpu_gfx942;amd_gpu_gfx1010;amd_gpu_gfx1011;amd_gpu_gfx1012;amd_gpu_gfx1013;amd_gpu_gfx1030;amd_gpu_gfx1031;amd_gpu_gfx1032;amd_gpu_gfx1033;amd_gpu_gfx1034;amd_gpu_gfx1035;amd_gpu_gfx1036;amd_gpu_gfx1100;amd_gpu_gfx1101;amd_gpu_gfx1102;amd_gpu_gfx1103;amd_gpu_gfx1150;amd_gpu_gfx1151;amd_gpu_gfx1200;amd_gpu_gfx1201")
+            # If the user has given us a list turn all ';' into ',' to pacify the Intel OpenCL compiler.
+            string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
+
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU_AMD")
         endif()
 
         #-----------------------------------------------------------------------------------------------------------------
@@ -833,6 +803,12 @@ if(alpaka_ACC_SYCL_ENABLE)
     endif()
     if(alpaka_SYCL_ONEAPI_GPU)
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_GPU")
+    endif()
+    if(alpaka_SYCL_ONEAPI_GPU_NVIDIA)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_GPU_NVIDIA")
+    endif()
+    if(alpaka_SYCL_ONEAPI_GPU_AMD)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_GPU_AMD")
     endif()
 
     message(STATUS alpaka_ACC_SYCL_ENABLED)
@@ -928,9 +904,10 @@ if (alpaka_USE_MDSPAN STREQUAL "SYSTEM")
 elseif (alpaka_USE_MDSPAN STREQUAL "FETCH")
     include(FetchContent)
     FetchContent_Declare(
+        # kokkos/mdspan as of 2025.12.11
         mdspan
         GIT_REPOSITORY https://github.com/kokkos/mdspan.git
-        GIT_TAG 973ef6415a6396e5f0a55cb4c99afd1d1d541681
+        GIT_TAG bcfcc9ea8fc5390b99261a4d8450c3f2fc18a7f2
     )
     # we don't use FetchContent_MakeAvailable(mdspan) since it would also install mdspan
     # see also: https://stackoverflow.com/questions/65527126/how-to-disable-installation-a-fetchcontent-dependency
@@ -944,10 +921,10 @@ elseif (alpaka_USE_MDSPAN STREQUAL "FETCH")
         endif()
     endif()
     if(${CMAKE_VERSION} VERSION_LESS "3.25.0")
-        get_target_property(mdspan_include_dir std::mdspan INTERFACE_INCLUDE_DIRECTORIES)
+        get_target_property(mdspan_include_dir mdspan::mdspan INTERFACE_INCLUDE_DIRECTORIES)
         target_include_directories(alpaka SYSTEM INTERFACE ${mdspan_include_dir})
     else()
-        target_link_libraries(alpaka INTERFACE std::mdspan)
+        target_link_libraries(alpaka INTERFACE mdspan::mdspan)
     endif()
     target_compile_definitions(alpaka INTERFACE ALPAKA_USE_MDSPAN)
 elseif (alpaka_USE_MDSPAN STREQUAL "OFF")

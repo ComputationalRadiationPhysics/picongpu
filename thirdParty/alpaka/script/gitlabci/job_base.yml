@@ -3,7 +3,6 @@
 .base:
   variables:
     alpaka_DEBUG: 0
-    BOOST_LIBRARYDIR: "/opt/boost/${ALPAKA_BOOST_VERSION}/lib"
     ALPAKA_CI_OS_NAME: "Linux"
     # $CI_CPUS is defined by the HZDR gitlab CI
     ALPAKA_CI_BUILD_JOBS: "$CI_CPUS"
@@ -18,7 +17,7 @@
 .basecfg_cuda_gcc:
   image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
   variables:
-    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_UBUNTU_VER: "24.04"
     ALPAKA_CI_CXX: g++
     alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
     alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
@@ -50,7 +49,7 @@
 .basecfg_cuda_clang:
   image: ubuntu:${ALPAKA_CI_UBUNTU_VER}
   variables:
-    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_UBUNTU_VER: "24.04"
     ALPAKA_CI_CXX: clang++
     alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
     alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"

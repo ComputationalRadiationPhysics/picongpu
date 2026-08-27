@@ -1,0 +1,71 @@
+name: ci-job-generator
+on: [push, pull_request]
+jobs:
+  formatter:
+    name: runner black code formatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: "./script/job_generator"
+          version: "~= 24.0"
+
+  mypy-linter:
+    name: run mypy linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+          architecture: x64
+      - name: Install alpaka-bashi
+        run: |
+          pip install ./script/job_generator
+      - name: Install mypy
+        run: |
+          pip install mypy
+      - name: Run mypy on alpaka-bashi source code
+        run: |
+          mypy ./script/job_generator/src
+
+  pylint-linter:
+    name: run pylint linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+          architecture: x64
+      - name: Install alpaka-bashi
+        run: |
+          pip install ./script/job_generator
+      - name: Install pylint
+        run: |
+          pip install pylint
+      - name: Run pylint on alpaka-bashi source code
+        run: |
+          pylint ./script/job_generator/src
+
+  unit-tests:
+    name: run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+          architecture: x64
+      - name: Install alpaka-bashi
+        run: |
+          pip install ./script/job_generator
+
+      - name: Run alpaka-bashi test
+        run: |
+          python -m unittest discover -s ./script/job_generator/tests -p "*.py"

@@ -12,7 +12,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #    pragma warning(push)
 #    pragma warning(disable : 4127) // suppress warning for c++17 conditional expression is constant
 #endif
@@ -209,6 +209,6 @@ TEMPLATE_LIST_TEST_CASE("memBufSlicingMemsetTest", "[memBuf]", TestAccWithDataTy
     }
 }
 
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #    pragma warning(pop)
 #endif

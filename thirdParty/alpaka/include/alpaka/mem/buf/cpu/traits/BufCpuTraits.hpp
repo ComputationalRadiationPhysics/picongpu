@@ -1,4 +1,5 @@
-/* Copyright 2025 Anton Reinhard
+/* Copyright 2025 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber,
+ *                Anton Reinhard, Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 #pragma once
@@ -164,7 +165,7 @@ namespace alpaka::trait
         }
     };
 
-    //! The ConstBufCpu stream-ordered memory allocation capability trait specialization.
+    //! The BufCpu stream-ordered memory allocation capability trait specialization.
     template<typename TDim>
     struct HasAsyncBufSupport<TDim, DevCpu> : public std::true_type
     {
@@ -232,6 +233,20 @@ namespace alpaka::trait
             TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
         {
             // Allocate standard host memory.
+            return allocBuf<TElem, TIdx>(host, extent);
+        }
+    };
+
+    //! The unified/managed memory allocation trait specialization.
+    template<typename TElem, typename TDim, typename TIdx>
+    struct BufAllocManaged<PlatformCpu, TElem, TDim, TIdx>
+    {
+        template<typename TExtent>
+        ALPAKA_FN_HOST static auto allocManagedBuf(
+            DevCpu const& host,
+            PlatformCpu const& /*platform*/,
+            TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
+        {
             return allocBuf<TElem, TIdx>(host, extent);
         }
     };

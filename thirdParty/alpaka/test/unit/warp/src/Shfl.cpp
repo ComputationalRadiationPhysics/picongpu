@@ -97,63 +97,66 @@ struct alpaka::trait::WarpSize<ShflMultipleThreadWarpTestKernel<TWarpSize>, TAcc
 TEMPLATE_LIST_TEST_CASE("shfl", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::Dim<Acc>;
-    using Idx = alpaka::Idx<Acc>;
 
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20'250'300
     if constexpr(alpaka::accMatchesTags<
                      Acc,
                      alpaka::TagCpuSycl,
                      alpaka::TagGpuSyclIntel,
+                     alpaka::TagGpuSyclNvidia,
+                     alpaka::TagGpuSyclAmd,
                      alpaka::TagFpgaSyclIntel,
                      alpaka::TagGenericSycl>)
     {
-        WARN("Test disabled for SYCL");
+        WARN("Test disabled for SYCL with oneAPI 2025.2 and older");
+        return;
     }
-    else
+#else
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
+
+    auto const platform = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platform, 0);
+    auto const warpExtents = alpaka::getWarpSizes(dev);
+    for(auto const warpExtent : warpExtents)
     {
-        auto const platform = alpaka::Platform<Acc>{};
-        auto const dev = alpaka::getDevByIdx(platform, 0);
-        auto const warpExtents = alpaka::getWarpSizes(dev);
-        for(auto const warpExtent : warpExtents)
+        auto const scalar = Dim::value == 0 || warpExtent == 1;
+        if(scalar)
         {
-            auto const scalar = Dim::value == 0 || warpExtent == 1;
-            if(scalar)
+            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
+            REQUIRE(fixture(ShflSingleThreadWarpTestKernel{}));
+        }
+        else
+        {
+            using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
+            auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
+            // Enforce one warp per thread block
+            auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
+            blockThreadExtent[0] = static_cast<Idx>(warpExtent);
+            auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
+            auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
+            auto fixture = ExecutionFixture{workDiv};
+            if(warpExtent == 4)
             {
-                alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
-                REQUIRE(fixture(ShflSingleThreadWarpTestKernel{}));
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<4>{}));
             }
-            else
+            else if(warpExtent == 8)
             {
-                using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
-                auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
-                // Enforce one warp per thread block
-                auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
-                blockThreadExtent[0] = static_cast<Idx>(warpExtent);
-                auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-                auto workDiv =
-                    typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
-                auto fixture = ExecutionFixture{workDiv};
-                if(warpExtent == 4)
-                {
-                    REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<4>{}));
-                }
-                else if(warpExtent == 8)
-                {
-                    REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<8>{}));
-                }
-                else if(warpExtent == 16)
-                {
-                    REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<16>{}));
-                }
-                else if(warpExtent == 32)
-                {
-                    REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<32>{}));
-                }
-                else if(warpExtent == 64)
-                {
-                    REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<64>{}));
-                }
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<8>{}));
+            }
+            else if(warpExtent == 16)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<16>{}));
+            }
+            else if(warpExtent == 32)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<32>{}));
+            }
+            else if(warpExtent == 64)
+            {
+                REQUIRE(fixture(ShflMultipleThreadWarpTestKernel<64>{}));
             }
         }
     }
+#endif
 }

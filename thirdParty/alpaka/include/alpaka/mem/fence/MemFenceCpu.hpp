@@ -1,4 +1,4 @@
-/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber, Tapish Narwal
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -6,6 +6,7 @@
 
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/mem/fence/Traits.hpp"
+#include "alpaka/mem/order/MemoryOrderStl.hpp"
 
 #include <atomic>
 
@@ -18,10 +19,18 @@ namespace alpaka
 
     namespace trait
     {
-        template<typename TMemScope>
-        struct MemFence<MemFenceCpu, TMemScope>
+        template<>
+        struct MemFenceDefaultOrder<MemFenceCpu>
         {
-            static auto mem_fence(MemFenceCpu const&, TMemScope const&)
+            using type = mem_order::AcqRel;
+            static constexpr auto value = mem_order::acq_rel;
+        };
+
+        template<MemoryOrder TMemOrder, MemoryScope TMemScope>
+        struct MemFence<MemFenceCpu, TMemOrder, TMemScope>
+
+        {
+            static auto mem_fence(MemFenceCpu const&, TMemOrder order, TMemScope const&)
             {
                 /*
                  * Intuitively, std::atomic_thread_fence creates a fence on the block level.
@@ -54,7 +63,7 @@ namespace alpaka
                  *   a == 10 && b == 20
                  */
 
-                std::atomic_thread_fence(std::memory_order_acq_rel);
+                std::atomic_thread_fence(MemOrderStl::get(order));
             }
         };
     } // namespace trait

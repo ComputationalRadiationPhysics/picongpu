@@ -4,7 +4,7 @@
 
 #include "WorkDiv.hpp"
 #include "alpaka/acc/Traits.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/dev/DevCpu.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/exec/UniformElements.hpp"
@@ -23,19 +23,19 @@
 #include <random>
 #include <type_traits>
 
-#if BOOST_COMP_MSVC
+#if ALPAKA_COMP_MSVC
 // MSVC uses __restrict instead of __restrict__.
 #    define __restrict__ __restrict
 #endif
 
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wexit-time-destructors"
 #endif
 // Global Host object used by all tests.
 using Host = alpaka::DevCpu;
 static Host host = alpaka::getDevByIdx(alpaka::PlatformCpu{}, 0);
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
 

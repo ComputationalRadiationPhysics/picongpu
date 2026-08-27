@@ -1,3 +1,7 @@
+/* Copyright 2025 Simeon Ehrig, Simone Balducci
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 #pragma once
 
 // include all Acc's because of the struct AccIsEnabled
@@ -33,5 +37,16 @@ namespace alpaka
 
     //! list of all tags where the related accelerator is enabled
     using EnabledAccTags = alpaka::meta::Filter<AccTags, alpaka::AccIsEnabled>;
+
+    namespace trait
+    {
+
+        template<concepts::Tag TTag>
+        struct DevType<TTag>
+        {
+            using type = typename DevType<alpaka::TagToAcc<TTag, alpaka::DimInt<1>, int>>::type;
+        };
+
+    } // namespace trait
 
 } // namespace alpaka

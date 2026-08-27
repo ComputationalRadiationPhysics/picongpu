@@ -1,4 +1,4 @@
-/* Copyright 2024 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2025 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -34,8 +34,11 @@
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/dev/DevCpu.hpp"
 
+#ifdef __cpp_lib_format
+#    include <format>
+#endif
 #include <memory>
-#include <typeinfo>
+#include <string>
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 
@@ -69,7 +72,7 @@ namespace alpaka
         , public rand::RandStdLib
 #    endif
         , public warp::WarpSingleThread
-        , public interface::Implements<ConceptAcc, AccCpuSerial<TDim, TIdx>>
+        , public interface::Implements<InterfaceAcc, AccCpuSerial<TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
@@ -155,7 +158,21 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccCpuSerial<" + std::to_string(TDim::value) + "," + core::demangled<TIdx> + ">";
+#    if ALPAKA_COMP_CLANG
+#        pragma clang diagnostic push
+#        pragma clang diagnostic ignored "-Wexit-time-destructors"
+#    endif
+                using namespace std::literals;
+                static std::string const accName =
+#    ifdef __cpp_lib_format
+                    std::format("AccCpuSerial<{},{}>", TDim::value, core::demangled<TIdx>);
+#    else
+                    "AccCpuSerial<"s + std::to_string(TDim::value) + ","s + std::string(core::demangled<TIdx>) + ">"s;
+#    endif
+                return accName;
+#    if ALPAKA_COMP_CLANG
+#        pragma clang diagnostic pop
+#    endif
             }
         };
 

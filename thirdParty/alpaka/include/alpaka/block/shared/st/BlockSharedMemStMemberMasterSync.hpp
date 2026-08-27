@@ -40,11 +40,6 @@ namespace alpaka
 
     namespace trait
     {
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored                                                                                    \
-        "-Wcast-align" // "cast from 'unsigned char*' to 'unsigned int*' increases required alignment of target type"
-#endif
         template<typename T, std::size_t TDataAlignBytes, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStMemberMasterSync<TDataAlignBytes>>
         {
@@ -71,9 +66,7 @@ namespace alpaka
                 return *data;
             }
         };
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
+
         template<std::size_t TDataAlignBytes>
         struct FreeSharedVars<BlockSharedMemStMemberMasterSync<TDataAlignBytes>>
         {

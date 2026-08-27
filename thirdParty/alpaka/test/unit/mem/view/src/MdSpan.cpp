@@ -26,7 +26,7 @@ namespace
     using make_reverse_index_sequence = decltype(make_reverse_index_sequence_impl(std::make_index_sequence<N>{}));
 } // namespace
 
-#    if BOOST_COMP_NVCC
+#    if ALPAKA_COMP_NVCC
 #        define NOEXCEPT_UNLESS_NVCC
 #    else
 #        define NOEXCEPT_UNLESS_NVCC noexcept

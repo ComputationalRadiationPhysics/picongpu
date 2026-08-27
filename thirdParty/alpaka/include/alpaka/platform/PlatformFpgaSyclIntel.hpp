@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "alpaka/acc/Tag.hpp"
 #include "alpaka/dev/DevGenericSycl.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/platform/PlatformGenericSycl.hpp"
@@ -18,7 +19,7 @@ namespace alpaka
     {
         // Prevent clang from annoying us with warnings about emitting too many vtables. These are discarded by the
         // linker anyway.
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wweak-vtables"
 #    endif
@@ -39,7 +40,7 @@ namespace alpaka
                 return is_intel_fpga ? 1 : -1;
             }
         };
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
     } // namespace detail

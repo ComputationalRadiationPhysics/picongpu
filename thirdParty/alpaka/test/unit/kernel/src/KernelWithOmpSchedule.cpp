@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Config.hpp>
 #include <alpaka/core/OmpSchedule.hpp>
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
