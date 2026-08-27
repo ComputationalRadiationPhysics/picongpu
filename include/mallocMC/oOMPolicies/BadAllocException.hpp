@@ -53,7 +53,7 @@ namespace mallocMC
             ALPAKA_FN_ACC
             static auto handleOOM(void* mem) -> void*
             {
-#if BOOST_LANG_CUDA || BOOST_COMP_HIP
+#if ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP
 // #if __CUDA_ARCH__ < 350
 #    define PM_EXCEPTIONS_NOT_SUPPORTED_HERE
 // #endif

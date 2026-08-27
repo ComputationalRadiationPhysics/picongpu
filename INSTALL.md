@@ -6,11 +6,6 @@ Install
   - *Arch Linux:* `sudo pacman -S base-devel`
  - `alpaka` 1.2.0
   - included as git submodule
- - `boost` >= 1.65.1
-   - dependency of alpaka
-   - *Debian/Ubuntu:* `sudo apt-get install libboost-dev libboost-program-options-dev`
-   - *Arch Linux:* `sudo pacman -S boost`
-   - or download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.tar.gz/download)
  - `CMake` >= 3.15
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman -S cmake`
@@ -43,9 +38,6 @@ Linking to your Project
 
 To use mallocMC in your project, you must include the header `mallocMC/mallocMC.hpp` and
 add the correct include path.
-
-Because we are linking to Boost and CUDA, the following **external dependencies** must be linked:
-- `-lboost`
 
 If you are using CMake you can download our `FindmallocMC.cmake` module with
 ```bash

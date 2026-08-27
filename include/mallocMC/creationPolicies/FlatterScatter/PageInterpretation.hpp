@@ -151,7 +151,7 @@ namespace mallocMC::CreationPolicies::FlatterScatterAlloc
         {
             if(chunkSize == 0)
             {
-#if (!defined(NDEBUG) && !BOOST_LANG_CUDA && !BOOST_LANG_HIP)
+#if (!defined(NDEBUG) && !ALPAKA_LANG_CUDA && !ALPAKA_LANG_HIP)
                 throw std::runtime_error{
                     "Attempted to destroy a pointer with chunkSize==0. Likely this page was recently "
                     "(and potentially pre-maturely) freed."};
@@ -159,7 +159,7 @@ namespace mallocMC::CreationPolicies::FlatterScatterAlloc
                 return;
             }
             auto chunkIndex = chunkNumberOf(pointer);
-#if (!defined(NDEBUG) && !BOOST_LANG_CUDA && !BOOST_LANG_HIP)
+#if (!defined(NDEBUG) && !ALPAKA_LANG_CUDA && !ALPAKA_LANG_HIP)
             if(not isValid(acc, chunkIndex))
             {
                 throw std::runtime_error{"Attempted to destroy an invalid pointer! Either the pointer does not point "

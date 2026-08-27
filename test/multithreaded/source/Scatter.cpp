@@ -46,8 +46,8 @@
 #include <alpaka/example/ExampleDefaultAcc.hpp>
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/mem/alloc/Traits.hpp>
-#include <alpaka/mem/buf/BufCpu.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
+#include <alpaka/mem/buf/cpu/BufCpu.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/mem/view/ViewPlainPtr.hpp>
 #include <alpaka/platform/PlatformCpu.hpp>
