@@ -26,7 +26,6 @@ jobs:
         with:
           path: "**/cpm_modules"
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-      - run: sudo apt update && sudo apt install libboost-all-dev
       - run: |
           cmake -S. -Bbuild \
           -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE:BOOL=ON \

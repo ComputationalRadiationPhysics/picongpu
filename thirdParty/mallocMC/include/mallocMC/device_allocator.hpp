@@ -96,6 +96,8 @@ namespace mallocMC
 
         /** Provide the number of available free slots.
          *
+         * @attention: This is a collective function and must be called by all threads in the thread block.
+         *
          * @tparam AlpakaAcc The type of the Allocator to be used
          * @param acc alpaka accelerator
          * @param slotSize assumed allocation size in bytes

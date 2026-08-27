@@ -559,7 +559,7 @@ namespace mallocMC
                 uint32 const minAllocation = alpaka::math::max(acc, bytes, paddedMinChunkSize);
                 uint32 const numpages = _numpages;
                 uint32 const pagesperblock = numpages / _accessblocks;
-                uint32 const reloff = warpSize<AlpakaAcc> * minAllocation / pagesize;
+                uint32 const reloff = getWarpSize<AlpakaAcc>() * minAllocation / pagesize;
                 uint32 const start_page_in_block = (minAllocation * hashingK + hashingDistMP * smid(acc)
                                                     + (hashingDistWP + hashingDistWPRel * reloff) * warpid(acc))
                                                    % pagesperblock;
@@ -653,7 +653,6 @@ namespace mallocMC
                             if(access_block_id > _firstfreeblock)
                                 _firstfreeblock = access_block_id;
                         }
-
                     } while(global_page != global_start_page);
 
                     // we are really full :/ so lets search every page for a segment!
@@ -910,9 +909,11 @@ namespace mallocMC
                 void* res = 0;
                 // based on the alpaka backend the lanemask type can be 64bit
                 auto const mask = alpaka::warp::activemask(acc);
+                // required else popcount() will be ambigious
+                using MaskType = decltype(mask);
                 uint32_t const num = alpaka::popcount(acc, mask);
                 // based on the alpaka backend the lanemask type can be 64bit
-                auto const lanemask = lanemask_lt(acc);
+                MaskType const lanemask = lanemask_lt(acc);
                 uint32_t const local_id = alpaka::popcount(acc, lanemask & mask);
                 for(unsigned int active = 0; active < num; ++active)
                     if(active == local_id)
@@ -1348,46 +1349,41 @@ namespace mallocMC
              * expected if every thread in the warp executes the function. Uses
              * 256 byte of shared memory.
              *
+             * @attention: This is a collective function and must be called by all threads in the thread block.
+             *
              * @param slotSize the size of allocatable elements to count
              */
             template<typename AlpakaAcc>
             ALPAKA_FN_ACC auto getAvailableSlotsAccelerator(AlpakaAcc const& acc, size_t slotSize) -> unsigned
             {
-                int const wId = warpid_withinblock(acc); // do not use warpid-function, since
-                                                         // this value is not guaranteed to
-                                                         // be stable across warp lifetime
+                if(slotSize == 0)
+                    return 0;
 
-                uint32 const activeThreads = alpaka::popcount(acc, alpaka::warp::activemask(acc));
+                auto& sharedResult = alpaka::declareSharedVar<std::uint32_t, __COUNTER__>(acc);
 
-                constexpr auto warpsize = warpSize<AlpakaAcc>;
-                auto& activePerWarp = alpaka::declareSharedVar<
-                    std::uint32_t[maxThreadsPerBlock / warpsize],
-                    __COUNTER__>(acc); // maximum number of warps in a block
+                auto const localThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
+                auto const localThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
+                uint32_t const linearizedLocalThreadIdx
+                    = static_cast<std::uint32_t>(alpaka::mapIdx<1u>(localThreadIdx, localThreadExtent)[0]);
 
-                auto& warpResults
-                    = alpaka::declareSharedVar<unsigned[maxThreadsPerBlock / warpSize<AlpakaAcc>], __COUNTER__>(acc);
-
-                warpResults[wId] = 0;
-                activePerWarp[wId] = 0;
+                if(linearizedLocalThreadIdx == 0u)
+                    sharedResult = 0u;
 
                 // wait that all shared memory is initialized
                 alpaka::syncBlockThreads(acc);
 
-                // the active threads obtain an id from 0 to activeThreads-1
-                if(slotSize == 0)
-                    return 0;
-                auto const linearId = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &activePerWarp[wId], 1u);
-
-                // printf("Block %d, id %d: activeThreads=%d
-                // linearId=%d\n",blockIdx.x,threadIdx.x,activeThreads,linearId);
-                unsigned const temp = this->getAvailaibleSlotsDeviceFunction(acc, slotSize, linearId, activeThreads);
-                if(temp)
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &warpResults[wId], temp);
+                uint32_t numThreadsInBlock = static_cast<std::uint32_t>(localThreadExtent.prod());
+                unsigned const temp = this->getAvailaibleSlotsDeviceFunction(
+                    acc,
+                    slotSize,
+                    linearizedLocalThreadIdx,
+                    numThreadsInBlock);
+                alpaka::atomicOp<alpaka::AtomicAdd>(acc, &sharedResult, temp);
 
                 alpaka::syncBlockThreads(acc);
                 alpaka::mem_fence(acc, alpaka::memory_scope::Block{});
 
-                return warpResults[wId];
+                return sharedResult;
             }
 
             static auto classname() -> std::string
