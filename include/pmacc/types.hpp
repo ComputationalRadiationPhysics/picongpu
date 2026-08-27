@@ -29,7 +29,7 @@
 
 #include <alpaka/alpaka.hpp>
 
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
 #    include <mallocMC/mallocMC.hpp>
 #endif
 

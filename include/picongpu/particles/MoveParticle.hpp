@@ -61,7 +61,7 @@ namespace picongpu
              * direction the particle is leaving the cell.
              * The floating point precision is equal for -0.5 and 0.5.
              */
-#if (BOOST_COMP_HIP)
+#if (ALPAKA_COMP_HIP)
             // workaround for a broken HIP optimization
             // https://github.com/ComputationalRadiationPhysics/picongpu/issues/4561
 

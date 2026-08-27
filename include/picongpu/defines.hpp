@@ -33,7 +33,7 @@ namespace picongpu
 // clang-format off
 #include "picongpu/param/precision.param"
 #include "picongpu/param/dimension.param"
-#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if(ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
 #    include "picongpu/param/mallocMC.param"
 #endif
 #include "picongpu/param/memory.param"

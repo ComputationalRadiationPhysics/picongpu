@@ -61,9 +61,9 @@ namespace pmacc
         {
             printf(std::forward<T_PrintfArgs>(printfArgs)...);
 #if (PMACC_DEVICE_COMPILE == 1)
-#    if BOOST_COMP_HIP
+#    if ALPAKA_COMP_HIP
             __builtin_trap();
-#    elif BOOST_LANG_CUDA
+#    elif ALPAKA_LANG_CUDA
             __trap();
 #    endif
 #else

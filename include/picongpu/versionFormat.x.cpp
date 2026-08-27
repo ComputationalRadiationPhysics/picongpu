@@ -30,10 +30,10 @@
 #    include <cuda.h>
 #endif
 #ifdef HIP_VERSION_MAJOR
-#    include <hip/hip_runtime.h>
+#    include <hip/hip_version.h>
 #endif
 #if (defined(__CUDACC_VER_MAJOR__) || defined(HIP_VERSION_MAJOR))
-#    include <mallocMC/mallocMC.hpp>
+#    include <mallocMC/version.hpp>
 #endif
 #include <mpi.h>
 #if (PIC_ENABLE_PNG == 1)

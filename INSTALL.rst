@@ -72,9 +72,9 @@ MPI 2.3+
 Boost
 """""
 - 1.74.0+ (``program_options``, ``atomic`` and header-only libs)
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-atomic-dev``
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
-- *Spack:* ``spack install boost +program_options +atomic``
+- *Spack:* ``spack install boost +program_options``
 - *from source:*
 
   - ``mkdir -p ~/src ~/lib``
@@ -82,7 +82,7 @@ Boost
   - ``curl -Lo boost_1_74_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz``
   - ``tar -xzf boost_1_74_0.tar.gz``
   - ``cd boost_1_74_0``
-  - ``./bootstrap.sh --with-libraries=atomic,program_options --prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=program_options --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++20" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
@@ -103,7 +103,7 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 1.2.X
+alpaka 2.1.X
 """"""""""""""""
 - `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
 

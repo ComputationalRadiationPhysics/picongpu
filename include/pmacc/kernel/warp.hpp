@@ -23,7 +23,7 @@
 
 #include <alpaka/warp/Traits.hpp>
 
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
 
 #    include "pmacc/types.hpp"
 
@@ -43,7 +43,7 @@ namespace pmacc
             asm("mov.u32 %0, %%laneid;" : "=r"(id));
             return id;
         }
-#    elif BOOST_COMP_HIP
+#    elif ALPAKA_COMP_HIP
         DINLINE uint32_t getLaneId()
         {
             return __lane_id();
@@ -51,7 +51,7 @@ namespace pmacc
 #    endif
 
 
-#    if (__CUDA_ARCH__ >= 300 || BOOST_COMP_HIP)
+#    if (__CUDA_ARCH__ >= 300 || ALPAKA_COMP_HIP)
 
         /** broadcast data within a warp without using shared memory
          *
@@ -100,7 +100,7 @@ namespace pmacc
         /* clang as cuda compiler does not support 64 bit warp shfl.
          * For AMD GPUs 64bit shufl will be provided by HIP.
          */
-#        if (!BOOST_COMP_CLANG_CUDA)
+#        if (!ALPAKA_COMP_CLANG_CUDA)
             ,
             double,
             unsigned long,
@@ -122,7 +122,7 @@ namespace pmacc
                 /* we can not use alpaka warp shfl because it assumes that all threads of the warp participating in the
                  * call
                  */
-#        if (BOOST_COMP_HIP)
+#        if (ALPAKA_COMP_HIP)
                 return __shfl(data, srcLaneId);
 #        else
                 return __shfl_sync(mask, data, srcLaneId);
