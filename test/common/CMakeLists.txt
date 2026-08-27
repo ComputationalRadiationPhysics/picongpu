@@ -43,6 +43,13 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSIO
     endif()
 endif()
 
+# Prevent "__COUNTER__ is a C2y extension" warnings from clang >= 22
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "22.0.0") OR
+   (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "2026.0.0"))
+
+    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "-Wno-c2y-extensions")
+endif()
+
 # Prevent warnings from shady code inside Catch2
 get_target_property(alpaka_CATCH2_INCLUDE_DIRS Catch2::Catch2 INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(${_COMMON_TARGET_NAME} SYSTEM INTERFACE ${alpaka_CATCH2_INCLUDE_DIRS})

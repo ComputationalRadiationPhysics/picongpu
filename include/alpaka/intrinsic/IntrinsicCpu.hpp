@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Unreachable.hpp"
 #include "alpaka/intrinsic/IntrinsicFallback.hpp"
 #include "alpaka/intrinsic/Traits.hpp"
@@ -18,7 +18,7 @@
 #    include <bit>
 #endif
 
-#if BOOST_COMP_MSVC
+#if ALPAKA_COMP_MSVC
 #    include <intrin.h>
 #endif
 
@@ -39,12 +39,12 @@ namespace alpaka
             {
 #ifdef __cpp_lib_bitops
                 return std::popcount(value);
-#elif BOOST_COMP_GNUC || BOOST_COMP_CLANG
+#elif ALPAKA_COMP_GNUC || ALPAKA_COMP_CLANG
                 if constexpr(sizeof(UnsignedIntegral) == 8)
                     return __builtin_popcountll(value);
                 else
                     return __builtin_popcount(value);
-#elif BOOST_COMP_MSVC
+#elif ALPAKA_COMP_MSVC
                 if constexpr(sizeof(UnsignedIntegral) == 8)
                     return static_cast<std::int32_t>(__popcnt64(value));
                 else
@@ -65,12 +65,12 @@ namespace alpaka
             {
 #ifdef __cpp_lib_bitops
                 return value == 0 ? 0 : std::countr_zero(static_cast<std::make_unsigned_t<Integral>>(value)) + 1;
-#elif BOOST_COMP_GNUC || BOOST_COMP_CLANG
+#elif ALPAKA_COMP_GNUC || ALPAKA_COMP_CLANG
                 if constexpr(sizeof(Integral) == 8)
                     return __builtin_ffsll(value);
                 else
                     return __builtin_ffs(value);
-#elif BOOST_COMP_MSVC
+#elif ALPAKA_COMP_MSVC
                 // Implementation based on
                 // https://gitlab.freedesktop.org/cairo/cairo/commit/f5167dc2e1a13d8c4e5d66d7178a24b9b5e7ac7a
                 unsigned long index = 0u;

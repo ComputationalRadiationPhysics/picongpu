@@ -5,7 +5,7 @@
 #pragma once
 
 #include "alpaka/block/sync/Traits.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Interface.hpp"
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
@@ -20,11 +20,11 @@ namespace alpaka
 
 #    if !defined(ALPAKA_HOST_ONLY)
 
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !ALPAKA_LANG_CUDA
 #            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #        endif
 
-#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !ALPAKA_LANG_HIP
 #            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #        endif
 
@@ -46,9 +46,16 @@ namespace alpaka
                 BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/,
                 int predicate) -> int
             {
-#        if defined(__HIP_ARCH_HAS_SYNC_THREAD_EXT__) && __HIP_ARCH_HAS_SYNC_THREAD_EXT__ == 0 && BOOST_COMP_HIP
+#        if defined(__HIP_ARCH_HAS_SYNC_THREAD_EXT__) && __HIP_ARCH_HAS_SYNC_THREAD_EXT__ == 0 && ALPAKA_COMP_HIP
+#            if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#                pragma clang diagnostic push
+#                pragma clang diagnostic ignored "-Wunique-object-duplication"
+#            endif
                 // workaround for unsupported syncthreads_* operation on AMD hardware without sync extension
                 __shared__ int tmp;
+#            if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#                pragma clang diagnostic pop
+#            endif
                 __syncthreads();
                 if(threadIdx.x == 0)
                     tmp = 0;
@@ -71,9 +78,16 @@ namespace alpaka
                 BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/,
                 int predicate) -> int
             {
-#        if defined(__HIP_ARCH_HAS_SYNC_THREAD_EXT__) && __HIP_ARCH_HAS_SYNC_THREAD_EXT__ == 0 && BOOST_COMP_HIP
+#        if defined(__HIP_ARCH_HAS_SYNC_THREAD_EXT__) && __HIP_ARCH_HAS_SYNC_THREAD_EXT__ == 0 && ALPAKA_COMP_HIP
+#            if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#                pragma clang diagnostic push
+#                pragma clang diagnostic ignored "-Wunique-object-duplication"
+#            endif
                 // workaround for unsupported syncthreads_* operation on AMD hardware without sync extension
                 __shared__ int tmp;
+#            if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#                pragma clang diagnostic pop
+#            endif
                 __syncthreads();
                 if(threadIdx.x == 0)
                     tmp = 1;
@@ -96,9 +110,16 @@ namespace alpaka
                 BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/,
                 int predicate) -> int
             {
-#        if defined(__HIP_ARCH_HAS_SYNC_THREAD_EXT__) && __HIP_ARCH_HAS_SYNC_THREAD_EXT__ == 0 && BOOST_COMP_HIP
+#        if defined(__HIP_ARCH_HAS_SYNC_THREAD_EXT__) && __HIP_ARCH_HAS_SYNC_THREAD_EXT__ == 0 && ALPAKA_COMP_HIP
+#            if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#                pragma clang diagnostic push
+#                pragma clang diagnostic ignored "-Wunique-object-duplication"
+#            endif
                 // workaround for unsupported syncthreads_* operation on AMD hardware without sync extension
                 __shared__ int tmp;
+#            if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 0, 0)
+#                pragma clang diagnostic pop
+#            endif
                 __syncthreads();
                 if(threadIdx.x == 0)
                     tmp = 0;

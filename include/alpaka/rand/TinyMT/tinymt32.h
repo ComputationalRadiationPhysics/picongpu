@@ -20,7 +20,7 @@
  * LICENSE.txt
  */
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 
 #include <cstdint>
 /* work-around for glibc < 2.18 according to bug
@@ -34,16 +34,16 @@
 #endif
 #include <cinttypes>
 
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wold-style-cast"
 #   pragma clang diagnostic ignored "-Wunused-function"
 #endif
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
     #pragma warning(push)
     #pragma warning(disable: 4100)  // tinymt32.h(60): warning C4100: 'random': unreferenced formal parameter
 #endif
@@ -416,13 +416,13 @@ void tinymt32_init_by_array(tinymt32_t * random, uint32_t init_key[],
 #undef MIN_LOOP
 #undef PRE_LOOP
 
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #   pragma clang diagnostic pop
 #endif
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #   pragma GCC diagnostic pop
 #endif
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #   pragma warning(pop)
 #endif
 

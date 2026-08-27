@@ -1,4 +1,4 @@
-/* Copyright 2024 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2025 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -30,14 +30,17 @@
 
 // Implementation details.
 #include "alpaka/acc/Tag.hpp"
-#include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/ClipCast.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/dev/DevCpu.hpp"
 
+#ifdef __cpp_lib_format
+#    include <format>
+#endif
 #include <memory>
+#include <string>
 #include <thread>
-#include <typeinfo>
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
 
@@ -71,7 +74,7 @@ namespace alpaka
         , public rand::RandStdLib
 #    endif
         , public warp::WarpSingleThread
-        , public interface::Implements<ConceptAcc, AccCpuThreads<TDim, TIdx>>
+        , public interface::Implements<InterfaceAcc, AccCpuThreads<TDim, TIdx>>
     {
         static_assert(
             sizeof(TIdx) >= sizeof(int),
@@ -180,7 +183,21 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccCpuThreads<" + std::to_string(TDim::value) + "," + core::demangled<TIdx> + ">";
+#    if ALPAKA_COMP_CLANG
+#        pragma clang diagnostic push
+#        pragma clang diagnostic ignored "-Wexit-time-destructors"
+#    endif
+                using namespace std::literals;
+                static std::string const accName =
+#    ifdef __cpp_lib_format
+                    std::format("AccCpuThreads<{},{}>", TDim::value, core::demangled<TIdx>);
+#    else
+                    "AccCpuThreads<"s + std::to_string(TDim::value) + ","s + std::string(core::demangled<TIdx>) + ">"s;
+#    endif
+                return accName;
+#    if ALPAKA_COMP_CLANG
+#        pragma clang diagnostic pop
+#    endif
             }
         };
 

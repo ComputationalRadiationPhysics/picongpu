@@ -5,7 +5,7 @@
 // NVCC needs --expt-extended-lambda
 #if !defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__))
 
-#    include <alpaka/core/BoostPredef.hpp>
+#    include <alpaka/core/Config.hpp>
 #    include <alpaka/kernel/Traits.hpp>
 #    include <alpaka/test/KernelExecutionFixture.hpp>
 #    include <alpaka/test/acc/TestAccs.hpp>
@@ -22,7 +22,7 @@ struct TestTemplateLambda
 
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
-#    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#    if ALPAKA_COMP_MSVC
 #        pragma warning(push)
 #        pragma warning(disable : 4702) // warning C4702: unreachable code
 #    endif
@@ -32,7 +32,7 @@ struct TestTemplateLambda
                 *success,
                 static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
         };
-#    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#    if ALPAKA_COMP_MSVC
 #        pragma warning(pop)
 #    endif
 

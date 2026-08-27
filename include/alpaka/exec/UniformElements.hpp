@@ -77,10 +77,8 @@ namespace alpaka
          * `N-1`.
          */
 
-        template<
-            typename TAcc,
-            std::size_t Dim,
-            typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+        template<concepts::Acc TAcc, std::size_t Dim>
+        requires(alpaka::Dim<TAcc>::value >= Dim)
         class UniformElementsAlong
         {
         public:
@@ -254,10 +252,8 @@ namespace alpaka
      *     to loop along the fastest, second-fastest, or third-fastest dimension.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value == 1>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value == 1)
     ALPAKA_FN_ACC inline auto uniformElements(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -270,11 +266,8 @@ namespace alpaka
      * that can infer the accelerator type from the argument.
      */
 
-    template<
-        std::size_t Dim,
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+    template<std::size_t Dim, concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value >= Dim)
     ALPAKA_FN_ACC inline auto uniformElementsAlong(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -287,30 +280,24 @@ namespace alpaka
      * dimensions.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto uniformElementsAlongX(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::UniformElementsAlong<TAcc, alpaka::Dim<TAcc>::value - 1>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 1)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 1)
     ALPAKA_FN_ACC inline auto uniformElementsAlongY(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::UniformElementsAlong<TAcc, alpaka::Dim<TAcc>::value - 2>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 2)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 2)
     ALPAKA_FN_ACC inline auto uniformElementsAlongZ(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -359,9 +346,8 @@ namespace alpaka
          * For more details, see `UniformElementsAlong<TAcc, Dim>(acc, ...)`.
          */
 
-        template<
-            typename TAcc,
-            typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+        template<concepts::Acc TAcc>
+        requires(alpaka::Dim<TAcc>::value > 0)
         class UniformElementsND
         {
         public:
@@ -588,17 +574,15 @@ namespace alpaka
      * `uniformElementsND(acc, ...)` is a shorthand for `detail::UniformElementsND<TAcc>(acc, ...)`.
      */
 
-    template<
-        typename TAcc,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto uniformElementsND(TAcc const& acc)
     {
         return detail::UniformElementsND<TAcc>(acc);
     }
 
-    template<
-        typename TAcc,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto uniformElementsND(
         TAcc const& acc,
         alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> extent)
@@ -662,10 +646,8 @@ namespace alpaka
          * `uniformGroupElementsAlong<Dim>`.
          */
 
-        template<
-            typename TAcc,
-            std::size_t Dim,
-            typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+        template<concepts::Acc TAcc, std::size_t Dim>
+        requires(alpaka::Dim<TAcc>::value >= Dim)
         class UniformGroupsAlong
         {
         public:
@@ -811,10 +793,8 @@ namespace alpaka
      *     along the fastest, second-fastest, or third-fastest dimension.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value == 1>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value == 1)
     ALPAKA_FN_ACC inline auto uniformGroups(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -827,11 +807,8 @@ namespace alpaka
      * can infer the accelerator type from the argument.
      */
 
-    template<
-        std::size_t Dim,
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+    template<std::size_t Dim, concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value >= Dim)
     ALPAKA_FN_ACC inline auto uniformGroupsAlong(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -844,30 +821,24 @@ namespace alpaka
      * dimensions.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto uniformGroupsAlongX(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::UniformGroupsAlong<TAcc, alpaka::Dim<TAcc>::value - 1>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 1)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 1)
     ALPAKA_FN_ACC inline auto uniformGroupsAlongY(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::UniformGroupsAlong<TAcc, alpaka::Dim<TAcc>::value - 2>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 2)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 2)
     ALPAKA_FN_ACC inline auto uniformGroupsAlongZ(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -928,10 +899,8 @@ namespace alpaka
          * `N-1`.
          */
 
-        template<
-            typename TAcc,
-            std::size_t Dim,
-            typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+        template<concepts::Acc TAcc, std::size_t Dim>
+        requires(alpaka::Dim<TAcc>::value >= Dim)
         class UniformGroupElementsAlong
         {
         public:
@@ -1078,10 +1047,8 @@ namespace alpaka
      *     dimension.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value == 1>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value == 1)
     ALPAKA_FN_ACC inline auto uniformGroupElements(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -1094,11 +1061,8 @@ namespace alpaka
      * Dim>(acc, ...)` that can infer the accelerator type from the argument.
      */
 
-    template<
-        std::size_t Dim,
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+    template<std::size_t Dim, concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value >= Dim)
     ALPAKA_FN_ACC inline auto uniformGroupElementsAlong(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -1111,30 +1075,24 @@ namespace alpaka
      * dimensions.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto uniformGroupElementsAlongX(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::UniformGroupElementsAlong<TAcc, alpaka::Dim<TAcc>::value - 1>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 1)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 1)
     ALPAKA_FN_ACC inline auto uniformGroupElementsAlongY(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::UniformGroupElementsAlong<TAcc, alpaka::Dim<TAcc>::value - 2>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 2)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 2)
     ALPAKA_FN_ACC inline auto uniformGroupElementsAlongZ(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;

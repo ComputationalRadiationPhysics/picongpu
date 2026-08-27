@@ -68,6 +68,12 @@ else
         travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install "${LIBOMP_PACKAGE}"
     fi
 
+    # Modern clang uses clang-linker-wrapper to create linked device images for offloading and the necessary runtime calls to register them
+    if { [ "${ALPAKA_CI_CLANG_VER}" -ge 20 ]; }
+    then
+        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-tools-${ALPAKA_CI_CLANG_VER}
+    fi
+
     which clang++-${ALPAKA_CI_CLANG_VER}
     export CMAKE_CXX_COMPILER=$(which clang++-${ALPAKA_CI_CLANG_VER})
 

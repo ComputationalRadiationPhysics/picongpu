@@ -1,10 +1,11 @@
-/* Copyright 2022 Andrea Bocci
+/* Copyright 2025 Andrea Bocci, Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
-#include <boost/predef.h>
+#include "alpaka/core/Config.hpp"
+#include "alpaka/core/UniformCudaHip.hpp"
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #    include <cuda_runtime_api.h>
@@ -15,7 +16,7 @@ namespace alpaka
     {
         // Names
         static constexpr char name[] = "Cuda";
-        static constexpr auto version = BOOST_PREDEF_MAKE_10_VVRRP(CUDART_VERSION);
+        static constexpr auto version = ALPAKA_LANG_CUDA;
 
         // Types
         using DeviceAttr_t = ::cudaDeviceAttr;
@@ -52,6 +53,9 @@ namespace alpaka
         static constexpr Flag_t hostMallocWriteCombined = cudaHostAllocWriteCombined;
         static constexpr Flag_t hostMallocCoherent = cudaHostAllocDefault; // Not supported.
         static constexpr Flag_t hostMallocNonCoherent = cudaHostAllocDefault; // Not supported.
+
+        static constexpr Flag_t memAttachGlobal = cudaMemAttachGlobal;
+        static constexpr Flag_t memAttachHost = cudaMemAttachHost;
 
         static constexpr Flag_t hostRegisterDefault = cudaHostRegisterDefault;
         static constexpr Flag_t hostRegisterPortable = cudaHostRegisterPortable;
@@ -182,14 +186,23 @@ namespace alpaka
         template<typename T>
         static inline Error_t funcGetAttributes(FuncAttributes_t* attr, T* func)
         {
-#    if BOOST_COMP_GNUC
+#    if ALPAKA_COMP_GNUC
 #        pragma GCC diagnostic push
 #        pragma GCC diagnostic ignored "-Wconditionally-supported"
 #    endif
             return ::cudaFuncGetAttributes(attr, reinterpret_cast<void const*>(func));
-#    if BOOST_COMP_GNUC
+#    if ALPAKA_COMP_GNUC
 #        pragma GCC diagnostic pop
 #    endif
+        }
+
+        static inline int getCurrentDevice()
+        {
+            int device;
+            using TApi = alpaka::ApiCudaRt;
+            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(::cudaGetDevice(&device));
+
+            return device;
         }
 
         static inline Error_t getDeviceCount(int* count)
@@ -285,6 +298,11 @@ namespace alpaka
             // Not implemented.
             return errorUnknown;
 #    endif
+        }
+
+        static inline Error_t mallocManaged(void** ptr, size_t size, Flag_t flags)
+        {
+            return ::cudaMallocManaged(ptr, size, flags);
         }
 
         static inline Error_t mallocPitch(void** devPtr, size_t* pitch, size_t width, size_t height)

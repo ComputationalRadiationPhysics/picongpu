@@ -10,6 +10,10 @@
 
 namespace alpaka::test
 {
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wnrvo"
+#endif
     template<typename TDim, typename TVal>
     inline constexpr auto extentBuf = []
     {
@@ -39,4 +43,7 @@ namespace alpaka::test
                 v[i] = 2 + i;
         return v;
     }();
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic pop
+#endif
 } // namespace alpaka::test

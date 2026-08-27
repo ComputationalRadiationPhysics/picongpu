@@ -234,11 +234,11 @@ namespace alpaka::trait
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#    include "alpaka/core/BoostPredef.hpp"
+#    include "alpaka/core/Config.hpp"
 
 #    include <cuda.h>
 
-#    if !BOOST_LANG_CUDA && !defined(ALPAKA_HOST_ONLY)
+#    if !ALPAKA_LANG_CUDA && !defined(ALPAKA_HOST_ONLY)
 #        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #    endif
 
@@ -476,9 +476,12 @@ namespace alpaka::trait
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
+#    if ALPAKA_COMP_HIP >= ALPAKA_VERSION_NUMBER(6, 2, 0) && ALPAKA_COMP_HIP < ALPAKA_VERSION_NUMBER(7, 0, 0)
+#        define HIP_ENABLE_WARP_SYNC_BUILTINS
+#    endif
 #    include <hip/hip_runtime.h>
 
-#    if !BOOST_LANG_HIP && !defined(ALPAKA_HOST_ONLY)
+#    if !ALPAKA_LANG_HIP && !defined(ALPAKA_HOST_ONLY)
 #        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #    endif
 

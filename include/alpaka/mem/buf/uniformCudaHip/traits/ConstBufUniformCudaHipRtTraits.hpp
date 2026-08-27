@@ -9,6 +9,7 @@
 #include "alpaka/mem/buf/cpu/BufCpu.hpp"
 #include "alpaka/mem/buf/uniformCudaHip/BufUniformCudaHipRt.hpp"
 #include "alpaka/mem/buf/uniformCudaHip/ConstBufUniformCudaHipRt.hpp"
+#include "alpaka/mem/view/Traits.hpp"
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
@@ -99,18 +100,16 @@ namespace alpaka::trait
         ALPAKA_FN_HOST auto operator()(ConstBufUniformCudaHipRt<TApi, TElem, TDim, TIdx> const& buf) const
             -> Vec<TDim, TIdx>
         {
-            Vec<TDim, TIdx> v{};
-            if constexpr(TDim::value > 0)
+            if constexpr(TDim::value <= 1)
             {
-                v.back() = sizeof(TElem);
-                if constexpr(TDim::value > 1)
-                {
-                    v[TDim::value - 2] = static_cast<TIdx>(buf.m_spBufImpl->m_rowPitchInBytes);
-                    for(TIdx i = TDim::value - 2; i > 0; i--)
-                        v[i - 1] = buf.m_spBufImpl->m_extentElements[i] * v[i];
-                }
+                return alpaka::detail::calculatePitchesFromExtents<TElem>(buf.m_spBufImpl->m_extentElements);
             }
-            return v;
+            else
+            {
+                return alpaka::detail::calculatePitchesFromExtentsAndPitch<TElem>(
+                    buf.m_spBufImpl->m_extentElements,
+                    buf.m_spBufImpl->m_rowPitchInBytes);
+            }
         }
     };
 

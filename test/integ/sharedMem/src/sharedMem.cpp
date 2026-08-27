@@ -95,10 +95,10 @@ namespace alpaka::trait
         ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
             SharedMemKernel<TnumUselessWork, Val> const& /* sharedMemKernel */,
             TVec const& blockThreadExtent,
-            TVec const& threadElemExtent,
+            TVec const& /* threadElemExtent */,
             TArgs&&...) -> std::size_t
         {
-            return static_cast<std::size_t>(blockThreadExtent.prod() * threadElemExtent.prod()) * sizeof(Val);
+            return static_cast<std::size_t>(blockThreadExtent.prod()) * sizeof(Val);
         }
     };
 } // namespace alpaka::trait

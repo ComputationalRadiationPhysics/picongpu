@@ -53,7 +53,7 @@ public:
         if(idx == 0)
         {
             vars[0] = 10;
-            alpaka::mem_fence(acc, alpaka::memory_scope::Device{});
+            alpaka::mem_fence(acc, alpaka::mem_order::release, alpaka::memory_scope::Device{});
             vars[1] = 20;
         }
     }
@@ -71,7 +71,7 @@ public:
         if(idx == 0)
         {
             auto const b = vars[1];
-            alpaka::mem_fence(acc, alpaka::memory_scope::Device{});
+            alpaka::mem_fence(acc, alpaka::mem_order::acquire, alpaka::memory_scope::Device{});
             auto const a = vars[0];
 
             // If the fence is working correctly, the following case can never happen
@@ -92,12 +92,12 @@ public:
         if(idx == 0)
         {
             vars[0] = 10;
-            alpaka::mem_fence(acc, alpaka::memory_scope::Grid{});
+            alpaka::mem_fence(acc, alpaka::mem_order::release, alpaka::memory_scope::Grid{});
             vars[1] = 20;
         }
 
         auto const b = vars[1];
-        alpaka::mem_fence(acc, alpaka::memory_scope::Grid{});
+        alpaka::mem_fence(acc, alpaka::mem_order::acquire, alpaka::memory_scope::Grid{});
         auto const a = vars[0];
 
         // If the fence is working correctly, the following case can never happen
@@ -126,16 +126,34 @@ public:
         if(idx == 0)
         {
             shared[0] = 10;
-            alpaka::mem_fence(acc, alpaka::memory_scope::Block{});
+            alpaka::mem_fence(acc, alpaka::mem_order::release, alpaka::memory_scope::Block{});
             shared[1] = 20;
         }
 
         auto const b = shared[1];
-        alpaka::mem_fence(acc, alpaka::memory_scope::Block{});
+        alpaka::mem_fence(acc, alpaka::mem_order::acquire, alpaka::memory_scope::Block{});
         auto const a = shared[0];
 
         // If the fence is working correctly, the following case can never happen
         ALPAKA_CHECK(*success, !(a == 1 && b == 20));
+    }
+};
+
+// Simply to test if compilation works
+struct FenceCompileTestKernel
+{
+    template<typename TAcc, typename T>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, T* vars) const -> void
+    {
+        vars[0] = 1;
+        alpaka::mem_fence(acc, alpaka::mem_order::relaxed, alpaka::memory_scope::Device{});
+        vars[1] = 2;
+        alpaka::mem_fence(acc, alpaka::mem_order::acq_rel, alpaka::memory_scope::Device{});
+        vars[0] = 3;
+        alpaka::mem_fence(acc, alpaka::mem_order::seq_cst, alpaka::memory_scope::Device{});
+        vars[1] = 4;
+        alpaka::mem_fence(acc, alpaka::memory_scope::Device{});
+        vars[0] = 5;
     }
 };
 
@@ -172,8 +190,8 @@ TEMPLATE_LIST_TEST_CASE("FenceTest", "[fence]", TestAccs)
     using Queue = alpaka::Queue<Dev, alpaka::property::NonBlocking>;
 
     // Fixtures with different number of blocks, threads and elements
-    const alpaka::Vec<Dim, Idx> one = {1};
-    const alpaka::Vec<Dim, Idx> two = {2};
+    alpaka::Vec<Dim, Idx> const one = {1};
+    alpaka::Vec<Dim, Idx> const two = {2};
     alpaka::test::KernelExecutionFixture<Acc> fixtureSingleElement{WorkDiv{one, one, one}};
     alpaka::test::KernelExecutionFixture<Acc> fixtureTwoBlocks{WorkDiv{two, one, one}};
     alpaka::test::KernelExecutionFixture<Acc> fixtureTwoElements
@@ -211,6 +229,8 @@ TEMPLATE_LIST_TEST_CASE("FenceTest", "[fence]", TestAccs)
     auto deviceKernelReader = DeviceFenceTestKernelReader{};
     auto workDiv = WorkDiv{one, one, one};
     alpaka::exec<Acc>(queue, workDiv, deviceKernelWriter, vars_dev.data());
+    alpaka::exec<Acc>(queue, workDiv, FenceCompileTestKernel{}, vars_dev.data());
+
     REQUIRE(fixtureSingleElement(deviceKernelReader, vars_dev.data()));
 
     alpaka::wait(queue);

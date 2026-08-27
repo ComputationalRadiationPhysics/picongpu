@@ -64,7 +64,8 @@ auto example(TAccTag const&) -> int
     using Idx = std::size_t;
 
     // Define the accelerator
-    using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;
+    using Tag = TAccTag;
+    using Acc = alpaka::TagToAcc<Tag, Dim, Idx>;
     std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
@@ -149,7 +150,7 @@ auto example(TAccTag const&) -> int
     // The queue can be blocking or non-blocking
     // depending on the chosen queue type (see type definitions above).
     // Here it is synchronous which means that the kernel is directly executed.
-    alpaka::exec<Acc>(
+    alpaka::exec<Tag>(
         queue,
         workDiv,
         helloWorldKernel

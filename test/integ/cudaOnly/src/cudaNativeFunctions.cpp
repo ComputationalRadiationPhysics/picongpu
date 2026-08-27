@@ -7,18 +7,18 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
+#if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && ALPAKA_LANG_CUDA
 
 //! Native CUDA function.
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wmissing-prototypes"
 #    endif
-__device__ auto userDefinedThreadFence() -> void
+__device__ static auto userDefinedThreadFence() -> void
 {
     __threadfence();
 }
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
 

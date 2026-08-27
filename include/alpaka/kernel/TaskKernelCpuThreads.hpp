@@ -13,7 +13,7 @@
 
 // Implementation details.
 #include "alpaka/acc/AccCpuThreads.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Decay.hpp"
 #include "alpaka/core/ThreadPool.hpp"
 #include "alpaka/dev/DevCpu.hpp"

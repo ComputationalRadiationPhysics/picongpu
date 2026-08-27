@@ -1,5 +1,5 @@
 /* Copyright 2025 Axel Huebl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Andrea Bocci, Jan Stephan,
- *                Bernhard Manfred Gruber
+ *                Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -7,8 +7,8 @@
 
 #include "alpaka/core/Align.hpp"
 #include "alpaka/core/Assert.hpp"
-#include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/Common.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Unreachable.hpp"
 #include "alpaka/dim/DimIntegralConst.hpp"
 #include "alpaka/dim/Traits.hpp"
@@ -108,22 +108,22 @@ namespace alpaka
             return all(static_cast<TVal>(1));
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto begin() -> TVal*
+        ALPAKA_FN_HOST_ACC constexpr auto begin() noexcept -> TVal*
         {
             return m_data;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto begin() const -> TVal const*
+        ALPAKA_FN_HOST_ACC constexpr auto begin() const noexcept -> TVal const*
         {
             return m_data;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto end() -> TVal*
+        ALPAKA_FN_HOST_ACC constexpr auto end() noexcept -> TVal*
         {
             return m_data + TDim::value;
         }
 
-        ALPAKA_FN_HOST_ACC constexpr auto end() const -> TVal const*
+        ALPAKA_FN_HOST_ACC constexpr auto end() const noexcept -> TVal const*
         {
             return m_data + TDim::value;
         }
@@ -260,7 +260,7 @@ namespace alpaka
         }
 
 // suppress strange warning produced by nvcc+MSVC in release mode
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #    pragma warning(push)
 #    pragma warning(disable : 4702) // unreachable code
 #endif
@@ -270,7 +270,7 @@ namespace alpaka
         {
             return foldrAll(std::multiplies<TVal>{}, TVal{1});
         }
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC
 #    pragma warning(pop)
 #endif
         //! \return The sum of all values.
@@ -382,6 +382,19 @@ namespace alpaka
             {
                 for(typename TDim::value_type i = 0; i < TDim::value; ++i)
                     r[i] = p[i] * q[i];
+            }
+            return r;
+        }
+
+        //! \return The element-wise product of a vector times a scalar.
+        ALPAKA_NO_HOST_ACC_WARNING
+        ALPAKA_FN_HOST_ACC friend constexpr auto operator*(Vec const& p, TVal const& q) -> Vec
+        {
+            Vec r;
+            if constexpr(TDim::value > 0)
+            {
+                for(typename TDim::value_type i = 0; i < TDim::value; ++i)
+                    r[i] = p[i] * q;
             }
             return r;
         }

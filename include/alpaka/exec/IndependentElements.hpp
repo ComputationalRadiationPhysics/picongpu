@@ -52,10 +52,8 @@ namespace alpaka
          * and block 3 will process group 3.
          */
 
-        template<
-            typename TAcc,
-            std::size_t Dim,
-            typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+        template<concepts::Acc TAcc, std::size_t Dim>
+        requires(alpaka::Dim<TAcc>::value >= Dim)
         class IndependentGroupsAlong
         {
         public:
@@ -186,10 +184,8 @@ namespace alpaka
      *     ...)` to loop along the fastest, second-fastest, or third-fastest dimension.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value == 1>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value == 1)
     ALPAKA_FN_ACC inline auto independentGroups(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -202,11 +198,8 @@ namespace alpaka
      * that can infer the accelerator type from the argument.
      */
 
-    template<
-        std::size_t Dim,
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+    template<std::size_t Dim, concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value >= Dim)
     ALPAKA_FN_ACC inline auto independentGroupsAlong(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -219,30 +212,24 @@ namespace alpaka
      * dimensions.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto independentGroupsAlongX(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::IndependentGroupsAlong<TAcc, alpaka::Dim<TAcc>::value - 1>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 1)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 1)
     ALPAKA_FN_ACC inline auto independentGroupsAlongY(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
         return detail::IndependentGroupsAlong<TAcc, alpaka::Dim<TAcc>::value - 2>(acc, static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 2)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 2)
     ALPAKA_FN_ACC inline auto independentGroupsAlongZ(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -258,10 +245,8 @@ namespace alpaka
          * Dim>(acc, ...)` that can infer the accelerator type from the argument.
          */
 
-        template<
-            typename TAcc,
-            std::size_t Dim,
-            typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+        template<concepts::Acc TAcc, std::size_t Dim>
+        requires(alpaka::Dim<TAcc>::value >= Dim)
         class IndependentGroupElementsAlong
         {
         public:
@@ -381,10 +366,8 @@ namespace alpaka
     /* independentGroupElements
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value == 1>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value == 1)
     ALPAKA_FN_ACC inline auto independentGroupElements(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -397,11 +380,8 @@ namespace alpaka
      * Dim>(acc, ...)` that can infer the accelerator type from the argument.
      */
 
-    template<
-        std::size_t Dim,
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value >= Dim>>
+    template<std::size_t Dim, concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value >= Dim)
     ALPAKA_FN_ACC inline auto independentGroupElementsAlong(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -414,10 +394,8 @@ namespace alpaka
      * dimensions.
      */
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 0)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 0)
     ALPAKA_FN_ACC inline auto independentGroupElementsAlongX(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -426,10 +404,8 @@ namespace alpaka
             static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 1)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 1)
     ALPAKA_FN_ACC inline auto independentGroupElementsAlongY(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -438,10 +414,8 @@ namespace alpaka
             static_cast<Idx>(args)...);
     }
 
-    template<
-        typename TAcc,
-        typename... TArgs,
-        typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and (alpaka::Dim<TAcc>::value > 2)>>
+    template<concepts::Acc TAcc, typename... TArgs>
+    requires(alpaka::Dim<TAcc>::value > 2)
     ALPAKA_FN_ACC inline auto independentGroupElementsAlongZ(TAcc const& acc, TArgs... args)
     {
         using Idx = alpaka::Idx<TAcc>;

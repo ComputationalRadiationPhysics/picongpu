@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/intrinsic/Traits.hpp"
 
@@ -20,11 +20,11 @@ namespace alpaka
 
 #    if !defined(ALPAKA_HOST_ONLY)
 
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !ALPAKA_LANG_CUDA
 #            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #        endif
 
-#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !ALPAKA_LANG_HIP
 #            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #        endif
 
@@ -37,7 +37,7 @@ namespace alpaka
                 -> std::int32_t
             {
                 // clang as CUDA compiler change the interface to unsigned values for clang >=18
-#        if BOOST_COMP_CLANG && BOOST_LANG_CUDA && BOOST_COMP_CLANG < BOOST_VERSION_NUMBER(18, 0, 0)
+#        if ALPAKA_COMP_CLANG && ALPAKA_LANG_CUDA && ALPAKA_COMP_CLANG < ALPAKA_VERSION_NUMBER(18, 0, 0)
                 return __popc(static_cast<int>(value));
 #        else
                 return static_cast<std::int32_t>(__popc(static_cast<unsigned int>(value)));
@@ -48,7 +48,7 @@ namespace alpaka
                 -> std::int32_t
             {
                 // clang as CUDA compiler change the interface to unsigned values for clang >=18
-#        if BOOST_COMP_CLANG && BOOST_LANG_CUDA && BOOST_COMP_CLANG < BOOST_VERSION_NUMBER(18, 0, 0)
+#        if ALPAKA_COMP_CLANG && ALPAKA_LANG_CUDA && ALPAKA_COMP_CLANG < ALPAKA_VERSION_NUMBER(18, 0, 0)
                 return __popcll(static_cast<long long>(value));
 #        else
                 return static_cast<std::int32_t>(__popcll(static_cast<unsigned long long>(value)));

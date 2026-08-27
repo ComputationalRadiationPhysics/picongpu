@@ -10,7 +10,8 @@
 #include <type_traits>
 
 // Create an accelerator-dependent work division for 1-dimensional kernels.
-template<typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc> and alpaka::Dim<TAcc>::value == 1>>
+template<alpaka::concepts::Acc TAcc>
+requires(alpaka::Dim<TAcc>::value == 1)
 inline auto makeWorkDiv(alpaka::Idx<TAcc> blocks, alpaka::Idx<TAcc> elements)
     -> alpaka::WorkDivMembers<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>>
 {
@@ -34,7 +35,7 @@ inline auto makeWorkDiv(alpaka::Idx<TAcc> blocks, alpaka::Idx<TAcc> elements)
 }
 
 // Create the accelerator-dependent workdiv for N-dimensional kernels.
-template<typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
+template<alpaka::concepts::Acc TAcc>
 inline auto makeWorkDiv(
     alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& blocks,
     alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& elements)

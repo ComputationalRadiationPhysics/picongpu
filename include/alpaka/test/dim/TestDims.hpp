@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/dim/DimIntegralConst.hpp"
 #include "alpaka/meta/Filter.hpp"
 #include "alpaka/meta/NonZero.hpp"

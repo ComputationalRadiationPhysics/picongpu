@@ -12,9 +12,9 @@ using Idx = std::uint32_t;
 #if defined(ALPAKA_ACC_CPU_SERIAL_ENABLED)
 using AccCpu = alpaka::AccCpuSerial<Dim, Idx>;
 #endif
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && ALPAKA_LANG_HIP
 using AccGpu = alpaka::AccGpuHipRt<Dim, Idx>;
-#elif defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
+#elif defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && ALPAKA_LANG_CUDA
 using AccGpu = alpaka::AccGpuCudaRt<Dim, Idx>;
 #endif
 
@@ -39,7 +39,8 @@ TEST_CASE("kernelNoTemplateCpu", "[kernel]")
 }
 #endif
 
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && ALPAKA_LANG_CUDA)                                                         \
+    || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && ALPAKA_LANG_HIP)
 struct KernelNoTemplateGpu
 {
     ALPAKA_FN_ACC
@@ -83,7 +84,8 @@ TEST_CASE("kernelUnusedTemplateParamCpu", "[kernel]")
 }
 #endif
 
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && ALPAKA_LANG_CUDA)                                                         \
+    || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && ALPAKA_LANG_HIP)
 struct KernelUnusedTemplateParamGpu
 {
     template<typename TNotUsed = void>

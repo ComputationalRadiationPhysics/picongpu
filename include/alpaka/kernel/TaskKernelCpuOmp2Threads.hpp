@@ -114,27 +114,21 @@ namespace alpaka
 // mapping is required. Therefore we use 'omp parallel' with the specified number of threads in a block.
 #    pragma omp parallel num_threads(iBlockThreadCount)
                     {
-                        // The guard is for gcc internal compiler error, as discussed in #735
-                        if constexpr((!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 1, 0)))
-                        {
 #    pragma omp single nowait
+                        {
+                            // The OpenMP runtime does not create a parallel region when only one thread is
+                            // required in the num_threads clause. In all other cases we expect to be in a parallel
+                            // region now.
+                            if((iBlockThreadCount > 1) && (::omp_in_parallel() == 0))
                             {
-                                // The OpenMP runtime does not create a parallel region when only one thread is
-                                // required in the num_threads clause. In all other cases we expect to be in a parallel
-                                // region now.
-                                if((iBlockThreadCount > 1) && (::omp_in_parallel() == 0))
-                                {
-                                    throw std::runtime_error(
-                                        "The OpenMP 2.0 runtime did not create a parallel region!");
-                                }
+                                throw std::runtime_error("The OpenMP 2.0 runtime did not create a parallel region!");
+                            }
 
-                                int const numThreads = ::omp_get_num_threads();
-                                if(numThreads != iBlockThreadCount)
-                                {
-                                    throw std::runtime_error(
-                                        "The OpenMP 2.0 runtime did not use the number of threads "
-                                        "that had been required!");
-                                }
+                            int const numThreads = ::omp_get_num_threads();
+                            if(numThreads != iBlockThreadCount)
+                            {
+                                throw std::runtime_error("The OpenMP 2.0 runtime did not use the number of threads "
+                                                         "that had been required!");
                             }
                         }
 

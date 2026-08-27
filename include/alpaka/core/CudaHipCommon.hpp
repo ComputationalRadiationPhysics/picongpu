@@ -20,9 +20,24 @@
 #    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #        include <cuda.h>
 #        include <cuda_runtime.h>
+#        if __has_include(<cuda/atomic>)
+#            define ALPAKA_CUDA_ATOMIC
+#            include <cuda/atomic>
+#            if ALPAKA_COMP_CLANG_CUDA && defined(_Float16)
+#                pragma clang diagnostic push
+#                pragma clang diagnostic ignored "-Wreserved-identifier"
+// We see errors when using clang as the CUDA compiler if TBB is also enabled
+// Errors occour inside TBB because the _Float16 macro is redefined and pulled in from <cuda/atomic>
+#                undef _Float16
+#                pragma clang diagnostic pop
+#            endif
+#        endif
 #    endif
 
 #    ifdef ALPAKA_ACC_GPU_HIP_ENABLED
+#        if ALPAKA_COMP_HIP >= ALPAKA_VERSION_NUMBER(6, 2, 0) && ALPAKA_COMP_HIP < ALPAKA_VERSION_NUMBER(7, 0, 0)
+#            define HIP_ENABLE_WARP_SYNC_BUILTINS
+#        endif
 #        include <hip/hip_runtime.h>
 #    endif
 
@@ -50,7 +65,7 @@ namespace alpaka
             ushort3
 // CUDA built-in variables have special types in clang native CUDA compilation
 // defined in cuda_builtin_vars.h
-#    if BOOST_COMP_CLANG_CUDA
+#    if ALPAKA_COMP_CLANG_CUDA
             ,
             __cuda_builtin_threadIdx_t,
             __cuda_builtin_blockIdx_t,
@@ -58,8 +73,36 @@ namespace alpaka
             __cuda_builtin_gridDim_t
 #    endif
             >;
-        using CudaHipBuiltinTypes4 = std::
-            tuple<char4, double4, float4, int4, long4, longlong4, short4, uchar4, uint4, ulong4, ulonglong4, ushort4>;
+        using CudaHipBuiltinTypes4 = std::tuple<
+            char4,
+            float4,
+            int4,
+            short4,
+            uchar4,
+            uint4,
+            ushort4,
+        // double4, long4, longlong4, ulong4, ulonglong4 is deprecated in
+        // CUDA 13.0 and will be removed in CUDA 14.0
+#    if defined(CUDART_VERSION) && (ALPAKA_VVRRP_TO_VERSION(CUDART_VERSION) >= ALPAKA_VERSION_NUMBER(13, 0, 0))
+            double4_16a,
+            double4_32a,
+            long4_16a,
+            long4_32a,
+            longlong4_16a,
+            longlong4_32a,
+            ulong4_16a,
+            ulong4_32a,
+            ulonglong4_16a,
+            ulonglong4_32a
+#    else
+            double4,
+            long4,
+            longlong4,
+            ulong4,
+            ulonglong4
+#    endif
+            >;
+
         using CudaHipBuiltinTypes = meta::
             Concatenate<CudaHipBuiltinTypes1, CudaHipBuiltinTypes2, CudaHipBuiltinTypes3, CudaHipBuiltinTypes4>;
 

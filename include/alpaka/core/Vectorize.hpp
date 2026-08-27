@@ -16,13 +16,12 @@
 //!  for(...){...}`
 // \TODO: Implement for other compilers.
 // See: http://stackoverflow.com/questions/2706286/pragmas-swp-ivdep-prefetch-support-in-various-compilers
-/*#if BOOST_COMP_HPACC
-    #define ALPAKA_VECTORIZE_HINT(...)  _Pragma("ivdep")
-#elif BOOST_COMP_PGI
+/*
+#if ALPAKA_COMP_PGI
     #define ALPAKA_VECTORIZE_HINT(...)  _Pragma("vector")
-#elif BOOST_COMP_MSVC
+#elif ALPAKA_COMP_MSVC
     #define ALPAKA_VECTORIZE_HINT(...)  __pragma(loop(ivdep))
-#elif BOOST_COMP_GNUC
+#elif ALPAKA_COMP_GNUC
     #define ALPAKA_VECTORIZE_HINT(...)  _Pragma("GCC ivdep")
 #else
     #define ALPAKA_VECTORIZE_HINT(...)

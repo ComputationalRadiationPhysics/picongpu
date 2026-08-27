@@ -1,4 +1,4 @@
-/* Copyright 2025 Anton Reinhard
+/* Copyright 2025 Jan Stephan, Luca Ferragina, Aurora Perego, Andrea Bocci, Anton Reinhard, Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -6,6 +6,7 @@
 
 #include "alpaka/mem/buf/Traits.hpp"
 #include "alpaka/mem/buf/sycl/BufGenericSycl.hpp"
+#include "alpaka/queue/sycl/QueueGenericSyclBase.hpp"
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
@@ -195,8 +196,76 @@ namespace alpaka::trait
 
     //! The BufGenericSycl stream-ordered memory allocation capability trait specialization.
     template<typename TDim, concepts::Tag TTag>
-    struct HasAsyncBufSupport<TDim, DevGenericSycl<TTag>> : std::false_type
+    struct HasAsyncBufSupport<TDim, DevGenericSycl<TTag>> : std::true_type
     {
+    };
+
+    //! The BufGenericSycl stream-ordered memory allocation trait specialization.
+    template<typename TElem, typename TDim, typename TIdx, concepts::Tag TTag>
+    struct AsyncBufAlloc<TElem, TDim, TIdx, DevGenericSycl<TTag>>
+    {
+        template<bool TBlocking, typename TExtent>
+        ALPAKA_FN_HOST static auto allocAsyncBuf(
+            alpaka::detail::QueueGenericSyclBase<TTag, TBlocking> queue,
+            TExtent const& extent) -> BufGenericSycl<TElem, TDim, TIdx, TTag>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+            if constexpr(TDim::value == 0)
+                std::cout << __func__ << " ewb: " << sizeof(TElem) << '\n';
+            else if constexpr(TDim::value == 1)
+            {
+                auto const width = getWidth(extent);
+
+                auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
+                std::cout << __func__ << " ew: " << width << " ewb: " << widthBytes << '\n';
+            }
+            else if constexpr(TDim::value == 2)
+            {
+                auto const width = getWidth(extent);
+                auto const height = getHeight(extent);
+
+                auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
+                std::cout << __func__ << " ew: " << width << " eh: " << height << " ewb: " << widthBytes
+                          << " pitch: " << widthBytes << '\n';
+            }
+            else if constexpr(TDim::value == 3)
+            {
+                auto const width = getWidth(extent);
+                auto const height = getHeight(extent);
+                auto const depth = getDepth(extent);
+
+                auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
+                std::cout << __func__ << " ew: " << width << " eh: " << height << " ed: " << depth
+                          << " ewb: " << widthBytes << " pitch: " << widthBytes << '\n';
+            }
+#    endif
+
+            sycl::queue q = queue.getNativeHandle();
+            TElem* memPtr = sycl::malloc_device<TElem>(static_cast<std::size_t>(getExtentProduct(extent)), q);
+            auto deleter = [q](TElem* ptr) mutable
+            {
+                if constexpr(TBlocking)
+                {
+                    // If the queue is blocking, all operations submitted when the buffer goes out of scope should
+                    // always have completed. Free the memory immediately, and wait for the free operation to complete.
+                    // From SYCL 4.8.3.6: Note: Whether free is blocking or non-blocking is unspecified. Applications
+                    // should not rely on free for synchronization, nor assume that free cannot cause deadlocks.
+                    sycl::free(ptr, q);
+                    q.wait();
+                }
+                else
+                {
+                    // If the queue is non-blocking, enqueue the free() operation in a host_task.
+                    q.submit([&](sycl::handler& cgh) { //
+                        cgh.host_task([=]() { sycl::free(ptr, q); });
+                    });
+                }
+            };
+
+            return BufGenericSycl<TElem, TDim, TIdx, TTag>(getDev(queue), memPtr, std::move(deleter), extent);
+        }
     };
 
     //! The pinned/mapped memory allocation capability trait specialization.
@@ -221,6 +290,30 @@ namespace alpaka::trait
             // accessible to all devices in the SYCL platform.
             auto ctx = platform.syclContext();
             TElem* memPtr = sycl::malloc_host<TElem>(static_cast<std::size_t>(getExtentProduct(extent)), ctx);
+            auto deleter = [ctx](TElem* ptr) { sycl::free(ptr, ctx); };
+
+            return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);
+        }
+    };
+
+    //! The unified/managed memory allocation trait specialization for the SYCL devices.
+    template<concepts::Tag TTag, typename TElem, typename TDim, typename TIdx>
+    struct BufAllocManaged<PlatformGenericSycl<TTag>, TElem, TDim, TIdx>
+    {
+        template<typename TExtent>
+        ALPAKA_FN_HOST static auto allocManagedBuf(
+            DevCpu const& host,
+            PlatformGenericSycl<TTag> const& platform,
+            TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            // Allocate SYCL managed (unified) memory,
+            // accessible to all devices in the SYCL platform.
+            auto devices = platform.syclDevices();
+            auto dev = devices.front(); // sycl::device
+            auto ctx = platform.syclContext();
+            TElem* memPtr = sycl::malloc_shared<TElem>(static_cast<std::size_t>(getExtentProduct(extent)), dev, ctx);
             auto deleter = [ctx](TElem* ptr) { sycl::free(ptr, ctx); };
 
             return BufCpu<TElem, TDim, TIdx>(host, memPtr, std::move(deleter), extent);

@@ -85,12 +85,23 @@ fi
 
 alpaka_CHECK_HEADERS=$ALPAKA_CI_ANALYSIS
 
+if [ ! -z "${ALPAKA_CI_BOOST_LIB_DIR+x}" ]  && [ ! -z "${BOOST_ROOT+x}" ]; then
+    _BOOST_CONFIG=($(env2cmake BOOST_ROOT)
+    -DBoost_DIR="${ALPAKA_CI_BOOST_LIB_DIR}/lib/cmake/Boost-${ALPAKA_BOOST_VERSION}"
+    -DBOOST_LIBRARYDIR="${ALPAKA_CI_BOOST_LIB_DIR}/lib"
+    -DBoost_USE_STATIC_LIBS=ON
+    -DBoost_USE_MULTITHREADED=ON
+    -DBoost_USE_STATIC_RUNTIME=OFF
+    -DBoost_ARCHITECTURE="-x64"
+    )
+fi
+
 mkdir -p build/
 cd build/
 
 "${ALPAKA_CI_CMAKE_EXECUTABLE}" --log-level=VERBOSE -G "${ALPAKA_CI_CMAKE_GENERATOR}" ${ALPAKA_CI_CMAKE_GENERATOR_PLATFORM}\
     -Dalpaka_BUILD_EXAMPLES=ON -DBUILD_TESTING=ON -Dalpaka_BUILD_BENCHMARKS=ON $(env2cmake alpaka_ENABLE_WERROR) \
-    $(env2cmake BOOST_ROOT) -DBOOST_LIBRARYDIR="${ALPAKA_CI_BOOST_LIB_DIR}/lib" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF -DBoost_ARCHITECTURE="-x64" \
+    ${_BOOST_CONFIG[@]} \
     $(env2cmake CMAKE_BUILD_TYPE) "$(env2cmake CMAKE_CXX_FLAGS)" $(env2cmake CMAKE_CXX_COMPILER) "$(env2cmake CMAKE_EXE_LINKER_FLAGS)" $(env2cmake CMAKE_CXX_EXTENSIONS)\
     $(env2cmake alpaka_ACC_CPU_B_SEQ_T_SEQ_ENABLE) $(env2cmake alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE) \
     $(env2cmake alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE) \
@@ -101,6 +112,7 @@ cd build/
     $(env2cmake alpaka_CUDA_SHOW_REGISTER) $(env2cmake alpaka_CUDA_KEEP_FILES) $(env2cmake alpaka_CUDA_EXPT_EXTENDED_LAMBDA) \
     $(env2cmake alpaka_ACC_GPU_HIP_ENABLE) $(env2cmake alpaka_ACC_GPU_HIP_ONLY_MODE) $(env2cmake CMAKE_HIP_ARCHITECTURES) $(env2cmake CMAKE_HIP_COMPILER) "$(env2cmake CMAKE_HIP_FLAGS)" \
     $(env2cmake alpaka_ACC_SYCL_ENABLE) $(env2cmake alpaka_SYCL_ONEAPI_CPU) $(env2cmake alpaka_SYCL_ONEAPI_CPU_ISA) \
+    $(env2cmake alpaka_SYCL_ONEAPI_GPU) $(env2cmake alpaka_SYCL_ONEAPI_GPU_DEVICES) \
     $(env2cmake alpaka_SYCL_ONEAPI_FPGA) $(env2cmake alpaka_SYCL_ONEAPI_FPGA_MODE) $(env2cmake alpaka_SYCL_ONEAPI_FPGA_BOARD) "$(env2cmake alpaka_SYCL_ONEAPI_FPGA_BSP)" \
     $(env2cmake alpaka_DEBUG) $(env2cmake alpaka_CI) $(env2cmake alpaka_CHECK_HEADERS) $(env2cmake alpaka_CXX_STANDARD) $(env2cmake alpaka_USE_MDSPAN) $(env2cmake CMAKE_INSTALL_PREFIX) \
     ..

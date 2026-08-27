@@ -64,12 +64,6 @@ namespace alpaka::detail
             meta->offset = m_allocdBytes;
         }
 
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored                                                                                    \
-        "-Wcast-align" // "cast from 'unsigned char*' to 'unsigned int*' increases required alignment of target type"
-#endif
-
         //! Give the pointer to an exiting variable
         //!
         //! @tparam T type of the variable
@@ -89,11 +83,12 @@ namespace alpaka::detail
                     = varChunkEnd<MetaData>(off) - static_cast<std::uint32_t>(sizeof(MetaData));
                 ALPAKA_ASSERT_ACC(
                     (alignedMetaDataOffset + static_cast<std::uint32_t>(sizeof(MetaData))) <= m_allocdBytes);
-                auto* metaDataPtr = reinterpret_cast<MetaData*>(m_mem + alignedMetaDataOffset);
+                auto* metaDataPtr = reinterpret_cast<MetaData*>(
+                    __builtin_assume_aligned(m_mem + alignedMetaDataOffset, alignof(MetaData)));
                 off = metaDataPtr->offset;
 
                 if(metaDataPtr->id == id)
-                    return reinterpret_cast<T*>(&m_mem[off - sizeof(T)]);
+                    return reinterpret_cast<T*>(__builtin_assume_aligned(&m_mem[off - sizeof(T)], alignof(T)));
             }
 
             // Variable not found.
@@ -104,14 +99,10 @@ namespace alpaka::detail
         template<typename T>
         auto getLatestVarPtr() const -> T*
         {
-            return reinterpret_cast<T*>(&m_mem[m_allocdBytes - sizeof(T)]);
+            return reinterpret_cast<T*>(__builtin_assume_aligned(&m_mem[m_allocdBytes - sizeof(T)], alignof(T)));
         }
 
     private:
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
-
         //! Byte offset to the end of the memory chunk
         //!
         //! Calculate bytes required to store a type with a aligned starting address in m_mem.

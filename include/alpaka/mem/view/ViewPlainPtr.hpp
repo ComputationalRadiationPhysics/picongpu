@@ -20,7 +20,7 @@ namespace alpaka
 {
     //! The memory view to wrap plain pointers.
     template<typename TDev, typename TElem, typename TDim, typename TIdx>
-    struct ViewPlainPtr final : internal::ViewAccessOps<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
+    struct ViewPlainPtr final : internal::ViewAccessorType<TDev, ViewPlainPtr<TDev, TElem, TDim, TIdx>>
     {
         static_assert(!std::is_const_v<TIdx>, "The idx type of the view can not be const!");
 

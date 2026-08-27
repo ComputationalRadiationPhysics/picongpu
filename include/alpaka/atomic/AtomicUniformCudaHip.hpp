@@ -5,7 +5,7 @@
 #pragma once
 
 #include "alpaka/atomic/Op.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Positioning.hpp"
 #include "alpaka/core/Utility.hpp"
 
@@ -26,17 +26,17 @@ namespace alpaka
 
 #    if !defined(ALPAKA_HOST_ONLY)
 
-#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !ALPAKA_LANG_CUDA
 #            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #        endif
 
-#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !ALPAKA_LANG_HIP
 #            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #        endif
 
 //! clang is providing a builtin for different atomic functions even if these is not supported for architectures < 6.0
 #        define CLANG_CUDA_PTX_WORKAROUND                                                                             \
-            (BOOST_COMP_CLANG && BOOST_LANG_CUDA && BOOST_ARCH_PTX < BOOST_VERSION_NUMBER(6, 0, 0))
+            (ALPAKA_COMP_CLANG && ALPAKA_LANG_CUDA && ALPAKA_ARCH_PTX < ALPAKA_VERSION_NUMBER(6, 0, 0))
 
 //! These types must be in the global namespace for checking existence of respective functions in global namespace via
 //! SFINAE, so we use inline namespace.
@@ -136,7 +136,7 @@ inline namespace alpakaGlobal
     };
 #        endif
 
-#        if(BOOST_LANG_HIP)
+#        if(ALPAKA_LANG_HIP)
     // HIP shows bad performance with builtin atomicAdd(float*,float) for the hierarchy threads therefore we do not
     // call the buildin method and instead use the atomicCAS emulation. For details see:
     // https://github.com/alpaka-group/alpaka/issues/1657
@@ -210,7 +210,7 @@ inline namespace alpakaGlobal
 #        endif
 
 // disable HIP atomicMin: see https://github.com/ROCm-Developer-Tools/hipamd/pull/40
-#        if(BOOST_LANG_HIP)
+#        if(ALPAKA_LANG_HIP)
     template<typename THierarchy>
     struct AlpakaBuiltInAtomic<alpaka::AtomicMin, float, THierarchy> : std::false_type
     {
@@ -277,7 +277,7 @@ inline namespace alpakaGlobal
 #        endif
 
     // disable HIP atomicMax: see https://github.com/ROCm-Developer-Tools/hipamd/pull/40
-#        if(BOOST_LANG_HIP)
+#        if(ALPAKA_LANG_HIP)
     template<typename THierarchy>
     struct AlpakaBuiltInAtomic<alpaka::AtomicMax, float, THierarchy> : std::false_type
     {

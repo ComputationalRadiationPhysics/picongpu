@@ -8,53 +8,38 @@
       "orcid": "0000-0002-6515-5666"
     },
     {
-      "name": "Ehrig, Simeon",
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0002-8218-3116"
-    },
-    {
-      "name": "Erdem, Sven",
-      "affiliation": "Helmholtz-Zentrum Berlin"
-    },
-    {
-      "name": "Fila, Mateusz Jakub",
-      "affiliation": "CERN"
-    },
-    {
-      "name": "Gruber, Bernhard Manfred",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf, CERN",
-      "orcid": "0000-0001-7848-1690"
-    },
-    {
-      "name": "Lenz, Julian",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0001-5250-0005"
-    },
-    {
-      "name": "Perego, Aurora",
-      "affiliation": "CERN",
-      "orcid": "0009-0002-5210-6213"
-    },
-    {
-      "name": "Varvarin, Michael",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf"
-    },
-    {
-      "name": "Vyskočil, Jiří",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0001-8822-0929"
-    },
-    {
       "name": "Widera, René",
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
       "orcid": "0000-0003-1642-0459"
     },
     {
-      "name": "Yusufoglu, Mehmet",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf"
+      "name": "Balducci, Simone",
+      "affiliation": "CERN",
+      "orcid": "0009-0001-0186-755X"
+    },
+    {
+      "name": "Ehrig, Simeon",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0002-8218-3116"
+    },
+    {
+      "name": "Michailidi, Maria",
+      "affiliation": "CERN",
+      "orcid": "0009-0009-7518-3896"
+    },
+    {
+      "name": "Perego, Aurora",
+      "affiliation": "CERN",
+      "orcid": "0009-0002-5210-6213"
     }
   ],
   "contributors": [
+    {
+      "name": "Almarzouqi, Abdulrahman",
+      "affiliation": "University of Bahrain",
+      "orcid": "0009-0001-7712-8139",
+      "type": "Other"
+    },
     {
       "name": "Bastrakov, Sergei",
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
@@ -79,13 +64,29 @@
       "type": "Other"
     },
     {
+      "name": "Erdem, Sven",
+      "affiliation": "Helmholtz-Zentrum Berlin",
+      "type": "Other"
+    },
+    {
       "name": "Ferragina, Luca",
+      "affiliation": "CERN",
+      "type": "Other"
+    },
+    {
+      "name": "Fila, Mateusz Jakub",
       "affiliation": "CERN",
       "type": "Other"
     },
     {
       "name": "Gehrke, Valentin",
       "affiliation": "TU Dresden",
+      "type": "Other"
+    },
+    {
+      "name": "Gruber, Bernhard Manfred",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf, CERN",
+      "orcid": "0000-0001-7848-1690",
       "type": "Other"
     },
     {
@@ -116,6 +117,12 @@
       "type": "Other"
     },
     {
+      "name": "Lenz, Julian",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-5250-0005",
+      "type": "Other"
+    },
+    {
       "name": "Martin-Haugh, Stewart",
       "affiliation": "STFC Rutherford Appleton Laboratory",
       "orcid": "0000-0001-9457-1928",
@@ -133,6 +140,12 @@
       "type": "Other"
     },
     {
+      "name": "Narwal, Tapish",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0002-5726-2330",
+      "type": "Other"
+    },
+    {
       "name": "Nash, Phil",
       "affiliation": "JetBrains",
       "type": "Other"
@@ -141,6 +154,12 @@
       "name": "Pantaleo, Felice",
       "affiliation": "CERN",
       "orcid": "0000-0003-3266-4357",
+      "type": "Other"
+    },
+    {
+      "name": "Reinhard, Anton",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0009-0004-6483-2137",
       "type": "Other"
     },
     {
@@ -171,8 +190,19 @@
       "type": "Other"
     },
     {
+      "name": "Varvarin, Michael",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "type": "Other"
+    },
+    {
       "name": "Vollmer, Daniel",
       "affiliation": "Deutsches Zentrum für Luft- und Raumfahrt e.V.",
+      "type": "Other"
+    },
+    {
+      "name": "Vyskočil, Jiří",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-8822-0929",
       "type": "Other"
     },
     {
@@ -181,8 +211,8 @@
       "type": "Other"
     },
     {
-      "name":"Wesarg, Bert",
-      "affiliation":"TU Dresden",
+      "name": "Wesarg, Bert",
+      "affiliation": "TU Dresden",
       "type": "Other"
     },
     {
@@ -194,6 +224,11 @@
       "name": "Young, Jeffrey",
       "affiliation": "Georgia Institute of Technology",
       "orcid": "0000-0001-9841-4057",
+      "type": "Other"
+    },
+    {
+      "name": "Yusufoglu, Mehmet",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
       "type": "Other"
     },
     {
@@ -210,9 +245,11 @@
   ],
   "access_right": "open",
   "keywords": [
+    "C++20",
     "HPC",
     "CUDA",
     "OpenMP",
+    "Sycl",
     "C++",
     "GPU",
     "HIP",

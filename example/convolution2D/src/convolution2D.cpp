@@ -78,131 +78,6 @@ struct ConvolutionKernel2DGlobalMemory
     }
 };
 
-/**
- * @brief ConvolutionKernel2DSharedMemory struct. The kernel for 2D Convolutional Filter, uses
- tiling method. Tiles of matrix are kept in the shared memory. Block
- dimensions are equal to tile dimensions.
- */
-struct ConvolutionKernel2DSharedMemory
-{
-    //! \tparam TAcc Accelerator type
-    //! \tparam TElem The input-matrix and filter-matrix element type
-    //! \param acc Accelerator
-    //! \param input Input matrix
-    //! \param output Output matrix
-    //! \param matrixWidth Input matrix width
-    //! \param matrixHeight Input matrix height
-    //! \param filter Filter-matrix
-    //! \param filterWidth Filter-matrix width
-    //! \param intputWidthAllocated Input-matrix width allocated (possibly larger than normal width due to paddding
-    //! \param filterWidthAllocated Filter-matrix width allocated (possibly larger than normal width due to paddding
-
-    template<typename TAcc, typename TElem>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const& acc,
-        TElem const* const input,
-        TElem* output,
-        int32_t const matrixWidth,
-        int32_t const matrixHeight,
-        TElem const* const filter,
-        int32_t const filterWidth,
-        int32_t const intputWidthAllocated,
-        int32_t const filterWidthAllocated) const -> void
-    {
-        auto const [row, col] = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        // Get extents(dimensions)
-        auto const gridBlockExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
-        auto const blockThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
-        // Get indexes
-        auto const blockThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
-        auto const blockThreadIdx1D = alpaka::mapIdx<1u>(blockThreadIdx, blockThreadExtent)[0u];
-        // Get elements from 2-element arrays
-        auto const [blockThreadExtentY, blockThreadExtentX] = blockThreadExtent;
-        auto const [blockThreadY, blockThreadX] = blockThreadIdx;
-        auto const [gridBlockExtentY, gridBlockExtentX] = gridBlockExtent;
-        // Allocate shared memory
-        auto* const sharedN = alpaka::getDynSharedMem<TElem>(acc);
-        // Fill shared memory of device so that tile items are accessed from shared memory
-        if(row < matrixHeight && col < matrixWidth && blockThreadIdx1D < blockThreadExtent.prod())
-        {
-            sharedN[blockThreadIdx1D] = input[row * intputWidthAllocated + col];
-        }
-        else if(blockThreadIdx1D < blockThreadExtent.prod())
-        {
-            sharedN[blockThreadIdx1D] = 0.0f;
-        }
-
-        // Wait for the block fills the shared memory with the tile of the main matrix
-        alpaka::syncBlockThreads(acc);
-
-        if(col < matrixWidth && row < matrixHeight)
-        {
-            TElem pValue{0.0f};
-            for(int32_t fRow = 0; fRow < filterWidth; fRow++)
-            {
-                for(int32_t fCol = 0; fCol < filterWidth; fCol++)
-                {
-                    // Position of input matrix element to be multiplied with the corresponding element at the filter.
-                    // The position is with respect to tile(block)
-                    auto const exactRowBlock = static_cast<int32_t>(blockThreadY) - filterWidth / 2 + fRow;
-                    auto const exactColBlock = static_cast<int32_t>(blockThreadX) - filterWidth / 2 + fCol;
-                    if(exactColBlock >= 0 && exactColBlock < blockThreadExtentX && exactRowBlock >= 0
-                       && exactRowBlock < blockThreadExtentY)
-                    {
-                        // The element is inside the tile. Get the element from the shared memory
-                        pValue += filter[fRow * filterWidthAllocated + fCol]
-                                  * sharedN[exactRowBlock * blockThreadExtentX + exactColBlock];
-                    }
-                    else
-                    { // The element is not in the tile(block)
-                        // Position of input matrix element to be multiplied with the corresponding element at the
-                        // filter. The position is with respect to the input matrix
-                        auto const exactRow = static_cast<int32_t>(row) - filterWidth / 2 + fRow;
-                        auto const exactCol = static_cast<int32_t>(col) - filterWidth / 2 + fCol;
-                        if(exactRow >= 0 && exactRow < matrixHeight && exactCol >= 0 && exactCol < matrixWidth)
-                        {
-                            // get the item from the global memory, use padded width!
-                            pValue += filter[fRow * filterWidthAllocated + fCol]
-                                      * input[exactRow * intputWidthAllocated + exactCol];
-                        }
-                    }
-                }
-            }
-            output[row * matrixWidth + col] = pValue;
-        } // if
-    }
-};
-
-// The specialisation used for calculation of dynamic shared memory size
-namespace alpaka::trait
-{
-    //! The trait for getting the size of the block shared dynamic memory for a kernel.
-    template<typename TAcc>
-    struct BlockSharedMemDynSizeBytes<ConvolutionKernel2DSharedMemory, TAcc>
-    {
-        //! \tparam TVec type for extent array
-        //! \tparam TElem element type of the matrix
-        //! \return The size of the shared memory allocated for a block.
-        template<typename TVec, typename TElem>
-        ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
-            ConvolutionKernel2DSharedMemory const& /* matMulKernel */,
-            TVec const& blockThreadExtent, // dimensions of thread per block
-            TVec const& threadElemExtent, // dimensions of elements per thread
-            TElem const* const, // input Matrix
-            TElem*, // output array
-            int32_t const, // matrixWidth
-            int32_t const, // matrixHeight
-            TElem const* const, // filter
-            int32_t const, // filter width
-            int32_t const, // allocated input width
-            int32_t const) // allocated filter width
-        {
-            // Reserve the buffer, buffers size is the number of elements in a block (tile)
-            return static_cast<std::size_t>(blockThreadExtent.prod() * threadElemExtent.prod()) * sizeof(TElem);
-        }
-    };
-} // namespace alpaka::trait
-
 auto FuzzyEqual(float a, float b) -> bool
 {
     return std::fabs(a - b) < std::numeric_limits<float>::epsilon() * 1000.0f;
@@ -301,9 +176,7 @@ auto example(TAccTag const&) -> int
         return static_cast<Idx>(rowPitchFilter / sizeof(DataType));
     }();
 
-    //  Construct kernel object, choose on of the kernels provided. ConvolutionKernel2DGlobalMemory and
-    //  ConvolutionKernel2DSharedMemory
-    ConvolutionKernel2DSharedMemory convolutionKernel2D;
+    ConvolutionKernel2DGlobalMemory convolutionKernel2D;
 
     alpaka::KernelCfg<DevAcc> kernelCfg = {extent, Vec::ones()};
 

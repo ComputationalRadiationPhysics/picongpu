@@ -1,17 +1,23 @@
-
 #include "babelStreamCommon.hpp"
-#include "catch2/catch_session.hpp"
 
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
 #include <catch2/benchmark/catch_benchmark.hpp>
+#include <catch2/catch_session.hpp>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdint>
+#include <iostream>
 #include <iterator>
+#include <numeric>
 #include <string>
+#include <type_traits>
+#include <vector>
 
 /**
  * Babelstream benchmarking example. Babelstream has 5 kernels. Add, Multiply, Copy, Triad and Dot. NStream is

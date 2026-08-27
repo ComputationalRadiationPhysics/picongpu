@@ -1,4 +1,4 @@
-/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Bernhard Manfred Gruber,
+/* Copyright 2025 Axel Hübl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera, Bernhard Manfred Gruber,
  *                Jan Stephan, Antonio Di Pilato, Luca Ferragina, Aurora Perego, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
@@ -21,10 +21,14 @@
 #include "alpaka/acc/AccGenericSycl.hpp"
 #include "alpaka/acc/AccGpuCudaRt.hpp"
 #include "alpaka/acc/AccGpuHipRt.hpp"
+#include "alpaka/acc/AccGpuSyclAmd.hpp"
 #include "alpaka/acc/AccGpuSyclIntel.hpp"
+#include "alpaka/acc/AccGpuSyclNvidia.hpp"
 #include "alpaka/acc/Tag.hpp"
 #include "alpaka/acc/TagAccIsEnabled.hpp"
 #include "alpaka/acc/Traits.hpp"
+// algo
+#include "alpaka/algo/Transform.hpp"
 // atomic
 #include "alpaka/atomic/AtomicCpu.hpp"
 #include "alpaka/atomic/AtomicGenericSycl.hpp"
@@ -58,9 +62,9 @@
 #include "alpaka/core/AlignedAlloc.hpp"
 #include "alpaka/core/Assert.hpp"
 #include "alpaka/core/BarrierThread.hpp"
-#include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/ClipCast.hpp"
 #include "alpaka/core/Common.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Cuda.hpp"
 #include "alpaka/core/Debug.hpp"
 #include "alpaka/core/Hip.hpp"
@@ -81,7 +85,9 @@
 #include "alpaka/dev/DevCudaRt.hpp"
 #include "alpaka/dev/DevFpgaSyclIntel.hpp"
 #include "alpaka/dev/DevGenericSycl.hpp"
+#include "alpaka/dev/DevGpuSyclAmd.hpp"
 #include "alpaka/dev/DevGpuSyclIntel.hpp"
+#include "alpaka/dev/DevGpuSyclNvidia.hpp"
 #include "alpaka/dev/DevHipRt.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/dev/cpu/Wait.hpp"
@@ -95,7 +101,9 @@
 #include "alpaka/event/EventCudaRt.hpp"
 #include "alpaka/event/EventFpgaSyclIntel.hpp"
 #include "alpaka/event/EventGenericSycl.hpp"
+#include "alpaka/event/EventGpuSyclAmd.hpp"
 #include "alpaka/event/EventGpuSyclIntel.hpp"
+#include "alpaka/event/EventGpuSyclNvidia.hpp"
 #include "alpaka/event/EventHipRt.hpp"
 #include "alpaka/event/Traits.hpp"
 // exec
@@ -128,7 +136,9 @@
 #include "alpaka/kernel/TaskKernelGenericSycl.hpp"
 #include "alpaka/kernel/TaskKernelGpuCudaRt.hpp"
 #include "alpaka/kernel/TaskKernelGpuHipRt.hpp"
+#include "alpaka/kernel/TaskKernelGpuSyclAmd.hpp"
 #include "alpaka/kernel/TaskKernelGpuSyclIntel.hpp"
+#include "alpaka/kernel/TaskKernelGpuSyclNvidia.hpp"
 #include "alpaka/kernel/Traits.hpp"
 // math
 #include "alpaka/math/Complex.hpp"
@@ -143,7 +153,9 @@
 #include "alpaka/mem/buf/cpu/BufCpu.hpp"
 #include "alpaka/mem/buf/sycl/specializations/BufCpuSycl.hpp"
 #include "alpaka/mem/buf/sycl/specializations/BufFpgaSyclIntel.hpp"
+#include "alpaka/mem/buf/sycl/specializations/BufGpuSyclAmd.hpp"
 #include "alpaka/mem/buf/sycl/specializations/BufGpuSyclIntel.hpp"
+#include "alpaka/mem/buf/sycl/specializations/BufGpuSyclNvidia.hpp"
 #include "alpaka/mem/buf/uniformCudaHip/BufUniformCudaHipRt.hpp"
 #include "alpaka/mem/buf/uniformCudaHip/specializations/BufCudaRt.hpp"
 #include "alpaka/mem/buf/uniformCudaHip/specializations/BufHipRt.hpp"
@@ -162,6 +174,7 @@
 #include "alpaka/mem/view/ViewConst.hpp"
 #include "alpaka/mem/view/ViewPlainPtr.hpp"
 #include "alpaka/mem/view/ViewStdArray.hpp"
+#include "alpaka/mem/view/ViewStdSpan.hpp"
 #include "alpaka/mem/view/ViewStdVector.hpp"
 #include "alpaka/mem/view/ViewSubView.hpp"
 // meta
@@ -189,7 +202,9 @@
 #include "alpaka/platform/PlatformCpuSycl.hpp"
 #include "alpaka/platform/PlatformCudaRt.hpp"
 #include "alpaka/platform/PlatformFpgaSyclIntel.hpp"
+#include "alpaka/platform/PlatformGpuSyclAmd.hpp"
 #include "alpaka/platform/PlatformGpuSyclIntel.hpp"
+#include "alpaka/platform/PlatformGpuSyclNvidia.hpp"
 #include "alpaka/platform/PlatformHipRt.hpp"
 #include "alpaka/platform/Traits.hpp"
 // rand
@@ -211,8 +226,12 @@
 #include "alpaka/queue/QueueCudaRtNonBlocking.hpp"
 #include "alpaka/queue/QueueFpgaSyclIntelBlocking.hpp"
 #include "alpaka/queue/QueueFpgaSyclIntelNonBlocking.hpp"
+#include "alpaka/queue/QueueGpuSyclAmdBlocking.hpp"
+#include "alpaka/queue/QueueGpuSyclAmdNonBlocking.hpp"
 #include "alpaka/queue/QueueGpuSyclIntelBlocking.hpp"
 #include "alpaka/queue/QueueGpuSyclIntelNonBlocking.hpp"
+#include "alpaka/queue/QueueGpuSyclNvidiaBlocking.hpp"
+#include "alpaka/queue/QueueGpuSyclNvidiaNonBlocking.hpp"
 #include "alpaka/queue/QueueHipRtBlocking.hpp"
 #include "alpaka/queue/QueueHipRtNonBlocking.hpp"
 #include "alpaka/queue/Traits.hpp"

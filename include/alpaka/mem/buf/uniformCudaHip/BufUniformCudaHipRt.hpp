@@ -24,7 +24,8 @@ namespace alpaka
 
     //! The generic memory buffer template implementing muting accessors.
     template<typename TApi, typename TElem, typename TDim, typename TIdx>
-    class BufUniformCudaHipRt : public internal::ViewAccessOps<BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
+    class BufUniformCudaHipRt
+        : public internal::ViewAccessorType<DevUniformCudaHipRt<TApi>, BufUniformCudaHipRt<TApi, TElem, TDim, TIdx>>
     {
         using TBufImpl = detail::BufUniformCudaHipRtImpl<TApi, TElem, TDim, TIdx>;
 
@@ -47,6 +48,7 @@ namespace alpaka
 } // namespace alpaka
 
 #    include "alpaka/mem/buf/uniformCudaHip/Copy.hpp"
+#    include "alpaka/mem/buf/uniformCudaHip/Fill.hpp"
 #    include "alpaka/mem/buf/uniformCudaHip/Set.hpp"
 #    include "alpaka/mem/buf/uniformCudaHip/traits/BufUniformCudaHipRtTraits.hpp"
 #    include "alpaka/mem/buf/uniformCudaHip/traits/ConstBufUniformCudaHipRtTraits.hpp"
