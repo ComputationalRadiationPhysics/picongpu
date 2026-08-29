@@ -182,6 +182,99 @@ EXPECTED_FILES = {
             (r"maximal electron count: ([0-9]+)", "maximal_count"),
         ],
     },
+    "selected_topics/time_steps.py": {
+        "stdout_contains": [
+            "slice(None, None, 10)",
+            "slice(None, 5, None)",
+            "slice(49, None, None)",
+            "slice(1e-15, 5e-15, 2e-16)",
+            "combined unit system: mixed",
+            "It worked!",
+        ],
+    },
+    "selected_topics/phase_space.py": {
+        "no_run": True,
+        "files": [
+            "phase_space_setup/etc/picongpu/N.cfg",
+            "phase_space_setup/workflow/workflow.cwl",
+        ],
+        "file_contains": [
+            ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.period 0:-1:10"),
+            ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.space y"),
+            ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.momentum py"),
+        ],
+    },
+    "selected_topics/energy_histogram.py": {
+        "no_run": True,
+        "files": [
+            "energy_histogram_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("energy_histogram_setup/etc/picongpu/N.cfg", "--electrons_energyHistogram.period 0:-1:10"),
+            ("energy_histogram_setup/etc/picongpu/N.cfg", "--electrons_energyHistogram.binCount 50"),
+            ("energy_histogram_setup/etc/picongpu/N.cfg", "--electrons_energyHistogram.maxEnergy 500.0"),
+        ],
+    },
+    "selected_topics/macro_particle_count.py": {
+        "no_run": True,
+        "files": [
+            "macro_particle_count_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("macro_particle_count_setup/etc/picongpu/N.cfg", "--electrons_macroParticlesCount.period 0:-1:10"),
+        ],
+    },
+    "selected_topics/openpmd.py": {
+        "no_run": True,
+        "files": [
+            "openpmd_setup/etc/picongpu/N.cfg",
+            "openpmd_setup/include/picongpu/param/fileOutput.param",
+        ],
+        "file_contains": [
+            ("openpmd_setup/etc/picongpu/N.cfg", "--openPMD.pluginConfig"),
+            ("openpmd_setup/include/picongpu/param/fileOutput.param", "FieldE"),
+        ],
+        "stdout_contains": [
+            'file = "simData"',
+            'file = "magneticField"',
+            '"electrons"',
+            '"E"',
+            "kineticEnergy",
+        ],
+    },
+    "selected_topics/binning.py": {
+        "no_run": True,
+        "files": [
+            "binning_setup/include/picongpu/param/binningSetup.param",
+        ],
+        "file_contains": [
+            ("binning_setup/include/picongpu/param/binningSetup.param", "gammaDistribution"),
+            ("binning_setup/include/picongpu/param/binningSetup.param", "addParticleBinner"),
+            ("binning_setup/include/picongpu/param/binningSetup.param", 'setNotifyPeriod("0:-1:10")'),
+        ],
+    },
+    "selected_topics/radiation.py": {
+        "no_run": True,
+        "files": [
+            "radiation_setup/etc/picongpu/N.cfg",
+            "radiation_setup/include/picongpu/param/radiation.param",
+        ],
+        "file_contains": [
+            ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.period 2:-1:5"),
+            ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.totalRadiation"),
+            ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.dump 5"),
+        ],
+    },
+    "selected_topics/checkpoint.py": {
+        "no_run": True,
+        "files": [
+            "checkpoint_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("checkpoint_setup/etc/picongpu/N.cfg", "--checkpoint.period 0:-1:20"),
+            ("checkpoint_setup/etc/picongpu/N.cfg", "--checkpoint.directory checkpoints"),
+        ],
+    },
 }
 
 
