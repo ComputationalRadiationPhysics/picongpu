@@ -51,7 +51,7 @@ With these files a parameter scan with the LaserWakefield example of PIConGPU on
 Fine-Tuning
 ~~~~~~~~~~~
 
-There are several command line options you can use to customise the behaviour of your workflow. An overview can be found in the `documentation <https://snakemake.readthedocs.io/en/stable/executing/cli.html>`_ or by using ``snakemake --help``. Here are some recomendations:
+There are several command line options you can use to customise the behaviour of your workflow. An overview can be found in the `documentation <https://snakemake.readthedocs.io/en/stable/executing/cli.html>`_ or by using ``snakemake --help``. Here are some recommendations:
 
 * ``--jobs N``, ``-j N``
     * Use a maximum of N jobs in parallel. Set to ``unlimited`` to allow any number of jobs.
