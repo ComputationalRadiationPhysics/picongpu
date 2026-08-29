@@ -135,6 +135,32 @@ EXPECTED_FILES = {
             ("lwfa_example_setup/include/picongpu/param/speciesDefinition.param", "electrons"),
         ],
     },
+    "defining_simulation/warm_plasma.py": {
+        "no_run": True,
+        "files": [
+            "warm_plasma_setup/include/picongpu/param/simulation.param",
+            "warm_plasma_setup/include/picongpu/param/speciesDefinition.param",
+            "warm_plasma_setup/include/picongpu/param/speciesInitialization.param",
+            "warm_plasma_setup/workflow/workflow.cwl",
+            "warm_plasma_setup/metadata/pypicongpu_runner.json",
+        ],
+        "file_contains": [
+            ("warm_plasma_setup/include/picongpu/param/speciesDefinition.param", "ions"),
+            ("warm_plasma_setup/include/picongpu/param/speciesDefinition.param", "electrons"),
+        ],
+    },
+    "defining_simulation/laser_variants.py": {
+        "no_run": True,
+        "files": [
+            "laser_variants_setup/include/picongpu/param/incidentField.param",
+            "laser_variants_setup/workflow/workflow.cwl",
+            "laser_variants_setup/metadata/pypicongpu_runner.json",
+        ],
+        "file_contains": [
+            ("laser_variants_setup/include/picongpu/param/incidentField.param", "PyPIConGPUGaussianPulseParam"),
+            ("laser_variants_setup/include/picongpu/param/incidentField.param", "PyPIConGPUDispersivePulseParam"),
+        ],
+    },
     "defining_simulation/serialize_simulation.py": {
         "files": ["electrons.json"],
         "stdout_contains": ["serialized simulation into", "It worked!"],

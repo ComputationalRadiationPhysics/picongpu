@@ -37,7 +37,7 @@ Step 1: Write Your Input File
 A PIConGPU simulation is defined in a plain Python script.
 Create a file ``my_first_simulation.py`` with the following content:
 
-.. literalinclude:: ../snippets/quickstart/my_first_simulation.py
+.. literalinclude:: snippets/quickstart/my_first_simulation.py
    :language: python
 
 The lines at the top (after the shebang) are `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__.
@@ -58,7 +58,7 @@ The rest of the script does three things:
   and sets the runtime to 100 time steps (``max_steps``).
   Finally, ``simulation.run()`` generates the PIConGPU input files from the simulation,
   compiles a tailored binary and submits the simulation
-  (see `Step 3`_ below for what exactly happens).
+  (see `step 3`_ below for what exactly happens).
 
 Step 2: Configure Your Environment
 ----------------------------------
@@ -86,13 +86,15 @@ so that your runs carry proper metadata::
   author = "Your Name"
   email = "you@example.org"
 
+.. _step 3:
+
 Step 3: Run It
 --------------
 
 With ``uv`` installed (see the :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>` page),
 the whole thing is a single command:
 
-.. literalinclude:: ../snippets/quickstart/run_with_uv.sh
+.. literalinclude:: snippets/quickstart/run_with_uv.sh
    :language: bash
 
 ``uv`` reads the PEP 723 metadata of the script,
@@ -103,7 +105,7 @@ If you prefer to install PIConGPU manually into a virtual environment first,
 you can also simply execute the script with that environment's ``python``.
 The installation is a single ``pip`` command:
 
-.. literalinclude:: ../snippets/quickstart/install_from_git.sh
+.. literalinclude:: snippets/quickstart/install_from_git.sh
    :language: bash
 
 When the script runs, the package
@@ -128,7 +130,7 @@ The run directory (``my_first_simulation_run/``) contains a helper script
 ``link_results.sh`` that creates a link to that directory,
 e.g. into a folder of your choice:
 
-.. literalinclude:: ../snippets/running_simulation/link_results.sh
+.. literalinclude:: snippets/running_simulation/link_results.sh
    :language: bash
 
 For the details on the layout of the run directory,
