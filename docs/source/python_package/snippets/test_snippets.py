@@ -275,6 +275,20 @@ EXPECTED_FILES = {
             ("checkpoint_setup/etc/picongpu/N.cfg", "--checkpoint.directory checkpoints"),
         ],
     },
+    "selected_topics/interactions.py": {
+        "no_run": True,
+        "files": [
+            "adk_setup/include/picongpu/param/speciesDefinition.param",
+            "bsi_setup/include/picongpu/param/speciesDefinition.param",
+            "synchrotron_setup/include/picongpu/param/synchrotron.param",
+            "synchrotron_setup/workflow/workflow.cwl",
+        ],
+        "file_contains": [
+            ("adk_setup/include/picongpu/param/speciesDefinition.param", "ADKLinPol"),
+            ("bsi_setup/include/picongpu/param/speciesDefinition.param", "BSIStarkShifted"),
+            ("synchrotron_setup/include/picongpu/param/speciesDefinition.param", "synchrotron<species_photons>"),
+        ],
+    },
 }
 
 

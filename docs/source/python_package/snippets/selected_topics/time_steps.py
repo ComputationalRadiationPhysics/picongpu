@@ -27,7 +27,7 @@ head_and_tail = TimeStepSpec[:5, 49:]("steps")
 print("head and tail specs:", head_and_tail.specs)
 
 # every 200 femtoseconds between 1 and 5 attoseconds
-physical_time = TimeStepSpec[1.0e-15 : 5.0e-15 : 2.0e-16]("seconds")
+physical_time = TimeStepSpec[1.0e-15:5.0e-15:2.0e-16]("seconds")
 print("physical time specs:", physical_time.specs_in_seconds)
 
 # specifications in different units can be combined (set union)
