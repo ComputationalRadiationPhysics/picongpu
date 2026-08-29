@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.9.0 (unreleased)
+------------------
+
+**Bug Fixes:**
+- Python package:
+    - fix CWL workflow outputs referencing the internal cwltool job cache (`.cwl_cache`): `TBG_dstPath` in `tbg/submit.start` and `link_results.sh` now point to the stable run directory, both directly (via a new `destination_path` workflow input) and as a safety net in the `organize_output` step
+
 0.8.0
 -----
 
