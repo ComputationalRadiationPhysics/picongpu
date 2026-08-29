@@ -257,3 +257,57 @@ the ``missing_variable_policy`` is called to determine how to proceed.
 By default it raises an exception.
 The special variable ``pic_src_path`` can be used to refer to
 the installation path of PIConGPU itself (see `configuring_env_pic_src_path`_ above).
+
+Setting Up a System Without a Preset
+------------------------------------
+
+If you want to run PIConGPU on a system
+for which we do not provide a preset yet,
+you have to describe its environment yourself.
+The two building blocks are
+the profile (see `Manually Configuring Profile Content`_ above)
+and the submission parameters,
+most notably
+
+* ``tbg_submit``:
+  the command that sends a job to your scheduler
+  (e.g. ``sbatch`` on Slurm systems, ``bsub`` on LSF systems,
+  or ``bash`` to simply execute the job on your machine), and
+* ``tbg_tpl_file``:
+  the template from which the batch script of your job is generated
+  (the templates for the systems we ship with are found in
+  ``etc/picongpu/<system>/`` of the installation).
+
+In practice, the easiest way to get started is
+to take a profile of a system that is similar to yours
+(one of the ``*.profile.example`` files in ``etc/picongpu/<system>/`` of the installation)
+and to adapt it to your system:
+
+* the ``module``/``spack`` commands that make the right compilers and libraries available,
+* ``PIC_BACKEND`` (``pic_backend``): the compute backend to compile for,
+  see the profiles of the shipped systems for examples,
+* the ``TBG_*`` variables
+  (``TBG_SUBMIT``, ``TBG_TPLFILE``, ``TBG_partition``:
+  mapped to ``tbg_submit``, ``tbg_tpl_file``, ``tbg_partition``), and
+* your user information (``MY_NAME``, ``MY_MAIL``:
+  mapped to ``author`` and ``email``).
+
+You can then point the runtime configuration at your adapted profile
+and set the submission parameters in your ``.picongpurc.toml`` file::
+
+  preset = "bash"
+  profile_path = "/path/to/my/adapted/profile"
+  tbg_submit = "sbatch"
+  tbg_tpl_file = "etc/picongpu/mysystem/gpu.tpl"
+  tbg_partition = "gpu"
+  author = "Your Name"
+  email = "you@example.org"
+
+(Choosing the ``bash`` preset here is just a convenient base
+that requires no other parameters;
+any other parameters it sets that do not apply to your system
+can be overridden the same way.)
+
+We are continuously curating the library of presets,
+and we kindly ask you to feed back your configuration files into our library
+so that other users can run PIConGPU on your system out of the box.
