@@ -19,7 +19,11 @@ function script_error {
 
 export PICSRC=$CI_PROJECT_DIR
 export PATH=$PATH:$PICSRC/bin
-echo 'preset = "bash"' >/.picongpurc.toml
+# skip writing the preset file and the quick tests when PYPICONGPU_SKIP_QUICK_TEST is set
+# (used by the docs snippet tests, which need a pristine rc_params state)
+if [ -z "${PYPICONGPU_SKIP_QUICK_TEST:-}" ]; then
+    echo 'preset = "bash"' >/.picongpurc.toml
+fi
 
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 
@@ -61,8 +65,10 @@ echo ""
 pip3 install -e "${CI_PROJECT_DIR}/lib/python/[test]"
 
 # run quick tests
-cd $CI_PROJECT_DIR/lib/python/test/picongpu
-python3 -m pytest quick/
+if [ -z "${PYPICONGPU_SKIP_QUICK_TEST:-}" ]; then
+    cd $CI_PROJECT_DIR/lib/python/test/picongpu
+    python3 -m pytest quick/
+fi
 
 # executing the compiling tests is optional
 # for the compiling test we need: cmake, boost and openmpi
