@@ -331,8 +331,12 @@ class Runner(BaseModel):
                         "cp -r tbg_link tbg",
                         'submission_script="./tbg/submit.start"',
                         'submission_cmd="$1"',
-                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"',
-                        'sed -i "s|--chdir=.*|--chdir=$(pwd -P)|" "$submission_script"',
+                        # The step's working directory is cwltool's per-step job
+                        # cache dir, so use the stable destination path instead.
+                        # Fall back to the working directory for standalone runs.
+                        'destination_path="${2:-$(pwd -P)}"',
+                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$destination_path|" "$submission_script"',
+                        'sed -i "s|--chdir=.*|--chdir=$destination_path|" "$submission_script"',
                         r"""
                         if [[ "$submission_cmd" =~ \s*bash.* ]] || [[ "$submission_cmd" =~ \s*zsh.* ]]; then
                             $submission_cmd $submission_script &
@@ -342,7 +346,7 @@ class Runner(BaseModel):
                         fi
                         """,
                         r"""echo "#!/bin/bash
-                        ln -s $(pwd -P)/simOutput \$1" > link_results.sh
+                        ln -s $destination_path/simOutput \$1" > link_results.sh
                         """,
                         "chmod +x link_results.sh",
                     ],
@@ -378,6 +382,10 @@ class Runner(BaseModel):
                         "class": "File",
                         "location": str(self.submission_script_path),
                     },
+                    # Stable destination for the submitted job's results,
+                    # so that tbg/submit.start and link_results.sh do not
+                    # point into the cwltool job cache dir.
+                    "destination_path": str(self.run_dir),
                     "prepare_submission_script": {
                         "class": "File",
                         "location": str(self.prepare_submission_script_path),

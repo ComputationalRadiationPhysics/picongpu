@@ -39,6 +39,13 @@ inputs:
     label: "Submit system"
     doc: "Submit command (qsub, sbatch, ...)"
     default: "bash"
+  destination_path:
+    type: string?
+    inputBinding:
+      position: 3
+    label: "Destination path"
+    doc: "Absolute path to the directory where the results of the submitted job are expected (the final run directory)"
+    default: null
 outputs:
   submission_information:
     type: File

@@ -52,6 +52,11 @@ inputs:
     type: File
     label: "Submission script"
     doc: "Shell script for submitting the prepared job"
+  destination_path:
+    type: string?
+    label: "Destination path"
+    doc: "Absolute path to the directory where the results of the submitted job are expected (the final run directory). The submit step writes it into tbg/submit.start and link_results.sh."
+    default: null
   organize_output_script:
     type: File
   run_cfg_file:
@@ -135,6 +140,7 @@ steps:
       etc_directory: run_etc_directory
       tbg_link: prepare_submission_step/tbg_directory
       submit_system: run_submit_system
+      destination_path: destination_path
     out: [submission_information, link_results_script, tbg_directory]
     label: "Submit PIConGPU simulation to the batch system"
   organize_output_step:
