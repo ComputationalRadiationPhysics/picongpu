@@ -75,15 +75,18 @@ The ``Cartesian3DGrid`` defines the spatial domain of your simulation:
 
 The cell size per dimension is derived as ``(upper_bound - lower_bound) / number_of_cells``.
 
-By default, the simulation is placed on a single GPU.
-To distribute it over several GPUs, use ``picongpu_n_gpus``:
-a single integer ``N`` distributes over ``N`` GPUs in the (preferred) ``y`` direction,
-a triple ``(Nx, Ny, Nz)`` distributes over all three directions.
-Optionally, ``picongpu_grid_dist`` assigns explicit numbers of cells to the GPUs
-instead of a uniform distribution.
-The grid must be divisible by the GPU count and the super-cell size
-(``picongpu_super_cell_size``, default ``(8, 8, 4)``) in each dimension;
-the frontend checks this for you and tells you which dimension fails.
+ By default, the simulation is placed on a single GPU.
+ To distribute it over several GPUs,
+ give the grid the ``picongpu_n_gpus`` parameter (a list):
+ ``[N]`` distributes over ``N`` GPUs in the (preferred) ``y`` direction,
+ ``[Nx, Ny, Nz]`` over all three directions.
+ Optionally, ``picongpu_grid_dist``
+ (a per-dimension list of the cell counts assigned to each GPU)
+ assigns explicit numbers of cells to the GPUs
+ instead of a uniform distribution.
+ The grid must be divisible by the GPU count and the super-cell size
+ (``picongpu_super_cell_size``, default ``(8, 8, 4)``) in each dimension;
+ the frontend checks this for you and tells you which dimension fails.
 
 The time step of the simulation is fixed by one of the two equivalent quantities:
 
