@@ -87,7 +87,15 @@ EXPECTED_FILES = {
         "stderr_contains": ["triggered resetting rc_params"],
     },
     "configuring_environment/rc_params_list_presets.py": {
-        "stdout_contains": ["bash", "rosi-hzdr", "jupiter-jsc"],
+        # single-profile systems are presets by themselves,
+        # multi-profile systems contribute one preset per profile example file
+        "stdout_contains": [
+            "bash",
+            "rosi-hzdr",
+            "jupiter-jsc",
+            "hemera-hzdr/gpu_picongpu.profile.example",
+            "zih-tud/A100_picongpu.profile.example",
+        ],
     },
     "configuring_environment/rc_params_finetune_preset.py": {
         # the preset default is printed by the items() loop;

@@ -103,7 +103,7 @@ In this case, you can use one of the following:
 Any of these will download the specified version of PIConGPU (and other dependencies),
 generate the necessary input files
 and immediately execute the necessary steps (i.e. the workflow)
-to build and run PIConGPU on the configured system
+to build and submit PIConGPU on the configured system
 (if you've used ``simulation.run()`` and not ``simulation.write_input_file()``).
 
 .. warning::
