@@ -111,6 +111,15 @@ EXPECTED_FILES = {
             "minimal_example_setup/metadata/pypicongpu_runner.json",
         ],
     },
+    "quickstart/my_first_simulation.py": {
+        "no_run": True,
+        "files": [
+            "my_first_simulation_setup/include/picongpu/param/simulation.param",
+            "my_first_simulation_setup/workflow/workflow.cwl",
+            "my_first_simulation_setup/workflow/scripts/picongpu.profile",
+            "my_first_simulation_setup/metadata/pypicongpu_runner.json",
+        ],
+    },
     "defining_simulation/lwfa_example.py": {
         "no_run": True,
         "files": [
