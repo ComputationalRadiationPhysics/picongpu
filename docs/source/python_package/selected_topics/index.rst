@@ -28,3 +28,4 @@ the following pages are deep dives into the more involved features.
    binning
    radiation
    checkpoint
+   interactions
