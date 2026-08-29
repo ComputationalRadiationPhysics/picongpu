@@ -85,6 +85,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    models/field_ionization
    models/collisional_ionization
    models/binary_collisions
+   models/fusion
    models/atomic_physics
 
 .. toctree::
