@@ -1,3 +1,5 @@
+.. _hpc-submission:
+
 HPC Submission Internals
 ========================
 

@@ -275,6 +275,13 @@ EXPECTED_FILES = {
             ("checkpoint_setup/etc/picongpu/N.cfg", "--checkpoint.directory checkpoints"),
         ],
     },
+    "troubleshooting/validate_before_submit.py": {
+        "files": [
+            "validated_setup/workflow/workflow.cwl",
+            "validated_setup/metadata/pypicongpu_runner.json",
+        ],
+        "stdout_contains": ["Input files generated in"],
+    },
     "selected_topics/interactions.py": {
         "no_run": True,
         "files": [

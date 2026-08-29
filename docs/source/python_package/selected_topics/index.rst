@@ -30,3 +30,4 @@ the following pages are deep dives into the more involved features.
    checkpoint
    interactions
    hpc_submission
+   troubleshooting
