@@ -31,3 +31,4 @@ the following pages are deep dives into the more involved features.
    interactions
    hpc_submission
    troubleshooting
+   verification
