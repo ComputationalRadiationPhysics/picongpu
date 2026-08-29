@@ -39,13 +39,23 @@ On some occasions, project- or run-specific configurations might be necessary.
 The search order described below ensures that more specific configurations take precedence,
 if they are closer to the input in the directory tree.
 
-The file is named ``.picongpurc.toml``
-(with an optional ``.`` in the beginning to hide it on Unix systems)
-and is searched in the following locations (first match wins)::
+The file is named ``picongpurc.toml``
+(and is searched in different locations under slightly different names,
+as described below).
+The search is performed once, when the PIConGPU python package is imported:
 
-  1. The file pointed to by the ``PIC_RC`` environment variable (or a directory containing a ``picongpurc.toml``, if set)
-  2. The first dot-prefixed ``*.picongpurc.toml`` file (e.g. ``.picongpurc.toml``) found in the current directory or any parent directory
-  3. ``$XDG_CONFIG_HOME/picongpu/picongpurc.toml`` (typically ``~/.config/picongpu/picongpurc.toml``)
+  1. If the ``PIC_RC`` environment variable is set,
+     the file it points to is used.
+     If it points to a directory, a file ``picongpurc.toml`` is looked up inside it.
+  2. Otherwise, the first file ``.picongpurc.toml``
+     (note the leading dot, used to hide the file on Unix systems)
+     found in the current directory or any of its parent directories is used.
+     Only the dot-prefixed name is found in this search.
+  3. Otherwise, ``$XDG_CONFIG_HOME/picongpu/picongpurc.toml``
+     (typically ``~/.config/picongpu/picongpurc.toml``) is used.
+
+If none of the above yields a file,
+the runtime configuration starts out with its built-in defaults.
 
 .. _configuring_env_rc_params:
 
@@ -70,7 +80,7 @@ e.g. defining or reading content from it:
 This can be useful to define, e.g., machine-specific aspects of your simulation.
 Say, on a specific cluster you want to use a specific `openPMD <https://www.openpmd.org/>`__ configuration::
 
-  OPENPMD_CONFIG = ... if "jupiter" in rc_params['preset'] else ...
+  OPENPMD_CONFIG = ... if "jupiter" in (rc_params.get("preset") or "") else ...
 
 This will define the ``OPENPMD_CONFIG`` in a particular way
 if the string ``"jupiter"`` is found in the name of the preset
@@ -92,6 +102,10 @@ Presets
 The PIConGPU team has run on a wide variety of the largest supercomputers in the world.
 For all systems we have access to, we curate a library of presets
 that allow to run PIConGPU on the corresponding system.
+Each preset is a ``<system>.profile.example`` file in the package's
+``etc/picongpu/<system>/`` directory
+that describes how to set up the environment on that system
+(compilers, libraries, batch submission, ...).
 
 Using Presets
 ^^^^^^^^^^^^^
@@ -100,11 +114,56 @@ Presets are special keys in ``rc_params``.
 Setting them will reset the ``rc_params`` instance
 and load default values for various configuration parameters.
 
-Presets require some parameters to be set explicitly.
-Attempting to use a preset without those being set
-raises an exception stating the offending parameter name
-and listing all required parameters.
-You can then go ahead and configure those parameters explicitly.
+The name of a preset is the name of the system directory
+if that directory contains a single profile example,
+e.g. ``bash`` or ``rosi-hzdr``.
+If a system directory contains several profile examples
+(e.g. different queues or hardware configurations),
+the preset name is the system directory
+followed by the name of the profile example file,
+e.g. ``hemera-hzdr/gpu_picongpu.profile.example``.
+Setting an ambiguous bare system name will raise an error
+listing the valid preset names to choose from.
+
+Besides the profile (see `Manually Configuring Profile Content`_ below),
+a preset loads default values for the parameters
+that the profile example defines,
+most notably:
+
+* ``tbg_submit``:
+  the submission command used to send the simulation to the system
+  (e.g. ``sbatch`` for Slurm-based systems, ``bash`` for local execution)
+* ``tbg_tpl_file``:
+  the template file from which the batch script is generated
+  (e.g. ``etc/picongpu/rosi-hzdr/gpu-v100.tpl``)
+* ``tbg_partition``:
+  the queue/partition to submit to
+* ``pic_backend``:
+  the GPU/CPU backend to compile for
+* ``module_section`` / ``spack_section``:
+  module or spack commands to load the necessary software
+
+Many presets additionally require a small number of parameters
+to be set explicitly,
+e.g. ``author`` and ``email`` (used to record the metadata of your runs)
+or ``pic_src_path`` (the installation path of PIConGPU,
+which is already deduced automatically in most cases).
+The parameters a preset requires are available as
+``rc_params["required_information"]``.
+If one of them is not set,
+an exception is raised as soon as the profile is rendered,
+i.e. when the input files are generated
+(e.g. by ``simulation.run()`` or ``simulation.write_input_file()``);
+the message lists the offending parameter and all required parameters.
+You can then go ahead and configure those parameters explicitly
+(via the ``.picongpurc.toml`` file or via ``rc_params``).
+
+A full list of the presets shipped with the package can be obtained via:
+
+.. literalinclude:: ../snippets/configuring_environment/rc_params_list_presets.py
+   :language: python
+   :start-after: BEGIN-RC-LIST-PRESETS
+   :end-before: END-RC-LIST-PRESETS
 
 Due to their destructive nature setting a preset from within a script
 is guarded against by a policy.
@@ -119,19 +178,12 @@ The ``dirty_reset_policy`` can take the values ``"raise"`` (the default),
 ``"warn"`` or ``"ignore"``, or an arbitrary handler to finetune the behaviour.
 We generally recommend to do runtime configuration via `configuring_env_toml_file`_ outside of your script.
 
-A full list of the presets shipped with the package can be obtained via:
-
-.. literalinclude:: ../snippets/configuring_environment/rc_params_list_presets.py
-   :language: python
-   :start-after: BEGIN-RC-LIST-PRESETS
-   :end-before: END-RC-LIST-PRESETS
-
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^
 
 Presets can be thought of as "just setting a bunch of parameters at once".
 Consequently, any of these parameters can be given another value.
-Otherwise, you can inspect the ``rc_params`` instance directly to see what has been set:
+Alternatively, you can inspect the ``rc_params`` instance directly to see what has been set:
 
 .. literalinclude:: ../snippets/configuring_environment/rc_params_finetune_preset.py
    :language: python

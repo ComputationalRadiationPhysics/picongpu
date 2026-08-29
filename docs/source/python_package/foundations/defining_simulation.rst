@@ -42,8 +42,13 @@ The PICMI standard defines various methods to interact with a ``Simulation`` ins
 The most useful for interacting with PIConGPU are:
 
 ``simulation.run()``
-  Generates PIConGPU input files, compiles a tailored binary and runs this all in one go.
+  Generates the PIConGPU input files,
+  compiles a tailored binary and submits the simulation
+  to the system given by your runtime configuration (e.g. a batch system).
   This is convenient in most scenarios.
+  Note that the call returns after the submission
+  (see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`
+  for the details of what happens under the hood).
 
 ``simulation.write_input_file()``
   Only generate the PIConGPU input files.
@@ -94,11 +99,13 @@ Thus, in order to add particles to our simulation we need three components:
    :start-after: BEGIN-LWFA-SPECIES
    :end-before: END-LWFA-SPECIES
 
-We add two species with a shared distribution:
-``hydrogen`` (initially neutral) and ``electrons`` (initially empty).
-Initializing both from the same ``GaussianDistribution``
-ensures that they are placed consistently (typically at the same positions),
-such that the plasma is charge neutral where the ionization model below will act.
+We add two species:
+``hydrogen``, initialized from the ``GaussianDistribution``,
+and ``electrons``, which is initially empty (``initial_distribution=None``).
+The hydrogen is created in its ground state (``charge_state=0``, i.e. neutral),
+so the plasma is charge neutral before ionization sets in.
+The electron species does not receive any initial particles;
+they are created by the ionization model below.
 
 We can add various `interactions <https://picmi-standard.github.io/>`__ among our species.
 As an example, we allow to ionize the hydrogen into the corresponding electron species:
