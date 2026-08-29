@@ -29,3 +29,4 @@ the following pages are deep dives into the more involved features.
    radiation
    checkpoint
    interactions
+   hpc_submission
