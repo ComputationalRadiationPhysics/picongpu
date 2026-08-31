@@ -95,9 +95,7 @@ EXPECTED_FILES = {
     },
     "defining_simulation/multiple_simulations.py": {
         "no_run": True,
-        "files": [
-            f"scan/focal_{focal:.1e}/setup/include/picongpu/param/simulation.param" for focal in SCAN_FOCALS
-        ]
+        "files": [f"scan/focal_{focal:.1e}/setup/include/picongpu/param/simulation.param" for focal in SCAN_FOCALS]
         + [f"scan/focal_{focal:.1e}/setup/workflow/input.yaml" for focal in SCAN_FOCALS],
     },
     "defining_simulation/postprocess_histogram.py": {
@@ -178,7 +176,9 @@ def test_python_snippet(snippet, tmp_path):
         assert match, f"expected {pattern!r} in stdout:\n{result.stdout}"
         value = float(match.group(1))
         if name == "focal_position":
-            assert abs(value - PEAK_FOCAL) <= PEAK_SIGMA / 2, f"optimizer did not converge near {PEAK_FOCAL}, got {value}"
+            assert abs(value - PEAK_FOCAL) <= PEAK_SIGMA / 2, (
+                f"optimizer did not converge near {PEAK_FOCAL}, got {value}"
+            )
         if name == "maximal_count":
             assert value >= PEAK_COUNT - 5, f"expected a maximal electron count near {PEAK_COUNT}, got {value}"
 
