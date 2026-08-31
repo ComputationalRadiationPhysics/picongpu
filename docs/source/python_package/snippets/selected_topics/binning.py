@@ -61,6 +61,7 @@ binning = Binning(
 )
 sim.add_diagnostic(binning)
 
+
 # BEGIN-BINNING-FILTER
 def fast_enough(particle):
     # 1.6e-15 J = 10 keV
