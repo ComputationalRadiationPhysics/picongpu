@@ -397,5 +397,5 @@ steps:
     assert not leaked, f".cwl_cache leaked into final outputs: {leaked}"
 
     # the stable references point at where the results actually are
-    assert f"TBG_dstPath=\"{run_dir}\"" in (run_dir / "tbg" / "submit.start").read_text()
+    assert f'TBG_dstPath="{run_dir}"' in (run_dir / "tbg" / "submit.start").read_text()
     assert f"ln -s {run_dir}/simOutput" in (run_dir / "link_results.sh").read_text()
