@@ -249,35 +249,7 @@ docs-snippets:
     - python3 -m pytest docs/source/python_package/snippets -q -p no:cacheprovider
     # generate a minimal input set with the bash preset and source its profile
     # (no compilation), as the "legacy workflow" snippet does
-    - |
-      mkdir -p /tmp/docs-snippets-profile-check
-      printf 'preset = "bash"\n' > /tmp/docs-snippets-profile-check/.picongpurc.toml
-      cd /tmp/docs-snippets-profile-check
-      PIC_RC=/tmp/docs-snippets-profile-check/.picongpurc.toml python3 - <<'PY'
-      from pathlib import Path
-
-      from picongpu import picmi
-
-      sim = picmi.Simulation(
-          max_steps=1,
-          solver=picmi.ElectromagneticSolver(
-              method="Yee",
-              cfl=0.95,
-              grid=picmi.Cartesian3DGrid(
-                  number_of_cells=[16, 16, 16],
-                  lower_bound=[0.0, 0.0, 0.0],
-                  upper_bound=[1e-5, 1e-5, 1e-5],
-                  lower_boundary_conditions=["periodic", "periodic", "periodic"],
-                  upper_boundary_conditions=["periodic", "periodic", "periodic"],
-              ),
-          ),
-      )
-      sim.write_input_file(Path("setup"))
-      PY
-      source setup/workflow/scripts/picongpu.profile
-      test -n "$PIC_BACKEND"
-      test -n "$PICSRC"
-      echo "profile check OK: PIC_BACKEND=$PIC_BACKEND PICSRC=$PICSRC"
+    - $CI_PROJECT_DIR/share/ci/docs_snippets_profile_check.sh
     # build the documentation
     - cd $CI_PROJECT_DIR/docs
     - doxygen
