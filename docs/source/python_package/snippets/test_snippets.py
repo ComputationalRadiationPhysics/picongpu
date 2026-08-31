@@ -14,9 +14,13 @@ job submission is required; where the snippet reads simulation results, the
 harness emulates the corresponding output files.
 Per-snippet expected artifacts are checked afterwards.
 
-Every bash snippet is syntax-checked with ``bash -n``.
-Cheap bash snippets are additionally executed for real by the CI job
-(see the ``docs-snippets`` job in ``.gitlab-ci.yml``).
+Every bash snippet is syntax-checked with ``bash -n`` in this suite.
+The ``docs-snippets`` CI job (see ``.gitlab-ci.yml``) additionally executes
+one bash flow for real: setup generation with the ``bash`` preset and
+sourcing of the generated profile, as ``running_simulation/legacy_workflow.sh``
+performs it (``share/ci/docs_snippets_profile_check.sh``).
+No other bash snippet - in particular the ``cwltool``, ``pic-build`` and
+``tbg`` invocations - is executed in CI.
 """
 
 import os
