@@ -52,11 +52,13 @@ Each model is one of:
    The quantum Keldysh model, which interpolates between
    tunnel (ADK) and multiphoton ionization.
 
-All of them additionally take ``ionization_current``,
+All of them take a **required** ``ionization_current`` argument,
 which selects how the ionization current
 (the momentum carried away by the electrons)
-is treated for energy conservation;
-``None`` (the default) disables it.
+is treated for energy conservation
+(pass ``None`` to disable it).
+Note that the rendered output currently always uses ``None``:
+a non-``None`` choice is accepted but not yet applied.
 
 .. literalinclude:: ../snippets/selected_topics/interactions.py
    :language: python
