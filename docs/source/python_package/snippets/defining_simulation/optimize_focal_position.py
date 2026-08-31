@@ -16,6 +16,7 @@ Optimizes the laser focal position of an LWFA simulation
 by maximizing the number of ejected electrons in a given energy range.
 """
 
+# BEGIN-OPTIMIZE-FOCAL-POSITION
 import shutil
 from pathlib import Path
 
@@ -116,3 +117,4 @@ if __name__ == "__main__":
     maximal_electron_count = result.fun
     print(f"optimal focal position: {optimal_focal_position:.3e}")
     print(f"maximal electron count: {maximal_electron_count}")
+# END-OPTIMIZE-FOCAL-POSITION

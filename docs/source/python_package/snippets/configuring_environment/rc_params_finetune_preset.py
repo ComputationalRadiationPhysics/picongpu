@@ -12,6 +12,7 @@ Authors: opencode
 License: GPLv3+
 """
 
+# BEGIN-RC-FINETUNE-PRESET
 from picongpu import rc_params
 
 rc_params["preset"] = "rosi-hzdr"
@@ -21,3 +22,4 @@ for key, value in rc_params.items():
 
 # changing a default
 rc_params["tbg_partition"] = "a100"
+# END-RC-FINETUNE-PRESET

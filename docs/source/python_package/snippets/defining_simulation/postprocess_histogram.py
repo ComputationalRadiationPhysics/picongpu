@@ -19,6 +19,7 @@ Post-processes the output of the EnergyHistogram diagnostic
 found in one or more PIConGPU run directories.
 """
 
+# BEGIN-POSTPROCESS-HISTOGRAM
 import sys
 from pathlib import Path
 
@@ -55,3 +56,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+# END-POSTPROCESS-HISTOGRAM

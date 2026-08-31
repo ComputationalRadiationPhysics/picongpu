@@ -1,4 +1,5 @@
 #!/bin/bash
+# BEGIN-CWLTOOL-STEP
 cd $RUN_DIR
 
 # either provide the necessary input definitions on the commandline
@@ -9,3 +10,4 @@ cwltool $CWL_ARGS $SETUP_DIR/workflow/steps/build.cwl --include_directory $SETUP
 # include_directory: <SETUP_DIR>
 # script: <SETUP_DIR>/workflow/scripts/build.sh
 cwltool $CWL_ARGS $SETUP_DIR/workflow/steps/build.cwl my_input.yaml
+# END-CWLTOOL-STEP

@@ -12,6 +12,7 @@ Authors: opencode
 License: GPLv3+
 """
 
+# BEGIN-MINIMAL-EXAMPLE
 from pathlib import Path
 
 from picongpu import picmi
@@ -32,3 +33,4 @@ sim = picmi.Simulation(
 )
 
 sim.run(setup_dir=Path("minimal_example_setup"), run_dir=Path("minimal_example_run"))
+# END-MINIMAL-EXAMPLE

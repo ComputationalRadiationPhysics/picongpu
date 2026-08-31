@@ -14,6 +14,11 @@ job submission is required; where the snippet reads simulation results, the
 harness emulates the corresponding output files.
 Per-snippet expected artifacts are checked afterwards.
 
+Every TOML snippet (``.picongpurc.toml`` examples) is parsed with ``tomllib``
+and then applied for real: a subprocess with an isolated ``HOME`` and
+``PIC_RC`` pointed at the snippet file imports the PIConGPU python package,
+and the resulting ``rc_params`` content is checked.
+
 Every bash snippet is syntax-checked with ``bash -n`` in this suite.
 The ``docs-snippets`` CI job (see ``.gitlab-ci.yml``) additionally executes
 one bash flow for real: setup generation with the ``bash`` preset and
@@ -23,10 +28,12 @@ No other bash snippet - in particular the ``cwltool``, ``pic-build`` and
 ``tbg`` invocations - is executed in CI.
 """
 
+import json
 import os
 import re
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -49,6 +56,28 @@ PYTHON_SNIPPETS = sorted(
     if path.name not in ("test_snippets.py", "run_snippet.py", "conftest.py")
 )
 BASH_SNIPPETS = sorted(SNIPPETS_DIR.glob("**/*.sh"))
+TOML_SNIPPETS = sorted(SNIPPETS_DIR.glob("**/*.toml"))
+
+TOML_EXPECTED = {
+    "configuring_environment/rc_params_minimal.toml": {
+        "preset": "bash",
+    },
+    "configuring_environment/rc_params_finetune_preset.toml": {
+        "preset": "rosi-hzdr",
+        # the toml value overrides the preset default (gpu-v100)
+        "tbg_partition": "a100",
+    },
+    "configuring_environment/rc_params_shebang.toml": {
+        "shebang": "#!/usr/bin/env zsh",
+    },
+    "configuring_environment/rc_params_profile_precedence.toml": {
+        "my_rc_params_value": "Rendering template content directly",
+        "profile_content": "echo 'Using profile_content directly'",
+        "profile_path": "/path/to/my/profile",
+        "profile_template_content": "echo {my_rc_params_value}",
+        "profile_template_path": "/path/to/my/profile-template",
+    },
+}
 
 EXPECTED_FILES = {
     "configuring_environment/rc_params_basic.py": {
@@ -187,3 +216,46 @@ def test_python_snippet(snippet, tmp_path):
 def test_bash_snippet_syntax(snippet):
     result = subprocess.run(["bash", "-n", str(snippet)], capture_output=True, text=True)
     assert result.returncode == 0, f"bash -n failed for {snippet}:\n{result.stderr}"
+
+
+@pytest.mark.parametrize("snippet", TOML_SNIPPETS, ids=lambda path: str(path.relative_to(SNIPPETS_DIR)))
+def test_toml_snippet(snippet, tmp_path):
+    expected = TOML_EXPECTED[snippet.relative_to(SNIPPETS_DIR).as_posix()]
+
+    # the rendered file must be valid TOML carrying the documented values
+    data = tomllib.loads(snippet.read_text())
+    for key, value in expected.items():
+        assert data[key] == value, f"{snippet.name}: expected {key!r} == {value!r}, got {data.get(key)!r}"
+
+    # the exact rendered file must be picked up via PIC_RC
+    # and produce the expected rc_params content
+    home = tmp_path / "home"
+    home.mkdir()
+
+    environment = {
+        key: value for key, value in os.environ.items() if key not in ("PIC_RC", "XDG_CONFIG_HOME", "XDG_DATA_HOME")
+    }
+    environment["HOME"] = str(home)
+    environment["PIC_RC"] = str(snippet)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import json\n"
+            "from picongpu import rc_params\n"
+            "print(json.dumps({key: str(value) for key, value in rc_params.items()}))",
+        ],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    assert result.returncode == 0, f"snippet {snippet} failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+
+    applied = json.loads(result.stdout)
+    for key, value in expected.items():
+        assert applied[key] == str(value), (
+            f"expected rc_params[{key!r}] == {value!r} after loading {snippet.name}, got {applied.get(key)!r}"
+        )

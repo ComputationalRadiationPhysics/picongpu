@@ -12,9 +12,11 @@ Authors: opencode
 License: GPLv3+
 """
 
+# BEGIN-RC-BASIC
 from picongpu import rc_params
 
 rc_params["my_cool_config"] = 42
 
 if rc_params["my_cool_config"] == 42:
     print("It worked!")
+# END-RC-BASIC

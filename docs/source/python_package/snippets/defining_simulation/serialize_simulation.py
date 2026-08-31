@@ -12,6 +12,7 @@ Authors: opencode
 License: GPLv3+
 """
 
+# BEGIN-SERIALIZE-SIMULATION
 import json
 from pathlib import Path
 
@@ -52,3 +53,4 @@ serialize_species(electrons, "electrons.json")
 electrons_round_trip = deserialize_species("electrons.json")
 assert electrons_round_trip.model_dump() == electrons.model_dump()
 print("It worked!")
+# END-SERIALIZE-SIMULATION

@@ -12,8 +12,10 @@ Authors: opencode
 License: GPLv3+
 """
 
+# BEGIN-RC-LIST-PRESETS
 from picongpu import core
 
 for entry in sorted((core.path("etc") / "picongpu").iterdir()):
     if entry.is_dir() or entry.name.endswith(".profile.example"):
         print(entry.name)
+# END-RC-LIST-PRESETS

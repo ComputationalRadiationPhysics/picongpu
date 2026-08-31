@@ -21,6 +21,8 @@ A minimal PICMI input file is thus:
 
 .. literalinclude:: ../snippets/defining_simulation/minimal_example.py
    :language: python
+   :start-after: BEGIN-MINIMAL-EXAMPLE
+   :end-before: END-MINIMAL-EXAMPLE
 
 This short script defines a ``Simulation`` instance
 with a fixed number of simulations steps to run.
@@ -28,7 +30,8 @@ The only other necessary piece of information is
 the electromagnetic field solver which -- in turn -- contains information about the grid.
 We will see more elements to add to a ``Simulation`` further below.
 
-At the top of the script, you can see `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__.
+Input files can carry `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__ at the top
+(all snippets in the repository carry it, too).
 Tools like `uv <https://docs.astral.sh/uv/>`__ and `pipx <https://pipx.pypa.io/>`__ and others can use this to install necessary dependencies on-the-fly.
 We recommend this approach to fix the version of PIConGPU you are running in your script.
 In order to do so, replace the ``@dev`` with a concrete ``@<commit hash>``.
@@ -156,6 +159,8 @@ and recover individual elements from such a representation:
 
 .. literalinclude:: ../snippets/defining_simulation/serialize_simulation.py
    :language: python
+   :start-after: BEGIN-SERIALIZE-SIMULATION
+   :end-before: END-SERIALIZE-SIMULATION
 
 We refer the reader to the `official documentation <https://docs.pydantic.dev/latest/concepts/serialization/>`__ for further details.
 Such a JSON representation of the simulation
@@ -231,6 +236,8 @@ and to plot it:
 
 .. literalinclude:: ../snippets/defining_simulation/postprocess_histogram.py
    :language: python
+   :start-after: BEGIN-POSTPROCESS-HISTOGRAM
+   :end-before: END-POSTPROCESS-HISTOGRAM
 
 Dynamic parameter scans / optimization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -246,3 +253,5 @@ This function can be used in an optimization routine, for example:
 
 .. literalinclude:: ../snippets/defining_simulation/optimize_focal_position.py
    :language: python
+   :start-after: BEGIN-OPTIMIZE-FOCAL-POSITION
+   :end-before: END-OPTIMIZE-FOCAL-POSITION
