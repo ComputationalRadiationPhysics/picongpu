@@ -347,8 +347,22 @@ class Runner(BaseModel):
                         '    mkdir -p "$2/input"',
                         '    cp -r input/. "$2/input/" || true',
                         "fi",
-                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$destination_path|" "$submission_script"',
-                        'sed -i "s|--chdir=.*|--chdir=$destination_path|" "$submission_script"',
+                        # tbg resolved every !TBG_dstPath placeholder at prepare time
+                        # to its per-step job cache directory. Rewrite every occurrence
+                        # of that resolved value to the stable destination -- not just
+                        # the TBG_dstPath=/--chdir= lines -- so that --workdir=, cd and
+                        # inline executable references (e.g. .../input/bin/picongpu)
+                        # all point at the run directory too, instead of a leftover
+                        # cache path that would later be mangled into a stable but
+                        # nonexistent <run_dir>/run_dir.
+                        r"""
+                        old_dst=$(sed -n 's/^TBG_dstPath="*\([^"]*\)"*$/\1/p' "$submission_script" | head -n1)
+                        if [ -n "$old_dst" ] && [ "$old_dst" != "$destination_path" ]; then
+                            old_re=$(printf '%s\n' "$old_dst" | sed -e 's/[][\\.*^$]/\\&/g' -e 's/|/\\|/g')
+                            new_re=$(printf '%s\n' "$destination_path" | sed -e 's/[&\\]/\\&/g' -e 's/|/\\|/g')
+                            sed -i "s|${old_re}|${new_re}|g" "$submission_script"
+                        fi
+                        """,
                         r"""
                         if [[ "$submission_cmd" =~ \s*bash.* ]] || [[ "$submission_cmd" =~ \s*zsh.* ]]; then
                             $submission_cmd $submission_script &
