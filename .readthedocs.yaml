@@ -13,6 +13,9 @@ sphinx:
 python:
  install:
  - requirements: docs/requirements.txt
+ # the API reference page (python_package/api) autodocs the public
+ # picongpu.picmi package, which must be importable in the build env
+ - {path: lib/python, method: pip}
 
 formats:
   - htmlzip
