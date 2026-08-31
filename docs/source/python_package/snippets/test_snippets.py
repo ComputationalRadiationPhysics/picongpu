@@ -202,6 +202,9 @@ EXPECTED_FILES = {
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.period 0:-1:10"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.space y"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.momentum py"),
+            # momentum range in units of m_species*c (see the phase_space page)
+            ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.min -1.0"),
+            ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.max 1.0"),
         ],
     },
     "selected_topics/energy_histogram.py": {
