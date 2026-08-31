@@ -208,11 +208,15 @@ All distributions take
 The available distributions are:
 
 ``UniformDistribution``
-  A constant density throughout the box
-  (``density`` in m⁻³;
-  ``lower_bound``/``upper_bound`` restrict it to a sub-volume,
-  ``fill_in`` controls whether the density is continued
-  when the simulation window moves).
+   A constant density throughout the box (``density`` in m⁻³).
+
+   .. note::
+
+      The ``lower_bound``/``upper_bound`` and ``fill_in`` parameters
+      are accepted but currently ignored (they log a warning when set
+      to non-default values): the density fills the entire simulation
+      box. For sub-volume densities use ``AnalyticDistribution``,
+      ``GaussianDistribution`` or ``FoilDistribution`` instead.
 
 ``GaussianDistribution``
   A constant-density region with Gaussian ramps at the front and the rear
