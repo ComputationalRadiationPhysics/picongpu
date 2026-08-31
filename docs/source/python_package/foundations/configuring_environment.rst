@@ -26,9 +26,10 @@ The ``.picongpurc.toml`` File
 The runtime configuration is kept in a `TOML <https://toml.io/>`__ file
 that will be read when importing the PIConGPU python package for the first time.
 You can create this file by hand;
-a minimal configuration just sets the preset to use on this machine (see `Presets`_ below)::
+a minimal configuration just sets the preset to use on this machine (see `Presets`_ below):
 
-  preset = "bash"
+.. literalinclude:: ../snippets/configuring_environment/rc_params_minimal.toml
+   :language: toml
 
 Oftentimes, it is convenient to have one ``.picongpurc.toml`` file
 in a central (user-specific) location
@@ -63,6 +64,8 @@ e.g. defining or reading content from it:
 
 .. literalinclude:: ../snippets/configuring_environment/rc_params_basic.py
    :language: python
+   :start-after: BEGIN-RC-BASIC
+   :end-before: END-RC-BASIC
 
 This can be useful to define, e.g., machine-specific aspects of your simulation.
 Say, on a specific cluster you want to use a specific `openPMD <https://www.openpmd.org/>`__ configuration::
@@ -109,6 +112,8 @@ You can temporarily or permanently disable this:
 
 .. literalinclude:: ../snippets/configuring_environment/rc_params_preset_guard.py
    :language: python
+   :start-after: BEGIN-RC-PRESET-GUARD
+   :end-before: END-RC-PRESET-GUARD
 
 The ``dirty_reset_policy`` can take the values ``"raise"`` (the default),
 ``"warn"`` or ``"ignore"``, or an arbitrary handler to finetune the behaviour.
@@ -118,6 +123,8 @@ A full list of the presets shipped with the package can be obtained via:
 
 .. literalinclude:: ../snippets/configuring_environment/rc_params_list_presets.py
    :language: python
+   :start-after: BEGIN-RC-LIST-PRESETS
+   :end-before: END-RC-LIST-PRESETS
 
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^
@@ -128,6 +135,8 @@ Otherwise, you can inspect the ``rc_params`` instance directly to see what has b
 
 .. literalinclude:: ../snippets/configuring_environment/rc_params_finetune_preset.py
    :language: python
+   :start-after: BEGIN-RC-FINETUNE-PRESET
+   :end-before: END-RC-FINETUNE-PRESET
 
 The above code applies the ``rosi-hzdr`` preset,
 shows all parameters that have been set on the ``rc_params`` instance
@@ -135,11 +144,10 @@ shows all parameters that have been set on the ``rc_params`` instance
 and then adjusts the ``tbg_partition`` parameter to have a different value.
 The same could have been achieved in the ``.picongpurc.toml`` file directly
 because the preset is always applied first
-and all other configuration modifies a given preset::
+and all other configuration modifies a given preset:
 
-  preset = "rosi-hzdr"
-  tbg_partition = "a100"
-  # ...
+.. literalinclude:: ../snippets/configuring_environment/rc_params_finetune_preset.toml
+   :language: toml
 
 Manually Configuring Profile Content
 ------------------------------------
@@ -150,9 +158,10 @@ Upon execution, PIConGPU's Python frontend generates
 self-contained scripts to run all the different steps (compilation, submission, ...)
 as well as a general profile that can be sourced to drop into the PIConGPU environment.
 
-Any of the above can be overridden using an ``rc_params`` entry, e.g.::
+Any of the above can be overridden using an ``rc_params`` entry, e.g.:
 
-  shebang = "#!/usr/bin/env zsh"
+.. literalinclude:: ../snippets/configuring_environment/rc_params_shebang.toml
+   :language: toml
 
 and are given reasonable defaults otherwise.
 
@@ -166,15 +175,10 @@ The ``profile_content`` is determined by the following cascade of prioritized de
   4. The content of a file referenced by ``profile_template_path``, rendered as a mustache template
   5. A minimal profile that only adds the PIConGPU tools to ``$PATH`` (insufficient for running)
 
-The following list gives a redundant configuration with strictly decreasing precedence::
+The following list gives a redundant configuration with strictly decreasing precedence:
 
-  # setting a custom parameter up front:
-  my_rc_params_value = "Rendering template content directly"
-
-  profile_content = "echo 'Using profile_content directly'"
-  profile_path = "/path/to/my/profile"
-  profile_template_content = "echo {my_rc_params_value}"
-  profile_template_path = "/path/to/my/profile-template"
+.. literalinclude:: ../snippets/configuring_environment/rc_params_profile_precedence.toml
+   :language: toml
 
 The above configuration has the following effect:
 

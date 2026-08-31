@@ -12,6 +12,7 @@ Authors: opencode
 License: GPLv3+
 """
 
+# BEGIN-RC-PRESET-GUARD
 from picongpu import rc_params
 
 # may raise an exception when any non-default configuration was applied already:
@@ -24,3 +25,4 @@ with rc_params.set_temporarily(dirty_reset_policy="ignore"):
 # permanently disable that exception:
 rc_params["dirty_reset_policy"] = "warn"
 rc_params["preset"] = "bash"
+# END-RC-PRESET-GUARD

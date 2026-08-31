@@ -40,6 +40,8 @@ In this case, you can use one of the following:
 
         .. literalinclude:: ../snippets/running_simulation/uv_install.sh
            :language: bash
+           :start-after: BEGIN-UV-INSTALL
+           :end-before: END-UV-INSTALL
 
         or follow the installation instructions on `GitHub <https://github.com/astral-sh/uv#installation>`__.
 
@@ -47,6 +49,8 @@ In this case, you can use one of the following:
 
         .. literalinclude:: ../snippets/running_simulation/uv_run.sh
            :language: bash
+           :start-after: BEGIN-UV-RUN
+           :end-before: END-UV-RUN
 
     .. tab-item:: pip-run
 
@@ -57,11 +61,15 @@ In this case, you can use one of the following:
 
         .. literalinclude:: ../snippets/running_simulation/pip_run_install.sh
            :language: bash
+           :start-after: BEGIN-PIP-RUN-INSTALL
+           :end-before: END-PIP-RUN-INSTALL
 
         Then run
 
         .. literalinclude:: ../snippets/running_simulation/pip_run.sh
            :language: bash
+           :start-after: BEGIN-PIP-RUN
+           :end-before: END-PIP-RUN
 
     .. tab-item:: hatch
 
@@ -72,11 +80,15 @@ In this case, you can use one of the following:
 
         .. literalinclude:: ../snippets/running_simulation/hatch_install.sh
            :language: bash
+           :start-after: BEGIN-HATCH-INSTALL
+           :end-before: END-HATCH-INSTALL
 
         Then run
 
         .. literalinclude:: ../snippets/running_simulation/hatch_run.sh
            :language: bash
+           :start-after: BEGIN-HATCH-RUN
+           :end-before: END-HATCH-RUN
 
     .. tab-item:: executable shebang
 
@@ -85,6 +97,8 @@ In this case, you can use one of the following:
 
         .. literalinclude:: ../snippets/running_simulation/executable_shebang.sh
            :language: bash
+           :start-after: BEGIN-EXECUTABLE-SHEBANG
+           :end-before: END-EXECUTABLE-SHEBANG
 
 Any of these will download the specified version of PIConGPU (and other dependencies),
 generate the necessary input files
@@ -111,6 +125,8 @@ about your submission:
 
    .. literalinclude:: ../snippets/running_simulation/link_results.sh
       :language: bash
+      :start-after: BEGIN-LINK-RESULTS
+      :end-before: END-LINK-RESULTS
 
    You can also just read the script to find out where your data ended up.
 
@@ -126,6 +142,8 @@ You can install PIConGPU via ``pip`` via:
 
 .. literalinclude:: ../snippets/running_simulation/pip_install_from_git.sh
    :language: bash
+   :start-after: BEGIN-PIP-INSTALL-FROM-GIT
+   :end-before: END-PIP-INSTALL-FROM-GIT
 
 We recommend to replace the ``@dev`` with a specific ``@<commit hash>`` to fix the version.
 We recommend to install into a `virtual environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/>`__ (e.g. via `venv <https://docs.python.org/3/library/venv.html>`__, `uv <https://docs.astral.sh/uv/>`__, `mamba <https://mamba.readthedocs.io/>`__, ...)
@@ -136,6 +154,8 @@ You can simply run the script as Python script (from your environment):
 
 .. literalinclude:: ../snippets/running_simulation/python_input.sh
    :language: bash
+   :start-after: BEGIN-PYTHON-INPUT
+   :end-before: END-PYTHON-INPUT
 
 and proceed as above.
 
@@ -147,6 +167,8 @@ you can install the Python package via:
 
 .. literalinclude:: ../snippets/running_simulation/pip_install_from_source.sh
    :language: bash
+   :start-after: BEGIN-PIP-INSTALL-FROM-SOURCE
+   :end-before: END-PIP-INSTALL-FROM-SOURCE
 
 Make sure to use ``-e`` in order for the installation
 to take into account changes in your repository.
@@ -182,6 +204,8 @@ In effect, you can run:
 
 .. literalinclude:: ../snippets/running_simulation/legacy_workflow.sh
    :language: bash
+   :start-after: BEGIN-LEGACY-WORKFLOW
+   :end-before: END-LEGACY-WORKFLOW
 
 to achieve roughly the same result that a call to ``simulation.run()`` would have had.
 You will still benefit in parts from the additional features like better metadata, etc.
@@ -199,6 +223,8 @@ can be achieved on a generated setup the following invocation of the `cwltool <h
 
 .. literalinclude:: ../snippets/running_simulation/cwltool_workflow.sh
    :language: bash
+   :start-after: BEGIN-CWLTOOL-WORKFLOW
+   :end-before: END-CWLTOOL-WORKFLOW
 
 In here, the ``workflow/workflow.cwl`` contains the full definition of
 the workflow of building and submitting your simulation.
@@ -215,6 +241,8 @@ These can be executed individually in the following manner (exemplified by the `
 
 .. literalinclude:: ../snippets/running_simulation/cwltool_step.sh
    :language: bash
+   :start-after: BEGIN-CWLTOOL-STEP
+   :end-before: END-CWLTOOL-STEP
 
 Running the individual scripts manually
 """""""""""""""""""""""""""""""""""""""
@@ -228,6 +256,8 @@ Consequently, we can perform the equivalent of the above partial workflow execut
 
 .. literalinclude:: ../snippets/running_simulation/manual_step.sh
    :language: bash
+   :start-after: BEGIN-MANUAL-STEP
+   :end-before: END-MANUAL-STEP
 
 Integration into overarching workflows
 --------------------------------------

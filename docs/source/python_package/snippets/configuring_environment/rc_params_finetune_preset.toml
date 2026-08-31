@@ -1,0 +1,3 @@
+preset = "rosi-hzdr"
+tbg_partition = "a100"
+# ...
