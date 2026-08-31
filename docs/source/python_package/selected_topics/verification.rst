@@ -73,8 +73,9 @@ After a run, confirm the diagnostics you asked for actually exist
 in the output (see the :ref:`diagnostics pages <python_package/selected_topics/index:Selected Topics>`
 for where each one writes):
 the openPMD files in ``simOutput/openPMD/``,
-the phase-space / energy-histogram / macro-particle-count files in
-``simOutput/``, and so on.
+the phase-space files in ``simOutput/phaseSpace/``,
+the energy-histogram / macro-particle-count files in ``simOutput/``,
+and so on.
 A run that finishes but writes none of the diagnostics you configured
 usually means a ``period`` that never fires
 (e.g. a period beyond the number of steps you actually ran).

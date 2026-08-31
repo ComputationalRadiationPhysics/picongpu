@@ -72,8 +72,10 @@ The diagnostics in this chapter write to different places:
   ``simOutput/openPMD/``;
 * the **checkpoint** plugin (see :ref:`Checkpoints <checkpoint>`) writes into
   a directory of your choice inside ``simOutput/``;
-* the **phase space**, **energy histogram** and **macro-particle count**
-  plugins write plain files directly into ``simOutput/``.
+* the **phase space** plugin (see :ref:`Phase Space <phase-space>`)
+  writes openPMD files into ``simOutput/phaseSpace/``;
+* the **energy histogram** and **macro-particle count** plugins
+  write plain files directly into ``simOutput/``.
 
 Recall from :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`
 that ``simOutput/`` lives in the run directory of the *submitted job*,
