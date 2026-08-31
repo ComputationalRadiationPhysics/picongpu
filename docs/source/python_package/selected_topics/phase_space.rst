@@ -1,3 +1,5 @@
+.. _phase-space:
+
 Phase Space
 ===========
 

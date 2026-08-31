@@ -26,9 +26,9 @@ Parameters:
 
 The output is a plain ASCII file
 ``simOutput/<species>_energyHistogram_<filter>.dat``
-(one per recorded time step):
+(one per species and filter):
 the first line holds the bin edges in keV,
-each following line the counts.
+and each recorded time step appends one line of counts.
 Because the file format is fixed,
 you can post-process it directly with `numpy`_ and `matplotlib`_ --
 see :ref:`Multiple simulations in a single script <python_package/foundations/defining_simulation:Multiple simulations in a single script>`
