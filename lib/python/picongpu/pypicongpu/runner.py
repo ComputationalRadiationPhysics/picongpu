@@ -335,6 +335,18 @@ class Runner(BaseModel):
                         # cache dir, so use the stable destination path instead.
                         # Fall back to the working directory for standalone runs.
                         'destination_path="${2:-$(pwd -P)}"',
+                        # Stage the job inputs into the stable destination before the
+                        # in-workflow job is launched: organize_output_step copies the
+                        # full input into the final run directory only *after* this
+                        # submit step, so without this the default local (bash/zsh) job
+                        # would start from $destination_path before its input/ exists
+                        # and fail to find the executable -- the simulation would then
+                        # silently never run. No-op for standalone runs, where the
+                        # inputs are already in the (== $destination_path) workdir.
+                        'if [ -n "$2" ] && [ "$2" != "$(pwd -P)" ] && [ -d input ]; then',
+                        '    mkdir -p "$2/input"',
+                        '    cp -r input/. "$2/input/" || true',
+                        "fi",
                         'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$destination_path|" "$submission_script"',
                         'sed -i "s|--chdir=.*|--chdir=$destination_path|" "$submission_script"',
                         r"""
