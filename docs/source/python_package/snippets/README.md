@@ -25,11 +25,28 @@ exactly the code that is executed in CI**.
   Where a snippet reads simulation results (post-processing, optimization),
   the harness emulates the corresponding output files deterministically.
 - Bash snippets are syntax-checked with `bash -n` in the same pytest suite.
-   The cheap ones are additionally executed for real by the `docs-snippets`
-   CI job (see `.gitlab-ci.yml`), which also builds the Sphinx
-   documentation.
-  A Sphinx build fails on unresolvable `literalinclude` paths, keeping the
-  rendered docs and the tested scripts in sync.
+   The `docs-snippets` CI job (see `.gitlab-ci.yml`) additionally executes
+   one bash flow for real: setup generation with the `bash` preset and
+   sourcing of the generated profile, as
+   `running_simulation/legacy_workflow.sh` performs it
+   (re-implemented in `share/ci/docs_snippets_profile_check.sh`, not the
+   snippet file itself).
+   No other bash snippet - in particular the `cwltool`, `pic-build` and
+   `tbg` invocations - is executed in CI.
+   The CI job also builds the Sphinx documentation; a Sphinx build fails
+   on unresolvable `literalinclude` paths, keeping the rendered docs and
+   the tested scripts in sync.
+
+## Which snippets are executed where
+
+- **Executed by the pytest suite (one test per file):** all Python snippets
+  in `configuring_environment/` and `defining_simulation/` (the ones that
+  call `simulation.run()` are run with the run step emulated, see above).
+- **Syntax-checked with `bash -n` only:** all bash snippets in
+  `running_simulation/`.
+- **Executed for real by the CI job:** the legacy-workflow flow (setup
+  generation + profile sourcing), re-implemented in
+  `share/ci/docs_snippets_profile_check.sh`.
 
 ## Inclusion conventions
 
