@@ -11,9 +11,11 @@ Copyright 2026 PIConGPU contributors
 Authors: opencode
 License: GPLv3+
 
-Defines a simulation with a binning diagnostic:
+Defines a simulation with two binning diagnostics:
 a 1D histogram of the electron Lorentz factor gamma
-(100 linear bins between 1 and 100), written every 10th step.
+(100 linear bins between 1 and 100), written every 10th step,
+once for all electrons and once restricted to a filtered species
+(electrons with more than 10 keV kinetic energy).
 """
 
 from pathlib import Path
@@ -21,7 +23,7 @@ from sympy import sqrt
 
 from picongpu import picmi
 from picongpu.picmi.diagnostics import BinSpec, Binning, BinningAxis, TimeStepSpec
-from picongpu.picmi.particle_functor import ParticleFunctor
+from picongpu.picmi.particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
 
 
 def gamma(particle):
@@ -58,5 +60,33 @@ binning = Binning(
     period=TimeStepSpec[::10],
 )
 sim.add_diagnostic(binning)
+
+# BEGIN-BINNING-FILTER
+def fast_enough(particle):
+    # 1.6e-15 J = 10 keV
+    return particle.get("kinetic energy") > 1.6e-15
+
+
+fast_electrons = FilteredSpecies(
+    species=electrons,
+    functor=ParticleFilter(functor=fast_enough, name="fast"),
+)
+# END-BINNING-FILTER
+
+# the same binning, restricted to the filtered species
+# (the filtered species name is <species>_<filter> = "electrons_fast")
+fast_binning = Binning(
+    name="fastGammaDistribution",
+    deposition_functor=ParticleFunctor(functor=lambda particle: 1.0, name="count"),
+    axes=[
+        BinningAxis(
+            functor=ParticleFunctor(functor=gamma, name="gamma"),
+            bin_spec=BinSpec("linear", 1.0, 100.0, 100),
+        ),
+    ],
+    species=fast_electrons,
+    period=TimeStepSpec[::10],
+)
+sim.add_diagnostic(fast_binning)
 
 sim.run(setup_dir=Path("binning_setup"), run_dir=Path("binning_run"))

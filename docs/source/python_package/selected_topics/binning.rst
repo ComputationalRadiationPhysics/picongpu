@@ -67,10 +67,12 @@ The ``particle`` argument provides access to the particle's attributes
 through ``particle.get("...")``:
 
 * ``"position"``:
-  a 3D vector; the keyword arguments ``origin``
-  (``"total"`` (default) or ``"cell"``/``"local"``),
-  ``precision`` (``"cell"`` or ``"sub_cell"``)
-  and ``unit`` (``"cell"`` or ``"si"``) select the reference frame.
+   a 3D vector; the keyword arguments ``origin``
+   (``"total"`` (default), ``"cell"``, ``"local"``, ``"global"``,
+   ``"moving_window"`` or ``"local_with_guards"``),
+   ``precision`` (``"cell"`` (default) or ``"sub_cell"``)
+   and ``unit`` (``"cell"`` (default), ``"pic"`` or ``"si"``)
+   select the reference frame, the resolution and the units.
 * ``"momentum"``:
   the 3D momentum in SI units (index it as ``px, py, pz = particle.get("momentum")``).
 * ``"mass"``, ``"charge"``, ``"weighting"``:
@@ -102,16 +104,10 @@ and wrapping a species and a filter in a
 :class:`~picongpu.picmi.particle_functor.FilteredSpecies`
 gives a "species" that contains only the selected particles:
 
-.. code-block:: python
-
-    def fast_enough(particle):
-        # 1.6e-15 J = 10 keV
-        return particle.get("kinetic energy") > 1.6e-15
-
-    fast_electrons = FilteredSpecies(
-        species=electrons,
-        functor=ParticleFilter(functor=fast_enough, name="fast"),
-    )
+.. literalinclude:: ../snippets/selected_topics/binning.py
+   :language: python
+   :start-after: BEGIN-BINNING-FILTER
+   :end-before: END-BINNING-FILTER
 
 ``FilteredSpecies`` is accepted everywhere a ``Species`` is
 (phase space, energy histogram, particle dump, binning, ...).
