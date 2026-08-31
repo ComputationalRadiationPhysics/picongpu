@@ -23,9 +23,12 @@ The ``tbg`` Flags
 -----------------
 
 The runner invokes ``tbg`` once to *prepare* the submission
-(the ``prepare_submission`` workflow step)
-and the generated ``submit.sh`` script invokes the submit command
-a second time (the ``submit`` workflow step).
+(the ``prepare_submission`` workflow step);
+at that point no job exists yet.
+The prepared job is submitted afterwards, when the generated
+``submit.sh`` script invokes the submit command
+(``tbg_submit``) on the rendered batch script
+(the ``submit`` workflow step).
 Two of the knobs are runtime configuration parameters
 (see :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`);
 the rest are flags you can pass to ``simulation.run()``.

@@ -165,11 +165,19 @@ The workflow consists of four steps:
    which assembles the final run directory (see below).
 
 All inputs of the workflow steps
-(the build parameters and the ``tbg`` parameters)
+(the build parameters ``jobs``, ``cmake``, ``preset``, ``force``,
+``cmake_build_system``
+and the ``tbg`` parameters ``cfg_file``, ``submit_system``,
+``template_file``, ``overwrite_vars``, ``force``)
 are written into ``workflow/input.yaml``
 and can be customized by passing them as keyword arguments
 to ``simulation.run()`` / ``simulation.write_input_file()``
-(e.g. ``simulation.run(setup_dir=..., run_dir=..., jobs=8, force=True)``).
+(e.g. ``simulation.run(jobs=8, force=True)``).
+The ``setup_dir`` / ``run_dir`` keyword arguments of
+``simulation.run()`` are different:
+they only choose where the runner writes the setup directory
+and where it expects the run directory;
+they are not part of the workflow input.
 
 The Layout of the Run Directory
 -------------------------------
