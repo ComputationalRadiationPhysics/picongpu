@@ -9,7 +9,7 @@ from .backend_config import BackendConfig, OpenPMDConfig
 from .binning import Binning, BinningAxis, BinSpec
 from .checkpoint import Checkpoint
 from .energy_histogram import EnergyHistogram
-from .field_dump import DerivedFieldDump, NativeFieldDump
+from .field_dump import AverageDerivedFieldDump, DerivedFieldDump, NativeDerivedFieldDump, NativeFieldDump
 from .macro_particle_count import MacroParticleCount
 from .particle_dump import ParticleDump
 from .phase_space import PhaseSpace
@@ -21,6 +21,8 @@ AnyDiagnostic = (
     | Checkpoint
     | EnergyHistogram
     | DerivedFieldDump
+    | NativeDerivedFieldDump
+    | AverageDerivedFieldDump
     | NativeFieldDump
     | MacroParticleCount
     | ParticleDump
@@ -40,6 +42,8 @@ __all__ = [
     "ParticleDump",
     "NativeFieldDump",
     "DerivedFieldDump",
+    "NativeDerivedFieldDump",
+    "AverageDerivedFieldDump",
     "TimeStepSpec",
     "Checkpoint",
     "Radiation",

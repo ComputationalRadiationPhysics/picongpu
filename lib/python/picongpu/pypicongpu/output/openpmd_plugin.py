@@ -19,7 +19,9 @@ from pydantic import (
     ConfigDict,
     PrivateAttr,
     ValidationError,
+    computed_field,
     field_validator,
+    model_validator,
     model_serializer,
 )
 
@@ -27,7 +29,6 @@ from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
 from picongpu.pypicongpu.species.species import Species
-from picongpu.pypicongpu.util import unique
 
 NATIVE_FIELDS = ["E", "B", "J"]
 
@@ -93,10 +94,60 @@ def to_string(timestepspec: TimeStepSpec):
     )
 
 
+class BuiltinFieldSolver(BaseModel):
+    type: str
+    typename: str
+
+
+class DerivedFieldSolver(BaseModel):
+    """One compile-time particle-to-grid operation for one species and filter."""
+
+    species: str
+    attribute_type: str
+    attribute_typename: str
+    filtername: str | None = None
+
+    @computed_field
+    @property
+    def filter_type(self) -> str:
+        return f"picongpu::particles::filter::{self.filtername or 'All'}"
+
+    @computed_field
+    @property
+    def typename(self) -> str:
+        return "_".join((self.attribute_typename, self.species, self.filtername or "All"))
+
+
 class FieldDump(BaseModel):
     name: str
+    species: str | None = None
     functor: ParticleFunctor | None = None
+    builtin_solver: BuiltinFieldSolver | None = None
     filtername: None | str
+
+    @model_validator(mode="after")
+    def _validate_solver_kind(self):
+        if self.functor is not None and self.builtin_solver is not None:
+            raise ValueError("a field dump cannot use both a custom functor and a built-in solver")
+        if (self.functor is not None or self.builtin_solver is not None) and self.species is None:
+            raise ValueError("a derived field dump requires a species")
+        return self
+
+    def get_solver(self) -> DerivedFieldSolver | None:
+        if self.functor is None and self.builtin_solver is None:
+            return None
+        attribute_type = (
+            f"deriveField::derivedAttributes::{self.functor.typename}"
+            if self.functor is not None
+            else self.builtin_solver.type
+        )
+        attribute_typename = self.functor.typename if self.functor is not None else self.builtin_solver.typename
+        return DerivedFieldSolver(
+            species=self.species,
+            attribute_type=attribute_type,
+            attribute_typename=attribute_typename,
+            filtername=self.filtername,
+        )
 
     def get_rendering_context(self) -> dict:
         return self.model_dump(mode="json")
@@ -161,11 +212,13 @@ class OpenPMDPlugin(BaseModel):
         return {
             "type_openPMD": True,
             "config_filename": str(self.config_filename(content, context="runtime")),
-            "derived_fields": unique(
-                source[1].model_dump(mode="json")
-                for source in self.sources
-                if isinstance(source[1], FieldDump) and source[1].functor is not None
-            ),
+            "sources": [
+                {
+                    "period": to_string(period),
+                    "source": source.get_rendering_context(),
+                }
+                for period, source in self.sources
+            ],
         }
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
