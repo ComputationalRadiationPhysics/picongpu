@@ -1,0 +1,1102 @@
+"""
+This file is part of PIConGPU.
+
+Copyright 2025-2026 Edgar Marquardt
+
+Get the full electric field from a Lasy laser and save it to an openPMD compatible file in a way that PIConGPU understands.
+
+Some of the code taken from lasy 0.6.2 and then modified. Those parts are marked.
+For these parts the following license (BSD-3-Clause) applies:
+
+"lasy Copyright (c) 2023, The Regents of the University of California,
+through Lawrence Berkeley National Laboratory (subject to receipt of
+any required approvals from the U.S. Dept. of Energy) and Deutsches
+Elektronen-Synchrotron DESY. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+(1) Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+
+(2) Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy, Deutsches Elektronen-Synchrotron
+DESY, nor the names of its contributors may be used to endorse or promote
+products derived from this software without specific prior written permission.
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+You are under no obligation whatsoever to provide any bug fixes, patches,
+or upgrades to the features, functionality or performance of the source
+code ("Enhancements") to anyone; however, if you choose to make your
+Enhancements available either publicly, or directly to Lawrence Berkeley
+National Laboratory, without imposing a separate written license agreement
+for such Enhancements, then you hereby grant the following license: a
+non-exclusive, royalty-free perpetual license to install, use, modify,
+prepare derivative works, incorporate into other computer software,
+distribute, and sublicense such enhancements or derivative works thereof,
+in binary and source code form."
+
+
+For everything else:
+License: GPLv3+
+for PIConGPU
+"""
+
+from scipy.constants import c
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as clr
+import os
+import openpmd_api as io
+
+from lasy import __version__ as lasy_version
+from lasy.utils.grid import Grid
+from lasy.profiles.profile import Profile
+from lasy.laser import Laser
+
+try:
+    from tqdm.auto import tqdm
+
+    tqdm_available = True
+    bar_format = "{l_bar}{bar}| {elapsed}<{remaining} [{rate_fmt}{postfix}]"
+except Exception:
+    tqdm_available = False
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _prepare_env_spatial_rt(env, Nr, theta, azimuthal_modes, lo, hi):
+    """Helper function for get_full_field() preparing the envelope spatially. Also returns new low and hi transversally."""
+    # Cut off everything beyond Nr
+    if Nr is None:
+        Nr = env.shape[1]
+        frac = 1.0
+    else:
+        frac = (env.shape[1] - 1) / (Nr - 1)
+    env = env[:, :Nr, :]
+
+    # cut the laser at the right angle and prepare the field accordingly
+    # taken from Lasy
+    azimuthal_phase = np.exp(-1j * azimuthal_modes * theta)
+    env_upper = env * azimuthal_phase[:, None, None]
+    env_upper = env_upper.sum(0)
+    azimuthal_phase = np.exp(1j * azimuthal_modes * theta)
+    env_lower = env * azimuthal_phase[:, None, None]
+    env_lower = env_lower.sum(0)
+    env = np.vstack((env_lower[::-1][:-1], env_upper))
+
+    return env, -hi[0] / frac, hi[0] / frac
+
+
+def _prepare_env_spatial_xyt(env, Nx, Ny, lo, hi):
+    """Helper function for get_full_field() preparing the envelope spatially. Also returns lo and hi spatially for extent of the new field."""
+    # Cut out the section of size Nx, Ny, Nz
+    if Nx is not None:
+        if Nx > env.shape[0]:
+            raise ValueError("Nx does not fit into the laser field.")
+        midx = env.shape[0] // 2
+        xmin = midx - Nx // 2
+        xmax = midx + (Nx + 1) // 2
+        fracx = (env.shape[0] - 1) / (Nx - 1)
+        env = env[xmin:xmax, :, :]
+        midx = (hi[0] + lo[0]) / 2
+        xlo = midx - (hi[0] - lo[0]) / 2 / fracx
+        xhi = midx + (hi[0] - lo[0]) / 2 / fracx
+    else:
+        xlo = lo[0]
+        xhi = hi[0]
+    if Ny is not None:
+        if Ny > env.shape[1]:
+            raise ValueError("Ny does not fit into the laser field.")
+        midy = env.shape[1] // 2
+        ymin = midy - Ny // 2
+        ymax = midy + (Ny + 1) // 2
+        fracy = (env.shape[1] - 1) / (Ny - 1)
+        env = env[:, ymin:ymax, :]
+        midy = (hi[1] + lo[1]) / 2
+        ylo = midy - (hi[1] - lo[1]) / 2 / fracy
+        yhi = midy + (hi[1] - lo[1]) / 2 / fracy
+    else:
+        ylo = lo[1]
+        yhi = hi[1]
+
+    return env, (xlo, ylo), (xhi, yhi)
+
+
+def _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Prepares the new time axis for interpolation."""
+
+    t_lo, t_hi = np.min(time_axis), np.max(time_axis)
+
+    if Nt is not None and forced_dt is not None:
+        if offset_frac > 0:
+            if forced_dt * Nt >= (t_hi - t_lo) * (1 - offset_frac):
+                raise ValueError("forced_dt * Nt does not fit into field")
+            p = forced_dt * Nt / (t_hi - t_lo)
+            logger.warn(
+                "Nt and forced_dt given. Can not return the entire field, just " + str(100 * p)[:5] + " percent."
+            )
+            logger.info("Offsetting by " + str(100 * offset_frac)[:5] + " percent of the original field")
+            time_axis_new = np.arange(Nt) * forced_dt + t_hi - Nt * forced_dt - offset_frac * (t_hi - t_lo)
+        else:
+            if forced_dt * Nt >= (t_hi - t_lo):
+                raise ValueError("forced_dt * Nt does not fit into field")
+            p = forced_dt * Nt / (t_hi - t_lo)
+            logger.warn(
+                "Nt and forced_dt given. Can not return the entire field, just " + str(100 * p)[:5] + " percent."
+            )
+            time_axis_new = np.arange(Nt) * forced_dt + t_hi - Nt * forced_dt
+    elif forced_dt is None:
+        time_axis_new, dt = np.linspace(t_lo, t_hi, Nt, retstep=True)
+        logger.info("dt =", dt)
+    elif Nt is None:
+        time_axis_new = np.arange(int((t_hi - t_lo) / forced_dt)) * forced_dt + t_lo
+        Nt = len(time_axis_new)
+        logger.info("Nt =", Nt)
+
+    return time_axis_new
+
+
+def _interpolate_env_temporal_rt(env, Nr, time_axis, Nt, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Interpolates the envelope in the temporal direction. also returns new time axis."""
+    time_axis_new = _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac)
+    # prepare new field
+    if Nr is None:
+        Nr = env.shape[0]
+    env_new = np.zeros((2 * Nr - 1, len(time_axis_new)), dtype=env.dtype)
+    if tqdm_available:
+        pbar = tqdm(total=2 * Nr - 1, bar_format=bar_format)
+    # and then interpolate the envelope for Nt and forced_dt
+    # taken from Lasy
+    for ir in range(2 * Nr - 1):
+        interp_fu_abs = interp1d(time_axis, np.abs(env[ir]))
+        slice_abs = interp_fu_abs(time_axis_new)
+        interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ir])))
+        slice_angl = interp_fu_angl(time_axis_new)
+        env_new[ir] = slice_abs * np.exp(1j * slice_angl)
+        if tqdm_available:
+            pbar.update(1)
+        else:
+            if ir % 20 == 19:
+                print(ir + 1, "out of", 2 * Nr - 1)
+
+    if tqdm_available:
+        pbar.close()
+
+    return env_new, time_axis_new
+
+
+def _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Interpolates the envelope in the temporal direction. also returns new time axis."""
+    time_axis_new = _prepare_time_axis(time_axis, Nt, forced_dt, offset_frac)
+    # prepare new field
+    if Nx is None:
+        Nx = env.shape[0]
+    if Ny is None:
+        Ny = env.shape[1]
+    env_new = np.zeros((Nx, Ny, len(time_axis_new)), dtype=env.dtype)
+    if tqdm_available:
+        pbar = tqdm(total=Nx, bar_format=bar_format)
+    # and then interpolate the envelope for Nt and forced_dt
+    # taken from Lasy, then modified
+    for ix in range(Nx):
+        for iy in range(Ny):
+            interp_fu_abs = interp1d(time_axis, np.abs(env[ix, iy]))
+            slice_abs = interp_fu_abs(time_axis_new)
+            interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ix, iy])))
+            slice_angl = interp_fu_angl(time_axis_new)
+            env_new[ix, iy] = slice_abs * np.exp(1j * slice_angl)
+        if tqdm_available:
+            pbar.update(1)
+        else:
+            if ix % 20 == 19:
+                print(ix + 1, "out of", Nx)
+    if tqdm_available:
+        pbar.close()
+
+    return env_new, time_axis_new
+
+
+def _prepare_interpolate_env(laser, theta, Nt, Nr, Nx, Ny, forced_dt, offset_frac):
+    """Helper function for get_full_field(). Prepares and potentially interpolates the envelope for field calculation.
+    Also calcualtes the extent of the new field and returns the new time axis."""
+    env = laser.grid.get_temporal_field()
+    time_axis = laser.grid.axes[-1]
+
+    if laser.dim == "rt":
+        env, lo, hi = _prepare_env_spatial_rt(env, Nr, theta, laser.grid.azimuthal_modes, laser.grid.lo, laser.grid.hi)
+
+        if Nt is not None or forced_dt is not None:
+            # Now interpolation is required.
+            env, time_axis = _interpolate_env_temporal_rt(env, Nr, time_axis, Nt, forced_dt, offset_frac)
+        ext = np.array([np.min(time_axis), np.max(time_axis), lo, hi])
+
+    else:
+        env, lo, hi = _prepare_env_spatial_xyt(env, Nx, Ny, laser.grid.lo, laser.grid.hi)
+
+        if Nt is not None or forced_dt is not None:
+            # Now interpolation is required.
+            env, time_axis = _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_frac)
+        ext = np.array([np.min(time_axis), np.max(time_axis), lo[1], hi[1], lo[0], hi[0]])
+
+    return env, ext, time_axis
+
+
+def get_full_field(laser, theta=0, Nt=None, Nr=None, Nx=None, Ny=None, forced_dt=None, offset_frac=0):
+    """
+    Reconstruct the laser pulse with carrier frequency on the default grid.
+
+    Parameters
+    ----------
+    laser : lasy laser object
+        The laser for which the full field needs to be calculated.
+
+    Nt : int (optional)
+        Number of time points on which field should be sampled. If it is None,
+        the original time grid is used, otherwise the field is interpolated on a
+        new grid.
+
+    Nx : int (optional)
+        Number of x-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    Ny : int (optional)
+        Number of y-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    Nr : int (optional)
+        Number of r-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    theta : float (optional)
+        For the dim=rt case. Defines the angle around the pulse the field
+        should be calculated in.
+
+    forced_dt : float (optional)
+        If not None it forces dt to be this value, if possible.
+        If forced_dt and Nt is given the resulting section is taken from the end of the field.
+
+    offset_frac : float between 0 and 1 (optional)
+        Only relevant, when both Nt and forced_dt are given. Offsets the Nt * forced_dt
+        range from the upper end. This is interpreted as the fraction of the original field
+        the offset is supposed to be.
+
+    Returns
+    -------
+        Et : ndarray (V/m)
+            The reconstructed field, with shape (Nr, Nt) (for `rt`)
+            or (Nx, Ny, Nt) (for `xyt`).
+        extent : ndarray (Tmin, Tmax, Xmin, Xmax, [Ymin, Ymax])
+            Physical extent of the reconstructed field.
+    """
+    # preparing and potentially interpolating the envelope
+    env, ext, time_axis = _prepare_interpolate_env(laser, theta, Nt, Nr, Nx, Ny, forced_dt, offset_frac)
+
+    # applying the base frequency to get the field
+    omega0 = laser.profile.omega0
+    field = env * np.exp(-1j * omega0 * time_axis[None, :])
+    field = np.real(field)
+
+    return field, ext
+
+
+def _gauss(x, mu, sigma, A):
+    """fit function for gauss fitting"""
+    return A * np.exp(-((x - mu) ** 2) / (2 * sigma**2))
+
+
+def get_tpeak(laser, pos_offset=False, method="stat", nx=None, ny=None, nr=None):
+    """calculates the position of the intensity peak on the temporal axis of the laser field.
+
+    Parameters:
+    laser : lasy laser object
+        The laser for which to calculate the peak time.
+
+    pos_offset : bool (optional)
+        Whether to take the grid position into account.
+
+    method : str in {"stat", "fit", "max", "avmax"} (optiona)
+        The method of calculation.
+        "stat": Calculates the statistical average of the intensity on the axis.
+        "avstat": Calculates the statistical average of the intensity.
+        "fit": Fits a gaussian onto the intensity on axis.
+        "avfit": Fits a gaussian onto the intensity.
+        "max": Finds the maximum value in the laser field and returns its time.
+        "avmax": Like "max" but averages the transversal directionas first.
+
+    nx, ny, nr : int (optional)
+        If the method does not start with "av", this specifies the xy coordinate or the r respectively,
+        where the t_peak is calculated. These are the indices for the coordiates.
+
+    Returns:
+    t_peak : float
+        The intensity peak time.
+    """
+    if method not in ["stat", "avstat", "fit", "avfit", "max", "avmax"]:
+        raise ValueError(f"the given method ({method}) does not exist.")
+    field = laser.grid.get_temporal_field()
+    l_int = np.abs(field) ** 2
+    s_int = np.sum(l_int, axis=(0, 1))
+    if laser.dim == "xyt":
+        if not ((ny is None) == (nx is None)):
+            raise ValueError("not only one of nx and ny can be specified.")
+        if nx is not None:
+            lineout = l_int[nx, ny, :]
+        else:
+            Nx, Ny = l_int.shape[0] // 2, l_int.shape[1] // 2
+            lineout = l_int[Nx, Ny, :]
+    if laser.dim == "rt":
+        if nr is not None:
+            lineout = l_int[0, nr, :]
+        else:
+            lineout = l_int[0, 0, :]
+    match method:
+        case "stat":
+            t_peak = np.average(laser.grid.axes[-1], weights=lineout)
+        case "avstat":
+            t_peak = np.average(laser.grid.axes[-1], weights=s_int)
+        case "fit":
+            p0 = (0, (laser.grid.axes[-1][-1] - laser.grid.axes[-1][0]) / 4, np.max(lineout))
+            coeff, _ = curve_fit(_gauss, laser.grid.axes[-1], lineout, p0=p0)
+            t_peak = coeff[0]
+        case "avfit":
+            p0 = (0, (laser.grid.axes[-1][-1] - laser.grid.axes[-1][0]) / 4, np.max(s_int))
+            coeff, _ = curve_fit(_gauss, laser.grid.axes[-1], s_int, p0=p0)
+            t_peak = coeff[0]
+        case "max":
+            t_peak = laser.grid.axes[-1][np.argmax(lineout)]
+        case "avmax":
+            t_peak = laser.grid.axes[-1][np.argmax(s_int)]
+        case _:
+            print("?")
+            raise ValueError
+    if pos_offset:
+        t_peak += laser.grid.position / c
+    return t_peak
+
+
+def cfl_condition(dx, dy, dz, xi=0.995, dt=None):
+    """returns and prints the ideal time step given the spacing to get close to the
+    limits of the Courant-Friedrich-Levy condition.
+
+    Parameters:
+    xi : float
+        How close to the condition do you want to be? 1 is at the condition, 0 is dt=0
+
+    dx, dy, dz : float
+        The spacing in the three directions.
+
+    dt : float (optional)
+        If not None, this will print how far off this dt is from the ideal value
+
+    Returns:
+    dt_cfl : (float)
+        The ideal dt given the spacing
+    """
+    dt_cfl = xi / np.sqrt(1 / dx**2 + 1 / dy**2 + 1 / dz**2) / c
+    logger.info("dt should be:", dt_cfl)
+    if dt is not None:
+        logger.info("CFL numerical deviation:", (dt / dt_cfl - 1) * 100, "%")
+    return dt_cfl
+
+
+class _PartialGrid(Grid):
+    """partial grid class to save on memory. Do not use outside these functions.
+    It does not work as intended otherwise as it does not have a spectral field.
+
+    Code directly taken from lasy."""
+
+    def __init__(
+        self,
+        dim,
+        lo,
+        hi,
+        npoints,
+        n_azimuthal_modes=None,
+        is_envelope=True,
+        is_cw=False,
+        is_plane_wave=False,
+        position=0.0,
+    ):
+        # Metadata
+        ndims = 2 if dim == "rt" else 3
+        assert dim in ["rt", "xyt"]
+        assert len(lo) == ndims
+        assert len(hi) == ndims
+
+        lo = list(lo)
+        hi = list(hi)
+        npoints = list(npoints)
+
+        if is_cw:
+            if npoints[-1] != 1:
+                print("CW profile: overwrite npoints to only 1 cell in the longitudinal direction.")
+            lo[-1] = -0.5
+            hi[-1] = 0.5
+            npoints[-1] = 1
+        if is_plane_wave:
+            if npoints[0] != 1:
+                print("Plane wave: overwrite npoints to only 1 cell in the transverse directions.")
+            if dim == "rt":
+                lo[0] = 0.0
+                hi[0] = np.sqrt(1 / np.pi)
+                npoints[0] = 1
+            else:
+                lo[0] = -0.5
+                hi[0] = 0.5
+                npoints[0] = 1
+                lo[1] = -0.5
+                hi[1] = 0.5
+                npoints[1] = 1
+
+        self.npoints = npoints
+        self.axes = []
+        self.dx = []
+        for i in range(ndims):
+            self.axes.append(np.linspace(lo[i], hi[i], npoints[i]))
+            if len(self.axes[i]) > 1:
+                self.dx.append(self.axes[i][1] - self.axes[i][0])
+            else:
+                self.dx.append(hi[i] - lo[i])
+
+        self.lo = lo
+        self.hi = hi
+
+        if dim == "rt":
+            self.n_azimuthal_modes = n_azimuthal_modes
+            self.azimuthal_modes = np.r_[np.arange(n_azimuthal_modes), np.arange(-n_azimuthal_modes + 1, 0, 1)]
+
+        # Data
+        if dim == "xyt":
+            self.shape = self.npoints
+        elif dim == "rt":
+            # Azimuthal modes are arranged in the following order:
+            # 0, 1, 2, ..., n_azimuthal_modes-1, -n_azimuthal_modes+1, ..., -1
+            ncomp = 2 * self.n_azimuthal_modes - 1
+            self.shape = (ncomp, self.npoints[0], self.npoints[1])
+
+        self.set_is_envelope(is_envelope)
+        self.temporal_field = np.zeros(self.shape, dtype=self.dtype)
+        self.temporal_field_valid = False
+        self.spectral_field_valid = False
+        self.position = position
+
+
+class _PartialLaser(Laser):
+    """partial laser class to save on memory during creation. Does not evaluate the profile.
+    Also uses _PartialGrid to save on memory by not having the spectral field.
+
+    Code directly taken from Lasy"""
+
+    def __init__(self, dim, lo, hi, npoints, profile, n_azimuthal_modes=1, n_theta_evals=None):
+        self.grid = _PartialGrid(
+            dim,
+            lo,
+            hi,
+            npoints,
+            n_azimuthal_modes,
+            is_cw=profile.is_cw,
+            is_plane_wave=profile.is_plane_wave,
+        )
+        self.dim = dim
+        self.profile = profile
+
+
+def _lasy_like_coords(idx, N):
+    """helper function for _rt_to_xyt. Returns the coordinates for the radius calculation."""
+    # first we correct for the fact, that lasy uses np.linspace with endpoint=True (the default)
+    coord = idx + idx / (N - 1)
+    # then we shift the coord to the middle of the field
+    coord -= N / 2.0
+    return coord
+
+
+def _lasy_like_index(coord, N):
+    """helper function for _rt_to_xyt. Returns the closest indices to the given coord,
+    as well as the fraction describing, how far along the difference between the indices the coord sits."""
+    # first we correct again for the fact, that np.linspace with endpoint=True was used for the generation of this
+    coord *= 1 - 1 / N
+    # then we calculate the fraction and the indices
+    frac = coord % 1
+    idx0 = int(coord)
+    idx1 = int(coord) + 1
+    return idx0, idx1, frac
+
+
+def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
+    """turns the laser to xyt for saving in openPMD
+    preserves the point distances, not the hi and lo"""
+    field = laser.grid.get_temporal_field()
+    if field.shape[0] > 1:
+        raise ValueError("laser_to_openPMD only supports 1 azimuthal mode in dime=`rt` lasers")
+    if np.sqrt((Nx / 2) ** 2 + (Ny / 2) ** 2) / points_between_r >= field.shape[1] - 1:
+        raise ValueError("Nx and Ny don't fit into the laser field")
+
+    # calculate the new hi and lo
+    # the -1 is because for N points there are only N-1 steps covering the space between lo and hi.
+    xfrac = (Nx - 1) / 2.0 / (field.shape[1] * points_between_r - 1)
+    yfrac = (Ny - 1) / 2.0 / (field.shape[1] * points_between_r - 1)
+
+    lo = (-xfrac * laser.grid.hi[0], -yfrac * laser.grid.hi[0], laser.grid.lo[1])
+    hi = (xfrac * laser.grid.hi[0], yfrac * laser.grid.hi[0], laser.grid.hi[1])
+
+    # interpolate the field to get a 3D representation
+    field_new = np.zeros((Nx, Ny, field.shape[-1]), dtype=field.dtype)
+
+    if tqdm_available:
+        pbar = tqdm(total=Nx, bar_format=bar_format)
+    for ix in range(Nx):
+        for iy in range(Ny):
+            # first we calculate the distance from the grid point to the center, correcting for lasy-like xyt coordinates
+            r = np.sqrt(_lasy_like_coords(ix, Nx) ** 2 + _lasy_like_coords(iy, Ny) ** 2) / points_between_r
+            # we need to correct for lasy-like rt coordinates as well
+            idx0, idx1, frac = _lasy_like_index(r, field.shape[1])
+            # now we can interpolate
+            field_new[ix, iy, :] = (1 - frac) * field[0, idx0, :] + frac * field[0, idx1, :]
+        if tqdm_available:
+            pbar.update(1)
+
+    # make a partial laser for the return, containing the new field
+    laser_new = _PartialLaser("xyt", lo, hi, field_new.shape, Profile(laser.profile.lambda0, laser.profile.pol))
+    laser_new.grid.set_temporal_field(field_new)
+    if tqdm_available:
+        pbar.close()
+    return laser_new
+
+
+def _cut_first_frac(laser, cut_frac):
+    """cuts the first points in t direction"""
+    if cut_frac >= 1:
+        raise ValueError("Can't cut the entire field")
+    field = laser.grid.get_temporal_field()
+
+    # prep
+    N = int((field.shape[-1] - 1) * cut_frac) + 1
+    if np.max(np.abs(field[:, :, :N])) > 0.01 * np.max(np.abs(field)):
+        logger.warn(
+            "Only cut unneccessary stuff, max(E_cut)/max(E) = "
+            + str(np.max(np.abs(field[:, :, :N])) / np.max(np.abs(field)))
+        )
+
+    # cut the field
+    field_new = field[:, :, N:]
+    lo = laser.grid.lo
+    lo[-1] += (laser.grid.hi[-1] - laser.grid.lo[-1]) * cut_frac
+
+    # make a partial laser for the return, containing the new field
+    laser_new = _PartialLaser(
+        laser.dim, lo, laser.grid.hi, field_new.shape, Profile(laser.profile.lambda0, laser.profile.pol)
+    )
+    laser_new.grid.set_temporal_field(field_new)
+    return laser_new
+
+
+def write_to_openpmd_file(
+    write_dir,
+    file_prefix,
+    file_format,
+    array,
+    extent,
+    wavelength,
+    pol,
+    iteration=0,
+    data_step=1,
+    append=False,
+    ittime=None,
+):
+    """
+    Write the laser field into an openPMD file.
+
+    This code was taken from Lasy and then modified to fit the needs of PIConGPU.
+
+    Parameters
+    ----------
+    file_prefix : string
+        The file name will start with this prefix.
+
+    write_dir : string
+        The directory where the file will be written.
+
+    file_format : string
+        Format to be used for the output file. Options are "h5" and "bp".
+
+    iteration : int (optional)
+        The iteration number for the file to be written.
+
+    array : numpy ndarray, 3-dimensional with xyt
+        The 3-dimensional array containing the full electric field.
+
+    extent : numpy array of float
+        Low and high ends of the electric field portrayed in array. Should be in SI units.
+        np.array([time_low, time_high, y_low, y_high, x_low, x_high])
+
+    wavelength : scalar
+        Central wavelength for which the laser pulse envelope is defined.
+
+    pol : list of 2 complex numbers
+        Polarization vector that multiplies array to get the Ex and Ey arrays.
+
+    data_step : int (optional)
+        Only saves every (data_step)th data point to the file transversally.
+
+    append : bool (optional)
+        Needs to be set to True, if the file should be added to not overwritten.
+
+    ittime : float (optional)
+        Sets the time of the saved iteration. Otherwise the number of iterations so far is used.
+    """
+    # Create file and open it as openPMD series
+    full_filepath = os.path.join(write_dir, "{}.{}".format(file_prefix, file_format))
+    os.makedirs(write_dir, exist_ok=True)
+    if append:
+        series = io.Series(full_filepath, io.Access.append)
+    else:
+        series = io.Series(full_filepath, io.Access.create)
+    series.set_software("lasy", lasy_version)
+
+    # create the iteration
+    i = series.iterations[iteration]
+    if ittime is not None:
+        i.set_attribute("time", ittime)
+    else:
+        if append:
+            i.set_attribute("time", len(series.iterations) - 1)
+        else:
+            i.set_attribute("time", 0)
+
+    # translate t to z
+    # Because PIConGPU's FromOpenPMDPulse translates it back this is ok.
+    extent[0] *= c
+    extent[1] *= c
+
+    array = array[::data_step, ::data_step, :]
+
+    # Define the mesh
+    m = i.meshes["E"]
+    m.grid_spacing = [
+        (hi - lo) / (npoints - 1) for hi, lo, npoints in zip(extent[1::2], extent[0::2], array.shape[2::-1])
+    ]
+
+    m.grid_global_offset = [0, 0, 0]
+    m.geometry = io.Geometry.cartesian
+    m.axis_labels = ["z", "y", "x"]
+
+    i.dt = m.grid_spacing[0] / c
+
+    # Store metadata needed to reconstruct the field
+    m.set_attribute("angularFrequency", 2 * np.pi * c / wavelength)
+    m.unit_dimension = {
+        io.Unit_Dimension.M: 1,
+        io.Unit_Dimension.L: 1,
+        io.Unit_Dimension.I: -1,
+        io.Unit_Dimension.T: -3,
+    }
+
+    # Switch from x,y,t (internal to lasy) to t,y,x (in openPMD file)
+    # This is because many PIC codes expect x to be the fastest index
+    # Also it needs to be done in such a complicated way, because otherwise openPMD-api reads it incorrectly.
+    # See Issue #1882 in the openPMD-api
+    data = np.transpose(array).astype(np.float32)
+    data2 = np.zeros(data.shape, dtype=np.float32)
+    data2[:, :, :] = data[:, :, :]
+
+    # Define the dataset
+    dataset = io.Dataset(data.dtype, data.shape)
+    if pol[0] > pol[1]:
+        E_pol = m["x"]
+        E_trans = m["y"]
+    else:
+        E_pol = m["y"]
+        E_trans = m["x"]
+    E_z = m["z"]
+
+    E_pol.reset_dataset(dataset)
+    E_trans.reset_dataset(dataset)
+    E_z.reset_dataset(dataset)
+
+    # put in the data
+    E_pol[:, :, :] = data2
+    E_trans.make_constant(0.0)
+    E_z.make_constant(0.0)
+    series.flush()
+    series.close()
+
+
+def show(
+    array,
+    extent,
+    cutfrac=0.5,
+    cutdim=2,
+    transpose=False,
+    linthresh_frac=0.01,
+    xlabel="",
+    ylabel="",
+    alabel="",
+    title="",
+    flipx=False,
+    figsize=(16, 12),
+    ret_ax=False,
+):
+    """shows 2D or a slice through 3D data on a nice symlog plot.
+
+    Parameters:
+    array : numpy ndarray (2 or 3 dimensional)
+        The array containing the data.
+
+    extent : list of 2 or 3 lists of 2 float
+        Low end then high end of each dimension.
+
+    cutdim : int {0,1,2} (optional)
+        Only relevant when using a 3D array.
+        Defines the dimension of the array going out of the screen in the plot.
+
+    cutfrac : float [0,1] (optional)
+        Only relevant when using a 3D array.
+        Defines where along the cutdim the plot should be in terms of fraction along it.
+
+    transpose : bool (optional)
+        Transpose the array before displaying it.
+
+    linthresh_frac : float (optional)
+        Fraction of the absolute maximum from where the normalisation should be linear.
+
+    xlabel, ylabel : str (optional)
+        Labels for the plot axes.
+
+    alabel : str (optional)
+        Label for the colorbar describing the arraydata.
+
+    title : str (optional)
+        Title for the plot.
+
+    flipx : bool (optional)
+        Flips the x direction of the plot
+
+    figsize : tuple of float (optional)
+        Sets the size of the matplotlib figure.
+
+    ret_ax : bool (optional)
+        Whether to return the axes object and the fig object instead of showing it.
+
+    Returns:
+    fig : pyplot figure object (optional)
+        Only returned if ret_ax is True.
+
+    ax : pyplot axes object (optional)
+        Only returned if ret_ax is True.
+    """
+    # 1. cut
+    if len(array.shape) > 2:
+        if cutdim == 0:
+            array = array[int(array.shape[0] * cutfrac), :, :]
+            extent = extent[1:]
+        elif cutdim == 1:
+            array = array[:, int(array.shape[1] * cutfrac), :]
+            extent = [extent[0], extent[2]]
+        elif cutdim == 2:
+            array = array[:, :, int(array.shape[2] * cutfrac)]
+            extent = extent[:2]
+        else:
+            raise ValueError("cutdim must be in {0,1,2}")
+
+    # 2. find the limits and make the axes
+    m = np.max(np.abs(array))
+    if m <= 0:
+        print("nothing to see here")
+        return
+
+    x = np.linspace(extent[0][0], extent[0][1], array.shape[0] + 1, endpoint=True)
+    y = np.linspace(extent[1][0], extent[1][1], array.shape[1] + 1, endpoint=True)
+
+    # 3. transpose
+    if transpose:
+        array = array.transpose()
+        x, y = y, x
+
+    if flipx:
+        array = np.flip(array, 1)
+
+    # 3. plot
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot()
+
+    pcm = ax.pcolormesh(y, x, array, norm=clr.SymLogNorm(linthresh_frac * m, vmin=-m, vmax=m), cmap="seismic")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    cb = fig.colorbar(pcm, ax=ax, extend="both")
+    cb.set_label(alabel)
+
+    if ret_ax:
+        return fig, ax
+
+    fig.show()
+    plt.show()
+
+
+def _show(f, ext, show_SI, linthresh_frac, title, ret_ax):
+    """internal function to show the field"""
+    if show_SI:
+        xlabel = "t/s"
+        ylabel = "x/m"
+        if len(ext) == 4:
+            extent = [[ext[2], ext[3]], [ext[0], ext[1]]]
+        elif len(ext) == 6:
+            extent = [[ext[4], ext[5]], [ext[2], ext[3]], [ext[0], ext[1]]]
+        else:
+            raise ValueError("ext must be list of length 4 for rt or 6 for xyt")
+    else:
+        xlabel = "t"
+        ylabel = "x"
+        extent = [[0, sh] for sh in f.shape[::-1]]
+
+    return show(
+        f,
+        extent,
+        cutdim=1,
+        linthresh_frac=linthresh_frac,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        alabel="E/(V/m)",
+        figsize=(10, 8),
+        title=title,
+        ret_ax=ret_ax,
+    )
+
+
+def laser_to_openPMD(
+    laser,
+    file_prefix,
+    Nt=None,
+    Nx=None,
+    Ny=None,
+    write_dir="diags",
+    file_format="bp",
+    iteration=0,
+    points_between_r=1,
+    cut_first_frac=0,
+    forced_dt=None,
+    offset_frac=0,
+    data_step=1,
+    append=False,
+    show=False,
+):
+    """
+    Write the laser field into an openPMD file.
+
+    Parameters
+    ----------
+    laser : lasy Laser object
+        The laser to be written into the openPMD-file. If it is dim='rt' it is first turned into an 'xyt'-laser.
+
+    Nt : int (optional)
+        Number of time points on which field should be sampled. If it is None,
+        the orignal time grid is used, otherwise the field is interpolated on a
+        new grid.
+
+    Nx : int (optional)
+        Number of x-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    Ny : int (optional)
+        Number of y-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    file_prefix : string
+        The file name will start with this prefix.
+
+    write_dir : string (optional)
+        The directory where the file will be written.
+
+    file_format : string (optional)
+        Format to be used for the output file. Options are "h5" and "bp".
+
+    iteration : int (optional)
+        The iteration number for the file to be written.
+
+    points_between_r : int or float (optional)
+        If laser.dim=="rt" the field is converted to xyt to write into the file.
+        This argument describes, how many points in x and y directions should be placed
+        (interpolated) between two given values in the r direction.
+
+    cut_first_frac : float between 0 and 1 (optional)
+        Fraction of the points in the t-direction to be cut
+
+    forced_dt : float (optional)
+        Forces dt to be this value, if possible.
+        If forced_dt and Nt is given the resulting section is taken from the end of the field.
+
+    offset_frac : float between 0 and 1 (optional)
+        Only relevant, when both Nt and forced_dt are given. Offsets the Nt * forced_dt
+        range from the upper end. This is interpreted as the fraction of the original field
+        the offset is supposed to be.
+
+    data_step : int (optional)
+        Only saves every (data_step)th data point to the file transversally.
+        The number Nx is still reached.
+
+    append : bool (optional)
+        Needs to be set to True, if the file should be added to not overwritten.
+    """
+    # 1. Check if cutting is neccessary
+    changed = False
+    if cut_first_frac > 0:
+        logger.info("preparing the laser...")
+        laser_new = _cut_first_frac(laser, cut_first_frac)
+        changed = True
+
+    # 2. If the laser is in rt it needs to be transformed to xyt, because we want to save a 3D electric field. Assuming cylindrical symmetry in this case.
+    if laser.dim == "rt":
+        if Nx is None or Ny is None:
+            raise ValueError("If given a laser in dim='rt' both Nx and Ny must be given")
+        if changed:
+            laser_new = _rt_to_xyt(
+                laser_new,
+                int(Nx * data_step),
+                int(Ny * data_step),
+                points_between_r=points_between_r,
+            )
+        else:
+            logger.info("preparing the laser...")
+            laser_new = _rt_to_xyt(
+                laser,
+                int(Nx * data_step),
+                int(Ny * data_step),
+                points_between_r=points_between_r,
+            )
+        changed = True
+    if not changed:
+        laser_new = laser
+
+    logger.info("extracting full field...")
+    if Nx is not None:
+        Nx *= data_step
+    if Ny is not None:
+        Ny *= data_step
+
+    # 3. Actually extracting the full electric field.
+    f, ext = get_full_field(laser_new, Nt=Nt, Nx=Nx, Ny=Ny, forced_dt=forced_dt, offset_frac=offset_frac)
+
+    # 4. Save to file
+    logger.info("saving...")
+    write_to_openpmd_file(
+        write_dir,
+        file_prefix,
+        file_format,
+        f,
+        ext,
+        laser_new.profile.lambda0,
+        laser_new.profile.pol,
+        iteration=iteration,
+        data_step=data_step,
+        append=append,
+    )
+
+    # 5. possibly show the saved field to the screen
+    if show:
+        _show(f, ext, True, 0.01, "Saved field", False)
+    logger.info("done")
+
+
+def memory_calc(Nx, Ny, Nt):
+    """calculates the meory in bytes required by a file generated by the
+    laser_to_openPMD function.
+
+    Parameters:
+    Nx, Ny, Nt : int
+        The number of points in the array. Should be the same as for the function call.
+    """
+    return Nx * Ny * Nt * 32 / 8
+
+
+def show_field(
+    laser,
+    Nt=None,
+    Nx=None,
+    Ny=None,
+    Nr=None,
+    forced_dt=None,
+    offset_frac=0,
+    show_SI=True,
+    linthresh_frac=0.01,
+    title="",
+    ret_ax=False,
+):
+    """shows the laser field on an symlog-plot.
+
+    Parameters:
+    laser : lasy Laser object
+        The laser to be shown.
+
+    Nt : int (optional)
+        Number of time points on which field should be sampled. If it is None,
+        the orignal time grid is used, otherwise the field is interpolated on a
+        new grid.
+
+    Nx : int (optional)
+        Number of x-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    Ny : int (optional)
+        Number of y-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    Nr : int (optional)
+        Number of r-points the field should be cut down to. Does not interpolate.
+        Always in the middle.
+
+    forced_dt : float (optional)
+        Forces dt to be this value, if possible.
+        If forced_dt and Nt is given the resulting section is taken from the end of the field.
+
+    offset_frac : float between 0 and 1 (optional)
+        Only relevant, when both Nt and forced_dt are given. Offsets the Nt * forced_dt
+        range from the upper end. This is interpreted as the fraction of the original field
+        the offset is supposed to be.
+
+    linthresh_frac : float (optional)
+        Fraction of the absolute maximum from where the normalisation should be linear.
+
+    show_SI : bool (optional)
+        If True, the axes are written in SI-units, otherwise they are written in points.
+
+    title : str (optional)
+        The title of the plot.
+
+    ret_ax : bool (optional)
+        If True, the figure object and the axes object are returned, otherwise displayed.
+
+    Returns:
+    fig : pyplot figure object (optional)
+        Only returned if ret_ax is True
+
+    ax : pyplot axes object (optional)
+        Only returned if ret_ax is True
+    """
+    logger.info("Extracting full field")
+    if Ny is None:
+        Ny = 2
+    f, ext = get_full_field(laser, Nt=Nt, Nr=Nr, Nx=Nx, Ny=Ny, forced_dt=forced_dt, offset_frac=offset_frac)
+    logger.info("Displaying")
+    return _show(f, ext, show_SI, linthresh_frac, title, ret_ax)

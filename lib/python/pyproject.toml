@@ -28,6 +28,7 @@ dependencies = [
   "h5py",
   "imageio",
   "jsonschema>=4.23",
+  "lasy>=0.6",
   "matplotlib",
   # temporary bug-fix branch, should point to an upcoming release including this in the future:
   "moosetash @ git+https://github.com/chillenzer/moosetash.git@fix-none-handling",

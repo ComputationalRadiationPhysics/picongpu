@@ -33,6 +33,7 @@ from .interaction.ionization.fieldionization import (
 from .lasers import (
     DispersivePulseLaser,
     FromOpenPMDPulseLaser,
+    FromLasyLaser,
     GaussianLaser,
     PlaneWaveLaser,
     TWTSLaser,
@@ -52,6 +53,7 @@ __all__ = [
     "ElectromagneticSolver",
     "DispersivePulseLaser",
     "FromOpenPMDPulseLaser",
+    "FromLasyLaser",
     "GaussianLaser",
     "TWTSLaser",
     "PlaneWaveLaser",
