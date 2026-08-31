@@ -254,6 +254,10 @@ EXPECTED_FILES = {
             ("binning_setup/include/picongpu/param/binningSetup.param", "gammaDistribution"),
             ("binning_setup/include/picongpu/param/binningSetup.param", "addParticleBinner"),
             ("binning_setup/include/picongpu/param/binningSetup.param", 'setNotifyPeriod("0:-1:10")'),
+            # the filtered-species binner renders the filter as a boolean functor
+            ("binning_setup/include/picongpu/param/binningSetup.param", "fastGammaDistribution"),
+            ("binning_setup/include/picongpu/param/binningSetup.param", "FilteredSpecies"),
+            ("binning_setup/include/picongpu/param/binningSetup.param", "Ekin > 1.6e-15"),
         ],
     },
     "selected_topics/radiation.py": {
