@@ -43,11 +43,13 @@ Input-file generation
    must be the same (both ``"open"`` or both ``"periodic"``).
 
 ``An initial distribution needs a layout. ...``
-   You passed a ``layout`` to a species with ``initial_distribution=None``
-   (or the reverse).
+   You passed a ``layout`` to a species with
+   ``initial_distribution=None``.
    Give a layout only to species that actually get particles,
    and ``None`` to the ones that start empty
-   (e.g. an electron species filled by ionization).
+   (e.g. an electron species filled by ionization);
+   the reverse -- a distribution without a layout -- fails with a
+   different error (pydantic ``layout: Field required``).
 
 ``charge_state may only be set for ions``
    You set ``charge_state`` on a predefined particle

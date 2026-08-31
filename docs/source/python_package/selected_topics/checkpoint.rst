@@ -48,7 +48,9 @@ A new run resumes from a checkpoint by giving it the restart options
 instead of a fresh ``period``:
 
 ``restart=True``
-   Restart from the given checkpoint (the run aborts if it does not exist).
+   Restart from the latest checkpoint
+   (or from the specific step given via ``restartStep``;
+   the run aborts if the checkpoint does not exist).
 
 ``tryRestart=True``
    Restart from the latest available checkpoint,
