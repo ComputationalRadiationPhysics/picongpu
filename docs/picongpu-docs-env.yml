@@ -12,3 +12,7 @@ dependencies:
   - pip
   - pip:
     - "-r requirements.txt"
+    # the API reference page autodocs the public picongpu.picmi package,
+    # which must be importable in the docs environment;
+    # install it from this checkout (run the env create from docs/)
+    - "../lib/python"
