@@ -39,17 +39,17 @@ to confirm the parameters are what you intended.
 3. Does the frontend work on this machine?
 ------------------------------------------
 
-The package ships a fast test suite that exercises the Python frontend
-without a GPU or a compiler:
+A source checkout of PIConGPU ships a fast test suite that exercises the
+Python frontend without a GPU or a compiler
+(the test tree is not part of the pip/uv installation,
+so this stage needs a checkout, not an install):
 
-.. code-block:: bash
-
-   cd lib/python/test/picongpu
-   python -m pytest quick/ -q
+.. literalinclude:: ../snippets/verification/quick_suite.sh
+   :language: bash
 
 These are the "quick" tests: they run in seconds and are the ones CI runs
 on every commit.
-A green run here means the installed package is internally consistent.
+A green run here means the frontend is internally consistent.
 (Deeper suites -- ``compiling/`` and ``end_to_end/`` -- build and run real
 simulations and are long-running; they are for the project's CI,
 not for a quick user check.)
