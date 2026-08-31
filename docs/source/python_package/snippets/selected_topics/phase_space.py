@@ -13,6 +13,8 @@ License: GPLv3+
 
 Defines a simulation with a phase-space diagnostic for the electron species:
 the y-position is plotted against the y-momentum, sampled every 10th step.
+The momentum range is +-1 in units of the electron rest-mass momentum
+(m_e*c): min_momentum/max_momentum are not SI momenta.
 """
 
 from pathlib import Path
@@ -40,8 +42,8 @@ phase_space = PhaseSpace(
     period=TimeStepSpec[::10],
     spatial_coordinate="y",
     momentum_coordinate="py",
-    min_momentum=-2e-26,
-    max_momentum=2e-26,
+    min_momentum=-1.0,
+    max_momentum=1.0,
 )
 sim.add_diagnostic(phase_space)
 
