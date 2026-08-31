@@ -144,12 +144,20 @@ All lasers share a few properties and constraints:
 .. literalinclude:: ../snippets/defining_simulation/laser_variants.py
    :language: python
 
+``TWTSLaser``
+   An obliquely incident, pulse-front-tilted Gaussian pulse
+   (``laserIncidenceAngle`` and ``polarizationAngle`` parameterize
+   the incidence relative to the ``y`` axis)
+   for traveling-wave Thomson-scattering setups;
+   ``waist``, ``focal_position`` and the amplitude work as for ``GaussianLaser``.
+
 .. note::
 
-   The ``PlaneWaveLaser`` and ``TWTSLaser`` classes exist
-   but currently do not work:
-   generating the input files from a simulation that uses one of them fails.
-   They are therefore not described in detail here.
+   The ``PlaneWaveLaser`` class exists but currently does not work:
+   generating the input files from a simulation that uses it fails,
+   because the frontend does not provide the ``focal_position`` and
+   ``laser_nofocus_constant_si`` parameters the rendering requires.
+   It is therefore not described in detail here.
 
 Species
 -------
