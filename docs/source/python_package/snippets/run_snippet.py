@@ -22,19 +22,26 @@ import runpy
 import sys
 from pathlib import Path
 
+# The synthetic landscape of the emulated runs (single source of truth;
+# imported by test_snippets.py).
+PEAK_FOCAL = 4.6e-5
+PEAK_SIGMA = 1e-6
+PEAK_COUNT = 1000
+SCAN_FOCALS = (4.4e-5, 4.6e-5, 4.8e-5)
+
 
 def emulated_electron_count(run_dir):
     """Deterministic stand-in for a simulation result.
 
-    The number of electrons in the energy histogram peaks at the focal
-    position 4.6e-5 m (sigma 1e-6 m, peak 1000 electrons);
+    The number of electrons in the energy histogram is a Gaussian around
+    the focal position PEAK_FOCAL (sigma PEAK_SIGMA, peak PEAK_COUNT);
     other run directories get a fixed, arbitrary count.
     """
     match = re.search(r"focal_([0-9]+(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)", str(run_dir))
     if match is None:
         return 42
     focal_position = float(match.group(1))
-    return int(1000 * math.exp(-(((focal_position - 4.6e-5) / 1e-6) ** 2)))
+    return int(PEAK_COUNT * math.exp(-(((focal_position - PEAK_FOCAL) / PEAK_SIGMA) ** 2)))
 
 
 def write_synthetic_energy_histogram(

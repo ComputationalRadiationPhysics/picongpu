@@ -31,7 +31,14 @@ from pathlib import Path
 
 import pytest
 
-from run_snippet import emulated_electron_count, write_synthetic_energy_histogram
+from run_snippet import (
+    PEAK_COUNT,
+    PEAK_FOCAL,
+    PEAK_SIGMA,
+    SCAN_FOCALS,
+    emulated_electron_count,
+    write_synthetic_energy_histogram,
+)
 
 SNIPPETS_DIR = Path(__file__).parent
 RUN_SNIPPET = SNIPPETS_DIR / "run_snippet.py"
@@ -89,14 +96,15 @@ EXPECTED_FILES = {
     "defining_simulation/multiple_simulations.py": {
         "no_run": True,
         "files": [
-            f"scan/focal_{focal:.1e}/setup/include/picongpu/param/simulation.param"
-            for focal in (4.4e-5, 4.6e-5, 4.8e-5)
+            f"scan/focal_{focal:.1e}/setup/include/picongpu/param/simulation.param" for focal in SCAN_FOCALS
         ]
-        + [f"scan/focal_{focal:.1e}/setup/workflow/input.yaml" for focal in (4.4e-5, 4.6e-5, 4.8e-5)],
+        + [f"scan/focal_{focal:.1e}/setup/workflow/input.yaml" for focal in SCAN_FOCALS],
     },
     "defining_simulation/postprocess_histogram.py": {
         "files": ["electron_count.png"],
     },
+    # mechanics test: the optimizer runs against the synthetic,
+    # harness-defined landscape of run_snippet.py (no compiled simulation)
     "defining_simulation/optimize_focal_position.py": {
         "no_run": True,
         "stdout_regex": [
@@ -110,7 +118,7 @@ EXPECTED_FILES = {
 def _make_synthetic_scan(tmp_path):
     """Create run directories with synthetic EnergyHistogram output (as a real scan would leave)."""
     run_dirs = []
-    for focal in (4.4e-5, 4.6e-5, 4.8e-5):
+    for focal in SCAN_FOCALS:
         run_dir = tmp_path / "scan" / f"focal_{focal:.1e}"
         write_synthetic_energy_histogram(run_dir, emulated_electron_count(run_dir))
         run_dirs.append(run_dir)
@@ -170,9 +178,9 @@ def test_python_snippet(snippet, tmp_path):
         assert match, f"expected {pattern!r} in stdout:\n{result.stdout}"
         value = float(match.group(1))
         if name == "focal_position":
-            assert abs(value - 4.6e-5) <= 5e-7, f"optimizer did not converge near 4.6e-5, got {value}"
+            assert abs(value - PEAK_FOCAL) <= PEAK_SIGMA / 2, f"optimizer did not converge near {PEAK_FOCAL}, got {value}"
         if name == "maximal_count":
-            assert value >= 995, f"expected a maximal electron count near 1000, got {value}"
+            assert value >= PEAK_COUNT - 5, f"expected a maximal electron count near {PEAK_COUNT}, got {value}"
 
 
 @pytest.mark.parametrize("snippet", BASH_SNIPPETS, ids=lambda path: str(path.relative_to(SNIPPETS_DIR)))
