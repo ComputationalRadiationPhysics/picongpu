@@ -36,19 +36,19 @@
 
 #include "pmacc/attribute/FunctionSpecifier.hpp"
 
-#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Config.hpp>
 
 #include <type_traits>
 #include <utility>
 
 // suppress warnings as this is third-party code
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wdocumentation"
 #    pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
 #endif
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC || defined(ALPAKA_COMP_MSVC_EMULATED)
 #    pragma warning(push)
 #    pragma warning(disable : 4003) // not enough arguments for function-like macro invocation
 #endif
@@ -243,9 +243,9 @@ namespace pmacc
     } // namespace memory
 } // namespace pmacc
 
-#if BOOST_COMP_CLANG
+#if ALPAKA_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif
-#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#if ALPAKA_COMP_MSVC || defined(ALPAKA_COMP_MSVC_EMULATED)
 #    pragma warning(pop)
 #endif

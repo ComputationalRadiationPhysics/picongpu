@@ -227,7 +227,7 @@ TEST_CASE("PageInterpretation.destroy")
     PageInterpretation<pageSize> page{data, chunkSize};
     auto* pointer = page.create(accSerial);
 
-#if (!defined(NDEBUG) && !BOOST_LANG_CUDA && !BOOST_LANG_HIP)
+#if (!defined(NDEBUG) && !ALPAKA_LANG_CUDA && !ALPAKA_LANG_HIP)
     SECTION("throws if given an invalid pointer.")
     {
         pointer = nullptr;

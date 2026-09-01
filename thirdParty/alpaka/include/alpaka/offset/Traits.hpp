@@ -39,12 +39,12 @@ namespace alpaka
     [[deprecated("use getOffsets(offsets)[Tidx] instead")]] ALPAKA_FN_HOST_ACC auto getOffset(TOffsets const& offsets)
         -> Idx<TOffsets>
     {
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
         return trait::GetOffset<DimInt<Tidx>, TOffsets>::getOffset(offsets);
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
     }

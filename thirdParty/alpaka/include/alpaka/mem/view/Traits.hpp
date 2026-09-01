@@ -1,5 +1,5 @@
-/* Copyright 2024 Axel Hübl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber,
- *                Aurora Perego
+/* Copyright 2026 Axel Hübl, Benjamin Worpitz, Matthias Werner, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber,
+ *                Aurora Perego, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -19,12 +19,67 @@
 #include "alpaka/vec/Vec.hpp"
 
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <iosfwd>
 #include <type_traits>
 #include <vector>
+
 #ifdef ALPAKA_USE_MDSPAN
-#    include <experimental/mdspan>
+#    ifdef ALPAKA_HAS_STD_MDSPAN
+//       mdspan from the standard library
+#        include <mdspan>
+#        include <version>
+
+namespace alpaka::experimental
+{
+    // Import C++23 mdspan into alpaka::experimental namespace.
+    // See https://wg21.link/P0009R18 .
+    using ::std::default_accessor;
+    using ::std::dextents;
+    using ::std::extents;
+    using ::std::layout_left;
+    using ::std::layout_right;
+    using ::std::layout_stride;
+    using ::std::mdspan;
+#        ifdef __cpp_lib_submdspan
+    // Import C++26 submdspan into alpaka::experimental namespace.
+    // See https://wg21.link/P2630R4 .
+    using ::std::full_extent;
+    using ::std::submdspan;
+#        endif
+} // namespace alpaka::experimental
+
+#    else
+
+#        ifdef ALPAKA_ACC_SYCL_ENABLED
+//           do not expose the macro definition of printf
+#            pragma push_macro("printf")
+#            ifdef printf
+#                undef printf
+#            endif
+#        endif // ALPAKA_ACC_SYCL_ENABLED
+
+#        if defined(ALPAKA_ACC_SYCL_ENABLED) && (defined(ALPAKA_SYCL_ONEAPI_FPGA) || defined(ALPAKA_SYCL_TARGET_FPGA))
+//           the fpga compiler does not handle well the [[no_unique_address]] attribute, resulting in:
+//               GEP has !intel-tbaa annotation but its "shape" is unexpected!
+//               /opt/intel/oneapi/compiler/2025.0/bin/compiler/llvm-link: error: linked module is broken!
+//               icpx: error: sycl-link command failed with exit code 1 (use -v to see invocation)
+#            include <experimental/__p0009_bits/config.hpp>
+#            undef MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS
+#            undef MDSPAN_IMPL_NO_UNIQUE_ADDRESS
+#            define MDSPAN_IMPL_NO_UNIQUE_ADDRESS
+#        endif
+
+//       mdspan from the Kokkos reference implementation
+#        define MDSPAN_IMPL_STANDARD_NAMESPACE alpaka::experimental
+#        include <experimental/mdspan>
+
+#        ifdef ALPAKA_ACC_SYCL_ENABLED
+//           restore the macro definition of printf
+#            pragma pop_macro("printf")
+#        endif // ALPAKA_ACC_SYCL_ENABLED
+#    endif
 #endif
 
 namespace alpaka
@@ -42,8 +97,47 @@ namespace alpaka
             if constexpr(dim > 1)
                 for(TIdx i = TDim::value - 1; i > 0; i--)
                     pitchBytes[i - 1] = extent[i] * pitchBytes[i];
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wnrvo"
+#endif
             return pitchBytes;
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic pop
+#endif
         }
+
+        //! Calculate the pitches from the extents and the one-dimensional pitch.
+        template<typename TElem, typename TDim, typename TIdx>
+        ALPAKA_FN_HOST_ACC inline constexpr auto calculatePitchesFromExtentsAndPitch(
+            Vec<TDim, TIdx> const& extent,
+            std::size_t pitch)
+        {
+            Vec<TDim, TIdx> pitchBytes{};
+            constexpr auto dim = TIdx{TDim::value};
+            if constexpr(dim > 0)
+                pitchBytes.back() = static_cast<TIdx>(sizeof(TElem));
+            if constexpr(dim > 1)
+            {
+                if(pitch == 0)
+                    pitchBytes[TDim::value - 2] = extent.back() * pitchBytes.back();
+                else
+                    pitchBytes[TDim::value - 2] = static_cast<TIdx>(
+                        (static_cast<std::size_t>(extent.back() * pitchBytes.back()) + pitch - 1) / pitch * pitch);
+            }
+            if constexpr(dim > 2)
+                for(TIdx i = TDim::value - 2; i > 0; i--)
+                    pitchBytes[i - 1] = extent[i] * pitchBytes[i];
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wnrvo"
+#endif
+            return pitchBytes;
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic pop
+#endif
+        }
+
     } // namespace detail
 
     //! The view traits.
@@ -79,12 +173,12 @@ namespace alpaka
                 constexpr auto viewDim = Dim<TView>::value;
                 if constexpr(idx < viewDim - 1)
                 {
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
                     return getExtents(view)[idx] * GetPitchBytes<DimInt<idx + 1>, TView>::getPitchBytes(view);
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
                 }
@@ -112,6 +206,9 @@ namespace alpaka
         //! Fills the view with data.
         template<typename TDim, typename TDev, typename TSfinae = void>
         struct CreateTaskMemset;
+
+        template<typename TDim, typename TDev, typename TSfinae = void>
+        struct CreateTaskFill;
 
         //! The memory copy task trait.
         //!
@@ -175,12 +272,12 @@ namespace alpaka
     template<std::size_t Tidx, typename TView>
     [[deprecated("Use getPitchesInBytes instead")]] ALPAKA_FN_HOST auto getPitchBytes(TView const& view) -> Idx<TView>
     {
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
         return trait::GetPitchBytes<DimInt<Tidx>, TView>::getPitchBytes(view);
-#if BOOST_COMP_CLANG || BOOST_COMP_GNUC
+#if ALPAKA_COMP_CLANG || ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
     }
@@ -211,13 +308,29 @@ namespace alpaka
         static_assert(
             Dim<TView>::value == Dim<TExtent>::value,
             "The view and the extent are required to have the same dimensionality!");
-        static_assert(
-            meta::IsIntegralSuperset<Idx<TView>, Idx<TExtent>>::value,
-            "The view and the extent must have compatible index types!");
+
+        assert((extent <= getExtents(view)).all() && "The memset extent must not be larger than the view's extent!");
 
         return trait::CreateTaskMemset<Dim<TView>, Dev<TView>>::createTaskMemset(
             std::forward<TViewFwd>(view),
             byte,
+            extent);
+    }
+
+    template<typename TExtent, typename TViewFwd, typename TValue>
+    ALPAKA_FN_HOST auto createTaskFill(TViewFwd&& view, TValue const& value, TExtent const& extent)
+    {
+        using TView = std::remove_reference_t<TViewFwd>;
+        static_assert(!std::is_const_v<TView>, "The view must not be const!");
+        static_assert(
+            Dim<TView>::value == Dim<TExtent>::value,
+            "The view and the extent are required to have the same dimensionality!");
+
+        assert((extent <= getExtents(view)).all() && "The fill extent must not be larger than the view's extent!");
+
+        return trait::CreateTaskFill<Dim<TView>, Dev<TView>>::createTaskFill(
+            std::forward<TViewFwd>(view),
+            value,
             extent);
     }
 
@@ -244,6 +357,18 @@ namespace alpaka
         enqueue(queue, createTaskMemset(std::forward<TViewFwd>(view), byte, getExtents(view)));
     }
 
+    template<typename TViewFwd, typename TValue, typename TQueue>
+    ALPAKA_FN_HOST auto fill(TQueue& queue, TViewFwd&& view, TValue const& value) -> void
+    {
+        enqueue(queue, createTaskFill(std::forward<TViewFwd>(view), value, getExtents(view)));
+    }
+
+    template<typename TExtent, typename TViewFwd, typename TValue, typename TQueue>
+    ALPAKA_FN_HOST auto fill(TQueue& queue, TViewFwd&& view, TValue const& value, TExtent const& extent) -> void
+    {
+        enqueue(queue, createTaskFill(std::forward<TViewFwd>(view), value, extent));
+    }
+
     //! Creates a memory copy task.
     //!
     //! \param viewDst The destination memory view.
@@ -255,9 +380,6 @@ namespace alpaka
         using TViewDst = std::remove_reference_t<TViewDstFwd>;
         using SrcElem = Elem<TViewSrc>;
         using DstElem = Elem<TViewDst>;
-        using ExtentIdx = Idx<TExtent>;
-        using DstIdx = Idx<TViewDst>;
-        using SrcIdx = Idx<TViewSrc>;
 
         static_assert(!std::is_const_v<TViewDst>, "The destination view must not be const!");
         static_assert(!std::is_const_v<DstElem>, "The destination view's element type must not be const!");
@@ -270,12 +392,13 @@ namespace alpaka
         static_assert(
             std::is_same_v<DstElem, std::remove_const_t<SrcElem>>,
             "The source and destination view must have the same element type!");
-        static_assert(
-            meta::IsIntegralSuperset<DstIdx, ExtentIdx>::value,
-            "The destination view and the extent are required to have compatible index types!");
-        static_assert(
-            meta::IsIntegralSuperset<SrcIdx, ExtentIdx>::value,
-            "The source view and the extent are required to have compatible index types!");
+
+        assert(
+            (extent <= getExtents(viewSrc)).all()
+            && "The memcpy extent must not be larger than the source view's extent!");
+        assert(
+            (extent <= getExtents(viewDst)).all()
+            && "The memcpy extent must not be larger than the destination view's extent!");
 
         return trait::CreateTaskMemcpy<Dim<TViewDst>, Dev<TViewDst>, Dev<TViewSrc>>::createTaskMemcpy(
             std::forward<TViewDstFwd>(viewDst),
@@ -308,6 +431,12 @@ namespace alpaka
     {
         enqueue(queue, createTaskMemcpy(std::forward<TViewDstFwd>(viewDst), viewSrc, getExtents(viewSrc)));
     }
+
+    namespace concepts
+    {
+        template<typename T>
+        concept DeviceProvider = alpaka::isDevice<T> || alpaka::isQueue<T>;
+    } // namespace concepts
 
     namespace detail
     {
@@ -382,6 +511,20 @@ namespace alpaka
                 os << rowSuffix;
             }
         };
+
+        template<typename TDeviceProvider>
+        auto getDeviceFromProvider(TDeviceProvider const& provider)
+        {
+            if constexpr(alpaka::isDevice<TDeviceProvider>)
+            {
+                return provider;
+            }
+            else
+            {
+                return alpaka::getDev(provider);
+            }
+        }
+
     } // namespace detail
 
     //! Prints the content of the view to the given queue.
@@ -424,20 +567,21 @@ namespace alpaka
 
     //! Creates a view to a device pointer
     //!
-    //! \param dev Device from where pMem can be accessed.
+    //! \param dev Object from which the device can be obtained.
     //! \param pMem Pointer to memory. The pointer must be accessible from the given device.
     //! \param extent Number of elements represented by the pMem.
     //!               Using a multi dimensional extent will result in a multi dimension view to the memory represented
     //!               by pMem.
     //! \return A view to device memory.
-    template<typename TDev, typename TElem, typename TExtent>
+    template<concepts::DeviceProvider TDev, typename TElem, typename TExtent>
     auto createView(TDev const& dev, TElem* pMem, TExtent const& extent)
     {
         using Dim = alpaka::Dim<TExtent>;
         using Idx = alpaka::Idx<TExtent>;
         auto const extentVec = Vec<Dim, Idx>(extent);
-        return trait::CreateViewPlainPtr<TDev>::createViewPlainPtr(
-            dev,
+        auto device = detail::getDeviceFromProvider(dev);
+        return trait::CreateViewPlainPtr<decltype(device)>::createViewPlainPtr(
+            device,
             pMem,
             extentVec,
             detail::calculatePitchesFromExtents<TElem>(extentVec));
@@ -445,43 +589,46 @@ namespace alpaka
 
     //! Creates a view to a device pointer
     //!
-    //! \param dev Device from where pMem can be accessed.
+    //! \param dev Object from which the device can be obtained.
     //! \param pMem Pointer to memory. The pointer must be accessible from the given device.
     //! \param extent Number of elements represented by the pMem.
     //!               Using a multi dimensional extent will result in a multi dimension view to the memory represented
     //!               by pMem.
     //! \param pitch Pitch in bytes for each dimension. Dimensionality must be equal to extent.
     //! \return A view to device memory.
-    template<typename TDev, typename TElem, typename TExtent, typename TPitch>
+    template<concepts::DeviceProvider TDev, typename TElem, typename TExtent, typename TPitch>
     auto createView(TDev const& dev, TElem* pMem, TExtent const& extent, TPitch pitch)
     {
-        return trait::CreateViewPlainPtr<TDev>::createViewPlainPtr(dev, pMem, extent, pitch);
+        auto device = detail::getDeviceFromProvider(dev);
+        return trait::CreateViewPlainPtr<decltype(device)>::createViewPlainPtr(device, pMem, extent, pitch);
     }
 
     //! Creates a view to a contiguous container of device-accessible memory.
     //!
-    //! \param dev Device from which the container can be accessed.
+    //! \param dev Object from which the device can be obtained.
     //! \param con Contiguous container. The container must provide a `data()` method. The data held by the container
     //!            must be accessible from the given device. The `GetExtent` trait must be defined for the container.
     //! \return A view to device memory.
-    template<typename TDev, typename TContainer>
+    template<concepts::DeviceProvider TDev, typename TContainer>
     auto createView(TDev const& dev, TContainer& con)
     {
-        return createView(dev, std::data(con), getExtents(con));
+        auto const device = detail::getDeviceFromProvider(dev);
+        return createView(device, std::data(con), getExtents(con));
     }
 
     //! Creates a view to a contiguous container of device-accessible memory.
     //!
-    //! \param dev Device from which the container can be accessed.
+    //! \param dev Object from which the device can be obtained.
     //! \param con Contiguous container. The container must provide a `data()` method. The data held by the container
     //!            must be accessible from the given device. The `GetExtent` trait must be defined for the container.
     //! \param extent Number of elements held by the container. Using a multi-dimensional extent will result in a
     //!               multi-dimensional view to the memory represented by the container.
     //! \return A view to device memory.
-    template<typename TDev, typename TContainer, typename TExtent>
+    template<concepts::DeviceProvider TDev, typename TContainer, typename TExtent>
     auto createView(TDev const& dev, TContainer& con, TExtent const& extent)
     {
-        return createView(dev, std::data(con), extent);
+        auto const device = detail::getDeviceFromProvider(dev);
+        return createView(device, std::data(con), extent);
     }
 
     //! Creates a sub view to an existing view.
@@ -499,18 +646,6 @@ namespace alpaka
 #ifdef ALPAKA_USE_MDSPAN
     namespace experimental
     {
-        // import mdspan into alpaka::experimental namespace. see: https://eel.is/c++draft/mdspan.syn
-        using std::experimental::default_accessor;
-        using std::experimental::dextents;
-        using std::experimental::extents;
-        using std::experimental::layout_left;
-        using std::experimental::layout_right;
-        using std::experimental::layout_stride;
-        using std::experimental::mdspan;
-        // import submdspan as well, which is not standardized yet
-        using std::experimental::full_extent;
-        using std::experimental::submdspan;
-
         namespace traits
         {
             namespace detail
@@ -535,14 +670,7 @@ namespace alpaka
                     ALPAKA_FN_HOST_ACC constexpr reference access(data_handle_type p, size_t i) const noexcept
                     {
                         assert(i % alignof(ElementType) == 0);
-#    if BOOST_COMP_GNUC
-#        pragma GCC diagnostic push
-#        pragma GCC diagnostic ignored "-Wcast-align"
-#    endif
-                        return *reinterpret_cast<ElementType*>(p + i);
-#    if BOOST_COMP_GNUC
-#        pragma GCC diagnostic pop
-#    endif
+                        return *reinterpret_cast<ElementType*>(__builtin_assume_aligned(p + i, alignof(ElementType)));
                     }
                 };
 
@@ -550,7 +678,7 @@ namespace alpaka
                 ALPAKA_FN_HOST auto makeExtents(TView const& view, std::index_sequence<Is...>)
                 {
                     auto const ex = getExtents(view);
-                    return std::experimental::dextents<Idx<TView>, Dim<TView>::value>{ex[Is]...};
+                    return dextents<Idx<TView>, Dim<TView>::value>{ex[Is]...};
                 }
             } // namespace detail
 

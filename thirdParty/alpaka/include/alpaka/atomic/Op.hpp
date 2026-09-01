@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/Common.hpp"
+#include "alpaka/core/Config.hpp"
 
 #include <algorithm>
 #include <type_traits>
@@ -22,13 +22,13 @@ namespace alpaka
         {
             auto const old = *addr;
             auto& ref = *addr;
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wconversion"
 #endif
             ref += value;
             return old;
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
         }
@@ -44,12 +44,12 @@ namespace alpaka
         {
             auto const old = *addr;
             auto& ref = *addr;
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wconversion"
 #endif
             ref -= value;
-#if BOOST_COMP_GNUC
+#if ALPAKA_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
             return old;
@@ -194,13 +194,13 @@ namespace alpaka
 
 // gcc-7.4.0 assumes for an optimization that a signed overflow does not occur here.
 // That's fine, so ignore that warning.
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 4, 0))
+#if ALPAKA_COMP_GNUC && (ALPAKA_COMP_GNUC == ALPAKA_VERSION_NUMBER(7, 4, 0))
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wstrict-overflow"
 #endif
             // check if values are bit-wise equal
             ref = ((old == compare) ? value : old);
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 4, 0))
+#if ALPAKA_COMP_GNUC && (ALPAKA_COMP_GNUC == ALPAKA_VERSION_NUMBER(7, 4, 0))
 #    pragma GCC diagnostic pop
 #endif
             return old;
@@ -232,7 +232,7 @@ namespace alpaka
 
 // gcc-7.4.0 assumes for an optimization that a signed overflow does not occur here.
 // That's fine, so ignore that warning.
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 4, 0))
+#if ALPAKA_COMP_GNUC && (ALPAKA_COMP_GNUC == ALPAKA_VERSION_NUMBER(7, 4, 0))
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wstrict-overflow"
 #endif
@@ -240,7 +240,7 @@ namespace alpaka
             BitUnion c{compare};
 
             ref = ((o.r == c.r) ? value : old);
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC == BOOST_VERSION_NUMBER(7, 4, 0))
+#if ALPAKA_COMP_GNUC && (ALPAKA_COMP_GNUC == ALPAKA_VERSION_NUMBER(7, 4, 0))
 #    pragma GCC diagnostic pop
 #endif
             return old;

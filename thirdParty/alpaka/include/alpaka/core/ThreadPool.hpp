@@ -55,7 +55,7 @@ namespace alpaka::core::detail
         template<typename TFnObj, typename... TArgs>
         auto enqueueTask(TFnObj&& task, TArgs&&... args) -> std::future<void>
         {
-#if BOOST_COMP_MSVC
+#if ALPAKA_COMP_MSVC
 // MSVC 14.39.33519 is throwing an error because the noexcept type deduction is not defined in original C++17
 // error C2065: 'task': undeclared identifier
 // see: https://stackoverflow.com/a/72467726

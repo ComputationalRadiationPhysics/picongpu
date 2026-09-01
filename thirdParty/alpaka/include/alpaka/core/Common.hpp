@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Debug.hpp"
 
 // Boost.Uuid errors with VS2017 when intrin.h is not included
@@ -12,7 +12,10 @@
 #    include <intrin.h>
 #endif
 
-#if BOOST_LANG_HIP
+#if ALPAKA_LANG_HIP
+#    if ALPAKA_COMP_HIP >= ALPAKA_VERSION_NUMBER(6, 2, 0) && ALPAKA_COMP_HIP < ALPAKA_VERSION_NUMBER(7, 0, 0)
+#        define HIP_ENABLE_WARP_SYNC_BUILTINS
+#    endif
 // HIP defines some keywords like __forceinline__ in header files.
 #    include <hip/hip_runtime.h>
 #endif
@@ -26,7 +29,7 @@
 //! -> std::int32_t;
 //! \endcode
 //! @{
-#if BOOST_LANG_CUDA || BOOST_LANG_HIP
+#if ALPAKA_LANG_CUDA || ALPAKA_LANG_HIP
 #    if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) || defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
 #        define ALPAKA_FN_ACC __device__
 #    else
@@ -71,9 +74,9 @@
 //! ALPAKA_NO_HOST_ACC_WARNING
 //! ALPAKA_FN_HOST_ACC function_declaration()
 //! WARNING: Only use this method if there is no other way.
-//! Most cases can be solved by #if BOOST_ARCH_PTX or #if BOOST_LANG_CUDA.
-#if(BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA)
-#    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+//! Most cases can be solved by #if ALPAKA_ARCH_PTX or #if ALPAKA_LANG_CUDA.
+#if(ALPAKA_LANG_CUDA && !ALPAKA_COMP_CLANG_CUDA)
+#    if ALPAKA_COMP_MSVC
 #        define ALPAKA_NO_HOST_ACC_WARNING __pragma(hd_warning_disable)
 #    else
 #        define ALPAKA_NO_HOST_ACC_WARNING _Pragma("hd_warning_disable")
@@ -85,9 +88,9 @@
 //! Macro defining the inline function attribute.
 //!
 //! The macro should stay on the left hand side of keywords, e.g. 'static', 'constexpr', 'explicit' or the return type.
-#if BOOST_LANG_CUDA || BOOST_LANG_HIP
+#if ALPAKA_LANG_CUDA || ALPAKA_LANG_HIP
 #    define ALPAKA_FN_INLINE __forceinline__
-#elif BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#elif ALPAKA_COMP_MSVC
 // TODO: With C++20 [[msvc::forceinline]] can be used.
 #    define ALPAKA_FN_INLINE __forceinline
 #else
@@ -133,8 +136,8 @@
 //!     alpaka::memcpy(queue, foo<Acc>, bufHost, extent);
 //! }
 //! \endcode
-#if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
-    || BOOST_LANG_HIP)
+#if((ALPAKA_LANG_CUDA && ALPAKA_COMP_CLANG_CUDA) || (ALPAKA_LANG_CUDA && ALPAKA_COMP_NVCC && ALPAKA_ARCH_PTX)         \
+    || ALPAKA_LANG_HIP)
 #    if defined(__CUDACC_RDC__) || defined(__CLANG_RDC__)
 #        define ALPAKA_STATIC_ACC_MEM_GLOBAL                                                                          \
             template<typename TAcc>                                                                                   \
@@ -188,8 +191,8 @@
 //!     alpaka::memcpy(queue, foo<Acc>, bufHost, extent);
 //! }
 //! \endcode
-#if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
-    || BOOST_LANG_HIP)
+#if((ALPAKA_LANG_CUDA && ALPAKA_COMP_CLANG_CUDA) || (ALPAKA_LANG_CUDA && ALPAKA_COMP_NVCC && ALPAKA_ARCH_PTX)         \
+    || ALPAKA_LANG_HIP)
 #    if defined(__CUDACC_RDC__) || defined(__CLANG_RDC__)
 #        define ALPAKA_STATIC_ACC_MEM_CONSTANT                                                                        \
             template<typename TAcc>                                                                                   \
@@ -213,8 +216,8 @@
 //! This is useful for pointers, (shared) variables and shared memory which are used in combination with
 //! the alpaka::mem_fence() function. It ensures that memory annotated with this macro will always be written directly
 //! to memory (and not to a register or cache because of compiler optimizations).
-#if(BOOST_LANG_CUDA && BOOST_ARCH_PTX)                                                                                \
-    || (BOOST_LANG_HIP && defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__ == 1)
+#if(ALPAKA_LANG_CUDA && ALPAKA_ARCH_PTX)                                                                              \
+    || (ALPAKA_LANG_HIP && defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__ == 1)
 #    define ALPAKA_DEVICE_VOLATILE volatile
 #else
 #    define ALPAKA_DEVICE_VOLATILE

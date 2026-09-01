@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Cuda.hpp"
 #include "alpaka/core/Hip.hpp"
 

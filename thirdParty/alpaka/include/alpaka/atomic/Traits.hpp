@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, René Widera, Bernhard Manfred Gruber
+/* Copyright 2025 Benjamin Worpitz, René Widera, Bernhard Manfred Gruber, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -210,6 +210,21 @@ namespace alpaka
         return atomicOp<AtomicInc>(atomic, addr, value, hier);
     }
 
+    //! Executes an atomic increment operation, using the numeric limit as ceiling.
+    //!
+    //! \tparam T The value type.
+    //! \tparam TAtomic The atomic implementation type.
+    //! \param addr The value to change atomically.
+    //! \param atomic The atomic implementation.
+    //! NOTE: The limit value is deduced as std::numeric_limits<T>::max()
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TAtomic, typename T, typename THierarchy = hierarchy::Grids>
+    ALPAKA_FN_HOST_ACC auto atomicInc(TAtomic const& atomic, T* const addr, THierarchy const& hier = THierarchy()) -> T
+    {
+        T const value = std::numeric_limits<T>::max();
+        return atomicOp<AtomicInc>(atomic, addr, value, hier);
+    }
+
     //! Executes an atomic decrement operation.
     //!
     //! \tparam T The value type.
@@ -225,6 +240,21 @@ namespace alpaka
         T const& value,
         THierarchy const& hier = THierarchy()) -> T
     {
+        return atomicOp<AtomicDec>(atomic, addr, value, hier);
+    }
+
+    //! Executes an atomic decrement operation.
+    //!
+    //! \tparam T The value type.
+    //! \tparam TAtomic The atomic implementation type.
+    //! \param addr The value to change atomically.
+    //! \param atomic The atomic implementation.
+    //! NOTE: The limit value is deduced as std::numeric_limits<T>::max()
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TAtomic, typename T, typename THierarchy = hierarchy::Grids>
+    ALPAKA_FN_HOST_ACC auto atomicDec(TAtomic const& atomic, T* const addr, THierarchy const& hier = THierarchy()) -> T
+    {
+        T const value = std::numeric_limits<T>::max();
         return atomicOp<AtomicDec>(atomic, addr, value, hier);
     }
 

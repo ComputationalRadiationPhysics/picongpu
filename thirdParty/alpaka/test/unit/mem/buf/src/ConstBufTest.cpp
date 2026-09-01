@@ -34,9 +34,18 @@ namespace buftest
         alpaka::memcpy(queueAcc, buf, bufHost);
         alpaka::wait(queueAcc);
 
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wnrvo"
+#endif
+
         // make the buffer constant and return only that
         auto const constBuf = alpaka::makeConstBuf(std::move(buf));
         return constBuf;
+
+#if ALPAKA_COMP_CLANG >= ALPAKA_VERSION_NUMBER(21, 1, 0)
+#    pragma clang diagnostic pop
+#endif
     }
 
     template<typename TBuf>
@@ -80,8 +89,13 @@ static auto testConstBuffer(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> co
     // *getPtrNative(c_buf) = 0.f;  // <- this does not compile, as desired
 
     // check return types of the buffers
-    STATIC_REQUIRE(std::is_same_v<decltype(buf[0]), Elem&>);
-    STATIC_REQUIRE(std::is_same_v<decltype(c_buf[0]), Elem const&>);
+    using Platform = alpaka::Platform<TAcc>;
+    if constexpr(
+        std::is_same_v<Platform, alpaka::PlatformCpu> or std::is_same_v<alpaka::AccToTag<TAcc>, alpaka::TagCpuSycl>)
+    {
+        STATIC_REQUIRE(std::is_same_v<decltype(buf[0]), Elem&>);
+        STATIC_REQUIRE(std::is_same_v<decltype(c_buf[0]), Elem const&>);
+    }
 
     // check movability construction of buffers
     STATIC_REQUIRE(std::movable<TBuf>);

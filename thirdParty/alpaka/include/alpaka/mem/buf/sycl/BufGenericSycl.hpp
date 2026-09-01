@@ -24,7 +24,8 @@ namespace alpaka
 {
     //! The generic memory buffer template implementing muting accessors.
     template<typename TElem, typename TDim, typename TIdx, concepts::Tag TTag>
-    class BufGenericSycl : public internal::ViewAccessOps<BufGenericSycl<TElem, TDim, TIdx, TTag>>
+    class BufGenericSycl
+        : public internal::ViewAccessorType<DevGenericSycl<TTag>, BufGenericSycl<TElem, TDim, TIdx, TTag>>
     {
         using TBufImpl = detail::BufGenericSyclImpl<TElem, TDim, TIdx, TTag>;
 
@@ -45,6 +46,7 @@ namespace alpaka
 } // namespace alpaka
 
 #    include "alpaka/mem/buf/sycl/Copy.hpp"
+#    include "alpaka/mem/buf/sycl/Fill.hpp"
 #    include "alpaka/mem/buf/sycl/Set.hpp"
 #    include "alpaka/mem/buf/sycl/traits/BufGenericSyclTraits.hpp"
 #    include "alpaka/mem/buf/sycl/traits/ConstBufGenericSyclTraits.hpp"

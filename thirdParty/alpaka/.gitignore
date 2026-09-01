@@ -41,6 +41,9 @@ build/
 # Visual Studio Code project files
 .vscode
 
+# Zed project files
+.zed
+
 # Visual Studio project files
 .vs/
 out

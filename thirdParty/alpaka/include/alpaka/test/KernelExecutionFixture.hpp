@@ -6,11 +6,11 @@
 
 #include "alpaka/alpaka.hpp"
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !ALPAKA_LANG_CUDA
 #    error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !ALPAKA_LANG_HIP
 #    error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #endif
 
@@ -27,6 +27,7 @@ namespace alpaka::test
     {
     public:
         using Acc = TAcc;
+        using Tag = alpaka::AccToTag<Acc>;
         using Dim = alpaka::Dim<Acc>;
         using Idx = alpaka::Idx<Acc>;
         using Platform = alpaka::Platform<Acc>;
@@ -80,7 +81,7 @@ namespace alpaka::test
                     getPtrNative(bufAccResult),
                     std::forward<TArgs>(args)...);
 
-            exec<Acc>(m_queue, m_workDiv, kernelFnObj, getPtrNative(bufAccResult), std::forward<TArgs>(args)...);
+            exec<Tag>(m_queue, m_workDiv, kernelFnObj, getPtrNative(bufAccResult), std::forward<TArgs>(args)...);
 
             // Copy the result value to the host
             auto bufHostResult = allocBuf<bool, Idx>(m_devHost, static_cast<Idx>(1u));

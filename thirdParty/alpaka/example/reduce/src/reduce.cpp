@@ -13,7 +13,7 @@
 // It requires support for extended lambdas when using nvcc as CUDA compiler.
 // Requires sequential backend if CI is used
 #if(!defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__)))                                 \
-    && (!defined(ALPAKA_CI) || defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED))
+    && defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
 
 // use defines of a specific accelerator from alpakaConfig.hpp
 // that are defined in alpakaConfig.hpp

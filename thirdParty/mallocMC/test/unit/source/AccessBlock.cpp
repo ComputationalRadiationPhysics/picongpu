@@ -299,7 +299,7 @@ TEMPLATE_LIST_TEST_CASE("AccessBlock", "", AccessBlocks)
             // the bit mask. Thus, the following test would corrupt the bit mask, if we were to allocate this in
             // chunked mode.
 
-#if (!defined(NDEBUG) && !BOOST_LANG_CUDA && !BOOST_LANG_HIP)
+#if (!defined(NDEBUG) && !ALPAKA_LANG_CUDA && !ALPAKA_LANG_HIP)
             REQUIRE(sizeof(BitMaskStorageType<>) > 1U);
             auto localChunkSize = pageSize - 1U;
             auto slots = accessBlock.getAvailableSlots(accSerial, localChunkSize);
@@ -474,7 +474,7 @@ TEMPLATE_LIST_TEST_CASE("AccessBlock", "", AccessBlocks)
 
         SECTION("no invalid pointer but throws instead.")
         {
-#if (!defined(NDEBUG) && !BOOST_LANG_CUDA && !BOOST_LANG_HIP)
+#if (!defined(NDEBUG) && !ALPAKA_LANG_CUDA && !ALPAKA_LANG_HIP)
             pointer = nullptr;
             CHECK_THROWS(
                 accessBlock.destroy(accSerial, pointer),

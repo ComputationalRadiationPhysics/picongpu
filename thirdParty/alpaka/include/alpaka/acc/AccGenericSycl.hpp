@@ -1,4 +1,4 @@
-/* Copyright 2024 Jan Stephan, Antonio Di Pilato, Andrea Bocci, Luca Ferragina, Aurora Perego
+/* Copyright 2025 Jan Stephan, Antonio Di Pilato, Andrea Bocci, Luca Ferragina, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -31,12 +31,15 @@
 #include "alpaka/vec/Vec.hpp"
 
 // Implementation details.
-#include "alpaka/core/BoostPredef.hpp"
 #include "alpaka/core/ClipCast.hpp"
+#include "alpaka/core/Config.hpp"
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/core/Sycl.hpp"
 
 #include <cstddef>
+#ifdef __cpp_lib_format
+#    include <format>
+#endif
 #include <string>
 #include <type_traits>
 
@@ -70,7 +73,7 @@ namespace alpaka
         , public rand::RandGenericSycl<TDim>
 #    endif
         , public warp::WarpGenericSycl<TDim>
-        , public interface::Implements<ConceptAcc, AccGenericSycl<TTag, TDim, TIdx>>
+        , public interface::Implements<InterfaceAcc, AccGenericSycl<TTag, TDim, TIdx>>
     {
         static_assert(TDim::value > 0, "The SYCL accelerator must have a dimension greater than zero.");
 
@@ -164,8 +167,26 @@ namespace alpaka::trait
     {
         static auto getAccName() -> std::string
         {
-            return std::string("Acc") + core::demangled<TTag>.substr(__builtin_strlen("alpaka::Tag")) + "<"
-                   + std::to_string(TDim::value) + "," + core::demangled<TIdx> + ">";
+#    if ALPAKA_COMP_CLANG
+#        pragma clang diagnostic push
+#        pragma clang diagnostic ignored "-Wexit-time-destructors"
+#    endif
+            using namespace std::literals;
+            static std::string const accName =
+#    ifdef __cpp_lib_format
+                std::format(
+                    "Acc{}<{},{}>",
+                    core::demangled<TTag>.substr(std::string_view("alpaka::Tag").size()),
+                    TDim::value,
+                    core::demangled<TIdx>);
+#    else
+                "Acc"s + std::string(core::demangled<TTag>.substr(std::string_view("alpaka::Tag").size())) + "<"s
+                + std::to_string(TDim::value) + ","s + std::string(core::demangled<TIdx>) + ">"s;
+#    endif
+            return accName;
+#    if ALPAKA_COMP_CLANG
+#        pragma clang diagnostic pop
+#    endif
         }
     };
 

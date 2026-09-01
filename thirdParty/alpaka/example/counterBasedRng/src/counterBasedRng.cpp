@@ -11,6 +11,8 @@
 #include <random>
 #include <typeinfo>
 
+#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+
 //! A kernel that fills an array with pseudo-random numbers.
 class CounterBasedRngKernel
 {
@@ -241,3 +243,12 @@ auto main() -> int
     //   TagFpgaSyclIntel, TagGenericSycl, TagGpuSyclIntel
     return alpaka::executeForEachAccTag([=](auto const& tag) { return example(tag); });
 }
+
+#else
+
+int main()
+{
+    return EXIT_SUCCESS;
+}
+
+#endif

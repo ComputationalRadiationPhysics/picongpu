@@ -6,7 +6,7 @@
 
 #include "alpaka/atomic/Op.hpp"
 #include "alpaka/atomic/Traits.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 
 #ifdef _OPENMP
 
@@ -35,7 +35,7 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic push
 #            pragma GCC diagnostic ignored "-Wconversion"
 #        endif
@@ -44,7 +44,7 @@ namespace alpaka
                     old = ref;
                     ref += value;
                 }
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic pop
 #        endif
                 return old;
@@ -60,7 +60,7 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic push
 #            pragma GCC diagnostic ignored "-Wconversion"
 #        endif
@@ -69,7 +69,7 @@ namespace alpaka
                     old = ref;
                     ref -= value;
                 }
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic pop
 #        endif
                 return old;
@@ -103,7 +103,7 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic push
 #            pragma GCC diagnostic ignored "-Wconversion"
 #        endif
@@ -112,7 +112,7 @@ namespace alpaka
                     old = ref;
                     ref &= value;
                 }
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic pop
 #        endif
                 return old;
@@ -128,7 +128,7 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic push
 #            pragma GCC diagnostic ignored "-Wconversion"
 #        endif
@@ -137,7 +137,7 @@ namespace alpaka
                     old = ref;
                     ref |= value;
                 }
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic pop
 #        endif
                 return old;
@@ -153,7 +153,7 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic push
 #            pragma GCC diagnostic ignored "-Wconversion"
 #        endif
@@ -162,7 +162,7 @@ namespace alpaka
                     old = ref;
                     ref ^= value;
                 }
-#        if BOOST_COMP_GNUC
+#        if ALPAKA_COMP_GNUC
 #            pragma GCC diagnostic pop
 #        endif
                 return old;

@@ -23,7 +23,7 @@ namespace alpaka
 {
     //! A sub-view to a view.
     template<typename TDev, typename TElem, typename TDim, typename TIdx>
-    class ViewSubView : public internal::ViewAccessOps<ViewSubView<TDev, TElem, TDim, TIdx>>
+    class ViewSubView : public internal::ViewAccessorType<TDev, ViewSubView<TDev, TElem, TDim, TIdx>>
     {
         static_assert(!std::is_const_v<TIdx>, "The idx type of the view can not be const!");
 
@@ -92,17 +92,10 @@ namespace alpaka
     public:
         ALPAKA_FN_HOST auto computeNativePtr()
         {
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-            // "cast from 'std::uint8_t*' to 'TElem*' increases required alignment of target type"
-#    pragma GCC diagnostic ignored "-Wcast-align"
-#endif
-            return reinterpret_cast<TElem*>(
-                reinterpret_cast<std::uint8_t*>(alpaka::getPtrNative(m_viewParentView))
-                + (m_offsetsElements * getPitchesInBytes(m_viewParentView)).sum());
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
+            TElem* base = alpaka::getPtrNative(m_viewParentView);
+            auto offset = (m_offsetsElements * getPitchesInBytes(m_viewParentView)).sum();
+            std::byte* ptr = reinterpret_cast<std::byte*>(base) + offset;
+            return reinterpret_cast<TElem*>(__builtin_assume_aligned(ptr, alignof(TElem)));
         }
 
         ViewPlainPtr<Dev, TElem, TDim, TIdx> m_viewParentView; // This wraps the parent view.

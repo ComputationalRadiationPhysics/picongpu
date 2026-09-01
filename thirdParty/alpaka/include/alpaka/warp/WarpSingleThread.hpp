@@ -1,4 +1,4 @@
-/* Copyright 2022 Sergei Bastrakov, David M. Rogers, Bernhard Manfred Gruber, Aurora Perego
+/* Copyright 2026 Sergei Bastrakov, David M. Rogers, Bernhard Manfred Gruber, Aurora Perego, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -11,16 +11,36 @@
 namespace alpaka::warp
 {
     //! The single-threaded warp to emulate it on CPUs.
-    class WarpSingleThread : public interface::Implements<ConceptWarp, WarpSingleThread>
+    struct WarpSingleThread : public interface::Implements<ConceptWarp, WarpSingleThread>
     {
+        using mask_type = std::uint32_t;
     };
 
     namespace trait
     {
+
         template<>
         struct GetSize<WarpSingleThread>
         {
-            static auto getSize(warp::WarpSingleThread const& /*warp*/)
+            static auto getSize(warp::WarpSingleThread const& /*warp*/) -> std::int32_t
+            {
+                return 1;
+            }
+        };
+
+        template<>
+        struct GetSizeCompileTime<WarpSingleThread>
+        {
+            static constexpr auto getSizeCompileTime() -> std::int32_t
+            {
+                return 1;
+            }
+        };
+
+        template<>
+        struct GetSizeUpperLimit<WarpSingleThread>
+        {
+            static constexpr auto getSizeUpperLimit() -> std::int32_t
             {
                 return 1;
             }
@@ -29,7 +49,7 @@ namespace alpaka::warp
         template<>
         struct Activemask<WarpSingleThread>
         {
-            static auto activemask(warp::WarpSingleThread const& /*warp*/)
+            static auto activemask(warp::WarpSingleThread const& /*warp*/) -> WarpSingleThread::mask_type
             {
                 return 1u;
             }
@@ -57,6 +77,7 @@ namespace alpaka::warp
         struct Ballot<WarpSingleThread>
         {
             static auto ballot(warp::WarpSingleThread const& /*warp*/, std::int32_t predicate)
+                -> WarpSingleThread::mask_type
             {
                 return predicate ? 1u : 0u;
             }

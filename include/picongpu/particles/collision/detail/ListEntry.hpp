@@ -26,7 +26,7 @@
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/verify.hpp>
 
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
 #    include <mallocMC/mallocMC.hpp>
 #endif
 
@@ -225,7 +225,7 @@ namespace picongpu::particles::collision
                     {
                         if(framePtr != nullptr)
                         {
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
                             deviceHeapHandle.free(worker.getAcc(), (void*) framePtr);
 #else
                             delete(framePtr);
@@ -240,7 +240,7 @@ namespace picongpu::particles::collision
                     {
                         if(particleList[cellIdx] != nullptr)
                         {
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
                             deviceHeapHandle.free(worker.getAcc(), (void*) particleList[cellIdx]);
 #else
                             delete(particleList[cellIdx]);
@@ -281,7 +281,7 @@ namespace picongpu::particles::collision
                     int const maxTries = 13; // magic number is not performance critical
                     for(int numTries = 0; numTries < maxTries; ++numTries)
                     {
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
                         ptr = deviceHeapHandle.malloc(worker.getAcc(), allocBytes);
 #else // No cuda or hip means the device heap is the host heap.
                         return (void**) new uint8_t[allocBytes];

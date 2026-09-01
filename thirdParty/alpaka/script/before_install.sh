@@ -115,13 +115,15 @@ if [ "${alpaka_ACC_SYCL_ENABLE}" == "OFF" ]; then
     echo_yellow "<DEFAULT: SYCL environment variables for disabled backend>"
     export alpaka_SYCL_ONEAPI_CPU=${alpaka_SYCL_ONEAPI_CPU:=""}
     export alpaka_SYCL_ONEAPI_CPU_ISA=${alpaka_SYCL_ONEAPI_CPU_ISA:=""}
+    export alpaka_SYCL_ONEAPI_GPU=${alpaka_SYCL_ONEAPI_GPU:=""}
+    export alpaka_SYCL_ONEAPI_GPU_DEVICES=${alpaka_SYCL_ONEAPI_GPU_DEVICES:=""}
     export alpaka_SYCL_ONEAPI_FPGA=${alpaka_SYCL_ONEAPI_FPGA:=""}
     export alpaka_SYCL_ONEAPI_FPGA_MODE=${alpaka_SYCL_ONEAPI_FPGA_MODE:=""}
     export alpaka_SYCL_ONEAPI_FPGA_BOARD=${alpaka_SYCL_ONEAPI_FPGA_BOARD:=""}
     export alpaka_SYCL_ONEAPI_FPGA_BSP=${alpaka_SYCL_ONEAPI_FPGA_BSP:=""}
 else
-    if !( [ "$alpaka_SYCL_ONEAPI_CPU" == "ON" ] || [ "$alpaka_SYCL_ONEAPI_FPGA" == "ON" ] ); then
-        echo_red "ERROR: the SYCL CPU or FPGA device needs to enabled"
+    if !( [ "$alpaka_SYCL_ONEAPI_CPU" == "ON" ] || [ "$alpaka_SYCL_ONEAPI_GPU" == "ON" ] || [ "$alpaka_SYCL_ONEAPI_FPGA" == "ON" ] ); then
+        echo_red "ERROR: the SYCL CPU, GPU or FPGA device needs to be enabled"
         exit 1
     fi
 
@@ -130,10 +132,26 @@ else
         exit 1
     fi
 
+    if [ "$alpaka_SYCL_ONEAPI_CPU" == "ON" ] && [ "$alpaka_SYCL_ONEAPI_GPU" == "ON" ]; then
+        echo_red "ERROR: the SYCL CPU or GPU device cannot be enabled at the same time"
+        exit 1
+    fi
+
+    if [ "$alpaka_SYCL_ONEAPI_GPU" == "ON" ] && [ "$alpaka_SYCL_ONEAPI_FPGA" == "ON" ]; then
+        echo_red "ERROR: the SYCL GPU or FPGA device cannot be enabled at the same time"
+        exit 1
+    fi
+
     if [ "$alpaka_SYCL_ONEAPI_CPU" == "OFF" ]; then
         echo_yellow "<DEFAULT: SYCL environment variables for enabled backend and disabled CPU device>"
-        export alpaka_SYCL_ONEAPI_CPU_ISA=""        
+        export alpaka_SYCL_ONEAPI_CPU_ISA=""
     fi
+
+    if [ "$alpaka_SYCL_ONEAPI_GPU" == "OFF" ]; then
+        echo_yellow "<DEFAULT: SYCL environment variables for enabled backend and disabled GPU device>"
+        export alpaka_SYCL_ONEAPI_GPU_DEVICES=""
+    fi
+
     if [ "$alpaka_SYCL_ONEAPI_FPGA" == "OFF" ]; then
         echo_yellow "<DEFAULT: SYCL environment variables for enabled backend and disabled FPGA device>"
         export alpaka_SYCL_ONEAPI_FPGA_MODE=""
@@ -142,6 +160,10 @@ else
     fi
 fi
 
+#-------------------------------------------------------------------------------
+# Install paths
+export ALPAKA_CI_CMAKE_DIR=$HOME/cmake
+export ALPAKA_CI_CUDA_DIR=$HOME/cuda
 #-------------------------------------------------------------------------------
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then

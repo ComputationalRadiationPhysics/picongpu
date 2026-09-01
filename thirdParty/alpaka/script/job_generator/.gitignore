@@ -1,0 +1,4 @@
+*.egg-info
+
+# python environment from the install instructions of the README.md
+.env

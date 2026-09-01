@@ -1,4 +1,4 @@
-/* Copyright 2024 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci,
+/* Copyright 2025 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci,
  * Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
@@ -140,6 +140,16 @@ namespace alpaka::test
         ,
         std::tuple<alpaka::DevGpuSyclIntel, alpaka::QueueGpuSyclIntelBlocking>,
         std::tuple<alpaka::DevGpuSyclIntel, alpaka::QueueGpuSyclIntelNonBlocking>
+#    endif
+#    ifdef ALPAKA_SYCL_ONEAPI_GPU_NVIDIA
+        ,
+        std::tuple<alpaka::DevGpuSyclNvidia, alpaka::QueueGpuSyclNvidiaBlocking>,
+        std::tuple<alpaka::DevGpuSyclNvidia, alpaka::QueueGpuSyclNvidiaNonBlocking>
+#    endif
+#    ifdef ALPAKA_SYCL_ONEAPI_GPU_AMD
+        ,
+        std::tuple<alpaka::DevGpuSyclAmd, alpaka::QueueGpuSyclAmdBlocking>,
+        std::tuple<alpaka::DevGpuSyclAmd, alpaka::QueueGpuSyclAmdNonBlocking>
 #    endif
 #endif
         >;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 
 #include <iostream>
 #include <string>
@@ -64,9 +64,9 @@ namespace alpaka::core::detail
 
 // Define ALPAKA_DEBUG_BREAK.
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-#    if BOOST_COMP_GNUC || BOOST_COMP_CLANG
+#    if ALPAKA_COMP_GNUC || ALPAKA_COMP_CLANG
 #        define ALPAKA_DEBUG_BREAK ::__builtin_trap()
-#    elif BOOST_COMP_MSVC
+#    elif ALPAKA_COMP_MSVC
 #        define ALPAKA_DEBUG_BREAK ::__debugbreak()
 #    else
 #        define ALPAKA_DEBUG_BREAK

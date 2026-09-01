@@ -1,9 +1,9 @@
-/* Copyright 2024 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci,
+/* Copyright 2025 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci,
  * Aurora Perego SPDX-License-Identifier: MPL-2.0
  */
 
-#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Config.hpp>
 #include <alpaka/meta/ForEachType.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
@@ -63,6 +63,18 @@ using TestAccs = EnabledAccs<Dim, Idx>;
 #elif defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_GPU)
 template<typename TDim, typename TIdx>
 using EnabledAccsElseInt = std::tuple<alpaka::AccGpuSyclIntel<TDim, TIdx>>;
+template<typename TDim, typename TIdx>
+using EnabledAccs = typename alpaka::meta::Filter<EnabledAccsElseInt<TDim, TIdx>, std::is_class>;
+using TestAccs = EnabledAccs<Dim, Idx>;
+#elif defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_GPU_NVIDIA)
+template<typename TDim, typename TIdx>
+using EnabledAccsElseInt = std::tuple<alpaka::AccGpuSyclNvidia<TDim, TIdx>>;
+template<typename TDim, typename TIdx>
+using EnabledAccs = typename alpaka::meta::Filter<EnabledAccsElseInt<TDim, TIdx>, std::is_class>;
+using TestAccs = EnabledAccs<Dim, Idx>;
+#elif defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_TARGET_GPU_AMD)
+template<typename TDim, typename TIdx>
+using EnabledAccsElseInt = std::tuple<alpaka::AccGpuSyclAmd<TDim, TIdx>>;
 template<typename TDim, typename TIdx>
 using EnabledAccs = typename alpaka::meta::Filter<EnabledAccsElseInt<TDim, TIdx>, std::is_class>;
 using TestAccs = EnabledAccs<Dim, Idx>;

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "alpaka/acc/Tag.hpp"
 #include "alpaka/dev/DevGenericSycl.hpp"
 #include "alpaka/dev/Traits.hpp"
 #include "alpaka/platform/PlatformGenericSycl.hpp"

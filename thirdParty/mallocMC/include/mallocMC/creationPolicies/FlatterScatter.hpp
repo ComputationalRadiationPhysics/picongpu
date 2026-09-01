@@ -312,7 +312,7 @@ namespace mallocMC::CreationPolicies::FlatterScatterAlloc
         template<uint32_t T_pageSize, typename TAcc>
         ALPAKA_FN_INLINE ALPAKA_FN_ACC static auto hash(TAcc const& acc, uint32_t const numBytes) -> uint32_t
         {
-            uint32_t const relative_offset = warpSize<TAcc> * numBytes / T_pageSize;
+            uint32_t const relative_offset = getWarpSize<TAcc>() * numBytes / T_pageSize;
             return (
                 numBytes * hashingK + hashingDistMP * smid(acc)
                 + (hashingDistWP + hashingDistWPRel * relative_offset) * warpid(acc));

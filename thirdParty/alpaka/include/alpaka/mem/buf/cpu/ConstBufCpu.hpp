@@ -32,7 +32,7 @@ namespace alpaka
 
     //! The CPU memory buffer.
     template<typename TElem, typename TDim, typename TIdx>
-    class ConstBufCpu : public internal::ViewAccessOps<ConstBufCpu<TElem, TDim, TIdx>>
+    class ConstBufCpu : public internal::ViewAccessorType<DevCpu, ConstBufCpu<TElem, TDim, TIdx>>
     {
     public:
         template<typename TExtent, typename Deleter>

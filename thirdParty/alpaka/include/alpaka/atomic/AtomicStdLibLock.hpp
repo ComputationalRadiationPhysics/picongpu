@@ -5,7 +5,7 @@
 #pragma once
 
 #include "alpaka/atomic/Traits.hpp"
-#include "alpaka/core/BoostPredef.hpp"
+#include "alpaka/core/Config.hpp"
 
 #include <array>
 #include <mutex>
@@ -57,7 +57,7 @@ namespace alpaka
             constexpr size_t hashTableSize = THashTableSize == 0u ? 1u : nextPowerOf2(THashTableSize);
 
             size_t const hashedAddr = hash(ptr) & (hashTableSize - 1u);
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wexit-time-destructors"
 #    endif
@@ -65,7 +65,7 @@ namespace alpaka
                 std::mutex,
                 hashTableSize>
                 m_mtxAtomic; //!< The mutex protecting access for an atomic operation.
-#    if BOOST_COMP_CLANG
+#    if ALPAKA_COMP_CLANG
 #        pragma clang diagnostic pop
 #    endif
             return m_mtxAtomic[hashedAddr];

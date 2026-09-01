@@ -57,23 +57,18 @@
 namespace mallocMC
 {
 
+    /** Get the number of threads in a warp.
+     *
+     * @attention If alpaka does not know the compile time warp size zero will be returned.
+     *
+     * @return number of threads in a warp, for unknown devices it will return zero.
+     */
     template<typename TAcc>
-    constexpr uint32_t warpSize = 1U;
-
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-    template<typename TDim, typename TIdx>
-    constexpr uint32_t warpSize<alpaka::AccGpuCudaRt<TDim, TIdx>> = 32U;
-#endif
-
-#ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-#    if (HIP_VERSION_MAJOR >= 4)
-    template<typename TDim, typename TIdx>
-    constexpr uint32_t warpSize<alpaka::AccGpuHipRt<TDim, TIdx>> = __AMDGCN_WAVEFRONT_SIZE;
-#    else
-    template<typename TDim, typename TIdx>
-    constexpr uint32_t warpSize<alpaka::AccGpuHipRt<TDim, TIdx>> = 64;
-#    endif
-#endif
+    consteval uint32_t getWarpSize()
+    {
+        constexpr auto warpSize = alpaka::warp::getSizeCompileTime<TAcc>();
+        return warpSize;
+    }
 
     ALPAKA_FN_ACC inline auto laneid()
     {
@@ -190,7 +185,7 @@ namespace mallocMC
         auto const localId = alpaka::mapIdx<1>(
             alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc),
             alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc))[0];
-        return localId / warpSize<AlpakaAcc>;
+        return localId / getWarpSize<AlpakaAcc>();
     }
 
     template<typename T, typename U, typename = std::enable_if_t<std::is_integral_v<T> && std::is_integral_v<U>>>

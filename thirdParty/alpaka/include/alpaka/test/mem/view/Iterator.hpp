@@ -86,15 +86,9 @@ namespace alpaka::test
                         = mapIdx<Dim::value>(Vec<DimInt<1>, Idx>{m_currentIdx}, m_extents);
                     auto const offsetInBytes = (currentIdxDimx * m_pitchBytes).sum();
                     using QualifiedByte = MimicConst<std::byte, Elem>;
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-                    // "cast from 'Byte*' to 'Elem*' increases required alignment of target type"
-#    pragma GCC diagnostic ignored "-Wcast-align"
-#endif
-                    return *reinterpret_cast<Elem*>(reinterpret_cast<QualifiedByte*>(m_nativePtr) + offsetInBytes);
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
+                    return *reinterpret_cast<Elem*>(__builtin_assume_aligned(
+                        reinterpret_cast<QualifiedByte*>(m_nativePtr) + offsetInBytes,
+                        alignof(Elem)));
                 }
                 ALPAKA_UNREACHABLE(*m_nativePtr);
             }

@@ -1,10 +1,11 @@
-/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci, Tapish Narwal
  * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
 #include "alpaka/core/Interface.hpp"
+#include "alpaka/mem/fence/MemFenceOmp2Order.hpp"
 #include "alpaka/mem/fence/Traits.hpp"
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
@@ -23,29 +24,36 @@ namespace alpaka
     namespace trait
     {
         template<>
-        struct MemFence<MemFenceOmp2Blocks, memory_scope::Block>
+        struct MemFenceDefaultOrder<MemFenceOmp2Blocks>
         {
-            static auto mem_fence(MemFenceOmp2Blocks const&, memory_scope::Block const&)
+            using type = mem_order::AcqRel;
+            static constexpr auto value = mem_order::acq_rel;
+        };
+
+        template<MemoryOrder TMemOrder>
+        struct MemFence<MemFenceOmp2Blocks, TMemOrder, memory_scope::Block>
+        {
+            static auto mem_fence(MemFenceOmp2Blocks const&, TMemOrder, memory_scope::Block const&)
             {
                 // Only one thread per block allowed -> no memory fence required on block level
             }
         };
 
-        template<>
-        struct MemFence<MemFenceOmp2Blocks, memory_scope::Grid>
+        template<MemoryOrder TMemOrder>
+        struct MemFence<MemFenceOmp2Blocks, TMemOrder, memory_scope::Grid>
         {
-            static auto mem_fence(MemFenceOmp2Blocks const&, memory_scope::Grid const&)
+            static auto mem_fence(MemFenceOmp2Blocks const&, TMemOrder order, memory_scope::Grid const&)
             {
-#    pragma omp flush
+                alpaka::detail::flushOmp(order);
             }
         };
 
-        template<>
-        struct MemFence<MemFenceOmp2Blocks, memory_scope::Device>
+        template<MemoryOrder TMemOrder>
+        struct MemFence<MemFenceOmp2Blocks, TMemOrder, memory_scope::Device>
         {
-            static auto mem_fence(MemFenceOmp2Blocks const&, memory_scope::Device const&)
+            static auto mem_fence(MemFenceOmp2Blocks const&, TMemOrder order, memory_scope::Device const&)
             {
-#    pragma omp flush
+                alpaka::detail::flushOmp(order);
             }
         };
     } // namespace trait

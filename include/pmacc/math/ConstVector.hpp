@@ -34,7 +34,7 @@
         using namespace PMACC_JOIN(pmacc_static_const_vector_host, id)
 #endif
 
-#if BOOST_LANG_CUDA || BOOST_LANG_HIP
+#if ALPAKA_LANG_CUDA || ALPAKA_LANG_HIP
 #    define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id, Name, Type, ...)                                               \
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \
@@ -83,7 +83,7 @@
     } /* namespace pmacc_static_const_storage + id */                                                                 \
     using namespace PMACC_JOIN(pmacc_static_const_storage, id)
 
-#if BOOST_LANG_CUDA || BOOST_LANG_HIP
+#if ALPAKA_LANG_CUDA || ALPAKA_LANG_HIP
 #    define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name, id)                                                     \
         namespace PMACC_JOIN(pmacc_static_const_vector_device, id)                                                    \
         {                                                                                                             \

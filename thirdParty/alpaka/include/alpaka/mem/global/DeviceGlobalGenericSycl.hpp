@@ -1,9 +1,10 @@
-/* Copyright 2024 Aurora Perego
+/* Copyright 2025 Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
 #pragma once
 
+#include "alpaka/acc/Tag.hpp"
 #include "alpaka/elem/Traits.hpp"
 #include "alpaka/mem/global/Traits.hpp"
 #include "alpaka/queue/sycl/QueueGenericSyclBase.hpp"
@@ -25,6 +26,20 @@ namespace alpaka
 
         template<typename T>
         struct DevGlobalTrait<TagGpuSyclIntel, T>
+        {
+            // SYCL GPU implementation
+            using Type = sycl::ext::oneapi::experimental::device_global<T>;
+        };
+
+        template<typename T>
+        struct DevGlobalTrait<TagGpuSyclNvidia, T>
+        {
+            // SYCL GPU implementation
+            using Type = sycl::ext::oneapi::experimental::device_global<T>;
+        };
+
+        template<typename T>
+        struct DevGlobalTrait<TagGpuSyclAmd, T>
         {
             // SYCL GPU implementation
             using Type = sycl::ext::oneapi::experimental::device_global<T>;

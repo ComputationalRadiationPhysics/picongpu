@@ -1,4 +1,5 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling, Jan Stephan
+/* Copyright 2025 Axel Huebl, Benjamin Worpitz, Andrea Bocci, Bernhard Manfred Gruber, Jeffrey Kelling, Jan Stephan,
+ *                Aurora Perego, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -53,6 +54,20 @@ namespace buftest
 #if defined(ALPAKA_ACC_SYCL_ENABLED) and defined(ALPAKA_SYCL_ONEAPI_GPU)
     template<typename TDim, typename TElem, typename TIdx, typename TExtent>
     auto allocBuf(alpaka::DevGpuSyclIntel dev, TExtent extent) -> alpaka::BufGpuSyclIntel<TElem, TDim, TIdx>
+    {
+        return alpaka::allocBuf<TElem, TIdx>(dev, extent);
+    }
+#endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) and defined(ALPAKA_SYCL_ONEAPI_GPU_NVIDIA)
+    template<typename TDim, typename TElem, typename TIdx, typename TExtent>
+    auto allocBuf(alpaka::DevGpuSyclNvidia dev, TExtent extent) -> alpaka::BufGpuSyclNvidia<TElem, TDim, TIdx>
+    {
+        return alpaka::allocBuf<TElem, TIdx>(dev, extent);
+    }
+#endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) and defined(ALPAKA_SYCL_ONEAPI_GPU_AMD)
+    template<typename TDim, typename TElem, typename TIdx, typename TExtent>
+    auto allocBuf(alpaka::DevGpuSyclAmd dev, TExtent extent) -> alpaka::BufGpuSyclAmd<TElem, TDim, TIdx>
     {
         return alpaka::allocBuf<TElem, TIdx>(dev, extent);
     }
@@ -275,12 +290,18 @@ static auto testBufferAccessorAdaptor(
     auto const base = reinterpret_cast<uintptr_t>(std::data(buf));
     auto const expected = base + static_cast<uintptr_t>((pitch * index).sum());
     INFO("element " << index << " expected at offset " << expected - base);
-    INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base);
-    CHECK(reinterpret_cast<Elem*>(expected) == &buf[index]);
+    using Platform = alpaka::Platform<TAcc>;
+    if constexpr(
+        std::is_same_v<Platform, alpaka::PlatformCpu> or std::is_same_v<alpaka::AccToTag<TAcc>, alpaka::TagCpuSycl>)
+    {
+        INFO("element " << index << " returned at offset " << reinterpret_cast<uintptr_t>(&buf[index]) - base);
 
-    // check that an out-of-bound access is detected
-    if constexpr(Dim::value > 0)
-        CHECK_THROWS_AS((void) buf.at(extent), std::out_of_range);
+        CHECK(reinterpret_cast<Elem*>(expected) == &buf[index]);
+
+        // check that an out-of-bound access is detected
+        if constexpr(Dim::value > 0)
+            CHECK_THROWS_AS((void) buf.at(extent), std::out_of_range);
+    }
 }
 
 TEMPLATE_LIST_TEST_CASE("memBufAccessorAdaptorTest", "[memBuf]", alpaka::test::TestAccs)
@@ -337,4 +358,78 @@ TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)
         CHECK(read(buf1) == 2);
         CHECK(read(buf2) == 1);
     } // both buffers destruct fine here
+}
+
+namespace
+{
+
+    struct DummyType
+    {
+        auto check() -> bool
+        {
+            return true;
+        }
+    };
+
+} // namespace
+
+TEMPLATE_LIST_TEST_CASE("memBufAccessors", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Idx = alpaka::Idx<Acc>;
+    using Elem = std::size_t;
+    using Dim = alpaka::Dim<Acc>;
+
+    auto const platformHost = alpaka::PlatformCpu{};
+    auto const devHost = alpaka::getDevByIdx(platformHost, 0);
+    auto const platformAcc = alpaka::Platform<Acc>{};
+    auto const dev = alpaka::getDevByIdx(platformAcc, 0);
+
+    // accessors for scalar buffers
+    {
+        auto buf = buftest::allocBuf<alpaka::DimInt<0u>, Elem, Idx>(devHost, alpaka::Vec<alpaka::DimInt<0u>, Idx>{});
+        *buf = 42u;
+        CHECK(*buf == 42);
+
+        auto buf2
+            = buftest::allocBuf<alpaka::DimInt<0u>, DummyType, Idx>(devHost, alpaka::Vec<alpaka::DimInt<0u>, Idx>{});
+        CHECK(buf2->check());
+    }
+
+    if constexpr(Dim::value == 1)
+    {
+        auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
+        auto const extent = alpaka::Vec<Dim, Idx>{};
+        auto foo = [](std::span<Elem>) { return true; };
+
+        auto buf = buftest::allocBuf<Dim, Elem, Idx>(dev, extent);
+
+        CHECK(buf.size() == extent[0]);
+        CHECK(buf.begin() == buf.data());
+        CHECK(buf.cbegin() == buf.data());
+        CHECK(buf.end() == buf.data() + buf.size());
+        CHECK(buf.cend() == buf.data() + buf.size());
+        CHECK((buf.end() - buf.begin()) == static_cast<long>(buf.size()));
+        CHECK((buf.cend() - buf.cbegin()) == static_cast<long>(buf.size()));
+        CHECK(foo(buf));
+    }
+}
+
+TEMPLATE_LIST_TEST_CASE("memBufAllocDeducedIdx", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Idx = alpaka::Idx<Acc>;
+    using Elem = std::size_t;
+    using Dim = alpaka::Dim<Acc>;
+    auto const extent = alpaka::Vec<Dim, Idx>{};
+    auto const devHost = alpaka::getDevByIdx(alpaka::PlatformCpu{}, 0);
+    auto const devAcc = alpaka::getDevByIdx(alpaka::Platform<Acc>{}, 0);
+    auto queue = alpaka::Queue<Acc, alpaka::Blocking>{devAcc};
+
+    auto host_buf = alpaka::allocBuf<Elem>(devHost, extent);
+    auto dev_buf = alpaka::allocBuf<Elem>(devAcc, extent);
+    auto dev_buf_async = alpaka::allocAsyncBuf<Elem>(queue, extent);
+    auto dev_buf_async_supported = alpaka::allocAsyncBufIfSupported<Elem>(queue, extent);
+    auto buf_mapped = alpaka::allocMappedBuf<Elem>(devHost, alpaka::PlatformCpu{}, extent);
+    auto buf_managed = alpaka::allocManagedBuf<Elem>(devHost, alpaka::PlatformCpu{}, extent);
 }

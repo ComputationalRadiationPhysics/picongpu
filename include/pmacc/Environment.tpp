@@ -37,9 +37,9 @@
  * @todo find a better way to access native cuda/Hip functions or try to avoid accessing these at all.
  */
 #    include "pmacc/ppFunctions.hpp"
-#    if (BOOST_LANG_CUDA)
+#    if (ALPAKA_LANG_CUDA)
 #        define ALPAKA_API_PREFIX(name) PMACC_JOIN(cuda, name)
-#    elif (BOOST_LANG_HIP)
+#    elif (ALPAKA_LANG_HIP)
 #        define ALPAKA_API_PREFIX(name) PMACC_JOIN(hip, name)
 #    endif
 #endif
@@ -249,7 +249,7 @@ namespace pmacc
         {
             int numAvailableDevices = manager::Device<ComputeDevice>::get().count();
 
-#if (BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#if (ALPAKA_LANG_CUDA || ALPAKA_COMP_HIP)
             // check if device is found
             if(numAvailableDevices < 1)
             {
@@ -273,11 +273,11 @@ namespace pmacc
 
                 log<ggLog::CUDA_RT>("Trying to allocate device %1%.") % tryDeviceId;
 
-#if (BOOST_LANG_CUDA || BOOST_LANG_HIP)
-#    if (BOOST_LANG_CUDA)
+#if (ALPAKA_LANG_CUDA || ALPAKA_LANG_HIP)
+#    if (ALPAKA_LANG_CUDA)
                 int computeMode = 0;
                 cudaError_t err = cudaDeviceGetAttribute(&computeMode, cudaDevAttrComputeMode, tryDeviceId);
-#    elif (BOOST_LANG_HIP)
+#    elif (ALPAKA_LANG_HIP)
                 hipDeviceProp_t devProp;
                 hipError_t err = hipGetDeviceProperties(&devProp, tryDeviceId);
                 auto computeMode = devProp.computeMode;

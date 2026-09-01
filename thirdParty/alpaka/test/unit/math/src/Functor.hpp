@@ -51,7 +51,7 @@ namespace mathtest
             typename TAcc,                                                                                            \
             typename... TArgs, /* SFINAE: Enables if called from device. */                                           \
             typename std::enable_if_t<!std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                \
-        ALPAKA_FN_ACC auto execute(TAcc const& acc, TArgs const&... args) const                                       \
+        ALPAKA_FN_ACC auto execute(TAcc const& acc, [[maybe_unused]] TArgs const&... args) const                      \
         {                                                                                                             \
             return ALPAKA_OP(acc, args...);                                                                           \
         }                                                                                                             \
@@ -61,7 +61,7 @@ namespace mathtest
             typename TAcc = std::nullptr_t,                                                                           \
             typename TArg1, /* SFINAE: Enables if called from host. */                                                \
             typename std::enable_if_t<std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                 \
-        ALPAKA_FN_HOST auto execute(TAcc const& /* acc */, TArg1 const& arg1) const                                   \
+        ALPAKA_FN_HOST auto execute([[maybe_unused]] TAcc const& acc, TArg1 const& arg1) const                        \
         {                                                                                                             \
             return STD_OP(typename StdLibType<TArg1>::type(arg1));                                                    \
         }                                                                                                             \
@@ -72,7 +72,7 @@ namespace mathtest
             typename TArg1,                                                                                           \
             typename TArg2, /* SFINAE: Enables if called from host. */                                                \
             typename std::enable_if_t<std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                 \
-        ALPAKA_FN_HOST auto execute(TAcc const& /* acc */, TArg1 const& arg1, TArg2 const& arg2) const                \
+        ALPAKA_FN_HOST auto execute([[maybe_unused]] TAcc const& acc, TArg1 const& arg1, TArg2 const& arg2) const     \
         {                                                                                                             \
             return STD_OP(typename StdLibType<TArg1>::type(arg1), typename StdLibType<TArg2>::type(arg2));            \
         }                                                                                                             \
@@ -84,8 +84,11 @@ namespace mathtest
             typename TArg2,                                                                                           \
             typename TArg3, /* SFINAE: Enables if called from host. */                                                \
             typename std::enable_if_t<std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                 \
-        ALPAKA_FN_HOST auto execute(TAcc const& /* acc */, TArg1 const& arg1, TArg2 const& arg2, TArg3 const& arg3)   \
-            const                                                                                                     \
+        ALPAKA_FN_HOST auto execute(                                                                                  \
+            [[maybe_unused]] TAcc const& acc,                                                                         \
+            TArg1 const& arg1,                                                                                        \
+            TArg2 const& arg2,                                                                                        \
+            TArg3 const& arg3) const                                                                                  \
         {                                                                                                             \
             return STD_OP(                                                                                            \
                 typename StdLibType<TArg1>::type(arg1),                                                               \

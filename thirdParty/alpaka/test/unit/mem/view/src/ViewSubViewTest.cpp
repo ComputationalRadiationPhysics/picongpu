@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Config.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/mem/view/ViewSubView.hpp>
 #include <alpaka/test/Extent.hpp>
@@ -15,12 +15,6 @@
 
 #include <numeric>
 #include <type_traits>
-
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored                                                                                    \
-        "-Wcast-align" // "cast from 'std::uint8_t*' to 'Elem*' increases required alignment of target type"
-#endif
 
 namespace alpaka::test
 {
@@ -48,7 +42,7 @@ namespace alpaka::test
             auto viewPtrNative = reinterpret_cast<std::uint8_t*>(alpaka::getPtrNative(buf));
             if constexpr(TDim::value > 0)
                 viewPtrNative += (offsetView * pitchBuf).sum();
-            REQUIRE(reinterpret_cast<TElem*>(viewPtrNative) == alpaka::getPtrNative(view));
+            REQUIRE(viewPtrNative == reinterpret_cast<std::uint8_t const*>(alpaka::getPtrNative(view)));
         }
     }
 
@@ -130,9 +124,6 @@ namespace alpaka::test
         alpaka::test::testViewSubViewImmutable<TAcc>(view, buf, dev, viewExtent, viewOffset);
     }
 } // namespace alpaka::test
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
 
 TEMPLATE_LIST_TEST_CASE("viewSubViewNoOffsetTest", "[memView]", alpaka::test::TestAccs)
 {
