@@ -45,6 +45,7 @@ from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.util import UnpackChain, alt, unique
 from picongpu.pypicongpu.walltime import Walltime
+from picongpu.pypicongpu.poissonsolver import PoissonSolver as PIConGPUPoissonSolver
 
 
 class _DensityImpl(BaseModel):
@@ -189,6 +190,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(int | None)
     """iteration, at which to stop moving the simulation window"""
 
+    picongpu_poisson_solver = pypicongpu.util.build_typesafe_property(PIConGPUPoissonSolver | None)
+    """Poisson solver to use for electrostatic calculations for the starting conditions, set to None to disable"""
+
     picongpu_base_density = pypicongpu.util.build_typesafe_property(float | None)
     """value to normalise densities with"""
 
@@ -214,6 +218,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         picongpu_base_density: float | None = None,
         picongpu_walltime: datetime.timedelta | None = None,
         picongpu_binomial_current_interpolation: bool = False,
+        picongpu_poisson_solver: PIConGPUPoissonSolver | None = None,
         picongpu_lasers: AnyLaser | list[AnyLaser] | None = None,
         picongpu_species: Species | list[Species] | None = None,
         picongpu_particle_layout: AnyLayout | list[AnyLayout] | None = None,
@@ -227,6 +232,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_base_density = picongpu_base_density
         self.picongpu_walltime = picongpu_walltime
         self.picongpu_binomial_current_interpolation = picongpu_binomial_current_interpolation
+        self.picongpu_poisson_solver = picongpu_poisson_solver
         self.picongpu_custom_user_input = None
         self._runner = None
 
@@ -478,6 +484,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             grid=self.solver.grid.get_as_pypicongpu(),
             binomial_current_interpolation=self.picongpu_binomial_current_interpolation,
             moving_window=moving_window,
+            poisson_solver=self.picongpu_poisson_solver,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
