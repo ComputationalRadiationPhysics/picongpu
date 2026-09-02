@@ -12,7 +12,13 @@ from ..copy_attributes import default_converts_to
 from .gaussian_laser import GaussianLaser  # inherit standard Gaussian laser fields
 
 
-@default_converts_to(laser.DispersivePulseLaser)
+@default_converts_to(
+    laser.DispersivePulseLaser,
+    # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
+    # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
+    # i.e. PULSE_DURATION = duration / 2 (#5739)
+    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
+)
 @typeguard.typechecked
 class DispersivePulseLaser(GaussianLaser):
     """

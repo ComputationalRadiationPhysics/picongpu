@@ -48,10 +48,23 @@ class BaseLaser:
             a0 = E0 / (constants.m_e * constants.c**2 * k0 / constants.q_e)
         return a0, E0
 
+    def _pulse_duration_sigma_si(self):
+        """Pulse duration in s, as the 1 sigma of a standard gaussian for the intensity (E^2).
+
+        This is the quantity PIConGPU's laser parameters use (``PULSE_DURATION_SI``
+        in ``incidentField.param``). Classes whose PICMI ``duration`` has different
+        semantics (e.g. the PICMI standard's 1/e field width, see GaussianLaser)
+        must override this to return the converted value.
+        """
+        return self.duration
+
     def _compute_pulse_init(self):
         pulse_init = (
-            -2.0 * self.centroid_position[1] / (self.propagation_direction[1] * constants.c) / self.duration
-        )  # unit: multiple of laser pulse duration
+            -2.0
+            * self.centroid_position[1]
+            / (self.propagation_direction[1] * constants.c)
+            / self._pulse_duration_sigma_si()
+        )  # unit: multiple of the laser pulse duration (1 sigma of the intensity)
         # @todo extend this to other propagation directions than +y
         if pulse_init < 3.0:
             logging.warning(
