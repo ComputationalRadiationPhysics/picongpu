@@ -331,38 +331,14 @@ class Runner(BaseModel):
                         "cp -r tbg_link tbg",
                         'submission_script="./tbg/submit.start"',
                         'submission_cmd="$1"',
-                        # The step's working directory is cwltool's per-step job
-                        # cache dir, so use the stable destination path instead.
-                        # Fall back to the working directory for standalone runs.
-                        'destination_path="${2:-$(pwd -P)}"',
-                        # Stage the job inputs into the stable destination before the
-                        # in-workflow job is launched: organize_output_step copies the
-                        # full input into the final run directory only *after* this
-                        # submit step, so without this the default local (bash/zsh) job
-                        # would start from $destination_path before its input/ exists
-                        # and fail to find the executable -- the simulation would then
-                        # silently never run. No-op for standalone runs, where the
-                        # inputs are already in the (== $destination_path) workdir.
-                        'if [ -n "$2" ] && [ "$2" != "$(pwd -P)" ] && [ -d input ]; then',
-                        '    mkdir -p "$2/input"',
-                        '    cp -r input/. "$2/input/" || true',
-                        "fi",
-                        # tbg resolved every !TBG_dstPath placeholder at prepare time
-                        # to its per-step job cache directory. Rewrite every occurrence
-                        # of that resolved value to the stable destination -- not just
-                        # the TBG_dstPath=/--chdir= lines -- so that --workdir=, cd and
-                        # inline executable references (e.g. .../input/bin/picongpu)
-                        # all point at the run directory too, instead of a leftover
-                        # cache path that would later be mangled into a stable but
-                        # nonexistent <run_dir>/run_dir.
-                        r"""
-                        old_dst=$(sed -n 's/^TBG_dstPath="*\([^"]*\)"*$/\1/p' "$submission_script" | head -n1)
-                        if [ -n "$old_dst" ] && [ "$old_dst" != "$destination_path" ]; then
-                            old_re=$(printf '%s\n' "$old_dst" | sed -e 's/[][\\.*^$]/\\&/g' -e 's/|/\\|/g')
-                            new_re=$(printf '%s\n' "$destination_path" | sed -e 's/[&\\]/\\&/g' -e 's/|/\\|/g')
-                            sed -i "s|${old_re}|${new_re}|g" "$submission_script"
-                        fi
-                        """,
+                        # This step runs in isolation: its working directory is
+                        # cwltool's per-step job cache dir, so resolve
+                        # TBG_dstPath/--chdir to that directory (its own pwd).
+                        # The step must not reach outside itself; the final run
+                        # directory is made to look self-contained later, by the
+                        # organize_output step stripping the cache reference.
+                        'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"',
+                        'sed -i "s|--chdir=.*|--chdir=$(pwd -P)|" "$submission_script"',
                         r"""
                         if [[ "$submission_cmd" =~ \s*bash.* ]] || [[ "$submission_cmd" =~ \s*zsh.* ]]; then
                             $submission_cmd $submission_script &
@@ -372,7 +348,7 @@ class Runner(BaseModel):
                         fi
                         """,
                         r"""echo "#!/bin/bash
-                        ln -s $destination_path/simOutput \$1" > link_results.sh
+                        ln -s $(pwd -P)/simOutput \$1" > link_results.sh
                         """,
                         "chmod +x link_results.sh",
                     ],
@@ -408,10 +384,6 @@ class Runner(BaseModel):
                         "class": "File",
                         "location": str(self.submission_script_path),
                     },
-                    # Stable destination for the submitted job's results,
-                    # so that tbg/submit.start and link_results.sh do not
-                    # point into the cwltool job cache dir.
-                    "destination_path": str(self.run_dir),
                     "prepare_submission_script": {
                         "class": "File",
                         "location": str(self.prepare_submission_script_path),

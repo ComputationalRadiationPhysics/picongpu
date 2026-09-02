@@ -60,12 +60,20 @@ def test_validate_workflow(workflow_definition_path, workflow_input):
         )
 
 
-def run_organize_output(tmp_path, submit_start_content, link_results_content):
-    """Run the real organize_output.sh against fake submit-step outputs."""
+def run_organize_output(tmp_path, submit_start_content, link_results_content, project_files=None):
+    """Run the real organize_output.sh against fake submit-step outputs.
+
+    project_files: optional {relative_path: content} files to place in the
+    project directory; the step copies the project into input/.
+    """
     organize_script = tpath() / "workflow" / "scripts" / "organize_output.sh"
 
     project_path = tmp_path / "project"
     project_path.mkdir()
+    for rel, content in (project_files or {}).items():
+        file = project_path / rel
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(content)
     bin_directory = tmp_path / "bin"
     bin_directory.mkdir()
 
@@ -99,11 +107,15 @@ def run_organize_output(tmp_path, submit_start_content, link_results_content):
     return workdir
 
 
-def test_organize_output_rewrites_cwl_cache_references(tmp_path):
-    # The submit step runs inside cwltool's per-step job cache directory
-    # (<run_dir>/.cwl_cache/<md5>) and bakes that path into tbg/submit.start
-    # (TBG_dstPath, --chdir) and link_results.sh.
-    # organize_output must rewrite those references to the stable run directory.
+def test_organize_output_strips_cwl_cache_references_except_link_results(tmp_path):
+    # The submit step runs in isolation inside cwltool's per-step job cache
+    # directory (<run_dir>/.cwl_cache/<md5>) and bakes that path into its
+    # outputs (tbg/submit.start: TBG_dstPath, --chdir; any other file that
+    # embeds it). organize_output must strip the cache reference from every
+    # generated file so the run_dir looks as if the simulation ran there
+    # directly -- EXCEPT link_results.sh, which is the one file allowed to
+    # keep pointing at the cache (that is where the isolated job wrote
+    # its results).
     run_dir = tmp_path / "run"
     cache_dir = run_dir / ".cwl_cache" / "79c1166a1abedf768c358bf7d959ef0d"
 
@@ -111,16 +123,24 @@ def test_organize_output_rewrites_cwl_cache_references(tmp_path):
         tmp_path,
         submit_start_content=f"TBG_dstPath={cache_dir}\n#SBATCH --chdir={cache_dir}\necho job\n",
         link_results_content=f"ln -s {cache_dir}/simOutput $1\n",
+        project_files={"N.cfg": f"# results live in {cache_dir}\n"},
     )
 
+    # tbg/submit.start: cache ref stripped -> points at the run dir
     submit_start = (workdir / "tbg" / "submit.start").read_text()
     assert f"TBG_dstPath={run_dir}\n" in submit_start
     assert f"--chdir={run_dir}\n" in submit_start
     assert ".cwl_cache" not in submit_start
 
+    # every other generated file is stripped too (here: input/N.cfg)
+    cfg = (workdir / "input" / "N.cfg").read_text()
+    assert f"# results live in {run_dir}\n" in cfg
+    assert ".cwl_cache" not in cfg
+
+    # link_results.sh is the ONLY exception: it keeps the cache reference
     link_results = (workdir / "link_results.sh").read_text()
-    assert f"ln -s {run_dir}/simOutput $1\n" in link_results
-    assert ".cwl_cache" not in link_results
+    assert link_results == f"ln -s {cache_dir}/simOutput $1\n"
+    assert ".cwl_cache" in link_results
 
 
 def test_organize_output_is_noop_without_cwl_cache_references(tmp_path):
@@ -136,37 +156,47 @@ def test_organize_output_is_noop_without_cwl_cache_references(tmp_path):
     assert (workdir / "link_results.sh").read_text() == "ln -s /some/stable/dir/simOutput $1\n"
 
 
-def test_submission_uses_stable_destination_path(sim):
-    # The workflow input must provide a stable destination (the run dir) and
-    # the generated submit script must use it (not the step's working
-    # directory, which is the cwltool job cache dir); $(pwd -P) may only
-    # remain as the fallback for standalone runs.
+def test_submit_step_runs_in_isolation(sim):
+    # The agreed isolation model: the submit step runs in isolation in its own
+    # (cwltool job-cache) working directory. It must NOT stage inputs into, or
+    # rewrite paths towards, the final run directory (that would let a step
+    # mutate outside data and break CWL step isolation); the run_dir is made
+    # self-contained later, by the organize_output step. So there is no stable
+    # destination plumbing, and the submit script resolves TBG_dstPath/--chdir
+    # to its own working directory ($(pwd -P)).
     runner = sim.picongpu_get_runner()
     with runner.workflow_input_path.open("r") as file:
         workflow_input = json.load(file)
-    assert workflow_input["destination_path"] == str(runner.run_dir)
+    assert "destination_path" not in workflow_input
 
     submission_script = runner.submission_script_path.read_text()
-    # the results link is written against the stable destination, and the
-    # destination itself defaults to the passed value with $(pwd -P) only
-    # as the standalone fallback
-    assert "ln -s $destination_path/simOutput" in submission_script
-    assert 'destination_path="${2:-$(pwd -P)}"' in submission_script
+    assert "TBG_dstPath=$(pwd -P)" in submission_script
+    assert "--chdir=$(pwd -P)" in submission_script
+    # no stable-destination plumbing / input staging into the run directory
+    assert "destination_path" not in submission_script
+    assert "mkdir -p" not in submission_script
 
 
 # ---------------------------------------------------------------------------
-# End-to-end regression (m2): run the *actual* generated submit.sh together
-# with the real organize_output step inside a dummy 2-step cwltool workflow
-# (same workdir layout as submit.cwl, same RuntimeContext as runner.run()).
+# End-to-end regression: run the *actual* generated submit.sh together with
+# the real organize_output step inside a dummy 2-step cwltool workflow (same
+# workdir layout as submit.cwl, same RuntimeContext as runner.run()).
 #
-# The fake batch file has the structure of the real templates: the job cd's
-# to $TBG_dstPath and executes $TBG_dstPath/input/bin/picongpu. tbg is
-# simulated by resolving !TBG_dstPath to a per-step cache path at prepare
-# time. This is the guard that would have caught:
-#   - C1: the in-workflow job running from a directory whose input/ has not
-#     been staged yet (organize_output runs *after* submit).
-#   - M1: leftover resolved !TBG_dstPath references that are not rewritten.
-# It needs neither a GPU nor a PIConGPU build (a fake executable is used).
+# The agreed isolation model (PR #9 rework, see STYLE-GUIDE rule 17):
+#   - the submit step runs in isolation in its own (cwltool job-cache) working
+#     directory: it resolves TBG_dstPath/--chdir to $(pwd -P) and the
+#     in-workflow job runs from that cache directory. It does NOT stage inputs
+#     into, or reach into, the final run_dir.
+#   - organize_output then strips every reference to that internal job cache
+#     from all generated files *except* link_results.sh, which keeps pointing
+#     at the cache (where the isolated job actually wrote its results).
+# Afterwards the run_dir looks as if the simulation had run there directly,
+# while CWL step isolation is preserved.
+#
+# The fake batch file has the structure of the real templates: the job cd's to
+# $TBG_dstPath and executes $TBG_dstPath/input/bin/picongpu. tbg is simulated
+# by resolving !TBG_dstPath to a per-step cache path at prepare time. Needs
+# neither a GPU nor a PIConGPU build (a fake executable is used).
 # ---------------------------------------------------------------------------
 
 _FAKE_PICONGPU = """#!/bin/bash
@@ -219,11 +249,6 @@ inputs:
     inputBinding:
       position: 2
     default: "bash"
-  destination_path:
-    type: string?
-    inputBinding:
-      position: 3
-    default: null
 outputs:
   submission_information:
     type: File
@@ -240,17 +265,16 @@ outputs:
 """
 
 
-def _wait_for_any(paths, timeout=30.0):
+def _wait_for_pred(pred, timeout=30.0):
     end = time.time() + timeout
     while time.time() < end:
-        for path in paths:
-            if path.exists():
-                return True
+        if pred():
+            return True
         time.sleep(0.1)
     return False
 
 
-def test_in_workflow_job_runs_from_stable_destination(tmp_path):
+def test_in_workflow_steps_isolated_and_run_dir_self_contained(tmp_path):
     sim = Simulation(
         time_step_size=17,
         max_steps=4,
@@ -269,8 +293,9 @@ def test_in_workflow_job_runs_from_stable_destination(tmp_path):
     runner.generate()
     run_dir = runner.run_dir
 
-    # simulate tbg: the resolved submit.start has !TBG_dstPath baked in at
-    # prepare time as a per-step cwltool job cache path (shape of the real one)
+    # simulate tbg: the resolved submit.start has the prepare-time destination
+    # baked in as a per-step cwltool job cache path (shape of the real one).
+    # The isolated submit step rewrites TBG_dstPath to its own working dir.
     old_dst = str(tmp_path / ".cwl_cache" / "0123456789abcdef0123456789abcdef" / "run_dir")
     tbg_link = tmp_path / "tbg_link"
     tbg_link.mkdir()
@@ -308,8 +333,6 @@ inputs:
     type: Directory
   organize_script:
     type: File
-  destination_path:
-    type: string?
 outputs:
   input_directory:
     type: Directory
@@ -331,7 +354,6 @@ steps:
       bin_directory: bin_directory
       etc_directory: etc_directory
       tbg_link: tbg_link
-      destination_path: destination_path
     out: [submission_information, link_results_script, tbg_directory]
   organize_output_step:
     run: {organize_cwl}
@@ -355,7 +377,6 @@ steps:
             "class": "File",
             "location": str(tpath() / "workflow" / "scripts" / "organize_output.sh"),
         },
-        "destination_path": str(run_dir),
     }
 
     Factory(
@@ -370,32 +391,44 @@ steps:
         )
     ).make(str(workflow_cwl))(**inputs)
 
-    # the default (bash) submit system backgrounds the job; wait for it to
-    # produce a result. Waiting on the pid is unreliable here (the orphaned
-    # background job can linger as an unreaped zombie, so os.kill(pid, 0)
-    # keeps succeeding), so wait on its output instead: simOutput/output on
-    # success or job_failed.txt if the executable was not found.
-    sim_output = run_dir / "simOutput" / "output"
-    job_failed = run_dir / "job_failed.txt"
-    assert _wait_for_any([sim_output, job_failed]), "in-workflow job did not produce a result"
+    # the default (bash) submit system backgrounds the isolated job, which
+    # runs from its own cwltool job-cache working directory and writes
+    # simOutput there (inside run_dir/.cwl_cache/...), not directly in the
+    # run_dir. Waiting on the pid is unreliable (the orphaned background job
+    # can linger as an unreaped zombie), so wait on its output instead:
+    # simOutput/output on success or job_failed.txt if the executable was not
+    # found.
+    def _find(pattern):
+        return next((p for p in run_dir.rglob(pattern) if p.is_file()), None)
 
-    # (b) the in-workflow job actually ran: it found and executed the binary
-    # from the stable destination and wrote simOutput there (not a cache dir)
-    assert not job_failed.exists()
-    assert sim_output.is_file()
+    assert _wait_for_pred(lambda: _find("simOutput/output") or _find("job_failed.txt")), (
+        "in-workflow job did not produce a result"
+    )
+
+    # (b) the isolated job actually ran: it found and executed the binary from
+    # its own (job-cache) working directory and wrote simOutput there
+    job_failed = _find("job_failed.txt")
+    sim_output = _find("simOutput/output")
+    assert job_failed is None, f"job failed:\n{job_failed.read_text() if job_failed is not None else ''}"
+    assert sim_output is not None
+    assert ".cwl_cache" in str(sim_output), "the isolated job wrote simOutput into its own job-cache dir"
     assert "full simulation time:" in sim_output.read_text()
 
-    # (a) no .cwl_cache references remain in the final outputs
-    for name in ("tbg/submit.start", "link_results.sh", "submission_information.txt"):
-        content = (run_dir / name).read_text()
-        assert ".cwl_cache" not in content, f"{name} still references .cwl_cache:\n{content}"
+    # (a) the final run_dir is self-contained: no generated file references
+    # the internal job cache -- except link_results.sh, which keeps the
+    # reference to where the isolated job actually wrote its results.
+    submit_start = (run_dir / "tbg" / "submit.start").read_text()
+    assert f"TBG_dstPath={run_dir}" in submit_start
+    assert ".cwl_cache" not in submit_start
+    assert ".cwl_cache" not in (run_dir / "submission_information.txt").read_text()
+    link_results = (run_dir / "link_results.sh").read_text()
+    assert ".cwl_cache" in link_results  # the one allowed exception
     leaked = [
         str(p.relative_to(run_dir))
         for p in run_dir.rglob("*")
-        if p.is_file() and ".cwl_cache" not in p.parts and b".cwl_cache" in p.read_bytes()
+        if p.is_file()
+        and p.name != "link_results.sh"
+        and ".cwl_cache" not in p.parts
+        and b".cwl_cache" in p.read_bytes()
     ]
     assert not leaked, f".cwl_cache leaked into final outputs: {leaked}"
-
-    # the stable references point at where the results actually are
-    assert f'TBG_dstPath="{run_dir}"' in (run_dir / "tbg" / "submit.start").read_text()
-    assert f"ln -s {run_dir}/simOutput" in (run_dir / "link_results.sh").read_text()
