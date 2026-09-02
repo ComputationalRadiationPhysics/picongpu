@@ -108,10 +108,8 @@ namespace pmacc
         virtual std::string pluginGetName() const = 0;
 
         /**
-         * Called each timestep if particles are leaving the global simulation volume.
-         *
-         * This method is only called for species which are marked with the
-         * `GuardHandlerCallPlugins` policy in their descpription.
+         * Called each timestep for each particle species and active outer boundary, before boundary conditions are
+         * applied. The callback may be called even if no particle crossed the boundary.
          *
          * The order in which the plugins are called is undefined, so this means
          * read-only access to the particles.

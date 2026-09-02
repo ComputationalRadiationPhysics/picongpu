@@ -109,6 +109,12 @@ namespace picongpu
             {
             }
 
+            void onParticleLeave(std::string const& speciesName, int32_t const direction) override
+            {
+                for(auto&& binner : binnerVector)
+                    binner->onParticleLeave(speciesName, direction);
+            }
+
         protected:
             void pluginLoad() override
             {
