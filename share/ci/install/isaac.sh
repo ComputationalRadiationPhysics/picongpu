@@ -24,7 +24,7 @@ if [ -z "$DISABLE_ISAAC" ] ; then
     export LD_LIBRARY_PATH=$JANSSON_ROOT/lib:$LD_LIBRARY_PATH
     git clone https://github.com/akheron/jansson.git --depth 1 \
         --branch $JANSSON_VERSION
-    cd $ISAAC_SOURCE_DIR/jansson
+    cd jansson
     mkdir build
     cd build
     cmake ../ -DCMAKE_INSTALL_PREFIX=$JANSSON_ROOT
