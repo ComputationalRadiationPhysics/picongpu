@@ -506,8 +506,8 @@ To read the electron spectrometer data in python, one could load and plot it lik
   E_bins = espec_h.get_attribute('Energy_bin_edges')
   theta_bins = espec_h.get_attribute('pointingXY_bin_edges')
 
-  # convert C/J/rad -> C/MeV/mrad
-  convert_C_per_Joule_per_rad_to_pC_per_MeV_per_mrad = 1./1e-12 * const.elementary_charge/1e6 * 1/1e3
+  # convert C/J/rad -> pC/MeV/mrad
+  convert_C_per_Joule_per_rad_to_pC_per_MeV_per_mrad = 1./1e-12 * const.elementary_charge*1e6 * 1/1e3
 
   # plot
   plt.pcolormesh(np.array(E_bins) / const.elementary_charge / 1e6,
