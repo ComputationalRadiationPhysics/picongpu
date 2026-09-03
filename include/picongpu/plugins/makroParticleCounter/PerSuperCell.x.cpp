@@ -262,9 +262,10 @@ namespace picongpu
                 }
             }
 
-            setMeshAttributes(mesh);
-
             mesh.resetDataset({::openPMD::determineDatatype<size_t>(), openPmdGlobalDomainExtent});
+            // Set mesh attributes after resetDataset, otherwise mesh.scalar() is false and
+            // the component attributes (e.g. position) are not applied.
+            setMeshAttributes(mesh);
             mesh.storeChunk(
                 std::shared_ptr<size_t>{ptr, [](auto const*) {}},
                 openPmdLocalDomainOffset,
