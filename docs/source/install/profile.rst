@@ -71,8 +71,18 @@ Hemera (HZDR)
 
 Profile for HZDR's home cluster hemera.
 Sets up software environment, i.e. providing libraries to satisfy PIConGPU's dependencies, by loading modules,
-setting common paths and options, as well as defining the ``getDevice()`` and ``getNode()`` aliases.
-The latter are shorthands to request resources for an interactive session from the batch system.
+setting common paths and options, and defining the ``getResource()`` function for requesting
+interactive sessions from the batch system.
+
+The ``getResource()`` function accepts two modes:
+
+* ``getResource -n [num] [command ...]`` — allocate **num** full nodes (default: 1), optionally running ``command``.
+* ``getResource -d [num] [command ...]`` — allocate **num** GPUs on a single node (default: 1), optionally running ``command``.
+
+Without a trailing ``command``, an interactive shell on a compute node is started.
+With a trailing ``command`` (e.g. ``getResource -d 1 pic-build``), the command is run inside the allocation.
+
+For backwards compatibility, ``getNode()`` and ``getDevice()`` are retained as aliases forwarding to ``getResource``.
 Together with the `-s bash` option of :ref:`TBG <usage-tbg>`, these allow to run PIConGPU interactively on an HPC system.
 
 
