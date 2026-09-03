@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from itertools import chain
-from functools import partial, wraps
+from functools import wraps
 from inspect import Parameter, signature
 from operator import itemgetter
 from typing import Any, Self
@@ -31,16 +31,12 @@ def _extract_first_parameter(cls):
 
 def _pass_first_parameter_to(f, parameter, kwargs):
     """
-    Constructs a function that can be called with the first parameter as positional argument regardless of it being kw-only or not.
+    Constructs a callable that passes its argument as the first constructor
+    parameter, regardless of that parameter being keyword-only or positional-only.
     """
-    if parameter.kind in [Parameter.KEYWORD_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
-        return lambda d: f(**{parameter.name: d}, **kwargs)
-    elif parameter.kind in [Parameter.POSITIONAL_ONLY]:
-        return lambda d: f(d, **kwargs)
-    else:
-        # The remaining option for parameter.kind is VAR_KEYWORD (at the time of writing)
-        # and that was caught above already.
-        raise Exception("This path should be unreachable!")
+    if parameter.kind is Parameter.POSITIONAL_ONLY:
+        return lambda decorated: f(decorated, **kwargs)
+    return lambda decorated: f(**{parameter.name: decorated}, **kwargs)
 
 
 def decorating_class(cls_or_name, parameter=None):
@@ -52,9 +48,16 @@ def decorating_class(cls_or_name, parameter=None):
         @MyClass(c=6)
         def b():
             print("Hello World!")
+
+    Instead of a class, a string can be given which is used as the name of the
+    constructor parameter that receives the decorated object:
+
+        @decorating_class("density_function")
+        class AnalyticDistribution(...):
     """
     if isinstance(cls_or_name, str):
-        return lambda cls: decorating_class(cls, parameter=Parameter(name=cls_or_name, kind=Parameter.KEYWORD_ONLY))
+        name = cls_or_name
+        return lambda cls: decorating_class(cls, parameter=Parameter(name=name, kind=Parameter.KEYWORD_ONLY))
     # It is important to extract the signature before decorating the class.
     # Otherwise, we'll only see the names of the decorator's arguments.
     parameter = parameter or _extract_first_parameter(cls_or_name)
@@ -62,13 +65,12 @@ def decorating_class(cls_or_name, parameter=None):
     @wraps(cls_or_name, updated=tuple())
     class Tmp(cls_or_name):
         def __init__(self, decorated=None, **kwargs):
-            """Intercept positional decorator arg and merge into kwargs.
+            """Turn a positional decorator argument into the named keyword.
 
-            ``type.__call__`` passes original positional args from the decoration
-            call site to __init__ after __new__ succeeds.  For plain classes this
-            is handled by the user's own __init__.  For pydantic BaseModel, which
-            only accepts ``**data`` kwargs, we must convert the positional
-            decorator argument back into the named keyword.
+            ``type.__call__`` forwards the *original* call arguments to ``__init__``
+            after ``__new__`` returns. Pydantic ``BaseModel.__init__`` only accepts
+            keyword arguments, so a leading positional argument is re-passed as the
+            named keyword here.
             """
             if decorated is not None:
                 if parameter.name in kwargs:
@@ -78,18 +80,18 @@ def decorating_class(cls_or_name, parameter=None):
                 super().__init__(**kwargs)
 
         def __new__(cls, decorated=None, **kwargs):
-            decorated = kwargs.pop(parameter.name, None) or decorated
+            if decorated is None and parameter.name in kwargs:
+                decorated = kwargs.pop(parameter.name)
             if decorated is None:
-                # @MyClass(extra=...)  - return a callable that accepts the decorator
+                # @MyClass(extra=...) -- no decorated object (yet):
+                # return a callable that accepts the future @decorator.
                 return _pass_first_parameter_to(cls, parameter, kwargs)
-            # @MyClass(func)  - try to call the original __new__ with the
-            # decorated arg.  For plain classes this exercises their custom
-            # __new__.  For pydantic models the call fails (BaseModel.__new__
-            # doesn't accept positional args), so we fall back to a bare
-            # instance; __init__ handles full initialization.
-            constructor = partial(super().__new__, cls)
+            # @MyClass(object) -- build an instance. Call the original __new__ if it
+            # accepts the decorated argument (classes with a custom __new__); for
+            # plain classes and pydantic models this raises, so fall back to a bare
+            # instance whose __init__ does the actual construction.
             try:
-                return _pass_first_parameter_to(constructor, parameter, kwargs)(decorated)
+                return super().__new__(cls, **{parameter.name: decorated}, **kwargs)
             except TypeError:
                 return object.__new__(cls)
 
