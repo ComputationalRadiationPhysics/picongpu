@@ -6,6 +6,8 @@ License: GPLv3+
 """
 
 import re
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Any
 
 from picmistandard import PICMI_Species
@@ -38,37 +40,41 @@ from .predefinedparticletypeproperties import PredefinedParticleTypeProperties
 # Accepted particle-shape terms: the PICMI-standard names plus PIConGPU-only
 # extensions, which (following the PICMI "other:" extension convention) are
 # prefixed with "other:".
-_SHAPE_BY_NAME: dict[str, Shape] = {
-    "NGP": Shape.NGP,
-    "linear": Shape.linear,
-    "quadratic": Shape.quadratic,
-    "cubic": Shape.cubic,
-    "other:quartic": Shape.quartic,
-    "other:counter": Shape.counter,
-}
+_SHAPE_BY_NAME: Mapping[str, Shape] = MappingProxyType(
+    {
+        "NGP": Shape.NGP,
+        "linear": Shape.linear,
+        "quadratic": Shape.quadratic,
+        "cubic": Shape.cubic,
+        "other:quartic": Shape.quartic,
+        "other:counter": Shape.counter,
+    }
+)
 
 # Accepted pusher-method terms: the PICMI-standard names plus PIConGPU-only
 # extensions ("other:"-prefixed). Standard methods without a PIConGPU
 # implementation (e.g. "Li") and unknown "other:*" terms are accepted at
 # construction time (code-specific escape hatch) but are rejected with a clear
 # message when the species is translated.
-_PUSHER_BY_NAME: dict[str, Pusher] = {
-    "Boris": Pusher.Boris,
-    "Vay": Pusher.Vay,
-    "Higuera-Cary": Pusher.Higuera,
-    "free-streaming": Pusher.Free,
-    "LLRK4": Pusher.ReducedLandauLifshitz,
-    "other:Acceleration": Pusher.Acceleration,
-    "other:Photon": Pusher.Photon,
-    "other:Probe": Pusher.Probe,
-    "other:Axel": Pusher.Axel,
-}
+_PUSHER_BY_NAME: Mapping[str, Pusher] = MappingProxyType(
+    {
+        "Boris": Pusher.Boris,
+        "Vay": Pusher.Vay,
+        "Higuera-Cary": Pusher.Higuera,
+        "free-streaming": Pusher.Free,
+        "LLRK4": Pusher.ReducedLandauLifshitz,
+        "other:Acceleration": Pusher.Acceleration,
+        "other:Photon": Pusher.Photon,
+        "other:Probe": Pusher.Probe,
+        "other:Axel": Pusher.Axel,
+    }
+)
 
 _STANDARD_SHAPES = ("NGP", "linear", "quadratic", "cubic")
 _STANDARD_METHODS = ("Boris", "Vay", "Higuera-Cary", "Li", "free-streaming", "LLRK4")
 
 
-def _lookup(kind: str, table: dict[str, Any], key: str):
+def _lookup(kind: str, table: Mapping[str, Any], key: str):
     try:
         return table[key]
     except KeyError:
