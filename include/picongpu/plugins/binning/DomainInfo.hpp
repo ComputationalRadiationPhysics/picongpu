@@ -137,7 +137,7 @@ namespace picongpu
             PIC,
             /**
              * @brief Returns the position as the number of cells.
-             * Integral value if PositionPrecision is Cell and floating point if PositionPrecision is SubCell.
+             * Integral value if PositionPrecision is Cell and floating point if PositionPrecision is SUB_CELL.
              */
             CELL
         };
@@ -250,16 +250,17 @@ namespace picongpu
          * @brief Returns the particle position as a pmacc vector.
          *
          * By default, returns the cell index of the cell the particle is in.
-         * Returns a fractional cell index representing the in-cell position if PositionPrecision::SubCell is passed.
+         * Returns a fractional cell index representing the in-cell position if PositionPrecision::SUB_CELL is passed.
          * Returns in SI units if PositionUnits::SI is specified.
          *
          * @warning Converting the particle positions to SI might be dangerous, especially with respect to the total
          * origin, as floating point numbers lose precision as the distance from the origin increases.
          *
-         * @warning The comoving frame defined by DomainOrigin::MOVING_WINDOW is only supported with SUBCELL precision.
+         * @warning The comoving frame defined by DomainOrigin::MOVING_WINDOW is only supported with SUB_CELL
+         * precision.
          *
          * @tparam T_Origin The origin reference for the position.
-         * @tparam T_Precision The precision of the position (CELL index or SUBCELL position).
+         * @tparam T_Precision The precision of the position (CELL index or SUB_CELL position).
          * @tparam T_Units The units of the position (SI, PIC or CELL).
          * @param domainInfo The domain information.
          * @param particle The particle whose position is to be determined.
