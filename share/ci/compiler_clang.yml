@@ -7,6 +7,10 @@
     GIT_SUBMODULE_STRATEGY: normal
     # ISAAC is not supporting CPU
     DISABLE_ISAAC: "yes"
+    # workaround github clone issues: https://github.com/orgs/community/discussions/206581
+    GIT_CONFIG_COUNT: "1"
+    GIT_CONFIG_KEY_0: "http.https://github.com.version"
+    GIT_CONFIG_VALUE_0: "HTTP/1.1"
   script:
     #  fix apt error: libomp-10-dev : Depends: libomp5-10 (= 1:10.0.0-4ubuntu1~18.04.2) but it is not going to be installed
     - sed -i -e '1,2d' /etc/apt/sources.list.d/llvm.list
