@@ -368,15 +368,17 @@ class TestPicmiSimulation(TestCase):
         pypic_sim = sim.get_as_pypicongpu()
         operations = pypic_sim.init_operations
 
-        operation_types = list(map(lambda op: type(op), operations))
-        assert operation_types.count(species.operation.SetChargeState) == 2
-
-        for op in operations:
-            if isinstance(op, species.operation.SetChargeState) and op.species.name == "nitrogen":
-                assert op.charge_state == 2
-            if isinstance(op, species.operation.SetChargeState) and op.species.name == "hydrogen":
-                assert op.charge_state == 1
-            # other ops (position...): ignore
+        # Every SetChargeState op must carry the charge state that was requested for its
+        # species, and every species with a requested charge state must be matched by
+        # exactly one op. Name-keyed lookup is deliberately avoided here: a rename or a
+        # value mismatch must fail the assertions instead of silently bypassing them.
+        set_charge_state_ops = [op for op in operations if isinstance(op, species.operation.SetChargeState)]
+        expected_charge_states = {ion.name: ion.charge_state for ion in (ion1, ion2)}
+        assert len(set_charge_state_ops) == len(expected_charge_states)
+        for op in set_charge_state_ops:
+            assert op.species.name in expected_charge_states, f"no charge state requested for {op.species.name=}"
+            assert op.charge_state == expected_charge_states.pop(op.species.name)
+        assert not expected_charge_states, f"missing SetChargeState op for {expected_charge_states}"
 
     def test_write_input_file(self):
         """sanity check picmi upstream: write input file"""
