@@ -74,30 +74,41 @@ class TWTSLaser(BaseModel, BaseLaser):
     ]
     picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
 
-    k0: float = 0.0
-    phi0: float = 0.0
-    laserIncidenceAnglePositive: bool = False
-    time_offset_si: float = 0.0
-
-    propagation_direction: list[float] = []
-    polarization_direction: list[float] = []
-
     @computed_field
     def pulse_init(self) -> float:
         return self._compute_pulse_init()
 
-    @model_validator(mode="after")
-    def _validate(self):
-        self.k0 = 2.0 * math.pi / self.wavelength
-        self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
-        self.phi0 = 0.0
-        self.propagation_direction = [0.0, math.cos(self.laserIncidenceAngle), math.sin(self.laserIncidenceAngle)]
-        self.polarization_direction = [
+    @computed_field
+    def k0(self) -> float:
+        return 2.0 * math.pi / self.wavelength
+
+    @computed_field
+    def phi0(self) -> float:
+        # TWTS has no carrier phase input; the phase is always zero.
+        return 0.0
+
+    @computed_field
+    def propagation_direction(self) -> list[float]:
+        return [0.0, math.cos(self.laserIncidenceAngle), math.sin(self.laserIncidenceAngle)]
+
+    @computed_field
+    def polarization_direction(self) -> list[float]:
+        return [
             math.cos(self.polarizationAngle),
             -math.sin(self.polarizationAngle) * math.sin(self.laserIncidenceAngle),
             math.cos(self.polarizationAngle) * math.cos(self.laserIncidenceAngle),
         ]
-        self.laserIncidenceAnglePositive = self.laserIncidenceAngle > 0
-        self.time_offset_si = (self.focal_position[1] - self.centroid_position[1]) / (self.beta0 * constants.c)
+
+    @computed_field
+    def laserIncidenceAnglePositive(self) -> bool:
+        return self.laserIncidenceAngle > 0
+
+    @computed_field
+    def time_offset_si(self) -> float:
+        return (self.focal_position[1] - self.centroid_position[1]) / (self.beta0 * constants.c)
+
+    @model_validator(mode="after")
+    def _validate(self):
+        self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
         self._validate_common_properties()
         return self

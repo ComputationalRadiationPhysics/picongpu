@@ -9,7 +9,7 @@ from collections.abc import Sequence
 
 import math
 
-from pydantic import BaseModel, Field, computed_field, model_validator
+from pydantic import BaseModel, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
@@ -65,18 +65,21 @@ class PlaneWaveLaser(BaseModel, BaseLaser):
         [16, -16],
     ]
 
-    k0: float = 0.0
-    focus_pos: list[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
-
     @computed_field
     def pulse_init(self) -> float:
         return self._compute_pulse_init()
 
+    @computed_field
+    def k0(self) -> float:
+        return 2.0 * math.pi / self.wavelength
+
+    @computed_field
+    def focus_pos(self) -> list[float]:
+        return [0.0, 0.0, 0.0]
+
     @model_validator(mode="after")
     def _validate(self):
-        self.k0 = 2.0 * math.pi / self.wavelength
         self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
-        self.focus_pos = [0.0, 0.0, 0.0]
         self._validate_common_properties()
         return self
 
