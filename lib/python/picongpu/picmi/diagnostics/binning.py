@@ -7,6 +7,8 @@ License: GPLv3+
 
 from pathlib import Path
 
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+
 from picongpu.picmi.diagnostics.backend_config import OpenPMDConfig
 from picongpu.picmi.particle_functor import ParticleFunctor as BinningFunctor
 from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
@@ -20,26 +22,23 @@ from .timestepspec import TimeStepSpec
 
 
 @default_converts_to(PyPIConGPUBinSpec, conversions={"kind": lambda self, *_, **__: self.kind.lower().capitalize()})
-class BinSpec:
-    def __init__(self, kind, start, stop, nsteps):
-        self.kind = kind
-        self.start = start
-        self.stop = stop
-        self.nsteps = nsteps
+class BinSpec(BaseModel):
+    kind: str
+    start: int | float
+    stop: int | float
+    nsteps: int
 
 
-class BinningAxis:
-    def __init__(
-        self,
-        functor: BinningFunctor,
-        bin_spec: BinSpec,
-        name: str | None = None,
-        use_overflow_bins: bool = True,
-    ):
-        self.functor = functor
-        self.bin_spec = bin_spec
-        self.name = name or functor.name
-        self.use_overflow_bins = use_overflow_bins
+class BinningAxis(BaseModel):
+    functor: BinningFunctor
+    bin_spec: BinSpec
+    name: str | None = None
+    use_overflow_bins: bool = True
+
+    @model_validator(mode="after")
+    def _set_default_name(self):
+        self.name = self.name or self.functor.name
+        return self
 
     def get_as_pypicongpu(self) -> PyPIConGPUBinningAxis:
         return PyPIConGPUBinningAxis(
@@ -50,30 +49,30 @@ class BinningAxis:
         )
 
 
-class Binning:
-    def __init__(
-        self,
-        name: str,
-        deposition_functor: BinningFunctor,
-        axes: list[BinningAxis],
-        species: Species | FilteredSpecies | list[Species | FilteredSpecies],
-        period: TimeStepSpec | None = None,
-        openPMDBackendConfig: dict | None = None,
-        openPMDExt: str | None = None,
-        openPMDInfix: str | None = None,
-        dumpPeriod: int = 1,
-    ):
-        self.name = name
-        self.deposition_functor = deposition_functor
-        self.axes = axes
+class Binning(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    name: str
+    deposition_functor: BinningFunctor
+    axes: list[BinningAxis]
+    species: Species | FilteredSpecies | list[Species | FilteredSpecies]
+    period: TimeStepSpec | None = None
+    openPMDBackendConfig: dict | None = None
+    openPMDExt: str | None = None
+    openPMDInfix: str | None = None
+    dumpPeriod: int = 1
+
+    @field_validator("species", mode="before")
+    @classmethod
+    def _normalise_species_to_list(cls, species):
         if isinstance(species, Species) or isinstance(species, FilteredSpecies):
-            species = [species]
-        self.species = species
-        self.period = period or TimeStepSpec[:]
-        self.openPMDBackendConfig = openPMDBackendConfig
-        self.openPMDExt = openPMDExt
-        self.openPMDInfix = openPMDInfix
-        self.dumpPeriod = dumpPeriod
+            return [species]
+        return species
+
+    @model_validator(mode="after")
+    def _set_default_period(self):
+        self.period = self.period or TimeStepSpec[:]
+        return self
 
     def result_path(self, prefix_path):
         return OpenPMDConfig(

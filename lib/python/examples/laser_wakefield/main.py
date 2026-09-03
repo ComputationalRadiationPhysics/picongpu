@@ -175,8 +175,10 @@ thetaFunctor = binning.BinningFunctor(
 )
 
 maxEnergy_MeV = 100.0
-energyRange = binning.BinSpec("linear", 0.0, maxEnergy_MeV * 1e6 * elementary_charge, 800)  # convert MeV to Joule
-thetaRange = binning.BinSpec("linear", -0.250, +0.250, 256)  # in rad
+energyRange = binning.BinSpec(
+    kind="linear", start=0.0, stop=maxEnergy_MeV * 1e6 * elementary_charge, nsteps=800
+)  # convert MeV to Joule
+thetaRange = binning.BinSpec(kind="linear", start=-0.250, stop=+0.250, nsteps=256)  # in rad
 
 energyAxis = binning.BinningAxis(functor=energyFunctor, bin_spec=energyRange, name="energy")
 thetaAxis = binning.BinningAxis(functor=thetaFunctor, bin_spec=thetaRange, name="theta")

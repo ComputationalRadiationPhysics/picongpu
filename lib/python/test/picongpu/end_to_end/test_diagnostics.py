@@ -261,14 +261,14 @@ def position(particle, i):
 
 POSITION_AXES = [
     BinningAxis(
-        ParticleFunctor(
+        functor=ParticleFunctor(
             # We prefer `partial` over lambda functions in this situation
             # because of lambda's late binding.
             name=f"position{i}",
             functor=partial(position, i=i),
             return_type=int,
         ),
-        BinSpec("linear", 0, NUMBER_OF_CELLS[i], NUMBER_OF_CELLS[i]),
+        bin_spec=BinSpec(kind="linear", start=0, stop=NUMBER_OF_CELLS[i], nsteps=NUMBER_OF_CELLS[i]),
         use_overflow_bins=False,
     )
     for i in range(3)
