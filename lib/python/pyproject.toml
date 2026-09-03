@@ -12,14 +12,13 @@ name = "picongpu"
 version = "0.9.0.dev"
 description = "Python package for PIConGPU"
 license = "GPL-3.0-or-later"
-# Our hand-rolled type-safety infrastructure is getting in the way of 3.14.
-# Planning to fix (and remove this again) in the near future:
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 # dependecies list generated with
 # https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
