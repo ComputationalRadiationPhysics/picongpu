@@ -206,8 +206,6 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     _runner: Runner | None = PrivateAttr(default=None)
 
-    picongpu_binomial_current_interpolation: bool = Field(default=False)
-
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @model_validator(mode="after")
