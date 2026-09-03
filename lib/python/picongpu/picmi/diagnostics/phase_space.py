@@ -9,6 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from picongpu.picmi import constants
 from picongpu.picmi.copy_attributes import default_converts_to
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
@@ -16,7 +17,22 @@ from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.phase_space import PhaseSpace as PyPIConGPUPhaseSpace
 
 
-@default_converts_to(PyPIConGPUPhaseSpace)
+def _unfiltered_species(species: Species | FilteredSpecies) -> Species:
+    return species.species if isinstance(species, FilteredSpecies) else species
+
+
+def _momentum_si_to_mc(diagnostic, momentum_si: float) -> float:
+    # the underlying plugin's min/max options are given in m_species*c
+    return momentum_si / (_unfiltered_species(diagnostic.species).picongpu_get_mass_si() * constants.c)
+
+
+@default_converts_to(
+    PyPIConGPUPhaseSpace,
+    conversions={
+        "min_momentum": lambda self, *_, **__: _momentum_si_to_mc(self, self.min_momentum),
+        "max_momentum": lambda self, *_, **__: _momentum_si_to_mc(self, self.max_momentum),
+    },
+)
 class PhaseSpace(BaseModel):
     """
     Specifies the parameters for the output of Phase Space of species such as electrons.
