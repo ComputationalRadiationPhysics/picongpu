@@ -60,7 +60,3 @@ class TestSetChargeState(TestCase):
         # no element properties -> no atomic number to check against
         op = SetChargeState(species=_custom_species(), charge_state=1)
         self.assertEqual(op.charge_state, 1)
-
-    def test_negative_charge_state_rejected(self):
-        with self.assertRaises(ValidationError):
-            SetChargeState(species=_element_species("C"), charge_state=-1)

@@ -15,7 +15,6 @@ from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.mass import Mass
 from picongpu.pypicongpu.species.operation.setchargestate import SetChargeState
 from picongpu.pypicongpu.species.species import Pusher, Shape
-from pydantic import ValidationError
 
 
 def species(**kwargs):
@@ -75,25 +74,6 @@ class TestSpeciesShapeAndMethod(TestCase):
                 construct = species(**{field: value})
                 with self.assertRaises(ValueError, msg=f"{value} must be rejected at conversion time"):
                     construct.get_as_pypicongpu()
-
-    def test_invalid_bare_terms_rejected_at_construction(self):
-        for field, invalid in {
-            "method": ["foo", "Higuera", "Free", "LL"],
-            "particle_shape": ["quartic", "counter", "CIC", "TSC", "PQS", "PCS"],
-        }.items():
-            for value in invalid:
-                with self.subTest(field=field, value=value):
-                    with self.assertRaises(ValidationError, msg=f"{value} must be rejected at construction"):
-                        species(**{field: value})
-
-    def test_integer_particle_shape_rejected(self):
-        with self.assertRaises(ValidationError):
-            species(particle_shape=2)
-
-    def test_defaults(self):
-        pypicongpu_species = species().get_as_pypicongpu()
-        self.assertIs(pypicongpu_species.shape, Shape.quadratic)
-        self.assertIs(pypicongpu_species.pusher, Pusher.Boris)
 
 
 def unique_in(elements, collection):

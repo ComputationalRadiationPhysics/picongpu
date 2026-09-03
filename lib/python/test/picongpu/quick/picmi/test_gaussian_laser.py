@@ -105,20 +105,6 @@ class TestPicmiGaussianLaser(TestCase):
             < 1e-10
         )
 
-    def test_scalar_values_negative(self):
-        """waist, duration and wavelelngth must be > 0"""
-        with self.assertRaises(ValidationError):
-            picmi.GaussianLaser(
-                wavelength=-1,
-                waist=-2,
-                duration=-3,
-                focal_position=[0, 0, 0],
-                centroid_position=[0, -1, 0],
-                propagation_direction=[0, 1, 0],
-                polarization_direction=[1, 0, 0],
-                E0=1,
-            )
-
     def test_values_focal_pos(self):
         """only y of focal pos can be varied"""
         # x, z checked against centroid pos

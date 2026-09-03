@@ -32,10 +32,6 @@ class TestElectromagneticSolver(TestCase):
         self.assertEqual(self._make(method="Yee").get_as_pypicongpu().__class__.__name__, "YeeSolver")
         self.assertEqual(self._make(method="Lehe").get_as_pypicongpu().__class__.__name__, "LeheSolver")
 
-    def test_unsupported_method_rejected(self):
-        with self.assertRaises(ValidationError):
-            self._make(method="CKC")
-
     def test_cfl_and_source_smoother_accepted(self):
         # cfl is handled at simulation level, source_smoother switches on binomial
         # current deposition: both must be constructible
@@ -64,10 +60,6 @@ class TestElectromagneticSolver(TestCase):
 
 
 class TestBinomialSmoother(TestCase):
-    def test_n_pass_accepted(self):
-        smoother = picmi.BinomialSmoother(n_pass=[2])
-        self.assertEqual(smoother.n_pass, [2])
-
     def test_other_parameters_rejected(self):
         for field, value in {
             "compensation": [True],

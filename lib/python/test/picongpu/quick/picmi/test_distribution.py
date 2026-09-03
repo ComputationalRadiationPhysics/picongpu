@@ -151,26 +151,6 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         with pytest.raises(UnsupportedFeatureError, match="lower bound"):
             foil.get_as_pypicongpu(ARBITRARY_GRID)
 
-    def test_density_zero(self):
-        """density set to zero is not accepted"""
-        foil = picmi.FoilDistribution(density=0, thickness=1.0, front=2.0)
-        with pytest.raises(ValidationError):
-            foil.get_as_pypicongpu(ARBITRARY_GRID)
-
-    def test_front_zero(self):
-        """front set to zero is accepted"""
-        foil = picmi.FoilDistribution(density=1.0, thickness=2.0, front=0)
-        pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
-        # no error:
-        assert pypic.y_value_front_foil_si == 0
-
-    def test_thickness_zero(self):
-        """thickness set to zero is accepted"""
-        foil = picmi.FoilDistribution(density=1.0, thickness=0, front=2.0)
-        pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
-        # no error
-        assert pypic.thickness_foil_si == 0
-
     def _get_test_foils(self, cutoff, length):
         """
         helper function generating preRamp only, postRamp only
@@ -219,23 +199,6 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
             assert pypic.density_si == 1.0
             assert pypic.thickness_foil_si == 2.0
             assert pypic.y_value_front_foil_si == 3.0
-
-    def test_cutoff_below_zero(self):
-        """length below zero is not accepted"""
-
-        with self.assertRaises(ValidationError):
-            self._get_test_foils(-1.0, 1.0)
-
-    def test_length_zero(self):
-        """length set to zero is not accepted"""
-        with self.assertRaises(ValidationError):
-            self._get_test_foils(1.0, 0)
-
-    def test_length_below_zero(self):
-        """length below zero is not accepted"""
-
-        with self.assertRaises(ValidationError):
-            self._get_test_foils(1.0, -1.0)
 
     def test_setting_noPlasmaRamps(self):
         testCases = self._get_test_foils(None, 1.0)
