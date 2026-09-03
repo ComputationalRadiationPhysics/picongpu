@@ -124,13 +124,6 @@ class AnalyticDistribution(PICMI_Extension):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, *args, **kwargs):
-        if len(args) == 1 and "density_function" not in kwargs:
-            kwargs["density_function"] = args[0]
-        elif len(args) > 0:
-            raise ValueError(f"Invalid argument combination for AnalyticDistribution. You gave: {args=} and {kwargs=}.")
-        super().__init__(**kwargs)
-
     @computed_field
     def density_expression(self) -> Expr:
         x, y, z = symbols("x,y,z")
