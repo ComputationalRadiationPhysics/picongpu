@@ -85,11 +85,9 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     # @todo create check for insufficient dimension
     # @todo create check in simulation for conflict between PMLs and
     # Huygens-surfaces
-    picongpu_huygens_surface_positions: list[list[int]] = [
-        [16, -16],
-        [16, -16],
-        [16, -16],
-    ]
+    picongpu_huygens_surface_positions: list[list[int]] = Field(
+        default_factory=lambda: [[16, -16], [16, -16], [16, -16]]
+    )
     phi0: float = 0.0
 
     # PICMI-standard laser options that PIConGPU does not implement are

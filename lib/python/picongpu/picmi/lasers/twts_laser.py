@@ -8,7 +8,7 @@ License: GPLv3+
 import math
 from collections.abc import Sequence
 
-from pydantic import BaseModel, computed_field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
@@ -67,11 +67,9 @@ class TWTSLaser(BaseModel, BaseLaser):
     windowEnd: float = 0.0
     windowLength: float = 0.0
 
-    picongpu_huygens_surface_positions: list[list[int]] = [
-        [16, -16],
-        [16, -16],
-        [16, -16],
-    ]
+    picongpu_huygens_surface_positions: list[list[int]] = Field(
+        default_factory=lambda: [[16, -16], [16, -16], [16, -16]]
+    )
     picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
 
     @computed_field

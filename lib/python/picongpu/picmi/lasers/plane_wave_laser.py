@@ -9,7 +9,7 @@ from collections.abc import Sequence
 
 import math
 
-from pydantic import BaseModel, computed_field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
@@ -59,11 +59,9 @@ class PlaneWaveLaser(BaseModel, BaseLaser):
 
     picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
     picongpu_plateau_duration: float = 0.0
-    picongpu_huygens_surface_positions: list[list[int]] = [
-        [16, -16],
-        [16, -16],
-        [16, -16],
-    ]
+    picongpu_huygens_surface_positions: list[list[int]] = Field(
+        default_factory=lambda: [[16, -16], [16, -16], [16, -16]]
+    )
 
     @computed_field
     def pulse_init(self) -> float:
