@@ -35,7 +35,60 @@ from ..pypicongpu.species.util.element import Element
 from .predefinedparticletypeproperties import PredefinedParticleTypeProperties
 
 
+# Accepted particle-shape terms: the PICMI-standard names plus PIConGPU-only
+# extensions, which (following the PICMI "other:" extension convention) are
+# prefixed with "other:".
+_SHAPE_BY_NAME: dict[str, Shape] = {
+    "NGP": Shape.NGP,
+    "linear": Shape.linear,
+    "quadratic": Shape.quadratic,
+    "cubic": Shape.cubic,
+    "other:quartic": Shape.quartic,
+    "other:counter": Shape.counter,
+}
+
+# Accepted pusher-method terms: the PICMI-standard names plus PIConGPU-only
+# extensions ("other:"-prefixed). Standard methods without a PIConGPU
+# implementation (e.g. "Li") and unknown "other:*" terms are accepted at
+# construction time (code-specific escape hatch) but are rejected with a clear
+# message when the species is translated.
+_PUSHER_BY_NAME: dict[str, Pusher] = {
+    "Boris": Pusher.Boris,
+    "Vay": Pusher.Vay,
+    "Higuera-Cary": Pusher.Higuera,
+    "free-streaming": Pusher.Free,
+    "LLRK4": Pusher.ReducedLandauLifshitz,
+    "other:Acceleration": Pusher.Acceleration,
+    "other:Photon": Pusher.Photon,
+    "other:Probe": Pusher.Probe,
+    "other:Axel": Pusher.Axel,
+}
+
+_STANDARD_SHAPES = ("NGP", "linear", "quadratic", "cubic")
+_STANDARD_METHODS = ("Boris", "Vay", "Higuera-Cary", "Li", "free-streaming", "LLRK4")
+
+
+def _lookup(kind: str, table: dict[str, Any], key: str):
+    try:
+        return table[key]
+    except KeyError:
+        raise ValueError(f"PIConGPU does not support {kind} {key!r}. Supported: {', '.join(table)}.") from None
+
+
 class Species(PICMI_Species):
+    """
+    PICMI Species with PIConGPU-specific shape and pusher-method support.
+
+    `particle_shape` accepts the PICMI-standard shapes ('NGP', 'linear',
+    'quadratic', 'cubic') and PIConGPU extensions prefixed with 'other:'
+    (e.g. 'other:quartic', 'other:counter').
+
+    `method` accepts the PICMI-standard pusher methods ('Boris', 'Vay',
+    'Higuera-Cary', 'Li', 'free-streaming', 'LLRK4') and PIConGPU-specific
+    pushers prefixed with 'other:' (e.g. 'other:Acceleration',
+    'other:Photon', 'other:Probe', 'other:Axel').
+    """
+
     picongpu_fixed_charge: bool = False
     particle_shape: str | None = "quadratic"
     method: str | None = "Boris"
@@ -45,6 +98,28 @@ class Species(PICMI_Species):
     # particularly not as being applied to a particular species.
     # For now, we add them to all species. Refinements might be necessary in the future.
     _requirements: list[Any] = PrivateAttr(default_factory=lambda: [Position(), Weighting(), Momentum()])
+
+    @field_validator("method")
+    @classmethod
+    def _validate_method(cls, value):
+        # Note: this shadows picmistandard.PICMI_Species._validate_method, whose
+        # access to PICMI_Species.methods_list crashes with an AttributeError.
+        if value is not None and value not in _STANDARD_METHODS and not value.startswith("other:"):
+            raise ValueError(
+                f"Unsupported pusher method {value!r}. Must be one of "
+                f"{', '.join(_STANDARD_METHODS)} or be prefixed with 'other:'."
+            )
+        return value
+
+    @field_validator("particle_shape")
+    @classmethod
+    def _validate_particle_shape(cls, value):
+        if value is not None and value not in _STANDARD_SHAPES and not value.startswith("other:"):
+            raise ValueError(
+                f"Unsupported particle shape {value!r}. Must be one of "
+                f"{', '.join(_STANDARD_SHAPES)} or be prefixed with 'other:'."
+            )
+        return value
 
     @field_validator("name", mode="before")
     @classmethod
@@ -100,12 +175,18 @@ class Species(PICMI_Species):
         )
         self.register_requirements(particle_type_requirements(self.particle_type) + constants)
 
+    def _shape(self) -> Shape:
+        return _lookup("particle shape", _SHAPE_BY_NAME, self.particle_shape or "quadratic")
+
+    def _pusher(self) -> Pusher:
+        return _lookup("pusher method", _PUSHER_BY_NAME, self.method or "Boris")
+
     def get_as_pypicongpu(self, *args, **kwargs):
         return PyPIConGPUSpecies(
             name=self.name,
             **self._evaluate_species_requirements(),
-            shape=Shape[self.particle_shape],
-            pusher=Pusher[self.method],
+            shape=self._shape(),
+            pusher=self._pusher(),
         )
 
     def get_operation_requirements(self):

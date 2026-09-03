@@ -57,7 +57,7 @@ from .distributions import Gaussian, SphereFlanks
 logging.basicConfig(level=logging.INFO)
 
 LAYOUT = OnePositionLayout(n_macroparticles_per_cell=2)
-PARTICLE_SHAPE = "counter"
+PARTICLE_SHAPE = "other:counter"
 SPECIES = [
     Species(
         name="Gaussian_predefined",

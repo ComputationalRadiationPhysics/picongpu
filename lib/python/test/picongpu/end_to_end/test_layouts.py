@@ -35,7 +35,7 @@ from .distributions import Uniform
 
 logging.basicConfig(level=logging.INFO)
 
-PARTICLE_SHAPE = "counter"
+PARTICLE_SHAPE = "other:counter"
 LAYOUTS = {
     "oneposition_1": OnePositionLayout(n_macroparticles_per_cell=1),
     "oneposition_2": OnePositionLayout(n_macroparticles_per_cell=2),
