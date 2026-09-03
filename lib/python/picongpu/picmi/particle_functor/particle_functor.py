@@ -9,7 +9,7 @@ from collections.abc import Callable, Iterable
 from inspect import signature
 from typing import Any
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, computed_field, model_validator
 from sympy import Expr, Symbol, symbols
 
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
@@ -71,7 +71,18 @@ class ParticleFunctor(BaseModel):
     name: str | None = None
     return_type: type | str | None = None
     unit_dimension: UnitDimension | None = None
-    rng_class: Callable[[Any], Any] = lambda: None
+
+    def _rng_classes(self) -> list[type]:
+        return [
+            cls
+            for p in signature(self.functor).parameters.values()
+            if isinstance(p.annotation, type) and issubclass((cls := p.annotation), RNGArg)
+        ]
+
+    @computed_field
+    def rng_class(self) -> Callable[[Any], Any]:
+        rng_classes = self._rng_classes()
+        return rng_classes[0] if rng_classes else (lambda: None)
 
     @model_validator(mode="after")
     def _init(self):
@@ -82,16 +93,10 @@ class ParticleFunctor(BaseModel):
             self.return_type = float if sig.return_annotation == sig.empty else sig.return_annotation
         if self.unit_dimension is None:
             self.unit_dimension = UnitDimension()
-        rng_classes = [
-            cls
-            for p in sig.parameters.values()
-            if isinstance(p.annotation, type) and issubclass((cls := p.annotation), RNGArg)
-        ]
-        if len(rng_classes) > 1:
+        if len(rng_classes := self._rng_classes()) > 1:
             raise ValueError(
                 f"ParticleFunctor can take at most one RNG. You have requested {rng_classes=} in your signature."
             )
-        self.rng_class = alt(lambda: rng_classes[0], None) or (lambda: None)
         return self
 
     def get_as_pypicongpu(self, mode) -> PyPIConGPUParticleFunctor:

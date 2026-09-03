@@ -44,7 +44,7 @@ class BinningAxis(BaseModel):
         return PyPIConGPUBinningAxis(
             name=self.name,
             functor=self.functor.get_as_pypicongpu(mode="Binning"),
-            bin_spec=self.bin_spec.get_as_pypicongpu(),
+            bin_spec_raw=self.bin_spec.get_as_pypicongpu(),
             use_overflow_bins=self.use_overflow_bins,
         )
 
