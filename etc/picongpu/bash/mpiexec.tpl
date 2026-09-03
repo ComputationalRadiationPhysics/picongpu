@@ -52,5 +52,6 @@ else
 fi
 
 if [ $? -eq 0 ] ; then
-  mpiexec --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  mpiexec --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams 2>&1 | tee output
+  exit ${PIPESTATUS[0]}
 fi

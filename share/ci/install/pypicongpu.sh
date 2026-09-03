@@ -99,6 +99,10 @@ fi
 # openmpi is available without extra work
 if [ ! -z ${PYTHON_END_TO_END_TEST+x} ]; then
     export PIC_BACKEND=serial
+    # the CI job runs as root, but OpenMPI refuses to start as root,
+    # so the simulation was aborted by mpiexec before producing any output
+    export OMPI_ALLOW_RUN_AS_ROOT=1
+    export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
     # setup cmake
     if [ ! -z ${CMAKE_VERSION+x} ]; then
         if agc-manager -e cmake@${CMAKE_VERSION} ; then
