@@ -125,7 +125,7 @@ def position_binning_for(species, timestep):
         axes=[
             BinningAxis(
                 functor=BinningFunctor(name="dummy", functor=lambda x: 0, return_type=float),
-                bin_spec=BinSpec("linear", -0.5, 0.5, 1),
+                bin_spec=BinSpec(kind="linear", start=-0.5, stop=0.5, nsteps=1),
             )
         ],
         species=species,
@@ -166,14 +166,14 @@ def position_binning_for(species, timestep):
 
 POSITION_AXES = [
     BinningAxis(
-        BinningFunctor(
+        functor=BinningFunctor(
             # We prefer `partial` over lambda functions in this situation
             # because of lambda's late binding.
             name=f"position{i}",
             functor=partial(position, i=i, origin="total", precision="cell", unit="cell"),
             return_type="double",
         ),
-        BinSpec("linear", 0, NUMBER_OF_CELLS[i], NUMBER_OF_CELLS[i]),
+        bin_spec=BinSpec(kind="linear", start=0, stop=NUMBER_OF_CELLS[i], nsteps=NUMBER_OF_CELLS[i]),
         use_overflow_bins=False,
     )
     for i in range(3)

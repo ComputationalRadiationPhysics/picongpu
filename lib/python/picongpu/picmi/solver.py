@@ -5,44 +5,48 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
-import picmistandard
-import typeguard
+from collections.abc import Sequence
+from typing import Annotated, Literal
+
+from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
 
 
-@typeguard.typechecked
-class ElectromagneticSolver(picmistandard.PICMI_ElectromagneticSolver):
+class BinomialSmoother(PICMI_BinomialSmoother):
+    """
+    PICMI Binomial Smoother
+
+    PIConGPU's binomial current deposition uses fixed parameters, so all
+    standard parameters except `n_pass` (which must be given by the standard
+    but is not used) are rejected.
+    """
+
+    compensation: Annotated[Sequence[bool] | None, util.rejects_unsupported("binomial smoother parameters")] = None
+    stride: Annotated[Sequence[int] | None, util.rejects_unsupported("binomial smoother parameters")] = None
+    alpha: Annotated[Sequence[float] | None, util.rejects_unsupported("binomial smoother parameters")] = None
+
+
+class ElectromagneticSolver(PICMI_ElectromagneticSolver):
     """
     PICMI Electromagnic Solver
 
     See PICMI spec for full documentation.
+
+    Only the Yee and Lehe solvers are supported; solver options that PIConGPU
+    does not implement are rejected at construction time.
     """
 
+    field_smoother: Annotated[PICMI_BinomialSmoother | None, util.rejects_unsupported("field smoothers")] = None
+    method: Literal["Yee", "Lehe"]
+    stencil_order: Annotated[Sequence[int] | None, util.rejects_unsupported("higher order solver stencils")] = None
+    subcycling: Annotated[int | None, util.rejects_unsupported("subcycling")] = None
+    galilean_velocity: Annotated[Sequence[float] | None, util.rejects_unsupported("galilean velocity")] = None
+    divE_cleaning: Annotated[bool | None, util.rejects_unsupported("divE cleaning")] = None
+    divB_cleaning: Annotated[bool | None, util.rejects_unsupported("divB cleaning")] = None
+    pml_divE_cleaning: Annotated[bool | None, util.rejects_unsupported("pml divE cleaning")] = None
+    pml_divB_cleaning: Annotated[bool | None, util.rejects_unsupported("pml divB cleaning")] = None
+
     def get_as_pypicongpu(self) -> AnySolver:
-        solver_by_method = {
-            "Yee": YeeSolver(),
-            "Lehe": LeheSolver(),
-        }
-
-        if self.method not in solver_by_method:
-            raise ValueError("unkown solver: {}".format(self.method))
-
-        # todo: stencil order, cfl
-        util.unsupported("stencil order", self.stencil_order)
-        util.unsupported("field smoother", self.field_smoother)
-        if self.method != "Yee" and self.method != "Lehe":
-            # for yee and Lehe the cfl will be respected -- this behavior is coordinated
-            # at the simulation class though
-            util.unsupported("cfl", self.cfl)
-
-        util.unsupported("source smoother", self.source_smoother)
-        util.unsupported("level of subcycling", self.subcycling)
-        util.unsupported("galilean velocity", self.galilean_velocity)
-        util.unsupported("divE cleaning", self.divE_cleaning)
-        util.unsupported("divB cleaning", self.divB_cleaning)
-        util.unsupported("pml divE cleaning", self.pml_divE_cleaning)
-        util.unsupported("pml divB cleaning", self.pml_divB_cleaning)
-
-        return solver_by_method[self.method]
+        return YeeSolver() if self.method == "Yee" else LeheSolver()

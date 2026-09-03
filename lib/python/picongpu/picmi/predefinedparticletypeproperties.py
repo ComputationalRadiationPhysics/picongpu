@@ -7,17 +7,16 @@ License: GPLv3+
 
 import collections
 import particle
+from types import MappingProxyType
 
 from pydantic import BaseModel
-import typeguard
 
 from scipy import constants as consts
 
 PropertyTuple: collections.namedtuple = collections.namedtuple("_PropertyTuple", ["mass", "charge"])
 
-
-class PredefinedParticleTypeProperties(BaseModel):
-    _particle_type_to_pdgid: dict[str, int] = {
+_PARTICLE_TYPE_TO_PDGID: MappingProxyType = MappingProxyType(
+    {
         "down": 1,
         "up": 2,
         "strange": 3,
@@ -43,18 +42,22 @@ class PredefinedParticleTypeProperties(BaseModel):
         "w-minus-boson": -24,
         "higgs": 25,
     }
+)
 
-    _directDefinitions: dict[str, PropertyTuple] = {
+_DIRECT_DEFINITIONS: MappingProxyType = MappingProxyType(
+    {
         "proton": PropertyTuple(mass=consts.proton_mass, charge=consts.elementary_charge),
         "anti-proton": PropertyTuple(mass=consts.proton_mass, charge=-consts.elementary_charge),
         "neutron": PropertyTuple(mass=consts.neutron_mass, charge=None),
         "anti-neutron": PropertyTuple(mass=consts.neutron_mass, charge=None),
     }
+)
 
+
+class PredefinedParticleTypeProperties(BaseModel):
     def get_known_particle_types(self) -> list[str]:
-        return list(self._directDefinitions.keys()) + list(self._particle_type_to_pdgid.keys())
+        return list(_DIRECT_DEFINITIONS.keys()) + list(_PARTICLE_TYPE_TO_PDGID.keys())
 
-    @typeguard.typechecked
     def get_mass_and_charge_of_non_element(self, particle_type: str) -> PropertyTuple:
         """mass and charge of physical particle of specified non element particle type
 
@@ -64,15 +67,15 @@ class PredefinedParticleTypeProperties(BaseModel):
         @returns None if particle_type is unknown, units: (kg, C)
         """
 
-        if particle_type in self._particle_type_to_pdgid.keys():
-            data = particle.Particle.from_pdgid(self._particle_type_to_pdgid[particle_type])
+        if particle_type in _PARTICLE_TYPE_TO_PDGID.keys():
+            data = particle.Particle.from_pdgid(_PARTICLE_TYPE_TO_PDGID[particle_type])
             propertyTuple = PropertyTuple(
                 mass=data.mass * 1e6 * consts.elementary_charge / consts.speed_of_light**2,
                 charge=data.charge * consts.elementary_charge,
             )
 
-        elif particle_type in self._directDefinitions.keys():
-            propertyTuple = self._directDefinitions[particle_type]
+        elif particle_type in _DIRECT_DEFINITIONS.keys():
+            propertyTuple = _DIRECT_DEFINITIONS[particle_type]
 
         else:
             return None

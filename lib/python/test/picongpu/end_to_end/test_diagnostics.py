@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import logging
+from typing import Any
 from functools import partial
 from hashlib import sha256 as compute_hash
 from itertools import chain
@@ -14,6 +15,7 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
+from pydantic import ConfigDict, BaseModel
 from picongpu import rc_params
 from picongpu.picmi import (
     Cartesian3DGrid,
@@ -55,7 +57,7 @@ from .distributions import Gaussian, SphereFlanks
 logging.basicConfig(level=logging.INFO)
 
 LAYOUT = OnePositionLayout(n_macroparticles_per_cell=2)
-PARTICLE_SHAPE = "counter"
+PARTICLE_SHAPE = "other:counter"
 SPECIES = [
     Species(
         name="Gaussian_predefined",
@@ -200,6 +202,10 @@ def _compute_threshold(distribution, rng, percent):
 
 
 class RandomParticleFilter(ParticleFilter):
+    percent: int
+    distribution: Any
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     def __init__(self, percent: int, name, distribution):
         def f(_: Particle, rng: RNGArg):
             nums = rng.get(**distribution)
@@ -216,9 +222,9 @@ class RandomParticleFilter(ParticleFilter):
             threshold = _compute_threshold(distribution, rng, percent)
             return And(*(num < threshold for num in nums))
 
-        super().__init__(name=f"random_filtered_{name}_{percent}", functor=f)
-        self.distribution = distribution
-        self.percent = percent
+        BaseModel.__init__(
+            self, percent=percent, distribution=distribution, functor=f, name=f"random_filtered_{name}_{percent}"
+        )
 
 
 def _name_of(distribution):
@@ -255,14 +261,14 @@ def position(particle, i):
 
 POSITION_AXES = [
     BinningAxis(
-        ParticleFunctor(
+        functor=ParticleFunctor(
             # We prefer `partial` over lambda functions in this situation
             # because of lambda's late binding.
             name=f"position{i}",
             functor=partial(position, i=i),
             return_type=int,
         ),
-        BinSpec("linear", 0, NUMBER_OF_CELLS[i], NUMBER_OF_CELLS[i]),
+        bin_spec=BinSpec(kind="linear", start=0, stop=NUMBER_OF_CELLS[i], nsteps=NUMBER_OF_CELLS[i]),
         use_overflow_bins=False,
     )
     for i in range(3)
@@ -313,7 +319,7 @@ def setup_sim():
     sim = basic_simulation()
     for species in SPECIES:
         sim.add_species(species, LAYOUT)
-    sim.diagnostics = [Checkpoint(TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
+    sim.diagnostics = [Checkpoint(period=TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"

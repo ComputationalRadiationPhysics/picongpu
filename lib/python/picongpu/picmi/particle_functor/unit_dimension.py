@@ -5,26 +5,21 @@ Authors: Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
+from collections.abc import Mapping
+from types import MappingProxyType
+
 import numpy as np
 
 _EPSILON = 1.0e-6
 
-
-class UnitDimension:
-    """
-    class to describe units
-    """
-
-    # number of unit dimension
-    N_unit_dim = 7
-
-    """
-    The unit index map associates names with array indices.
-    The name definition can be found at https://en.wikipedia.org/wiki/SI_base_unit.
-    The array index order follows that of PIConGPU:
-    include/picongpu/plugins/binning/UnitConversion.hpp, lines 40-48.
-    """
-    _unit_index_map = {
+"""
+The unit index map associates names with array indices.
+The name definition can be found at https://en.wikipedia.org/wiki/SI_base_unit.
+The array index order follows that of PIConGPU:
+include/picongpu/plugins/binning/UnitConversion.hpp, lines 40-48.
+"""
+_UNIT_INDEX_MAP: Mapping[str, int] = MappingProxyType(
+    {
         "length": 0,
         "L": 0,
         "mass": 1,
@@ -40,6 +35,16 @@ class UnitDimension:
         "luminous intensity": 6,
         "J": 6,
     }
+)
+
+
+class UnitDimension:
+    """
+    class to describe units
+    """
+
+    # number of unit dimension
+    N_unit_dim = 7
 
     def __init__(self, other=None, **kwargs):
         """set unit vector either empty or by name"""
@@ -54,11 +59,11 @@ class UnitDimension:
             self.unit_vector = np.asarray(other, dtype=float)
         else:
             for key, val in kwargs.items():
-                self.unit_vector[self._unit_index_map[key]] = val
+                self.unit_vector[_UNIT_INDEX_MAP[key]] = val
 
     def __getitem__(self, name):
         """access component by name"""
-        index = self._unit_index_map.get(name)
+        index = _UNIT_INDEX_MAP.get(name)
         if index is None:
             raise KeyError(f"Unknown unit name: {name}")
         return self.unit_vector[index]
@@ -71,7 +76,7 @@ class UnitDimension:
         """return string representation that only outputs relevant units"""
         return " ".join(
             f"{name}^{val}"
-            for name, index in self._unit_index_map.items()
+            for name, index in _UNIT_INDEX_MAP.items()
             # This assumes that we have a short name of length 1 for each unit dimension.
             if len(name) == 1 and np.abs(val := self.unit_vector[index]) > _EPSILON
         )

@@ -5,11 +5,12 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from collections.abc import Callable, Iterable
 from inspect import signature
-from typing import Any, Callable, Iterable
+from typing import Any
 
+from pydantic import BaseModel, computed_field, model_validator
 from sympy import Expr, Symbol, symbols
-from typeguard import typechecked
 
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
 from picongpu.picmi.particle_functor.unit_dimension import UnitDimension
@@ -44,8 +45,85 @@ class Particle:
         NotImplementedError()
 
 
-@typechecked
+@decorating_class("functor")
+class ParticleFunctor(BaseModel):
+    """
+    A functor that operates on a Particle and returns a sympy expression.
+
+    Usage as decorator::
+
+        @ParticleFunctor
+        def kinetic_energy(particle):
+            return particle.get("kinetic energy")
+
+        @ParticleFunctor(unit_dimension=M * L / T)
+        def momentum_x(particle):
+            return particle.get("momentum")[0]
+
+    Or as constructor::
+
+        pf = ParticleFunctor(functor=lambda p: p.get("weighting"), name="density")
+    """
+
+    model_config = {"arbitrary_types_allowed": True}
+
+    functor: Callable[[Any], Any]
+    name: str | None = None
+    return_type: type | str | None = None
+    unit_dimension: UnitDimension | None = None
+
+    def _rng_classes(self) -> list[type]:
+        return [
+            cls
+            for p in signature(self.functor).parameters.values()
+            if isinstance(p.annotation, type) and issubclass((cls := p.annotation), RNGArg)
+        ]
+
+    @computed_field
+    def rng_class(self) -> Callable[[Any], Any]:
+        rng_classes = self._rng_classes()
+        return rng_classes[0] if rng_classes else (lambda: None)
+
+    @model_validator(mode="after")
+    def _init(self):
+        sig = signature(self.functor)
+        if self.name is None:
+            self.name = self.functor.__name__
+        if self.return_type is None:
+            self.return_type = float if sig.return_annotation == sig.empty else sig.return_annotation
+        if self.unit_dimension is None:
+            self.unit_dimension = UnitDimension()
+        if len(rng_classes := self._rng_classes()) > 1:
+            raise ValueError(
+                f"ParticleFunctor can take at most one RNG. You have requested {rng_classes=} in your signature."
+            )
+        return self
+
+    def get_as_pypicongpu(self, mode) -> PyPIConGPUParticleFunctor:
+        particle = AbstractParticle()
+        rng = self.rng_class()
+        functor_expression = self(particle) if rng is None else self(particle, rng)
+        return PyPIConGPUParticleFunctor(
+            name=self.name,
+            functor_expression=functor_expression,
+            functor_preamble=generate_preamble(
+                particle.get_attribute_map() | alt(lambda: rng.get_attribute_map(), {}), mode=mode
+            ),
+            return_type=self.return_type,
+            unit_dimension=PyPIConGPUUnitDimension(unit_dimension=self.unit_dimension.unit_vector.tolist()),
+            needs_total_position=particle.needs_total_position,
+            rng_info=alt(lambda: rng.model_dump(mode="python"), None),
+        )
+
+    def __call__(self, *args):
+        return self.functor(*args)
+
+
 class AbstractParticle(Particle):
+    """
+    Particle implementation that tracks attribute access and returns sympy symbols.
+    """
+
     needs_total_position = False
 
     def __init__(self):
@@ -72,9 +150,6 @@ class AbstractParticle(Particle):
             self.used_attributes |= {my_symbols: "momentumPrev1"}
 
         elif attribute in ["gamma", "kinetic energy", "velocity"]:
-            # This relies on python dictionaries having a stable ordering.
-            # We first add mass and momentum
-            # and later use their symbols inside of the same preamble.
             self.get("mass")
             self.get("momentum")
             if attribute == "gamma":
@@ -92,51 +167,3 @@ class AbstractParticle(Particle):
             self.used_attributes |= {my_symbols: attribute}
 
         return my_symbols
-
-
-@decorating_class
-@typechecked
-class ParticleFunctor:
-    def __init__(
-        self,
-        functor: Callable[[Particle], Any] | Callable[[Particle, RNGArg], Any],
-        name: str | None = None,
-        return_type: type | str | None = None,
-        unit_dimension: UnitDimension | None = None,
-    ):
-        self.functor = functor
-        sig = signature(self.functor)
-        self.name = name or functor.__name__
-        self.return_type = return_type
-        if self.return_type is None:
-            self.return_type = float if sig.return_annotation == sig.empty else sig.return_annotation
-        self.unit_dimension = unit_dimension or UnitDimension()
-        rng_classes = [
-            cls
-            for p in sig.parameters.values()
-            if isinstance(p.annotation, type) and issubclass(cls := p.annotation, RNGArg)
-        ]
-        if len(rng_classes) > 1:
-            raise ValueError(
-                f"ParticleFunctor can take at most one RNG. You have requested {rng_classes=} in your signature."
-            )
-        self.rng_class = alt(lambda: rng_classes[0], None) or (lambda: None)
-
-    def get_as_pypicongpu(self, mode) -> PyPIConGPUParticleFunctor:
-        particle = AbstractParticle()
-        rng = self.rng_class()
-        functor_expression = self(particle) if rng is None else self(particle, rng)
-        return PyPIConGPUParticleFunctor(
-            name=self.name,
-            functor_expression=functor_expression,
-            functor_preamble=generate_preamble(
-                particle.get_attribute_map() | alt(lambda: rng.get_attribute_map(), {}), mode=mode
-            ),
-            return_type=self.return_type,
-            unit_dimension=PyPIConGPUUnitDimension(unit_dimension=self.unit_dimension.unit_vector.tolist()),
-            needs_total_position=particle.needs_total_position,
-            rng_info=alt(lambda: rng.model_dump(mode="python"), None),
-        )
-
-    def __call__(self, *args):
-        return self.functor(*args)

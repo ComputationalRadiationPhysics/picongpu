@@ -9,10 +9,7 @@ from .ionizationmodel import IonizationModel
 
 from .... import pypicongpu
 
-import typeguard
 
-
-@typeguard.typechecked
 class GroundStateIonizationModel(IonizationModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,9 +19,9 @@ class GroundStateIonizationModel(IonizationModel):
         """get all PyPIConGPU constants required by a ground state ionization model in PIConGPU"""
         self.check()
 
-        Z = self.ion_species.picongpu_element.get_atomic_number()
-        assert self.ion_species.charge_state <= Z, f"charge_state must be <= atomic number ({Z})"
-
+        # the initial charge state is validated against the element by
+        # pypicongpu's SetChargeState operation when the species is
+        # translated.
         element_properties_const = pypicongpu.species.constant.ElementProperties(
             element=self.ion_species.picongpu_element
         )

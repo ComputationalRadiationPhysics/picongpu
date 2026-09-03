@@ -11,11 +11,9 @@ import numpy as np
 
 from .Distribution import Distribution
 
-import typeguard
 import math
 
 
-@typeguard.typechecked
 class CylindricalDistribution(Distribution):
     """
     Describes a cylindrical density distribution of particles with gaussian up-ramp
@@ -56,7 +54,7 @@ class CylindricalDistribution(Distribution):
     # @note user may add additional attributes by hand, these will be available but not type verified
 
     def get_as_pypicongpu(self, grid):
-        self.cell_size = grid.get_cell_size()
+        self.cell_size = grid.picongpu_cell_size
         util.unsupported("fill in not active", self.fill_in, True)
 
         if self.density <= 0.0:

@@ -8,7 +8,7 @@ License: GPLv3+
 import json
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_serializer, model_validator
+from pydantic import BaseModel, Field, computed_field, field_serializer
 
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
@@ -27,19 +27,18 @@ class BinSpec(RenderedObject, BaseModel):
 
 class BinningAxis(RenderedObject, BaseModel):
     axis_name: str = Field(alias="name")
-    bin_spec: BinSpec
+    bin_spec_raw: BinSpec = Field(exclude=True)
     axis_functor: ParticleFunctor = Field(alias="functor")
     use_overflow_bins: bool
 
-    @model_validator(mode="after")
-    def _match_bin_spec_type(self):
-        self.bin_spec = BinSpec(
-            kind=self.bin_spec.kind,
-            nsteps=self.bin_spec.nsteps,
-            start=translate_from_cpp_type(self.axis_functor.return_type)(self.bin_spec.start),
-            stop=translate_from_cpp_type(self.axis_functor.return_type)(self.bin_spec.stop),
+    @computed_field
+    def bin_spec(self) -> BinSpec:
+        return BinSpec(
+            kind=self.bin_spec_raw.kind,
+            nsteps=self.bin_spec_raw.nsteps,
+            start=translate_from_cpp_type(self.axis_functor.return_type)(self.bin_spec_raw.start),
+            stop=translate_from_cpp_type(self.axis_functor.return_type)(self.bin_spec_raw.stop),
         )
-        return self
 
 
 class Binning(BaseModel):

@@ -12,14 +12,13 @@ name = "picongpu"
 version = "0.9.0.dev"
 description = "Python package for PIConGPU"
 license = "GPL-3.0-or-later"
-# Our hand-rolled type-safety infrastructure is getting in the way of 3.14.
-# Planning to fix (and remove this again) in the near future:
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 # dependecies list generated with
 # https://gist.github.com/pordyna/ff27ce949a8e944fe30252f47b5b831f
@@ -37,7 +36,9 @@ dependencies = [
   "pandas>=2.2.3",
   "particle>=0.25.1",
   "periodictable>=1.7.1",
-  "picmistandard>=0.27",
+  # This commit hash points to branch: pydantic-refactoring-picongpu-base,
+  # so we don't loose it if someone force-pushes to the main feature branch.
+  "picmistandard @ git+https://github.com/chillenzer/picmi.git@c1d662238fc6642ca683826df688ccca12ed3765",
   "pillow",
   "pint",
   "pydantic>=2.6.4",
@@ -52,7 +53,6 @@ dependencies = [
   "scipy>=1.12",
   "sympy>=1.14",
   "tomli-w>=1.2",
-  "typeguard>=4.2.1",
 ]
 
 optional-dependencies.test = [ "pytest>=9" ]

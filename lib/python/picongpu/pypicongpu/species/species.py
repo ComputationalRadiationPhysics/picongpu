@@ -9,8 +9,6 @@ import re
 from pydantic import BaseModel, computed_field, field_validator
 from enum import Enum
 
-import typeguard
-
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronConstant
 
 from ..rendering import RenderedObject
@@ -26,12 +24,12 @@ from .constant import (
 
 
 class Shape(Enum):
-    CIC = "CIC"
-    COUNTER = "Counter"
     NGP = "NGP"
-    PCS = "PCS"
-    PQS = "PQS"
-    TSC = "TSC"
+    linear = "CIC"
+    quadratic = "TSC"
+    cubic = "PQS"
+    quartic = "PCS"
+    counter = "Counter"
 
 
 class Pusher(Enum):
@@ -93,7 +91,6 @@ def get_constant_by_type(constants, needle_type: type[Constant]) -> Constant:
     raise RuntimeError("no constant of requested type available: {}".format(needle_type))
 
 
-@typeguard.typechecked
 class Species(RenderedObject, BaseModel):
     """
     PyPIConGPU species definition
@@ -121,7 +118,7 @@ class Species(RenderedObject, BaseModel):
     name: str
     """name of the species"""
 
-    shape: Shape = Shape["TSC"]
+    shape: Shape = Shape("TSC")
 
     @computed_field
     def species_name(self) -> str:

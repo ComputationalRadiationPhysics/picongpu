@@ -5,46 +5,25 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-import typeguard
+from pydantic import BaseModel, Field
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
 
 
 @default_converts_to(laser.FromOpenPMDPulseLaser)
-@typeguard.typechecked
-class FromOpenPMDPulseLaser:
+class FromOpenPMDPulseLaser(BaseModel):
     """PICMI object for FromOpenPMDPulseLaser"""
 
-    def __init__(
-        self,
-        propagation_direction,
-        polarization_direction,
-        time_offset_si,
-        file_path,
-        iteration,
-        dataset_name,
-        datatype,
-        polarisationAxisOpenPMD,
-        propagationAxisOpenPMD,
-        # make sure to always place Huygens-surface inside PML-boundaries,
-        # default is valid for standard PMLs
-        # @todo create check for insufficient dimension
-        # @todo create check in simulation for conflict between PMLs and
-        # Huygens-surfaces
-        picongpu_huygens_surface_positions: list[list[int]] = [
-            [16, -16],
-            [16, -16],
-            [16, -16],
-        ],
-    ):
-        self.propagation_direction = propagation_direction
-        self.polarization_direction = polarization_direction
-        self.file_path = file_path
-        self.iteration = iteration
-        self.dataset_name = dataset_name
-        self.datatype = datatype
-        self.time_offset_si = time_offset_si
-        self.polarisationAxisOpenPMD = polarisationAxisOpenPMD
-        self.propagationAxisOpenPMD = propagationAxisOpenPMD
-        self.picongpu_huygens_surface_positions = picongpu_huygens_surface_positions
+    propagation_direction: list[float]
+    polarization_direction: list[float]
+    time_offset_si: float
+    file_path: str
+    iteration: int
+    dataset_name: str
+    datatype: str
+    polarisationAxisOpenPMD: str
+    propagationAxisOpenPMD: str
+    picongpu_huygens_surface_positions: list[list[int]] = Field(
+        default_factory=lambda: [[16, -16], [16, -16], [16, -16]]
+    )

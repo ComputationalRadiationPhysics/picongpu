@@ -7,9 +7,6 @@ License: GPLv3+
 
 from .ionizationcurrent import IonizationCurrent
 
-import typeguard
 
-
-@typeguard.typechecked
 class None_(IonizationCurrent):
     picongpu_name: str = "None"

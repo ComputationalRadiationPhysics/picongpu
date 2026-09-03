@@ -5,17 +5,13 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-import logging
 from itertools import chain
-from functools import partial, wraps
+from functools import wraps
 from inspect import Parameter, signature
 from operator import itemgetter
-from types import GenericAlias, UnionType
 from typing import Any, Self
 
-import typeguard
-
-attr_cnt = 0
+from pydantic import BeforeValidator
 
 
 def _extract_first_parameter(cls):
@@ -35,19 +31,15 @@ def _extract_first_parameter(cls):
 
 def _pass_first_parameter_to(f, parameter, kwargs):
     """
-    Constructs a function that can be called with the first parameter as positional argument regardless of it being kw-only or not.
+    Constructs a callable that passes its argument as the first constructor
+    parameter, regardless of that parameter being keyword-only or positional-only.
     """
-    if parameter.kind in [Parameter.KEYWORD_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
-        return lambda d: f(**{parameter.name: d}, **kwargs)
-    elif parameter.kind in [Parameter.POSITIONAL_ONLY]:
-        return lambda d: f(d, **kwargs)
-    else:
-        # The remaining option for parameter.kind is VAR_KEYWORD (at the time of writing)
-        # and that was caught above already.
-        raise Exception("This path should be unreachable!")
+    if parameter.kind is Parameter.POSITIONAL_ONLY:
+        return lambda decorated: f(decorated, **kwargs)
+    return lambda decorated: f(**{parameter.name: decorated}, **kwargs)
 
 
-def decorating_class(cls):
+def decorating_class(cls_or_name, parameter=None):
     """
     A decorating class can be used as decorator, i.e., in the following example `a` and `b` are identical:
 
@@ -56,22 +48,52 @@ def decorating_class(cls):
         @MyClass(c=6)
         def b():
             print("Hello World!")
+
+    Instead of a class, a string can be given which is used as the name of the
+    constructor parameter that receives the decorated object:
+
+        @decorating_class("density_function")
+        class AnalyticDistribution(...):
     """
+    if isinstance(cls_or_name, str):
+        name = cls_or_name
+        return lambda cls: decorating_class(cls, parameter=Parameter(name=name, kind=Parameter.KEYWORD_ONLY))
     # It is important to extract the signature before decorating the class.
     # Otherwise, we'll only see the names of the decorator's arguments.
-    parameter = _extract_first_parameter(cls)
+    parameter = parameter or _extract_first_parameter(cls_or_name)
 
-    @wraps(cls, updated=tuple())
-    class Tmp(cls):
+    @wraps(cls_or_name, updated=tuple())
+    class Tmp(cls_or_name):
+        def __init__(self, decorated=None, **kwargs):
+            """Turn a positional decorator argument into the named keyword.
+
+            ``type.__call__`` forwards the *original* call arguments to ``__init__``
+            after ``__new__`` returns. Pydantic ``BaseModel.__init__`` only accepts
+            keyword arguments, so a leading positional argument is re-passed as the
+            named keyword here.
+            """
+            if decorated is not None:
+                if parameter.name in kwargs:
+                    raise TypeError(f"got multiple values for argument '{parameter.name}'")
+                super().__init__(**{parameter.name: decorated}, **kwargs)
+            else:
+                super().__init__(**kwargs)
+
         def __new__(cls, decorated=None, **kwargs):
-            decorated = kwargs.pop(parameter.name, None) or decorated
+            if decorated is None and parameter.name in kwargs:
+                decorated = kwargs.pop(parameter.name)
             if decorated is None:
+                # @MyClass(extra=...) -- no decorated object (yet):
+                # return a callable that accepts the future @decorator.
                 return _pass_first_parameter_to(cls, parameter, kwargs)
-            constructor = partial(super().__new__, cls)
+            # @MyClass(object) -- build an instance. Call the original __new__ if it
+            # accepts the decorated argument (classes with a custom __new__); for
+            # plain classes and pydantic models this raises, so fall back to a bare
+            # instance whose __init__ does the actual construction.
             try:
-                return _pass_first_parameter_to(constructor, parameter, kwargs)(decorated)
+                return super().__new__(cls, **{parameter.name: decorated}, **kwargs)
             except TypeError:
-                return constructor()
+                return object.__new__(cls)
 
     return Tmp
 
@@ -228,45 +250,86 @@ def unique(iterable):
     return result
 
 
-@typeguard.typechecked
-def build_typesafe_property(type_: type | GenericAlias | UnionType, name: str | None = None) -> property:
-    if name is None:
-        global attr_cnt
-        name = str(attr_cnt)
-        attr_cnt += 1
-    # don't use private prefix '__' to avoid name mangling
-    actual_var_name = "magic_string_private_____{}".format(name)
-
-    @typeguard.typechecked
-    def getter(self) -> type_:
-        if not hasattr(self, actual_var_name):
-            raise AttributeError("variable is not initialized")
-        return getattr(self, actual_var_name)
-
-    @typeguard.typechecked
-    def setter(self, value: type_):
-        setattr(self, actual_var_name, value)
-
-    return property(getter, setter)
-
-
-@typeguard.typechecked
-def unsupported(name: str, value: Any = 1, default: Any = None) -> None:
+class UnsupportedFeatureError(ValueError):
     """
-    Print a msg that the feature/parameter/thing is unsupported.
+    Raised when the user requests a feature/parameter that PIConGPU does not implement.
+
+    Unifies the error for both rejection points:
+      - at construction time, via `rejects_unsupported` (pydantic models), and
+      - at PICMI-to-pypicongpu conversion time, via `unsupported` (call sites that
+        can only know the offending value after translation).
+    """
+
+    def __init__(self, feature: str, given: Any):
+        self.feature = feature
+        self.given = given
+        super().__init__(
+            f"'{feature}' is not (yet) implemented by PIConGPU. "
+            f"You gave: {given!r}. Leave the parameter at its supported value, "
+            "or track the feature at https://github.com/ComputationalRadiationPhysics/picongpu (label: PICMI)."
+        )
+
+
+def _handle_unsupported(feature: str, given: Any) -> None:
+    """
+    Single choke point for reacting to unsupported features.
+
+    Currently always raises. Centralized so that the behaviour
+    (raise/warn/ignore) can be made configurable in one place later on.
+    """
+
+    raise UnsupportedFeatureError(feature, given)
+
+
+def _normalize_for_comparison(value: Any) -> Any:
+    """List and tuple are compared element-wise, so a list/tuple mix-up isn't a mismatch."""
+    if isinstance(value, (list, tuple)):
+        return tuple(value)
+    return value
+
+
+def rejects_unsupported(feature: str, *, default: Any = None) -> BeforeValidator:
+    """
+    Return a pydantic BeforeValidator for a PICMI-standard field that PIConGPU
+    does not implement yet.
+
+    The field keeps its standard type (and usual default), so construction stays
+    standard-conformant; any value different from `default` (the accepted no-op
+    value, usually the standard default) raises `UnsupportedFeatureError`,
+    which pydantic surfaces as a `ValidationError` naming the feature.
+
+    Usage:
+        class Model(BaseModel):
+            stencil_order: Annotated[int | None, rejects_unsupported("higher order solvers")] = None
+    """
+
+    def _check(value: Any) -> Any:
+        if _normalize_for_comparison(value) != _normalize_for_comparison(default):
+            _handle_unsupported(feature, value)
+        return value
+
+    return BeforeValidator(_check)
+
+
+_always_unsupported = object()
+
+
+def unsupported(name: str, value: Any = _always_unsupported, default: Any = None) -> None:
+    """
+    Raise `UnsupportedFeatureError` for the feature/parameter `name`.
 
     If 2nd param (value) and 3rd param (default) are set:
-    supress msg if value == default
+    raise if value != default
 
     If 2nd param (value) is set and 3rd is missing:
-    supress msg if value is None
+    raise if value is not None
 
-    If only 1st param (name) is set: always print msg
+    If only 1st param (name) is set: always raise
 
     :param name: name of the feature/parameter/thing that is unsupported
-    :param value: If set: only print warning if this is not None
+    :param value: If set: only raise if this is not None
     :param default: If set: check value against this param instead of none
     """
 
-    if value != default:
-        logging.warning("unsupported: {}".format(name))
+    if value is _always_unsupported or _normalize_for_comparison(value) != _normalize_for_comparison(default):
+        _handle_unsupported(name, None if value is _always_unsupported else value)

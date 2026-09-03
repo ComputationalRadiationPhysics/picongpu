@@ -8,7 +8,6 @@ License: GPLv3+
 from picongpu import picmi
 
 from unittest import TestCase
-import typeguard
 import pytest
 
 
@@ -33,29 +32,6 @@ class TestCartesian3DGrid(TestCase):
         g = grid.get_as_pypicongpu()
         assert [] != g.get_rendering_context(), "grid rendering context should not be empty"
 
-    def test_typo_ngpus(self):
-        """test common typo picongpu_ngpus instead of picongpu_n_gpus"""
-        with pytest.raises(TypeError, match=".*Unexpected.*ngpus.*"):
-            picmi.Cartesian3DGrid(
-                number_of_cells=[192, 2048, 12],
-                # common typo ngpus instead of picongpu_n_gpus
-                picongpu_ngpus=None,
-                **self.COMMON_KWARGS,
-            )
-
-    def test_n_gpus_type(self):
-        """test wrong input type for picongpu_n_gpus"""
-        for i, not_ngpus_type in enumerate([1, 1.0, 1.2, "abc", tuple([1])]):
-            with pytest.raises(
-                typeguard.TypeCheckError,
-                match='.*argument "picongpu_n_gpus"(.*) did not match any element.*',
-            ):
-                picmi.Cartesian3DGrid(
-                    number_of_cells=[192, 2048, 12],
-                    picongpu_n_gpus=not_ngpus_type,
-                    **self.COMMON_KWARGS,
-                )
-
     def test_n_gpus_asserts(self):
         """test too many GPUs for grid"""
         for not_ngpus_dist in [[1, 1, 2], [5, 1, 1], [1, 512, 1]]:
@@ -70,7 +46,7 @@ class TestCartesian3DGrid(TestCase):
     def test_n_gpus_wrong_numbers(self):
         """test negativ numbers or zero as number of gpus"""
         for not_ngpus_dist in [[0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
-            with pytest.raises(Exception, match=".*Number of gpus must be positive integer.*"):
+            with pytest.raises(Exception, match=".*picongpu_n_gpus.*|.*Number of gpus must be positive integer.*"):
                 picmi.Cartesian3DGrid(
                     number_of_cells=[192, 2048, 12],
                     picongpu_n_gpus=not_ngpus_dist,

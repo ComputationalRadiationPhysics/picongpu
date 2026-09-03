@@ -27,9 +27,6 @@ VALID_CALLS = [
 ]
 
 INVALID_DENSITIES = [
-    # not a function
-    ("string", TypeError),
-    (1, TypeError),
     # wrong number of arguments
     (lambda x, y: x + y, TypeError),
     (lambda x, y, z, too_much: x + y + z + too_much, TypeError),

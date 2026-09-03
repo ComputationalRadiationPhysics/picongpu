@@ -5,10 +5,15 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from typing import Callable
-from pydantic import BaseModel
+from typing import Annotated, Callable
+from pydantic import BaseModel, ValidationError
 from unittest import TestCase
-from picongpu.pypicongpu.util import decorating_class
+from picongpu.pypicongpu.util import (
+    UnsupportedFeatureError,
+    decorating_class,
+    rejects_unsupported,
+    unsupported,
+)
 
 
 @decorating_class
@@ -111,3 +116,64 @@ class TestDecoratingClass(TestCase):
         expected = SpecialFunctor(lambda x: x, **given_kwargs)
         self.assert_functors_equal(result, expected)
         self.assertDictEqual(result.kwargs, given_kwargs)
+
+
+class TestUnsupported(TestCase):
+    def test_unsupported_only_name_always_raises(self):
+        with self.assertRaises(UnsupportedFeatureError) as ctx:
+            unsupported("some feature")
+        self.assertIn("some feature", str(ctx.exception))
+
+    def test_unsupported_value_equal_default_is_allowed(self):
+        # must not raise
+        unsupported("some feature", value=None, default=None)
+        unsupported("some feature", value=42, default=42)
+
+    def test_unsupported_value_different_from_default_raises(self):
+        with self.assertRaises(UnsupportedFeatureError) as ctx:
+            unsupported("some feature", value=41, default=42)
+        self.assertIn("some feature", str(ctx.exception))
+        self.assertIn("41", str(ctx.exception))
+
+    def test_unsupported_none_value_raises_unless_default_is_none(self):
+        with self.assertRaises(UnsupportedFeatureError):
+            unsupported("some feature", value=None, default=1)
+        # must not raise
+        unsupported("some feature", value=None, default=None)
+
+    def test_unsupported_list_tuple_mixup_is_compared_elementwise(self):
+        # must not raise: same content, different container types
+        unsupported("some feature", value=[1, 2], default=(1, 2))
+        with self.assertRaises(UnsupportedFeatureError):
+            unsupported("some feature", value=[1, 2], default=(1, 3))
+
+    def test_error_attributes(self):
+        try:
+            unsupported("feature x", value=7)
+        except UnsupportedFeatureError as error:
+            self.assertEqual(error.feature, "feature x")
+            self.assertEqual(error.given, 7)
+        else:
+            self.fail("expected UnsupportedFeatureError")
+
+    def test_rejects_unsupported_at_construction(self):
+        class Model(BaseModel):
+            stencil_order: Annotated[int | None, rejects_unsupported("higher order solvers")] = None
+
+        # default and explicit None must be accepted
+        self.assertIsNone(Model().stencil_order)
+        self.assertIsNone(Model(stencil_order=None).stencil_order)
+        # a real value must be rejected, surfacing as a ValidationError naming the feature
+        with self.assertRaises(ValidationError) as ctx:
+            Model(stencil_order=4)
+        self.assertIn("higher order solvers", str(ctx.exception))
+        self.assertIn("4", str(ctx.exception))
+
+    def test_rejects_unsupported_custom_default(self):
+        class Model(BaseModel):
+            n_pass: Annotated[int, rejects_unsupported("smoother n_pass", default=2)] = 2
+
+        self.assertEqual(Model().n_pass, 2)
+        self.assertEqual(Model(n_pass=2).n_pass, 2)
+        with self.assertRaises(ValidationError):
+            Model(n_pass=4)

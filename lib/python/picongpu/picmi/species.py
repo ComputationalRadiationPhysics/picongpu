@@ -6,9 +6,11 @@ License: GPLv3+
 """
 
 import re
-from enum import Enum
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Any
 
+from picmistandard import PICMI_Species
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -18,12 +20,7 @@ from pydantic import (
     model_validator,
 )
 
-from picongpu.picmi.distribution import AnyDistribution
-from picongpu.picmi.species_requirements import (
-    evaluate_requirements,
-    resolving_add,
-    run_construction,
-)
+from picongpu.picmi.species_requirements import evaluate_requirements, resolving_add, run_construction
 from picongpu.pypicongpu.species.attribute import Momentum, Position
 from picongpu.pypicongpu.species.attribute.attribute import Attribute
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
@@ -40,48 +37,95 @@ from ..pypicongpu.species.util.element import Element
 from .predefinedparticletypeproperties import PredefinedParticleTypeProperties
 
 
-class ParticleShape(Enum):
-    NGP = "NGP"
-    CIC = "linear"
-    TSC = "quadratic"
-    PQS = "cubic"
-    PCS = "quartic"
-    Counter = "counter"
+# Accepted particle-shape terms: the PICMI-standard names plus PIConGPU-only
+# extensions, which (following the PICMI "other:" extension convention) are
+# prefixed with "other:".
+_SHAPE_BY_NAME: Mapping[str, Shape] = MappingProxyType(
+    {
+        "NGP": Shape.NGP,
+        "linear": Shape.linear,
+        "quadratic": Shape.quadratic,
+        "cubic": Shape.cubic,
+        "other:quartic": Shape.quartic,
+        "other:counter": Shape.counter,
+    }
+)
+
+# Accepted pusher-method terms: the PICMI-standard names plus PIConGPU-only
+# extensions ("other:"-prefixed). Standard methods without a PIConGPU
+# implementation (e.g. "Li") and unknown "other:*" terms are accepted at
+# construction time (code-specific escape hatch) but are rejected with a clear
+# message when the species is translated.
+_PUSHER_BY_NAME: Mapping[str, Pusher] = MappingProxyType(
+    {
+        "Boris": Pusher.Boris,
+        "Vay": Pusher.Vay,
+        "Higuera-Cary": Pusher.Higuera,
+        "free-streaming": Pusher.Free,
+        "LLRK4": Pusher.ReducedLandauLifshitz,
+        "other:Acceleration": Pusher.Acceleration,
+        "other:Photon": Pusher.Photon,
+        "other:Probe": Pusher.Probe,
+        "other:Axel": Pusher.Axel,
+    }
+)
+
+_STANDARD_SHAPES = ("NGP", "linear", "quadratic", "cubic")
+_STANDARD_METHODS = ("Boris", "Vay", "Higuera-Cary", "Li", "free-streaming", "LLRK4")
 
 
-class PusherMethod(Enum):
-    # supported by PICMI standard and PIConGPU
-    Boris = "Boris"
-    Vay = "Vay"
-    HigueraCary = "Higuera-Cary"
-    Free = "free"
-    ReducedLandauLifshitz = "LLRK4"
-    # only supported by PIConGPU
-    Acceleration = "Acceleration"
-    Photon = "Photon"
-    Probe = "Probe"
-    Axel = "Axel"
-    # not supported by PIConGPU
-    Li = "Li"
+def _lookup(kind: str, table: Mapping[str, Any], key: str):
+    try:
+        return table[key]
+    except KeyError:
+        raise ValueError(f"PIConGPU does not support {kind} {key!r}. Supported: {', '.join(table)}.") from None
 
 
-class Species(BaseModel):
-    name: str
-    particle_type: str | None = None
-    initial_distribution: AnyDistribution | None = None
+class Species(PICMI_Species):
+    """
+    PICMI Species with PIConGPU-specific shape and pusher-method support.
+
+    `particle_shape` accepts the PICMI-standard shapes ('NGP', 'linear',
+    'quadratic', 'cubic') and PIConGPU extensions prefixed with 'other:'
+    (e.g. 'other:quartic', 'other:counter').
+
+    `method` accepts the PICMI-standard pusher methods ('Boris', 'Vay',
+    'Higuera-Cary', 'Li', 'free-streaming', 'LLRK4') and PIConGPU-specific
+    pushers prefixed with 'other:' (e.g. 'other:Acceleration',
+    'other:Photon', 'other:Probe', 'other:Axel').
+    """
+
     picongpu_fixed_charge: bool = False
-    charge_state: int | None = None
-    density_scale: float | None = None
-    mass: float | None = None
-    charge: float | None = None
-    particle_shape: ParticleShape = ParticleShape("quadratic")
-    method: PusherMethod = PusherMethod("Boris")
+    particle_shape: str | None = "quadratic"
+    method: str | None = "Boris"
 
     # Theoretically, Position(), Momentum() and Weighting() are also requirements imposed from the outside,
     # e.g., by the current deposition, pusher, ..., but these concepts are not separately modelled in PICMI
     # particularly not as being applied to a particular species.
     # For now, we add them to all species. Refinements might be necessary in the future.
     _requirements: list[Any] = PrivateAttr(default_factory=lambda: [Position(), Weighting(), Momentum()])
+
+    @field_validator("method")
+    @classmethod
+    def _validate_method(cls, value):
+        # Note: this shadows picmistandard.PICMI_Species._validate_method, whose
+        # access to PICMI_Species.methods_list crashes with an AttributeError.
+        if value is not None and value not in _STANDARD_METHODS and not value.startswith("other:"):
+            raise ValueError(
+                f"Unsupported pusher method {value!r}. Must be one of "
+                f"{', '.join(_STANDARD_METHODS)} or be prefixed with 'other:'."
+            )
+        return value
+
+    @field_validator("particle_shape")
+    @classmethod
+    def _validate_particle_shape(cls, value):
+        if value is not None and value not in _STANDARD_SHAPES and not value.startswith("other:"):
+            raise ValueError(
+                f"Unsupported particle shape {value!r}. Must be one of "
+                f"{', '.join(_STANDARD_SHAPES)} or be prefixed with 'other:'."
+            )
+        return value
 
     @field_validator("name", mode="before")
     @classmethod
@@ -107,12 +151,7 @@ class Species(BaseModel):
                 f"Species {self.name} specified fixed charge without also specifying particle_type"
             )
         # Returns None if it is not an element, so is False-y in those cases, and True-y otherwise:
-        elif self.picongpu_element:
-            if self.charge_state is not None:
-                assert Element(self.particle_type).get_atomic_number() >= self.charge_state, (
-                    f"Species {self.name} intial charge state is unphysical"
-                )
-        else:
+        elif not self.picongpu_element:
             assert self.charge_state is None, "charge_state may only be set for ions"
             assert self.picongpu_fixed_charge is False, (
                 f"Species {self.name} configured with fixed charge state but particle_type indicates non ion"
@@ -142,12 +181,18 @@ class Species(BaseModel):
         )
         self.register_requirements(particle_type_requirements(self.particle_type) + constants)
 
+    def _shape(self) -> Shape:
+        return _lookup("particle shape", _SHAPE_BY_NAME, self.particle_shape or "quadratic")
+
+    def _pusher(self) -> Pusher:
+        return _lookup("pusher method", _PUSHER_BY_NAME, self.method or "Boris")
+
     def get_as_pypicongpu(self, *args, **kwargs):
         return PyPIConGPUSpecies(
             name=self.name,
             **self._evaluate_species_requirements(),
-            shape=Shape(self.particle_shape.name),
-            pusher=Pusher[self.method.name],
+            shape=self._shape(),
+            pusher=self._pusher(),
         )
 
     def get_operation_requirements(self):

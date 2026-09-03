@@ -10,8 +10,6 @@ from ...pypicongpu import util
 
 import picmistandard
 
-import typeguard
-
 """
 note on rms_velocity:
 ---------------------
@@ -34,7 +32,6 @@ this method returns None.
 """
 
 
-@typeguard.typechecked
 class UniformDistribution(picmistandard.PICMI_UniformDistribution):
     """Uniform Particle Distribution as defined by PICMI"""
 

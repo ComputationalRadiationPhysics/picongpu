@@ -90,3 +90,5 @@ repos:
     rev: "v2.5.0"
     hooks:
       - id: pyproject-fmt
+        # The default is 3.13, which would strip the 3.14 classifier.
+        args: ["--max-supported-python", "3.14"]

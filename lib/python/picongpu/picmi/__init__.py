@@ -40,7 +40,7 @@ from .lasers import (
 from .layout import GriddedLayout, OnePositionLayout, PseudoRandomLayout
 from .particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
 from .simulation import Simulation
-from .solver import ElectromagneticSolver
+from .solver import BinomialSmoother, ElectromagneticSolver
 from .species import Species
 
 assert sys.version_info.major > 3 or sys.version_info.minor >= 11, "Python 3.11 is required for PIConGPU PICMI"
@@ -50,6 +50,7 @@ __all__ = [
     "ParticleFunctor",
     "Cartesian3DGrid",
     "ElectromagneticSolver",
+    "BinomialSmoother",
     "DispersivePulseLaser",
     "FromOpenPMDPulseLaser",
     "GaussianLaser",

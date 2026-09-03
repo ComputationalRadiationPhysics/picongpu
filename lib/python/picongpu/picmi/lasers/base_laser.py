@@ -6,10 +6,18 @@ License: GPLv3+
 """
 
 import logging
+from typing import Annotated
 
 import numpy as np
+from pydantic import BeforeValidator
 
 from .. import constants
+
+PositiveFloat = Annotated[
+    float,
+    BeforeValidator(lambda v: float(v) if (float(v) > 0) else (_ for _ in ()).throw(ValueError("value must be > 0"))),
+]
+"""float that must be strictly > 0"""
 
 
 def scalarProduct(a: list[float], b: list[float]) -> float:

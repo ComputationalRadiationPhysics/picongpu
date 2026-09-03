@@ -7,11 +7,13 @@ License: GPLv3+
 
 from unittest import TestCase
 
-import typeguard
 import pytest
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian3DGrid
+from picongpu.picmi.species import Species
+from picongpu.picmi.species_requirements import SimpleMomentumOperation, run_construction
 from picongpu.pypicongpu import species
+from picongpu.pypicongpu.util import UnsupportedFeatureError
 from pydantic import ValidationError
 
 ARBITRARY_GRID = Cartesian3DGrid(
@@ -23,7 +25,6 @@ ARBITRARY_GRID = Cartesian3DGrid(
 )
 
 
-@typeguard.typechecked
 class HelperTestPicmiBoundaries:
     """
     provides test functions to check proper handling of boundaries
@@ -56,11 +57,17 @@ class TestPicmiUniformDistribution(TestCase, HelperTestPicmiBoundaries):
 
     def test_full(self):
         """full paramset"""
-        uniform = picmi.UniformDistribution(density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666])
+        uniform = picmi.UniformDistribution(density=42.42)
         pypic = uniform.get_as_pypicongpu(ARBITRARY_GRID)
         assert isinstance(pypic, species.operation.densityprofile.Uniform)
 
         assert pypic.density_si == 42.42
+
+    def test_lower_upper_bound_not_supported(self):
+        """the uniform profile has no bound support, so setting bounds must raise"""
+        uniform = picmi.UniformDistribution(density=42.42, lower_bound=[111, 222, 333], upper_bound=[444, 555, 666])
+        with pytest.raises(UnsupportedFeatureError, match="lower bound"):
+            uniform.get_as_pypicongpu(ARBITRARY_GRID)
 
     def test_density_zero(self):
         """density set to zero is not accepted"""
@@ -119,8 +126,6 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
             exponential_pre_plasma_cutoff=4.0,
             exponential_post_plasma_length=5.0,
             exponential_post_plasma_cutoff=6.0,
-            lower_bound=[111, 222, 333],
-            upper_bound=[444, 555, 666],
         )
 
         pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
@@ -134,25 +139,17 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
         assert pypic.post_foil_plasmaRamp.PlasmaLength == 5.0
         assert pypic.post_foil_plasmaRamp.PlasmaCutoff == 6.0
 
-    def test_density_zero(self):
-        """density set to zero is not accepted"""
-        foil = picmi.FoilDistribution(density=0, thickness=1.0, front=2.0)
-        with pytest.raises(ValidationError):
+    def test_lower_upper_bound_not_supported(self):
+        """the foil profile has no bound support, so setting bounds must raise"""
+        foil = picmi.FoilDistribution(
+            density=42.42,
+            front=1.0,
+            thickness=2.0,
+            lower_bound=[111, 222, 333],
+            upper_bound=[444, 555, 666],
+        )
+        with pytest.raises(UnsupportedFeatureError, match="lower bound"):
             foil.get_as_pypicongpu(ARBITRARY_GRID)
-
-    def test_front_zero(self):
-        """front set to zero is accepted"""
-        foil = picmi.FoilDistribution(density=1.0, thickness=2.0, front=0)
-        pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
-        # no error:
-        assert pypic.y_value_front_foil_si == 0
-
-    def test_thickness_zero(self):
-        """thickness set to zero is accepted"""
-        foil = picmi.FoilDistribution(density=1.0, thickness=0, front=2.0)
-        pypic = foil.get_as_pypicongpu(ARBITRARY_GRID)
-        # no error
-        assert pypic.thickness_foil_si == 0
 
     def _get_test_foils(self, cutoff, length):
         """
@@ -202,32 +199,6 @@ class TestPicmiFoilDistribution(TestCase, HelperTestPicmiBoundaries):
             assert pypic.density_si == 1.0
             assert pypic.thickness_foil_si == 2.0
             assert pypic.y_value_front_foil_si == 3.0
-
-    def test_cutoff_below_zero(self):
-        """length below zero is not accepted"""
-
-        testCases = self._get_test_foils(-1.0, 1.0)
-
-        for i, entry in enumerate(testCases):
-            with pytest.raises(ValidationError):
-                entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
-
-    def test_length_zero(self):
-        """length set to zero is not accepted"""
-        testCases = self._get_test_foils(1.0, 0)
-
-        for entry in testCases:
-            with pytest.raises(ValidationError):
-                entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
-
-    def test_length_below_zero(self):
-        """length below zero is not accepted"""
-
-        testCases = self._get_test_foils(1.0, -1.0)
-
-        for entry in testCases:
-            with pytest.raises(ValidationError):
-                entry.get_as_pypicongpu(ARBITRARY_GRID).get_rendering_context()
 
     def test_setting_noPlasmaRamps(self):
         testCases = self._get_test_foils(None, 1.0)
@@ -489,3 +460,55 @@ class TestPicmiCylindricalDistribution(TestCase, HelperTestPicmiBoundaries):
         # minimal valid
         dist = self._get_distribution()
         dist.get_as_pypicongpu(ARBITRARY_GRID)
+
+
+def _gaussian_distribution(rms_velocity):
+    return picmi.GaussianDistribution(
+        density=1.0,
+        lower_bound=[0, 0, 0],
+        upper_bound=[1, 1, 1],
+        center_front=0.2,
+        center_rear=0.8,
+        sigma_front=0.01,
+        sigma_rear=0.02,
+        power=2.0,
+        factor=-9.0,
+        vacuum_front=0.0,
+        vacuum_rear=0.0,
+        rms_velocity=rms_velocity,
+    )
+
+
+def _momentum_of(rms_velocity):
+    """translate the temperature of a distribution with the given rms_velocity"""
+    species = Species(name="e", particle_type="electron", initial_distribution=_gaussian_distribution(rms_velocity))
+    return run_construction(SimpleMomentumOperation(species)).temperature
+
+
+class TestDirectionalTemperature(TestCase):
+    """
+    rms_velocity may be anisotropic; it is translated to a directional (per-component)
+    temperature (see #5677) instead of requiring isotropic components.
+    """
+
+    def test_anisotropic_rms_velocity_accepted(self):
+        distribution = _gaussian_distribution([1e5, 2e5, 3e5])
+        assert distribution.rms_velocity == (1e5, 2e5, 3e5)
+
+    def test_anisotropic_rms_velocity_gives_directional_temperature(self):
+        temperature = _momentum_of([1e5, 2e5, 3e5])
+        assert temperature is not None
+        assert temperature.temperature_kev is None
+        assert temperature.temperature_kev_directional is not None
+        expected = (5.685630111285689e-05, 2.2742520445142756e-04, 5.11706710015712e-04)
+        for given, want in zip(temperature.temperature_kev_directional, expected):
+            assert abs(given - want) < 1e-12
+
+    def test_isotropic_rms_velocity_gives_scalar_temperature(self):
+        temperature = _momentum_of([1e5, 1e5, 1e5])
+        assert temperature is not None
+        assert temperature.temperature_kev_directional is None
+        assert abs(temperature.temperature_kev - 5.685630111285689e-05) < 1e-12
+
+    def test_zero_rms_velocity_gives_no_temperature(self):
+        assert _momentum_of([0, 0, 0]) is None

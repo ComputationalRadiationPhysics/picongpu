@@ -13,10 +13,8 @@ import typing
 
 import jsonschema
 import referencing
-import typeguard
 
 
-@typeguard.typechecked
 class RenderedObject:
     """
     Class to be inherited from for rendering context generation

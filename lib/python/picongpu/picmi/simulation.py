@@ -12,22 +12,20 @@ import math
 from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
+from typing import Annotated
 
 import picmistandard
-import typeguard
-from pydantic import BaseModel, ConfigDict
+from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import AnyDiagnostic
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.grid import Cartesian3DGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
-from picongpu.picmi.lasers import AnyLaser
 from picongpu.picmi.layout import AnyLayout
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
@@ -43,7 +41,7 @@ from picongpu.pypicongpu.runner import Runner
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
-from picongpu.pypicongpu.util import UnpackChain, alt, unique
+from picongpu.pypicongpu.util import UnpackChain, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
@@ -97,7 +95,7 @@ def _normalise_template_dir(directory: None | PathLike | Iterable[PathLike]) -> 
         except TypeError:
             pass
 
-    if any(filter(lambda p: not isinstance(p, Path), directory)):
+    if not isinstance(directory, (tuple, list)) or any(filter(lambda p: not isinstance(p, Path), directory)):
         raise ValueError(
             f"Can't understand {directory=} of {type(directory)=}. Must be one of str, Path or iterable thereof."
         )
@@ -142,7 +140,6 @@ def _validate_collisional_physics_setup(interactions):
 
 
 # may not use pydantic since inherits from _DocumentedMetaClass
-@typeguard.typechecked
 class Simulation(picmistandard.PICMI_Simulation):
     """
     Simulation as defined by PICMI
@@ -151,8 +148,11 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
-    picongpu_custom_user_input = pypicongpu.util.build_typesafe_property(
-        list[pypicongpu.customuserinput.CustomUserInput] | None
+    # Excluded from model dumps because it is passed through to the pypicongpu
+    # Simulation as-is (single owner is the pypicongpu model) and because
+    # CustomUserInput.rendering_context may hold arbitrary, non-serializable user data.
+    picongpu_custom_user_input: list[pypicongpu.customuserinput.CustomUserInput] | None = Field(
+        default=None, exclude=True
     )
     """
     list of custom user input objects
@@ -160,10 +160,17 @@ class Simulation(picmistandard.PICMI_Simulation):
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    picongpu_interaction = pypicongpu.util.build_typesafe_property(list[Interaction])
+    picongpu_interaction: Annotated[list[Interaction], BeforeValidator(_validate_collisional_physics_setup)] = Field(
+        default_factory=list
+    )
     """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
 
-    picongpu_typical_ppc = pypicongpu.util.build_typesafe_property(int | None)
+    def _validate_typical_ppc(value: int | None) -> int | None:
+        if value is not None and value <= 0:
+            raise ValueError(f"Typical ppc should be > 0, not {value=}.")
+        return value
+
+    picongpu_typical_ppc: Annotated[int | None, AfterValidator(_validate_typical_ppc)] = Field(default=None)
     """
     typical number of particle in a cell in the simulation
 
@@ -172,10 +179,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     optional, if set to None, will be set to median ppc of all species ppcs
     """
 
-    picongpu_template_dir = pypicongpu.util.build_typesafe_property(Iterable[Path])
+    picongpu_template_dir: Annotated[tuple[Path, ...], BeforeValidator(_normalise_template_dir)] = Field(default=())
     """directory containing templates to use for generating picongpu setups"""
 
-    picongpu_moving_window_move_point = pypicongpu.util.build_typesafe_property(float | None)
+    picongpu_moving_window_move_point: float | None = Field(default=None)
     """
     point a light ray reaches in y from the left border until we begin sliding the simulation window with the speed of
     light
@@ -186,58 +193,23 @@ class Simulation(picmistandard.PICMI_Simulation):
         thereby reducing the simulation window size accordingrelative spot at which to start moving the simulation window
     """
 
-    picongpu_moving_window_stop_iteration = pypicongpu.util.build_typesafe_property(int | None)
+    picongpu_moving_window_stop_iteration: int | None = Field(default=None)
     """iteration, at which to stop moving the simulation window"""
 
-    picongpu_base_density = pypicongpu.util.build_typesafe_property(float | None)
+    picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
-    picongpu_walltime = pypicongpu.util.build_typesafe_property(datetime.timedelta | None)
+    picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
 
-    picongpu_binomial_current_interpolation = pypicongpu.util.build_typesafe_property(bool)
-    """switch on a binomial current interpolation"""
+    picongpu_distributions: list[_DensityImpl] = Field(default_factory=list)
 
-    picongpu_distributions = pypicongpu.util.build_typesafe_property(list[_DensityImpl])
+    _runner: Runner | None = PrivateAttr(default=None)
 
-    _runner = pypicongpu.util.build_typesafe_property(Runner | None)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    # @todo remove boiler plate constructor argument list once picmistandard reference implementation switches to
-    #   pydantic, Brian Marre, 2024
-    def __init__(
-        self,
-        picongpu_template_dir: None | PathLike | Iterable[PathLike] = None,
-        picongpu_typical_ppc: int | None = None,
-        picongpu_moving_window_move_point: float | None = None,
-        picongpu_moving_window_stop_iteration: int | None = None,
-        picongpu_interaction: list[Interaction] | None = None,
-        picongpu_base_density: float | None = None,
-        picongpu_walltime: datetime.timedelta | None = None,
-        picongpu_binomial_current_interpolation: bool = False,
-        picongpu_lasers: AnyLaser | list[AnyLaser] | None = None,
-        picongpu_species: Species | list[Species] | None = None,
-        picongpu_particle_layout: AnyLayout | list[AnyLayout] | None = None,
-        picongpu_diagnostics: AnyDiagnostic | list[AnyDiagnostic] | None = None,
-        **keyword_arguments,
-    ):
-        self.picongpu_distributions = []
-        self.picongpu_template_dir = _normalise_template_dir(picongpu_template_dir)
-        self.picongpu_moving_window_move_point = picongpu_moving_window_move_point
-        self.picongpu_moving_window_stop_iteration = picongpu_moving_window_stop_iteration
-        self.picongpu_base_density = picongpu_base_density
-        self.picongpu_walltime = picongpu_walltime
-        self.picongpu_binomial_current_interpolation = picongpu_binomial_current_interpolation
-        self.picongpu_custom_user_input = None
-        self._runner = None
-
-        if picongpu_typical_ppc is not None and picongpu_typical_ppc <= 0:
-            raise ValueError(f"Typical ppc should be > 0, not {picongpu_typical_ppc=}.")
-        self.picongpu_typical_ppc = picongpu_typical_ppc
-
-        self.picongpu_interaction = _validate_collisional_physics_setup(picongpu_interaction or [])
-
-        picmistandard.PICMI_Simulation.__init__(self, **keyword_arguments)
-
+    @model_validator(mode="after")
+    def _post_init(self):
         # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
         ## throw if both cfl & delta_t are set
         if (
@@ -246,27 +218,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             and isinstance(self.solver.grid, Cartesian3DGrid)
         ):
             self.__yee_compute_cfl_or_delta_t()
-
-        if picongpu_lasers is not None:
-            try:
-                for laser in picongpu_lasers:
-                    self.add_laser(laser, None)
-            except TypeError:
-                self.add_laser(picongpu_lasers, None)
-
-        if picongpu_diagnostics is not None:
-            try:
-                for diagnostic in picongpu_diagnostics:
-                    self.add_diagnostic(diagnostic)
-            except TypeError:
-                self.add_diagnostic(picongpu_diagnostics)
-
-        if picongpu_species is not None:
-            try:
-                for i, species in enumerate(picongpu_species):
-                    self.add_species(species, alt(lambda: picongpu_particle_layout[i], picongpu_particle_layout))
-            except TypeError:
-                self.add_species(picongpu_species, picongpu_particle_layout)
+        return self
 
     def __yee_compute_cfl_or_delta_t(self) -> None:
         """
@@ -335,7 +287,6 @@ class Simulation(picmistandard.PICMI_Simulation):
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
 
-    # file_name annotation should be PathLike but typeguard can't handle that.
     def write_input_file(self, file_name: str | Path, exist_ok=False, **flags) -> None:
         """
         generate input data set for picongpu
@@ -476,7 +427,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             solver=self.solver.get_as_pypicongpu(),
             customuserinput=self.picongpu_custom_user_input,
             grid=self.solver.grid.get_as_pypicongpu(),
-            binomial_current_interpolation=self.picongpu_binomial_current_interpolation,
+            binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,

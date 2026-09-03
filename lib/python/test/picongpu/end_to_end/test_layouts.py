@@ -35,7 +35,7 @@ from .distributions import Uniform
 
 logging.basicConfig(level=logging.INFO)
 
-PARTICLE_SHAPE = "counter"
+PARTICLE_SHAPE = "other:counter"
 LAYOUTS = {
     "oneposition_1": OnePositionLayout(n_macroparticles_per_cell=1),
     "oneposition_2": OnePositionLayout(n_macroparticles_per_cell=2),
@@ -84,7 +84,7 @@ def setup_sim():
     sim = basic_simulation()
     for species, layout in SPECIES_AND_LAYOUTS.values():
         sim.add_species(species, layout)
-    sim.diagnostics = [Checkpoint(TimeStepSpec[:])]
+    sim.diagnostics = [Checkpoint(period=TimeStepSpec[:])]
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"

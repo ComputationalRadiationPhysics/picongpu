@@ -5,10 +5,9 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from ...pypicongpu import species
+from picmistandard import PICMI_Extension
 
-from pydantic import BaseModel
-import typeguard
+from ...pypicongpu import species
 
 """
 note on rms_velocity:
@@ -32,8 +31,7 @@ this method returns None.
 """
 
 
-@typeguard.typechecked
-class Distribution(BaseModel):
+class Distribution(PICMI_Extension):
     rms_velocity: tuple[float, float, float] = (0, 0, 0)
     """thermal velocity spread [m/s]"""
 

@@ -10,4 +10,4 @@ from .quiet import Quiet
 from .random import Random
 
 AnyLayout = Random | Quiet | OnePosition
-__all__ = ["Random", "Quiet", "OnePosition"]
+__all__ = ["AnyLayout", "Random", "Quiet", "OnePosition"]

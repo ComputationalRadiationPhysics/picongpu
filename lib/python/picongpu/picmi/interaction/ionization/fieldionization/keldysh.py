@@ -10,10 +10,7 @@ from .fieldionization import FieldIonization
 from .....pypicongpu.species.constant.ionizationcurrent import None_
 from .....pypicongpu.species.constant import ionizationmodel
 
-import typeguard
 
-
-@typeguard.typechecked
 class Keldysh(FieldIonization):
     """Barrier Suppression Ioniztion model"""
 

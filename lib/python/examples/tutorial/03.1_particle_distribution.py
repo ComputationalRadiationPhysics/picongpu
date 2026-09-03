@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run
 # /// script
-# requires-python = ">=3.11,<3.14"
+# requires-python = ">=3.11"
 # dependencies = [
 #   "matplotlib",
 #   "mpl_ascii",

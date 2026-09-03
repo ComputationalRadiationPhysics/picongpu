@@ -86,7 +86,7 @@ def exit_error(text: str):
     ----------
         @param text (str): Error message
     """
-    print(cs(f"ERROR: {text}", "Red"))
+    print(cs(f"ERROR: {text}", "Red"), file=sys.stderr)
     sys.exit(1)
 
 
@@ -320,9 +320,7 @@ PYTHON_VERSIONS: List[str] = ["3.11", "3.12", "3.13"]
 # If a package is not define in the list, but defined in the pyproject.toml,
 # pip decides which version is used.
 PACKAGES_TO_TEST: Dict[str, Callable] = {
-    "typeguard": get_all_major_pypi_versions,
     "jsonschema": get_all_major_pypi_versions,
-    "picmistandard": get_all_pypi_versions,
     "pydantic": get_all_major_pypi_versions,
     "referencing": get_all_major_pypi_versions,
 }
