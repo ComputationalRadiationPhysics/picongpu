@@ -12,7 +12,7 @@ import tempfile
 from importlib.util import module_from_spec, spec_from_file_location
 from os import chmod
 from pathlib import Path
-from shutil import copy2, copytree
+from shutil import copy2, copytree, rmtree
 from typing import Annotated, Sequence
 
 from cwltool.context import RuntimeContext
@@ -409,6 +409,12 @@ class Runner(BaseModel):
             assert not self.setup_dir.is_dir(), (
                 "setup directory must not exist before generation -- did you call generate() already?"
             )
+        else:
+            # The setup dir may hold leftovers of a previous (failed) generation.
+            # Wipe it to rebuild from a clean state, keeping the path itself.
+            if self.setup_dir.is_dir():
+                rmtree(self.setup_dir)
+            self.setup_dir.mkdir(parents=True)
         preset = rc_params.preset_dir
         copytree(core.path("etc") / f"picongpu/{preset}", self.setup_dir / f"etc/picongpu/{preset}")
         for path in (core.path("etc") / "picongpu").iterdir():
