@@ -41,10 +41,13 @@ def runArgs(name, args):
     logging.info("running {}...".format(name))
     logging.debug("command for {}: {}".format(name, " ".join(args)))
     proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = proc.stdout.decode()
     logging.info("{} done, returned {}".format(name, proc.returncode))
 
+    if output:
+        logging.info("Output of {} (returned {}):\n{}".format(name, proc.returncode, output))
+
     if 0 != proc.returncode:
-        logging.error(">>>>>>> Command failed (output below): {}\n{}".format(" ".join(proc.args), proc.stdout.decode()))
         logging.error(">>>>>>> Command failed (output above): {}".format(" ".join(proc.args)))
         raise RuntimeError("subprocess failed")
 

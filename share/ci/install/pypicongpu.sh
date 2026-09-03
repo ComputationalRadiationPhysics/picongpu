@@ -123,6 +123,39 @@ if [ ! -z ${PYTHON_END_TO_END_TEST+x} ]; then
 
     # set C++ compiler
     export CXX=$CXX_VERSION
-    # execute the compiling test
+    set +e
     python3 -m end-to-end -v
+    end_to_end_returncode=$?
+    set -e
+
+    if [ ${end_to_end_returncode} -ne 0 ]; then
+        echo "===== end-to-end tests failed (exit code ${end_to_end_returncode}), dumping diagnostics ====="
+        echo "--- LD_LIBRARY_PATH ---"
+        echo "${LD_LIBRARY_PATH}"
+        echo ""
+        echo "--- CMAKE_PREFIX_PATH ---"
+        echo "${CMAKE_PREFIX_PATH}"
+        echo ""
+        for run_dir in $(ls -d /tmp/pypicongpu-*run-* 2>/dev/null); do
+            echo "=== run dir: ${run_dir} ==="
+            if [ -f "${run_dir}/input/bin/picongpu" ]; then
+                echo "--- unresolved dynamic dependencies of the simulation binary ---"
+                ldd "${run_dir}/input/bin/picongpu" 2>&1 | grep "not found" || echo "(none)"
+            else
+                echo "ERROR: simulation binary missing: ${run_dir}/input/bin/picongpu"
+            fi
+            if [ -f "${run_dir}/simOutput/output" ]; then
+                echo "--- simulation output (simOutput/output) ---"
+                cat "${run_dir}/simOutput/output"
+            else
+                echo "ERROR: no simulation output present: ${run_dir}/simOutput/"
+            fi
+            echo "--- top-level content of the run dir ---"
+            ls -la "${run_dir}"
+            echo ""
+        done
+        echo "===== end of diagnostics ====="
+    fi
+
+    exit ${end_to_end_returncode}
 fi
