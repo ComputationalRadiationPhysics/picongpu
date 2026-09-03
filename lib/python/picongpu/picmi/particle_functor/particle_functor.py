@@ -5,8 +5,9 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from collections.abc import Callable, Iterable
 from inspect import signature
-from typing import Any, Callable, Iterable
+from typing import Any
 
 from pydantic import BaseModel, model_validator
 from sympy import Expr, Symbol, symbols

@@ -5,8 +5,6 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
-import typing
-
 import numpy as np
 from picmistandard import PICMI_FoilDistribution
 
@@ -35,7 +33,7 @@ this method returns None.
 
 
 class FoilDistribution(PICMI_FoilDistribution):
-    def picongpu_get_rms_velocity_si(self) -> typing.Tuple[float, float, float]:
+    def picongpu_get_rms_velocity_si(self) -> tuple[float, float, float]:
         return tuple(self.rms_velocity)
 
     def get_as_pypicongpu(self, _) -> species.operation.densityprofile.AnyDensityProfile:

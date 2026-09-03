@@ -5,7 +5,8 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
-from typing import Annotated, Literal, Sequence
+from collections.abc import Sequence
+from typing import Annotated, Literal
 
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
 

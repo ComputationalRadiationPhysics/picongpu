@@ -12,8 +12,9 @@ import math
 from functools import reduce
 from itertools import chain, groupby
 from os import PathLike
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Annotated, Iterable
+from typing import Annotated
 
 import picmistandard
 from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator

@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from pydantic import BaseModel, computed_field, model_validator
 

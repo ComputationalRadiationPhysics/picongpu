@@ -7,7 +7,8 @@ License: GPLv3+
 
 import logging
 import traceback
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
 import numpy as np
 from picmistandard import PICMI_Extension

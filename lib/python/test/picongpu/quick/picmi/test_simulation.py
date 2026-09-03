@@ -9,7 +9,6 @@ import copy
 import os
 import shutil
 import tempfile
-import typing
 from pathlib import Path
 from unittest import TestCase
 
@@ -33,9 +32,9 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
 
 
 def get_sim_cfl_helper(
-    delta_t: typing.Optional[float],
-    cfl: typing.Optional[float],
-    delta_3d: typing.Tuple[float, float, float],
+    delta_t: float | None,
+    cfl: float | None,
+    delta_3d: tuple[float, float, float],
     method: str,
     n: int = 100,
 ) -> picmi.Simulation:

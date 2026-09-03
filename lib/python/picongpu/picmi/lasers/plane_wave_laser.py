@@ -5,7 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import math
 
