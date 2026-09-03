@@ -58,7 +58,6 @@ class PlaneWaveLaser(BaseModel, BaseLaser):
     phi0: float = 0.0
 
     picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
-    polarization_type: PolarizationType = Field(default=PolarizationType.LINEAR, exclude=True)
     picongpu_plateau_duration: float = 0.0
     picongpu_huygens_surface_positions: list[list[int]] = [
         [16, -16],
@@ -78,7 +77,6 @@ class PlaneWaveLaser(BaseModel, BaseLaser):
         self.k0 = 2.0 * math.pi / self.wavelength
         self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
         self.focus_pos = [0.0, 0.0, 0.0]
-        self.polarization_type = self.picongpu_polarization_type
         self._validate_common_properties()
         return self
 

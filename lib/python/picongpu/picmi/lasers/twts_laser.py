@@ -76,7 +76,6 @@ class TWTSLaser(BaseModel, BaseLaser):
 
     k0: float = 0.0
     phi0: float = 0.0
-    polarization_type: PolarizationType = PolarizationType.LINEAR
     laserIncidenceAnglePositive: bool = False
     time_offset_si: float = 0.0
 
@@ -92,7 +91,6 @@ class TWTSLaser(BaseModel, BaseLaser):
         self.k0 = 2.0 * math.pi / self.wavelength
         self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
         self.phi0 = 0.0
-        self.polarization_type = self.picongpu_polarization_type
         self.propagation_direction = [0.0, math.cos(self.laserIncidenceAngle), math.sin(self.laserIncidenceAngle)]
         self.polarization_direction = [
             math.cos(self.polarizationAngle),
