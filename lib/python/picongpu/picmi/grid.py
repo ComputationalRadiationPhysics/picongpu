@@ -69,9 +69,6 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
             (self.upper_bound[2] - self.lower_bound[2]) / self.number_of_cells[2],
         )
 
-    def get_cell_size(self):
-        return self.picongpu_cell_size
-
     def check(self):
         # todo check
         if any(bound != 0.0 for bound in self.lower_bound):

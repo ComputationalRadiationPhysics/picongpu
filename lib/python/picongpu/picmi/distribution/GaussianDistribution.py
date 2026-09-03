@@ -17,7 +17,7 @@ import numpy as np
 @converts_to(
     Gaussian,
     conversions={"vacuum_cells_front": lambda self, _: int(self.vacuum_front / self.cell_size[1])},
-    preamble=lambda self, grid: setattr(self, "cell_size", grid.get_cell_size()) or self.check(),
+    preamble=lambda self, grid: setattr(self, "cell_size", grid.picongpu_cell_size) or self.check(),
     ignore=["check"],
 )
 class GaussianDistribution(Distribution):
