@@ -22,6 +22,7 @@
 #include "picongpu/plugins/binning/FunctorDescription.hpp"
 #include "picongpu/plugins/binning/axis/LinearAxis.hpp"
 #include "picongpu/plugins/binning/axis/LogAxis.hpp"
+#include "picongpu/plugins/binning/axis/Symlog.hpp"
 
 #include <string>
 #include <type_traits>
@@ -247,6 +248,73 @@ TEST_CASE("LogAxis Bin Edges with Units", "[axis][LogAxis][Edges][Units]")
     auto const velocityFunctorDesc = createFunctorDescription<double>(identityFunctor, "Velocity", velocityUnits);
     auto createLog = [](auto const& split, auto const& funcDesc) { return axis::createLog(split, funcDesc); };
     runAxisEdgesTestCases("Double", logVelocityTestCases, createLog, velocityFunctorDesc);
+}
+
+TEST_CASE("SymlogAxis Bin Edges", "[axis][SymlogAxis][Edges]")
+{
+    auto createSymlog = [](auto const& split, auto threshold, auto const& funcDesc)
+    { return axis::createSymlog(split, threshold, funcDesc); };
+
+    SECTION("Double Type")
+    {
+        std::vector<AxisEdgeTestCase<double>> const symlogDoubleTestCases
+            = {{"Symmetric range with threshold",
+                {{-100.0, 100.0}, 5, false},
+                {-100.0, -18.47, -10.0, 10.0, 18.47, 100.0},
+                false},
+               // {"Asymmetric range positive heavy",
+               //  {{-10.0, 1000.0}, 6, false},
+               //  {/* calculated edges based on transform */},
+               //  false},
+               {
+                   "Small range within threshold",
+                   {{-5.0, 5.0}, 4, false},
+                   {-5.0, -2.5, 0.0, 2.5, 5.0}, // Should be linear
+                   //  false},
+                   // {"Zero crossing range", {{-50.0, 200.0}, 8, true}, {/* calculated edges */}, false
+               }};
+
+        auto functorDesc = createFunctorDescription<double>(identityFunctor, "test");
+        // Test cases with hardcoded 10 as linear region
+        for(auto const& testCase : symlogDoubleTestCases)
+        {
+            if(!testCase.expectThrow)
+            {
+                SECTION("Double: " + testCase.description)
+                {
+                    auto axis = createSymlog(testCase.split, 10.0, functorDesc);
+                    auto binEdges = axis.getBinEdgesSI();
+                    CHECK(binEdges.size() == testCase.split.nBins + 1);
+                    CHECK(binEdges.front() == Catch::Approx(testCase.split.m_range.min));
+                    CHECK(binEdges.back() == Catch::Approx(testCase.split.m_range.max));
+
+                    // Check monotonic increasing
+                    for(size_t i = 1; i < binEdges.size(); ++i)
+                    {
+                        CHECK(binEdges[i] > binEdges[i - 1]);
+                    }
+                }
+            }
+        }
+    }
+
+    SECTION("Integer Type")
+    {
+        std::vector<AxisEdgeTestCase<int>> const symlogIntTestCases
+            = {{"Symmetric range large", {{-1000, 1000}, 10, false}, {/* calculated edges */}, false},
+               {"Positive only range", {{1, 1000}, 8, false}, {/* calculated edges */}, false}};
+
+        auto functorDesc = createFunctorDescription<int>(identityFunctor, "test");
+        for(auto const& testCase : symlogIntTestCases)
+        {
+            SECTION("Integer: " + testCase.description)
+            {
+                auto axis = createSymlog(testCase.split, 10, functorDesc);
+                auto binEdges = axis.getBinEdgesSI();
+                CHECK(binEdges.size() == testCase.split.nBins + 1);
+            }
+        }
+    }
 }
 
 // --- Test Cases for Axis::getBinIdx ---
@@ -504,6 +572,107 @@ TEST_CASE("LogAxisKernel::getBinIdx", "[axis][LogAxis][Kernel]")
                  {true, 10}}, // floor(log2(60)*s)+1 = floor(5.91*s)+1 = floor(9.96)+1 = 9+1 = 10
                 {"Value exactly max", 61, {true, 11}}, // >= max goes to overflow
                 {"Value above max", 100, {true, 11}},
+            };
+            runBinIdxTests(kernel, tests);
+        }
+    }
+}
+
+TEST_CASE("SymlogAxisKernel::getBinIdx", "[axis][SymlogAxis][Kernel]")
+{
+    SECTION("Double Type")
+    {
+        SECTION("Overflow Enabled, Symmetric Range [-100.0, 100.0], 10 bins, threshold 10.0")
+        {
+            axis::AxisSplitting<double> split{{-100.0, 100.0}, 10, true};
+            auto axis = axis::createSymlog(split, 10.0, createFunctorDescription<double>(identityFunctor, "test"));
+            auto kernel = axis.getAxisKernel();
+
+            // Total bins = 10 + 2 = 12. Bins: 0 (under), 1-10 (in range), 11 (over)
+            // Transform range: yMin ~ -3.303, yMax ~ 3.303, yRange ~ 6.606
+
+            std::vector<BinIdxTestCase<double>> tests = {
+                {"Value at zero", 0.0, {true, 6}}, // y=0
+                {"Small positive in linear region", 5.0, {true, 6}}, // y=0.5
+                {"Small negative in linear region", -5.0, {true, 5}}, // y=-0.5
+                {"At positive threshold", 10.0, {true, 7}}, // y=1.0
+                {"At negative threshold", -10.0, {true, 4}}, // y=-1.0
+                {"Large positive value", 50.0, {true, 9}}, // y~2.609
+                {"Large negative value", -50.0, {true, 2}}, // y~-2.609
+                {"Value exactly max", 100.0, {true, 11}}, // At max -> overflow bin
+                {"Value exactly min", -100.0, {true, 1}}, // At min -> first regular bin
+                {"Value above max", 200.0, {true, 11}}, // Above max -> overflow bin
+                {"Value below min", -200.0, {true, 0}}, // Below min -> underflow bin
+            };
+            runBinIdxTests(kernel, tests);
+        }
+
+        SECTION("Overflow Disabled, Asymmetric Range [-50.0, 200.0], 8 bins, threshold 5.0")
+        {
+            axis::AxisSplitting<double> split{{-50.0, 200.0}, 8, false};
+            auto axis = axis::createSymlog(split, 5.0, createFunctorDescription<double>(identityFunctor, "test"));
+            auto kernel = axis.getAxisKernel();
+
+            // Total bins = 8. Bins: 0-7 (in range)
+            // Transform range: yMin ~ -(1+ln(10)) ~ -3.303, yMax ~ 1+ln(40) ~ 4.689
+
+            std::vector<BinIdxTestCase<double>> tests = {
+                {"Value at zero", 0.0, {true, 3}}, // y=0, in middle-left of range
+                {"Value in linear region", 2.5, {true, 3}}, // y=0.5, slightly right of zero
+                {"Value outside linear region positive", 20.0, {true, 5}}, // y~2.386
+                {"Value outside linear region negative", -10.0, {true, 1}}, // y~-1.693
+                {"Value exactly max", 200.0, {false, 0}}, // At max -> don't bin
+                {"Value exactly min", -50.0, {true, 0}}, // At min -> bin 0
+                {"Value above max", 300.0, {false, 0}}, // Above max -> don't bin
+                {"Value below min", -100.0, {false, 0}}, // Below min -> don't bin
+            };
+            runBinIdxTests(kernel, tests);
+        }
+    }
+
+    SECTION("Integer Type")
+    {
+        SECTION("Overflow Enabled, Symmetric Range [-1000, 1000], 12 bins, threshold 10")
+        {
+            axis::AxisSplitting<int> split{{-1000, 1000}, 12, true};
+            auto axis = axis::createSymlog(split, 10, createFunctorDescription<int>(identityFunctor, "test"));
+            auto kernel = axis.getAxisKernel();
+
+            // Total bins = 12 + 2 = 14. Bins: 0 (under), 1-12 (in range), 13 (over)
+            // Transform range: yMin ~ -(1+ln(100)) ~ -5.605, yMax ~ 5.605
+
+            std::vector<BinIdxTestCase<int>> tests = {
+                {"Value at zero", 0, {true, 7}}, // y=0 -> bin 7
+                {"Small positive in linear region", 5, {true, 7}}, // y=0.5, slightly right
+                {"Small negative in linear region", -5, {true, 6}}, // y=-0.5, slightly left
+                {"At positive threshold", 10, {true, 8}}, // y=1.0
+                {"At negative threshold", -10, {true, 5}}, // y=-1.0
+                {"Large positive value", 500, {true, 12}}, // y~4.912
+                {"Large negative value", -300, {true, 2}}, // y~-4.689
+                {"Value exactly max", 1000, {true, 13}}, // At max -> overflow bin
+                {"Value exactly min", -1000, {true, 1}}, // At min -> first regular bin
+            };
+            runBinIdxTests(kernel, tests);
+        }
+
+        SECTION("Overflow Disabled, Range [0, 1000], 10 bins, threshold 10")
+        {
+            axis::AxisSplitting<int> split{{0, 1000}, 10, false};
+            auto axis = axis::createSymlog(split, 10, createFunctorDescription<int>(identityFunctor, "test"));
+            auto kernel = axis.getAxisKernel();
+
+            // Total bins = 10. Bins: 0-9 (in range)
+            // Transform range: yMin = 0, yMax ~ 5.605
+
+            std::vector<BinIdxTestCase<int>> tests = {
+                {"Value at zero", 0, {true, 0}}, // y=0, at minimum
+                {"Small value in linear region", 5, {true, 0}}, // y=0.5
+                {"At threshold", 10, {true, 1}}, // y=1.0
+                {"Medium value", 100, {true, 5}}, // y~3.303
+                {"Large value", 500, {true, 8}}, // y~4.912
+                {"Value exactly max", 1000, {false, 0}}, // At max -> don't bin
+                {"Value below min", -10, {false, 0}}, // Below min -> don't bin
+                {"Value above max", 2000, {false, 0}}, // Above max -> don't bin
             };
             runBinIdxTests(kernel, tests);
         }
