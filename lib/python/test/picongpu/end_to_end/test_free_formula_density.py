@@ -85,7 +85,9 @@ def setup_sim():
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
         sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
-    sim.step(0)
+    # This simulation is compile-time heavy; keep the build within the
+    # memory limits of the CI runner (the default -j 4 got OOM-killed).
+    sim.step(0, jobs=2)
     return sim
 
 
