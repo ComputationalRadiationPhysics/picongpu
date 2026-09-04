@@ -222,7 +222,7 @@ class Runner(BaseModel):
         logging.info("    setup dir: {}".format(self.setup_dir))
         logging.info("      run dir: {}".format(self.run_dir))
 
-    def _render_templates(self):
+    def _render_templates(self, exist_ok=False):
         """
         render the templates in the setup dir into a picongpu input
 
@@ -238,7 +238,7 @@ class Runner(BaseModel):
         # dump checked context
         self.store_metadata(context, filename="pypicongpu_rendering_context.json")
         # preprocess (floats to str, add _special properties, ...)
-        Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir))
+        Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir), exist_ok=exist_ok)
 
     @property
     def metadata_path(self):
@@ -410,7 +410,11 @@ class Runner(BaseModel):
                 "setup directory must not exist before generation -- did you call generate() already?"
             )
         preset = rc_params.preset_dir
-        copytree(core.path("etc") / f"picongpu/{preset}", self.setup_dir / f"etc/picongpu/{preset}")
+        copytree(
+            core.path("etc") / f"picongpu/{preset}",
+            self.setup_dir / f"etc/picongpu/{preset}",
+            dirs_exist_ok=exist_ok,
+        )
         for path in (core.path("etc") / "picongpu").iterdir():
             if path.is_file():
                 copy2(path, self.setup_dir / f"etc/picongpu/{path.name}")
@@ -429,13 +433,13 @@ class Runner(BaseModel):
         self.generate_prepare_submission_command()
         self.generate_submission_command()
 
-        self._render_templates()
+        self._render_templates(exist_ok=exist_ok)
 
         self.generate_workflow_input(
             build_flags=PicBuildFlags(**flags),
             run_flags=TBGFlags(project_path=self.setup_dir, **flags),
         )
-        self.cwl_cachedir.mkdir(parents=True)
+        self.cwl_cachedir.mkdir(parents=True, exist_ok=True)
 
         self.store_metadata(self.model_dump(mode="json"), filename="pypicongpu_runner.json")
         self.store_metadata(rc_params.model_dump(mode="json"), filename="rc_params.json")

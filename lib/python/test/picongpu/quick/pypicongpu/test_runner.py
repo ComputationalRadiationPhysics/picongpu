@@ -11,8 +11,10 @@ from tempfile import NamedTemporaryFile
 
 from picongpu import rc_params
 from picongpu._rc_params import RCParams
+from picongpu.picmi import Cartesian3DGrid, ElectromagneticSolver, Simulation
 from picongpu.pypicongpu.runner import (
     PicBuildFlags,
+    Runner,
     TBGFlags,
     generate_bare_profile,
     generate_bare_profile_as_in,
@@ -24,6 +26,26 @@ from pytest import fixture
 @fixture
 def empty_rc_params():
     return type(rc_params)()
+
+
+@fixture
+def picmi_sim():
+    number_of_cells = 32
+    return Simulation(
+        time_step_size=17,
+        max_steps=4,
+        solver=ElectromagneticSolver(
+            method="Yee",
+            grid=Cartesian3DGrid(
+                number_of_cells=[number_of_cells] * 3,
+                lower_bound=[0, 0, 0],
+                upper_bound=[number_of_cells] * 3,
+                # required, otherwise won't spawn
+                lower_boundary_conditions=["open", "open", "periodic"],
+                upper_boundary_conditions=["open", "open", "periodic"],
+            ),
+        ),
+    )
 
 
 @fixture
@@ -89,3 +111,27 @@ def test_picbuild_and_tbg_flags_are_disjoint_enough():
             for cls in (PicBuildFlags, TBGFlags)
         )
     ) == {"f", "force"}
+
+
+def test_generate_exist_ok_regenerates_existing_setup_dir(picmi_sim, tmp_path):
+    """generate(exist_ok=True) overwrites a previously generated setup dir instead of failing (#5752)"""
+    setup_dir = tmp_path / "setup"
+    runner = Runner(sim=picmi_sim, setup_dir=setup_dir)
+    runner.generate()
+
+    param_file = setup_dir / "include" / "picongpu" / "param" / "simulation.param"
+    nested_file = setup_dir / "etc" / "picongpu" / "N.cfg"
+    assert param_file.is_file()
+    assert nested_file.is_file()
+    expected_param_content = param_file.read_text()
+    expected_nested_content = nested_file.read_text()
+
+    # simulate stale/modified output from the previous generation:
+    # both a nested template dir file and a default template file
+    param_file.write_text("stale")
+    nested_file.write_text("stale")
+
+    runner.generate(exist_ok=True)
+
+    assert param_file.read_text() == expected_param_content
+    assert nested_file.read_text() == expected_nested_content

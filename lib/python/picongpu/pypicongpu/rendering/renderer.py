@@ -189,7 +189,7 @@ class Renderer:
         return render(template, context, missing_variable_handler=_allow_only_missing_type_variables)
 
     @staticmethod
-    def render_directory(context: dict, path: str) -> None:
+    def render_directory(context: dict, path: str, exist_ok: bool = False) -> None:
         """
         Render all templates inside a given directory and remove the templates
 
@@ -199,6 +199,8 @@ class Renderer:
 
         :param context: (checked and preprocessed) rendering context
         :param path: directory containing ".mustache" files
+        :param exist_ok: allow overwriting files which were already rendered in
+            a previous generation into this directory
         """
         if not pathlib.Path(path).is_dir():
             raise ValueError("is not a directory: {}".format(path))
@@ -210,10 +212,19 @@ class Renderer:
                 filter(lambda p: p.is_file(), pathlib.Path(path).rglob("*")),
             )
         )
+        if exist_ok:
+            # rendered templates are hidden with a dot "." prefix,
+            # so the dot-prefixed ".mustache" files are leftovers from a
+            # previous generation and must not be rendered again:
+            # they would create ever more dot-prefixed files on each regeneration
+            for stale_template in filter(lambda p: p.name.startswith("."), all_mustache_files):
+                stale_template.unlink()
+            all_mustache_files = list(filter(lambda p: not p.name.startswith("."), all_mustache_files))
         for template_path in all_mustache_files:
             rendered_path = pathlib.Path(mustache_fileending_re.sub("", str(template_path)))
             if rendered_path.exists():
-                raise ValueError("would overwrite {}, aborting".format(rendered_path))
+                if not exist_ok:
+                    raise ValueError("would overwrite {}, aborting".format(rendered_path))
 
             with open(rendered_path, "w") as outfile:
                 with open(template_path, "r") as infile:
