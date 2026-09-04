@@ -133,7 +133,7 @@ def _validate_collisional_physics_setup(interactions):
     if "collision" in types:
         # We've found one or more bare collision flying around in the list,
         # so we've gotta merge them into one setup.
-        return list(types["other"]) + [CollisionalPhysicsSetup(collisions=list(types["collision"]))]
+        return list(types.get("other", [])) + [CollisionalPhysicsSetup(collisions=list(types["collision"]))]
 
     # No collisions whatsoever...
     return interactions
