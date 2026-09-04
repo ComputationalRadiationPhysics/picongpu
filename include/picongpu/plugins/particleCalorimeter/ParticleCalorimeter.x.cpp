@@ -91,16 +91,12 @@ namespace picongpu
             return vector;
         };
 
-        void writeMeta(
-            ::openPMD::Series& series,
-            ::openPMD::Mesh& mesh,
-            ::openPMD::MeshRecordComponent& dataset,
-            uint32_t currentStep)
+        void writeMeta(::openPMD::Series& series, ::openPMD::Mesh& mesh, uint32_t currentStep)
         {
-            dataset.setAttribute<float_X>("maxPitch[deg]", maxPitch_deg);
-            dataset.setAttribute<float_X>("maxYaw[deg]", maxYaw_deg);
-            dataset.setAttribute<float_64>("posPitch[deg]", posPitch_deg);
-            dataset.setAttribute<float_64>("posYaw[deg]", posYaw_deg);
+            mesh.setAttribute<float_X>("maxPitch[deg]", maxPitch_deg);
+            mesh.setAttribute<float_X>("maxYaw[deg]", maxYaw_deg);
+            mesh.setAttribute<float_64>("posPitch[deg]", posPitch_deg);
+            mesh.setAttribute<float_64>("posYaw[deg]", posYaw_deg);
 
             openPMD::WriteMeta writeMeta;
             writeMeta(
@@ -121,25 +117,25 @@ namespace picongpu
                 float_64 const minEnergy_keV = 1.0e-3 * sim.si.conv().joule2eV(minEnergy_SI);
                 float_64 const maxEnergy_keV = 1.0e-3 * sim.si.conv().joule2eV(maxEnergy_SI);
 
-                dataset.setAttribute<float_64>("minEnergy[keV]", minEnergy_keV);
-                dataset.setAttribute<float_64>("maxEnergy[keV]", maxEnergy_keV);
-                dataset.setAttribute<bool>("logScale", this->logScale);
+                mesh.setAttribute<float_64>("minEnergy[keV]", minEnergy_keV);
+                mesh.setAttribute<float_64>("maxEnergy[keV]", maxEnergy_keV);
+                mesh.setAttribute<bool>("logScale", this->logScale);
 
                 setMeshAttributes.m_axisLabels = {"energy bin", "posPitch", "posYaw"}; // z, y, x
                 setMeshAttributes.m_gridGlobalOffset = {minEnergy_keV, posPitch_deg, posYaw_deg};
                 setMeshAttributes.m_gridSpacing
                     = {// no constant value for grid spacing if the energy bins are on a log scale
                        this->logScale ? 0 : float_X(maxEnergy_keV - minEnergy_keV) / this->numBinsEnergy,
-                       float_X(maxPitch_deg - posPitch_deg) / dataset.getExtent()[1],
-                       float_X(maxYaw_deg - posYaw_deg) / dataset.getExtent()[2]};
+                       float_X(maxPitch_deg - posPitch_deg) / mesh.getExtent()[1],
+                       float_X(maxYaw_deg - posYaw_deg) / mesh.getExtent()[2]};
             }
             else
             {
                 setMeshAttributes.m_axisLabels = {"posPitch", "posYaw"}; // y, x
                 setMeshAttributes.m_gridGlobalOffset = {posPitch_deg, posYaw_deg};
                 setMeshAttributes.m_gridSpacing
-                    = {float_X(maxPitch_deg - posPitch_deg) / dataset.getExtent()[1],
-                       float_X(maxYaw_deg - posYaw_deg) / dataset.getExtent()[2]};
+                    = {float_X(maxPitch_deg - posPitch_deg) / mesh.getExtent()[1],
+                       float_X(maxYaw_deg - posYaw_deg) / mesh.getExtent()[2]};
             }
             constexpr float_64 unitSI = sim.unit.typicalNumParticlesPerMacroParticle() * sim.unit.energy();
             setMeshAttributes.m_unitSI = unitSI;
@@ -150,7 +146,7 @@ namespace picongpu
             // gridUnitDimension coming with openPMD 2.0, until then, this is somewhat custom
             setMeshAttributes.m_gridUnitSI = 1;
 
-            setMeshAttributes(mesh)(dataset);
+            setMeshAttributes(mesh);
             // Custom geometries unsupported
             // mesh.setAttribute("geometry", "Calorimeter");
         }
@@ -172,8 +168,7 @@ namespace picongpu
 
                 ::openPMD::Series series(filename.str(), ::openPMD::Access::READ_ONLY);
 
-                auto dataset = series.iterations[restartStep]
-                                   .meshes[this->leftParticlesDatasetName][::openPMD::RecordComponent::SCALAR];
+                auto dataset = series.iterations[restartStep].meshes[this->leftParticlesDatasetName];
 
                 ::openPMD::Extent extent = dataset.getExtent();
                 ::openPMD::Offset offset(extent.size(), 0);
@@ -249,14 +244,13 @@ namespace picongpu
 
             auto iteration = series.iterations[currentStep];
             auto mesh = iteration.meshes[this->leftParticlesDatasetName];
-            auto dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
-            dataset.resetDataset({::openPMD::determineDatatype<float_X>(), bufferExtent});
-            dataset.storeChunk(
+            mesh.resetDataset({::openPMD::determineDatatype<float_X>(), bufferExtent});
+            mesh.storeChunk(
                 std::shared_ptr<float_X>{hBufTotal.data(), [](auto const*) {}},
                 bufferOffset,
                 bufferExtent);
-            writeMeta(series, mesh, dataset, currentStep);
+            writeMeta(series, mesh, currentStep);
             iteration.close();
         }
 
@@ -383,8 +377,7 @@ namespace picongpu
             auto dataSize64Bit = precisionCast<size_t>(dataSizeND);
             auto extent = twoDimensional(::openPMD::Extent{dataSize64Bit.z(), dataSize64Bit.y(), dataSize64Bit.x()});
 
-            auto mesh = series.iterations[currentStep].meshes["calorimeter"];
-            auto calorimeter = mesh[::openPMD::RecordComponent::SCALAR];
+            auto calorimeter = series.iterations[currentStep].meshes["calorimeter"];
             calorimeter.resetDataset({::openPMD::determineDatatype<float_X>(), extent});
             calorimeter.storeChunk(
                 std::shared_ptr<float_X>{this->hBufTotalCalorimeter->data(), [](auto const*) {}},
@@ -392,7 +385,7 @@ namespace picongpu
                 std::move(extent));
 
             // Write attributes
-            writeMeta(series, mesh, calorimeter, currentStep);
+            writeMeta(series, calorimeter, currentStep);
 
             series.iterations[currentStep].close();
         }

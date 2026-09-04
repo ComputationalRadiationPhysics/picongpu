@@ -229,8 +229,7 @@ namespace picongpu
                             = openPMDdataFile.iterations[restartStep].getAttribute("reduceCounter").get<uint32_t>();
                         // restore hostBuffer
                         ::openPMD::MeshRecordComponent dataset
-                            = openPMDdataFile.iterations[restartStep]
-                                  .meshes["Binning"][::openPMD::RecordComponent::SCALAR];
+                            = openPMDdataFile.iterations[restartStep].meshes["Binning"];
                         ::openPMD::Extent extent = dataset.getExtent();
                         ::openPMD::Offset offset(extent.size(), 0);
                         dataset.loadChunk(

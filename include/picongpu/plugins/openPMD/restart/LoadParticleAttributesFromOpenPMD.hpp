@@ -87,8 +87,7 @@ namespace picongpu
                 for(uint32_t n = 0; n < components; ++n)
                 {
                     ::openPMD::Record record = particleSpecies[openPMDName()];
-                    ::openPMD::RecordComponent rc
-                        = components > 1 ? record[name_lookup[n]] : record[::openPMD::RecordComponent::SCALAR];
+                    ::openPMD::RecordComponent rc = components > 1 ? record[name_lookup[n]] : record;
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 
