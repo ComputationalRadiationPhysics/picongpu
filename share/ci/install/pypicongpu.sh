@@ -130,6 +130,10 @@ if [ ! -z ${PYTHON_END_TO_END_TEST+x} ]; then
 
     # set C++ compiler
     export CXX=$CXX_VERSION
-    # execute the end-to-end tests
-    python3 -m pytest end_to_end/ -v
+    # Deselect the free-formula-density module for now: its simulation is
+    # compile-time too heavy for the CI runner -- a single translation unit
+    # (plugins/binning/BinningDispatcher) peaks at ~15 GiB and gcc gets
+    # OOM-killed regardless of build parallelism. Re-enable once that
+    # translation unit is lightened or the runner provides more memory.
+    python3 -m pytest end_to_end/ -v --ignore=end_to_end/test_free_formula_density.py
 fi
