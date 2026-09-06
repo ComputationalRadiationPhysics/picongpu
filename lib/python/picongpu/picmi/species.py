@@ -195,6 +195,19 @@ class Species(PICMI_Species):
             pusher=self._pusher(),
         )
 
+    def picongpu_get_mass_si(self) -> float:
+        """
+        Mass of the physical particle of this species in kg (SI units).
+
+        Resolved from the explicit ``mass`` if given, otherwise from the particle type.
+        """
+        for requirement in self._requirements:
+            if isinstance(requirement, Mass):
+                if requirement.mass_si <= 0:
+                    raise ValueError(f"Species {self.name} has no positive mass defined.")
+                return requirement.mass_si
+        raise ValueError(f"Species {self.name} has no resolvable mass. Specify a mass or a known particle type.")
+
     def get_operation_requirements(self):
         return evaluate_requirements(self._requirements, AnyOperation)
 

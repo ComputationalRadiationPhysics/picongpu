@@ -40,7 +40,10 @@ class FilteredSpecies(BaseModel):
     def name(self) -> str:
         return self.name_with_filter
 
-    def get_as_pypicongpu(self, mode="Filter"):
+    def get_as_pypicongpu(self, mode="Filter", *args, **kwargs):
+        # additional arguments (e.g. time_step_size, num_steps) are forwarded by the conversion
+        # machinery of diagnostics and are not used by this class
         return PyPIConGPUFilteredSpecies(
-            species=self.species.get_as_pypicongpu(), functor=self.functor.get_as_pypicongpu(mode=mode)
+            species=self.species.get_as_pypicongpu(*args, **kwargs),
+            functor=self.functor.get_as_pypicongpu(mode=mode),
         )
