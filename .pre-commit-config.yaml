@@ -92,3 +92,21 @@ repos:
       - id: pyproject-fmt
         # The default is 3.13, which would strip the 3.14 classifier.
         args: ["--max-supported-python", "3.14"]
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      # Commit-time filter: strips outputs, execution counts and default metadata, normalizes cell ids.
+      # Does not rewrite already-committed history.
+      - id: nbstripout
+        types: [jupyter]
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.0
+    hooks:
+      # Validates each notebook against the official nbformat v4 schema.
+      # Duplicate cell ids aren't expressible in JSON Schema; nbstripout makes them unique on each commit.
+      - id: check-jsonschema
+        name: check notebook against the nbformat v4 schema
+        files: \.ipynb$
+        types: [jupyter]
+        args:
+          - --schemafile=https://raw.githubusercontent.com/jupyter/nbformat/v5.11.1/nbformat/v4/nbformat.v4.schema.json
