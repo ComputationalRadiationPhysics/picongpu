@@ -8,21 +8,52 @@ License: GPLv3+
 from collections.abc import Sequence
 from typing import Annotated, Literal
 
+from pydantic import BeforeValidator
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
 
 
+def _single_pass_n_pass(value: Sequence[int] | None) -> Sequence[int] | None:
+    """
+    BeforeValidator for `BinomialSmoother.n_pass`.
+
+    PIConGPU's C++ current interpolation applies exactly one fixed binomial
+    pass (`numPasses=1` is hard-coded in
+    include/picongpu/fields/currentInterpolation/Binomial.hpp), so the only
+    accepted inputs are the single-pass spellings carrying that semantics: the
+    standard default `None`, scalar `1` (coerced to `[1]`, the standard's
+    per-axis form), and any all-ones vector (`[1]`, `[1,1]`, `[1,1,1]`, ...).
+    Anything else claims a different number of passes and is rejected.
+    """
+
+    if value is None or (isinstance(value, (list, tuple)) and len(value) > 0 and all(n == 1 for n in value)):
+        return value
+    if value == 1:
+        return [1]
+    raise util.UnsupportedFeatureError(
+        "more than one binomial smoothing pass (PIConGPU's C++ current interpolation "
+        "applies exactly one fixed pass, hard-coded as `numPasses=1` in "
+        "include/picongpu/fields/currentInterpolation/Binomial.hpp)",
+        value,
+    )
+
+
 class BinomialSmoother(PICMI_BinomialSmoother):
     """
     PICMI Binomial Smoother
 
-    PIConGPU's binomial current deposition uses fixed parameters, so all
-    standard parameters except `n_pass` (which must be given by the standard
-    but is not used) are rejected.
+    PIConGPU's binomial current deposition is a fixed, single-pass filter: the
+    C++ side hard-codes `numPasses=1` (see
+    include/picongpu/fields/currentInterpolation/Binomial.hpp) and never reads
+    `n_pass`. All standard parameters except `n_pass` are rejected, and
+    `n_pass` may only carry that single-pass semantics: `None`, scalar `1`, or
+    an all-ones vector (`[1]`, `[1,1]`, `[1,1,1]`, ...). Any value claiming
+    more than one pass is rejected at construction.
     """
 
+    n_pass: Annotated[Sequence[int] | None, BeforeValidator(_single_pass_n_pass)] = None
     compensation: Annotated[Sequence[bool] | None, util.rejects_unsupported("binomial smoother parameters")] = None
     stride: Annotated[Sequence[int] | None, util.rejects_unsupported("binomial smoother parameters")] = None
     alpha: Annotated[Sequence[float] | None, util.rejects_unsupported("binomial smoother parameters")] = None
