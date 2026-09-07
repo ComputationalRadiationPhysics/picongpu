@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+import warnings
 from pathlib import Path
 from typing import Literal
 
@@ -20,6 +21,15 @@ from picongpu.pypicongpu.output.binning import BinSpec as PyPIConGPUBinSpec
 
 from ..copy_attributes import default_converts_to
 from .timestepspec import TimeStepSpec
+
+ParticleRegion = Literal["Bounded", "Leaving"]
+
+
+def _period_starts_at_zero(period: TimeStepSpec) -> bool:
+    for spec in period.specs + period.specs_in_seconds:
+        if spec.start is None or spec.start == 0:
+            return True
+    return False
 
 
 @default_converts_to(PyPIConGPUBinSpec, conversions={"kind": lambda self, *_, **__: self.kind.lower().capitalize()})
@@ -62,7 +72,7 @@ class Binning(BaseModel):
     openPMDExt: str | None = None
     openPMDInfix: str | None = None
     dumpPeriod: int = 1
-    particle_region: list[Literal["Bounded", "Leaving"]] | set[Literal["Bounded", "Leaving"]] = ["Bounded"]
+    particle_region: list[ParticleRegion] | set[ParticleRegion] | tuple[ParticleRegion, ...] = ["Bounded"]
 
     @field_validator("species", mode="before")
     @classmethod
@@ -85,11 +95,26 @@ class Binning(BaseModel):
     def _validate_particle_region(cls, particle_region):
         if not particle_region:
             raise ValueError("at least one particle region must be selected")
+        if len(set(particle_region)) != len(particle_region):
+            raise ValueError("particle_region must not contain duplicate regions")
         return particle_region
 
     @model_validator(mode="after")
     def _set_default_period(self):
         self.period = self.period or TimeStepSpec[:]
+        return self
+
+    @model_validator(mode="after")
+    def _warn_leaving_notify_period(self):
+        if "Leaving" in self.particle_region and _period_starts_at_zero(self.period):
+            warnings.warn(
+                "Binning region 'Leaving' with a notify period starting at timestep 0: the binner is "
+                "notified at timestep 0 but onParticleLeave is not called then, so with time averaging "
+                "this adds a spurious accumulate count. Consider starting the notify period at timestep 1, "
+                "e.g. TimeStepSpec[1:] (see binningPlugin.rst).",
+                UserWarning,
+                stacklevel=2,
+            )
         return self
 
     def result_path(self, prefix_path):

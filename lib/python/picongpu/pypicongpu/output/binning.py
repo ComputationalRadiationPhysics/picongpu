@@ -60,27 +60,18 @@ class Binning(BaseModel):
     openPMDExtension: str | None = Field(alias="openPMDExt")
     openPMDInfix: str | None
     dumpPeriod: int
-    particle_region: list[ParticleRegion] = ["Bounded"]
+    particle_region: list[ParticleRegion] = Field(default=["Bounded"], exclude=True)
 
     type_binning: Literal[True] = True
-
-    @field_validator("particle_region", mode="before")
-    @classmethod
-    def _normalise_particle_region(cls, value):
-        if isinstance(value, dict):
-            return [region for region, enabled in value.items() if enabled]
-        return value
 
     @field_validator("particle_region")
     @classmethod
     def _validate_particle_region(cls, value):
         if not value:
             raise ValueError("particle_region must contain at least one region")
+        if len(set(value)) != len(value):
+            raise ValueError("particle_region must not contain duplicate regions")
         return value
-
-    @field_serializer("particle_region")
-    def _serialize_particle_region(self, value) -> dict[str, bool]:
-        return {region: region in value for region in PARTICLE_REGIONS}
 
     @computed_field
     def region_directives(self) -> list[dict[str, str]]:

@@ -362,11 +362,12 @@ This can be configured using the ``enableRegion`` and ``disableRegion`` options 
   Therefore, users should consider setting the notify period’s start at timestep 1, depending on their specific needs.
 
 When configuring the binning plugin via PICMI, the same region selection can be exposed with the ``particle_region`` argument of
-``picongpu.picmi.diagnostics.Binning``. It accepts a list (or set) of regions; each entry must be one of ``"Bounded"``
+``picongpu.picmi.diagnostics.Binning``. It accepts a ``list`` (or ``set``/``tuple``) of regions; each entry must be one of ``"Bounded"``
 (particles inside the global simulation volume) or ``"Leaving"`` (particles that left the global simulation volume in this timestep).
 The default is ``["Bounded"]``, which matches the C++ default. The selected regions are translated to the corresponding
 ``enableRegion`` / ``disableRegion`` calls in the generated ``binningSetup.param``. When ``"Leaving"`` is binned, the notify period
-should start at timestep 1 (e.g. ``TimeStepSpec[1:]`` with time averaging), see the note above.
+should start at timestep 1 (e.g. ``TimeStepSpec[1:]`` with time averaging), see the note above. A ``UserWarning`` is raised when
+``"Leaving"`` is binned with a notify period starting at timestep 0, in order to flag this misconfiguration.
 The ``particle_region`` argument only applies to particle binning; field binning has no notion of regions.
 
 writeOpenPMDFunctor
