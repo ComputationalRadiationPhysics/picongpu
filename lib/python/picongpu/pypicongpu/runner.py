@@ -96,7 +96,7 @@ class PicBuildFlags(BaseModel):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
     # because they overlap with tbg flags and could thus lead to confusion.
     jobs: int | None = Field(
-        default=4,
+        default_factory=lambda: rc_params.get("build_jobs", 4),
         description="allow N jobs at once; infinite jobs if set to None",
         validation_alias=AliasChoices("jobs", "j"),
     )
