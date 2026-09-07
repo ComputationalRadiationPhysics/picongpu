@@ -6,16 +6,26 @@ License: GPLv3+
 """
 
 from collections.abc import Sequence
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BeforeValidator
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
+from pydantic import BeforeValidator
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
 
+_other_than_one_pass = (
+    "a number of binomial smoothing passes other than one (PIConGPU's C++ current "
+    "interpolation applies exactly one fixed pass, hard-coded as `numPasses=1` in "
+    "include/picongpu/fields/currentInterpolation/Binomial.hpp)"
+)
+_not_a_single_pass_spelling = (
+    "an n_pass that is neither None, scalar 1, nor an all-ones list/tuple of ints "
+    "(the picmistandard types n_pass as `Sequence[int] | None`)"
+)
 
-def _single_pass_n_pass(value: Sequence[int] | None) -> Sequence[int] | None:
+
+def _single_pass_n_pass(value: Any) -> Sequence[int] | None:
     """
     BeforeValidator for `BinomialSmoother.n_pass`.
 
@@ -25,19 +35,39 @@ def _single_pass_n_pass(value: Sequence[int] | None) -> Sequence[int] | None:
     accepted inputs are the single-pass spellings carrying that semantics: the
     standard default `None`, scalar `1` (coerced to `[1]`, the standard's
     per-axis form), and any all-ones vector (`[1]`, `[1,1]`, `[1,1,1]`, ...).
-    Anything else claims a different number of passes and is rejected.
+
+    Validation is deliberately dimension-agnostic: the smoother is built before
+    the grid is known, so "one pass" means "all-ones vector of any length" (or
+    scalar `1`) and the length is not cross-checked against grid dimensions
+    (`n_pass` is never read downstream anyway — only the smoother's *presence*
+    toggles PIConGPU's binomial current interpolation).
     """
 
-    if value is None or (isinstance(value, (list, tuple)) and len(value) > 0 and all(n == 1 for n in value)):
+    if value is None:
         return value
-    if value == 1:
-        return [1]
-    raise util.UnsupportedFeatureError(
-        "more than one binomial smoothing pass (PIConGPU's C++ current interpolation "
-        "applies exactly one fixed pass, hard-coded as `numPasses=1` in "
-        "include/picongpu/fields/currentInterpolation/Binomial.hpp)",
-        value,
-    )
+    # a bespoke validator is used instead of util.rejects_unsupported, because
+    # that helper may only compare a value against a single accepted `default`,
+    # whereas here every standard-conformant "single pass" spelling (None, any
+    # all-ones vector, scalar 1) is accepted; the rejections still go through
+    # util._handle_unsupported, the single raise/warn/ignore policy point.
+    if type(value) is int:
+        # scalar single-pass sugar, coerced to the standard's per-axis form;
+        # `type(...) is int` is strict on purpose: bool (a subclass of int),
+        # float and numpy scalars are not standard-conformant `int`s
+        if value == 1:
+            return [1]
+        util._handle_unsupported(_other_than_one_pass, value)
+    if isinstance(value, (list, tuple)):
+        if len(value) == 0:
+            util._handle_unsupported(
+                "an empty n_pass (give None or an all-ones per-axis vector such as [1] or [1,1,1])",
+                value,
+            )
+        if all(type(n) is int for n in value):
+            if all(n == 1 for n in value):
+                return value
+            util._handle_unsupported(_other_than_one_pass, value)
+    util._handle_unsupported(_not_a_single_pass_spelling, value)
 
 
 class BinomialSmoother(PICMI_BinomialSmoother):
@@ -51,6 +81,13 @@ class BinomialSmoother(PICMI_BinomialSmoother):
     `n_pass` may only carry that single-pass semantics: `None`, scalar `1`, or
     an all-ones vector (`[1]`, `[1,1]`, `[1,1,1]`, ...). Any value claiming
     more than one pass is rejected at construction.
+
+    Note: `n_pass` is defaulted to `None` here. The picmistandard base class
+    declares it with a broken `default_factory=None`, which makes pydantic treat
+    the field as *required* (`BinomialSmoother()` raised "Field required"). This
+    subclass intentionally flips that: a plain `BinomialSmoother()` now
+    constructs fine and means "single pass on every axis" — the old behaviour of
+    requiring a (then silently ignored) value is deliberately dropped.
     """
 
     n_pass: Annotated[Sequence[int] | None, BeforeValidator(_single_pass_n_pass)] = None
