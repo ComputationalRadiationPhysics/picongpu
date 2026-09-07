@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
@@ -61,6 +62,7 @@ class Binning(BaseModel):
     openPMDExt: str | None = None
     openPMDInfix: str | None = None
     dumpPeriod: int = 1
+    particle_region: list[Literal["Bounded", "Leaving"]] | set[Literal["Bounded", "Leaving"]] = ["Bounded"]
 
     @field_validator("species", mode="before")
     @classmethod
@@ -68,6 +70,22 @@ class Binning(BaseModel):
         if isinstance(species, Species) or isinstance(species, FilteredSpecies):
             return [species]
         return species
+
+    @field_validator("particle_region", mode="before")
+    @classmethod
+    def _normalise_particle_region(cls, particle_region):
+        if isinstance(particle_region, set):
+            return sorted(particle_region)
+        if isinstance(particle_region, tuple):
+            return list(particle_region)
+        return particle_region
+
+    @field_validator("particle_region")
+    @classmethod
+    def _validate_particle_region(cls, particle_region):
+        if not particle_region:
+            raise ValueError("at least one particle region must be selected")
+        return particle_region
 
     @model_validator(mode="after")
     def _set_default_period(self):
@@ -94,4 +112,5 @@ class Binning(BaseModel):
             openPMDExt=self.openPMDExt,
             openPMDInfix=self.openPMDInfix,
             dumpPeriod=self.dumpPeriod,
+            particle_region=self.particle_region,
         )
