@@ -136,7 +136,7 @@ if __name__ == "__main__":
     #   Markovian approach for calculating the transition matrices of the problem.
     # =============================================================================
 
-    # transition matrix
+    # transition matrix: Markov absorbing state CS = 10
     trans_mat_base = np.diag(np.ones([Z_max + 1]))
 
     # prepare initial state
