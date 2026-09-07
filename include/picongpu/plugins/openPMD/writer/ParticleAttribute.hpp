@@ -54,7 +54,6 @@ namespace picongpu
             HINLINE void operator()(
                 ThreadParams* params,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
-                std::string const& basepath,
                 size_t const globalElements)
             {
                 using Identifier = T_Identifier;
@@ -64,7 +63,6 @@ namespace picongpu
 
                 picongpu::traits::OpenPMDName<T_Identifier> openPMDName;
                 ::openPMD::Record record = particleSpecies[openPMDName()];
-                std::string baseName = basepath + "/" + openPMDName();
                 ::openPMD::Datatype openPMDType = ::openPMD::determineDatatype<ComponentType>();
 
                 // get the SI scaling, dimensionality and weighting of the attribute
@@ -95,11 +93,9 @@ namespace picongpu
 
                 for(uint32_t d = 0; d < components; d++)
                 {
-                    ::openPMD::RecordComponent recordComponent
-                        = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+                    ::openPMD::RecordComponent recordComponent = components > 1 ? record[name_lookup[d]] : record;
 
-                    std::string datasetName = components > 1 ? baseName + "/" + name_lookup[d] : baseName;
-                    params->initDataset<DIM1>(recordComponent, openPMDType, {globalElements}, datasetName);
+                    params->initDataset<DIM1>(recordComponent, openPMDType, {globalElements});
 
                     if(unit.size() >= (d + 1))
                     {
@@ -126,7 +122,6 @@ namespace picongpu
                 ThreadParams* params,
                 FrameType& frame,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
-                std::string const& basepath,
                 size_t const elements,
                 size_t const globalElements,
                 size_t const globalOffset,
@@ -171,8 +166,7 @@ namespace picongpu
                     // treated as an MPI-collective call.
                     for(uint32_t d = 0; d < components; d++)
                     {
-                        ::openPMD::RecordComponent recordComponent
-                            = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+                        ::openPMD::RecordComponent recordComponent = components > 1 ? record[name_lookup[d]] : record;
 
                         recordComponent.storeChunk<ComponentType>(
                             ::openPMD::Offset{globalOffset},
@@ -187,8 +181,7 @@ namespace picongpu
 
                 for(uint32_t d = 0; d < components; d++)
                 {
-                    ::openPMD::RecordComponent recordComponent
-                        = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+                    ::openPMD::RecordComponent recordComponent = components > 1 ? record[name_lookup[d]] : record;
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
                     // ask openPMD to create a buffer for us

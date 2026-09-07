@@ -21,12 +21,6 @@
 
 #    include "picongpu/plugins/openPMD/Json.hpp"
 
-#    include "picongpu/plugins/common/openPMDVersion.def"
-#    include "picongpu/plugins/openPMD/Json_private.hpp"
-
-#    include <algorithm> // std::copy_n, std::find
-#    include <cctype> // std::isspace
-
 #    include <openPMD/auxiliary/JSON.hpp>
 #    include <openPMD/openPMD.hpp>
 
@@ -38,265 +32,9 @@
  * ensures that NVCC never sees that library.
  */
 
-namespace picongpu
+namespace picongpu::openPMD
 {
-    namespace json
-    {
-        void MatcherPerBackend::init(nlohmann::json const& config)
-        {
-            if(config.is_object())
-            {
-                // simple layout: only one global JSON object was passed
-                // forward this one directly to openPMD
-                m_patterns.emplace_back("", std::make_shared<nlohmann::json>(config));
-                m_defaultConfig = config;
-            }
-            else if(config.is_array())
-            {
-                bool defaultEmplaced = false;
-                // enhanced PIConGPU-defined layout
-                for(size_t i = 0; i < config.size(); ++i)
-                {
-                    auto kindOfConfig = readPattern(m_patterns, m_defaultConfig, config[i]);
-                    if(kindOfConfig == KindOfConfig::Default)
-                    {
-                        if(defaultEmplaced)
-                        {
-                            throw std::runtime_error(
-                                "[openPMD plugin] Specified more than one default configuration.");
-                        }
-                        else
-                        {
-                            defaultEmplaced = true;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                throw std::runtime_error("[openPMD plugin] Expecting an object or an array as JSON configuration.");
-            }
-        }
-
-        /**
-         * @brief Get the JSON config associated with a regex pattern.
-         *
-         * @param datasetPath The regex.
-         * @return The matched JSON configuration, as a string.
-         */
-        nlohmann::json const& MatcherPerBackend::get(std::string const& datasetPath) const
-        {
-            for(auto const& pattern : m_patterns)
-            {
-                if(std::regex_match(datasetPath, pattern.pattern))
-                {
-                    return *pattern.config;
-                }
-            }
-            static nlohmann::json const emptyConfig; // null
-            return emptyConfig;
-        }
-
-        void JsonMatcher::init(std::string const& config, MPI_Comm comm)
-        {
-            auto const filename = extractFilename(config);
-            m_wholeConfig = nlohmann::json::parse(filename.empty() ? config : collective_file_read(filename, comm));
-            if(!m_wholeConfig.is_object())
-            {
-                throw std::runtime_error("[openPMD plugin] Expected an object for the JSON configuration.");
-            }
-            m_perBackend.reserve(m_wholeConfig.size());
-            for(auto it = m_wholeConfig.begin(); it != m_wholeConfig.end(); ++it)
-            {
-                std::string const& backendName = it.key();
-                if(std::find(m_recognizedBackends.begin(), m_recognizedBackends.end(), backendName)
-                   == m_recognizedBackends.end())
-                {
-                    // The key does not point to the configuration of a backend recognized by PIConGPU
-                    // Ignore it.
-                    continue;
-                }
-                if(!it.value().is_object())
-                {
-                    throw std::runtime_error(
-                        "[openPMD plugin] Each backend's configuration must be a JSON object (config for backend "
-                        + backendName + ").");
-                }
-                if(it.value().contains("dataset"))
-                {
-                    m_perBackend.emplace_back(PerBackend{backendName, MatcherPerBackend{it.value().at("dataset")}});
-                }
-            }
-        }
-
-        std::string JsonMatcher::get(std::string const& datasetPath) const
-        {
-            nlohmann::json result = nlohmann::json::object();
-            for(auto const& backend : m_perBackend)
-            {
-                auto const& datasetConfig = backend.matcher.get(datasetPath);
-                if(datasetConfig.empty())
-                {
-                    // ensure that there actually is an object to erase this from
-                    result[backend.backendName]["dataset"] = {};
-                    result[backend.backendName].erase("dataset");
-                }
-                else
-                {
-                    result[backend.backendName]["dataset"] = datasetConfig;
-                }
-            }
-            return result.dump();
-        }
-
-        std::string JsonMatcher::getDefault() const
-        {
-            nlohmann::json result = m_wholeConfig;
-            for(auto const& backend : m_perBackend)
-            {
-                auto const& datasetConfig = backend.matcher.getDefault();
-                if(datasetConfig.empty())
-                {
-                    // ensure that there actually is an object to erase this from
-                    result[backend.backendName]["dataset"] = {};
-                    result[backend.backendName].erase("dataset");
-                }
-                else
-                {
-                    result[backend.backendName]["dataset"] = datasetConfig;
-                }
-            }
-            // note that at this point, config[<backend>][dataset] is no longer
-            // a list, the list has been resolved by the previous loop
-            addDefaults(result);
-            return result.dump();
-        }
-
-        std::unique_ptr<AbstractJsonMatcher> AbstractJsonMatcher::construct(std::string const& config, MPI_Comm comm)
-        {
-            return std::unique_ptr<AbstractJsonMatcher>{new JsonMatcher{config, comm}};
-        }
-    } // namespace json
-} // namespace picongpu
-
-// Anonymous namespace so these helpers don't get exported
-namespace
-{
-    /**
-     * @brief Remove leading and trailing characters from a string.
-     *
-     * @tparam F Functor type for to_remove
-     * @param s String to trim.
-     * @param to_remove Functor deciding which characters to remove.
-     */
-    template<typename F>
-    std::string trim(std::string const& s, F&& to_remove)
-    {
-        auto begin = s.begin();
-        for(; begin != s.end(); ++begin)
-        {
-            if(!to_remove(*begin))
-            {
-                break;
-            }
-        }
-        auto end = s.rbegin();
-        for(; end != s.rend(); ++end)
-        {
-            if(!to_remove(*end))
-            {
-                break;
-            }
-        }
-        return s.substr(begin - s.begin(), end.base() - begin);
-    }
-
-    /**
-     * @brief Check whether the string points to a filename or not.
-     *
-     * A string is considered to point to a filename if its first
-     * non-whitespace character is an '@'.
-     * The filename will be trimmed of whitespace using trim().
-     *
-     * @param unparsed The string that possibly points to a file.
-     * @return The filename if the string points to the file, an empty
-     *         string otherwise.
-     *
-     * @todo Upon switching to C++17, use std::optional to make the return
-     *       type clearer.
-     *       Until then, this is somewhat safe anyway since filenames need
-     *       to be non-empty.
-     */
-    std::string extractFilename(std::string const& unparsed)
-    {
-        std::string trimmed = trim(unparsed, [](char c) { return std::isspace(c); });
-        if(trimmed.at(0) == '@')
-        {
-            trimmed = trimmed.substr(1);
-            trimmed = trim(trimmed, [](char c) { return std::isspace(c); });
-            return trimmed;
-        }
-        else
-        {
-            return {};
-        }
-    }
-
-    KindOfConfig readPattern(
-        std::vector<picongpu::json::Pattern>& patterns,
-        nlohmann::json& defaultConfig,
-        nlohmann::json const& object)
-    {
-        static std::string const errorMsg = R"END(
-[openPMD plugin] Each single pattern in an extended JSON configuration
-must be a JSON object with keys 'select' and 'cfg'.
-The key 'select' is optional, indicating a default configuration if it is
-not set.
-The key 'select' must point to either a single string or an array of strings.)END";
-
-        if(!object.is_object())
-        {
-            throw std::runtime_error(errorMsg);
-        }
-        try
-        {
-            nlohmann::json const& cfg = object.at("cfg");
-            if(!object.contains("select"))
-            {
-                nlohmann::json const& cfg = object.at("cfg");
-                defaultConfig = cfg;
-                return KindOfConfig::Default;
-            }
-            else
-            {
-                nlohmann::json const& pattern = object.at("select");
-                auto cfgShared = std::make_shared<nlohmann::json>(cfg);
-                if(pattern.is_string())
-                {
-                    patterns.emplace_back(pattern.get<std::string>(), std::move(cfgShared));
-                }
-                else if(pattern.is_array())
-                {
-                    patterns.reserve(pattern.size());
-                    for(size_t i = 0; i < pattern.size(); ++i)
-                    {
-                        patterns.emplace_back(pattern[i].get<std::string>(), cfgShared);
-                    }
-                }
-                else
-                {
-                    throw std::runtime_error(errorMsg);
-                }
-                return KindOfConfig::Pattern;
-            }
-        }
-        catch(nlohmann::json::out_of_range const&)
-        {
-            throw std::runtime_error(errorMsg);
-        }
-    }
-
-    void addDefaults(nlohmann::json& config)
+    auto resolveJsonConfig(std::string const& commandLineValue, MPI_Comm comm) -> std::string
     {
         /*
          * hdf5.dataset.chunks = none
@@ -339,8 +77,7 @@ The key 'select' must point to either a single string or an array of strings.)EN
          * On those systems where this setting actually poses a problem,
          * careful memory configuration is necessary anyway, so the
          * defaults don't matter.
-         */
-        /*
+         *
          * In openPMD >= 0.16, additionally ignore all attribute metadata
          * that comes from a rank other than rank 0.
          * The openPMD plugin of PIConGPU writes attributes synchronously
@@ -359,6 +96,7 @@ The key 'select' must point to either a single string or an array of strings.)EN
             }
           },
           "adios2": {
+            "attribute_writing_ranks": 0,
             "engine": {
               "preferred_flush_target": "buffer",
               "parameters": {
@@ -366,19 +104,11 @@ The key 'select' must point to either a single string or an array of strings.)EN
               }
             }
           }
-        })";
-        auto baseConfig = nlohmann::json::parse(baseConfigString);
-#    if OPENPMDAPI_VERSION_GE(0, 16, 0)
-        {
-            std::string const& patchConfigString = R"(
-                {"adios2": {"attribute_writing_ranks": 0}})";
-            auto patchConfig = nlohmann::json::parse(patchConfigString);
-            baseConfig.merge_patch(patchConfig);
         }
-#    endif
-        baseConfig.merge_patch(config);
-        config = std::move(baseConfig);
+        )";
+        return ::openPMD::json::merge(baseConfigString, commandLineValue, comm);
     }
-} // namespace
+
+} // namespace picongpu::openPMD
 
 #endif // ENABLE_OPENPMD

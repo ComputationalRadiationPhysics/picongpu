@@ -128,6 +128,10 @@ namespace picongpu
             mesh.setGridUnitSI(m_gridUnitSI);
             mesh.setTimeOffset(m_timeOffset);
             mesh.setUnitDimension(m_unitDimension);
+            if(mesh.scalar())
+            {
+                (*this)(static_cast<::openPMD::MeshRecordComponent&>(mesh));
+            }
             return *this;
         }
 

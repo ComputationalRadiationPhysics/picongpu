@@ -101,8 +101,7 @@ namespace picongpu
                     mrc.setAttribute(attrName, attribute);
                 }
 
-                std::string datasetName = series.meshesPath() + baseName + "_" + group + "/" + dataset;
-                params.initDataset<simDim>(mrc, openPMDScalarType, std::move(globalDomainSize), datasetName);
+                params.initDataset<simDim>(mrc, openPMDScalarType, std::move(globalDomainSize));
 
                 return std::make_tuple(
                     std::move(mrc),

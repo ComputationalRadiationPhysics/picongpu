@@ -553,23 +553,23 @@ namespace picongpu
                     ::openPMD::Dataset dataset{datatype, extent};
 
                     auto iteration = series.writeIterations()[currentStep];
-                    auto mesh = iteration.meshes["transitionradiation"];
+                    auto transitionRadiation = iteration.meshes["transitionradiation"];
 
-                    mesh.setAxisLabels(std::vector<std::string>{"omega index", "phi index", "theta index"});
-                    mesh.setDataOrder(::openPMD::Mesh::DataOrder::C);
-                    mesh.setGridUnitSI(1);
-                    mesh.setGridSpacing(std::vector<double>{1, 1, 1});
-                    mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    transitionRadiation.setAxisLabels(
+                        std::vector<std::string>{"omega index", "phi index", "theta index"});
+                    transitionRadiation.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    transitionRadiation.setGridUnitSI(1);
+                    transitionRadiation.setGridSpacing(std::vector<double>{1, 1, 1});
+                    transitionRadiation.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
                     float_X currentFoilPositionYSI = currentFoilPositionY(currentStep) * sim.unit.length();
-                    mesh.setAttribute<float_X>("foilPositionY", currentFoilPositionYSI);
+                    transitionRadiation.setAttribute<float_X>("foilPositionY", currentFoilPositionYSI);
 
-                    mesh.setUnitDimension(
+                    transitionRadiation.setUnitDimension(
                         std::map<::openPMD::UnitDimension, double>{
                             {::openPMD::UnitDimension::L, 2.0},
                             {::openPMD::UnitDimension::M, 1.0},
                             {::openPMD::UnitDimension::T, -1.0}});
 
-                    auto transitionRadiation = mesh[::openPMD::RecordComponent::SCALAR];
                     transitionRadiation.resetDataset(dataset);
 
                     transitionRadiation.setUnitSI(
@@ -602,18 +602,17 @@ namespace picongpu
                     ::openPMD::Datatype datatypeOmega = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetOmega{datatypeOmega, extentOmega};
 
-                    auto meshOmega = iteration.meshes["detector omega"];
+                    auto omega = iteration.meshes["detector omega"];
 
-                    meshOmega.setAxisLabels(std::vector<std::string>{"omega", "", ""});
-                    meshOmega.setDataOrder(::openPMD::Mesh::DataOrder::C);
-                    meshOmega.setGridUnitSI(1);
-                    meshOmega.setGridSpacing(std::vector<double>{1, 1, 1});
-                    meshOmega.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    omega.setAxisLabels(std::vector<std::string>{"omega", "", ""});
+                    omega.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    omega.setGridUnitSI(1);
+                    omega.setGridSpacing(std::vector<double>{1, 1, 1});
+                    omega.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
 
-                    meshOmega.setUnitDimension(
+                    omega.setUnitDimension(
                         std::map<::openPMD::UnitDimension, double>{{::openPMD::UnitDimension::T, -1.0}});
 
-                    auto omega = meshOmega[::openPMD::RecordComponent::SCALAR];
                     omega.resetDataset(datasetOmega);
 
                     omega.setUnitSI(1.0 / sim.unit.time());
@@ -633,17 +632,16 @@ namespace picongpu
                     ::openPMD::Datatype datatypePhi = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetPhi{datatypePhi, extentPhi};
 
-                    auto meshPhi = iteration.meshes["detector phi"];
+                    auto phi = iteration.meshes["detector phi"];
 
-                    meshPhi.setAxisLabels(std::vector<std::string>{"", "phi", ""});
-                    meshPhi.setDataOrder(::openPMD::Mesh::DataOrder::C);
-                    meshPhi.setGridUnitSI(1);
-                    meshPhi.setGridSpacing(std::vector<double>{1, 1, 1});
-                    meshPhi.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    phi.setAxisLabels(std::vector<std::string>{"", "phi", ""});
+                    phi.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    phi.setGridUnitSI(1);
+                    phi.setGridSpacing(std::vector<double>{1, 1, 1});
+                    phi.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
 
-                    meshPhi.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
+                    phi.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
 
-                    auto phi = meshPhi[::openPMD::RecordComponent::SCALAR];
                     phi.resetDataset(datasetPhi);
 
                     phi.setUnitSI(1.0);
@@ -671,17 +669,16 @@ namespace picongpu
                     ::openPMD::Datatype datatypeTheta = ::openPMD::determineDatatype<float_X>();
                     ::openPMD::Dataset datasetTheta{datatypeTheta, extentTheta};
 
-                    auto meshTheta = iteration.meshes["detector theta"];
+                    auto theta = iteration.meshes["detector theta"];
 
-                    meshTheta.setAxisLabels(std::vector<std::string>{"", "", "theta"});
-                    meshTheta.setDataOrder(::openPMD::Mesh::DataOrder::C);
-                    meshTheta.setGridUnitSI(1);
-                    meshTheta.setGridSpacing(std::vector<double>{1, 1, 1});
-                    meshTheta.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    theta.setAxisLabels(std::vector<std::string>{"", "", "theta"});
+                    theta.setDataOrder(::openPMD::Mesh::DataOrder::C);
+                    theta.setGridUnitSI(1);
+                    theta.setGridSpacing(std::vector<double>{1, 1, 1});
+                    theta.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
 
-                    meshTheta.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
+                    theta.setUnitDimension(std::map<::openPMD::UnitDimension, double>{});
 
-                    auto theta = meshTheta[::openPMD::RecordComponent::SCALAR];
                     theta.resetDataset(datasetTheta);
 
                     theta.setUnitSI(1.0);

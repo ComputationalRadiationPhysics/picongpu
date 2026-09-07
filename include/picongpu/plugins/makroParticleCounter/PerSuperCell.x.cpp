@@ -250,7 +250,6 @@ namespace picongpu
             auto iteration = m_Series->writeIterations()[currentStep];
 
             auto mesh = iteration.meshes["makroParticlePerSupercell"];
-            auto dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
             openPMD::SetMeshAttributes setMeshAttributes(currentStep);
             // gridSpacing = SuperCellSize::toRT() * cellSize
@@ -263,10 +262,11 @@ namespace picongpu
                 }
             }
 
-            setMeshAttributes(mesh)(dataset);
-
-            dataset.resetDataset({::openPMD::determineDatatype<size_t>(), openPmdGlobalDomainExtent});
-            dataset.storeChunk(
+            mesh.resetDataset({::openPMD::determineDatatype<size_t>(), openPmdGlobalDomainExtent});
+            // Set mesh attributes after resetDataset, otherwise mesh.scalar() is false and
+            // the component attributes (e.g. position) are not applied.
+            setMeshAttributes(mesh);
+            mesh.storeChunk(
                 std::shared_ptr<size_t>{ptr, [](auto const*) {}},
                 openPmdLocalDomainOffset,
                 openPmdLocalDomainExtent);

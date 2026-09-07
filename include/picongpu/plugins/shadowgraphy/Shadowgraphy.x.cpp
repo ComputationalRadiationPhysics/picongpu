@@ -413,16 +413,15 @@ namespace picongpu
                     ::openPMD::Datatype datatype = ::openPMD::determineDatatype<float_64>();
                     ::openPMD::Dataset dataset{datatype, extent};
 
-                    auto mesh = series.iterations[currentStep].meshes["shadowgram"];
-                    mesh.setAxisLabels(std::vector<std::string>{"x", "y"});
-                    mesh.setDataOrder(::openPMD::Mesh::DataOrder::F);
-                    mesh.setGridUnitSI(1);
-                    mesh.setGridSpacing(std::vector<double>{1.0, 1.0});
-                    mesh.setAttribute<int>("duration", m_help->optionDuration.get(m_id));
-                    mesh.setAttribute<float_X>("dt", sim.unit.time() * params::tRes);
-                    mesh.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
+                    auto shadowgram = series.iterations[currentStep].meshes["shadowgram"];
+                    shadowgram.setAxisLabels(std::vector<std::string>{"x", "y"});
+                    shadowgram.setDataOrder(::openPMD::Mesh::DataOrder::F);
+                    shadowgram.setGridUnitSI(1);
+                    shadowgram.setGridSpacing(std::vector<double>{1.0, 1.0});
+                    shadowgram.setAttribute<int>("duration", m_help->optionDuration.get(m_id));
+                    shadowgram.setAttribute<float_X>("dt", sim.unit.time() * params::tRes);
+                    shadowgram.setGeometry(::openPMD::Mesh::Geometry::cartesian); // set be default
 
-                    auto shadowgram = mesh[::openPMD::RecordComponent::SCALAR];
                     shadowgram.resetDataset(dataset);
 
                     // Do not delete this object before dataPtr is not required anymore

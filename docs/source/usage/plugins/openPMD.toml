@@ -4,10 +4,8 @@ file = "simData"   # replaces --openPMD.file,
                    # given value is the default
 infix = ""         # replaces --openPMD.infix,
                    # default is "%06T"
-ext = "bp4"        # replaces --openPMD.ext,
-                   # the default is "bp4" if ADIOS2 is available, else ".h5"
-backend_config = "@./adios_config.json"    # replaces --openPMD.backendConfig,
-                                           # default is "{}"
+ext = "bp5"        # replaces --openPMD.ext,
+                   # the default is "bp5" if ADIOS2 is available, else ".h5"
 data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationStrategy,
                                            # default is "doubleBuffer"
 range = "10,:,:"   # replaces --openPMD.range
@@ -30,3 +28,49 @@ range = "10,:,:"   # replaces --openPMD.range
 "400:400" = ["E", "B"]
 # Time slice syntax is equivalent to that used by --openPMD.period
 "100:300:200,444:444" = "fields_all"
+
+# The rest of this file contains configuration that will be passed
+# to the openPMD-api, to be specified under 'backend_config'.
+# This key replaces --openPMD.json, default value is "{}".
+#
+# It can contain either:
+# (1) a TOML subexpression according to the configuration schema described at
+#     https://openpmd-api.readthedocs.io/en/latest/details/backendconfig.html
+# (2) a string parseable to such a schema as JSON or TOML
+# (3) a filesystem path (prepended with an '@') pointing to a JSON/TOML file
+#
+# This examples follows option (1) as it is the most idiomatic
+# and self-contained of the three alternatives.
+[backend_config]
+
+[backend_config.adios2]
+# PIConGPU sets this by default anyway, but for the example's sake
+attribute_writing_ranks = [0]
+
+# These are passed on to ADIOS2, see here for available options
+# https://adios2.readthedocs.io/en/latest/engines/engines.html
+[backend_config.adios2.engine.parameters]
+Profile = "On"
+BufferChunkSize = 2147381248
+StatsLevel = 1 # turned off by default for performance reasons
+
+# TOML lists are specified by listing each entry in double brackets.
+# This lets us specify compression per-dataset.
+# For extended documentation on compression in openPMD, refer to
+# https://github.com/openPMD/openPMD-api/blob/0.17.0/examples/15_compression.py
+
+# (Entry 1) Turn Blosc on by default. The default is specified by omitting the
+# select key (see entry 2), and will be picked if no other entry has matched.
+[[backend_config.adios2.dataset]]
+[[backend_config.adios2.dataset.cfg.operators]]
+type = "blosc"
+parameters.doshuffle = "BLOSC_BITSHUFFLE"
+parameters.clevel = "1"
+
+# (Entry 2) Deactivate compression for any dataset that matches any of the
+# specified regexes. The match can either be against the path within
+# the containing Iteration (e.g. 'meshes/E/x') or against the full path
+# (e.g. '/data/0/particles/e/position/x').
+[[backend_config.adios2.dataset]]
+select = [".*positionOffset.*", ".*particlePatches.*"]
+cfg.operators = []

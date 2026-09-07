@@ -131,6 +131,18 @@ namespace
         return res;
     }
 
+    static bool specialConversions(std::string const& keyName, toml::value const& tomlConfigAtKey, std::string& target)
+    {
+        if(keyName == "backend_config" && tomlConfigAtKey.is_table())
+        {
+            // openPMD config can also be specified inline inside TOML.
+            // Read to string.
+            target = toml::format(tomlConfigAtKey);
+            return true;
+        }
+        return false;
+    }
+
     void parsePluginParameters(
         picongpu::openPMD::PluginParameters& options,
         toml::value tomlConfig,
@@ -141,6 +153,10 @@ namespace
             if(!tomlConfig.contains(key))
             {
                 return; // leave the default option
+            }
+            if(specialConversions(key, tomlConfig.at(key), target))
+            {
+                return;
             }
             try
             {

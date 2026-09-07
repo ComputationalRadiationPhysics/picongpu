@@ -17,7 +17,7 @@ export LD_LIBRARY_PATH=HDF5_ROOT/lib:$LD_LIBRARY_PATH
 if [ -z "$DISABLE_OpenPMD" ] ; then
     cd $CI_PROJECT_DIR
 
-    export openPMD_VERSION=0.16.1
+    export openPMD_VERSION=0.17.0
 
     if ! agc-manager -e openPMD-api@${openPMD_VERSION}; then
         export OPENPMD_ROOT=/opt/openPMD-api/$openPMD_VERSION

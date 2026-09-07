@@ -394,11 +394,9 @@ namespace picongpu
                 auto [fullMatches, partialMatches] = getPatchIdx(params, particleSpecies);
 
                 std::shared_ptr<uint64_t> numParticlesShared
-                    = particleSpecies.particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR]
-                          .load<uint64_t>();
+                    = particleSpecies.particlePatches["numParticles"].load<uint64_t>();
                 std::shared_ptr<uint64_t> numParticlesOffsetShared
-                    = particleSpecies.particlePatches["numParticlesOffset"][::openPMD::RecordComponent::SCALAR]
-                          .load<uint64_t>();
+                    = particleSpecies.particlePatches["numParticlesOffset"].load<uint64_t>();
                 particles.seriesFlush();
                 uint64_t* patchNumParticles = numParticlesShared.get();
                 uint64_t* patchNumParticlesOffset = numParticlesOffsetShared.get();
@@ -456,8 +454,7 @@ namespace picongpu
             {
                 std::string const name_lookup[] = {"x", "y", "z"};
 
-                size_t patches = particleSpecies.particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR]
-                                     .getExtent()[0];
+                size_t patches = particleSpecies.particlePatches["numParticles"].getExtent()[0];
 
                 std::vector<DataSpace<simDim>> offsets(patches);
                 std::vector<DataSpace<simDim>> extents(patches);
