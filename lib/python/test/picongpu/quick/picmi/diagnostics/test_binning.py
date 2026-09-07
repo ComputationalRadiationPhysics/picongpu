@@ -6,6 +6,7 @@ License: GPLv3+
 
 import json
 import os
+import warnings
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
@@ -82,7 +83,11 @@ class TestBinningParticleRegion(TestCase):
         assert ".enableRegion(ParticleRegion::Leaving)" not in rendered
 
         binning_context = next(entry for entry in metadata["output"] if entry["type_binning"] is True)
-        assert binning_context["particle_region"] == {"Bounded": True, "Leaving": False}
+        assert "particle_region" not in binning_context
+        assert binning_context["region_directives"] == [
+            {"action": "enableRegion", "region": "ParticleRegion::Bounded"},
+            {"action": "disableRegion", "region": "ParticleRegion::Leaving"},
+        ]
 
     def test_leaving_region_rendered(self):
         electrons = picmi.Species(
@@ -105,7 +110,10 @@ class TestBinningParticleRegion(TestCase):
         assert ".disableRegion(ParticleRegion::Bounded)" in rendered
 
         binning_context = next(entry for entry in metadata["output"] if entry["type_binning"] is True)
-        assert binning_context["particle_region"] == {"Bounded": False, "Leaving": True}
+        assert binning_context["region_directives"] == [
+            {"action": "disableRegion", "region": "ParticleRegion::Bounded"},
+            {"action": "enableRegion", "region": "ParticleRegion::Leaving"},
+        ]
 
     def test_both_regions_rendered(self):
         electrons = picmi.Species(
@@ -113,7 +121,12 @@ class TestBinningParticleRegion(TestCase):
             particle_type="electron",
             initial_distribution=picmi.UniformDistribution(density=1e20),
         )
-        binning = self.__get_binning("both", electrons, particle_region={"Bounded", "Leaving"})
+        binning = self.__get_binning(
+            "both",
+            electrons,
+            particle_region={"Bounded", "Leaving"},
+            period=TimeStepSpec[1:],
+        )
         sim = self.__get_simulation([binning])
 
         rendered, _ = self.__render_binning_setup(sim)
@@ -127,9 +140,12 @@ class TestBinningParticleRegion(TestCase):
             (None, ["Bounded"]),
             (["Leaving"], ["Leaving"]),
             ({"Leaving", "Bounded"}, ["Bounded", "Leaving"]),
+            (("Bounded", "Leaving"), ["Bounded", "Leaving"]),
         ]:
             with self.subTest(particle_region=particle_region):
-                binning = self.__get_binning("roundtrip", electrons, particle_region=particle_region)
+                binning = self.__get_binning(
+                    "roundtrip", electrons, particle_region=particle_region, period=TimeStepSpec[1:]
+                )
                 converted = binning.get_as_pypicongpu(time_step_size=1, num_steps=16)
                 assert converted.particle_region == expected
 
@@ -139,3 +155,16 @@ class TestBinningParticleRegion(TestCase):
             self.__get_binning("invalid", electrons, particle_region=["Leaving", "MiddleEarth"])
         with self.assertRaises(ValueError):
             self.__get_binning("empty", electrons, particle_region=[])
+        with self.assertRaises(ValueError):
+            self.__get_binning("duplicate", electrons, particle_region=["Bounded", "Bounded"])
+
+    def test_leaving_with_default_period_warns(self):
+        electrons = picmi.Species(name="e", particle_type="electron")
+        with self.assertWarns(UserWarning):
+            self.__get_binning("leaving_default_period", electrons, particle_region=["Leaving"])
+
+    def test_leaving_with_period_starting_at_one_does_not_warn(self):
+        electrons = picmi.Species(name="e", particle_type="electron")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UserWarning)
+            self.__get_binning("leaving_notify_at_one", electrons, particle_region=["Leaving"], period=TimeStepSpec[1:])
