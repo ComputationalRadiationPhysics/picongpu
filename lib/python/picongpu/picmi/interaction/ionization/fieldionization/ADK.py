@@ -7,7 +7,6 @@ License: GPLv3+
 
 from .fieldionization import FieldIonization
 
-from .....pypicongpu.species.constant.ionizationcurrent import None_
 from .....pypicongpu.species.constant.ionizationmodel import (
     ADKLinearPolarization,
     ADKCircularPolarization,
@@ -36,12 +35,12 @@ class ADK(FieldIonization):
 
         if self.ADK_variant is ADKVariant.LinearPolarization:
             return ADKLinearPolarization(
-                ionization_current=None_(),
+                ionization_current=self._get_ionization_current(),
                 ionization_electron_species=self.ionization_electron_species.get_as_pypicongpu(),
             )
         if self.ADK_variant is ADKVariant.CircularPolarization:
             return ADKCircularPolarization(
-                ionization_current=None_(),
+                ionization_current=self._get_ionization_current(),
                 ionization_electron_species=self.ionization_electron_species.get_as_pypicongpu(),
             )
 
