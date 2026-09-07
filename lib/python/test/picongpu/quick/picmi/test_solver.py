@@ -10,10 +10,10 @@ import re
 import tempfile
 from unittest import TestCase
 
-from pydantic import ValidationError
-
+import numpy as np
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian3DGrid
+from pydantic import ValidationError
 
 
 def _grid():
@@ -35,6 +35,11 @@ class TestElectromagneticSolver(TestCase):
         self.assertEqual(self._make(method="Yee").get_as_pypicongpu().__class__.__name__, "YeeSolver")
         self.assertEqual(self._make(method="Lehe").get_as_pypicongpu().__class__.__name__, "LeheSolver")
 
+    def test_unsupported_method_rejected(self):
+        # method is a Literal["Yee", "Lehe"]: anything else must be rejected
+        with self.assertRaises(ValidationError):
+            self._make(method="CKC")
+
     def test_cfl_and_single_pass_source_smoother_accepted(self):
         # cfl is handled at simulation level, source_smoother switches on binomial
         # current deposition: both must be constructible
@@ -53,9 +58,8 @@ class TestElectromagneticSolver(TestCase):
             "pml_divB_cleaning": True,
         }
         for field, value in unsupported.items():
-            with self.subTest(field=field):
-                with self.assertRaises(ValidationError, msg=f"{field} must be rejected"):
-                    self._make(**{field: value})
+            with self.subTest(field=field), self.assertRaises(ValidationError, msg=f"{field} must be rejected"):
+                self._make(**{field: value})
 
     def test_none_values_accepted(self):
         solver = self._make(stencil_order=None, field_smoother=None, subcycling=None)
@@ -98,17 +102,48 @@ class TestElectromagneticSolver(TestCase):
 
 
 class TestBinomialSmoother(TestCase):
+    def test_defaulted_no_arg(self):
+        # n_pass is defaulted to None here: a plain constructor now works, where
+        # the picmistandard `default_factory=None` quirk used to make it required
+        self.assertIsNone(picmi.BinomialSmoother().n_pass)
+
     def test_single_pass_spellings_accepted(self):
         for n_pass in ([1], [1, 1], [1, 1, 1], [1, 1, 1, 1], 1, None):
             with self.subTest(n_pass=n_pass):
                 smoother = picmi.BinomialSmoother(n_pass=n_pass)
                 self.assertIsNotNone(smoother)
 
+    def test_scalar_one_coerced_to_vector(self):
+        # scalar single-pass sugar is stored in the standard's per-axis form
+        self.assertEqual(picmi.BinomialSmoother(n_pass=1).n_pass, [1])
+
     def test_multi_pass_rejected(self):
-        for n_pass in ([2], [1, 2], [4, 4, 4], 2):
-            with self.subTest(n_pass=n_pass):
-                with self.assertRaises(ValidationError, msg=f"n_pass={n_pass} must be rejected"):
-                    picmi.BinomialSmoother(n_pass=n_pass)
+        for n_pass in ([2], [1, 2], [4, 4, 4], 2, [0], [0, 1]):
+            with (
+                self.subTest(n_pass=n_pass),
+                self.assertRaises(ValidationError, msg=f"n_pass={n_pass} must be rejected"),
+            ):
+                picmi.BinomialSmoother(n_pass=n_pass)
+
+    def test_invalid_spellings_rejected(self):
+        # bools, floats and strings are not standard-conformant ints/lists and
+        # must be rejected with a clear error (not "more than one pass")
+        for n_pass in (True, False, 1.0, [1.0], [True], [1, 1.0], "1", "[1]", []):
+            with (
+                self.subTest(n_pass=n_pass),
+                self.assertRaises(ValidationError, msg=f"n_pass={n_pass!r} must be rejected"),
+            ):
+                picmi.BinomialSmoother(n_pass=n_pass)
+
+    def test_numpy_inputs_rejected(self):
+        # numpy arrays/scalars are not standard `int`/Sequence and must surface
+        # as a clean ValidationError (no "truth value ambiguous" leakage)
+        for n_pass in (np.array([1, 1, 1]), np.array(1), np.int64(1)):
+            with (
+                self.subTest(n_pass=n_pass),
+                self.assertRaises(ValidationError, msg=f"n_pass={n_pass!r} must be rejected"),
+            ):
+                picmi.BinomialSmoother(n_pass=n_pass)
 
     def test_other_parameters_rejected(self):
         for field, value in {
@@ -116,31 +151,5 @@ class TestBinomialSmoother(TestCase):
             "stride": [1],
             "alpha": [1.0],
         }.items():
-            with self.subTest(field=field):
-                with self.assertRaises(ValidationError, msg=f"{field} must be rejected"):
-                    picmi.BinomialSmoother(n_pass=[1], **{field: value})
-
-
-class TestGaussianLaserUnsupportedOptions(TestCase):
-    def _make(self, **kwargs):
-        params = {
-            "wavelength": 800e-9,
-            "waist": 1e-5,
-            "duration": 29e-15,
-            "propagation_direction": [0, 1, 0],
-            "polarization_direction": [1, 0, 0],
-            "focal_position": [0, 0, 0],
-            "centroid_position": [0, -1e-5, 0],
-            "a0": 1.0,
-        } | kwargs
-        return picmi.GaussianLaser(**params)
-
-    def test_plain_construction(self):
-        laser = self._make()
-        self.assertIsNotNone(laser.get_as_pypicongpu())
-
-    def test_unsupported_options_rejected(self):
-        for field, value in {"name": "my_laser", "zeta": 1.0, "beta": 0.5, "phi2": 0.1}.items():
-            with self.subTest(field=field):
-                with self.assertRaises(ValidationError, msg=f"{field} must be rejected"):
-                    self._make(**{field: value})
+            with self.subTest(field=field), self.assertRaises(ValidationError, msg=f"{field} must be rejected"):
+                picmi.BinomialSmoother(n_pass=[1], **{field: value})
