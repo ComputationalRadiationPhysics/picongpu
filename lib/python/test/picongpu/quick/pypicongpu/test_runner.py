@@ -19,7 +19,8 @@ from picongpu.pypicongpu.runner import (
     generate_bare_profile_as_in,
 )
 from picongpu.pypicongpu.util import UnpackChain
-from pytest import fixture
+from pydantic import ValidationError
+from pytest import fixture, raises
 
 
 @fixture
@@ -123,3 +124,23 @@ def test_build_jobs_none_means_infinite_jobs(monkeypatch):
     config = _rc_params_with_picongpurc(monkeypatch, "")
     config["build_jobs"] = None
     assert PicBuildFlags().jobs is None
+
+
+def test_string_build_jobs_is_coerced_to_int(monkeypatch):
+    # `default_factory` results are validated like explicit args, so a
+    # mis-typed string `build_jobs` is coerced (or rejected) instead of
+    # silently landing in input.yaml (where it would only fail at the CWL layer).
+    _rc_params_with_picongpurc(monkeypatch, 'build_jobs = "8"\n')
+    assert PicBuildFlags().jobs == 8
+
+
+def test_unparseable_build_jobs_is_rejected(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, 'build_jobs = "many"\n')
+    with raises(ValidationError):
+        PicBuildFlags().jobs
+
+
+def test_float_build_jobs_is_rejected(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, "build_jobs = 8.5\n")
+    with raises(ValidationError):
+        PicBuildFlags().jobs
