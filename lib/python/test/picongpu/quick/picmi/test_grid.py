@@ -45,12 +45,52 @@ class TestCartesian3DGrid(TestCase):
                 grid.get_as_pypicongpu()
 
     def test_n_gpus_wrong_numbers(self):
-        """test negativ numbers or zero as number of gpus"""
-        for not_ngpus_dist in [[0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
-            with pytest.raises(Exception, match=".*picongpu_n_gpus.*|.*Number of gpus must be positive integer.*"):
+        """bare int as well as list forms of zero or negative numbers are rejected"""
+        for not_ngpus_dist in [0, -1, -7, [0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
+            with pytest.raises(ValueError, match=".*Number of gpus must be positive integer.*"):
                 picmi.Cartesian3DGrid(
                     number_of_cells=[192, 2048, 12],
                     picongpu_n_gpus=not_ngpus_dist,
+                    **self.COMMON_KWARGS,
+                )
+
+    def test_n_gpus_wrong_length(self):
+        """empty, 2-element and 4-element sequences are rejected"""
+        for invalid in [[], (), [2, 3], (2, 3), [1, 2, 3, 4], (1, 2, 3, 4)]:
+            with pytest.raises(ValueError, match=".*could not be mapped to a 3-component list of integers.*"):
+                picmi.Cartesian3DGrid(
+                    number_of_cells=[192, 2048, 12],
+                    picongpu_n_gpus=invalid,
+                    **self.COMMON_KWARGS,
+                )
+
+    def test_n_gpus_rejects_bool(self):
+        """True/False are rejected instead of silently meaning 1/0 GPUs"""
+        for invalid in [True, False]:
+            with pytest.raises(ValueError, match=".*not a bool.*"):
+                picmi.Cartesian3DGrid(
+                    number_of_cells=[192, 2048, 12],
+                    picongpu_n_gpus=invalid,
+                    **self.COMMON_KWARGS,
+                )
+
+    def test_n_gpus_integral_float(self):
+        """integral floats are accepted via pydantic's lax coercion and documented behaviour"""
+        for value, expected in [(4.0, (1, 4, 1)), ((1, 2.0, 3), (1, 2, 3)), ([1.0, 1.0, 1.0], (1, 1, 1))]:
+            grid = picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                picongpu_n_gpus=value,
+                **self.COMMON_KWARGS,
+            )
+            assert grid.picongpu_n_gpus == expected, f"{value} should normalize to {expected}"
+
+    def test_n_gpus_invalid(self):
+        """non-int elements (incl. fractional floats) are rejected by the type check"""
+        for invalid in ["abc", [1, "x", 2], [[4]], 2.5]:
+            with pytest.raises(ValueError, match=".*Input should be a valid integer.*"):
+                picmi.Cartesian3DGrid(
+                    number_of_cells=[192, 2048, 12],
+                    picongpu_n_gpus=invalid,
                     **self.COMMON_KWARGS,
                 )
 
@@ -90,16 +130,6 @@ class TestCartesian3DGrid(TestCase):
             **self.COMMON_KWARGS,
         )
         assert grid.picongpu_n_gpus == (1, 1, 1), "None should normalize to (1, 1, 1)"
-
-    def test_n_gpus_invalid(self):
-        """2-element, non-positive and non-int values are rejected"""
-        for invalid in [[2, 3], (2, 3), [0], [-1], [1, 1, 0], "abc", [1, "x", 2]]:
-            with pytest.raises(Exception, match=".*picongpu_n_gpus.*|.*Number of gpus must be positive integer.*"):
-                picmi.Cartesian3DGrid(
-                    number_of_cells=[192, 2048, 12],
-                    picongpu_n_gpus=invalid,
-                    **self.COMMON_KWARGS,
-                )
 
     def test_n_gpus_render_list_identical(self):
         """grids built from a list render byte-identically to the normalized forms"""
