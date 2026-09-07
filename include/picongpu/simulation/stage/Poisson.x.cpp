@@ -102,8 +102,8 @@ namespace picongpu
                     po::value<uint32_t>(&m_maxSolverSteps)->default_value(2000),
                     "maximum number of steps for the solver");
                 solverDesc.add_options()(
-                    "poisson.epsilon",
-                    po::value<float_64>(&m_solverEpsilon)->default_value(1.0e-8),
+                    "poisson.tolerance",
+                    po::value<float_64>(&m_solverTolerance)->default_value(1.0e-8),
                     "maximal allowed error of the poisson solver");
                 // preconitioner
                 solverDesc.add_options()(
@@ -586,7 +586,7 @@ namespace picongpu
                     rho1 = totalSum1;
                     float_64 beta = rho1 / rho0 * alpha / omega;
                     rho0 = rho1;
-                    if(std::sqrt(totalSum2) < m_solverEpsilon)
+                    if(std::sqrt(totalSum2) < m_solverTolerance)
                     {
                         foundSolution = true;
                         break;

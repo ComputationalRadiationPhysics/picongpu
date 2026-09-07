@@ -86,9 +86,9 @@ TBG_steps="{{{time_steps}}}"
   {{#max_steps}}
     TBG_poissonsolver="$TBG_poissonsolver --poisson.maxSteps {{{max_steps}}}"
   {{/max_steps}}
-  {{#epsilon}}
-    TBG_poissonsolver="$TBG_poissonsolver --poisson.epsilon {{{epsilon}}}"
-  {{/epsilon}}
+  {{#tolerance}}
+    TBG_poissonsolver="$TBG_poissonsolver --poisson.tolerance {{{tolerance}}}"
+  {{/tolerance}}
   {{#preconditioner_disabled}}
     TBG_poissonsolver="$TBG_poissonsolver --poisson.preconditioner.disable"
   {{/preconditioner_disabled}}

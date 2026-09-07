@@ -96,7 +96,7 @@ namespace picongpu::simulation::stage
         // defaults will be overwritten by command line arguments
         bool m_useSolver = false;
         uint32_t m_maxSolverSteps = 20;
-        float_64 m_solverEpsilon = 1.0e-8;
+        float_64 m_solverTolerance = 1.0e-8;
 
         bool m_disablePreconditioner = false;
         uint32_t m_maxPreconditionerSteps = 20;
