@@ -26,9 +26,12 @@ PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID = {
 
 def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
     picongpu_n_gpus = n_gpus
-    n_gpus = tuple(n_gpus or tuple([1, 1, 1]))
+    # a bare integer is interpreted as a single number of GPUs parallelized in y
+    if isinstance(n_gpus, int):
+        n_gpus = (1, n_gpus, 1)
+    n_gpus = tuple(n_gpus or (1, 1, 1))
     if len(n_gpus) == 1:
-        n_gpus = tuple([1, n_gpus[0], 1])
+        n_gpus = (1, n_gpus[0], 1)
 
     if len(n_gpus) != 3:
         raise ValueError(
@@ -57,7 +60,9 @@ def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
     remove_prefix="picongpu_",
 )
 class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
-    picongpu_n_gpus: Annotated[tuple[int, int, int], AfterValidator(_normalise_n_gpus)] = Field(default=(1, 1, 1))
+    picongpu_n_gpus: Annotated[int | list[int] | tuple[int, int, int] | None, AfterValidator(_normalise_n_gpus)] = (
+        Field(default=(1, 1, 1))
+    )
     picongpu_grid_dist: None | list[list[int]] = Field(default=None)
     picongpu_super_cell_size: tuple[int, int, int] = Field(default=(8, 8, 4))
 
