@@ -60,6 +60,8 @@ class Binning(BaseModel):
     openPMDExtension: str | None = Field(alias="openPMDExt")
     openPMDInfix: str | None
     dumpPeriod: int
+    # `region_directives` (below) is the serialised/computed form of `particle_region`; the raw
+    # field is excluded because rendering requires list leaves to contain only dicts
     particle_region: list[ParticleRegion] = Field(default=["Bounded"], exclude=True)
 
     type_binning: Literal[True] = True
