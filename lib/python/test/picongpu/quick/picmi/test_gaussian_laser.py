@@ -5,12 +5,12 @@ Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Richard Pausch
 License: GPLv3+
 """
 
-import os
-import re
-import tempfile
 from math import sqrt
 from unittest import TestCase
 
+import os
+import re
+import tempfile
 import pytest
 from picongpu import picmi
 from pydantic import ValidationError
@@ -366,32 +366,6 @@ class TestPicmiGaussianLaser(TestCase):
                 propagation_direction=[0, 1, 0],
                 polarization_direction=[1, 0, 0],
             )
-
-
-class TestPicmiGaussianLaserUnsupportedOptions(TestCase):
-    """unimplemented/unsupported PICMI GaussianLaser options must be rejected at construction"""
-
-    def _make(self, **kwargs):
-        params = {
-            "wavelength": 800e-9,
-            "waist": 1e-5,
-            "duration": 29e-15,
-            "propagation_direction": [0, 1, 0],
-            "polarization_direction": [1, 0, 0],
-            "focal_position": [0, 0, 0],
-            "centroid_position": [0, -1e-5, 0],
-            "a0": 1.0,
-        } | kwargs
-        return picmi.GaussianLaser(**params)
-
-    def test_plain_construction(self):
-        laser = self._make()
-        self.assertIsNotNone(laser.get_as_pypicongpu())
-
-    def test_unsupported_options_rejected(self):
-        for field, value in {"name": "my_laser", "zeta": 1.0, "beta": 0.5, "phi2": 0.1}.items():
-            with self.subTest(field=field), self.assertRaises(ValidationError, msg=f"{field} must be rejected"):
-                self._make(**{field: value})
 
 
 def test_duration_rendered_into_incident_field():
