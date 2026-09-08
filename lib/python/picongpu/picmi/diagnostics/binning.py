@@ -7,7 +7,6 @@ License: GPLv3+
 
 import warnings
 from pathlib import Path
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
@@ -18,11 +17,10 @@ from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.binning import Binning as PyPIConGPUBinning
 from picongpu.pypicongpu.output.binning import BinningAxis as PyPIConGPUBinningAxis
 from picongpu.pypicongpu.output.binning import BinSpec as PyPIConGPUBinSpec
+from picongpu.pypicongpu.output.binning import ParticleRegion
 
 from ..copy_attributes import default_converts_to
 from .timestepspec import TimeStepSpec
-
-ParticleRegion = Literal["Bounded", "Leaving"]
 
 
 def _period_starts_at_zero(period: TimeStepSpec) -> bool:

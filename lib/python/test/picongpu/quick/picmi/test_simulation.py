@@ -6,16 +6,20 @@ License: GPLv3+
 """
 
 import copy
+import json
 import os
 import shutil
 import tempfile
+import warnings
 from pathlib import Path
 from unittest import TestCase
 
 import pytest
 from pydantic import ValidationError
 from picongpu import picmi
+from picongpu.picmi.diagnostics import Binning, BinningAxis, BinSpec, TimeStepSpec
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
+from picongpu.picmi.particle_functor import ParticleFunctor
 from picongpu.pypicongpu import customuserinput, species
 
 
@@ -603,3 +607,116 @@ class TestPicmiSimulation(TestCase):
         with pytest.raises(ValueError, match="Key test_data_1 exist already, and specified values differ."):
             self.sim.picongpu_add_custom_user_input(i_differentValue)
             self.sim.get_as_pypicongpu().get_rendering_context()
+
+
+class TestBinningParticleRegion(TestCase):
+    @staticmethod
+    def __get_binning(name, particle_region=None, period=None):
+        axis = BinningAxis(
+            functor=ParticleFunctor(name="dummy", functor=lambda x: 0.0, return_type=float),
+            bin_spec=BinSpec(kind="linear", start=-0.5, stop=0.5, nsteps=1),
+        )
+        kwargs = {}
+        if particle_region is not None:
+            kwargs["particle_region"] = particle_region
+        if period is not None:
+            kwargs["period"] = period
+        return Binning(
+            name=name,
+            deposition_functor=ParticleFunctor(name="unit_count", functor=lambda x: 1.0, return_type=float),
+            axes=[axis],
+            species=picmi.Species(name="e", particle_type="electron"),
+            **kwargs,
+        )
+
+    def __get_sim(self, diagnostics):
+        grid = get_grid(1e-6, 1e-6, 1e-6, 16)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid, cfl=1.0)
+        sim = picmi.Simulation(time_step_size=None, max_steps=16, solver=solver)
+        electrons = picmi.Species(
+            name="e",
+            particle_type="electron",
+            initial_distribution=picmi.UniformDistribution(density=1e20),
+        )
+        sim.add_species(electrons, picmi.PseudoRandomLayout(n_macroparticles_per_cell=2))
+        sim.diagnostics = diagnostics
+        return sim
+
+    @staticmethod
+    def __render_binning_setup(simulation):
+        with tempfile.TemporaryDirectory() as outdir:
+            simulation.write_input_file(outdir, exist_ok=True)
+
+            param_path = os.path.join(outdir, "include", "picongpu", "param", "binningSetup.param")
+            assert os.path.isfile(param_path), f"no rendered binningSetup.param under {outdir}"
+            with open(param_path) as param_file:
+                rendered = param_file.read()
+
+            metadata_path = os.path.join(outdir, "metadata", "pypicongpu_rendering_context.json")
+            assert os.path.isfile(metadata_path), f"no rendering context under {outdir}"
+            with open(metadata_path) as metadata_file:
+                metadata = json.load(metadata_file)
+
+        return rendered, metadata
+
+    def test_particle_region_passed_through_to_pypicongpu(self):
+        for particle_region, expected in [
+            (None, ["Bounded"]),
+            (["Leaving"], ["Leaving"]),
+            ({"Leaving", "Bounded"}, ["Bounded", "Leaving"]),
+            (("Bounded", "Leaving"), ["Bounded", "Leaving"]),
+        ]:
+            with self.subTest(particle_region=particle_region):
+                # when binning leaving particles, notify starts at 1 (see binningPlugin.rst)
+                binning = self.__get_binning("roundtrip", particle_region=particle_region, period=TimeStepSpec[1:])
+                converted = binning.get_as_pypicongpu(time_step_size=1, num_steps=16)
+                assert converted.particle_region == expected
+
+    def test_invalid_particle_region_rejected(self):
+        with self.assertRaises(ValueError):
+            self.__get_binning("invalid", particle_region=["Leaving", "MiddleEarth"])
+        with self.assertRaises(ValueError):
+            self.__get_binning("empty", particle_region=[])
+        with self.assertRaises(ValueError):
+            self.__get_binning("duplicate", particle_region=["Bounded", "Bounded"])
+
+    def test_particle_region_rendered_as_region_directives(self):
+        sim = self.__get_sim(
+            [self.__get_binning("regions", particle_region={"Leaving", "Bounded"}, period=TimeStepSpec[1:])]
+        )
+
+        rendered, metadata = self.__render_binning_setup(sim)
+
+        assert ".enableRegion(ParticleRegion::Bounded)" in rendered
+        assert ".enableRegion(ParticleRegion::Leaving)" in rendered
+
+        binning_context = next(entry for entry in metadata["output"] if entry["type_binning"] is True)
+        assert "particle_region" not in binning_context
+        assert binning_context["region_directives"] == [
+            {"action": "enableRegion", "region": "ParticleRegion::Bounded"},
+            {"action": "enableRegion", "region": "ParticleRegion::Leaving"},
+        ]
+
+    def test_default_particle_region_renders_bounded_only(self):
+        sim = self.__get_sim([self.__get_binning("default")])
+
+        rendered, metadata = self.__render_binning_setup(sim)
+
+        assert ".enableRegion(ParticleRegion::Bounded)" in rendered
+        assert ".disableRegion(ParticleRegion::Leaving)" in rendered
+        assert ".enableRegion(ParticleRegion::Leaving)" not in rendered
+
+        binning_context = next(entry for entry in metadata["output"] if entry["type_binning"] is True)
+        assert binning_context["region_directives"] == [
+            {"action": "enableRegion", "region": "ParticleRegion::Bounded"},
+            {"action": "disableRegion", "region": "ParticleRegion::Leaving"},
+        ]
+
+    def test_leaving_region_with_default_notify_period_warns(self):
+        with self.assertWarns(UserWarning):
+            self.__get_binning("leaving_default_period", particle_region=["Leaving"])
+
+    def test_leaving_region_with_notify_period_starting_at_one_does_not_warn(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UserWarning)
+            self.__get_binning("leaving_notify_at_one", particle_region=["Leaving"], period=TimeStepSpec[1:])

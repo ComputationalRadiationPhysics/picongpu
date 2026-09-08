@@ -23,8 +23,8 @@ from picongpu.pypicongpu.particle_functor.translate_to_cpp_type import translate
 from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
 from picongpu.pypicongpu.species import Species
 
-ParticleRegion = Literal["Bounded", "Leaving"]
-PARTICLE_REGIONS: tuple[ParticleRegion, ...] = ("Bounded", "Leaving")
+PARTICLE_REGIONS: tuple["ParticleRegion", ...] = ("Bounded", "Leaving")
+ParticleRegion = Literal[*PARTICLE_REGIONS]
 
 
 class BinSpec(RenderedObject, BaseModel):
