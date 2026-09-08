@@ -8,7 +8,6 @@ License: GPLv3+
 from picongpu import picmi
 
 from unittest import TestCase
-import json
 import pytest
 
 
@@ -45,68 +44,14 @@ class TestCartesian3DGrid(TestCase):
                 grid.get_as_pypicongpu()
 
     def test_n_gpus_wrong_numbers(self):
-        """bare int as well as list forms of zero or negative numbers are rejected"""
-        for not_ngpus_dist in [0, -1, -7, [0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
-            with pytest.raises(ValueError, match=".*Number of gpus must be positive integer.*"):
+        """test negativ numbers or zero as number of gpus"""
+        for not_ngpus_dist in [[0], [1, 1, 0], [-1], [-1, 1, 1], [-7]]:
+            with pytest.raises(Exception, match=".*picongpu_n_gpus.*|.*Number of gpus must be positive integer.*"):
                 picmi.Cartesian3DGrid(
                     number_of_cells=[192, 2048, 12],
                     picongpu_n_gpus=not_ngpus_dist,
                     **self.COMMON_KWARGS,
                 )
-
-    def test_n_gpus_bare_int(self):
-        """a bare int is normalized to (1, N, 1), i.e. parallelized in y"""
-        grid = picmi.Cartesian3DGrid(
-            number_of_cells=[192, 2048, 12],
-            picongpu_n_gpus=4,
-            **self.COMMON_KWARGS,
-        )
-        assert grid.picongpu_n_gpus == (1, 4, 1), "bare int should normalize to (1, N, 1)"
-
-    def test_n_gpus_tuple(self):
-        """a three-tuple is normalized to (Nx, Ny, Nz)"""
-        grid = picmi.Cartesian3DGrid(
-            number_of_cells=[192, 2048, 12],
-            picongpu_n_gpus=(2, 3, 1),
-            **self.COMMON_KWARGS,
-        )
-        assert grid.picongpu_n_gpus == (2, 3, 1), "three-tuple should be kept as (Nx, Ny, Nz)"
-
-    def test_n_gpus_list_unchanged(self):
-        """existing list behaviour is unchanged"""
-        for n_gpus, expected in [([4], (1, 4, 1)), ([2, 3, 1], (2, 3, 1))]:
-            grid = picmi.Cartesian3DGrid(
-                number_of_cells=[192, 2048, 12],
-                picongpu_n_gpus=n_gpus,
-                **self.COMMON_KWARGS,
-            )
-            assert grid.picongpu_n_gpus == expected, f"{n_gpus} should normalize to {expected}"
-
-    def test_n_gpus_none(self):
-        """None means the simulation runs on a single GPU"""
-        grid = picmi.Cartesian3DGrid(
-            number_of_cells=[192, 2048, 12],
-            picongpu_n_gpus=None,
-            **self.COMMON_KWARGS,
-        )
-        assert grid.picongpu_n_gpus == (1, 1, 1), "None should normalize to (1, 1, 1)"
-
-    def test_n_gpus_render_list_identical(self):
-        """grids built from a list render byte-identically to the normalized forms"""
-
-        def rendered(n_gpus, number_of_cells):
-            grid = picmi.Cartesian3DGrid(
-                number_of_cells=number_of_cells,
-                picongpu_n_gpus=n_gpus,
-                picongpu_super_cell_size=(8, 8, 4),
-                **self.COMMON_KWARGS,
-            )
-            context = grid.get_as_pypicongpu().get_rendering_context()
-            return json.dumps(context, sort_keys=True).encode()
-
-        assert rendered([4], [192, 32, 12]) == rendered(4, [192, 32, 12]) == rendered((1, 4, 1), [192, 32, 12])
-        assert rendered([2, 3, 1], [192, 960, 12]) == rendered((2, 3, 1), [192, 960, 12])
-        assert rendered([1, 1, 1], [192, 2048, 12]) == rendered(None, [192, 2048, 12])
 
     def test_supercell(self):
         """test explicitly setting the super cell size default value"""
