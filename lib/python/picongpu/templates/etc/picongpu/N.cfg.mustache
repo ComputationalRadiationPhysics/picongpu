@@ -83,18 +83,12 @@ TBG_steps="{{{time_steps}}}"
 
 {{#poisson_solver}}
   TBG_poissonsolver="--poisson.activate"
-  {{#max_steps}}
-    TBG_poissonsolver="$TBG_poissonsolver --poisson.maxSteps {{{max_steps}}}"
-  {{/max_steps}}
-  {{#tolerance}}
-    TBG_poissonsolver="$TBG_poissonsolver --poisson.tolerance {{{tolerance}}}"
-  {{/tolerance}}
+  TBG_poissonsolver="$TBG_poissonsolver --poisson.maxSteps {{{max_steps}}}"
+  TBG_poissonsolver="$TBG_poissonsolver --poisson.tolerance {{{tolerance}}}"
   {{#preconditioner_disabled}}
     TBG_poissonsolver="$TBG_poissonsolver --poisson.preconditioner.disable"
   {{/preconditioner_disabled}}
-  {{#preconditioner_max_steps}}
-    TBG_poissonsolver="$TBG_poissonsolver --poisson.preconditioner.maxSteps {{{preconditioner_max_steps}}}"
-  {{/preconditioner_max_steps}}
+  TBG_poissonsolver="$TBG_poissonsolver --poisson.preconditioner.maxSteps {{{preconditioner_max_steps}}}"
 {{/poisson_solver}}
 
 {{#binomial_current_interpolation}}

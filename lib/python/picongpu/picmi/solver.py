@@ -7,11 +7,13 @@ License: GPLv3+
 
 from collections.abc import Sequence
 from typing import Annotated, Literal
+from pydantic import Field
 
-from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
+from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver, PICMI_ElectrostaticSolver
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
+from picongpu.pypicongpu.poissonsolver import PoissonSolver
 
 
 class BinomialSmoother(PICMI_BinomialSmoother):
@@ -50,3 +52,28 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
 
     def get_as_pypicongpu(self) -> AnySolver:
         return YeeSolver() if self.method == "Yee" else LeheSolver()
+
+
+class ElectrostaticSolver(PICMI_ElectrostaticSolver):
+    """
+    PICMI Electrostatic Solver
+
+    See PICMI spec for full documentation.
+
+    Only the Poisson solver is supported; solver options that PIConGPU
+    does not implement are rejected at construction time.
+    """
+
+    method: Literal["Poisson"] = "Poisson"
+    required_precision: Annotated[float, Field(..., gt=0.0)] = 1e-8
+    maximum_iterations: Annotated[int, Field(..., gt=0)] = 2000
+    preconditioner: Literal["default", "none"] = "default"
+    preconditioner_maximum_iterations: Annotated[int, Field(..., gt=0)] = 20
+
+    def get_as_pypicongpu(self) -> PoissonSolver:
+        return PoissonSolver(
+            tolerance=self.required_precision,
+            max_steps=self.maximum_iterations,
+            preconditioner=self.preconditioner,
+            preconditioner_max_steps=self.preconditioner_maximum_iterations,
+        )
