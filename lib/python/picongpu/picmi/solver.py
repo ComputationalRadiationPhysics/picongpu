@@ -1,15 +1,17 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
+Copyright 2021-2026 PIConGPU contributors
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Edgar Marquardt
 License: GPLv3+
 """
 
 from collections.abc import Sequence
-from typing import Annotated, Literal
-from pydantic import Field
+from typing import Annotated, Literal, get_args
+from pydantic import Field, computed_field
 
-from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver, PICMI_ElectrostaticSolver
+from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
+from picmistandard.base import _PICMIModel
+from picmistandard.fields import PICMI_AnyGrid
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
@@ -54,6 +56,31 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
         return YeeSolver() if self.method == "Yee" else LeheSolver()
 
 
+class PICMI_ElectrostaticSolver(_PICMIModel):
+    """
+    Electrostatic field solver
+    """
+
+    @computed_field
+    def methods_list(self) -> list[str]:
+        # Retained for backwards compatibility reasons.
+        # The type annotation of `method` is the ground-truth.
+        return list(get_args(type(self).__annotations__["method"]))
+
+    grid: PICMI_AnyGrid = Field(description="Grid object for the diagnostic")
+
+    method: Literal["FFT", "Multigrid"] | None = Field(
+        default=None,
+        description="The advance method use to solve the poisson equation. The default method is code dependent.",
+    )
+
+    required_precision: float | None = Field(default=None, description="The required precision for iterative solvers.")
+
+    maximum_iterations: int | None = Field(
+        default=None, description="The maximum number of iterations for iterative solvers."
+    )
+
+
 class ElectrostaticSolver(PICMI_ElectrostaticSolver):
     """
     PICMI Electrostatic Solver
@@ -64,7 +91,6 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
     does not implement are rejected at construction time.
     """
 
-    method: Literal["Poisson"] = "Poisson"
     required_precision: Annotated[float, Field(..., gt=0.0)] = 1e-8
     maximum_iterations: Annotated[int, Field(..., gt=0)] = 2000
     preconditioner: Literal["default", "none"] = "default"

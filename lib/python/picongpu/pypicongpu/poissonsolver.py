@@ -17,16 +17,16 @@ class PoissonSolver(RenderedObject, BaseModel):
     Poisson solver for the electric field in the starting condition.
     """
 
-    max_steps: Annotated[int, Field(..., gt=0)] = 2000
+    max_steps: Annotated[int, Field(..., gt=0)]
     """maximum number of iterations for the Poisson solver"""
 
-    tolerance: Annotated[float, Field(..., gt=0.0)] = 1e-8
+    tolerance: Annotated[float, Field(..., gt=0.0)]
     """maximum tolerance for the Poisson solver"""
 
-    preconditioner: Literal["default", "none"] = "default"
+    preconditioner: Literal["default", "none"]
     """preconditioner for the Poisson solver"""
 
-    preconditioner_max_steps: Annotated[int, Field(..., gt=0)] = 20
+    preconditioner_max_steps: Annotated[int, Field(..., gt=0)]
     """maximum number of iterations for the preconditioner"""
 
     @computed_field
