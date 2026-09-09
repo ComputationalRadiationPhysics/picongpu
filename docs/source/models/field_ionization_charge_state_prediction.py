@@ -22,7 +22,7 @@ if picongpu_package_path not in sys.path:
 
 # import my own modules without having to write a 'noqa' comment because PEP8
 # requires all imports to be at the top of the file
-FI_module = import_module(name=".utils.field_ionization", package="picongpu")
+FI_module = import_module(name=".extra.utils.field_ionization", package="picongpu")
 
 
 params = {
@@ -71,7 +71,6 @@ if __name__ == "__main__":
 
     # atomic units
     AU_E_eV = AU["energy"] / sc.electron_volt  # eV
-    AU_F = AU["electric field"]  # V/m
     AU_I = AU["intensity"]  # W/m^2
     AU_T = AU["time"]  # s
 
@@ -103,14 +102,10 @@ if __name__ == "__main__":
     percent = 1e-2
     # femtosecond: for time conversion
     fs = 1e-15
-    # cm^2 in m^2
-    cm2 = 1e-4
 
     # ============================================================================
     #   Create the electric field distribution for our example.
     # ============================================================================
-    # laser wavelength [unit: m]
-    lambda_laser = 800.0e-9
     # maximum electric field in a0
     E_max_a0 = 10
     # maximum intensity
@@ -141,11 +136,8 @@ if __name__ == "__main__":
     #   Markovian approach for calculating the transition matrices of the problem.
     # =============================================================================
 
-    # transition matrix
+    # transition matrix: Markov absorbing state CS = 10
     trans_mat_base = np.diag(np.ones([Z_max + 1]))
-    trans_mat_before = trans_mat_base
-    # preparation of the transition matrix: Markov absorbing state CS = 10
-    trans_mat_base[Z_max, Z_max] = 1
 
     # prepare initial state
     initState = np.zeros([Z_max + 1])
