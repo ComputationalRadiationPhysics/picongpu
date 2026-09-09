@@ -195,9 +195,13 @@ def _interpolate_env_temporal_rt(env, Nr, time_axis, Nt, forced_dt, offset_frac)
         interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ir])))
         slice_angl = interp_fu_angl(time_axis_new)
         env_new[ir] = slice_abs * np.exp(1j * slice_angl)
+
+        # Status update: because this loop can take a while, we print the progress.
+        # If tqdm is available, we use that, otherwise we print every 20th iteration.
         if tqdm_available:
             pbar.update(1)
         else:
+            # We want to end at 2 * Nr - 1, so we print ir + 1. To still get round numbers, we print when ir % 20 is 19.  2 * Nr - 1
             if ir % 20 == 19:
                 print(ir + 1, "out of", 2 * Nr - 1)
 
@@ -227,9 +231,13 @@ def _interpolate_env_temporal_xyt(env, Nx, Ny, time_axis, Nt, forced_dt, offset_
             interp_fu_angl = interp1d(time_axis, np.unwrap(np.angle(env[ix, iy])))
             slice_angl = interp_fu_angl(time_axis_new)
             env_new[ix, iy] = slice_abs * np.exp(1j * slice_angl)
+
+        # Status update: because this loop can take a while, we print the progress.
+        # If tqdm is available, we use that, otherwise we print every 20th iteration.
         if tqdm_available:
             pbar.update(1)
         else:
+            # We want to end at Nx, so we print ix + 1. To still get round numbers, we print when ix % 20 is 19.
             if ix % 20 == 19:
                 print(ix + 1, "out of", Nx)
     if tqdm_available:
@@ -574,8 +582,15 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
             idx0, idx1, frac = _lasy_like_index(r, field.shape[1])
             # now we can interpolate
             field_new[ix, iy, :] = (1 - frac) * field[0, idx0, :] + frac * field[0, idx1, :]
+
+        # Status update: because this loop can take a while, we print the progress.
+        # If tqdm is available, we use that, otherwise we print every 20th iteration.
         if tqdm_available:
             pbar.update(1)
+        else:
+            # We want to end at Nx, so we print ix + 1. To still get round numbers, we print when ix % 20 is 19.
+            if ix % 20 == 19:
+                print(ix + 1, "out of", Nx)
 
     # make a partial laser for the return, containing the new field
     laser_new = _PartialLaser("xyt", lo, hi, field_new.shape, Profile(laser.profile.lambda0, laser.profile.pol))
