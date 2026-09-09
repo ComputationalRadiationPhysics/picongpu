@@ -25,8 +25,8 @@ xyt_lo = (-1e-3, -1e-3, -1e-13)
 rt_lo = (0, -1e-13)
 xyt_hi = (1e-3, 1e-3, 1e-13)
 rt_hi = (2e-3, 1e-13)
-xyt_npoints = (60, 60, 12)
-rt_npoints = (60, 12)
+xyt_npoints = (64, 64, 16)
+rt_npoints = (64, 16)
 lambda_0 = 7e-7
 E_laser = 1e-2
 w0 = 5e-4
@@ -190,8 +190,8 @@ def picmi_generate_input(directory, laser, **kwargs):
     boundary_conditions = ["periodic", "periodic", "periodic"]
     grid = picmi.Cartesian3DGrid(
         number_of_cells=xyt_npoints,
-        lower_bound=xyt_lo,
-        upper_bound=xyt_hi,
+        lower_bound=[0, 0, 0],
+        upper_bound=list(map(lambda x: 2 * x, xyt_hi)),
         lower_boundary_conditions=boundary_conditions,
         upper_boundary_conditions=boundary_conditions,
     )
@@ -253,6 +253,6 @@ def test_input_files():
     """test whether the incidentField.param is generated correctly"""
     laser = Laser("xyt", xyt_lo, xyt_hi, xyt_npoints, GaussianProfile(lambda_0, (1, 0), E_laser, w0, tau0, 0))
 
-    td = tempfile.TemporaryDirectory()
+    td = tempfile.TemporaryDirectory(delete=False)
     picmi_generate_input(td, laser)
     print(td.name)
