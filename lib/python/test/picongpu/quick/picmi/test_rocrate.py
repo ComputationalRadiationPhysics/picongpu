@@ -99,6 +99,18 @@ def test_adds_default_information_to_datasets(crate):
     assert all(["description" in dataset.properties() for dataset in crate.get_by_type("Dataset")])
 
 
-@mark.xfail(reason="Decided to disable license until we have a proper interface.")
+# rdflib 7.x deprecates ConjunctiveGraph, which the pyshacl-backed json-ld SHACL
+# check in roc-validator instantiates internally. Under the global
+# filterwarnings=["error"], that DeprecationWarning is promoted to an exception
+# inside roc_validator's per-check loop, which swallows it and logs it -- flooding
+# pytest's Log Report and silently flipping this test from XFAIL to a spurious
+# XPASS (the SHACL bodies die before issues are recorded).
+# Scope the ignore to that exact message only, so any *other* DeprecationWarning
+# (e.g. from our own fixtures) stays promoted to an error.
+@mark.filterwarnings("ignore:ConjunctiveGraph is deprecated:DeprecationWarning")
+@mark.xfail(
+    reason="Decided to disable license until we have a proper interface.",
+    strict=True,
+)
 def test_validate_rocrate(setup_dir):
     assert not validate(settings={"rocrate_uri": setup_dir, "requirement_severity": "REQUIRED"}).get_issues()
