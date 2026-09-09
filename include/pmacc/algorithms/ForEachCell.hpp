@@ -45,12 +45,6 @@ namespace pmacc::algorithms
         {
             return func(std::forward<T>(args)...);
         }
-
-        template<typename... T>
-        DEVICEONLY auto operator()(T&&... args)
-        {
-            return func(std::forward<T>(args)...);
-        }
     };
 
     template<typename T_Func>
