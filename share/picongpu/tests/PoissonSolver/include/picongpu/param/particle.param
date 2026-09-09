@@ -41,7 +41,7 @@ namespace picongpu
          *      be created / will be deleted
          *
          *  unit: none */
-        constexpr float_X MIN_WEIGHTING = 10.0;
+        constexpr float_X MIN_WEIGHTING = 1.0e-2;
 
         namespace startPosition
         {
@@ -58,7 +58,7 @@ namespace picongpu
                  *
                  * unit: none
                  */
-                static constexpr uint32_t numParticlesPerCell = 2u;
+                static constexpr uint32_t numParticlesPerCell = ::picongpu::TYPICAL_PARTICLES_PER_CELL;
             };
 
             /** Definition of start position functor that randomly distributes macro-particles within a cell. */

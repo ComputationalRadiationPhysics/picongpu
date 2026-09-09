@@ -124,7 +124,7 @@ if [ $ret_build -eq 0 ] ; then
 
   # run the simulation
   echo "Simulation path: " $simPath"/"
-  mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 64 64 64 --periodic 1 1 1 -s 4 \
+  mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 128 128 --periodic 1 1 1 -s 4 \
   --openPMD.period 8 --openPMD.ext bp --openPMD.file simData --poisson.activate
 
   ret_sim=$?

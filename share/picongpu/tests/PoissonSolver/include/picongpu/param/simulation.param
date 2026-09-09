@@ -80,5 +80,5 @@ namespace picongpu
      *
      * Used internally for unit normalization.
      */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 50u;
 } // namespace picongpu

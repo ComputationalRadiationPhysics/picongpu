@@ -57,27 +57,6 @@ namespace picongpu
     /* define species electrons */
     using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
-    /*--------------------------- ions -------------------------------------------*/
-
-    /* ratio relative to base charge and base mass */
-    value_identifier(float_X, MassRatioIons, 1836.152672);
-    value_identifier(float_X, ChargeRatioIons, -1.0);
-
-    /* ratio relative to BASE_DENSITY */
-    value_identifier(float_X, DensityRatioIons, 1.0);
-
-    using ParticleFlagsIons = MakeSeq_t<
-        particlePusher<UsedParticlePusher>,
-        shape<UsedParticleShape>,
-        interpolation<UsedField2Particle>,
-        current<UsedParticleCurrentSolver>,
-        massRatio<MassRatioIons>,
-        chargeRatio<ChargeRatioIons>,
-        densityRatio<DensityRatioIons>,
-        atomicNumbers<ionization::atomicNumbers::Hydrogen_t>>;
-
-    /* define species ions */
-    using PIC_Ions = Particles<PMACC_CSTRING("i"), ParticleFlagsIons, DefaultParticleAttributes>;
 
     /*########################### end species ####################################*/
 
@@ -86,6 +65,6 @@ namespace picongpu
      * List all defined particle species from above in this list
      * to make them available to the PIC algorithm.
      */
-    using VectorAllSpecies = MakeSeq_t<PIC_Electrons, PIC_Ions>;
+    using VectorAllSpecies = MakeSeq_t<PIC_Electrons>;
 
 } // namespace picongpu
