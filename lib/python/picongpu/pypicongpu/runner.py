@@ -96,9 +96,16 @@ class PicBuildFlags(BaseModel):
     # We explicitly disallow the some shorthands like `-c`, `-t`, ...
     # because they overlap with tbg flags and could thus lead to confusion.
     jobs: int | None = Field(
-        default=4,
+        # NOTE: This flat `build_jobs` config key is not the same as the
+        # nested `[dependencies] jobs` setting (compile parallelism for
+        # dependency builds) -- config docs should keep the two distinct.
+        default_factory=lambda: rc_params.get("build_jobs", 4),
         description="allow N jobs at once; infinite jobs if set to None",
         validation_alias=AliasChoices("jobs", "j"),
+        # `default_factory` results are not validated by default; validate so a
+        # mis-typed `build_jobs` in picongpurc.toml is caught like an explicit
+        # `PicBuildFlags(jobs=...)` argument would be.
+        validate_default=True,
     )
 
     cmake: str | None = Field(

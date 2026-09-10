@@ -7,10 +7,11 @@ License: GPLv3+
 
 from functools import reduce
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 from picongpu import rc_params
 from picongpu._rc_params import RCParams
+from picongpu.pypicongpu import runner
 from picongpu.pypicongpu.runner import (
     PicBuildFlags,
     TBGFlags,
@@ -18,7 +19,8 @@ from picongpu.pypicongpu.runner import (
     generate_bare_profile_as_in,
 )
 from picongpu.pypicongpu.util import UnpackChain
-from pytest import fixture
+from pydantic import ValidationError
+from pytest import fixture, raises
 
 
 @fixture
@@ -89,3 +91,56 @@ def test_picbuild_and_tbg_flags_are_disjoint_enough():
             for cls in (PicBuildFlags, TBGFlags)
         )
     ) == {"f", "force"}
+
+
+def _rc_params_with_picongpurc(monkeypatch, content):
+    with TemporaryDirectory() as directory:
+        picongpurc_path = Path(directory) / "picongpurc.toml"
+        picongpurc_path.write_text(content)
+        config = RCParams(picongpurc_path=picongpurc_path)
+    monkeypatch.setattr(runner, "rc_params", config)
+    monkeypatch.setattr("picongpu.rc_params", config)
+    return config
+
+
+def test_build_jobs_default_reads_from_picongpurc(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, "build_jobs = 8\n")
+    assert PicBuildFlags().jobs == 8
+
+
+def test_build_jobs_default_falls_back_to_four(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, "")
+    assert PicBuildFlags().jobs == 4
+
+
+def test_explicit_jobs_overrides_picongpurc_build_jobs(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, "build_jobs = 8\n")
+    assert PicBuildFlags(jobs=16).jobs == 16
+
+
+def test_build_jobs_none_means_infinite_jobs(monkeypatch):
+    # TOML does not know a `null` literal, so this state can only be
+    # reached programmatically, e.g. via plugin or Python API.
+    config = _rc_params_with_picongpurc(monkeypatch, "")
+    config["build_jobs"] = None
+    assert PicBuildFlags().jobs is None
+
+
+def test_string_build_jobs_is_coerced_to_int(monkeypatch):
+    # `default_factory` results are validated like explicit args, so a
+    # mis-typed string `build_jobs` is coerced (or rejected) instead of
+    # silently landing in input.yaml (where it would only fail at the CWL layer).
+    _rc_params_with_picongpurc(monkeypatch, 'build_jobs = "8"\n')
+    assert PicBuildFlags().jobs == 8
+
+
+def test_unparseable_build_jobs_is_rejected(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, 'build_jobs = "many"\n')
+    with raises(ValidationError):
+        PicBuildFlags().jobs
+
+
+def test_float_build_jobs_is_rejected(monkeypatch):
+    _rc_params_with_picongpurc(monkeypatch, "build_jobs = 8.5\n")
+    with raises(ValidationError):
+        PicBuildFlags().jobs
