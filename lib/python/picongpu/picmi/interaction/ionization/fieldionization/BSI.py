@@ -8,7 +8,6 @@ License: GPLv3+
 from .fieldionization import FieldIonization
 
 from ..... import pypicongpu
-from .....pypicongpu.species.constant.ionizationcurrent import None_
 from .....pypicongpu.species.constant import ionizationmodel
 
 import enum
@@ -33,7 +32,7 @@ class BSI(FieldIonization):
 
         if self.BSI_extensions == []:
             return ionizationmodel.BSI(
-                ionization_current=None_(),
+                ionization_current=self._get_ionization_current(),
                 ionization_electron_species=self.ionization_electron_species.get_as_pypicongpu(),
             )
 
@@ -42,12 +41,12 @@ class BSI(FieldIonization):
 
         if self.BSI_extensions[0] is BSIExtension.StarkShift:
             return ionizationmodel.BSIStarkShifted(
-                ionization_current=None_(),
+                ionization_current=self._get_ionization_current(),
                 ionization_electron_species=self.ionization_electron_species.get_as_pypicongpu(),
             )
         if self.BSI_extensions[0] is BSIExtension.EffectiveZ:
             return ionizationmodel.BSIEffectiveZ(
-                ionization_current=None_(),
+                ionization_current=self._get_ionization_current(),
                 ionization_electron_species=self.ionization_electron_species.get_as_pypicongpu(),
             )
         raise ValueError(f"unknown BSI_extension {self.BSI_extensions[0]}.")
