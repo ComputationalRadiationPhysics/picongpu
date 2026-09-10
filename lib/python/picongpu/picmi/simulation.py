@@ -18,12 +18,14 @@ from typing import Annotated, Literal
 
 import picmistandard
 from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from sympy import Symbol
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
+from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
 from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
@@ -412,6 +414,13 @@ class Simulation(picmistandard.PICMI_Simulation):
                         "A phase-space diagnostic with spatial coordinate 'z' is not supported in 2D. "
                         f"You gave {diagnostic.spatial_coordinate=} on a 2D grid."
                     )
+            for species in self.species:
+                if isinstance(species.initial_distribution, AnalyticDistribution):
+                    if Symbol("z") in species.initial_distribution.density_expression.free_symbols:
+                        raise ValueError(
+                            "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
+                            f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
+                        )
 
     def _collect_particle_filters(self):
         # This does not necessarily work on Binning plugin

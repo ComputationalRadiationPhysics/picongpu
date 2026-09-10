@@ -10,8 +10,10 @@ from unittest import TestCase
 
 import pytest
 from picongpu import picmi
+from picongpu import templates
 from picongpu.picmi import constants
 from picongpu.picmi.diagnostics import PhaseSpace, TimeStepSpec
+from picongpu.pypicongpu.rendering.renderer import Renderer
 
 
 def get_grid_2d(delta_x: float, delta_y: float, n: int = 100):
@@ -23,6 +25,22 @@ def get_grid_2d(delta_x: float, delta_y: float, n: int = 100):
         lower_boundary_conditions=["open", "open"],
         upper_boundary_conditions=["open", "open"],
     )
+
+
+def render_memory_param_supercell_size(grid) -> str:
+    """Render just the memory.param template and return the SuperCellSize line.
+
+    Uses the production rendering context + Renderer (no full directory copy), so a
+    single template can be asserted cheaply in the quick suite.
+    """
+    sim = picmi.Simulation(max_steps=1, solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.5, grid=grid))
+    pypic = sim.get_as_pypicongpu()
+    context = pypic.get_rendering_context()
+    Renderer.check_rendering_context(context)
+    preprocessed = Renderer.get_context_preprocessed(context)
+    template = (templates.path() / "include" / "picongpu" / "param" / "memory.param.mustache").read_text()
+    rendered = Renderer.get_rendered_template(preprocessed, template)
+    return next(line.strip() for line in rendered.splitlines() if "SuperCellSize =" in line)
 
 
 def get_sim_cfl_2d(delta_t, cfl, delta_2d, method="Yee", n=100) -> picmi.Simulation:
@@ -145,3 +163,63 @@ class TestCartesian2DGrid(TestCase):
         # a spatial coordinate of x/y is accepted (momentum pz stays valid in 2D3V)
         ps.spatial_coordinate = "x"
         sim.get_as_pypicongpu()
+
+    def test_memory_param_supercell_size_well_formed(self):
+        # Regression guard for the 3D memory.param SuperCellSize line: the 3D branch
+        # must emit a *well-formed* `shrinkTo<Int<...>, simDim>` (Int closed with `>`),
+        # not a stray `}` (a brace-count typo that broke every 3D build).
+        grid_3d = picmi.Cartesian3DGrid(
+            number_of_cells=[32, 32, 32],
+            lower_bound=[0, 0, 0],
+            upper_bound=[1e-6, 1e-6, 1e-6],
+            lower_boundary_conditions=["open", "open", "open"],
+            upper_boundary_conditions=["open", "open", "open"],
+        )
+        grid_2d = picmi.Cartesian2DGrid(
+            number_of_cells=[32, 32],
+            lower_bound=[0, 0],
+            upper_bound=[1e-6, 1e-6],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+
+        line_3d = render_memory_param_supercell_size(grid_3d)
+        line_2d = render_memory_param_supercell_size(grid_2d)
+
+        # 3D: shrinkTo<Int<8, 8, 4>, simDim>::type  -- Int closed with `>`, simDim is an
+        # argument of shrinkTo, not a 4th Int component. A `}` here is a parse error.
+        assert line_3d == "using SuperCellSize = typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type;"
+        assert "}" not in line_3d
+        # 2D: plain 2-component Int (no simDim, no shrinkTo).
+        assert line_2d == "using SuperCellSize = mCT::Int<8, 8>;"
+
+    def test_2d_rejects_z_dependent_analytic_density(self):
+        # 2D3V has no spatial z coordinate; a z-dependent free-formula density would
+        # render an undeclared `z` (C++ compile error). Reject it at validation time.
+        from picongpu.picmi import AnalyticDistribution
+
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[64, 64],
+            lower_bound=[0, 0],
+            upper_bound=[0.032, 0.032],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        solver = picmi.ElectromagneticSolver(method="Yee", cfl=0.5, grid=grid)
+
+        def build(density_function):
+            sim = picmi.Simulation(max_steps=1, solver=solver)
+            species = picmi.Species(
+                particle_type="electron",
+                name="electrons",
+                initial_distribution=AnalyticDistribution(density_function=density_function),
+            )
+            sim.add_species(species, layout=picmi.PseudoRandomLayout(n_macroparticles_per_cell=1))
+            return sim
+
+        # z-dependent density on a 2D grid -> clear PICMI error
+        with pytest.raises(ValueError, match=".*z.*2D.*"):
+            build(lambda x, y, z: x * y * z).get_as_pypicongpu()
+
+        # a 2D-safe (z-independent) density is accepted
+        build(lambda x, y, z: x * y).get_as_pypicongpu()
