@@ -658,10 +658,13 @@ class TestPicmiSimulationPrecision(TestCase):
         self.assertIn("precision32Bit;", self._rendered_precision_line(self._sim(picongpu_precision=32)))
         self.assertEqual(self._sim(picongpu_precision=64).get_as_pypicongpu().precision, 64)
         self.assertIn("precision64Bit;", self._rendered_precision_line(self._sim(picongpu_precision=64)))
+        self.assertEqual(self._sim(picongpu_precision=64).get_as_pypicongpu().model_dump(mode="json")["precision"], 64)
 
     def test_precision_default_is_single(self):
         sim = self._sim()
         self.assertEqual(sim.picongpu_precision, 32)
+        self.assertEqual(sim.get_as_pypicongpu().precision, 32)
+        self.assertEqual(sim.get_as_pypicongpu().model_dump(mode="json")["precision"], 32)
         self.assertIn("precision32Bit;", self._rendered_precision_line(sim))
 
     def test_invalid_precision_rejected(self):
