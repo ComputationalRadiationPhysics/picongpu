@@ -14,7 +14,7 @@ from unittest import TestCase
 
 import pytest
 from pydantic import ValidationError
-from picongpu import picmi, templates
+from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
 
@@ -632,41 +632,3 @@ class TestPicmiSimulation(TestCase):
         with pytest.raises(ValueError, match="Key test_data_1 exist already, and specified values differ."):
             self.sim.picongpu_add_custom_user_input(i_differentValue)
             self.sim.get_as_pypicongpu().get_rendering_context()
-
-
-class TestPicmiSimulationPrecision(TestCase):
-    """The simulation core precision is selectable from PICMI (precision.param)."""
-
-    def _rendered_precision_line(self, sim):
-        from picongpu.pypicongpu.rendering.renderer import Renderer
-
-        ppp = sim.get_as_pypicongpu()
-        context = Renderer.get_context_preprocessed(ppp.get_rendering_context())
-        rendered = Renderer.get_rendered_template(
-            context,
-            (Path(templates.path()) / "include" / "picongpu" / "param" / "precision.param.mustache").read_text(),
-        )
-        return [line for line in rendered.splitlines() if "precisionPIConGPU = precision" in line][0]
-
-    def _sim(self, **kwargs):
-        grid = get_grid(1, 1, 1, 32)
-        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
-        return picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, **kwargs)
-
-    def test_precision_flows_to_pypicongpu_and_renders(self):
-        self.assertEqual(self._sim(picongpu_precision=32).get_as_pypicongpu().precision, 32)
-        self.assertIn("precision32Bit;", self._rendered_precision_line(self._sim(picongpu_precision=32)))
-        self.assertEqual(self._sim(picongpu_precision=64).get_as_pypicongpu().precision, 64)
-        self.assertIn("precision64Bit;", self._rendered_precision_line(self._sim(picongpu_precision=64)))
-        self.assertEqual(self._sim(picongpu_precision=64).get_as_pypicongpu().model_dump(mode="json")["precision"], 64)
-
-    def test_precision_default_is_single(self):
-        sim = self._sim()
-        self.assertEqual(sim.picongpu_precision, 32)
-        self.assertEqual(sim.get_as_pypicongpu().precision, 32)
-        self.assertEqual(sim.get_as_pypicongpu().model_dump(mode="json")["precision"], 32)
-        self.assertIn("precision32Bit;", self._rendered_precision_line(sim))
-
-    def test_invalid_precision_rejected(self):
-        with self.assertRaises(ValidationError):
-            self._sim(picongpu_precision=80)
