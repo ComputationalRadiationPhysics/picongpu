@@ -338,6 +338,12 @@ class Runner(BaseModel):
                         "cp -r tbg_link tbg",
                         'submission_script="./tbg/submit.start"',
                         'submission_cmd="$1"',
+                        # This step runs in isolation: its working directory is
+                        # cwltool's per-step job cache dir, so resolve
+                        # TBG_dstPath/--chdir to that directory (its own pwd).
+                        # The step must not reach outside itself; the final run
+                        # directory is made to look self-contained later, by the
+                        # organize_output step stripping the cache reference.
                         'sed -i "s|TBG_dstPath=.*|TBG_dstPath=$(pwd -P)|" "$submission_script"',
                         'sed -i "s|--chdir=.*|--chdir=$(pwd -P)|" "$submission_script"',
                         r"""
