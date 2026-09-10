@@ -82,7 +82,8 @@ class TestSpeciesNameDefault(TestCase):
         self.assertEqual(s.name, "electron")
 
     def test_name_default_survives_conversion(self):
-        # A None name used to slip through to pypicongpu and crash there; it must
+        # A None name used to slip through to pypicongpu and later surface as a
+        # ValidationError at get_as_pypicongpu() (name: str rejects None); it must
         # now be a proper, C++-compatible name after conversion.
         self.assertEqual(Species(particle_type="electron").get_as_pypicongpu().name, "electron")
         self.assertEqual(Species(particle_type="H").name, "H")
@@ -96,6 +97,31 @@ class TestSpeciesNameDefault(TestCase):
     def test_no_name_and_no_particle_type_raises(self):
         with self.assertRaises(ValueError):
             Species()
+
+    def test_name_defaults_via_model_validate(self):
+        # The before-model validator must also apply to the dict-only validation path.
+        self.assertEqual(Species.model_validate({"particle_type": "electron"}).name, "electron")
+
+    def test_other_particle_type_requires_explicit_name(self):
+        # "other:" particle types are not valid C++ identifiers, so they must not be
+        # auto-used as the species name; an explicit name is required.
+        with self.assertRaises(ValueError):
+            Species(particle_type="other:MyType")
+        self.assertEqual(Species(particle_type="other:MyType", name="e").name, "e")
+
+    def test_other_particle_type_defaults_via_model_validate(self):
+        with self.assertRaises(ValueError):
+            Species.model_validate({"particle_type": "other:MyType"})
+
+    def test_name_assignment_none_not_redefaulted(self):
+        # A before-model validator does not run on attribute assignment, so an
+        # explicit `name = None` is not re-defaulted from particle_type; it only
+        # surfaces as a ValidationError later, at pypicongpu conversion.
+        s = Species(particle_type="electron", name="foo")
+        s.name = None
+        self.assertIsNone(s.name)
+        with self.assertRaises(ValueError):
+            s.get_as_pypicongpu()
 
 
 def unique_in(elements, collection):

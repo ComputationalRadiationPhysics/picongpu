@@ -133,13 +133,21 @@ class Species(PICMI_Species):
         # A before-field validator would never run when `name` is left at its
         # default (None) without `validate_default=True`, and would need
         # `ValidationInfo` to reach `particle_type`. A model-level before
-        # validator runs on the raw input regardless of defaults and is
-        # order-agnostic (particle_type is declared before name in the base).
+        # validator runs on the raw input regardless of defaults.
         if isinstance(data, dict) and data.get("name") is None:
             particle_type = data.get("particle_type")
             if particle_type is None:
                 raise ValueError(
                     "Can't come up with a proper name for your species because neither name nor particle type are given."
+                )
+            if isinstance(particle_type, str) and particle_type.startswith("other:"):
+                # "other:..." particle types are code-specific custom types and are
+                # not valid C++ identifiers, so they cannot serve as the species name
+                # (the rendered C++ header name must match r"^[A-Za-z0-9_]+$"). Require
+                # an explicit, valid name instead of auto-naming from the particle type.
+                raise ValueError(
+                    f"particle_type {particle_type!r} is a custom 'other:' type and cannot be used as a species name. "
+                    "Provide an explicit `name` (a valid identifier, e.g. name='myType')."
                 )
             data["name"] = particle_type
         return data
