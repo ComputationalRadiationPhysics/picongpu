@@ -6,13 +6,14 @@ doc: |
   binaries) and collects the run artifacts (tbg, submission information,
   link_results script). The setup is generated into ``<run_dir>/input``
   up-front, so it is staged directly as ``input`` here rather than copied
-  again.
+  again. The organize script is part of that generated setup, so it is
+  invoked from inside the staged ``input`` directory; staging it
+  separately at the workdir root would collide with the directory that
+  already contains it.
 
 requirements:
   InitialWorkDirRequirement:
     listing:
-      - entryname: organize_output.sh
-        entry: $(inputs.script)
       - entryname: input
         entry: $(inputs.project_path)
   EnvVarRequirement:
@@ -20,7 +21,7 @@ requirements:
       - envName: PICONGPU_RUNNING_AS_CWL
         envValue: "1"
 
-baseCommand: ./organize_output.sh
+baseCommand: ./input/workflow/scripts/organize_output.sh
 
 inputs:
   script:

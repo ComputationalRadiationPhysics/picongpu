@@ -325,10 +325,10 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         file_name is the single run directory: the rendered setup is written
         directly into ``<file_name>/input/`` (plus core ``etc``, scripts,
-        ``metadata`` and the RO-Crate). The directory must not yet contain an
-        ``input/`` subdirectory.
+        ``metadata`` and the RO-Crate). The run directory must be fresh:
+        re-generation into an already-generated run dir (one that already
+        holds ``input/``) is not supported.
         :param file_name: the (not-yet existing) run directory
-        :param exist_ok: if True, allow re-generation into an existing dir
         """
         if self._runner is not None:
             logging.warning("runner already initialized, overwriting")

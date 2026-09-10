@@ -264,9 +264,9 @@ handle your local job submission system, you might only build:
 .. code:: python
 
    r = Runner(sim, run_dir="/scratch/mysetups/run01")
-    r.generate()
-    r.build()
-    # ... now manually submit the job from /scratch/mysetups/run01/input
+   r.generate()
+   r.build()
+   # ... now manually submit the job from /scratch/mysetups/run01/input
 
 .. _pypicongpu_runner_dirty_tricks:
 
@@ -286,15 +286,15 @@ using an empty simulation and then overwrite the generated paths:
    from picongpu.pypicongpu.simulation import Simulation
 
    empty_sim = Simulation()
-    # leave all dirs empty, this way no checks will trigger
-    r = Runner(empty_sim)
-    # now point the run dir at the pre-prepared location;
-    # its input/ subdirectory is the prepared setup
-    r.run_dir = "/other/prepared/run"
+   # leave all dirs empty, this way no checks will trigger
+   r = Runner(empty_sim)
+   # now point the run dir at the pre-prepared location;
+   # its input/ subdirectory is the prepared setup
+   r.run_dir = "/other/prepared/run"
 
-    # skip r.generate() (which would fail), directly build
-    r.build()
-    r.run()
+   # skip r.generate() (which would fail), directly build
+   r.build()
+   r.run()
 
 While you can try that for you local setup, **it is not guaranteed to
 work**.

@@ -25,6 +25,7 @@ from pydantic import (
     Field,
     computed_field,
     field_serializer,
+    model_validator,
 )
 from rocrate.rocrate import ROCrate
 
@@ -225,6 +226,21 @@ class Runner(BaseModel):
     )
     sim: Annotated[Simulation, BeforeValidator(lambda s: alt(lambda: s.get_as_pypicongpu(), s))]
 
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_setup_dir(cls, data):
+        """
+        ``setup_dir`` is read-only (computed as ``run_dir / "input"``). A
+        supplied ``setup_dir`` is a leftover from the removed two-dir
+        model, so reject it loudly instead of silently ignoring it.
+        """
+        if isinstance(data, dict) and "setup_dir" in data and data["setup_dir"] is not None:
+            raise ValueError(
+                "setup_dir can no longer be set directly: it is derived from run_dir "
+                f"(run_dir / 'input'); pass run_dir instead (got setup_dir={data['setup_dir']!r})."
+            )
+        return data
+
     @computed_field
     @property
     def setup_dir(self) -> Path:
@@ -232,8 +248,9 @@ class Runner(BaseModel):
         The directory the setup is generated into: ``run_dir / "input"``.
 
         Read-only: ``setup_dir`` is derived from ``run_dir`` and can no
-        longer be set directly. Assigning to it raises an error; set
-        ``run_dir`` instead.
+        longer be set directly. Assigning to it raises an error, and
+        passing ``setup_dir=...`` to the constructor raises a
+        ``ValueError``; set ``run_dir`` instead.
         """
         return self.run_dir / "input"
 
