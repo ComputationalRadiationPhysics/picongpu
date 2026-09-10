@@ -41,7 +41,7 @@ class Collision(BaseModel):
 
     def get_as_pypicongpu(self):
         return PyPIConGPUCollision(
-            species_pairs=map(lambda x: map(lambda y: y.get_as_pypicongpu(), x), self.species_pairs),
+            species_pairs=[(lhs.get_as_pypicongpu(), rhs.get_as_pypicongpu()) for lhs, rhs in self.species_pairs],
             functor=self.functor,
         )
 
