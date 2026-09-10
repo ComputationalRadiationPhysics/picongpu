@@ -40,34 +40,9 @@ Note that all the following command line parameters can *alternatively* be speci
 See the next section for further information: `Configuring the openPMD plugin with a TOML configuration file>`
 
 You can use ``--openPMD.period`` to specify the output period.
-The base filename is specified via ``--openPMD.file``.
-
-The openPMD API will parse the file name to decide the default chosen backend and iteration layout:
-
-* The filename extension, specified in ``--openPMD.ext``, will determine the default backend.
-  Possible extensions include ``bp5`` (default), ``bp4``, ``bp`` (discouraged) for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
-* The openPMD plugin will by default create one file per iteration (file-based iteration layout), determined by the expansion pattern supplied in ``--openPMD.infix`` (default value: ``--openPMD.infix _%06T`` for a six-digit number specifying the iteration).
-  In order to write all iterations to a single file (variable-based or group-based iteration encoding, depending on openPMD-api version and backend), remove the filename expansion pattern by passing an empty string to the ``--openPMD.infix`` parameter.  Since passing an empty string may be tricky in some workflows, specifying ``--openPMD.infix=NULL`` is also possible.
-
-
-These chosen defaults may be overridden through a JSON/TOML options ``"iteration_encoding"`` and ``"backend"`` inside ``--openPMD.backendConfig``.
-Please refer to the `documentation of the openPMD API <https://openpmd-api.readthedocs.io/en/0.17.1/details/backendconfig.html#backend-independent-json-configuration>`_ for further information.
-
-Note that writing all data to a single file is only advisable for ADIOS2 as it natively supports such workflows through IO steps, used in openPMD by variable-based iteration encoding; example:
-
-.. literalinclude:: variablebased.txt
-
-File-based iteration encoding remains the first-class IO method for disk output from PIConGPU, and should only be replaced by another method if a specific reason is at hand.
-
-A common reason is the use of streaming IO, which is incompatible with file-based iteration encoding.
-If PIConGPU detects a streaming backend (e.g. by ``--openPMD.ext=sst``), it will automatically set ``--openPMD.infix=NULL``, overriding the user's choice.
-Note however that the ADIOS2 backend can also be selected via ``--openPMD.backendConfig`` and via environment variables which PIConGPU does not check.
-It is hence recommended to set ``--openPMD.infix=NULL`` explicitly.
-
-Group-based iteration encoding alternatively allows writing all data to a single file, supported for all IO backends, by creating new subhierarchies for every iteration.
-This has various undesirable performance and stability implications for the different backends and should not be treated as a scalable approach for IO:
-
-.. literalinclude:: groupbased.txt
+The base filename is specified via ``--openPMD.file``, the extension via ``--openPMD.ext``.
+The openPMD-api determines the backend from the specified file extension.
+Possible extensions include ``bp5`` (default), ``bp4``, ``bp`` (discouraged) for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
 
 Option ``--openPMD.source`` controls which data is put out.
 Its value is a comma-separated list of combinations of a data set name and a filter name.
@@ -243,6 +218,41 @@ In order to avoid a performance bug for parallel HDF5 on the ORNL Summit compute
 Replace ``<number_of_nodes>`` with the number of nodes that your job uses.
 These settings are applied automatically in the Summit templates found in ``etc/picongpu/summit-ornl``.
 For further information, see the `official Summit documentation <https://docs.olcf.ornl.gov/systems/summit_user_guide.html#slow-performance-using-parallel-hdf5-resolved-march-12-2019>`_ and `this pull request for WarpX <https://github.com/ECP-WarpX/WarpX/pull/2495>`_.
+
+
+Iteration Encoding
+^^^^^^^^^^^^^^^^^^
+
+The openPMD-api provides three distinct ways for representing time steps (Iterations) in its output:
+
+* **file-based encoding**: Each time step is written to a distinct file. Default in PIConGPU.
+* **variable-based encoding**: Uses backend-specific support to treat attributes and datasets as variables that change over time, with a shared structure across time steps. Writes data to a single file from which the time steps can be retrieved as IO steps. Supported only in ADIOS2.
+* **group-based encoding**: Writes all data to a single file, creating new metadata structures (groups) for each time step. Use is discouraged at scale.
+
+Without explicit specification for an iteration encoding, the openPMD-api will decide it from the specified filename and based on backend support.
+By default, the openPMD plugin will create one file per iteration (file-based iteration layout), determined by the expansion pattern supplied in ``--openPMD.infix`` (default value: ``--openPMD.infix _%06T`` for a six-digit number specifying the iteration).
+Drop this pattern in order to deactive file-based encoding.
+Since passing an empty string to ``--openPMD.infix`` may be tricky in some setups, specifying ``--openPMD.infix=NULL`` is also possible.
+In this case, variable-based encoding takes precedence over group-based encoding, which remains as a fallback option.
+
+These chosen defaults may be overridden through a JSON/TOML options ``"iteration_encoding"`` and ``"backend"`` inside ``--openPMD.backendConfig``.
+Please refer to the `documentation of the openPMD API <https://openpmd-api.readthedocs.io/en/0.17.1/details/backendconfig.html#backend-independent-json-configuration>`_ for further information.
+
+Note that writing all data to a single file is only advisable for ADIOS2 as it natively supports such workflows through IO steps, used in openPMD by variable-based iteration encoding; example:
+
+.. literalinclude:: variablebased.txt
+
+File-based iteration encoding remains the first-class IO method for disk output from PIConGPU, and should only be replaced by another method if a specific reason is at hand.
+
+A common reason is the use of streaming IO, which is incompatible with file-based iteration encoding.
+If PIConGPU detects a streaming backend (e.g. by ``--openPMD.ext=sst``), it will automatically set ``--openPMD.infix=NULL``, overriding the user's choice.
+Note however that the ADIOS2 backend can also be selected via ``--openPMD.backendConfig`` and via environment variables which PIConGPU does not check.
+It is hence recommended to set ``--openPMD.infix=NULL`` explicitly.
+
+Group-based iteration encoding alternatively allows writing all data to a single file, supported for all IO backends, by creating new subhierarchies for every iteration.
+This has various undesirable performance and stability implications for the different backends and should not be treated as a scalable approach for IO:
+
+.. literalinclude:: groupbased.txt
 
 
 Performance
