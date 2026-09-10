@@ -43,6 +43,10 @@ class DerivedFieldDump(_FieldDump):
         return None if isinstance(self.species, Species) else self.species.functor.name
 
     @computed_field
+    def species_name(self) -> str:
+        """Compile-time name of the source species, for species-eligibility narrowing."""
+        return self.species.name if isinstance(self.species, Species) else self.species.species.name
+
+    @computed_field
     def fieldname(self) -> str:
-        species_name = self.species.name if isinstance(self.species, Species) else self.species.species.name
-        return f"{species_name}_{self.filtername or 'all'}_{self.functor.name}"
+        return f"{self.species_name}_{self.filtername or 'all'}_{self.functor.name}"

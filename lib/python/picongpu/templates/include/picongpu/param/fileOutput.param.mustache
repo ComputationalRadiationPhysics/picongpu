@@ -20,13 +20,18 @@
 
 #pragma once
 
-#include <pmacc/meta/conversion/MakeSeq.hpp>
-
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/particleToGrid/CombinedDerive.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/traits/GetCTName.hpp>
+
+#include <type_traits>
 
 namespace picongpu
 {
@@ -67,6 +72,23 @@ namespace picongpu
     struct IsWeighted<{{{typename}}}> : std::true_type {};
 {{/functor}} {{/derived_fields}} {{/type_openPMD}} {{/output}}
     }
+
+{{#output}} {{#type_openPMD}} {{#derived_fields}} {{#functor}} {{#species_name}}
+    namespace particles::traits {
+        /* Restrict the derived attribute {{{typename}}} to the species it is actually
+         * defined for, so that `CreateEligible_t` (via `mp_copy_if`) instantiates the
+         * solver for only that species instead of every species in `VectorAllSpecies`.
+         * The primary `SpeciesEligibleForSolver` is `mp_bool<true>` for all species, and
+         * the `FilteredDerivedAttribute` overload forwards the attribute part here, so
+         * this single name-keyed specialization narrows the whole combination matrix. */
+        template<typename T_Species>
+        struct SpeciesEligibleForSolver<T_Species, derivedAttributes::{{{typename}}}>
+        {
+            using type = pmacc::mp_bool<
+                std::is_same_v<pmacc::traits::GetCTName_t<T_Species>, PMACC_CSTRING("{{{species_name}}}")>>;
+        };
+    }
+{{/species_name}} {{/functor}} {{/derived_fields}} {{/type_openPMD}} {{/output}}
 
 {{#output}} {{#type_openPMD}} {{#derived_fields}} {{#functor}}
     using {{{typename}}}_Seq

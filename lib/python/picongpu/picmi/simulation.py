@@ -333,6 +333,7 @@ class Simulation(picmistandard.PICMI_Simulation):
                         else PyPIConGPUFieldDump(
                             name=diagnostic.fieldname,
                             filtername=diagnostic.filtername,
+                            species_name=None if isinstance(diagnostic, NativeFieldDump) else diagnostic.species_name,
                             functor=None
                             if isinstance(diagnostic, NativeFieldDump)
                             else diagnostic.functor.get_as_pypicongpu(mode="DerivedField"),
