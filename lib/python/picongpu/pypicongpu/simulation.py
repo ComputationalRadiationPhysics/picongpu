@@ -20,7 +20,7 @@ from picongpu.pypicongpu.species.species import Species
 
 from .customuserinput import CustomUserInput
 from .field_solver import AnySolver
-from .grid import Grid3D
+from .grid import Grid2D, Grid3D
 from .laser import AnyLaser
 from .movingwindow import MovingWindow
 from .output import AnyPlugin, OpenPMDPlugin
@@ -47,7 +47,7 @@ class Simulation(RenderedObject, BaseModel):
     time_steps: int
     """Total number of time steps to be executed."""
 
-    grid: Grid3D
+    grid: Grid3D | Grid2D
     """Used grid Object"""
 
     laser: list[AnyLaser] | None

@@ -23,10 +23,12 @@ from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
-from picongpu.picmi.grid import Cartesian3DGrid
+from picongpu.picmi.diagnostics.phase_space import PhaseSpace
+from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
+from picongpu.picmi.solver import _ao_fDTD_weight_sum
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
@@ -47,7 +49,7 @@ from picongpu.pypicongpu.walltime import Walltime
 
 class _DensityImpl(BaseModel):
     layout: AnyLayout
-    grid: Cartesian3DGrid
+    grid: AnyGrid
     species: Species
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -229,7 +231,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         if (
             self.solver is not None
             and self.solver.method in self._CFL_GATED_SOLVER_METHODS
-            and isinstance(self.solver.grid, Cartesian3DGrid)
+            and isinstance(self.solver.grid, (Cartesian3DGrid, Cartesian2DGrid))
         ):
             self._compute_cfl_or_delta_t()
         return self
@@ -242,7 +244,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         Only works for solvers that impose a CFL limit (Yee, Lehe, CKC and
         other:ArbitraryOrderFDTD); "other:None" has no CFL limit and is skipped.
 
-        :throw AssertionError: if grid (of solver) is not 3D cartesian grid
+        :throw AssertionError: if grid (of solver) is not a cartesian grid
         :throw AssertionError: if solver is None
         :throw AssertionError: if solver does not impose a CFL limit
         :throw ValueError: if both cfl & delta_t are set, and they don't match
@@ -263,23 +265,24 @@ class Simulation(picmistandard.PICMI_Simulation):
         """
         assert self.solver is not None
         assert self.solver.method in self._CFL_GATED_SOLVER_METHODS
-        assert isinstance(self.solver.grid, Cartesian3DGrid)
+        assert isinstance(self.solver.grid, (Cartesian3DGrid, Cartesian2DGrid))
 
-        delta_x = (
-            self.solver.grid.upper_bound[0] - self.solver.grid.lower_bound[0]
-        ) / self.solver.grid.number_of_cells[0]
-        delta_y = (
-            self.solver.grid.upper_bound[1] - self.solver.grid.lower_bound[1]
-        ) / self.solver.grid.number_of_cells[1]
-        delta_z = (
-            self.solver.grid.upper_bound[2] - self.solver.grid.lower_bound[2]
-        ) / self.solver.grid.number_of_cells[2]
+        # The CFL factor is sqrt(sum over the spatial dimensions of 1/delta_i^2).
+        # In 2D the z term is dropped, so a square 2D grid yields a factor of sqrt(2)
+        # (not sqrt(3) as in 3D).
+        grid = self.solver.grid
+        delta_i = [
+            (grid.upper_bound[i] - grid.lower_bound[i]) / grid.number_of_cells[i]
+            for i in range(grid.number_of_dimensions)
+        ]
+        cfl_factor = math.sqrt(sum(1.0 / delta**2 for delta in delta_i))
 
         if self.solver.method in ("Yee", "Lehe"):
             # Legacy second-order FDTD: cfl = delta_t * c * sqrt(sum 1/dx^2).
-            # Kept as the original arithmetic so Yee/Lehe results are bit-for-bit
-            # unchanged.
-            cfl_scale = constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+            # Kept as the original arithmetic (cfl_factor is the dimension-aware
+            # version and equals the 3D formula for a 3D grid) so Yee/Lehe results
+            # are bit-for-bit unchanged.
+            cfl_scale = constants.c * cfl_factor
 
             def _delta_t_from_cfl(cfl):
                 return cfl / cfl_scale
@@ -289,8 +292,13 @@ class Simulation(picmistandard.PICMI_Simulation):
         else:
             # CKC (min cell) and other:ArbitraryOrderFDTD (Yee term / weight-sum):
             # cfl = c * delta_t / max_c_dt, where max_c_dt is the solver's CFL
-            # limit on c * delta_t (see ElectromagneticSolver._cfl_max_cdt).
-            max_c_dt = self.solver._cfl_max_cdt(delta_x, delta_y, delta_z)
+            # limit on c * delta_t (see ElectromagneticSolver._cfl_max_cdt),
+            # computed here over the spatial dimensions so 2D grids work too.
+            inv_cell_sum = sum(1.0 / delta**2 for delta in delta_i)
+            if self.solver.method == "CKC":
+                max_c_dt = min(delta_i)
+            else:
+                max_c_dt = 1 / (_ao_fDTD_weight_sum(self.solver._stencil_neighbors) * math.sqrt(inv_cell_sum))
             assert max_c_dt is not None, "solver does not impose a CFL limit"
 
             def _delta_t_from_cfl(cfl):
@@ -396,6 +404,14 @@ class Simulation(picmistandard.PICMI_Simulation):
             pypicongpu.util.unsupported("laser injection method", self.laser_injection_methods, [])
         if self.max_steps is None and self.max_time is None:
             raise ValueError("runtime not specified (neither as step count nor max time)")
+        if isinstance(self.solver.grid, Cartesian2DGrid):
+            # 2D3V: there is no spatial z coordinate (momentum still has all three components).
+            for diagnostic in filter(lambda d: isinstance(d, PhaseSpace), self.diagnostics):
+                if diagnostic.spatial_coordinate == "z":
+                    raise ValueError(
+                        "A phase-space diagnostic with spatial coordinate 'z' is not supported in 2D. "
+                        f"You gave {diagnostic.spatial_coordinate=} on a 2D grid."
+                    )
 
     def _collect_particle_filters(self):
         # This does not necessarily work on Binning plugin

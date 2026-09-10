@@ -51,17 +51,18 @@ namespace picongpu
          *  unit: seconds */
         constexpr float_64 DELTA_T_SI = {{{delta_t_si}}};
 
-        {{#grid.cell_size}}
         /** equals X
          *  unit: meter */
-        constexpr float_64 CELL_WIDTH_SI = {{{x}}};
+        constexpr float_64 CELL_WIDTH_SI = {{{grid.cell_size.x}}};
         /** equals Y - the laser & moving window propagation direction
          *  unit: meter */
-        constexpr float_64 CELL_HEIGHT_SI = {{{y}}};
+        constexpr float_64 CELL_HEIGHT_SI = {{{grid.cell_size.y}}};
         /** equals Z
+         *
+         * In 2D3V this is the wire-particle integration length used to normalize
+         * densities (not a resolved spatial dimension).
          *  unit: meter */
-        constexpr float_64 CELL_DEPTH_SI = {{{z}}};
-        {{/grid.cell_size}}
+        constexpr float_64 CELL_DEPTH_SI = {{#grid.has_z}}{{{grid.cell_size.z}}}{{/grid.has_z}}{{^grid.has_z}}{{{grid.cell_depth}}}{{/grid.has_z}};
 
         /** Note on units in reduced dimensions
          *

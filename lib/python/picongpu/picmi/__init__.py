@@ -14,7 +14,7 @@ from .distribution import (
     GaussianDistribution,
     UniformDistribution,
 )
-from .grid import Cartesian3DGrid
+from .grid import Cartesian2DGrid, Cartesian3DGrid
 from .interaction import (
     Collision,
     ConstLogCollision,
@@ -49,6 +49,7 @@ __all__ = [
     "Simulation",
     "ParticleFunctor",
     "Cartesian3DGrid",
+    "Cartesian2DGrid",
     "ElectromagneticSolver",
     "BinomialSmoother",
     "DispersivePulseLaser",
