@@ -82,7 +82,7 @@ namespace picongpu
          * the `FilteredDerivedAttribute` overload forwards the attribute part here, so
          * this single name-keyed specialization narrows the whole combination matrix. */
         template<typename T_Species>
-        struct SpeciesEligibleForSolver<T_Species, derivedAttributes::{{{typename}}}>
+        struct SpeciesEligibleForSolver<T_Species, particleToGrid::derivedAttributes::{{{typename}}}>
         {
             using type = pmacc::mp_bool<
                 std::is_same_v<pmacc::traits::GetCTName_t<T_Species>, PMACC_CSTRING("{{{species_name}}}")>>;
