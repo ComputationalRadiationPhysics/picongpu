@@ -14,7 +14,7 @@ from itertools import chain, groupby
 from os import PathLike
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import picmistandard
 from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
@@ -198,6 +198,14 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
+
+    picongpu_precision: Literal[32, 64] = Field(default=32)
+    """
+    floating point precision of the simulation core (see ``precision.param``)
+
+    32 (single precision, default) or 64 (double precision). Controls the
+    ``precisionPIConGPU`` namespace in the generated ``precision.param``.
+    """
 
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
@@ -440,6 +448,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             base_density=self._get_base_density(),
             synchrotron_params=synchrotron_params[0],
             collisional_physics=collisions[0].get_as_pypicongpu(),
+            precision=self.picongpu_precision,
         )
 
     def _get_base_density(self) -> float:
