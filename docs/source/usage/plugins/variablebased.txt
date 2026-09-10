@@ -1,0 +1,26 @@
+  float     /data/fields/B/x                                      2*{192, 1024, 192}
+  float     /data/fields/B/y                                      2*{192, 1024, 192}
+  float     /data/fields/B/z                                      2*{192, 1024, 192}
+  float     /data/fields/E/x                                      2*{192, 1024, 192}
+  float     /data/fields/E/y                                      2*{192, 1024, 192}
+  float     /data/fields/E/z                                      2*{192, 1024, 192}
+  float     /data/fields/e_all_chargeDensity                      2*{192, 1024, 192}
+  float     /data/fields/e_all_energyDensity                      2*{192, 1024, 192}
+  float     /data/particles/e/momentum/x                          2*{71811072}
+  float     /data/particles/e/momentum/y                          2*{71811072}
+  float     /data/particles/e/momentum/z                          2*{71811072}
+  uint64_t  /data/particles/e/particlePatches/extent/x            2*{__}
+  uint64_t  /data/particles/e/particlePatches/extent/y            2*{__}
+  uint64_t  /data/particles/e/particlePatches/extent/z            2*{__}
+  uint64_t  /data/particles/e/particlePatches/numParticles        2*{__}
+  uint64_t  /data/particles/e/particlePatches/numParticlesOffset  2*{__}
+  uint64_t  /data/particles/e/particlePatches/offset/x            2*{__}
+  uint64_t  /data/particles/e/particlePatches/offset/y            2*{__}
+  uint64_t  /data/particles/e/particlePatches/offset/z            2*{__}
+  float     /data/particles/e/position/x                          2*{71811072}
+  float     /data/particles/e/position/y                          2*{71811072}
+  float     /data/particles/e/position/z                          2*{71811072}
+  int32_t   /data/particles/e/positionOffset/x                    2*{71811072}
+  int32_t   /data/particles/e/positionOffset/y                    2*{71811072}
+  int32_t   /data/particles/e/positionOffset/z                    2*{71811072}
+  float     /data/particles/e/weighting                           2*{71811072}
