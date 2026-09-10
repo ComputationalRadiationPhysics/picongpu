@@ -170,10 +170,12 @@ def test_float_build_jobs_is_rejected(monkeypatch):
 
 def test_generate_exist_ok_regenerates_existing_setup_dir(picmi_sim, tmp_path):
     """generate(exist_ok=True) overwrites a previously generated setup dir instead of failing (#5752)"""
-    setup_dir = tmp_path / "setup"
-    runner = Runner(sim=picmi_sim, setup_dir=setup_dir)
+    run_dir = tmp_path / "run"
+    runner = Runner(sim=picmi_sim, run_dir=run_dir)
     runner.generate()
 
+    # the generated setup lives at run_dir/input (setup_dir is read-only)
+    setup_dir = runner.setup_dir
     param_file = setup_dir / "include" / "picongpu" / "param" / "simulation.param"
     nested_file = setup_dir / "etc" / "picongpu" / "N.cfg"
     assert param_file.is_file()

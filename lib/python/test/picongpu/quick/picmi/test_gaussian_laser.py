@@ -394,9 +394,9 @@ def test_duration_rendered_into_incident_field():
     sim.add_laser(laser, None)
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        output_dir = os.path.join(tmpdir, "input")
+        output_dir = os.path.join(tmpdir, "run")
         sim.write_input_file(output_dir)
-        rendered_path = os.path.join(output_dir, "include", "picongpu", "param", "incidentField.param")
+        rendered_path = os.path.join(output_dir, "input", "include", "picongpu", "param", "incidentField.param")
         with open(rendered_path) as rendered_file:
             rendered = rendered_file.read()
 

@@ -116,23 +116,26 @@ class OpenPMDPlugin(BaseModel):
 
     type_openPMD: Literal[True] = True
     _setup_dir: Path | None = PrivateAttr(None)
-    # We're using a negation here because now `False` and `None` (evaluating to `False`)
-    # both mean that we can't rely on `setup_dir` being anything permanent:
-    _setup_dir_is_not_temporary: bool | None = PrivateAttr(None)
+    # Whether ``setup_dir`` was explicitly provided (i.e. wired to a Runner whose
+    # ``setup_dir`` is the canonical input dir) or merely a lazily created temp dir.
+    _setup_dir_explicit: bool = PrivateAttr(False)
 
     def config_filename(self, content, context: Literal["runtime", "setup"]):
         filename = f"openPMD_config_{sha256(tomli_w.dumps(content).encode()).hexdigest()}.toml"
-        if not self._setup_dir_is_not_temporary or context == "setup":
+        if context == "setup":
             return self.setup_dir / "etc" / filename
         if context == "runtime":
-            return Path("..") / "input" / "etc" / filename
+            if self._setup_dir_explicit:
+                # The setup dir is the canonical input dir (``run_dir/input``); the
+                # batch job runs from a sibling of ``input`` so the config is reached
+                # via ``../input/etc``.
+                return Path("..") / "input" / "etc" / filename
+            # Standalone (no Runner): reference the config by its absolute location.
+            return self.setup_dir / "etc" / filename
         raise ValueError(f"Unknown {context=} upon requesting the openPMD config filename.")
 
     @property
     def setup_dir(self):
-        if self._setup_dir_is_not_temporary is None:
-            self._setup_dir_is_not_temporary = self._setup_dir is not None
-
         if self._setup_dir is None:
             self._setup_dir = Path(TemporaryDirectory(delete=False).name).absolute()
 
@@ -141,6 +144,7 @@ class OpenPMDPlugin(BaseModel):
     @setup_dir.setter
     def setup_dir(self, other):
         self._setup_dir = Path(other)
+        self._setup_dir_explicit = True
 
     def _generate_config_file(self):
         # There's some strange interaction with the custom hashing of TimeStepSpec

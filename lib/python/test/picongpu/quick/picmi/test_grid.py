@@ -305,7 +305,7 @@ class TestCartesian3DGrid(TestCase):
                     time_step_size=17, max_steps=4, solver=picmi.ElectromagneticSolver(method="Yee", grid=grid)
                 )
                 sim.write_input_file(outdir)
-                text = (Path(outdir) / "include" / "picongpu" / "param" / "memory.param").read_text()
+                text = (Path(outdir) / "input" / "include" / "picongpu" / "param" / "memory.param").read_text()
                 match = re.search(r"using GuardSize = typename mCT::shrinkTo<mCT::Int<([^>]*)>,", text)
                 return tuple(int(v) for v in match.group(1).split(","))
             finally:

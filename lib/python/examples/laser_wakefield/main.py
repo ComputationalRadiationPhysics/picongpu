@@ -244,8 +244,8 @@ sim.add_laser(laser, None)
 if __name__ == "__main__":
     match MODE:
         case "run":
-            sim.run(setup_dir=OUTPUT_DIRECTORY_PATH / "setup", run_dir=OUTPUT_DIRECTORY_PATH / "run")
+            sim.run(run_dir=OUTPUT_DIRECTORY_PATH / "run")
         case "write":
-            sim.write_input_file(OUTPUT_DIRECTORY_PATH / "setup")
+            sim.write_input_file(OUTPUT_DIRECTORY_PATH / "run")
         case _:
             raise ValueError(f"Unknown {MODE=}.")

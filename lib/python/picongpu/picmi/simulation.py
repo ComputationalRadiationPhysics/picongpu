@@ -323,16 +323,18 @@ class Simulation(picmistandard.PICMI_Simulation):
         """
         generate input data set for picongpu
 
-        file_name must be path to a not-yet existing directory (will be filled
-        by pic-create)
-        :param file_name: not yet existing directory
-        :param pypicongpu_simulation: manipulated pypicongpu simulation
+        file_name is the single run directory: the rendered setup is written
+        directly into ``<file_name>/input/`` (plus core ``etc``, scripts,
+        ``metadata`` and the RO-Crate). The directory must not yet contain an
+        ``input/`` subdirectory.
+        :param file_name: the (not-yet existing) run directory
+        :param exist_ok: if True, allow re-generation into an existing dir
         """
         if self._runner is not None:
             logging.warning("runner already initialized, overwriting")
 
         self._runner = Runner(
-            sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), setup_dir=Path(file_name)
+            sim=self, template_dir=self.picongpu_template_dir or (templates.path(),), run_dir=Path(file_name)
         )
         self._runner.generate(exist_ok=exist_ok, **flags)
 
@@ -482,9 +484,9 @@ class Simulation(picmistandard.PICMI_Simulation):
     def run(self, *args, **kwargs) -> None:
         return self.picongpu_run(*args, **kwargs)
 
-    def picongpu_run(self, setup_dir=None, run_dir=None, **flags) -> None:
+    def picongpu_run(self, run_dir=None, **flags) -> None:
         """build and run PIConGPU simulation"""
-        runner = self.picongpu_get_runner(setup_dir=setup_dir, run_dir=run_dir)
+        runner = self.picongpu_get_runner(run_dir=run_dir)
         runner.generate(**flags)
         runner.run()
 

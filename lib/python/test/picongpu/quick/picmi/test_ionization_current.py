@@ -110,9 +110,9 @@ def _render_speciesDefinition(ionizer) -> str:
     sim.picongpu_interaction = [ionizer]
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        output_dir = os.path.join(tmpdir, "input")
-        sim.write_input_file(output_dir)
-        rendered_path = os.path.join(output_dir, "include", "picongpu", "param", "speciesDefinition.param")
+        run_dir = os.path.join(tmpdir, "run")
+        sim.write_input_file(run_dir)
+        rendered_path = os.path.join(run_dir, "input", "include", "picongpu", "param", "speciesDefinition.param")
         with open(rendered_path) as rendered_file:
             return rendered_file.read()
 

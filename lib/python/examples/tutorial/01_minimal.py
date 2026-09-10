@@ -32,4 +32,4 @@ sim = Simulation(
 )
 
 OUTPUT_PATH = Path(__file__[: -len(".py")])
-sim.run(setup_dir=OUTPUT_PATH / "setup", run_dir=OUTPUT_PATH / "run")
+sim.run(run_dir=OUTPUT_PATH / "run")

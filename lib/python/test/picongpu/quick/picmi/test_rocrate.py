@@ -39,9 +39,10 @@ def sim():
 
 @fixture
 def setup_dir(sim):
+    # The rendered setup (and its RO-Crate) is written into ``<run_dir>/input``.
     with TemporaryDirectory() as d:
         sim.write_input_file(d, exist_ok=True)
-        yield Path(d)
+        yield Path(d) / "input"
 
 
 @fixture

@@ -1,13 +1,20 @@
 cwlVersion: v1.2
 class: CommandLineTool
 label: "Organize output"
-doc: "Sets up the expected directory structure particularly by copying over the input"
+doc: |
+  Assembles the input directory (the generated setup plus the compiled
+  binaries) and collects the run artifacts (tbg, submission information,
+  link_results script). The setup is generated into ``<run_dir>/input``
+  up-front, so it is staged directly as ``input`` here rather than copied
+  again.
 
 requirements:
   InitialWorkDirRequirement:
     listing:
       - entryname: organize_output.sh
         entry: $(inputs.script)
+      - entryname: input
+        entry: $(inputs.project_path)
   EnvVarRequirement:
     envDef:
       - envName: PICONGPU_RUNNING_AS_CWL

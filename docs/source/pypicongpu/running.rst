@@ -165,17 +165,16 @@ Used Locations
    your scratch location in your environment where you also load
    PIConGPU. Note: Do not use your home as scratch on HPC. Will be left
    empty if not specified. Must already exist if specified.
--  setup directory (``setup_dir``): Holds the parameter set and
-   ``pic-build`` is called from here. Will be generated in temporary
-   directory (``/tmp``) if not given. Must not yet exist when invoking
-   the runner. If you just want to run a simulation, the setup dir is
-   not important to you. Forget this paragraph.
--  run directory (``run_dir``): Holds all data associated with a single
-   PIConGPU run. This includes the input data (copy of setup dir) and
-   **all results**, typically **inside the subdirectory ``simOutput``**.
-   Must be **accessable from all involved machines**. (This is not
-   checked automatically!) If not given, a directory inside the scratch
-   dir will be generated. Must not yet exist when invoking the runner.
+-  run directory (``run_dir``): The single, user-facing run directory.
+   It holds the generated input (inside its ``input/`` subdirectory,
+   where ``pic-build`` runs and the compiled ``bin/`` lands), the batch
+   submission artifacts and **all results**, typically **inside the
+   subdirectory ``simOutput``**. Must be **accessable from all involved
+   machines**. (This is not checked automatically!) If not given, a
+   directory inside the scratch dir will be generated. Its ``input/``
+   subdirectory must not yet exist when invoking the runner.
+   ``setup_dir`` is no longer a settable location: it is a read-only
+   convenience that simply points at ``run_dir / "input"``.
 -  template directory (``pypicongpu_template_dir``): **Only needs to be
    specified if things fail.** (Specifically, *generation* fails at
    ``pic-create``). Holds the template inside which the generated code
@@ -188,9 +187,9 @@ In summary:
 +===========+============+================+===========================+===========================+=================================================================+
 | scratch   | yes        | no             | user                      | PyPIConGPU                | holds many run dirs                                             |
 +-----------+------------+----------------+---------------------------+---------------------------+-----------------------------------------------------------------+
-| setup     | no         | yes            | generation (`pic-create`) | build (`pic-build`)       | holds one simulation setup ("scenario")                         |
+| run       | no         | no             | generation / execution    | user/analysis scripts     | single run dir; holds input/ + all results of a simulation run  |
 +-----------+------------+----------------+---------------------------+---------------------------+-----------------------------------------------------------------+
-| run       | no         | yes            | execution (`tbg`)         | user/analysis scripts     | holds results of a single simulation run                        |
+| run/input | no         | yes            | generation (`pic-create`) | build (`pic-build`)       | the simulation setup ("scenario"); `==` the old setup dir       |
 +-----------+------------+----------------+---------------------------+---------------------------+-----------------------------------------------------------------+
 | template  | yes        | no             | PyPIConGPU source code    | generation (`pic-create`) | holds predefined project template -- **can usually be ignored** |
 +-----------+------------+----------------+---------------------------+---------------------------+-----------------------------------------------------------------+
@@ -212,9 +211,9 @@ Normal Operation
    results_dir = os.path.join(r.run_dir, "simOutput")
    analyze(results_dir)
 
-Set the parameters (``setup_dir``, ``scratch_dir``, ``run_dir``,
-``pypicongpu_template_dir``) in the constructor of the Runner. All
-parameters are optional, pypicongpu will try to guess them for you.
+Set the parameters (``run_dir``, ``pypicongpu_template_dir``) in the
+constructor of the Runner. All parameters are optional, pypicongpu will
+try to guess them for you.
 
 Some sanity checks are performed on all given parameters, and all paths
 will be translated to absolute paths. For all paths only a small
@@ -264,10 +263,10 @@ handle your local job submission system, you might only build:
 
 .. code:: python
 
-   r = Runner(sim, setup_dir="/scratch/mysetups/setup01")
-   r.generate()
-   r.build()
-   # ... now manually submit the job from /scratch/mysetups/setup01
+   r = Runner(sim, run_dir="/scratch/mysetups/run01")
+    r.generate()
+    r.build()
+    # ... now manually submit the job from /scratch/mysetups/run01/input
 
 .. _pypicongpu_runner_dirty_tricks:
 
@@ -287,14 +286,15 @@ using an empty simulation and then overwrite the generated paths:
    from picongpu.pypicongpu.simulation import Simulation
 
    empty_sim = Simulation()
-   # leave all dirs empty, this way no checks will trigger
-   r = Runner(empty_sim)
-   # now overwrite setup dir
-   r.setup_dir = "/other/prepared/setup"
+    # leave all dirs empty, this way no checks will trigger
+    r = Runner(empty_sim)
+    # now point the run dir at the pre-prepared location;
+    # its input/ subdirectory is the prepared setup
+    r.run_dir = "/other/prepared/run"
 
-   # skip r.generate() (which would fail), directly build
-   r.build()
-   r.run()
+    # skip r.generate() (which would fail), directly build
+    r.build()
+    r.run()
 
 While you can try that for you local setup, **it is not guaranteed to
 work**.
