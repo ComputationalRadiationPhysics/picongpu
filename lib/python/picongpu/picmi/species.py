@@ -127,16 +127,22 @@ class Species(PICMI_Species):
             )
         return value
 
-    @field_validator("name", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def _validate_name(cls, value, values):
-        if value is None:
-            if values["particle_type"] is None:
+    def _default_name_from_particle_type(cls, data):
+        # A before-field validator would never run when `name` is left at its
+        # default (None) without `validate_default=True`, and would need
+        # `ValidationInfo` to reach `particle_type`. A model-level before
+        # validator runs on the raw input regardless of defaults and is
+        # order-agnostic (particle_type is declared before name in the base).
+        if isinstance(data, dict) and data.get("name") is None:
+            particle_type = data.get("particle_type")
+            if particle_type is None:
                 raise ValueError(
                     "Can't come up with a proper name for your species because neither name nor particle type are given."
                 )
-            value = values["particle_type"]
-        return value
+            data["name"] = particle_type
+        return data
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

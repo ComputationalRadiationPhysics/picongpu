@@ -76,6 +76,28 @@ class TestSpeciesShapeAndMethod(TestCase):
                     construct.get_as_pypicongpu()
 
 
+class TestSpeciesNameDefault(TestCase):
+    def test_name_defaults_from_particle_type(self):
+        s = Species(particle_type="electron")
+        self.assertEqual(s.name, "electron")
+
+    def test_name_default_survives_conversion(self):
+        # A None name used to slip through to pypicongpu and crash there; it must
+        # now be a proper, C++-compatible name after conversion.
+        self.assertEqual(Species(particle_type="electron").get_as_pypicongpu().name, "electron")
+        self.assertEqual(Species(particle_type="H").name, "H")
+
+    def test_explicit_name_is_kept(self):
+        self.assertEqual(Species(particle_type="electron", name="my_e").name, "my_e")
+
+    def test_explicit_none_name_falls_back(self):
+        self.assertEqual(Species(particle_type="electron", name=None).name, "electron")
+
+    def test_no_name_and_no_particle_type_raises(self):
+        with self.assertRaises(ValueError):
+            Species()
+
+
 def unique_in(elements, collection):
     collection = list(collection)
     return (collection.count(e) == 1 for e in elements)
