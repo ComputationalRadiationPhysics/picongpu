@@ -5,9 +5,9 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
-from typing import Annotated
+from typing import Annotated, Sequence
 import picmistandard
-from pydantic import AfterValidator, Field, computed_field
+from pydantic import AfterValidator, BeforeValidator, Field, computed_field
 
 from ..pypicongpu import grid, util
 from .copy_attributes import converts_to
@@ -24,11 +24,41 @@ PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID = {
 }
 
 
+def _reject_bool_n_gpus(n_gpus):
+    # bool is an int subclass, so without this explicit check pydantic's lax
+    # int coercion would silently turn True/False into 1/0 GPUs.
+    if isinstance(n_gpus, bool):
+        raise ValueError(
+            f"picongpu_n_gpus must be a positive int or a sequence of positive ints, not a bool. You gave {n_gpus!r}."
+        )
+    return n_gpus
+
+
 def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
+    """Normalise the accepted forms of ``picongpu_n_gpus`` into a 3-tuple.
+
+    Accepted forms:
+      * ``None`` -> single-GPU default ``(1, 1, 1)``
+      * a bare positive int ``N`` -> parallelise in y: ``(1, N, 1)``
+      * a 1-element sequence ``[N]`` / ``(N,)`` -> ``(1, N, 1)``
+      * a 3-element sequence ``[Nx, Ny, Nz]`` / ``(Nx, Ny, Nz)`` -> unchanged
+
+    Everything else (empty, wrong-length or non-positive sequences, ...) is
+    rejected. Note that pydantic's lax mode coerces whole-number floats to int
+    (``4.0`` -> ``4``) before this runs, so integral floats are accepted as the
+    equivalent int on purpose.
+    """
     picongpu_n_gpus = n_gpus
-    n_gpus = tuple(n_gpus or tuple([1, 1, 1]))
+    # a bare integer is interpreted as a single number of GPUs parallelized in y
+    if n_gpus is None:
+        n_gpus = (1, 1, 1)
+    elif isinstance(n_gpus, int):
+        n_gpus = (1, n_gpus, 1)
+    else:
+        n_gpus = tuple(n_gpus)
+
     if len(n_gpus) == 1:
-        n_gpus = tuple([1, n_gpus[0], 1])
+        n_gpus = (1, n_gpus[0], 1)
 
     if len(n_gpus) != 3:
         raise ValueError(
@@ -57,7 +87,12 @@ def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
     remove_prefix="picongpu_",
 )
 class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
-    picongpu_n_gpus: Annotated[tuple[int, int, int], AfterValidator(_normalise_n_gpus)] = Field(default=(1, 1, 1))
+    # number of GPUs to distribute the grid over; whatever form is given, it
+    # is normalized to a 3-tuple (see _normalise_n_gpus): a bare int N and [N]
+    # both mean "parallelize over N GPUs in y", i.e. (1, N, 1)
+    picongpu_n_gpus: Annotated[
+        int | Sequence[int] | None, BeforeValidator(_reject_bool_n_gpus), AfterValidator(_normalise_n_gpus)
+    ] = Field(default=(1, 1, 1))
     picongpu_grid_dist: None | list[list[int]] = Field(default=None)
     picongpu_super_cell_size: tuple[int, int, int] = Field(default=(8, 8, 4))
 
