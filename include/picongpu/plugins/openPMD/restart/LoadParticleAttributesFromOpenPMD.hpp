@@ -59,7 +59,7 @@ namespace picongpu
              * array
              */
             template<typename FrameType>
-            HINLINE void operator()(
+            void operator()(
                 ThreadParams* params,
                 FrameType& frame,
                 ::openPMD::ParticleSpecies particleSpecies,
