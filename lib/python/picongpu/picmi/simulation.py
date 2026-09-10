@@ -24,6 +24,7 @@ from picongpu.picmi import constants
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.grid import Cartesian3DGrid
+from picongpu.picmi.solver import ElectrostaticSolver
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
@@ -198,6 +199,9 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
+
+    picongpu_electrostatic_solver: ElectrostaticSolver | None = Field(default=None)
+    """Electrostatic solver to use for electrostatic calculations for the starting conditions"""
 
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
@@ -429,6 +433,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             grid=self.solver.grid.get_as_pypicongpu(),
             binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
+            poisson_solver=self.picongpu_electrostatic_solver.get_as_pypicongpu()
+            if self.picongpu_electrostatic_solver is not None
+            else None,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,

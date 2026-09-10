@@ -1,0 +1,52 @@
+/* Copyright 2013-2024 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+
+namespace picongpu
+{
+    namespace densityProfiles
+    {
+        /* definition of the functor that defines the density profile */
+        struct CoaxialWireFunctor
+        {
+            static constexpr float3_64 center_SI{1.28e-4, 0.0, 1.28e-4};
+
+            static constexpr float_64 innerRadius_SI = 2.0e-5;
+            static constexpr float_64 outerRadius_SI = 4.0e-5;
+
+            HDINLINE float_X operator()(floatD_64 const& position_SI, float3_64 const& cellSize_SI) const
+            {
+                float_64 const dx = position_SI.x() - center_SI.x();
+                float_64 const dz = position_SI.z() - center_SI.z();
+                float_64 const radiusSquared = dx * dx + dz * dz;
+
+                return float_X(
+                    radiusSquared >= innerRadius_SI * innerRadius_SI && radiusSquared < outerRadius_SI * outerRadius_SI
+                    && position_SI.y() > 16 * cellSize_SI.y() && position_SI.y() < (128 - 16) * cellSize_SI.y());
+            }
+        };
+
+        /* definition of coaxial wire profile */
+        using CoaxialWire = FreeFormulaImpl<CoaxialWireFunctor>;
+    } // namespace densityProfiles
+} // namespace picongpu
