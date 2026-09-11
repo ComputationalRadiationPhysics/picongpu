@@ -778,7 +778,7 @@ namespace picongpu
                     }
                     else
                     {
-                        uint32_t const localNrOfCells
+                        uint64_t const localNrOfCells
                             = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
                         cellCount = localNrOfCells * numProc;
                         particleCount = localNrOfCells * TYPICAL_PARTICLES_PER_CELL
