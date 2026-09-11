@@ -8,7 +8,13 @@ License: GPLv3+
 import json
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, computed_field, field_serializer
+from pydantic import (
+    BaseModel,
+    Field,
+    computed_field,
+    field_serializer,
+    field_validator,
+)
 
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
@@ -16,6 +22,9 @@ from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFuncto
 from picongpu.pypicongpu.particle_functor.translate_to_cpp_type import translate_from_cpp_type
 from picongpu.pypicongpu.rendering.renderedobject import RenderedObject
 from picongpu.pypicongpu.species import Species
+
+PARTICLE_REGIONS: tuple["ParticleRegion", ...] = ("Bounded", "Leaving")
+ParticleRegion = Literal[*PARTICLE_REGIONS]
 
 
 class BinSpec(RenderedObject, BaseModel):
@@ -51,8 +60,30 @@ class Binning(BaseModel):
     openPMDExtension: str | None = Field(alias="openPMDExt")
     openPMDInfix: str | None
     dumpPeriod: int
+    # `region_directives` (below) is the serialised/computed form of `particle_region`; the raw
+    # field is excluded because rendering requires list leaves to contain only dicts
+    particle_region: list[ParticleRegion] = Field(default=["Bounded"], exclude=True)
 
     type_binning: Literal[True] = True
+
+    @field_validator("particle_region")
+    @classmethod
+    def _validate_particle_region(cls, value):
+        if not value:
+            raise ValueError("particle_region must contain at least one region")
+        if len(set(value)) != len(value):
+            raise ValueError("particle_region must not contain duplicate regions")
+        return value
+
+    @computed_field
+    def region_directives(self) -> list[dict[str, str]]:
+        return [
+            {
+                "action": "enableRegion" if region in self.particle_region else "disableRegion",
+                "region": f"ParticleRegion::{region}",
+            }
+            for region in PARTICLE_REGIONS
+        ]
 
     @field_serializer("openPMDBackendConfig")
     def _serialize_openPMDBackendConfig(self, value) -> str | None:
