@@ -664,8 +664,8 @@ namespace picongpu
             int drawingTime = 0;
             int simulationTime = 0;
             bool directPause = false;
-            int cellCount = 0;
-            int particleCount = 0;
+            uint64_t cellCount = 0;
+            uint64_t particleCount = 0;
             uint64_t lastNotify = 0;
             bool reconnect = false;
 
@@ -778,7 +778,7 @@ namespace picongpu
                     }
                     else
                     {
-                        int const localNrOfCells
+                        uint32_t const localNrOfCells
                             = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
                         cellCount = localNrOfCells * numProc;
                         particleCount = localNrOfCells * TYPICAL_PARTICLES_PER_CELL
