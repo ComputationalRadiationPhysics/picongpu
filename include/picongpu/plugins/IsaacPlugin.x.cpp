@@ -664,8 +664,8 @@ namespace picongpu
             int drawingTime = 0;
             int simulationTime = 0;
             bool directPause = false;
-            int cellCount = 0;
-            int particleCount = 0;
+            uint64_t cellCount = 0;
+            uint64_t particleCount = 0;
             uint64_t lastNotify = 0;
             bool reconnect = false;
 
@@ -778,11 +778,15 @@ namespace picongpu
                     }
                     else
                     {
-                        int const localNrOfCells
-                            = cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents();
-                        cellCount = localNrOfCells * numProc;
-                        particleCount = localNrOfCells * TYPICAL_PARTICLES_PER_CELL
-                                        * (pmacc::mp_size<VectorAllSpecies>::type::value) * numProc;
+                        uint64_t const localNrOfCells
+                            = static_cast<uint64_t>(
+                                cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents()
+                            );
+                        cellCount = localNrOfCells * static_cast<uint64_t>(numProc);
+                        particleCount = localNrOfCells * static_cast<uint64_t>(
+                                          TYPICAL_PARTICLES_PER_CELL
+                                        * (pmacc::mp_size<VectorAllSpecies>::type::value)
+                                        * numProc);
                         lastNotify = getTicksUs();
                         if(rank == 0)
                         {
