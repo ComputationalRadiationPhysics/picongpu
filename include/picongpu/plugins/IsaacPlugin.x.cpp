@@ -778,15 +778,13 @@ namespace picongpu
                     }
                     else
                     {
-                        uint64_t const localNrOfCells
-                            = static_cast<uint64_t>(
-                                cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents()
-                            );
+                        uint64_t const localNrOfCells = static_cast<uint64_t>(
+                            cellDescription->getGridLayout().sizeWithoutGuardND().productOfComponents());
                         cellCount = localNrOfCells * static_cast<uint64_t>(numProc);
-                        particleCount = localNrOfCells * static_cast<uint64_t>(
-                                          TYPICAL_PARTICLES_PER_CELL
-                                        * (pmacc::mp_size<VectorAllSpecies>::type::value)
-                                        * numProc);
+                        particleCount = localNrOfCells
+                                        * static_cast<uint64_t>(
+                                            TYPICAL_PARTICLES_PER_CELL
+                                            * (pmacc::mp_size<VectorAllSpecies>::type::value) * numProc);
                         lastNotify = getTicksUs();
                         if(rank == 0)
                         {
