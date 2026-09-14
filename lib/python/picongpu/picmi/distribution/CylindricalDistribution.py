@@ -92,7 +92,6 @@ class CylindricalDistribution(Distribution):
                 " none or neither!"
             )
 
-        # @todo change to constructor call once we switched PyPIConGPU to use pydantic, Brian Marre, 2024
         return species.operation.densityprofile.Cylinder(
             density_si=self.density,
             center_position_si=self.center_position,

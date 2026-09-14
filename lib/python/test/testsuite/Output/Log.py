@@ -148,6 +148,3 @@ def errorLog(direction: str = None):
     fobj_out.close()
 
     sys.exit(42)
-
-
-# ToDo usedDatalog
