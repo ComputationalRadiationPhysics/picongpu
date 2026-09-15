@@ -94,6 +94,47 @@ class _BaseLaser(BaseModel):
     """Position in cells of the Huygens surface relative to start/
        edge(negative numbers) of the total domain"""
 
+    def _dominant_axis(self) -> int:
+        """Axis index (0/1/2) of the largest-magnitude propagation component."""
+        magnitudes = [abs(component.component) for component in self.propagation_direction]
+        return magnitudes.index(max(magnitudes))
+
+    @computed_field
+    def entry_face(self) -> str:
+        """Name of the box face the laser enters through (e.g. ``YMin``).
+
+        A positive dominant component means entry from the ``Min`` (low) side, a
+        negative one from the ``Max`` (high) side of that axis.
+        """
+        axis = self._dominant_axis()
+        component = self.propagation_direction[axis].component
+        suffix = "Min" if component > 0 else "Max"
+        return "xyz"[axis].upper() + suffix
+
+    @computed_field
+    def on_XMin(self) -> bool:
+        return self.entry_face == "XMin"
+
+    @computed_field
+    def on_XMax(self) -> bool:
+        return self.entry_face == "XMax"
+
+    @computed_field
+    def on_YMin(self) -> bool:
+        return self.entry_face == "YMin"
+
+    @computed_field
+    def on_YMax(self) -> bool:
+        return self.entry_face == "YMax"
+
+    @computed_field
+    def on_ZMin(self) -> bool:
+        return self.entry_face == "ZMin"
+
+    @computed_field
+    def on_ZMax(self) -> bool:
+        return self.entry_face == "ZMax"
+
     def _get_common_serialized_fields(self) -> dict:
         """Get all common serialized fields for lasers"""
         return self.model_dump(mode="json")
