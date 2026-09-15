@@ -1,0 +1,77 @@
+/* Copyright 2025 Filip Optolowicz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/fusion/fusion.def"
+
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace fusion
+        {
+            namespace precision
+            {
+                using float_COLL = float_64;
+            } // namespace precision
+
+            using namespace picongpu::plugins;
+
+            /** Define your fusion reactions here.
+             * See documentation: https://picongpu.readthedocs.io/en/latest/usage/workflows/fusionReactions.html
+             */
+            using FusionPipeline = pmacc::mp_list<>;
+
+            /** Memory allocation control: chunk size for cell list storage.
+             *
+             * Sets the memory allocation chunk size for the cell-based particle lists
+             * used during fusion collision detection. Should typically be set to
+             * TYPICAL_PARTICLES_PER_CELL to match the expected particle density.
+             */
+            constexpr uint32_t cellListChunkSize = TYPICAL_PARTICLES_PER_CELL;
+
+            /** Maximum allowed fusion reaction rate multiplier per time step.
+             *
+             * This is used to increase the number of product particles while simultaneously decreasing the weight of
+             * each product particle to improve statistics of fusion products.
+             */
+            constexpr float_X maxFmult = 1e6;
+
+            /** Enable debug output for fusion processes.
+             *
+             * When true, enables detailed debugging information for fusion reactions
+             * including collision pair information, cross-sections, and product creation.
+             * If enabled, may create enormous amounts of output data if using gpu.
+             */
+            constexpr bool debugFusion = false;
+
+            /** Force 100% fusion probability (debug flag).
+             *
+             * When true, forces all eligible reactant pairs to fuse regardless of the
+             * calculated fusion cross-section probability. This is a debug/test feature
+             * and should be false for realistic physics simulations. Useful for testing
+             * fusion product creation and energy conservation.
+             */
+            constexpr bool alwaysFuseQ = false;
+        } // namespace fusion
+    } // namespace particles
+} // namespace picongpu
