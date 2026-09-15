@@ -5,7 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Richard Pausch
 License: GPLv3+
 """
 
-from math import sqrt
+from math import pi, sqrt
 from unittest import TestCase
 
 import numpy as np
@@ -127,18 +127,49 @@ class TestPicmiGaussianLaser(TestCase):
         assert picmi_laser.get_as_pypicongpu().focus_pos_si[2] == -5
 
     def test_values_propagation_direction(self):
-        """only propagation in y+ permitted"""
-        invalid_propagation_vectors = [
-            [1, 2, 3],
-            [0, 0, 1],
-            [1, 0, 0],
-            [sqrt(2), sqrt(2), 0],
-            [1, 0, -1],
-            [0, 0, 0],
-            [0, -1, 0],
+        """standard lasers may enter through any coordinate face; the entry face is the
+        one whose normal is the dominant propagation-direction component, and the
+        centroid must be outside the box on that entry side."""
+
+        # (propagation_direction, centroid_position, focal_position, expected entry face)
+        valid_cases = [
+            ([0, 1, 0], [0.5, -1, 0.5], [0.5, 2, 0.5], "YMin"),
+            ([0, -1, 0], [0.5, 1, 0.5], [0.5, 2, 0.5], "YMax"),
+            ([1, 0, 0], [-1, 0.5, 0.5], [2, 0.5, 0.5], "XMin"),
+            ([-1, 0, 0], [1, 0.5, 0.5], [2, 0.5, 0.5], "XMax"),
+            ([0, 0, 1], [0.5, 0.5, -1], [0.5, 0.5, 2], "ZMin"),
+            ([0, 0, -1], [0.5, 0.5, 1], [0.5, 0.5, 2], "ZMax"),
+            # non-axis direction with a clear dominant (+y) component
+            (
+                (np.array([1, 3, 1]) / sqrt(11)).tolist(),
+                (np.array([-2, -6, -2]) / sqrt(11)).tolist(),
+                [0, 0, 0],
+                "YMin",
+            ),
         ]
 
-        for invalid_propagation_vector in invalid_propagation_vectors:
+        for propagation_direction, centroid, focal, expected_face in valid_cases:
+            laser = GaussianLaser(
+                wavelength=1,
+                waist=2,
+                duration=3,
+                focal_position=focal,
+                centroid_position=centroid,
+                propagation_direction=propagation_direction,
+                polarization_direction=[1, 0, 0],
+                E0=1,
+            )
+            self.assertEqual(laser.get_as_pypicongpu().entry_face, expected_face)
+
+        # invalid propagation directions: unnormalized, zero, or centroid not outside
+        # the box on the entry side.
+        invalid_cases = [
+            [1, 2, 3],  # unnormalized
+            [0, 0, 0],  # zero
+            [0, 0, 1],  # +z with centroid_z > 0 (below)
+            [1, 0, 0],  # +x with centroid_x > 0 (below)
+        ]
+        for invalid_propagation_vector in invalid_cases:
             with self.assertRaises(ValidationError):
                 GaussianLaser(
                     wavelength=1,
@@ -151,17 +182,19 @@ class TestPicmiGaussianLaser(TestCase):
                     E0=1,
                 )
 
-        # positive direction works
-        GaussianLaser(
-            wavelength=1,
-            waist=2,
-            duration=3,
-            focal_position=[0.5, 0, 0.5],
-            centroid_position=[0.5, 0, 0.5],
-            propagation_direction=[1 / sqrt(3), 1 / sqrt(3), 1 / sqrt(3)],
-            polarization_direction=[1, 0, 0],
-            E0=1,
-        )
+        # a valid direction can still be rejected when the centroid is on the wrong
+        # side of the entry face (e.g. +y with centroid_y > 0).
+        with self.assertRaises(ValidationError):
+            GaussianLaser(
+                wavelength=1,
+                waist=2,
+                duration=3,
+                focal_position=[0.5, 2, 0.5],
+                centroid_position=[0.5, 1, 0.5],
+                propagation_direction=[0, 1, 0],
+                polarization_direction=[1, 0, 0],
+                E0=1,
+            )
 
     def test_values_polarization_direction(self):
         """polarization_vector must be normalized"""
@@ -424,6 +457,104 @@ def test_dispersive_pulse_laser_duration_converted_to_pulse_duration():
     )
     pypic_laser = picmi_laser.get_as_pypicongpu()
     assert abs(pypic_laser.pulse_duration_si - _pulse_duration(duration_picmi_si)) < 1e-24
+
+
+def _rendered_incident_field(laser):
+    """Render a single-laser simulation and return the incidentField.param text."""
+    grid = Cartesian3DGrid(
+        number_of_cells=[128, 512, 256],
+        lower_bound=[0, 0, 0],
+        upper_bound=[17, 192, 42],
+        lower_boundary_conditions=["periodic"] * 3,
+        upper_boundary_conditions=["periodic"] * 3,
+    )
+    sim = Simulation(time_step_size=1, max_steps=2, solver=ElectromagneticSolver(method="Yee", grid=grid))
+    sim.add_laser(laser, None)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_dir = os.path.join(tmpdir, "input")
+        sim.write_input_file(output_dir)
+        rendered_path = os.path.join(output_dir, "include", "picongpu", "param", "incidentField.param")
+        with open(rendered_path) as rendered_file:
+            return rendered_file.read()
+
+
+def _enabled_faces(rendered):
+    """Return the list of faces (of the six) that carry a LaserProfile."""
+    faces = []
+    for face in ["XMin", "XMax", "YMin", "YMax", "ZMin", "ZMax"]:
+        if re.search(r"using %s = MakeSeq_t<[^>]*LaserProfile" % face, rendered, re.DOTALL):
+            faces.append(face)
+    return faces
+
+
+def test_entry_face_plus_y_regression():
+    """propagation along +y: entry face is YMin and pulse_init matches the legacy formula (#88)."""
+    laser = GaussianLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.5, 5e-6, 0.5],
+        centroid_position=[0.5, -5e-6, 0.5],
+        propagation_direction=[0, 1, 0],
+        polarization_direction=[1, 0, 0],
+        a0=1.0,
+    )
+    pypic = laser.get_as_pypicongpu()
+    assert pypic.entry_face == "YMin"
+    # legacy +y formula, in units of PULSE_DURATION (= duration / 2):
+    expected = -2.0 * laser.centroid_position[1] / c / _pulse_duration(laser.duration)
+    assert abs(pypic.pulse_init - expected) < 1e-9
+    assert _enabled_faces(_rendered_incident_field(laser)) == ["YMin"]
+
+
+def test_entry_face_plus_z_and_pulse_init():
+    """propagation along +z: entry face is ZMin (not YMin) and pulse_init is valid (#88)."""
+    laser = GaussianLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.5, 0.5, 5e-6],
+        centroid_position=[0.5, 0.5, -5e-6],
+        propagation_direction=[0, 0, 1],
+        polarization_direction=[1, 0, 0],
+        a0=1.0,
+    )
+    pypic = laser.get_as_pypicongpu()
+    assert pypic.entry_face == "ZMin"
+    # generalized formula: -2 * dot(centroid, direction) / (c * PULSE_DURATION)
+    expected = -2.0 * np.dot(laser.centroid_position, laser.propagation_direction) / c / _pulse_duration(
+        laser.duration
+    )
+    assert abs(pypic.pulse_init - expected) < 1e-9
+    assert pypic.pulse_init > 0.0
+    assert _enabled_faces(_rendered_incident_field(laser)) == ["ZMin"]
+
+
+def test_twts_laser_entry_behavior_unchanged():
+    """TWTS keeps its dedicated YMin + ZMin/ZMax two-plane placement and the +y entry face (#88).
+
+    With laserIncidenceAngle = 0 the propagation direction is [0, cos, sin] = +y and
+    laserIncidenceAnglePositive is False, so the incident field is placed on YMin and
+    ZMax (the pre-existing two-plane behavior that this change must not alter).
+    """
+    twts = picmi.TWTSLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        laserIncidenceAngle=0.0,
+        polarizationAngle=pi / 4,
+        focal_position=[0.0, 5e-6, 0.0],
+        centroid_position=[0.0, -5e-6, 0.0],
+        a0=1.0,
+    )
+    pypic = twts.get_as_pypicongpu()
+    # the propagation direction is [0, cos(angle), sin(angle)] = +y for angle 0
+    assert pypic.entry_face == "YMin"
+    # TWTS keeps its base pulse-duration convention (sigma = duration), and for +y
+    # propagation the generalized pulse_init reduces to the original expression.
+    assert abs(pypic.pulse_init - (-2.0 * twts.centroid_position[1] / c / twts.duration)) < 1e-9
+    # incident field is placed on YMin and ZMax (angle not positive), not on any other face
+    assert _enabled_faces(_rendered_incident_field(twts)) == ["YMin", "ZMax"]
 
 
 class TestGaussianLaserFieldComputation(TestCase):
