@@ -555,6 +555,39 @@ def test_twts_laser_entry_behavior_unchanged():
     assert _enabled_faces(_rendered_incident_field(twts)) == ["YMin", "ZMax"]
 
 
+def test_twts_laser_keeps_legacy_pulse_init_at_nonzero_angle():
+    """TWTS keeps its own +y-only pulse_init and validation for a non-zero angle (#88).
+
+    With laserIncidenceAngle != 0 the direction-generalized pulse_init
+    (-2*dot(centroid,dir)/(c*sigma)) differs from the legacy y-only expression
+    (-2*centroid_y/(dir_y*c*sigma)). For this config the generalized form is
+    negative (dot(centroid,dir) > 0) and would be rejected by the pypicongpu
+    ge=0 constraint, whereas the legacy formula stays positive and is accepted --
+    pinning that TWTS behavior is unchanged for non-zero angles.
+    """
+    angle = pi / 6  # 30 deg: cos dominant, positive -> YMin
+    twts = picmi.TWTSLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        laserIncidenceAngle=angle,
+        polarizationAngle=pi / 4,
+        focal_position=[0.0, 5e-6, 0.0],
+        centroid_position=[0.0, -5e-6, 10e-6],
+        a0=1.0,
+    )
+    pypic = twts.get_as_pypicongpu()
+    # legacy +y-only pulse_init (sigma = duration for TWTS), positive here:
+    expected = -2.0 * twts.centroid_position[1] / twts.propagation_direction[1] / c / twts.duration
+    assert abs(pypic.pulse_init - expected) < 1e-9
+    assert pypic.pulse_init > 0.0
+    # the generalized (dot) formula is negative for this config, proving TWTS does not use it
+    generalized = -2.0 * float(np.dot(twts.centroid_position, twts.propagation_direction)) / c / twts.duration
+    assert generalized < 0.0
+    # two-plane placement is driven by the angle sign, not the entry face (angle > 0 -> ZMin)
+    assert _enabled_faces(_rendered_incident_field(twts)) == ["YMin", "ZMin"]
+
+
 class TestGaussianLaserFieldComputation(TestCase):
     """
     Check the analytic field computation against the properties the underlying

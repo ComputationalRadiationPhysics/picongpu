@@ -5,10 +5,13 @@ Authors: Julian Lenz, Alexander Debus
 License: GPLv3+
 """
 
+import logging
 import math
 from collections.abc import Sequence
 
 from picmistandard import PICMI_Laser, resolve_once
+
+import numpy as np
 from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser
@@ -75,7 +78,7 @@ class TWTSLaser(PICMI_Laser, BaseLaser):
 
     @computed_field
     def pulse_init(self) -> float:
-        return self._compute_pulse_init()
+        return self._compute_twts_pulse_init()
 
     @computed_field
     def k0(self) -> float:
@@ -106,9 +109,63 @@ class TWTSLaser(PICMI_Laser, BaseLaser):
     def time_offset_si(self) -> float:
         return (self.focal_position[1] - self.centroid_position[1]) / (self.beta0 * constants.c)
 
+    def _compute_twts_pulse_init(self):
+        # TWTS always enters through the YMin face, so the beam travels along +y to
+        # reach it. Keep the y-only expression (and its pre-existing semantics)
+        # instead of the direction-generalized BaseLaser._compute_pulse_init();
+        # with propagation_direction [0, cos(angle), sin(angle)] the generalized
+        # form only reduces to this when laserIncidenceAngle == 0.
+        pulse_init = (
+            -2.0
+            * self.centroid_position[1]
+            / (self.propagation_direction[1] * constants.c)
+            / self._pulse_duration_sigma_si()
+        )
+        if pulse_init < 3.0:
+            logging.warning(
+                "set centroid_position and propagation_direction indicate that laser "
+                + "initalization might be too short.\n"
+                + f"Details: {pulse_init=} < 3"
+            )
+        return pulse_init
+
+    def _validate_twts_properties(self):
+        """Validation for the TWTS laser.
+
+        TWTS is always placed on the YMin face, so it keeps its dedicated
+        +y-entry validation (positive-y propagation, centroid_y <= 0) rather
+        than the direction-generalized BaseLaser._validate_common_properties().
+        """
+        if not np.allclose(n := np.linalg.norm(self.polarization_direction), 1):
+            raise ValueError(
+                "The polarization direction vector must be normalized. "
+                f"You gave {self.polarization_direction=} with norm {n}."
+            )
+
+        if not np.allclose(n := np.linalg.norm(self.propagation_direction), 1):
+            raise ValueError(
+                "The propagation direction vector must be normalized. "
+                f"You gave {self.propagation_direction=} with norm {n}."
+            )
+
+        if self.propagation_direction[1] <= 0.0:
+            raise ValueError(
+                "Laser propagation parallel to the y-plane or pointing outside "
+                "from the inside of the simulation box is not supported by this "
+                f"laser in PICMI. You gave {self.propagation_direction=}."
+            )
+
+        if self.centroid_position[1] > 0:
+            raise ValueError(
+                "The laser maximum must be outside of the "
+                "simulation box, otherwise it is impossible to correctly initialize"
+                "it using a huygens surface in the box, centroid_y <= 0. "
+                f"You gave {self.centroid_position=}."
+            )
+
     @model_validator(mode="after")
     @resolve_once
     def _validate(self):
         self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
-        self._validate_common_properties()
+        self._validate_twts_properties()
         return self

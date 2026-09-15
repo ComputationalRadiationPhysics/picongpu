@@ -84,6 +84,12 @@ class BaseLaser:
         The laser enters the simulation box through the coordinate face whose normal
         is this axis: a positive dominant component means entry from the ``Min`` face
         (low side) and a negative one from the ``Max`` face (high side).
+
+        The dominant component is ``argmax(abs(direction))``, which resolves exact
+        magnitude ties to the *first* axis in x, y, z order (no tolerance). A
+        genuinely-ambiguous 45° diagonal is therefore assigned to the lowest-index
+        tied axis by convention, not by physics; near-ties are decided by the larger
+        component and are unambiguous.
         """
         direction = np.asarray(self.propagation_direction, dtype=float)
         axis = int(np.argmax(np.abs(direction)))
