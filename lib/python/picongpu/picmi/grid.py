@@ -112,7 +112,8 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         for dim, name in enumerate(["x", "y", "z"]):
             if self.number_of_cells[dim] < 1:
                 raise ValueError(
-                    f"number_of_cells in {name} dimension must be a positive integer. You gave {self.number_of_cells}."
+                    f"number_of_cells[{dim}] ({name} dimension) must be a positive integer. "
+                    f"You gave {self.number_of_cells[dim]}."
                 )
             if self.upper_bound[dim] <= self.lower_bound[dim]:
                 raise ValueError(
