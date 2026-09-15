@@ -5,10 +5,12 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+import builtins
 import re
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import tomli_w
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump, OpenPMDPlugin
 from picongpu.pypicongpu.output.timestepspec import Spec, TimeStepSpec
 
@@ -65,6 +67,20 @@ def test_get_serialized_is_pure():
     assert a == b
     assert a._get_serialized() == b._get_serialized()
     assert a._get_serialized() == a._get_serialized()
+
+
+def test_get_serialized_performs_no_file_io(monkeypatch):
+    # sharpen the purity claim: literally fail if serialization attempts any
+    # file I/O (open) or writes TOML (tomli_w.dump) -- the old hack did both
+    # here as a side effect of rendering.
+    def _boom(*args, **kwargs):
+        raise AssertionError("serialization performed file I/O")
+
+    monkeypatch.setattr(builtins, "open", _boom)
+    monkeypatch.setattr(tomli_w, "dump", _boom)
+
+    plugin = _plugin()
+    assert plugin._get_serialized() == plugin._get_serialized()
 
 
 def test_no_setup_dir_state_or_leaked_tempdir():
