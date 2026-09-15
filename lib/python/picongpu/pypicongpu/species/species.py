@@ -81,6 +81,13 @@ def _canonical_constants(value):
     if isinstance(value, Constants):
         return {field: getattr(value, field) for field in _CONSTANT_FIELDS}
     if isinstance(value, dict):
+        unknown = sorted(set(value) - set(_CONSTANT_FIELDS))
+        if unknown:
+            raise ValueError(
+                "unknown species constant name(s): {}; valid names are: {}".format(
+                    ", ".join(unknown), ", ".join(_CONSTANT_FIELDS)
+                )
+            )
         return {field: value.get(field) for field in _CONSTANT_FIELDS}
 
     canonical = {field: None for field in _CONSTANT_FIELDS}
@@ -89,6 +96,7 @@ def _canonical_constants(value):
             continue
         field = _CONSTANT_FIELDS_BY_TYPE.get(type(const))
         if field is not None:
+            # duplicate constants of the same type are invalid; last one wins
             canonical[field] = const
     return canonical
 
