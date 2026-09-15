@@ -5,7 +5,6 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
-from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_serializer, field_validator
@@ -23,7 +22,7 @@ from .field_solver import AnySolver
 from .grid import Grid3D
 from .laser import AnyLaser
 from .movingwindow import MovingWindow
-from .output import AnyPlugin, OpenPMDPlugin
+from .output import AnyPlugin
 from .rendering import RenderedObject
 from .walltime import Walltime
 
@@ -130,8 +129,3 @@ class Simulation(RenderedObject, BaseModel):
             custom_rendering_context["tags"].extend(tags)
 
         return custom_rendering_context
-
-    def spread_directory_information(self, setup_dir):
-        for plugin in self.output or []:
-            if isinstance(plugin, OpenPMDPlugin):
-                plugin.setup_dir = Path(setup_dir)

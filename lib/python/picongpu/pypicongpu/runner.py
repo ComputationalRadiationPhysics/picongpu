@@ -32,6 +32,7 @@ from rocrate.rocrate import ROCrate
 from picongpu import core, rc_params
 from picongpu.templates import path as tpath
 
+from .output import OpenPMDPlugin
 from .rendering import Renderer
 from .simulation import Simulation
 from .util import alt
@@ -267,8 +268,6 @@ class Runner(BaseModel):
         Delegates work to Renderer(), see there for details.
         """
         logging.info("rendering templates...")
-        # This is kind of a dirty hack:
-        self.sim.spread_directory_information(self.setup_dir)
         # check 1 (implicit): according to schema?
         context = self.sim.get_rendering_context()
         # check 2: structure suitable for renderer?
@@ -277,6 +276,20 @@ class Runner(BaseModel):
         self.store_metadata(context, filename="pypicongpu_rendering_context.json")
         # preprocess (floats to str, add _special properties, ...)
         Renderer.render_directory(Renderer.get_context_preprocessed(context), str(self.setup_dir), exist_ok=exist_ok)
+
+    def _write_openpmd_plugin_configs(self):
+        """
+        write the openPMD backend config for every openPMD output plugin into
+        the render root's ``etc`` dir.
+
+        Where a plugin's config lives on disk is a layout concern of the
+        rendering/generation layer, not of the model; writing it here (instead
+        of mutating the plugins before serialization) keeps ``_get_serialized()``
+        a pure function of the model.
+        """
+        for plugin in self.sim.output or []:
+            if isinstance(plugin, OpenPMDPlugin):
+                plugin.write_config_file(self.setup_dir)
 
     @property
     def metadata_path(self):
@@ -478,6 +491,8 @@ class Runner(BaseModel):
         self.generate_submission_command()
 
         self._render_templates(exist_ok=exist_ok)
+
+        self._write_openpmd_plugin_configs()
 
         self.generate_workflow_input(
             build_flags=PicBuildFlags(**flags),

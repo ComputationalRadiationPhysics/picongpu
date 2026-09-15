@@ -8,8 +8,8 @@ License: GPLv3+
 from functools import reduce
 from hashlib import sha256
 from os import PathLike
+from os.path import relpath
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import Annotated, Any, Literal
 
 import tomli_w
@@ -17,7 +17,6 @@ from pydantic import (
     AfterValidator,
     BaseModel,
     ConfigDict,
-    PrivateAttr,
     ValidationError,
     field_validator,
     model_serializer,
@@ -115,38 +114,14 @@ class OpenPMDPlugin(BaseModel):
     config: OpenPMDConfig = OpenPMDConfig(file="simData")
 
     type_openPMD: Literal[True] = True
-    _setup_dir: Path | None = PrivateAttr(None)
-    # Whether ``setup_dir`` was explicitly provided (i.e. wired to a Runner whose
-    # ``setup_dir`` is the canonical input dir) or merely a lazily created temp dir.
-    _setup_dir_explicit: bool = PrivateAttr(False)
 
-    def config_filename(self, content, context: Literal["runtime", "setup"]):
-        filename = f"openPMD_config_{sha256(tomli_w.dumps(content).encode()).hexdigest()}.toml"
-        if context == "setup":
-            return self.setup_dir / "etc" / filename
-        if context == "runtime":
-            if self._setup_dir_explicit:
-                # The setup dir is the canonical input dir (``run_dir/input``); the
-                # batch job runs from a sibling of ``input`` so the config is reached
-                # via ``../input/etc``.
-                return Path("..") / "input" / "etc" / filename
-            # Standalone (no Runner): reference the config by its absolute location.
-            return self.setup_dir / "etc" / filename
-        raise ValueError(f"Unknown {context=} upon requesting the openPMD config filename.")
+    def config_filename(self, content) -> str:
+        # Content-hash-only: the plugin is stored in a per-run directory, so the
+        # hash of its content uniquely identifies the config within a run.
+        return f"openPMD_config_{sha256(tomli_w.dumps(content).encode()).hexdigest()}.toml"
 
     @property
-    def setup_dir(self):
-        if self._setup_dir is None:
-            self._setup_dir = Path(TemporaryDirectory(delete=False).name).absolute()
-
-        return self._setup_dir
-
-    @setup_dir.setter
-    def setup_dir(self, other):
-        self._setup_dir = Path(other)
-        self._setup_dir_explicit = True
-
-    def _generate_config_file(self):
+    def _config_content(self):
         # There's some strange interaction with the custom hashing of TimeStepSpec
         # that's implemented on RenderedObject
         # hindering the storage of this data structure.
@@ -160,19 +135,36 @@ class OpenPMDPlugin(BaseModel):
             self.sources,
             {},
         )
-        content = self.config.model_dump(mode="json", exclude_none=True) | {
+        return self.config.model_dump(mode="json", exclude_none=True) | {
             "sink": {"dummy_application_name": {"period": sources}}
         }
-        with self.config_filename(content, context="setup").open("wb") as file:
-            tomli_w.dump(content, file)
-        return content
+
+    def write_config_file(self, setup_dir):
+        """
+        Write the openPMD backend config into the render root's ``etc`` dir.
+
+        ``setup_dir`` (the render root, i.e. ``run_dir/input``) is a layout
+        concern that belongs to the rendering/generation layer, not to the
+        model; passing it in explicitly keeps ``_get_serialized()`` a pure
+        function of the model.
+        """
+        path = setup_dir / "etc" / self.config_filename(self._config_content)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as file:
+            tomli_w.dump(self._config_content, file)
+        return path
 
     @model_serializer(mode="plain")
     def _get_serialized(self) -> dict[str, Any] | None:
-        content = self._generate_config_file()
+        filename = self.config_filename(self._config_content)
         return {
             "type_openPMD": True,
-            "config_filename": str(self.config_filename(content, context="runtime")),
+            # The batch job runs with its working directory set to the run's
+            # ``simOutput`` dir (see the TBG batch templates), while the config is
+            # written to ``input/etc`` (the render root). Deriving the path
+            # relative to that CWD keeps it independent of where the run dir
+            # lives on disk and of the active preset.
+            "config_filename": relpath(Path("input") / "etc" / filename, "simOutput"),
             "derived_fields": unique(
                 source[1].model_dump(mode="json")
                 for source in self.sources
