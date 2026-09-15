@@ -96,3 +96,40 @@ if [ ! -z ${PYTHON_COMPILING_TEST+x} ]; then
     # execute the compiling test
     python3 -m pytest compiling/ -v
 fi
+
+# running the end-to-end (actual simulation) tests is optional
+# for the end-to-end test we need: cmake, boost and openmpi
+# openmpi is available without extra work
+if [ ! -z ${PYTHON_END_TO_END_TEST+x} ]; then
+    export PIC_BACKEND=serial
+    # the CI job runs as root, but OpenMPI refuses to start as root,
+    # so the simulation would be aborted by mpiexec before producing output
+    export OMPI_ALLOW_RUN_AS_ROOT=1
+    export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+    # setup cmake
+    if [ ! -z ${CMAKE_VERSION+x} ]; then
+        if agc-manager -e cmake@${CMAKE_VERSION} ; then
+            export PATH=$(agc-manager -b cmake@${CMAKE_VERSION})/bin:$PATH
+        else
+            script_error "No implementation to install cmake ${CMAKE_VERSION}"
+        fi
+    else
+        script_error "CMAKE_VERSION is not defined"
+    fi
+
+    # setup boost
+    if [ ! -z ${BOOST_VERSION+x} ]; then
+        if agc-manager -e boost@${BOOST_VERSION} ; then
+            export CMAKE_PREFIX_PATH=$(agc-manager -b boost@${BOOST_VERSION}):$CMAKE_PREFIX_PATH
+        else
+            script_error "No implementation to install boost ${BOOST_VERSION}"
+        fi
+    else
+        script_error "BOOST_VERSION is not defined"
+    fi
+
+    # set C++ compiler
+    export CXX=$CXX_VERSION
+    # execute the end-to-end tests
+    python3 -m pytest end_to_end/ -v
+fi

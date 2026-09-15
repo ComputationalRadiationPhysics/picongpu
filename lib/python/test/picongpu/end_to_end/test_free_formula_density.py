@@ -15,7 +15,7 @@ from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.diagnostics.checkpoint import Checkpoint
 
 from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
-from .binning_functors import binning_diagnostics
+from .binning_functors import density_binning_for, position_binning_for
 from .compare_particles import (
     compare_particles,
     read_binning,
@@ -63,6 +63,16 @@ def generate_species(name, distribution):
     ]
 
 
+# All (setup, impl) combinations, i.e. exactly the set of species of this simulation.
+SPECIES_COMBINATIONS = tuple(
+    (name, suffix) for name, distributions in DISTRIBUTIONS.items() for suffix, dist in distributions.items()
+)
+
+# Representative species on which the density-independent position/origin/unit
+# checks are instantiated (see setup_sim): the first (setup, impl) combination.
+REPRESENTATIVE = SPECIES_COMBINATIONS[0]
+
+
 def setup_sim():
     sim = basic_simulation()
 
@@ -75,7 +85,18 @@ def setup_sim():
         [],
     )
 
-    diagnostics = [Checkpoint(period=TimeStepSpec[:])] + binning_diagnostics(species, sim.time_step_size)
+    # The particle-density binning must exist for every species: that is the
+    # per-density coverage this test provides (predefined vs. free-form).
+    # The position/origin/unit checks, however, are density-independent, so we
+    # instantiate them for a single representative species only. Doing it for
+    # every species would blow up the memory of the single BinningDispatcher
+    # translation unit that compiles all these functors.
+    representative = [next(s for s in species if s.name == generate_name(*REPRESENTATIVE))]
+    diagnostics = (
+        [Checkpoint(period=TimeStepSpec[:])]
+        + sum((density_binning_for(s) for s in species), [])
+        + sum((position_binning_for(s, sim.time_step_size) for s in representative), [])
+    )
 
     for s in species:
         sim.add_species(s, LAYOUT)
@@ -85,7 +106,11 @@ def setup_sim():
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
         sim.picongpu_get_runner().run_dir = directory_in_home() / "run"
-    sim.step(0)
+    # This 12-species simulation inflates every per-species translation unit of
+    # the core build. Even with the reduced binning set above, compiling with
+    # the default -j 4 exceeds the CI runner's memory (cc1plus OOM-killed), so
+    # limit the build to 2 parallel jobs.
+    sim.step(0, jobs=2)
     return sim
 
 
@@ -170,41 +195,39 @@ class TestFreeFormulaDensity(TestCase):
         # As we don't in this test, there isn't really much to test
         # except for the fact that all the different coordinates must be identical.
         # The position_check functor does so by counting the correct ones.
-        number_of_particles = (
+        # The position/origin checks are only instantiated for the representative
+        # species (see REPRESENTATIVE), because they are density-independent.
+        setup, impl = REPRESENTATIVE
+        count = (
             read_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5")["weighting"]
             .groupby(["setup", "impl"])
             .count()
+            .loc[(setup, impl)]
         )
 
-        for (setup, impl), count in number_of_particles.items():
-            assert (
-                round(
-                    read_position_check(
-                        self.result_path
-                        / "simOutput"
-                        / "binningOpenPMD"
-                        / f"origin_{generate_name(setup, impl)}_000000.h5"
-                    )
+        assert (
+            round(
+                read_position_check(
+                    self.result_path / "simOutput" / "binningOpenPMD" / f"origin_{generate_name(setup, impl)}_000000.h5"
                 )
-                == count
             )
+            == count
+        )
 
     def test_unit_conversions_by_hand(self):
-        number_of_particles = (
+        setup, impl = REPRESENTATIVE
+        count = (
             read_particles(self.result_path / "simOutput" / "checkpoints" / "checkpoint_000000.bp5")["weighting"]
             .groupby(["setup", "impl"])
             .count()
+            .loc[(setup, impl)]
         )
 
-        for (setup, impl), count in number_of_particles.items():
-            assert (
-                round(
-                    read_position_check(
-                        self.result_path
-                        / "simOutput"
-                        / "binningOpenPMD"
-                        / f"unit_{generate_name(setup, impl)}_000000.h5"
-                    )
+        assert (
+            round(
+                read_position_check(
+                    self.result_path / "simOutput" / "binningOpenPMD" / f"unit_{generate_name(setup, impl)}_000000.h5"
                 )
-                == count
             )
+            == count
+        )
