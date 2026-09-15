@@ -522,9 +522,7 @@ def test_entry_face_plus_z_and_pulse_init():
     pypic = laser.get_as_pypicongpu()
     assert pypic.entry_face == "ZMin"
     # generalized formula: -2 * dot(centroid, direction) / (c * PULSE_DURATION)
-    expected = -2.0 * np.dot(laser.centroid_position, laser.propagation_direction) / c / _pulse_duration(
-        laser.duration
-    )
+    expected = -2.0 * np.dot(laser.centroid_position, laser.propagation_direction) / c / _pulse_duration(laser.duration)
     assert abs(pypic.pulse_init - expected) < 1e-9
     assert pypic.pulse_init > 0.0
     assert _enabled_faces(_rendered_incident_field(laser)) == ["ZMin"]
