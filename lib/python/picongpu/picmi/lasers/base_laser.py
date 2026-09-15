@@ -134,14 +134,14 @@ class BaseLaser:
 
         axis = self._entry_axis()
         entry_axis_name = "xyz"[axis]
-        if self.centroid_position[axis] * self.propagation_direction[axis] >= 0.0:
+        if self.centroid_position[axis] * self.propagation_direction[axis] > 0.0:
             raise ValueError(
                 "The laser maximum (centroid) must be located outside of the "
                 "simulation box on the entry side, otherwise it is impossible to "
                 "correctly initialize it using a huygens surface in the box. The "
                 f"laser enters through the {self._entry_face()} face, so the "
-                f"{entry_axis_name}-component of the centroid must point against "
+                f"{entry_axis_name}-component of the centroid must not point along "
                 f"the propagation direction (centroid_{entry_axis_name} * "
-                f"direction_{entry_axis_name} < 0). You gave "
+                f"direction_{entry_axis_name} <= 0). You gave "
                 f"{self.centroid_position=} and {self.propagation_direction=}."
             )
