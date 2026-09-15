@@ -102,13 +102,20 @@ class BaseLaser:
         return "xyz"[axis].upper() + suffix
 
     def _compute_pulse_init(self):
+        # Time (in units of the pulse duration, 1 sigma of the intensity) for the
+        # pulse peak -- located at centroid_position at t=0 -- to travel along the
+        # full propagation direction to the entry face. This is the beam-axis
+        # distance from the centroid to the origin, i.e. the dot product of
+        # centroid_position with the normalized propagation direction, divided by
+        # the speed of light; it mirrors the C++ getTminusXoverC() time offset.
+        # For propagation along +y it reduces to the original
+        # -2 * centroid_y / (c * sigma) expression.
         pulse_init = (
             -2.0
-            * self.centroid_position[1]
-            / (self.propagation_direction[1] * constants.c)
+            * scalarProduct(self.centroid_position, self.propagation_direction)
+            / constants.c
             / self._pulse_duration_sigma_si()
-        )  # unit: multiple of the laser pulse duration (1 sigma of the intensity)
-        # @todo extend this to other propagation directions than +y
+        )
         if pulse_init < 3.0:
             logging.warning(
                 "set centroid_position and propagation_direction indicate that laser "
