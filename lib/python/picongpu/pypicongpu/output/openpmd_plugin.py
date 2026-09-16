@@ -97,6 +97,14 @@ class FieldDump(BaseModel):
     name: str
     functor: ParticleFunctor | None = None
     filtername: None | str
+    species_name: str | None = None
+    """Compile-time name of the source species this derived field is defined for.
+
+    For native field dumps (E/B/J) this is ``None`` and no species-eligibility
+    narrowing is generated. For derived fields it carries the species name so
+    that the ``SpeciesEligibleForSolver`` trait can be specialised on the
+    species' compile-time name, restricting the derived field to only the
+    species(es) it is actually used for."""
 
     def get_rendering_context(self) -> dict:
         return self.model_dump(mode="json")
