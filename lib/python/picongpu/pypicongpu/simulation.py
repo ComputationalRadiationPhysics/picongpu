@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_serializer, field_validator
 
@@ -85,6 +85,15 @@ class Simulation(RenderedObject, BaseModel):
     synchrotron_params: SynchrotronParams = SynchrotronParams()
     collisional_physics: CollisionalPhysicsSetup = CollisionalPhysicsSetup()
     particle_filters: list[ParticleFunctor] = Field(default_factory=list)
+
+    precision: Literal[32, 64] = 32
+    """
+    floating point precision of the simulation core (see ``precision.param``)
+
+    32 -> ``precision32Bit`` (single precision, default), 64 -> ``precision64Bit``
+    (double precision). Controls ``namespace precisionPIConGPU`` in the generated
+    ``include/picongpu/param/precision.param``.
+    """
 
     @field_validator("output", mode="after")
     @classmethod
