@@ -35,9 +35,11 @@
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
+#include <pmacc/traits/GetCTName.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <bit>
+#include <type_traits>
 
 namespace picongpu
 {
@@ -141,9 +143,27 @@ namespace picongpu
 
         namespace traits
         {
-            /* if needed for generic "free" filters,
-             * place `SpeciesEligibleForSolver` traits for filters here
-             */
+{{#particle_filters}}
+{{#has_species}}
+            /* Restrict the filter {{{name}}} to the species(es) it is actually registered
+             * for, so that the per-species combination matrix (the multi-plugins'
+             * GenerateSolversIfSpeciesEligible route and the derived-field
+             * FilteredDerivedAttribute path) instantiates this filter for only those
+             * species instead of every species in VectorAllSpecies. The primary
+             * SpeciesEligibleForSolver is mp_bool<true> for all species, so this
+             * name-keyed specialisation narrows the whole combination matrix. */
+            template<typename T_Species>
+            struct SpeciesEligibleForSolver<T_Species, filter::{{{name}}}>
+            {
+                using type = pmacc::mp_bool<
+{{#species_names}}
+                    {{^_first}}||
+                    {{/_first}}std::is_same_v<pmacc::traits::GetCTName_t<T_Species>, PMACC_CSTRING("{{{name}}}")>
+{{/species_names}}
+                >;
+            };
+{{/has_species}}
+{{/particle_filters}}
         } // namespace traits
     } // namespace particles
 } // namespace picongpu

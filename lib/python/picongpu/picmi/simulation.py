@@ -703,9 +703,7 @@ class Simulation(picmistandard.PICMI_Simulation):
                 filters.append({"key": key, "functor": pypicongpu_functor, "species": {filtered.species.name}})
 
         return [
-            entry["functor"].model_copy(
-                update={"species_names": [{"name": name} for name in sorted(entry["species"])]}
-            )
+            entry["functor"].model_copy(update={"species_names": [{"name": name} for name in sorted(entry["species"])]})
             for entry in filters
         ]
 
