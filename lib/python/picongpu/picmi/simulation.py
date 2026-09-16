@@ -218,8 +218,7 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     @model_validator(mode="after")
     def _post_init(self):
-        # additional PICMI stuff checks, @todo move to picmistandard, Brian Marre, 2024
-        ## throw if both cfl & delta_t are set
+        # cross-check cfl against delta_t, deriving whichever is missing
         if (
             self.solver is not None
             and self.solver.method in ["Yee", "Lehe"]

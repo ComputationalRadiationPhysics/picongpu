@@ -18,10 +18,7 @@ class BoundaryCondition(enum.Enum):
     """
     Boundary Condition of PIConGPU
 
-    Defines how particles that pass the simulation bounding box are treated.
-
-    TODO: implement the other methods supported by PIConGPU
-    (reflecting, thermal)
+    Maps to the ``--periodic`` grid option (``1`` = periodic, ``0`` = absorbing/open).
     """
 
     PERIODIC = 1
@@ -80,7 +77,7 @@ class Grid3D(BaseModel, RenderedObject):
 
     Defined by the dimensions of each cell and the number of cells per axis.
 
-    The bounding box is implicitly given as TODO.
+    The bounding box is implicitly given as ``cell_size * cell_cnt`` per axis.
     """
 
     cell_size: Annotated[Vec3_float, AfterValidator(lambda x: all_gt(x, 0))] = Field(alias="cell_size_si")
