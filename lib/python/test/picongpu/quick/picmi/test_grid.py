@@ -9,6 +9,7 @@ from picongpu import picmi
 
 from unittest import TestCase
 import pytest
+import pydantic
 
 
 class TestCartesian3DGrid(TestCase):
@@ -90,7 +91,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_super_cell_size=(0, 8, 4),
             **self.COMMON_KWARGS,
         )
-        with pytest.raises(Exception, match=".*super cell size must be an integer greater than 1.*"):
+        with pytest.raises(Exception, match=".*super cell size must be a positive integer.*"):
             grid.get_as_pypicongpu()
 
     def test_super_cell_size_negative(self):
@@ -99,7 +100,7 @@ class TestCartesian3DGrid(TestCase):
             picongpu_super_cell_size=(8, -8, 4),
             **self.COMMON_KWARGS,
         )
-        with pytest.raises(Exception, match=".*super cell size must be an integer greater than 1.*"):
+        with pytest.raises(Exception, match=".*super cell size must be a positive integer.*"):
             grid.get_as_pypicongpu()
 
     def test_grid_dist_values_lt_one(self):
@@ -143,3 +144,56 @@ class TestCartesian3DGrid(TestCase):
         )
         g = grid.get_as_pypicongpu()
         assert g.grid_dist == ([96, 96], [2048], [12]), "grid_dist should be [96,96], [2048], [12]"
+
+    def test_zero_number_of_cells_rejected(self):
+        """a degenerate box (zero cells in any dimension) is rejected at construction"""
+        for bad_cells in [[0, 2048, 12], [192, 0, 12], [192, 2048, 0]]:
+            with pytest.raises(pydantic.ValidationError, match=".*number_of_cells.*must be a positive integer.*"):
+                picmi.Cartesian3DGrid(
+                    number_of_cells=bad_cells,
+                    **self.COMMON_KWARGS,
+                )
+
+    def test_negative_number_of_cells_rejected(self):
+        """a negative number of cells is rejected at construction"""
+        with pytest.raises(pydantic.ValidationError, match=".*number_of_cells.*must be a positive integer.*"):
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, -2048, 12],
+                **self.COMMON_KWARGS,
+            )
+
+    def test_upper_bound_le_lower_bound_rejected(self):
+        """an empty (upper == lower) or inverted (upper < lower) extent is rejected at construction"""
+        cases = [
+            # empty extent in x: upper == lower (0.0)
+            dict(lower_bound=[0, 0, 0], upper_bound=[0.0, 9.07264e-5, 2.1312e-6]),
+            # inverted extent in x: upper < lower
+            dict(lower_bound=[1.0, 0.0, 0.0], upper_bound=[0.5, 9.07264e-5, 2.1312e-6]),
+        ]
+        for kwargs in cases:
+            with pytest.raises(pydantic.ValidationError, match=".*upper_bound.*must be greater than lower_bound.*"):
+                picmi.Cartesian3DGrid(
+                    number_of_cells=[192, 2048, 12],
+                    lower_boundary_conditions=["open", "open", "periodic"],
+                    upper_boundary_conditions=["open", "open", "periodic"],
+                    **kwargs,
+                )
+
+    def test_valid_grid_constructs(self):
+        """a valid grid with positive cells and upper>lower still constructs and renders"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            **self.COMMON_KWARGS,
+        )
+        assert grid.picongpu_cell_size[0] == self.COMMON_KWARGS["upper_bound"][0] / 192
+        assert grid.get_as_pypicongpu().get_rendering_context() != []
+
+    def test_super_cell_message_positive_integer(self):
+        """the super-cell error message reads 'positive integer' (matches the < 1 check)"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            picongpu_super_cell_size=(0, 8, 4),
+            **self.COMMON_KWARGS,
+        )
+        with pytest.raises(Exception, match=".*super cell size must be a positive integer.*"):
+            grid.get_as_pypicongpu()

@@ -7,7 +7,7 @@ License: GPLv3+
 
 from typing import Annotated, Sequence
 import picmistandard
-from pydantic import AfterValidator, BeforeValidator, Field, computed_field
+from pydantic import AfterValidator, BeforeValidator, Field, computed_field, model_validator
 
 from ..pypicongpu import grid, util
 from .copy_attributes import converts_to
@@ -104,6 +104,24 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
             (self.upper_bound[2] - self.lower_bound[2]) / self.number_of_cells[2],
         )
 
+    @model_validator(mode="after")
+    def _validate(self):
+        # A grid must be non-degenerate: every dimension needs at least one cell
+        # and a strictly positive extent, otherwise the cell size below would be
+        # undefined (ZeroDivisionError) or render an empty C++ grid.
+        for dim, name in enumerate(["x", "y", "z"]):
+            if self.number_of_cells[dim] < 1:
+                raise ValueError(
+                    f"number_of_cells[{dim}] ({name} dimension) must be a positive integer. "
+                    f"You gave {self.number_of_cells[dim]}."
+                )
+            if self.upper_bound[dim] <= self.lower_bound[dim]:
+                raise ValueError(
+                    f"upper_bound in {name} dimension must be greater than lower_bound "
+                    f"(got lower={self.lower_bound[dim]}, upper={self.upper_bound[dim]})."
+                )
+        return self
+
     def check(self):
         # todo check
         if any(bound != 0.0 for bound in self.lower_bound):
@@ -149,7 +167,7 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
 
         for i in range(3):
             if self.picongpu_super_cell_size[i] < 1:
-                raise ValueError("super cell size must be an integer greater than 1")
+                raise ValueError("super cell size must be a positive integer")
         cells = [
             self.number_of_cells[0],
             self.number_of_cells[1],
@@ -158,9 +176,7 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         dim_name = ["x", "y", "z"]
         for dim in range(3):
             if self.picongpu_grid_dist is None:
-                if (
-                    (cells[dim] // self.picongpu_n_gpus[dim]) // self.picongpu_super_cell_size[dim]
-                ) * self.picongpu_n_gpus[dim] * self.picongpu_super_cell_size[dim] != cells[dim]:
+                if cells[dim] % (self.picongpu_n_gpus[dim] * self.picongpu_super_cell_size[dim]) != 0:
                     raise ValueError(
                         "GPU- and/or super-cell-distribution in {} dimension does not match grid size".format(
                             dim_name[dim]
