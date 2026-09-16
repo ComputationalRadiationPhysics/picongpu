@@ -8,7 +8,7 @@ License: GPLv3+
 from typing import Annotated, Literal
 from uuid import uuid4 as uuid
 
-from pydantic import BaseModel, BeforeValidator, computed_field, model_validator
+from pydantic import BaseModel, BeforeValidator, Field, computed_field, model_validator
 
 from picongpu.pypicongpu.particle_functor.translate_to_cpp_type import translate_to_cpp_type
 from picongpu.pypicongpu.particle_functor.rng_info import RNGInfo
@@ -176,6 +176,11 @@ class _PreambleStatement(BaseModel):
     statement: str
 
 
+class _SpeciesName(BaseModel):
+    name: str
+    """Compile-time name (``GetCTName_t``) of a species this functor is registered for."""
+
+
 class ParticleFunctor(RenderedObject, BaseModel):
     name: str
     functor_expression: Annotated[str, BeforeValidator(PMAccPrinter().doprint)]
@@ -188,6 +193,14 @@ class ParticleFunctor(RenderedObject, BaseModel):
     unit_factor: str | None = None
     needs_total_position: bool = False
     rng_info: RNGInfo | None = None
+    species_names: list[_SpeciesName] = Field(default_factory=list)
+    """Compile-time names of the species this functor is registered for.
+
+    Empty for functors that are not reusable particle filters (e.g. derived-field
+    and binning functors). For reusable particle filters it lists exactly the
+    species the filter is used on, so that ``particleFilters.param`` can emit a
+    name-keyed ``SpeciesEligibleForSolver`` specialisation restricting the filter
+    to only those species instead of every species in ``VectorAllSpecies``."""
 
     @computed_field
     def typename(self) -> str:
