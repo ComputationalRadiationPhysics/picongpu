@@ -155,12 +155,7 @@ namespace picongpu
             template<typename T_Species>
             struct SpeciesEligibleForSolver<T_Species, filter::{{{name}}}>
             {
-                using type = pmacc::mp_bool<
-{{#species_names}}
-                    {{^_first}}||
-                    {{/_first}}std::is_same_v<pmacc::traits::GetCTName_t<T_Species>, PMACC_CSTRING("{{{name}}}")>
-{{/species_names}}
-                >;
+                using type = pmacc::mp_bool<{{{species_eligibility}}}>;
             };
 {{/has_species}}
 {{/particle_filters}}

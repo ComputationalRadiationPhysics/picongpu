@@ -225,6 +225,24 @@ class ParticleFunctor(RenderedObject, BaseModel):
         reusable particle filter that can be narrowed by species)."""
         return bool(self.species_names)
 
+    @computed_field
+    def species_eligibility(self) -> str | None:
+        """C++ expression true for exactly the species this functor is registered for.
+
+        An OR over one ``is_same_v<GetCTName_t<T_Species>, PMACC_CSTRING(name)>`` per
+        species, joined with ``||`` (single species yields no operator). ``None`` when not
+        a reusable filter (empty ``species_names``), so the template keeps the primary
+        ``SpeciesEligibleForSolver`` (eligible for all species). Precomputed here rather
+        than in the template because moosetash has no list-index variable to suppress a
+        leading ``||`` for the first element."""
+        if not self.species_names:
+            return None
+        return " || ".join(
+            f'std::is_same_v<pmacc::traits::GetCTName_t<T_Species>, PMACC_CSTRING("{name}")>'
+            for s in self.species_names
+            for name in (s["name"] if isinstance(s, dict) else s.name,)
+        )
+
     @model_validator(mode="after")
     def _validate(self):
         if "int" in self.return_type:
