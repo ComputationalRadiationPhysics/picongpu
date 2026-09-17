@@ -25,6 +25,7 @@ from .laser import AnyLaser
 from .memory import MemoryConfig
 from .movingwindow import MovingWindow
 from .output import AnyPlugin, OpenPMDPlugin
+from .precision_config import PrecisionConfig
 from .rendering import RenderedObject
 from .walltime import Walltime
 
@@ -96,44 +97,35 @@ class Simulation(RenderedObject, BaseModel):
     ``include/picongpu/param/precision.param``.
     """
 
-    precision_sqrt: Literal[32, 64, "core"] = "core"
-    """
-    precision of ``sqrt`` special operations (see ``precision.param``).
-
-    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
-    force ``precision32Bit``/``precision64Bit`` respectively.
-    """
-
-    precision_exp: Literal[32, 64, "core"] = "core"
-    """
-    precision of ``exp`` special operations (see ``precision.param``).
-
-    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
-    force ``precision32Bit``/``precision64Bit`` respectively.
-    """
-
-    precision_trig: Literal[32, 64, "core"] = "core"
-    """
-    precision of trigonometric special operations (see ``precision.param``).
-
-    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
-    force ``precision32Bit``/``precision64Bit`` respectively.
-    """
+    precision_overrides: PrecisionConfig = PrecisionConfig()
+    """per-namespace precision overrides rendered into ``precision.param`` (see ``PrecisionConfig``)."""
 
     memory_config: MemoryConfig = MemoryConfig()
     """memory / exchange-buffer knobs rendered into ``memory.param`` (see ``MemoryConfig``)."""
 
     @computed_field
     def precisionSqrt(self) -> str:
-        return "precisionPIConGPU" if self.precision_sqrt == "core" else f"precision{self.precision_sqrt}Bit"
+        return (
+            "precisionPIConGPU"
+            if self.precision_overrides.sqrt == "core"
+            else f"precision{self.precision_overrides.sqrt}Bit"
+        )
 
     @computed_field
     def precisionExp(self) -> str:
-        return "precisionPIConGPU" if self.precision_exp == "core" else f"precision{self.precision_exp}Bit"
+        return (
+            "precisionPIConGPU"
+            if self.precision_overrides.exp == "core"
+            else f"precision{self.precision_overrides.exp}Bit"
+        )
 
     @computed_field
     def precisionTrigonometric(self) -> str:
-        return "precisionPIConGPU" if self.precision_trig == "core" else f"precision{self.precision_trig}Bit"
+        return (
+            "precisionPIConGPU"
+            if self.precision_overrides.trig == "core"
+            else f"precision{self.precision_overrides.trig}Bit"
+        )
 
     @field_validator("output", mode="after")
     @classmethod
