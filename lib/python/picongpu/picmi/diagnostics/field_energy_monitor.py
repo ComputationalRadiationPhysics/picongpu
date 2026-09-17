@@ -33,6 +33,3 @@ class FieldEnergyMonitor(BaseModel):
     period: TimeStepSpec
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    def check(self, *args, **kwargs):
-        pass
