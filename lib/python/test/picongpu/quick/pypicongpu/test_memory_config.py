@@ -11,7 +11,9 @@ import pytest
 from pydantic import ValidationError
 
 from picongpu import picmi, templates
-from picongpu.pypicongpu.memory import MemoryConfig
+from picongpu.picmi.memory_config import MemoryConfig
+from picongpu.picmi.precision_config import PrecisionConfig
+from picongpu.pypicongpu import memory as pypicongpu_memory
 from picongpu.pypicongpu.rendering import Renderer
 
 
@@ -52,15 +54,20 @@ class TestMemoryConfigDefaults(TestCase):
         assert config.field_tmp_support_gather_communication is True
 
     def test_reserved_renders_mib(self):
-        dumped = MemoryConfig().model_dump(mode="json")
+        # human-readable rendering is a pypicongpu concern, applied on translation
+        dumped = MemoryConfig().get_as_pypicongpu().model_dump(mode="json")
         assert dumped["reserved_gpu_memory_size"] == "350 * 1024 * 1024"
 
     def test_reserved_mib_custom(self):
-        dumped = MemoryConfig(reserved_gpu_memory_size=100).model_dump(mode="json")
+        dumped = MemoryConfig(reserved_gpu_memory_size=100).get_as_pypicongpu().model_dump(mode="json")
         assert dumped["reserved_gpu_memory_size"] == "100 * 1024 * 1024"
 
     def test_vec_serialised_to_xyz_dict(self):
-        dumped = MemoryConfig(ref_local_dom_size=(2, 3, 4), dir_scaling_factor=(0.5, 0.25, 1.0)).model_dump(mode="json")
+        dumped = (
+            MemoryConfig(ref_local_dom_size=(2, 3, 4), dir_scaling_factor=(0.5, 0.25, 1.0))
+            .get_as_pypicongpu()
+            .model_dump(mode="json")
+        )
         assert dumped["ref_local_dom_size"] == {"x": 2, "y": 3, "z": 4}
         assert dumped["dir_scaling_factor"] == {"x": 0.5, "y": 0.25, "z": 1.0}
 
@@ -94,7 +101,12 @@ class TestMemoryConfigValidation(TestCase):
 class TestPrecisionOverrides(TestCase):
     def test_default_is_core(self):
         sim = _sim()
-        assert (sim.picongpu_precision_sqrt, sim.picongpu_precision_exp, sim.picongpu_precision_trig) == (
+        assert isinstance(sim.picongpu_precision_overrides, PrecisionConfig)
+        assert (
+            sim.picongpu_precision_overrides.sqrt,
+            sim.picongpu_precision_overrides.exp,
+            sim.picongpu_precision_overrides.trig,
+        ) == (
             "core",
             "core",
             "core",
@@ -109,11 +121,14 @@ class TestPrecisionOverrides(TestCase):
     def test_values_map_to_namespaces(self):
         sim = _sim(
             picongpu_precision=64,
-            picongpu_precision_sqrt=64,
-            picongpu_precision_exp="core",
-            picongpu_precision_trig=32,
+            picongpu_precision_overrides=PrecisionConfig(sqrt=64, exp="core", trig=32),
         )
         p = sim.get_as_pypicongpu()
+        assert (p.precision_overrides.sqrt, p.precision_overrides.exp, p.precision_overrides.trig) == (
+            64,
+            "core",
+            32,
+        )
         assert (p.precisionSqrt, p.precisionExp, p.precisionTrigonometric) == (
             "precision64Bit",
             "precisionPIConGPU",
@@ -123,12 +138,16 @@ class TestPrecisionOverrides(TestCase):
     def test_invalid_precision_rejected(self):
         for value in (128, 0, 16):
             with pytest.raises(ValidationError):
-                _sim(picongpu_precision_sqrt=value)
+                _sim(picongpu_precision_overrides=PrecisionConfig(sqrt=value))
 
 
 class TestMemoryTranslation(TestCase):
     def test_default_is_memory_config(self):
         assert isinstance(_sim().picongpu_memory, MemoryConfig)
+
+    def test_memory_translates_to_pypicongpu(self):
+        # the PICMI grouping is translated to the pypicongpu rendering model
+        assert isinstance(_sim().get_as_pypicongpu().memory_config, pypicongpu_memory.MemoryConfig)
 
     def test_custom_memory_flows_through(self):
         sim = _sim(
@@ -192,9 +211,7 @@ class TestTemplateRendering(TestCase):
     def test_precision_param_overrides(self):
         sim = _sim(
             picongpu_precision=64,
-            picongpu_precision_sqrt=32,
-            picongpu_precision_exp=64,
-            picongpu_precision_trig="core",
+            picongpu_precision_overrides=PrecisionConfig(sqrt=32, exp=64, trig="core"),
         )
         rendered = _rendered("precision.param.mustache", sim)
         assert "namespace precisionPIConGPU = precision64Bit;" in rendered
