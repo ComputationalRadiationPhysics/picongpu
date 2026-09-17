@@ -216,27 +216,35 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    # Solvers that impose a CFL stability limit and therefore participate in the
+    # delta_t / cfl cross-check below. "other:None" is deliberately excluded: it
+    # disables the vacuum field update (and the J->E coupling), so it has no CFL
+    # limit at all (the C++ CFLChecker returns infinity) and any delta_t is legal.
+    _CFL_GATED_SOLVER_METHODS = ("Yee", "Lehe", "CKC", "other:ArbitraryOrderFDTD")
+
     @model_validator(mode="after")
     def _post_init(self):
-        # cross-check cfl against delta_t, deriving whichever is missing
+        # cross-check cfl against delta_t, deriving whichever is missing; the
+        # "other:None" solver has no CFL limit and is skipped entirely
         if (
             self.solver is not None
-            and self.solver.method in ["Yee", "Lehe"]
+            and self.solver.method in self._CFL_GATED_SOLVER_METHODS
             and isinstance(self.solver.grid, Cartesian3DGrid)
         ):
-            self.__yee_compute_cfl_or_delta_t()
+            self._compute_cfl_or_delta_t()
         return self
 
-    def __yee_compute_cfl_or_delta_t(self) -> None:
+    def _compute_cfl_or_delta_t(self) -> None:
         """
         use delta_t or cfl to compute the other
 
         needs grid parameters for computation
-        Only works if method is Yee or Lehe.
+        Only works for solvers that impose a CFL limit (Yee, Lehe, CKC and
+        other:ArbitraryOrderFDTD); "other:None" has no CFL limit and is skipped.
 
         :throw AssertionError: if grid (of solver) is not 3D cartesian grid
         :throw AssertionError: if solver is None
-        :throw AssertionError: if solver is not "Yee"
+        :throw AssertionError: if solver does not impose a CFL limit
         :throw ValueError: if both cfl & delta_t are set, and they don't match
 
         Does not check if delta_t could be computed
@@ -254,7 +262,7 @@ class Simulation(picmistandard.PICMI_Simulation):
           nop (do nothing)
         """
         assert self.solver is not None
-        assert self.solver.method in ["Yee", "Lehe"]
+        assert self.solver.method in self._CFL_GATED_SOLVER_METHODS
         assert isinstance(self.solver.grid, Cartesian3DGrid)
 
         delta_x = (
@@ -267,12 +275,33 @@ class Simulation(picmistandard.PICMI_Simulation):
             self.solver.grid.upper_bound[2] - self.solver.grid.lower_bound[2]
         ) / self.solver.grid.number_of_cells[2]
 
+        if self.solver.method in ("Yee", "Lehe"):
+            # Legacy second-order FDTD: cfl = delta_t * c * sqrt(sum 1/dx^2).
+            # Kept as the original arithmetic so Yee/Lehe results are bit-for-bit
+            # unchanged.
+            cfl_scale = constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
+
+            def _delta_t_from_cfl(cfl):
+                return cfl / cfl_scale
+
+            def _cfl_from_delta_t(delta_t):
+                return delta_t * cfl_scale
+        else:
+            # CKC (min cell) and other:ArbitraryOrderFDTD (Yee term / weight-sum):
+            # cfl = c * delta_t / max_c_dt, where max_c_dt is the solver's CFL
+            # limit on c * delta_t (see ElectromagneticSolver._cfl_max_cdt).
+            max_c_dt = self.solver._cfl_max_cdt(delta_x, delta_y, delta_z)
+            assert max_c_dt is not None, "solver does not impose a CFL limit"
+
+            def _delta_t_from_cfl(cfl):
+                return cfl * max_c_dt / constants.c
+
+            def _cfl_from_delta_t(delta_t):
+                return delta_t * constants.c / max_c_dt
+
         if self.time_step_size is not None and self.solver.cfl is not None:
             # both cfl & delta_t given -> check their compatibility
-            delta_t_from_cfl = self.solver.cfl / (
-                constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
-            )
-
+            delta_t_from_cfl = _delta_t_from_cfl(self.solver.cfl)
             if delta_t_from_cfl != self.time_step_size:
                 raise ValueError(
                     "time step size (delta t) does not match CFL "
@@ -282,14 +311,10 @@ class Simulation(picmistandard.PICMI_Simulation):
         else:
             if self.time_step_size is not None:
                 # calculate cfl
-                self.solver.cfl = self.time_step_size * (
-                    constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
-                )
+                self.solver.cfl = _cfl_from_delta_t(self.time_step_size)
             elif self.solver.cfl is not None:
                 # calculate delta_t
-                self.time_step_size = self.solver.cfl / (
-                    constants.c * math.sqrt(1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2)
-                )
+                self.time_step_size = _delta_t_from_cfl(self.solver.cfl)
 
             # if neither delta_t nor cfl are given simply silently pass
             # (might change in the future)
