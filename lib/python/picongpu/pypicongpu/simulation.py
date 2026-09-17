@@ -133,9 +133,7 @@ class Simulation(RenderedObject, BaseModel):
 
     @computed_field
     def precisionTrigonometric(self) -> str:
-        return (
-            "precisionPIConGPU" if self.precision_trig == "core" else f"precision{self.precision_trig}Bit"
-        )
+        return "precisionPIConGPU" if self.precision_trig == "core" else f"precision{self.precision_trig}Bit"
 
     @field_validator("output", mode="after")
     @classmethod

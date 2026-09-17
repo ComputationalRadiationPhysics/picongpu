@@ -60,9 +60,7 @@ class TestMemoryConfigDefaults(TestCase):
         assert dumped["reserved_gpu_memory_size"] == "100 * 1024 * 1024"
 
     def test_vec_serialised_to_xyz_dict(self):
-        dumped = MemoryConfig(
-            ref_local_dom_size=(2, 3, 4), dir_scaling_factor=(0.5, 0.25, 1.0)
-        ).model_dump(mode="json")
+        dumped = MemoryConfig(ref_local_dom_size=(2, 3, 4), dir_scaling_factor=(0.5, 0.25, 1.0)).model_dump(mode="json")
         assert dumped["ref_local_dom_size"] == {"x": 2, "y": 3, "z": 4}
         assert dumped["dir_scaling_factor"] == {"x": 0.5, "y": 0.25, "z": 1.0}
 
