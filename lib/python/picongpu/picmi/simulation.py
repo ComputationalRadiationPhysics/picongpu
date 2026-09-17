@@ -38,6 +38,7 @@ from picongpu.picmi.species_requirements import (
     resolving_add,
     run_construction,
 )
+from picongpu.pypicongpu.memory import MemoryConfig
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
@@ -208,6 +209,35 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     32 (single precision, default) or 64 (double precision). Controls the
     ``precisionPIConGPU`` namespace in the generated ``precision.param``.
+    """
+
+    picongpu_precision_sqrt: Literal[32, 64, "core"] = Field(default="core")
+    """
+    precision of ``sqrt`` special operations (see ``precision.param``).
+
+    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
+    force ``precision32Bit``/``precision64Bit`` respectively.
+    """
+
+    picongpu_precision_exp: Literal[32, 64, "core"] = Field(default="core")
+    """
+    precision of ``exp`` special operations (see ``precision.param``).
+
+    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
+    force ``precision32Bit``/``precision64Bit`` respectively.
+    """
+
+    picongpu_precision_trig: Literal[32, 64, "core"] = Field(default="core")
+    """
+    precision of trigonometric special operations (see ``precision.param``).
+
+    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
+    force ``precision32Bit``/``precision64Bit`` respectively.
+    """
+
+    picongpu_memory: MemoryConfig = Field(default_factory=MemoryConfig)
+    """
+    memory / exchange-buffer knobs rendered into ``memory.param`` (see ``MemoryConfig``).
     """
 
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
@@ -494,6 +524,10 @@ class Simulation(picmistandard.PICMI_Simulation):
             synchrotron_params=synchrotron_params[0],
             collisional_physics=collisions[0].get_as_pypicongpu(),
             precision=self.picongpu_precision,
+            precision_sqrt=self.picongpu_precision_sqrt,
+            precision_exp=self.picongpu_precision_exp,
+            precision_trig=self.picongpu_precision_trig,
+            memory_config=self.picongpu_memory,
         )
 
     def _get_base_density(self) -> float:
