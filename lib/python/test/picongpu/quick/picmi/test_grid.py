@@ -287,3 +287,44 @@ class TestCartesian3DGrid(TestCase):
                 **self.COMMON_KWARGS,
             )
         ) == (1, 1, 1)
+
+    def test_guard_size_renders_via_real_runner(self):
+        """the rendered GuardSize is correct through the real Runner/write_input_file path"""
+        import os
+        import re
+        import shutil
+        import tempfile
+        from pathlib import Path
+
+        def rendered_guard(grid):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                outdir = os.path.join(tmpdir, "setup")
+            assert not os.path.isdir(outdir)
+            try:
+                sim = picmi.Simulation(
+                    time_step_size=17, max_steps=4, solver=picmi.ElectromagneticSolver(method="Yee", grid=grid)
+                )
+                sim.write_input_file(outdir)
+                text = (Path(outdir) / "include" / "picongpu" / "param" / "memory.param").read_text()
+                match = re.search(r"using GuardSize = typename mCT::shrinkTo<mCT::Int<([^>]*)>,", text)
+                return tuple(int(v) for v in match.group(1).split(","))
+            finally:
+                shutil.rmtree(outdir, ignore_errors=True)
+
+        # explicit: guard_cells (16, 8, 4) // super_cell_size (8, 8, 4) -> (2, 1, 1)
+        assert rendered_guard(
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                picongpu_super_cell_size=(8, 8, 4),
+                guard_cells=[16, 8, 4],
+                **self.COMMON_KWARGS,
+            )
+        ) == (2, 1, 1)
+
+        # default (guard_cells unset) falls back to PIConGPU's (1, 1, 1)
+        assert rendered_guard(
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                **self.COMMON_KWARGS,
+            )
+        ) == (1, 1, 1)
