@@ -64,6 +64,14 @@ def all_gt(iterable, m):
         raise ValueError(message)
 
 
+def all_ge(iterable, m):
+    if all(correct := [x >= m for x in iterable]):
+        return iterable
+    else:
+        message = f"{iterable=} contains values < {m=} while all should be greater than or equal to m. Valid are the following: {correct=}."
+        raise ValueError(message)
+
+
 def grid_dist_validate(grid_dist):
     if grid_dist is None:
         return None
@@ -104,6 +112,9 @@ class Grid3D(BaseModel, RenderedObject):
 
     super_cell_size: Vec3_int
     """size of super cell in x y and z direction as 3-integer tuple in cells"""
+
+    guard_size: Annotated[Vec3_int | None, AfterValidator(lambda x: None if x is None else all_ge(x, 0))] = None
+    """size of the guard region in x y and z direction as a 3-integer tuple in super cells"""
 
     @model_validator(mode="after")
     def check(self) -> Self:
