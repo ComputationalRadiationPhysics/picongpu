@@ -154,11 +154,11 @@ class TestTemplateRendering(TestCase):
     def test_memory_param_defaults(self):
         rendered = _rendered("memory.param.mustache", _sim())
         assert "constexpr size_t reservedGpuMemorySize = 350 * 1024 * 1024;" in rendered
-        assert "static constexpr uint32_t BYTES_EXCHANGE_X = 1048576;" in rendered
-        assert "static constexpr uint32_t BYTES_EXCHANGE_Y = 3145728;" in rendered
-        assert "static constexpr uint32_t BYTES_EXCHANGE_Z = 1048576;" in rendered
-        assert "static constexpr uint32_t BYTES_EDGES = 32768;" in rendered
-        assert "static constexpr uint32_t BYTES_CORNER = 8192;" in rendered
+        assert "static constexpr uint32_t BYTES_EXCHANGE_X = 1 * 1024 * 1024;" in rendered
+        assert "static constexpr uint32_t BYTES_EXCHANGE_Y = 3 * 1024 * 1024;" in rendered
+        assert "static constexpr uint32_t BYTES_EXCHANGE_Z = 1 * 1024 * 1024;" in rendered
+        assert "static constexpr uint32_t BYTES_EDGES = 32 * 1024;" in rendered
+        assert "static constexpr uint32_t BYTES_CORNER = 8 * 1024;" in rendered
         assert "using REF_LOCAL_DOM_SIZE = mCT::Int<0, 0, 0>;" in rendered
         assert "const std::array<float_X, 3> DIR_SCALING_FACTOR = { 0.0, 0.0, 0.0 };" in rendered
         assert "constexpr bool fieldTmpSupportGatherCommunication = true;" in rendered
@@ -177,7 +177,7 @@ class TestTemplateRendering(TestCase):
         )
         rendered = _rendered("memory.param.mustache", sim)
         assert "constexpr size_t reservedGpuMemorySize = 100 * 1024 * 1024;" in rendered
-        assert "static constexpr uint32_t BYTES_EXCHANGE_X = 2097152;" in rendered
+        assert "static constexpr uint32_t BYTES_EXCHANGE_X = 2 * 1024 * 1024;" in rendered
         assert "using REF_LOCAL_DOM_SIZE = mCT::Int<2, 3, 4>;" in rendered
         assert "const std::array<float_X, 3> DIR_SCALING_FACTOR = { 0.5, 0.25, 1.0 };" in rendered
         assert "constexpr bool fieldTmpSupportGatherCommunication = false;" in rendered

@@ -18,12 +18,21 @@ def _non_negative(values):
     return values
 
 
+def _human_bytes(value: int) -> str:
+    if value % (1024 * 1024) == 0:
+        return f"{value // (1024 * 1024)} * 1024 * 1024"
+    if value % 1024 == 0:
+        return f"{value // 1024} * 1024"
+    return str(value)
+
+
 class MemoryConfig(BaseModel):
     """
     Memory / exchange-buffer knobs rendered into ``include/picongpu/param/memory.param``.
 
     ``reserved_gpu_memory_size`` is given in MiB (rendered as ``<mib> * 1024 * 1024`` bytes);
-    the ``bytes_*`` exchange sizes are raw byte counts; ``ref_local_dom_size`` are three
+    the ``bytes_*`` exchange sizes are raw byte counts (rendered human-readable, e.g.
+    ``1 * 1024 * 1024`` / ``32 * 1024``); ``ref_local_dom_size`` are three
     non-negative ints (0 = no scaling); ``dir_scaling_factor`` are three floats (0.0 = no
     scaling). ``super_cell_size`` intentionally lives on the grid, not here.
     """
@@ -62,3 +71,9 @@ class MemoryConfig(BaseModel):
     @field_serializer("reserved_gpu_memory_size", return_type=str)
     def _render_reserved(self, value: int) -> str:
         return f"{value} * 1024 * 1024"
+
+    @field_serializer(
+        "bytes_exchange_x", "bytes_exchange_y", "bytes_exchange_z", "bytes_edges", "bytes_corner", return_type=str
+    )
+    def _render_bytes(self, value: int) -> str:
+        return _human_bytes(value)
