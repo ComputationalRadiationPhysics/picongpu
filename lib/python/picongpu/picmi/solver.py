@@ -5,14 +5,22 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
 License: GPLv3+
 """
 
+import math
 from collections.abc import Sequence
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
-from pydantic import BeforeValidator, ConfigDict
+from pydantic import BeforeValidator, ConfigDict, PrivateAttr, model_validator
 
 from picongpu.pypicongpu import util
-from picongpu.pypicongpu.field_solver import AnySolver, LeheSolver, YeeSolver
+from picongpu.pypicongpu.field_solver import (
+    AnySolver,
+    ArbitraryOrderFDTDSolver,
+    CKCSolver,
+    LeheSolver,
+    NoneSolver,
+    YeeSolver,
+)
 
 _other_than_one_pass = (
     "a number of binomial smoothing passes other than one (PIConGPU's C++ current "
@@ -67,6 +75,48 @@ def _single_pass_n_pass(value: Any) -> Sequence[int] | None:
     util._handle_unsupported(_not_a_single_pass_spelling, value)
 
 
+def _ao_fDTD_weight_sum(neighbors: int) -> float:
+    """
+    Alternating finite-difference weight sum of the C++
+    ``maxwellSolver::ArbitraryOrderFDTD`` CFL checker
+    (``include/picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp``),
+    computed from ``AOFDTDWeights`` (``Weights.hpp``).
+
+    This factor scales the Yee-style cell-size term in the CFL limit; it is ``1.0``
+    for one neighbor (plain Yee) and, e.g., ``7/8`` (order 4) so the CFL
+    limit is ~1.29 times the Yee value.
+    """
+    weights = [0.0] * neighbors
+    weights[0] = 4.0 * neighbors * (math.factorial(2 * neighbors) / (2 ** (2 * neighbors) * math.factorial(neighbors) ** 2)) ** 2
+    for l in range(1, neighbors):
+        weights[l] = -((l - 0.5) ** 2 * (neighbors - l) / (neighbors + l) / (l + 0.5) ** 2) * weights[l - 1]
+    return sum(w if i % 2 == 0 else -w for i, w in enumerate(weights))
+
+
+def _normalize_stencil_order(stencil_order: Sequence[int]) -> int:
+    """
+    Reduce the per-axis ``stencil_order`` to a single value.
+
+    PIConGPU's ``ArbitraryOrderFDTD`` uses one neighbor count along every
+    direction (``T_neighbors``, order = ``2 * T_neighbors``), so the per-axis
+    order must be all-axes-equal. Returns that common order (>= 2, even), which
+    the caller maps to ``neighbors = order // 2``.
+    """
+    if not stencil_order:
+        util._handle_unsupported("an empty stencil_order (give a per-axis vector such as [4, 4, 4])", stencil_order)
+    orders = list(stencil_order)
+    if any(type(o) is not int for o in orders):
+        util._handle_unsupported("a stencil_order that is not a vector of ints (give ints such as [4, 4, 4])", stencil_order)
+    if any(o < 2 for o in orders):
+        util._handle_unsupported("a stencil_order with an order below 2 (each axis order must be >= 2)", stencil_order)
+    if len(set(orders)) > 1:
+        util._handle_unsupported(
+            "a non-uniform stencil_order (PIConGPU's arbitrary-order FDTD uses the same order along every axis)",
+            stencil_order,
+        )
+    return orders[0]
+
+
 class BinomialSmoother(PICMI_BinomialSmoother):
     """
     PICMI Binomial Smoother
@@ -103,13 +153,25 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
 
     See PICMI spec for full documentation.
 
-    Only the Yee and Lehe solvers are supported; solver options that PIConGPU
-    does not implement are rejected at construction time.
+    Supported `method` values:
+
+    - ``"Yee"``: the standard second-order Yee solver (fixed-order, no stencil).
+    - ``"Lehe"``: the Cherenkov-free Lehe solver (fixed-order, no stencil).
+    - ``"CKC"``: the extended Cole-Karkkainen-Cowan solver (fixed-order, no stencil).
+    - ``"other:ArbitraryOrderFDTD"``: the arbitrary-order FDTD solver; the per-axis
+      ``stencil_order`` selects the order (see ``stencil_order`` below).
+    - ``"other:None"``: disables the vacuum update of E and B (no CFL limit).
+
+    PIConGPU implements the arbitrary-order FDTD with a single neighbor count
+    shared by all axes (``order = 2 * neighbors``), so ``stencil_order`` is only
+    meaningful for ``"other:ArbitraryOrderFDTD"`` and must be all-axes-equal; any
+    ``stencil_order`` on a fixed-order solver, and any other solver options that
+    PIConGPU does not implement, are rejected at construction time.
     """
 
     field_smoother: Annotated[PICMI_BinomialSmoother | None, util.rejects_unsupported("field smoothers")] = None
-    method: Literal["Yee", "Lehe"]
-    stencil_order: Annotated[Sequence[int] | None, util.rejects_unsupported("higher order solver stencils")] = None
+    method: Literal["Yee", "Lehe", "CKC", "other:ArbitraryOrderFDTD", "other:None"]
+    stencil_order: Sequence[int] | None = None
     subcycling: Annotated[int | None, util.rejects_unsupported("subcycling")] = None
     galilean_velocity: Annotated[Sequence[float] | None, util.rejects_unsupported("galilean velocity")] = None
     divE_cleaning: Annotated[bool | None, util.rejects_unsupported("divE cleaning")] = None
@@ -117,5 +179,58 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
     pml_divE_cleaning: Annotated[bool | None, util.rejects_unsupported("pml divE cleaning")] = None
     pml_divB_cleaning: Annotated[bool | None, util.rejects_unsupported("pml divB cleaning")] = None
 
+    _stencil_neighbors: int | None = PrivateAttr(default=None)
+
+    @model_validator(mode="after")
+    def _validate_stencil_order(self) -> Self:
+        if self.method == "other:ArbitraryOrderFDTD":
+            if self.stencil_order is None:
+                util._handle_unsupported(
+                    "an 'other:ArbitraryOrderFDTD' solver without a stencil_order "
+                    "(give a uniform per-axis order such as [4, 4, 4])",
+                    self.stencil_order,
+                )
+            self._stencil_neighbors = _normalize_stencil_order(self.stencil_order) // 2
+        else:
+            if self.stencil_order is not None:
+                util._handle_unsupported(
+                    "a stencil_order with a method that uses a fixed-order stencil "
+                    f"(the {self.method} solver takes no stencil order)",
+                    self.stencil_order,
+                )
+            self._stencil_neighbors = None
+        return self
+
+    def _cfl_max_cdt(self, delta_x: float, delta_y: float, delta_z: float) -> float | None:
+        """
+        The CFL stability limit as a maximum of ``c * delta_t`` for this solver,
+        mirroring the C++ ``maxwellSolver::CFLChecker`` specializations.
+
+        - ``Yee``/``Lehe``: ``1 / sqrt(1/dx^2 + 1/dy^2 + 1/dz^2)``.
+        - ``other:ArbitraryOrderFDTD``: the Yee term divided by the alternating
+          finite-difference weight sum (``_ao_fDTD_weight_sum``), ~1.29 for order 4.
+        - ``CKC``: the minimum cell size.
+        - ``other:None``: ``None`` (the solver has no CFL limit; skips the CFL gate).
+        """
+        if self.method == "other:None":
+            return None
+        inv_cell_sum = 1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2
+        if self.method in ("Yee", "Lehe"):
+            return 1 / math.sqrt(inv_cell_sum)
+        if self.method == "CKC":
+            return min(delta_x, delta_y, delta_z)
+        # other:ArbitraryOrderFDTD
+        return 1 / (_ao_fDTD_weight_sum(self._stencil_neighbors) * math.sqrt(inv_cell_sum))
+
     def get_as_pypicongpu(self) -> AnySolver:
-        return YeeSolver() if self.method == "Yee" else LeheSolver()
+        match self.method:
+            case "Yee":
+                return YeeSolver()
+            case "Lehe":
+                return LeheSolver()
+            case "CKC":
+                return CKCSolver()
+            case "other:ArbitraryOrderFDTD":
+                return ArbitraryOrderFDTDSolver(neighbors=self._stencil_neighbors)
+            case "other:None":
+                return NoneSolver()
