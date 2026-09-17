@@ -209,3 +209,6 @@ class Grid2D(BaseModel, RenderedObject):
             assert sum(self.grid_dist[1]) == self.cell_cnt[1], "sum of grid_dists in y must be equal to number_of_cells"
 
         return self
+
+
+AnyGrid = Grid3D | Grid2D
