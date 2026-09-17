@@ -1,4 +1,4 @@
-/* Copyright 2024-2024 Rene Widera
+/* Copyright 2025-2025 Tapish Narwal
  *
  * This file is part of PMacc.
  *
@@ -22,14 +22,12 @@
 
 #pragma once
 
-#include "pmacc/math/functions/Abs.hpp"
-#include "pmacc/math/functions/Comparison.hpp"
-#include "pmacc/math/functions/Copysign.hpp"
-#include "pmacc/math/functions/Erf.hpp"
-#include "pmacc/math/functions/Exp.hpp"
-#include "pmacc/math/functions/Log.hpp"
-#include "pmacc/math/functions/Mod.hpp"
-#include "pmacc/math/functions/Pow.hpp"
-#include "pmacc/math/functions/Root.hpp"
-#include "pmacc/math/functions/Round.hpp"
-#include "pmacc/math/functions/Trigo.hpp"
+#include "pmacc/math/functions/Common.hpp"
+
+#include <alpaka/alpaka.hpp>
+
+namespace pmacc::math
+{
+    //! Create value with the magnitude of x and the sign of y.
+    ALPAKA_BINARY_MATH_FN(copysign, alpaka::math::ConceptMathCopysign, Copysign)
+} // namespace pmacc::math
