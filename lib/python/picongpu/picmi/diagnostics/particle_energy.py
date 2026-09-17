@@ -31,9 +31,6 @@ class ParticleEnergy(BaseModel):
     period: int
         Number of simulation steps between consecutive outputs.
         Unit: steps (simulation time steps).
-
-    name: string, optional
-        Optional name for the particle energy plugin.
     """
 
     species: Species | FilteredSpecies
