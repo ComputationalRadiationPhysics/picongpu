@@ -77,12 +77,14 @@ def _normalise_n_gpus(n_gpus, n_dimensions: int):
 
 
 def _check_cartesian_grid(self, dim_name):
-    if any(bound != 0.0 for bound in self.lower_bound):
-        raise ValueError(f"A lower bound different from 0 is not supported in PIConGPU. You gave {self.lower_bound}.")
-    if self.lower_boundary_conditions != self.upper_boundary_conditions:
-        raise ValueError(
-            "upper and lower boundary conditions must be equal (can only be chosen by axis, not by direction)"
-        )
+    _check_lower_bound_is_zero(self)
+    _check_boundary_conditions(self, dim_name)
+    _reject_unsupported_cartesian_grid_features(self)
+    _check_grid_distribution(self, dim_name)
+    _check_super_cell_size(self, dim_name)
+
+
+def _reject_unsupported_cartesian_grid_features(self):
     util.unsupported("moving window", self.moving_window_velocity)
     util.unsupported("refined regions", self.refined_regions, [])
     util.unsupported("lower bound (particles)", self.lower_bound_particles, self.lower_bound)
@@ -97,25 +99,54 @@ def _check_cartesian_grid(self, dim_name):
         self.upper_boundary_conditions_particles,
         self.upper_boundary_conditions,
     )
-    util.unsupported("guard cells", self.guard_cells)
     util.unsupported("pml cells", self.pml_cells)
 
+
+def _check_lower_bound_is_zero(self):
+    if any(bound != 0.0 for bound in self.lower_bound):
+        raise ValueError(f"A lower bound different from 0 is not supported in PIConGPU. You gave {self.lower_bound}.")
+
+
+def _check_boundary_conditions(self, dim_name):
+    if self.lower_boundary_conditions != self.upper_boundary_conditions:
+        raise ValueError(
+            "upper and lower boundary conditions must be equal (can only be chosen by axis, not by direction)"
+        )
     for i, name in enumerate(dim_name):
         if self.lower_boundary_conditions[i] not in PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID:
             raise ValueError(f"{name}: boundary condition not supported")
 
-    if self.picongpu_grid_dist is not None:
-        for i, name in enumerate(dim_name):
-            if not all(n >= 1 for n in self.picongpu_grid_dist[i]):
-                raise ValueError("All values in grid distribution must be greater than 0.")
-            if sum(self.picongpu_grid_dist[i]) != self.number_of_cells[i]:
-                raise ValueError(f"sum of grid distribution in {name} dimension must match number of cells")
-            if len(self.picongpu_grid_dist[i]) != self.picongpu_n_gpus[i]:
-                raise ValueError(f"number of grid distributions in {name} dimension must match number of gpus")
 
+def _check_grid_distribution(self, dim_name):
+    if self.picongpu_grid_dist is None:
+        return
+    for i, name in enumerate(dim_name):
+        if not all(n >= 1 for n in self.picongpu_grid_dist[i]):
+            raise ValueError("All values in grid distribution must be greater than 0.")
+        if sum(self.picongpu_grid_dist[i]) != self.number_of_cells[i]:
+            raise ValueError(f"sum of grid distribution in {name} dimension must match number of cells")
+        if len(self.picongpu_grid_dist[i]) != self.picongpu_n_gpus[i]:
+            raise ValueError(f"number of grid distributions in {name} dimension must match number of gpus")
+
+
+def _check_super_cell_size(self, dim_name):
     for i, name in enumerate(dim_name):
         if self.picongpu_super_cell_size[i] < 1:
             raise ValueError("super cell size must be a positive integer")
+
+    if self.guard_cells is not None:
+        for i, name in enumerate(dim_name):
+            guard_cells = self.guard_cells[i]
+            super_cell = self.picongpu_super_cell_size[i]
+            if guard_cells < 0:
+                raise ValueError(
+                    f"guard cells in {name} dimension must be a non-negative integer. You gave {guard_cells}."
+                )
+            if guard_cells % super_cell != 0:
+                raise ValueError(
+                    f"guard cells in {name} dimension must be an exact multiple of the super cell size "
+                    f"({super_cell} in {name}), but you gave {guard_cells}."
+                )
     cells = list(self.number_of_cells)
     for dim, name in enumerate(dim_name):
         if self.picongpu_grid_dist is None:
