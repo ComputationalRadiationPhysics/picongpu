@@ -82,9 +82,12 @@ def _ao_fDTD_weight_sum(neighbors: int) -> float:
     (``include/picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp``),
     computed from ``AOFDTDWeights`` (``Weights.hpp``).
 
-    This factor scales the Yee-style cell-size term in the CFL limit; it is ``1.0``
-    for one neighbor (plain Yee) and, e.g., ``7/8`` (order 4) so the CFL
-    limit is ~1.29 times the Yee value.
+    The AO CFL limit is the Yee cell-size term divided by this factor
+    (``maxC_DT = 1 / (F * sqrt(sum 1/dx^2))``), so a factor above 1 makes the
+    limit *tighter* (smaller ``c * dt``) than Yee. It is ``1.0`` for one
+    neighbor (plain Yee), ``7/6`` for two (order 4, so the AO limit is
+    ``6/7 ~ 0.857x`` the Yee value) and ``~1.28631`` for four (order 8,
+    ``~0.7774x`` the Yee value).
     """
     weights = [0.0] * neighbors
     weights[0] = (
@@ -217,7 +220,8 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
 
         - ``Yee``/``Lehe``: ``1 / sqrt(1/dx^2 + 1/dy^2 + 1/dz^2)``.
         - ``other:ArbitraryOrderFDTD``: the Yee term divided by the alternating
-          finite-difference weight sum (``_ao_fDTD_weight_sum``), ~1.29 for order 4.
+          finite-difference weight sum (``_ao_fDTD_weight_sum``), e.g. ``7/6`` for
+          order 4 (AO limit ``6/7 ~ 0.857x`` the Yee value, i.e. tighter).
         - ``CKC``: the minimum cell size.
         - ``other:None``: ``None`` (the solver has no CFL limit; skips the CFL gate).
         """
