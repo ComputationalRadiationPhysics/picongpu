@@ -112,6 +112,10 @@ pypicongpu_output_with_newlines="
       --{{{species.species_name}}}_macroParticlesCount.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
     {{/type_macroparticlecount}}
 
+    {{#type_fieldenergymonitor}}
+      --fields_energy.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
+    {{/type_fieldenergymonitor}}
+
     {{#type_radiation}}
     {{#species}}
     {{#config}}
