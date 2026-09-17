@@ -87,9 +87,11 @@ def _ao_fDTD_weight_sum(neighbors: int) -> float:
     limit is ~1.29 times the Yee value.
     """
     weights = [0.0] * neighbors
-    weights[0] = 4.0 * neighbors * (math.factorial(2 * neighbors) / (2 ** (2 * neighbors) * math.factorial(neighbors) ** 2)) ** 2
-    for l in range(1, neighbors):
-        weights[l] = -((l - 0.5) ** 2 * (neighbors - l) / (neighbors + l) / (l + 0.5) ** 2) * weights[l - 1]
+    weights[0] = (
+        4.0 * neighbors * (math.factorial(2 * neighbors) / (2 ** (2 * neighbors) * math.factorial(neighbors) ** 2)) ** 2
+    )
+    for k in range(1, neighbors):
+        weights[k] = -((k - 0.5) ** 2 * (neighbors - k) / (neighbors + k) / (k + 0.5) ** 2) * weights[k - 1]
     return sum(w if i % 2 == 0 else -w for i, w in enumerate(weights))
 
 
@@ -106,12 +108,19 @@ def _normalize_stencil_order(stencil_order: Sequence[int]) -> int:
         util._handle_unsupported("an empty stencil_order (give a per-axis vector such as [4, 4, 4])", stencil_order)
     orders = list(stencil_order)
     if any(type(o) is not int for o in orders):
-        util._handle_unsupported("a stencil_order that is not a vector of ints (give ints such as [4, 4, 4])", stencil_order)
+        util._handle_unsupported(
+            "a stencil_order that is not a vector of ints (give ints such as [4, 4, 4])", stencil_order
+        )
     if any(o < 2 for o in orders):
         util._handle_unsupported("a stencil_order with an order below 2 (each axis order must be >= 2)", stencil_order)
     if len(set(orders)) > 1:
         util._handle_unsupported(
             "a non-uniform stencil_order (PIConGPU's arbitrary-order FDTD uses the same order along every axis)",
+            stencil_order,
+        )
+    if orders[0] % 2 != 0:
+        util._handle_unsupported(
+            "an odd stencil_order (the arbitrary-order FDTD order is 2 * neighbors, hence even)",
             stencil_order,
         )
     return orders[0]
