@@ -32,6 +32,24 @@ def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
     )
 
 
+def get_laser(huygens_surface_positions=None):
+    # a valid, minimal GaussianLaser; optional Huygens surface override
+    kwargs = {}
+    if huygens_surface_positions is not None:
+        kwargs["picongpu_huygens_surface_positions"] = huygens_surface_positions
+    return picmi.GaussianLaser(
+        wavelength=1,
+        waist=2,
+        duration=3,
+        focal_position=[5, 4, 5],
+        centroid_position=[5, -1.5, 5],
+        propagation_direction=[0, 1, 0],
+        polarization_direction=[0, 0, 1],
+        E0=5,
+        **kwargs,
+    )
+
+
 def get_sim_cfl_helper(
     delta_t: float | None,
     cfl: float | None,
@@ -111,6 +129,28 @@ class TestPicmiSimulation(TestCase):
         with pytest.raises(ValueError):
             # delta_t does not match cfl at all
             get_sim_cfl_helper(1, 0.99, (3, 4, 5), "Yee")
+
+    def test_huygens_surface_positions_mismatch_raises(self):
+        """two lasers with differing Huygens surface positions are rejected at translate time (#115)"""
+        sim = self.__get_sim()
+        sim.add_laser(get_laser([[16, -16], [16, -16], [16, -16]]), None)
+        sim.add_laser(get_laser([[1, -1], [1, -1], [1, -1]]), None)
+        with pytest.raises(ValueError, match="picongpu_huygens_surface_positions"):
+            sim.get_as_pypicongpu()
+
+    def test_huygens_surface_positions_matching_ok(self):
+        """identical Huygens surface positions across multiple lasers translate fine (#115)"""
+        sim = self.__get_sim()
+        sim.add_laser(get_laser([[3, -3], [3, -3], [3, -3]]), None)
+        sim.add_laser(get_laser([[3, -3], [3, -3], [3, -3]]), None)
+        sim.add_laser(get_laser([[3, -3], [3, -3], [3, -3]]), None)
+        assert sim.get_as_pypicongpu().model_dump() != {}
+
+    def test_huygens_surface_positions_single_laser_ok(self):
+        """a single laser needs no cross-laser consistency check (#115)"""
+        sim = self.__get_sim()
+        sim.add_laser(get_laser([[9, -9], [9, -9], [9, -9]]), None)
+        assert sim.get_as_pypicongpu().model_dump() != {}
 
     def test_species_translation(self):
         """test that species are moved to PyPIConGPU simulation"""
