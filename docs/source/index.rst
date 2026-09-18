@@ -47,6 +47,13 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    install/changelog.md
 
 .. toctree::
+   :caption: PIConGPU PYTHON PACKAGE
+   :maxdepth: 2
+   :hidden:
+
+   python_package/index
+
+.. toctree::
    :caption: TUTORIALS
    :maxdepth: 1
    :hidden:
