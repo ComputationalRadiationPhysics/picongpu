@@ -50,6 +50,22 @@ def get_laser(huygens_surface_positions=None):
     )
 
 
+def get_plane_wave_laser(huygens_surface_positions=None):
+    # a valid, minimal PlaneWaveLaser; optional Huygens surface override
+    kwargs = {}
+    if huygens_surface_positions is not None:
+        kwargs["picongpu_huygens_surface_positions"] = huygens_surface_positions
+    return picmi.PlaneWaveLaser(
+        wavelength=1,
+        duration=3,
+        centroid_position=[5, -1.5, 5],
+        propagation_direction=[0, 1, 0],
+        polarization_direction=[0, 0, 1],
+        E0=5,
+        **kwargs,
+    )
+
+
 def get_sim_cfl_helper(
     delta_t: float | None,
     cfl: float | None,
@@ -150,6 +166,21 @@ class TestPicmiSimulation(TestCase):
         """a single laser needs no cross-laser consistency check (#115)"""
         sim = self.__get_sim()
         sim.add_laser(get_laser([[9, -9], [9, -9], [9, -9]]), None)
+        assert sim.get_as_pypicongpu().model_dump() != {}
+
+    def test_huygens_surface_positions_mixed_laser_types(self):
+        """the consistency check is type-agnostic and compares across laser kinds (#115)"""
+        # differing positions across two different laser types are rejected
+        sim = self.__get_sim()
+        sim.add_laser(get_laser([[16, -16], [16, -16], [16, -16]]), None)
+        sim.add_laser(get_plane_wave_laser([[1, -1], [1, -1], [1, -1]]), None)
+        with pytest.raises(ValueError, match="picongpu_huygens_surface_positions"):
+            sim.get_as_pypicongpu()
+
+        # identical positions across the two different laser types translate fine
+        sim = self.__get_sim()
+        sim.add_laser(get_laser([[3, -3], [3, -3], [3, -3]]), None)
+        sim.add_laser(get_plane_wave_laser([[3, -3], [3, -3], [3, -3]]), None)
         assert sim.get_as_pypicongpu().model_dump() != {}
 
     def test_species_translation(self):
