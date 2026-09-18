@@ -11,6 +11,7 @@ from .energy_histogram import EnergyHistogram
 from .field_energy_monitor import FieldEnergyMonitor
 from .macro_particle_count import MacroParticleCount
 from .openpmd_plugin import OpenPMDPlugin
+from .particle_energy import ParticleEnergy
 from .phase_space import PhaseSpace
 from .radiation import RadiationConfiguration, RadiationPlugin, RadiationObserverConfiguration
 from .timestepspec import TimeStepSpec
@@ -22,6 +23,7 @@ AnyPlugin = (
     | FieldEnergyMonitor
     | MacroParticleCount
     | OpenPMDPlugin
+    | ParticleEnergy
     | PhaseSpace
     | RadiationPlugin
 )
@@ -33,6 +35,7 @@ __all__ = [
     "EnergyHistogram",
     "FieldEnergyMonitor",
     "MacroParticleCount",
+    "ParticleEnergy",
     "TimeStepSpec",
     "Checkpoint",
     "RadiationPlugin",
