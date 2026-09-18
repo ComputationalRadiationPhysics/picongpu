@@ -17,6 +17,7 @@ from pydantic import ValidationError
 from picongpu import picmi
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
+from picongpu.pypicongpu.field_solver import ArbitraryOrderFDTDSolver
 
 
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
@@ -632,3 +633,115 @@ class TestPicmiSimulation(TestCase):
         with pytest.raises(ValueError, match="Key test_data_1 exist already, and specified values differ."):
             self.sim.picongpu_add_custom_user_input(i_differentValue)
             self.sim.get_as_pypicongpu().get_rendering_context()
+
+    def test_maxwell_solver_method_acceptance(self):
+        """the standard solvers and the PIConGPU 'other:' extensions are accepted"""
+        grid = get_grid(1, 1, 1, 32)
+        for method in ("Yee", "Lehe", "CKC", "other:None"):
+            assert picmi.ElectromagneticSolver(method=method, grid=grid).method == method
+        # the arbitrary-order FDTD requires a stencil order
+        assert (
+            picmi.ElectromagneticSolver(method="other:ArbitraryOrderFDTD", grid=grid, stencil_order=[4, 4, 4]).method
+            == "other:ArbitraryOrderFDTD"
+        )
+
+    def test_maxwell_solver_method_rejection(self):
+        """standard methods PIConGPU does not implement are rejected"""
+        grid = get_grid(1, 1, 1, 32)
+        for method in ("PSTD", "PSATD", "GPSTD", "DS", "ECT", "other:Substepping", "Foo"):
+            with pytest.raises(ValidationError):
+                picmi.ElectromagneticSolver(method=method, grid=grid)
+
+    def test_maxwell_solver_stencil_order_uniformity(self):
+        """stencil_order must be all-axes-equal and maps to neighbors = order // 2"""
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="other:ArbitraryOrderFDTD", grid=grid, stencil_order=[4, 4, 4])
+        # order 4 -> 2 neighbors
+        assert isinstance(solver.get_as_pypicongpu(), ArbitraryOrderFDTDSolver)
+        assert solver.get_as_pypicongpu().name == "ArbitraryOrderFDTD<2>"
+        # order 6 -> 3 neighbors
+        solver = picmi.ElectromagneticSolver(method="other:ArbitraryOrderFDTD", grid=grid, stencil_order=[6, 6, 6])
+        assert solver.get_as_pypicongpu().name == "ArbitraryOrderFDTD<3>"
+        # non-uniform, sub-2, odd, and empty orders are all rejected
+        for bad in ([2, 4, 4], [4, 4, 6], [1, 1, 1], [5, 5, 5], [3, 3, 3], []):
+            with pytest.raises(ValidationError):
+                picmi.ElectromagneticSolver(method="other:ArbitraryOrderFDTD", grid=grid, stencil_order=bad)
+
+    def test_maxwell_solver_stencil_order_fixed_order_rejected(self):
+        """a stencil_order is meaningless on a fixed-order solver and is rejected"""
+        grid = get_grid(1, 1, 1, 32)
+        for method in ("Yee", "Lehe", "CKC", "other:None"):
+            with pytest.raises(ValidationError):
+                picmi.ElectromagneticSolver(method=method, grid=grid, stencil_order=[4, 4, 4])
+        # and the arbitrary-order FDTD needs one
+        with pytest.raises(ValidationError):
+            picmi.ElectromagneticSolver(method="other:ArbitraryOrderFDTD", grid=grid)
+
+    def test_none_solver_stays_out_of_cfl_gate(self):
+        """the None solver has no CFL limit: cfl/delta_t are left untouched"""
+        grid = get_grid(1, 2, 3, 10)
+        # nothing given -> both stay None
+        sim = picmi.Simulation(solver=picmi.ElectromagneticSolver(method="other:None", grid=grid))
+        assert sim.time_step_size is None
+        assert sim.solver.cfl is None
+        # any delta_t is legal and cfl stays None (not derived)
+        sim = picmi.Simulation(time_step_size=1.0, solver=picmi.ElectromagneticSolver(method="other:None", grid=grid))
+        assert sim.time_step_size == 1.0
+        assert sim.solver.cfl is None
+        # a given cfl is never cross-checked / derived against delta_t
+        sim = picmi.Simulation(
+            time_step_size=1.0, solver=picmi.ElectromagneticSolver(method="other:None", grid=grid, cfl=0.99)
+        )
+        assert sim.time_step_size == 1.0
+        assert sim.solver.cfl == 0.99
+
+    def test_maxwell_solver_pypicongpu_translation(self):
+        """each method maps to the right pypicongpu field-solver model and name"""
+        grid = get_grid(1, 1, 1, 32)
+        expected = {
+            "Yee": "Yee",
+            "Lehe": "Lehe<>",
+            "CKC": "CKC",
+            "other:None": "None",
+        }
+        for method, name in expected.items():
+            assert picmi.ElectromagneticSolver(method=method, grid=grid).get_as_pypicongpu().name == name
+
+    def test_maxwell_solver_cfl_per_solver(self):
+        """CKC uses the minimum cell and the AO FDTD scales the Yee limit by its weight sum"""
+        import math
+
+        from picongpu.picmi import constants
+
+        delta_3d = (3.0, 4.0, 5.0)
+        n = 100
+        min_cell = min(delta_3d)
+        yee_cfl_limit = 1 / math.sqrt(1 / 3.0**2 + 1 / 4.0**2 + 1 / 5.0**2)
+        ao_order4_limit = yee_cfl_limit / picmi.solver._ao_fDTD_weight_sum(2)  # neighbors = 4 // 2 = 2
+
+        # CKC: cfl = c * dt / min_cell  ->  dt = cfl * min_cell / c
+        sim = picmi.Simulation(solver=picmi.ElectromagneticSolver(method="CKC", grid=get_grid(*delta_3d, n=n), cfl=0.9))
+        assert abs(sim.time_step_size - 0.9 * min_cell / constants.c) < 1e-30
+
+        # AO FDTD order 4: cfl = c * dt / ao_limit  ->  dt = cfl * ao_limit / c
+        sim = picmi.Simulation(
+            solver=picmi.ElectromagneticSolver(
+                method="other:ArbitraryOrderFDTD", grid=get_grid(*delta_3d, n=n), stencil_order=[4, 4, 4], cfl=0.99
+            )
+        )
+        assert math.isclose(sim.time_step_size, 0.99 * ao_order4_limit / constants.c, rel_tol=1e-12, abs_tol=0.0)
+
+        # CKC mismatch still raises
+        good = picmi.Simulation(
+            solver=picmi.ElectromagneticSolver(method="CKC", grid=get_grid(*delta_3d, n=n), cfl=0.9)
+        )
+        with pytest.raises(ValueError):
+            picmi.Simulation(
+                time_step_size=1.0,
+                solver=picmi.ElectromagneticSolver(method="CKC", grid=get_grid(*delta_3d, n=n), cfl=0.9),
+            )
+        # and the matching value passes
+        picmi.Simulation(
+            time_step_size=good.time_step_size,
+            solver=picmi.ElectromagneticSolver(method="CKC", grid=get_grid(*delta_3d, n=n), cfl=0.9),
+        )
