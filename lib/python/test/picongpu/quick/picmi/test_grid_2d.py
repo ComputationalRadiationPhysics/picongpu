@@ -61,6 +61,23 @@ def get_sim_cfl_2d(delta_t, cfl, delta_2d, method="Yee", n=100) -> picmi.Simulat
     return picmi.Simulation(time_step_size=delta_t, solver=solver)
 
 
+def render_cell_depth_si(grid) -> float:
+    """Render just the simulation.param template and return the CELL_DEPTH_SI value.
+
+    Uses the production rendering context + Renderer (no full directory copy), so a
+    single template can be asserted cheaply in the quick suite.
+    """
+    sim = picmi.Simulation(max_steps=1, solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.5, grid=grid))
+    pypic = sim.get_as_pypicongpu()
+    context = pypic.get_rendering_context()
+    Renderer.check_rendering_context(context)
+    preprocessed = Renderer.get_context_preprocessed(context)
+    template = (templates.path() / "include" / "picongpu" / "param" / "simulation.param.mustache").read_text()
+    rendered = Renderer.get_rendered_template(preprocessed, template)
+    line = next(l for l in rendered.splitlines() if "CELL_DEPTH_SI =" in l)
+    return float(line.split("CELL_DEPTH_SI = ")[1].rstrip(";").strip())
+
+
 class TestCartesian2DGrid(TestCase):
     def test_basic_translation(self):
         grid = picmi.Cartesian2DGrid(
@@ -273,3 +290,41 @@ class TestCartesian2DGrid(TestCase):
 
         # a 2D-safe (z-independent) density is accepted
         build(lambda x, y, z: x * y).get_as_pypicongpu()
+
+    def test_cell_depth_si_explicit_override(self):
+        # An explicit picongpu_cell_depth_si must be rendered as CELL_DEPTH_SI,
+        # overriding the dx default (2D3V slab thickness).
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+            picongpu_cell_depth_si=1.5e-6,
+        )
+        assert render_cell_depth_si(grid) == pytest.approx(1.5e-6)
+
+    def test_cell_depth_si_defaults_to_dx(self):
+        # When picongpu_cell_depth_si is left as None, CELL_DEPTH_SI falls back
+        # to the x cell size (dx), preserving the historical behaviour.
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        dx = 0.064 / 128
+        assert render_cell_depth_si(grid) == pytest.approx(dx)
+
+    def test_cell_depth_si_rejects_non_positive(self):
+        grid_kwargs = dict(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        for bad in (0.0, -1.5e-6):
+            with pytest.raises(ValueError, match="cell depth"):
+                picmi.Cartesian2DGrid(**grid_kwargs, picongpu_cell_depth_si=bad)
