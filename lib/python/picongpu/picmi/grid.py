@@ -244,7 +244,8 @@ class Cartesian2DGrid(picmistandard.PICMI_Cartesian2DGrid):
         AfterValidator(lambda x: _normalise_n_gpus(x, 2)),
     ] = Field(default=(1, 1))
     picongpu_grid_dist: None | list[list[int]] = Field(default=None)
-    picongpu_super_cell_size: tuple[int, int] = Field(default=(8, 8))
+    # PIConGPU's 2D setups (e.g. the FoilLCT example) use a <16, 16> super cell.
+    picongpu_super_cell_size: tuple[int, int] = Field(default=(16, 16))
 
     @computed_field
     def picongpu_cell_size(self) -> tuple[int, int]:

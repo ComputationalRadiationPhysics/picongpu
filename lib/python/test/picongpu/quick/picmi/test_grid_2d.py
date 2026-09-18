@@ -190,8 +190,9 @@ class TestCartesian2DGrid(TestCase):
         # argument of shrinkTo, not a 4th Int component. A `}` here is a parse error.
         assert line_3d == "using SuperCellSize = typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type;"
         assert "}" not in line_3d
-        # 2D: plain 2-component Int (no simDim, no shrinkTo).
-        assert line_2d == "using SuperCellSize = mCT::Int<8, 8>;"
+        # 2D: plain 2-component Int (no simDim, no shrinkTo). The 2D super-cell
+        # default is <16, 16>, matching PIConGPU's 2D setups (e.g. the FoilLCT example).
+        assert line_2d == "using SuperCellSize = mCT::Int<16, 16>;"
 
     def test_2d_rejects_z_dependent_analytic_density(self):
         # 2D3V has no spatial z coordinate; a z-dependent free-formula density would
