@@ -69,7 +69,7 @@ namespace picongpu
      *
      * GuardSize is defined in units of SuperCellSize per dimension.
      */
-    using GuardSize = typename mCT::shrinkTo<mCT::Int<{{#grid.guard_size}}{{{x}}}, {{{y}}}, {{{z}}}{{/grid.guard_size}}{{^grid.guard_size}}1, 1, 1{{/grid.guard_size}}>, simDim>::type;
+    using GuardSize = typename mCT::shrinkTo<mCT::Int<{{#grid.guard_size}}{{#grid.has_z}}{{{x}}}, {{{y}}}, {{{z}}}{{/grid.has_z}}{{^grid.has_z}}{{{x}}}, {{{y}}}, 1{{/grid.has_z}}{{/grid.guard_size}}{{^grid.guard_size}}1, 1, 1{{/grid.guard_size}}>, simDim>::type;
 
     /** bytes reserved for species exchange buffer
      *

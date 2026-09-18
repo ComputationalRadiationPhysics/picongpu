@@ -196,7 +196,10 @@ class Grid2D(BaseModel, RenderedObject):
     """distribution of grid cells to GPUs for each axis"""
 
     super_cell_size: Vec2_int
-    """size of super cell in x and y direction as 2-integer tuple in cells"""
+    """size of super cell in x and y direction as a 2-integer tuple in cells"""
+
+    guard_size: Annotated[Vec2_int | None, AfterValidator(lambda x: None if x is None else all_ge(x, 0))] = None
+    """size of the guard region in x and y direction as a 2-integer tuple in super cells"""
 
     @computed_field
     def has_z(self) -> bool:

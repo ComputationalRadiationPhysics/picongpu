@@ -231,6 +231,11 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         # In 2D3V the Z cell length (CELL_DEPTH_SI) is still used to normalize
         # densities; we take the x cell size as the default wire-particle length.
         "cell_depth_si": lambda self: (self.upper_bound[0] - self.lower_bound[0]) / self.number_of_cells[0],
+        "guard_size": lambda self: (
+            None
+            if self.guard_cells is None
+            else tuple(c // s for c, s in zip(self.guard_cells, self.picongpu_super_cell_size))
+        ),
     },
     remove_prefix="picongpu_",
 )

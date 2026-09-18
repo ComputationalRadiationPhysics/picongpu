@@ -43,6 +43,18 @@ def render_memory_param_supercell_size(grid) -> str:
     return next(line.strip() for line in rendered.splitlines() if "SuperCellSize =" in line)
 
 
+def render_memory_param_guard_size(grid) -> str:
+    """Render just the memory.param template and return the GuardSize line (see render_memory_param_supercell_size)."""
+    sim = picmi.Simulation(max_steps=1, solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.5, grid=grid))
+    pypic = sim.get_as_pypicongpu()
+    context = pypic.get_rendering_context()
+    Renderer.check_rendering_context(context)
+    preprocessed = Renderer.get_context_preprocessed(context)
+    template = (templates.path() / "include" / "picongpu" / "param" / "memory.param.mustache").read_text()
+    rendered = Renderer.get_rendered_template(preprocessed, template)
+    return next(line.strip() for line in rendered.splitlines() if "GuardSize =" in line)
+
+
 def get_sim_cfl_2d(delta_t, cfl, delta_2d, method="Yee", n=100) -> picmi.Simulation:
     grid = get_grid_2d(delta_2d[0], delta_2d[1], n)
     solver = picmi.ElectromagneticSolver(method=method, grid=grid, cfl=cfl)
@@ -193,6 +205,43 @@ class TestCartesian2DGrid(TestCase):
         # 2D: plain 2-component Int (no simDim, no shrinkTo). The 2D super-cell
         # default is <16, 16>, matching PIConGPU's 2D setups (e.g. the FoilLCT example).
         assert line_2d == "using SuperCellSize = mCT::Int<16, 16>;"
+
+    def test_memory_param_guard_size_well_formed(self):
+        # Regression guard: 2D must support guard cells with the same semantics as 3D
+        # (guard_cells in cells -> guard_size in super cells). Previously the 2D grid
+        # validated guard_cells but silently dropped them (no guard_size conversion), so
+        # e.g. guard_cells=[32,32] on a <16,16> super cell rendered the default <1,1,1>.
+        base = dict(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+            picongpu_super_cell_size=[16, 16],
+        )
+        # 2D: no guard_cells -> default; guard_cells are mapped to super-cell counts.
+        # The 2D z placeholder is 1 and is dropped by shrinkTo<..., simDim> in 2D3V.
+        assert render_memory_param_guard_size(picmi.Cartesian2DGrid(**base)) == (
+            "using GuardSize = typename mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type;"
+        )
+        assert render_memory_param_guard_size(picmi.Cartesian2DGrid(**base, guard_cells=[32, 32])) == (
+            "using GuardSize = typename mCT::shrinkTo<mCT::Int<2, 2, 1>, simDim>::type;"
+        )
+        # conversion: guard_size in super cells = guard_cells // super_cell_size
+        assert picmi.Cartesian2DGrid(**base, guard_cells=[32, 16]).get_as_pypicongpu().guard_size == (2, 1)
+        # 3D unchanged: same line, z component carried (super cell default <8,8,4>)
+        assert (
+            render_memory_param_guard_size(
+                picmi.Cartesian3DGrid(
+                    number_of_cells=[32, 32, 32],
+                    lower_bound=[0, 0, 0],
+                    upper_bound=[1e-6, 1e-6, 1e-6],
+                    lower_boundary_conditions=["open", "open", "open"],
+                    upper_boundary_conditions=["open", "open", "open"],
+                )
+            )
+            == "using GuardSize = typename mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type;"
+        )
 
     def test_2d_rejects_z_dependent_analytic_density(self):
         # 2D3V has no spatial z coordinate; a z-dependent free-formula density would
