@@ -197,3 +197,134 @@ class TestCartesian3DGrid(TestCase):
         )
         with pytest.raises(Exception, match=".*super cell size must be a positive integer.*"):
             grid.get_as_pypicongpu()
+
+    def test_guard_cells_accepted(self):
+        """guard_cells (in cells) map to guard_size (in super cells) as cells // super_cell_size"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            picongpu_super_cell_size=(8, 8, 4),
+            guard_cells=[16, 8, 4],
+            **self.COMMON_KWARGS,
+        )
+        g = grid.get_as_pypicongpu()
+        assert g.guard_size == (2, 1, 1), "guard_size should be guard_cells // super_cell_size per dim"
+
+    def test_guard_cells_default_none(self):
+        """an unset guard_cells keeps the PIConGPU default (guard_size None -> GuardSize (1,1,1))"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            **self.COMMON_KWARGS,
+        )
+        assert grid.guard_cells is None
+        assert grid.get_as_pypicongpu().guard_size is None
+
+    def test_guard_cells_zero(self):
+        """zero guard cells per dim are a valid (multiple) configuration"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            picongpu_super_cell_size=(8, 8, 4),
+            guard_cells=[0, 0, 0],
+            **self.COMMON_KWARGS,
+        )
+        assert grid.get_as_pypicongpu().guard_size == (0, 0, 0)
+
+    def test_guard_cells_non_multiple_rejected(self):
+        """a guard_cells value that is not an exact multiple of the super cell size is rejected"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            picongpu_super_cell_size=(8, 8, 4),
+            guard_cells=[16, 8, 5],
+            **self.COMMON_KWARGS,
+        )
+        with pytest.raises(
+            Exception, match=".*guard cells in z dimension must be an exact multiple of the super cell size.*"
+        ):
+            grid.get_as_pypicongpu()
+
+    def test_guard_cells_negative_rejected(self):
+        """a negative number of guard cells is rejected"""
+        grid = picmi.Cartesian3DGrid(
+            number_of_cells=[192, 2048, 12],
+            picongpu_super_cell_size=(8, 8, 4),
+            guard_cells=[-8, 8, 4],
+            **self.COMMON_KWARGS,
+        )
+        with pytest.raises(Exception, match=".*guard cells in x dimension must be a non-negative integer.*"):
+            grid.get_as_pypicongpu()
+
+    def test_guard_size_renders_supercells(self):
+        """the rendered GuardSize in memory.param is the super-cell count per dim"""
+        import re
+
+        from picongpu import templates
+        from picongpu.pypicongpu.rendering.renderer import Renderer
+
+        template = (templates.path() / "include" / "picongpu" / "param" / "memory.param.mustache").read_text()
+
+        def rendered_guard(grid):
+            context = {
+                "grid": grid.get_as_pypicongpu().model_dump(mode="json"),
+                "collisional_physics": {"num_tmp_field_slots": 4},
+            }
+            rendered = Renderer.get_rendered_template(Renderer.get_context_preprocessed(context), template)
+            match = re.search(r"using GuardSize = typename mCT::shrinkTo<mCT::Int<([^>]*)>,", rendered)
+            return tuple(int(v) for v in match.group(1).split(","))
+
+        # explicit: guard_cells (16, 8, 4) // super_cell_size (8, 8, 4) -> (2, 1, 1)
+        assert rendered_guard(
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                picongpu_super_cell_size=(8, 8, 4),
+                guard_cells=[16, 8, 4],
+                **self.COMMON_KWARGS,
+            )
+        ) == (2, 1, 1)
+
+        # default (guard_cells unset) falls back to PIConGPU's (1, 1, 1)
+        assert rendered_guard(
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                **self.COMMON_KWARGS,
+            )
+        ) == (1, 1, 1)
+
+    def test_guard_size_renders_via_real_runner(self):
+        """the rendered GuardSize is correct through the real Runner/write_input_file path"""
+        import os
+        import re
+        import shutil
+        import tempfile
+        from pathlib import Path
+
+        def rendered_guard(grid):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                outdir = os.path.join(tmpdir, "setup")
+            assert not os.path.isdir(outdir)
+            try:
+                sim = picmi.Simulation(
+                    time_step_size=17, max_steps=4, solver=picmi.ElectromagneticSolver(method="Yee", grid=grid)
+                )
+                sim.write_input_file(outdir)
+                text = (Path(outdir) / "include" / "picongpu" / "param" / "memory.param").read_text()
+                match = re.search(r"using GuardSize = typename mCT::shrinkTo<mCT::Int<([^>]*)>,", text)
+                return tuple(int(v) for v in match.group(1).split(","))
+            finally:
+                shutil.rmtree(outdir, ignore_errors=True)
+
+        # explicit: guard_cells (16, 8, 4) // super_cell_size (8, 8, 4) -> (2, 1, 1)
+        assert rendered_guard(
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                picongpu_super_cell_size=(8, 8, 4),
+                guard_cells=[16, 8, 4],
+                **self.COMMON_KWARGS,
+            )
+        ) == (2, 1, 1)
+
+        # default (guard_cells unset) falls back to PIConGPU's (1, 1, 1)
+        assert rendered_guard(
+            picmi.Cartesian3DGrid(
+                number_of_cells=[192, 2048, 12],
+                **self.COMMON_KWARGS,
+            )
+        ) == (1, 1, 1)

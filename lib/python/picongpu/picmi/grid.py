@@ -83,6 +83,11 @@ def _normalise_n_gpus(n_gpus) -> tuple[int, int, int]:
             PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID[x] for x in self.lower_boundary_conditions
         ),
         "cell_cnt": "number_of_cells",
+        "guard_size": lambda self: (
+            None
+            if self.guard_cells is None
+            else tuple(c // s for c, s in zip(self.guard_cells, self.picongpu_super_cell_size))
+        ),
     },
     remove_prefix="picongpu_",
 )
@@ -146,7 +151,6 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
             self.upper_boundary_conditions_particles,
             self.upper_boundary_conditions,
         )
-        util.unsupported("guard cells", self.guard_cells)
         util.unsupported("pml cells", self.pml_cells)
 
         if self.lower_boundary_conditions[0] not in PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID:
@@ -168,6 +172,20 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         for i in range(3):
             if self.picongpu_super_cell_size[i] < 1:
                 raise ValueError("super cell size must be a positive integer")
+
+        if self.guard_cells is not None:
+            for i, name in enumerate(["x", "y", "z"]):
+                guard_cells = self.guard_cells[i]
+                super_cell = self.picongpu_super_cell_size[i]
+                if guard_cells < 0:
+                    raise ValueError(
+                        f"guard cells in {name} dimension must be a non-negative integer. You gave {guard_cells}."
+                    )
+                if guard_cells % super_cell != 0:
+                    raise ValueError(
+                        f"guard cells in {name} dimension must be an exact multiple of the super cell size "
+                        f"({super_cell} in {name}), but you gave {guard_cells}."
+                    )
         cells = [
             self.number_of_cells[0],
             self.number_of_cells[1],
