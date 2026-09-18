@@ -191,7 +191,8 @@ namespace picongpu
                  */
                 HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
                 {
-                  const auto [x, y, z] = position_SI;
+                  {{#grid.has_z}}const auto [x, y, z] = position_SI;{{/grid.has_z}}
+                  {{^grid.has_z}}const auto [x, y] = position_SI;{{/grid.has_z}}
 
                   return ({{{profile.function_body}}}) / SI::BASE_DENSITY_SI;
                 }

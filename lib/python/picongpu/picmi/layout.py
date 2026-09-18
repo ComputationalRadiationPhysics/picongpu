@@ -42,15 +42,20 @@ class GriddedLayout(picmistandard.PICMI_GriddedLayout):
 
 class OnePositionLayout(BaseModel):
     n_macroparticles_per_cell: int = Field(gt=0, description="Number of particles per cell")
-    in_cell_offset: tuple[float, float, float] = Field(
+    in_cell_offset: tuple[float, ...] = Field(
         (0.0, 0.0, 0.0),
-        description="Offset to cell origin where the particles are placed in units of cell size (between 0 and 1).",
+        description="Offset to cell origin where the particles are placed in units of cell size (between 0 and 1). "
+        "Two components for a 2D grid, three for a 3D grid (the third, z, is ignored in 2D3V).",
     )
     grid: None = None
 
     @field_validator("in_cell_offset", mode="after")
     @classmethod
     def _validate_in_cell_offset(cls, in_cell_offset):
+        if len(in_cell_offset) not in (2, 3):
+            raise ValueError(
+                f"in_cell_offset must have 2 (2D) or 3 (3D) components. You gave {in_cell_offset=} with {len(in_cell_offset)}."
+            )
         if not (all(map(partial(le, 0.0), in_cell_offset)) and all(map(partial(gt, 1.0), in_cell_offset))):
             raise ValueError(f"All of in_cell_offset must be between 0 and 1. You gave: {in_cell_offset=}.")
         return in_cell_offset

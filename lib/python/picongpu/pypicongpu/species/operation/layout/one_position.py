@@ -12,6 +12,11 @@ from pydantic import AfterValidator, BaseModel, Field, PlainSerializer
 
 
 def serialise_vec(value) -> dict:
+    # 2D3V: the C++ inCellOffset is always a 3-component vector (float3_X), so a
+    # 2-component offset (2D grid) is padded with z = 0.
+    value = tuple(value)
+    if len(value) == 2:
+        value = (value[0], value[1], 0.0)
     return dict(zip("xyz", value))
 
 
@@ -22,7 +27,7 @@ def broadcast_validation(values, condition, message="Condition not met."):
 
 
 Vec3_float = Annotated[
-    tuple[float, float, float],
+    tuple[float, ...],
     PlainSerializer(serialise_vec),
     AfterValidator(
         partial(
