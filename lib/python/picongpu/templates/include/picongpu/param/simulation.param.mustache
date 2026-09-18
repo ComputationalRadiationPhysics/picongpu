@@ -62,7 +62,7 @@ namespace picongpu
          * In 2D3V this is the wire-particle integration length used to normalize
          * densities (not a resolved spatial dimension).
          *  unit: meter */
-        constexpr float_64 CELL_DEPTH_SI = {{#grid.has_z}}{{{grid.cell_size.z}}}{{/grid.has_z}}{{^grid.has_z}}{{{grid.cell_depth}}}{{/grid.has_z}};
+        constexpr float_64 CELL_DEPTH_SI = {{{grid.cell_depth}}};
 
         /** Note on units in reduced dimensions
          *

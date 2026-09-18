@@ -141,6 +141,11 @@ class Grid3D(BaseModel, RenderedObject):
     def sim_dim(self) -> int:
         return 3
 
+    @computed_field
+    def cell_depth(self) -> float:
+        """The Z cell length (CELL_DEPTH_SI), so the template can expand one field for both 2D and 3D grids."""
+        return self.cell_size[2]
+
     @model_validator(mode="after")
     def check(self) -> Self:
         """serialized representation provided for RenderedObject"""
