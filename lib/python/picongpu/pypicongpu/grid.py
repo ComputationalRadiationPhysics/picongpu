@@ -36,7 +36,7 @@ class BoundaryCondition(enum.Enum):
         return literal_by_boundarycondition[self]
 
 
-def serialise_vec(value) -> dict:
+def serialise_vec3(value) -> dict:
     return dict(zip("xyz", value))
 
 
@@ -44,13 +44,13 @@ def serialise_vec2(value) -> dict:
     return dict(zip("xy", value))
 
 
-Vec3_float = Annotated[tuple[float, float, float], PlainSerializer(serialise_vec)]
-Vec3_int = Annotated[tuple[int, int, int], PlainSerializer(serialise_vec)]
+Vec3_float = Annotated[tuple[float, float, float], PlainSerializer(serialise_vec3)]
+Vec3_int = Annotated[tuple[int, int, int], PlainSerializer(serialise_vec3)]
 Vec2_float = Annotated[tuple[float, float], PlainSerializer(serialise_vec2)]
 Vec2_int = Annotated[tuple[int, int], PlainSerializer(serialise_vec2)]
 
 
-def serialise_grid_dist(value) -> None | dict[Literal["x", "y", "z"], list[dict[Literal["device_cells"], int]]]:
+def serialise_grid_dist3(value) -> None | dict[Literal["x", "y", "z"], list[dict[Literal["device_cells"], int]]]:
     return (
         value
         if value is None
@@ -113,7 +113,7 @@ class Grid3D(BaseModel, RenderedObject):
 
     boundary_condition: Annotated[
         tuple[BoundaryCondition, BoundaryCondition, BoundaryCondition],
-        PlainSerializer(lambda x: serialise_vec(map(BoundaryCondition.get_cfg_str, x)), return_type=dict),
+        PlainSerializer(lambda x: serialise_vec3(map(BoundaryCondition.get_cfg_str, x)), return_type=dict),
     ]
     """behavior towards particles crossing each boundary"""
 
@@ -122,7 +122,7 @@ class Grid3D(BaseModel, RenderedObject):
 
     grid_dist: Annotated[
         tuple[list[int], list[int], list[int]] | None,
-        PlainSerializer(serialise_grid_dist),
+        PlainSerializer(serialise_grid_dist3),
         AfterValidator(grid_dist_validate),
     ] = None
     """distribution of grid cells to GPUs for each axis"""
