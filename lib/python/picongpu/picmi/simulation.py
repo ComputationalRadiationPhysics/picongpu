@@ -397,6 +397,22 @@ class Simulation(picmistandard.PICMI_Simulation):
         if self.max_steps is None and self.max_time is None:
             raise ValueError("runtime not specified (neither as step count nor max time)")
 
+    def _check_huygens_surface_positions(self):
+        # Every laser renders into the single incidentField, so all lasers must
+        # share one Huygens surface. Enforce strict list-equality of the three
+        # [neg, pos] pairs, using the first laser as the reference (#115).
+        if len(self.lasers) <= 1:
+            return
+        reference = self.lasers[0].picongpu_huygens_surface_positions
+        for laser in self.lasers[1:]:
+            if laser.picongpu_huygens_surface_positions != reference:
+                raise ValueError(
+                    f"Inconsistent Huygens surface positions across lasers: {type(laser).__name__} has "
+                    f"picongpu_huygens_surface_positions={laser.picongpu_huygens_surface_positions} but "
+                    f"{type(self.lasers[0]).__name__} (the first laser) uses {reference}. "
+                    "set every laser's `picongpu_huygens_surface_positions` to the same value."
+                )
+
     def _collect_particle_filters(self):
         # This does not necessarily work on Binning plugin
         # because that might have a list of species.
@@ -417,6 +433,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
         self._check_compatibility()
+        self._check_huygens_surface_positions()
 
         init_operations = organise_init_operations(
             chain(*(s.get_operation_requirements() for s in sorted(self.species)))
