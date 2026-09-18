@@ -31,9 +31,5 @@
 
 namespace picongpu
 {
-    /** @attention in 2D3V (simDim = DIM2) the z cell length ``sim.pic.getCellSize().z()``
-     * (= CELL_DEPTH_SI) is not a resolved dimension but the wire-particle integration length the 3D
-     * density profiles use to produce the 2D density, so it must be a positive length.
-     */
     constexpr uint32_t simDim = SIMDIM;
 } // namespace picongpu
