@@ -38,9 +38,9 @@ CELL_SIZE = np.array([0.5e-3, 0.5e-3])  # unit: meter
 
 
 grid = picmi.Cartesian2DGrid(
-    number_of_cells=NUM_CELLS.tolist(),
+    number_of_cells=NUM_CELLS,
     lower_bound=[0, 0],
-    upper_bound=(NUM_CELLS * CELL_SIZE).tolist(),
+    upper_bound=NUM_CELLS * CELL_SIZE,
     lower_boundary_conditions=["open", "open"],
     upper_boundary_conditions=["open", "open"],
 )
