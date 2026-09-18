@@ -30,7 +30,6 @@ from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
-from picongpu.picmi.solver import _ao_fDTD_weight_sum
 from picongpu.picmi.species import Species
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
@@ -269,15 +268,15 @@ class Simulation(picmistandard.PICMI_Simulation):
         assert self.solver.method in self._CFL_GATED_SOLVER_METHODS
         assert isinstance(self.solver.grid, (Cartesian3DGrid, Cartesian2DGrid))
 
-        # The CFL factor is sqrt(sum over the spatial dimensions of 1/delta_i^2).
+        # The CFL factor is sqrt(sum over the spatial dimensions of 1/cell_size^2).
         # In 2D the z term is dropped, so a square 2D grid yields a factor of sqrt(2)
         # (not sqrt(3) as in 3D).
         grid = self.solver.grid
-        delta_i = [
+        cell_size = [
             (grid.upper_bound[i] - grid.lower_bound[i]) / grid.number_of_cells[i]
             for i in range(grid.number_of_dimensions)
         ]
-        cfl_factor = math.sqrt(sum(1.0 / delta**2 for delta in delta_i))
+        cfl_factor = math.sqrt(sum(1.0 / cs**2 for cs in cell_size))
 
         if self.solver.method in ("Yee", "Lehe"):
             # Legacy second-order FDTD: cfl = delta_t * c * sqrt(sum 1/dx^2).
@@ -294,13 +293,9 @@ class Simulation(picmistandard.PICMI_Simulation):
         else:
             # CKC (min cell) and other:ArbitraryOrderFDTD (Yee term / weight-sum):
             # cfl = c * delta_t / max_c_dt, where max_c_dt is the solver's CFL
-            # limit on c * delta_t (see ElectromagneticSolver._cfl_max_cdt),
-            # computed here over the spatial dimensions so 2D grids work too.
-            inv_cell_sum = sum(1.0 / delta**2 for delta in delta_i)
-            if self.solver.method == "CKC":
-                max_c_dt = min(delta_i)
-            else:
-                max_c_dt = 1 / (_ao_fDTD_weight_sum(self.solver._stencil_neighbors) * math.sqrt(inv_cell_sum))
+            # limit on c * delta_t. The solver owns that restriction, and passing
+            # only the spatial cell sizes makes it dimension-aware (2D drops z).
+            max_c_dt = self.solver._cfl_max_cdt(*cell_size)
             assert max_c_dt is not None, "solver does not impose a CFL limit"
 
             def _delta_t_from_cfl(cfl):
