@@ -74,7 +74,7 @@ def render_cell_depth_si(grid) -> float:
     preprocessed = Renderer.get_context_preprocessed(context)
     template = (templates.path() / "include" / "picongpu" / "param" / "simulation.param.mustache").read_text()
     rendered = Renderer.get_rendered_template(preprocessed, template)
-    line = next(l for l in rendered.splitlines() if "CELL_DEPTH_SI =" in l)
+    line = next(line for line in rendered.splitlines() if "CELL_DEPTH_SI =" in line)
     return float(line.split("CELL_DEPTH_SI = ")[1].rstrip(";").strip())
 
 

@@ -261,7 +261,9 @@ class Cartesian2DGrid(picmistandard.PICMI_Cartesian2DGrid):
     # back to the x cell size (dx); set it to override the slab thickness.
     picongpu_cell_depth_si: Annotated[
         float | None,
-        AfterValidator(lambda x: x if x is None or x > 0 else (_ for _ in ()).throw(ValueError("cell depth must be > 0"))),
+        AfterValidator(
+            lambda x: x if x is None or x > 0 else (_ for _ in ()).throw(ValueError("cell depth must be > 0"))
+        ),
     ] = Field(default=None)
 
     @computed_field
