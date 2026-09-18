@@ -27,8 +27,8 @@ def get_grid_2d(delta_x: float, delta_y: float, n: int = 100):
     )
 
 
-def render_memory_param_supercell_size(grid) -> str:
-    """Render just the memory.param template and return the SuperCellSize line.
+def _render_template(grid, template_name: str) -> str:
+    """Render a single ``.mustache`` template from the production rendering context.
 
     Uses the production rendering context + Renderer (no full directory copy), so a
     single template can be asserted cheaply in the quick suite.
@@ -38,8 +38,12 @@ def render_memory_param_supercell_size(grid) -> str:
     context = pypic.get_rendering_context()
     Renderer.check_rendering_context(context)
     preprocessed = Renderer.get_context_preprocessed(context)
-    template = (templates.path() / "include" / "picongpu" / "param" / "memory.param.mustache").read_text()
-    rendered = Renderer.get_rendered_template(preprocessed, template)
+    template = (templates.path() / "include" / "picongpu" / "param" / template_name).read_text()
+    return Renderer.get_rendered_template(preprocessed, template)
+
+
+def render_memory_param_supercell_size(grid) -> str:
+    rendered = _render_template(grid, "memory.param.mustache")
     return next(line.strip() for line in rendered.splitlines() if "SuperCellSize =" in line)
 
 
@@ -62,18 +66,7 @@ def get_sim_cfl_2d(delta_t, cfl, delta_2d, method="Yee", n=100) -> picmi.Simulat
 
 
 def render_cell_depth_si(grid) -> float:
-    """Render just the simulation.param template and return the CELL_DEPTH_SI value.
-
-    Uses the production rendering context + Renderer (no full directory copy), so a
-    single template can be asserted cheaply in the quick suite.
-    """
-    sim = picmi.Simulation(max_steps=1, solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.5, grid=grid))
-    pypic = sim.get_as_pypicongpu()
-    context = pypic.get_rendering_context()
-    Renderer.check_rendering_context(context)
-    preprocessed = Renderer.get_context_preprocessed(context)
-    template = (templates.path() / "include" / "picongpu" / "param" / "simulation.param.mustache").read_text()
-    rendered = Renderer.get_rendered_template(preprocessed, template)
+    rendered = _render_template(grid, "simulation.param.mustache")
     line = next(line for line in rendered.splitlines() if "CELL_DEPTH_SI =" in line)
     return float(line.split("CELL_DEPTH_SI = ")[1].rstrip(";").strip())
 
