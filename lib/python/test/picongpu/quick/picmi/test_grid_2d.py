@@ -321,3 +321,89 @@ class TestCartesian2DGrid(TestCase):
         for bad in (0.0, -1.5e-6):
             with pytest.raises(ValueError, match="cell depth"):
                 picmi.Cartesian2DGrid(**grid_kwargs, picongpu_cell_depth_si=bad)
+
+
+def get_grid_3d(delta_x: float, delta_y: float, delta_z: float, n: int = 100):
+    # sets delta_[x,y,z] implicitly by providing bounding box + cell count
+    return picmi.Cartesian3DGrid(
+        number_of_cells=[n, n, n],
+        lower_bound=[0, 0, 0],
+        upper_bound=[n * delta_x, n * delta_y, n * delta_z],
+        lower_boundary_conditions=["open", "open", "open"],
+        upper_boundary_conditions=["open", "open", "open"],
+    )
+
+
+class TestCartesian3DGridTo2D(TestCase):
+    def test_to_2d_drops_z_component(self):
+        # Every vector field is mapped from a 3-tuple to a 2-tuple by keeping
+        # the (x, y) components; z is dropped. A fresh 2D grid is returned and
+        # the source 3D grid is left untouched.
+        delta = 1e-6
+        grid_3d = get_grid_3d(delta, 2e-6, 4e-6, n=128)
+        grid_2d = grid_3d.to_2d()
+
+        assert isinstance(grid_2d, picmi.Cartesian2DGrid)
+        assert len(grid_2d.number_of_cells) == 2
+        assert grid_2d.number_of_cells == [128, 128]
+        assert grid_2d.lower_bound == [0, 0]
+        assert grid_2d.upper_bound == [128 * delta, 128 * 2e-6]
+        assert len(grid_2d.lower_boundary_conditions) == 2
+        assert len(grid_2d.upper_boundary_conditions) == 2
+        assert len(grid_2d.picongpu_cell_size) == 2
+
+        # the source grid is not mutated
+        assert len(grid_3d.number_of_cells) == 3
+
+    def test_to_2d_cell_depth_is_3d_z_cell_size(self):
+        # The z cell length becomes the 2D slab thickness (CELL_DEPTH_SI).
+        # get_grid_3d uses per-cell sizes, so the z cell size is delta_z.
+        delta_z = 4e-6
+        grid_3d = get_grid_3d(1e-6, 2e-6, delta_z, n=128)
+        grid_2d = grid_3d.to_2d()
+        assert grid_2d.picongpu_cell_depth_si == pytest.approx(delta_z)
+
+    def test_to_2d_supercell_default(self):
+        # The 3D default super cell (8, 8, 4) maps to the 2D default (16, 16).
+        grid_2d = get_grid_3d(1e-6, 1e-6, 1e-6).to_2d()
+        assert grid_2d.picongpu_super_cell_size == (16, 16)
+
+    def test_to_2d_supercell_explicit_keeps_xy(self):
+        # An explicitly-set 3D super cell keeps its (x, y) components (z dropped).
+        grid_3d = picmi.Cartesian3DGrid(
+            number_of_cells=[128, 128, 128],
+            lower_bound=[0, 0, 0],
+            upper_bound=[128e-6, 128e-6, 128e-6],
+            lower_boundary_conditions=["open", "open", "open"],
+            upper_boundary_conditions=["open", "open", "open"],
+            picongpu_super_cell_size=[16, 8, 4],
+        )
+        assert grid_3d.to_2d().picongpu_super_cell_size == (16, 8)
+
+    def test_to_2d_maps_gpu_and_guard(self):
+        # n_gpus, guard_cells and grid_dist drop the z (third) component.
+        grid_3d = picmi.Cartesian3DGrid(
+            number_of_cells=[128, 128, 128],
+            lower_bound=[0, 0, 0],
+            upper_bound=[128e-6, 128e-6, 128e-6],
+            lower_boundary_conditions=["open", "open", "open"],
+            upper_boundary_conditions=["open", "open", "open"],
+            picongpu_n_gpus=[1, 2, 1],
+            picongpu_super_cell_size=[8, 8, 4],
+            guard_cells=[16, 16, 4],
+        )
+        grid_2d = grid_3d.to_2d()
+        assert grid_2d.picongpu_n_gpus == (1, 2)
+        assert grid_2d.guard_cells == [16, 16]
+        assert grid_2d.get_as_pypicongpu().guard_size == (1, 1)
+
+    def test_to_2d_passes_2d_validation(self):
+        # The returned grid is a fully valid Cartesian2DGrid: converting it to
+        # pypicongpu (which runs the 2D validators) must succeed and render a
+        # 2D grid with the 3D z cell size as the slab thickness.
+        delta_z = 4e-6
+        grid_2d = get_grid_3d(1e-6, 2e-6, delta_z, n=128).to_2d()
+        pypic = grid_2d.get_as_pypicongpu()
+        assert pypic.sim_dim == 2
+        assert pypic.has_z is False
+        assert pypic.cell_depth == pytest.approx(delta_z)

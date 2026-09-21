@@ -219,6 +219,45 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
     def check(self):
         _check_cartesian_grid(self, ["x", "y", "z"])
 
+    def to_2d(self) -> "Cartesian2DGrid":
+        """Reduce this 3D grid to a 2D (2D3V) grid, dropping the z (third) component.
+
+        Every vector field is mapped from a 3-tuple to a 2-tuple by keeping the
+        (x, y) components. The z cell length is preserved as the 2D slab
+        thickness via ``picongpu_cell_depth_si``. The 3D default super cell
+        ``(8, 8, 4)`` maps to the 2D default ``(16, 16)``; an explicitly-set
+        3D super cell keeps its (x, y) components. A fresh ``Cartesian2DGrid``
+        is returned; the source grid is not modified.
+        """
+        number_of_cells = self.number_of_cells[:2]
+        lower_bound = self.lower_bound[:2]
+        upper_bound = self.upper_bound[:2]
+        lower_boundary_conditions = self.lower_boundary_conditions[:2]
+        upper_boundary_conditions = self.upper_boundary_conditions[:2]
+
+        super_cell_size = self.picongpu_super_cell_size
+        if super_cell_size == (8, 8, 4):
+            super_cell_size = (16, 16)
+        else:
+            super_cell_size = super_cell_size[:2]
+
+        kwargs = dict(
+            number_of_cells=number_of_cells,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            lower_boundary_conditions=lower_boundary_conditions,
+            upper_boundary_conditions=upper_boundary_conditions,
+            picongpu_super_cell_size=super_cell_size,
+            picongpu_cell_depth_si=self.picongpu_cell_size[2],
+        )
+        if self.guard_cells is not None:
+            kwargs["guard_cells"] = self.guard_cells[:2]
+        if self.picongpu_n_gpus != (1, 1, 1):
+            kwargs["picongpu_n_gpus"] = self.picongpu_n_gpus[:2]
+        if self.picongpu_grid_dist is not None:
+            kwargs["picongpu_grid_dist"] = self.picongpu_grid_dist[:2]
+        return Cartesian2DGrid(**kwargs)
+
 
 @converts_to(
     grid.Grid2D,
