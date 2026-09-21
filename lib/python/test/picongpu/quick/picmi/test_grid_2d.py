@@ -27,8 +27,8 @@ def get_grid_2d(delta_x: float, delta_y: float, n: int = 100):
     )
 
 
-def render_memory_param_supercell_size(grid) -> str:
-    """Render just the memory.param template and return the SuperCellSize line.
+def _render_template(grid, template_name: str) -> str:
+    """Render a single ``.mustache`` template from the production rendering context.
 
     Uses the production rendering context + Renderer (no full directory copy), so a
     single template can be asserted cheaply in the quick suite.
@@ -38,8 +38,12 @@ def render_memory_param_supercell_size(grid) -> str:
     context = pypic.get_rendering_context()
     Renderer.check_rendering_context(context)
     preprocessed = Renderer.get_context_preprocessed(context)
-    template = (templates.path() / "include" / "picongpu" / "param" / "memory.param.mustache").read_text()
-    rendered = Renderer.get_rendered_template(preprocessed, template)
+    template = (templates.path() / "include" / "picongpu" / "param" / template_name).read_text()
+    return Renderer.get_rendered_template(preprocessed, template)
+
+
+def render_memory_param_supercell_size(grid) -> str:
+    rendered = _render_template(grid, "memory.param.mustache")
     return next(line.strip() for line in rendered.splitlines() if "SuperCellSize =" in line)
 
 
@@ -59,6 +63,12 @@ def get_sim_cfl_2d(delta_t, cfl, delta_2d, method="Yee", n=100) -> picmi.Simulat
     grid = get_grid_2d(delta_2d[0], delta_2d[1], n)
     solver = picmi.ElectromagneticSolver(method=method, grid=grid, cfl=cfl)
     return picmi.Simulation(time_step_size=delta_t, solver=solver)
+
+
+def render_cell_depth_si(grid) -> float:
+    rendered = _render_template(grid, "simulation.param.mustache")
+    line = next(line for line in rendered.splitlines() if "CELL_DEPTH_SI =" in line)
+    return float(line.split("CELL_DEPTH_SI = ")[1].rstrip(";").strip())
 
 
 class TestCartesian2DGrid(TestCase):
@@ -273,3 +283,41 @@ class TestCartesian2DGrid(TestCase):
 
         # a 2D-safe (z-independent) density is accepted
         build(lambda x, y, z: x * y).get_as_pypicongpu()
+
+    def test_cell_depth_si_explicit_override(self):
+        # An explicit picongpu_cell_depth_si must be rendered as CELL_DEPTH_SI,
+        # overriding the dx default (2D3V slab thickness).
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+            picongpu_cell_depth_si=1.5e-6,
+        )
+        assert render_cell_depth_si(grid) == pytest.approx(1.5e-6)
+
+    def test_cell_depth_si_defaults_to_dx(self):
+        # When picongpu_cell_depth_si is left as None, CELL_DEPTH_SI falls back
+        # to the x cell size (dx), preserving the historical behaviour.
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        dx = 0.064 / 128
+        assert render_cell_depth_si(grid) == pytest.approx(dx)
+
+    def test_cell_depth_si_rejects_non_positive(self):
+        grid_kwargs = dict(
+            number_of_cells=[128, 128],
+            lower_bound=[0, 0],
+            upper_bound=[0.064, 0.064],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        for bad in (0.0, -1.5e-6):
+            with pytest.raises(ValueError, match="cell depth"):
+                picmi.Cartesian2DGrid(**grid_kwargs, picongpu_cell_depth_si=bad)

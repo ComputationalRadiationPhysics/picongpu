@@ -229,8 +229,13 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         ),
         "cell_cnt": "number_of_cells",
         # In 2D3V the Z cell length (CELL_DEPTH_SI) is still used to normalize
-        # densities; we take the x cell size as the default wire-particle length.
-        "cell_depth_si": lambda self: (self.upper_bound[0] - self.lower_bound[0]) / self.number_of_cells[0],
+        # densities; we take the x cell size as the default wire-particle length
+        # unless the user explicitly overrides it via picongpu_cell_depth_si.
+        "cell_depth_si": lambda self: (
+            self.picongpu_cell_depth_si
+            if self.picongpu_cell_depth_si is not None
+            else (self.upper_bound[0] - self.lower_bound[0]) / self.number_of_cells[0]
+        ),
         "guard_size": lambda self: (
             None
             if self.guard_cells is None
@@ -251,6 +256,15 @@ class Cartesian2DGrid(picmistandard.PICMI_Cartesian2DGrid):
     picongpu_grid_dist: None | list[list[int]] = Field(default=None)
     # PIConGPU's 2D setups (e.g. the FoilLCT example) use a <16, 16> super cell.
     picongpu_super_cell_size: tuple[int, int] = Field(default=(16, 16))
+    # In 2D3V the Z cell length (CELL_DEPTH_SI) is the wire-particle integration
+    # length used to normalize densities. When left as None, the conversion falls
+    # back to the x cell size (dx); set it to override the slab thickness.
+    picongpu_cell_depth_si: Annotated[
+        float | None,
+        AfterValidator(
+            lambda x: x if x is None or x > 0 else (_ for _ in ()).throw(ValueError("cell depth must be > 0"))
+        ),
+    ] = Field(default=None)
 
     @computed_field
     def picongpu_cell_size(self) -> tuple[int, int]:
