@@ -213,25 +213,30 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
             self._stencil_neighbors = None
         return self
 
-    def _cfl_max_cdt(self, delta_x: float, delta_y: float, delta_z: float) -> float | None:
+    def _cfl_max_cdt(self, *cell_size: float) -> float | None:
         """
         The CFL stability limit as a maximum of ``c * delta_t`` for this solver,
         mirroring the C++ ``maxwellSolver::CFLChecker`` specializations.
 
-        - ``Yee``/``Lehe``: ``1 / sqrt(1/dx^2 + 1/dy^2 + 1/dz^2)``.
+        ``*cell_size`` are the cell lengths along the *spatial* dimensions the
+        grid resolves (three for 3D3V, two for 2D3V): passing only the spatial
+        components is what makes this dimension-aware, so the same limit works
+        for 2D and 3D grids.
+
+        - ``Yee``/``Lehe``: ``1 / sqrt(sum 1/dx_i^2)`` over the spatial dims.
         - ``other:ArbitraryOrderFDTD``: the Yee term divided by the alternating
           finite-difference weight sum (``_ao_fDTD_weight_sum``), e.g. ``7/6`` for
           order 4 (AO limit ``6/7 ~ 0.857x`` the Yee value, i.e. tighter).
-        - ``CKC``: the minimum cell size.
+        - ``CKC``: the minimum spatial cell size.
         - ``other:None``: ``None`` (the solver has no CFL limit; skips the CFL gate).
         """
         if self.method == "other:None":
             return None
-        inv_cell_sum = 1 / delta_x**2 + 1 / delta_y**2 + 1 / delta_z**2
+        inv_cell_sum = sum(1 / d**2 for d in cell_size)
         if self.method in ("Yee", "Lehe"):
             return 1 / math.sqrt(inv_cell_sum)
         if self.method == "CKC":
-            return min(delta_x, delta_y, delta_z)
+            return min(cell_size)
         # other:ArbitraryOrderFDTD
         return 1 / (_ao_fDTD_weight_sum(self._stencil_neighbors) * math.sqrt(inv_cell_sum))
 
