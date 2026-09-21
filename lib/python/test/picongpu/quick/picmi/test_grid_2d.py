@@ -365,7 +365,9 @@ class TestCartesian3DGridTo2D(TestCase):
 
     def test_to_2d_supercell_default(self):
         # The 3D default super cell (8, 8, 4) maps to the 2D default (16, 16).
-        grid_2d = get_grid_3d(1e-6, 1e-6, 1e-6).to_2d()
+        # n=128 so the reduced grid's cell count is a multiple of the 2D default
+        # super cell (16), keeping the reduction valid at the 2D level.
+        grid_2d = get_grid_3d(1e-6, 1e-6, 1e-6, n=128).to_2d()
         assert grid_2d.picongpu_super_cell_size == (16, 16)
 
     def test_to_2d_supercell_explicit_keeps_xy(self):
@@ -380,22 +382,38 @@ class TestCartesian3DGridTo2D(TestCase):
         )
         assert grid_3d.to_2d().picongpu_super_cell_size == (16, 8)
 
+    def test_to_2d_supercell_explicit_default_value_keeps_xy(self):
+        # An explicit 3D super cell equal to the default value (8, 8, 4) must
+        # still keep its (x, y) = (8, 8), not snap to the 2D default (16, 16).
+        # Default-vs-explicit is detected via model_fields_set, not the value.
+        grid_3d = picmi.Cartesian3DGrid(
+            number_of_cells=[16, 16, 128],
+            lower_bound=[0, 0, 0],
+            upper_bound=[16e-6, 16e-6, 128e-6],
+            lower_boundary_conditions=["open", "open", "open"],
+            upper_boundary_conditions=["open", "open", "open"],
+            picongpu_super_cell_size=[8, 8, 4],
+        )
+        assert grid_3d.to_2d().picongpu_super_cell_size == (8, 8)
+
     def test_to_2d_maps_gpu_and_guard(self):
         # n_gpus, guard_cells and grid_dist drop the z (third) component.
         grid_3d = picmi.Cartesian3DGrid(
-            number_of_cells=[128, 128, 128],
+            number_of_cells=[64, 128, 4],
             lower_bound=[0, 0, 0],
-            upper_bound=[128e-6, 128e-6, 128e-6],
+            upper_bound=[64e-6, 128e-6, 4e-6],
             lower_boundary_conditions=["open", "open", "open"],
             upper_boundary_conditions=["open", "open", "open"],
             picongpu_n_gpus=[1, 2, 1],
             picongpu_super_cell_size=[8, 8, 4],
             guard_cells=[16, 16, 4],
+            picongpu_grid_dist=[(64,), (64, 64), (4,)],
         )
         grid_2d = grid_3d.to_2d()
         assert grid_2d.picongpu_n_gpus == (1, 2)
         assert grid_2d.guard_cells == [16, 16]
-        assert grid_2d.get_as_pypicongpu().guard_size == (1, 1)
+        assert grid_2d.picongpu_grid_dist == [[64], [64, 64]]
+        assert grid_2d.get_as_pypicongpu().guard_size == (2, 2)
 
     def test_to_2d_passes_2d_validation(self):
         # The returned grid is a fully valid Cartesian2DGrid: converting it to
@@ -407,3 +425,21 @@ class TestCartesian3DGridTo2D(TestCase):
         assert pypic.sim_dim == 2
         assert pypic.has_z is False
         assert pypic.cell_depth == pytest.approx(delta_z)
+
+    def test_to_2d_invalid_reduction_raises(self):
+        # The reduction is validated against the 2D constraints (spec Q6). A 3D
+        # grid that is valid in 3D but whose reduction violates them must raise
+        # at the call site instead of returning an invalid grid: here the 3D
+        # default super cell snaps to the 2D (16, 16) while the 3D-valid guard
+        # (a multiple of 8, not 16) does not divide it.
+        grid_3d = picmi.Cartesian3DGrid(
+            number_of_cells=[128, 128, 4],
+            lower_bound=[0, 0, 0],
+            upper_bound=[128e-6, 128e-6, 4e-6],
+            lower_boundary_conditions=["open", "open", "open"],
+            upper_boundary_conditions=["open", "open", "open"],
+            guard_cells=[8, 8, 4],
+        )
+        grid_3d.check()
+        with pytest.raises(ValueError, match="super cell size"):
+            grid_3d.to_2d()

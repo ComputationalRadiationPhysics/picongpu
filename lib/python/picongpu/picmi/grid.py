@@ -224,10 +224,14 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
 
         Every vector field is mapped from a 3-tuple to a 2-tuple by keeping the
         (x, y) components. The z cell length is preserved as the 2D slab
-        thickness via ``picongpu_cell_depth_si``. The 3D default super cell
-        ``(8, 8, 4)`` maps to the 2D default ``(16, 16)``; an explicitly-set
-        3D super cell keeps its (x, y) components. A fresh ``Cartesian2DGrid``
-        is returned; the source grid is not modified.
+        thickness via ``picongpu_cell_depth_si``. If the 3D super cell is the
+        default ``(8, 8, 4)`` it maps to the 2D default ``(16, 16)``; an
+        explicitly-set 3D super cell keeps its (x, y) components (detected via
+        ``model_fields_set``, not by value, so an explicit ``(8, 8, 4)`` is
+        preserved as ``(8, 8)``). A fresh ``Cartesian2DGrid`` is returned and the
+        source grid is not modified; the result is then validated with the 2D
+        ``check()`` so a 3D grid whose reduction does not satisfy the 2D
+        constraints raises at the call site rather than returning an invalid grid.
         """
         number_of_cells = self.number_of_cells[:2]
         lower_bound = self.lower_bound[:2]
@@ -235,11 +239,13 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
         lower_boundary_conditions = self.lower_boundary_conditions[:2]
         upper_boundary_conditions = self.upper_boundary_conditions[:2]
 
-        super_cell_size = self.picongpu_super_cell_size
-        if super_cell_size == (8, 8, 4):
-            super_cell_size = (16, 16)
+        # The 3D default super cell maps to the 2D default; an explicitly-set
+        # super cell (including a deliberate ``(8, 8, 4)``) keeps its (x, y).
+        # ``model_fields_set`` tells explicit from default; the value cannot.
+        if "picongpu_super_cell_size" in self.model_fields_set:
+            super_cell_size = self.picongpu_super_cell_size[:2]
         else:
-            super_cell_size = super_cell_size[:2]
+            super_cell_size = (16, 16)
 
         kwargs = dict(
             number_of_cells=number_of_cells,
@@ -256,7 +262,9 @@ class Cartesian3DGrid(picmistandard.PICMI_Cartesian3DGrid):
             kwargs["picongpu_n_gpus"] = self.picongpu_n_gpus[:2]
         if self.picongpu_grid_dist is not None:
             kwargs["picongpu_grid_dist"] = self.picongpu_grid_dist[:2]
-        return Cartesian2DGrid(**kwargs)
+        grid_2d = Cartesian2DGrid(**kwargs)
+        grid_2d.check()
+        return grid_2d
 
 
 @converts_to(
