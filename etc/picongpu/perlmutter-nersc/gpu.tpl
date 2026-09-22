@@ -39,7 +39,6 @@
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --account=!TBG_nameProject
 #SBATCH --signal=SIGALRM@600
-#SBATCH --mem=!TBG_memPerNode
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -68,11 +67,6 @@ export MPICH_GPU_SUPPORT_ENABLED=1
 # 64 cores a 2 threads per core. We utilise only physical cores
 .TBG_coresPerGPU=32
 
-.TBG_totalHostMemory=229888
-# host memory per gpu
-.TBG_memPerGPU="$(( $TBG_totalHostMemory / $TBG_numHostedGPUPerNode))"
-# host memory per node
-.TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
 
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode - 1 ) / TBG_gpusPerNode))"
