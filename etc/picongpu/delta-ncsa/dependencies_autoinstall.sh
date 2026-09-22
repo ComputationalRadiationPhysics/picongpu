@@ -149,7 +149,7 @@ if [ ! -d "$ADIOS2_ROOT" ]; then
 fi
 
 #   openPMD-api
-if [ ! -d "OPENPMD_ROOT" ]; then
+if [ ! -d "$OPENPMD_ROOT" ]; then
     echo "Installing openPMD-api"
     cd $SOURCE_DIR
     git clone -b 0.17.0 https://github.com/openPMD/openPMD-api.git \
@@ -168,7 +168,7 @@ if [ ! -d "OPENPMD_ROOT" ]; then
 fi
 
 #    fftw
-if [ ! -d "FFTW_ROOT" ]; then
+if [ ! -d "$FFTW_ROOT" ]; then
     echo "Installing fftw"
     cd $SOURCE_DIR
     mkdir $SOURCE_DIR/fftw
