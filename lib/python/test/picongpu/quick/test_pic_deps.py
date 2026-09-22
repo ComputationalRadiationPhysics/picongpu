@@ -20,6 +20,7 @@ def _completed_params():
     p["email"] = "me@example.com"
     p["pic_libs"] = str(Path(__file__).parent / "nonexistent-piclibs")
     p["pic_src_path"] = str(Path(__file__).parent / "nonexistent-picsrc")
+    p["project_id"] = "m0000"
     return p
 
 
