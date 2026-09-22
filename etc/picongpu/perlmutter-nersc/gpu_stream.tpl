@@ -29,7 +29,6 @@
 #SBATCH --ntasks=!TBG_tasks_total
 #SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --chdir=!TBG_dstPath
-#SBATCH --mem=!TBG_memPerNode
 #SBATCH --gpu-bind=none
 
 
@@ -71,12 +70,6 @@ export MPICH_GPU_SUPPORT_ENABLED=1
 .TBG_readersPerDevice=2
 .TBG_mpiTasksPerNode="$((TBG_gpusPerNode * (1 + TBG_readersPerDevice)))"
 .TBG_readersPerNode="$((TBG_gpusPerNode * TBG_readersPerDevice))"
-
-.TBG_totalHostMemory=229888
-# host memory per gpu
-.TBG_memPerGPU="$(( $TBG_totalHostMemory / $TBG_numHostedGPUPerNode))"
-# host memory per node
-.TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
 
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode - 1 ) / TBG_gpusPerNode))"
