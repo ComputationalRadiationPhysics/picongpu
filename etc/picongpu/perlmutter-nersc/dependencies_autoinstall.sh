@@ -20,7 +20,7 @@
 # last updated: 2025-01-06
 
 PIC_BRANCH="dev"
-PROJECT=$proj
+PROJECT=$PROJID
 echo $PROJECT
 
 # get PIConGPU profile

@@ -10,7 +10,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
 #   - project account for computing time
-export proj=`accounts | grep gpu | awk '{print $1}'`
+export PROJID=`accounts | grep gpu | awk '{print $1}'`
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
@@ -136,7 +136,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gres=gpu:4 --mem=240000 -p $TBG_partition -A $proj --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gres=gpu:4 --mem=240000 -p $TBG_partition -A $PROJID --pty bash
 }
 
 # allocate an interactive device for one hour to execute a mpi parallel application
@@ -152,7 +152,7 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun --time=1:00:00 --nodes=1 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gres=gpu:$numGPUs --mem=$((60000 * $numGPUs)) -p $TBG_partition -A $proj --pty bash
+    srun --time=1:00:00 --nodes=1 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gres=gpu:$numGPUs --mem=$((60000 * $numGPUs)) -p $TBG_partition -A $PROJID --pty bash
 }
 
 # Load autocompletion for PIConGPU commands

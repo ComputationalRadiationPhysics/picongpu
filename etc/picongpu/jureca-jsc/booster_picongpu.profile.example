@@ -11,14 +11,14 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
 #   - project account for computing time
-export proj=$(groups | awk '{print $5}')
+export PROJID=$(groups | awk '{print $5}')
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
 # Set up environment, including $SCRATCH and $PROJECT
-jutil env activate -p $proj
+jutil env activate -p $PROJID
 
 # General modules #############################################################
 #
@@ -84,7 +84,7 @@ function getNode() {
         return 1
     fi
     export OMP_NUM_THREADS=34
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --mem=94000 -A $proj -p develbooster bash
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --mem=94000 -A $PROJID -p develbooster bash
 }
 
 # allocate an interactive shell for one hour
@@ -101,7 +101,7 @@ function getDevice() {
         fi
     fi
     export OMP_NUM_THREADS=34
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $proj -p develbooster bash
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $PROJID -p develbooster bash
 }
 
 # Load autocompletion for PIConGPU commands

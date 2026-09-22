@@ -46,7 +46,7 @@
 
 ## calculations will be performed by tbg ##
 .TBG_queue=${TBG_partition:-"qgpu"}
-.TBG_account=${proj}
+.TBG_account=${PROJID}
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}

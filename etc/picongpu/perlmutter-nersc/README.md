@@ -5,9 +5,9 @@ PIConGPU can be compiled on a login node, but remember to limit the number of us
 ## Installing Dependencies
 
 Before you begin, update the following in the `gpu.profile` file:
-- Change the project number (`export proj` variable)
+- Change the project number (`export PROJID` variable)
   ```bash
-  export proj="m0000"
+  export PROJID="m0000"
   ```
 - Change path to PIConGPU repository (`PICSRC` variable)
   ```bash

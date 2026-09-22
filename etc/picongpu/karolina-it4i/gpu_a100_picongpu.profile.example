@@ -1,11 +1,11 @@
 # please set your project account
-export proj="DD-23-157"
+export PROJID="DD-23-157"
 
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-if [ -z ${proj-} ]; then
-    echo "WARNING: The 'proj' variable is not yet set in your $PIC_PROFILE file!"
+if [ -z ${PROJID-} ]; then
+    echo "WARNING: The 'PROJID' variable is not yet set in your $PIC_PROFILE file!"
     echo "Please edit its line 2 to continue!"
     return
 fi
@@ -36,7 +36,7 @@ spack env activate picongpu-env
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:80"
-export SCRATCH="/scratch/project/${proj,,}/${USER}"
+export SCRATCH="/scratch/project/${PROJID,,}/${USER}"
 
 # Path to the required templates of the system,
 # relative to the PIConGPU source code of the tool bin/pic-create.
@@ -64,7 +64,7 @@ function getNode() {
         numNodes=$1
     fi
     export OMP_NUM_THREADS=16
-    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((8 * $numNodes)) --ntasks-per-node=8 --cpus-per-task=1 --exclusive --gpus-per-node=8 -p $TBG_partition -A $proj --pty bash
+    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((8 * $numNodes)) --ntasks-per-node=8 --cpus-per-task=1 --exclusive --gpus-per-node=8 -p $TBG_partition -A $PROJID --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
