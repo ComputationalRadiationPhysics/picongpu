@@ -33,8 +33,10 @@ _DESC = (
     "\n"
     "Guides you through creating or completing a PIConGPU configuration file."
     " If a path to an existing .picongpurc.toml is given, the tool loads it"
-    " and only asks for missing values. Otherwise it starts from scratch by"
-    " asking for a preset first."
+    " and only asks for missing values. If a non-existent path (or a directory)"
+    " is given, a new configuration is created at that path (a directory"
+    " receives a picongpurc.toml file inside it). Otherwise it starts from"
+    " scratch by asking for a preset first."
 )
 
 
@@ -128,6 +130,25 @@ def _offer_custom_params(p):
             p[key] = value
 
 
+def resolve_target_path(config: Path | None) -> tuple[Path | None, bool]:
+    """Resolve the configuration path to write, and whether it is a new target.
+
+    Returns ``(target, is_new)``:
+
+    - ``config`` is an existing file -> ``(config, False)`` (load existing).
+    - ``config`` is a directory      -> ``(config / "picongpurc.toml", True)``.
+    - ``config`` does not exist      -> ``(config, True)``.
+    - ``config`` is ``None``         -> ``(None, True)`` (preset selection).
+    """
+    if config is None:
+        return None, True
+    if config.is_dir():
+        return config / "picongpurc.toml", True
+    if not config.is_file():
+        return config, True
+    return config, False
+
+
 def _toml_serialize(value):
     """Return a TOML scalar representation of *value*."""
     s = tomli_w.dumps({"_": value})
@@ -167,7 +188,8 @@ def _filter_user_keys(data, /, original_data):
 
 
 def write_output(output, path):
-    """Write *output* as a TOML file to *path*."""
+    """Write *output* as a TOML file to *path* (creating parent dirs)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("wb") as f:
         tomli_w.dump(output, f)
 
@@ -190,13 +212,12 @@ def main(argv=None):
         nargs="?",
         default=None,
         type=Path,
-        help="Path to an existing .picongpurc.toml to load and complete.",
+        help="Path to a .picongpurc.toml to load and complete. If the path does "
+        "not exist (or is a directory), a new configuration is created there.",
     )
     args = parser.parse_args(argv)
 
-    path = args.config
-    if path is not None and not path.is_file():
-        parser.error(f"{path} does not exist or is not a file.")
+    target, is_new = resolve_target_path(args.config)
 
     questionary.print(
         "Welcome to picrc-builder!\n"
@@ -205,10 +226,12 @@ def main(argv=None):
         "You will be asked to fill in any missing values required by your chosen preset.\n"
     )
 
-    if path is not None:
-        questionary.print(f"Loading existing configuration from {path}:")
-        p = RCParams(picongpurc_path=path)
+    if target is not None and not is_new:
+        questionary.print(f"Loading existing configuration from {target}:")
+        p = RCParams(picongpurc_path=target)
     else:
+        if target is not None:
+            questionary.print(f"{target} does not exist yet; a new configuration will be created there.")
         questionary.print("First, let's choose a preset.")
 
         available_presets = [
@@ -243,12 +266,12 @@ def main(argv=None):
     questionary.print("")
     questionary.print("Do you want to write this configuration?")
 
-    if path is not None:
+    if target is not None:
         choice = questionary.select(
             "Please choose",
             choices=[
                 "Don't write.",
-                f"Yes, to {path}.",
+                f"Yes, to {target}.",
                 "Yes, but ask for a new path.",
             ],
         ).ask()
@@ -263,9 +286,9 @@ def main(argv=None):
         ).ask()
         choice = choice if choice is not None else "Don't write."
 
-    if choice == f"Yes, to {path}.":
-        write_output(output, path)
-        questionary.print(f"Written to {path}.")
+    if choice == f"Yes, to {target}.":
+        write_output(output, target)
+        questionary.print(f"Written to {target}.")
         questionary.print("You can start your simulation now.")
     elif choice in ("Yes, but ask for a path.", "Yes, but ask for a new path."):
         default_path = Path("./.picongpurc.toml")
