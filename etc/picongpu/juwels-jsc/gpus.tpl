@@ -47,7 +47,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
-.TBG_nameProject=${proj:-""}
+.TBG_nameProject=${PROJID:-""}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # number of available/hosted devices per node in the system

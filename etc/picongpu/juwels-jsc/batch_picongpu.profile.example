@@ -16,8 +16,8 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   Each row contains: project,unixgroup,PI-uid,project-type,budget-accounts
 #   We need the first and last entry.
 #   Here: select the last available project.
-#   Alternative: Set proj, account manually
-export proj=$( jutil user projects --noheader | awk '{print $1}' | tail -n 1 )
+#   Alternative: Set PROJID, account manually
+export PROJID=$( jutil user projects --noheader | awk '{print $1}' | tail -n 1 )
 export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
@@ -25,9 +25,9 @@ export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 # Set up environment, including $SCRATCH and $PROJECT
 # Handle a case where the budgeting account is not set.
 if [ $accountt = "-" ]; then
-    jutil env activate --project $proj;
+    jutil env activate --project $PROJID;
 else
-    jutil env activate --project $proj --budget $account
+    jutil env activate --project $PROJID --budget $account
 fi
 
 

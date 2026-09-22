@@ -11,7 +11,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
 #   - project account for computing time
-export proj="m0000"
+export PROJID="m0000"
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
@@ -28,8 +28,8 @@ module load cray-hdf5-parallel
 export MPICH_GPU_SUPPORT_ENABLED=1
 # Additional libraries
 #
-export PARTITION_CFS=/global/cfs/cdirs/$proj/$USER
-export PIC_LIBS=/global/cfs/cdirs/$proj/$USER/pic-libs
+export PARTITION_CFS=/global/cfs/cdirs/$PROJID/$USER
+export PIC_LIBS=/global/cfs/cdirs/$PROJID/$USER/pic-libs
 mkdir -pv $PIC_LIBS
 
 
@@ -95,7 +95,7 @@ function getNode() {
         numNodes=$1
     fi
     echo "Hint: please use 'srun --cpu_bind=cores <COMMAND>' for launching multiple processes in the interactive mode."
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node 4 --gpus 4 --cpus-per-task=32 -A $proj -C gpu -q interactive
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node 4 --gpus 4 --cpus-per-task=32 -A $PROJID -C gpu -q interactive
 }
 
 # allocate an interactive device for one hour to execute a mpi parallel application
@@ -112,12 +112,12 @@ function getDevice() {
         fi
     fi
     echo "Hint: please use 'srun --cpu_bind=cores <COMMAND>' for launching multiple processes in the interactive mode."
-    salloc --time=1:00:00 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gpus=$numGPUs -A ${proj} -C gpu
+    salloc --time=1:00:00 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gpus=$numGPUs -A ${PROJID} -C gpu
 }
 
 # allocate an interactive shell for compilation (without gpus)
 function getShell() {
-    srun --time=1:00:00 --nodes=1 --ntasks 1 --cpus-per-task=32 -A $proj -C cpu --pty bash
+    srun --time=1:00:00 --nodes=1 --ntasks 1 --cpus-per-task=32 -A $PROJID -C cpu --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
