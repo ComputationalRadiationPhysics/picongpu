@@ -96,6 +96,7 @@ if [ ! -d "$PNGwriter_ROOT" ]; then
    cmake --version
    cmake -DCMAKE_INSTALL_PREFIX=$PNGwriter_ROOT \
          -DCMAKE_POLICY_VERSION_MINIMUM=3.5     \
+         -DPNGwriter_USE_FREETYPE=OFF           \
        $SOURCE_DIR/pngwriter
    make -j 16 install
 fi
