@@ -31,7 +31,7 @@ def test_resolve_directory_points_into_directory():
 def test_resolve_existing_file_is_loaded():
     with TemporaryDirectory() as d:
         existing = Path(d) / "existing.toml"
-        existing.write_text("preset = \"bash\"\n")
+        existing.write_text('preset = "bash"\n')
         target, is_new = resolve_target_path(existing)
         assert target == existing
         assert is_new is False
