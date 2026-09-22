@@ -87,37 +87,65 @@ export PATH=$PICSRC/src/tools/bin:$PATH
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/jureca-jsc/gpus.tpl"
 
-# allocate an interactive shell for one hour
-#   getNode 2  # allocates 2 interactive nodes (default: 1)
-function getNode() {
-    if [ -z "$1" ] ; then
-        numNodes=1
-    else
-        numNodes=$1
-    fi
-    if [ $numNodes -gt 8 ] ; then
-        echo "The maximal number of interactive nodes is 8." 1>&2
+# allocate resources for an interactive session (default: 1 hour)
+#   getResource -n 2            # allocate 2 full nodes
+#   getResource -d 2            # allocate 2 GPUs on a single node
+#   getResource -d 1 pic-build  # allocate resources, run pic-build in allocation
+function getResource() {
+    local mode=""
+    local device_mode=""
+    local node_mode=""
+    local count=1
+    while getopts ":d:n:h" opt; do
+        case $opt in
+            d) count=${OPTARG:-1}; mode="device"; device_mode=1;;
+            n) count=${OPTARG:-1}; mode="node"; node_mode=1;;
+            h) echo "Usage: getResource [-d [num] | -n [num]] [command ...]"; return 0;;
+            *) echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+               return 1;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    if [ "$mode" = "device" ] && [ -n "$node_mode" ]; then
+        echo "Error: cannot specify both -d and -n options" >&2
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
         return 1
     fi
-    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=488G -A $account -p dc-gpu bash
-}
+    if [ "$mode" = "node" ] && [ -n "$device_mode" ]; then
+        echo "Error: cannot specify both -d and -n options" >&2
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
 
-# allocate an interactive shell for one hour
-#   getDevice 2  # allocates 2 interactive devices (default: 1)
-function getDevice() {
-    if [ -z "$1" ] ; then
-        numDevices=1
+    if [ -z "$mode" ]; then
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
+
+    local slurm_common="--time=1:00:00 --mem=488G -A $account -p dc-gpu"
+    local sallocArgs
+    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
+
+    if [ "$mode" = "node" ]; then
+        if [ "$count" -gt 8 ]; then
+            echo "The maximal number of interactive nodes is 8." 1>&2
+            return 1
+        fi
+        sallocArgs="--nodes=$count --ntasks-per-node=4 --gres=gpu:4 $slurm_common"
     else
-        if [ "$1" -gt 4 ] ; then
+        if [ "$count" -gt 4 ]; then
             echo "The maximal number of devices per node is 4." 1>&2
             return 1
-        else
-            numDevices=$1
         fi
+        sallocArgs="--ntasks-per-node=$count --gres=gpu:$count $slurm_common"
     fi
-    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=488G -A $account -p dc-gpu --pty bash
+
+    if [ $# -gt 0 ]; then
+        salloc $sallocArgs "$@"
+    else
+        salloc $sallocArgs
+    fi
 }
 
 # Load autocompletion for PIConGPU commands

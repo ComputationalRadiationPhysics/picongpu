@@ -63,33 +63,61 @@ export CXXFLAGS="-Dlinux"
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/zih-tud/capella.tpl"
 
-# allocate an interactive shell for two hours
-#   getNode 2  # allocates 2 interactive nodes (default: 1)
-function getNode() {
-    if [ -z "$1" ] ; then
-        numNodes=1
-    else
-        numNodes=$1
-    fi
-    export OMP_NUM_THREADS=14
-    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((4 * $numNodes)) --ntasks-per-node=4 --cpus-per-task=14 --mem=752520 --exclusive --gres=gpu:4 -p capella --pty bash
-}
+# allocate resources for an interactive session (default: 2 hours)
+#   getResource -n 2            # allocate 2 full nodes
+#   getResource -d 2            # allocate 2 GPUs on a single node
+#   getResource -d 1 pic-build  # allocate 1 GPU, run pic-build
+function getResource() {
+    local mode=""
+    local device_mode=""
+    local node_mode=""
+    local count=1
+    while getopts ":d:n:h" opt; do
+        case $opt in
+            d) count=${OPTARG:-1}; mode="device"; device_mode=1;;
+            n) count=${OPTARG:-1}; mode="node"; node_mode=1;;
+            h) echo "Usage: getResource [-d [num] | -n [num]] [command ...]"; return 0;;
+            *) echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+               return 1;;
+        esac
+    done
+    shift $((OPTIND - 1))
 
-# allocate an interactive shell for two hours
-#   getDevice 2  # allocates 2 interactive devices on one node (default: 1)
-function getDevice() {
-    if [ -z "$1" ] ; then
-        numDevices=1
+    if [ "$mode" = "device" ] && [ -n "$node_mode" ]; then
+        echo "Error: cannot specify both -d and -n options" >&2
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
+    if [ "$mode" = "node" ] && [ -n "$device_mode" ]; then
+        echo "Error: cannot specify both -d and -n options" >&2
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
+
+    if [ -z "$mode" ]; then
+        echo "Usage: getResource [-d [num] | -n [num]] [command ...]" >&2
+        return 1
+    fi
+
+    local slurm_common="--time=2:00:00 --cpus-per-task=14"
+    local srunArgs
+    export OMP_NUM_THREADS=14
+
+    if [ "$mode" = "node" ]; then
+        srunArgs="--nodes=$count --ntasks=$((4 * count)) --ntasks-per-node=4 --mem=752520 --exclusive --gres=gpu:4 -p capella $slurm_common"
     else
-        if [ "$1" -gt 4 ] ; then
+        if [ "$count" -gt 4 ]; then
             echo "The maximal number of devices per node is 4." 1>&2
             return 1
-        else
-            numDevices=$1
         fi
+        srunArgs="--nodes=1 --ntasks=$count --ntasks-per-node=$count --mem=$((188130 * count)) --gres=gpu:$count -p capella $slurm_common"
     fi
-    export OMP_NUM_THREADS=14
-    srun --time=2:00:00 --nodes=1 --ntasks=$numDevices --ntasks-per-node=$(($numDevices)) --cpus-per-task=14 --mem=$((188130 * $numDevices)) --gres=gpu:$numDevices -p capella --pty bash
+
+    if [ $# -gt 0 ]; then
+        srun $srunArgs "$@"
+    else
+        srun $srunArgs --pty bash
+    fi
 }
 
 # Load autocompletion for PIConGPU commands
