@@ -6,7 +6,7 @@ We agree on the following simple rules to make our lives easier :)
 - Stick to the **style** below for **commit messages**
 - **Commit compiling patches** for the `dev` branch,
   you can be less strict for (unshared) *topic branches*
-- Follow the code style and formatting which is democratically evolved in
+- Follow the :ref:`code style and formatting rules <development-styleguide>` which are democratically evolved in
   [Contributing](https://github.com/ComputationalRadiationPhysics/contributing).
 
 Pre-commit
