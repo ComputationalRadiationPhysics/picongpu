@@ -1,0 +1,73 @@
+/* Copyright 2020-2024 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/defines.hpp"
+#include "picongpu/particles/fusion/detail/ListEntry.hpp"
+
+// PMacc Includes
+#include <pmacc/lockstep.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/particles/algorithm/ForEach.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+
+// Standard Library Includes
+#include <cmath>
+#include <cstddef>
+#include <limits>
+
+namespace picongpu::particles::fusion::detail
+{
+    template<
+        typename T_FramePtr,
+        typename T_Worker,
+        typename T_ForEachCell,
+        typename T_EntryListArray,
+        typename T_Array,
+        typename T_Filter>
+    DINLINE void cellDensity(
+        T_Worker const& worker,
+        T_ForEachCell forEachCell,
+        T_EntryListArray& parCellList,
+        T_Array& densityArray,
+        T_Filter& filter)
+    {
+        forEachCell(
+            [&](uint32_t const linearIdx)
+            {
+                auto parAccess = parCellList.getParticlesAccessor(linearIdx);
+                uint32_t const numParInCell = parAccess.size();
+                float_X density(0.0);
+                for(uint32_t partIdx = 0; partIdx < numParInCell; partIdx++)
+                {
+                    auto particle = parAccess[partIdx];
+                    density += particle[weighting_];
+                }
+                //! @todo don't divide by volume
+                densityArray[linearIdx] = density / sim.pic.getCellSize().productOfComponents();
+            });
+    }
+} // namespace picongpu::particles::fusion::detail

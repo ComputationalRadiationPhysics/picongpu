@@ -1,4 +1,4 @@
-/* Copyright 2013-2024 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2025 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
  *                     Brian Marre, Filip Optolowicz
@@ -47,6 +47,7 @@
 #include "picongpu/simulation/stage/CurrentReset.hpp"
 #include "picongpu/simulation/stage/FieldAbsorber.hpp"
 #include "picongpu/simulation/stage/FieldBackground.hpp"
+#include "picongpu/simulation/stage/Fusion.hpp"
 #include "picongpu/simulation/stage/IterationStart.hpp"
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
 #include "picongpu/simulation/stage/ParticleBoundaries.hpp"
@@ -499,6 +500,7 @@ namespace picongpu
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(*cellDescription, currentStep);
+            Fusion{deviceHeap}(*cellDescription, currentStep);
             ParticleIonization{*cellDescription}(currentStep);
             (*atomicPhysics)(*cellDescription, currentStep);
             (*synchrotronRadiation)(currentStep);
