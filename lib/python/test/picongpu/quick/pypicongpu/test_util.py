@@ -5,11 +5,13 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from dataclasses import dataclass
 from typing import Annotated, Callable
 from pydantic import BaseModel, ValidationError
 from unittest import TestCase
 from picongpu.pypicongpu.util import (
     UnsupportedFeatureError,
+    UnpackChain,
     decorating_class,
     rejects_unsupported,
     unsupported,
@@ -177,3 +179,98 @@ class TestUnsupported(TestCase):
         self.assertEqual(Model(n_pass=2).n_pass, 2)
         with self.assertRaises(ValidationError):
             Model(n_pass=4)
+
+
+class TestUnpackChain(TestCase):
+    def test_zero_length_chain(self):
+        obj = [1, 2, 3]
+        self.assertListEqual(obj, list(UnpackChain(obj)))
+
+    def test_indexing_with_index(self):
+        obj = [1, 2, 3]
+        self.assertListEqual([obj[0]], list(UnpackChain(obj)[0]))
+
+    def test_indexing_with_slice(self):
+        obj = [1, 2, 3]
+        self.assertListEqual(obj[:], list(UnpackChain(obj)[:]))
+
+    def test_simple_attribute_access(self):
+        class Obj:
+            my_tuple = (1, 2, 3)
+
+        self.assertListEqual(list(Obj().my_tuple), list(UnpackChain(Obj).my_tuple))
+
+    def test_nested_attribute_access(self):
+        class InternalObj:
+            another_tuple = (4, 5)
+
+        class Obj:
+            my_tuple = (InternalObj(), InternalObj())
+
+        self.assertListEqual(2 * [*InternalObj().another_tuple], list(UnpackChain(Obj).my_tuple.another_tuple))
+
+    def test_nested_attribute_access_to_toplevel(self):
+        # We need a comparison operator for this one:
+        @dataclass
+        class InternalObj:
+            another_tuple = (4, 5)
+
+        class Obj:
+            my_tuple = (InternalObj(), InternalObj())
+
+        self.assertListEqual(2 * [InternalObj()], list(UnpackChain(Obj).my_tuple))
+
+    def test_method_calls(self):
+        obj = {"a": 1, "b": 2}
+        self.assertListEqual(list(obj.values()), list(UnpackChain(obj).values()))
+        self.assertListEqual(list(obj.keys()), list(UnpackChain(obj).keys()))
+        self.assertListEqual(list(obj.items()), list(UnpackChain(obj).items()))
+
+    def test_deeply_nested_complex_object(self):
+        class InternalObj1:
+            my_dict = {"a": 1, "b": 2}
+
+        class InternalObj2:
+            another_tuple = (InternalObj1(), InternalObj1())
+
+        class CustomDict:
+            def values(self):
+                return [1, 2]
+
+        class InternalObj3:
+            my_dict = CustomDict()
+
+        class InternalObj4:
+            another_tuple = (InternalObj1(), InternalObj3())
+
+        class Obj:
+            my_tuple = (InternalObj1(), InternalObj2(), InternalObj4())
+
+        self.assertListEqual(
+            4 * [*InternalObj1().my_dict.values()], list(UnpackChain(Obj).my_tuple.another_tuple.my_dict.values())
+        )
+        self.assertListEqual([*InternalObj1().my_dict.values()], list(UnpackChain(Obj).my_tuple.my_dict.values()))
+
+    def test_consecutive_indexing(self):
+        obj = [[[1.2], [3, 4]], [5, [[6], [7]]]]
+        self.assertListEqual(obj, list(UnpackChain(obj)))
+        self.assertListEqual(obj[0], list(UnpackChain(obj)[0]))
+        self.assertListEqual(obj[:], list(UnpackChain(obj)[:]))
+        with self.assertRaises(ValueError):
+            self.assertListEqual(obj[0][:], list(UnpackChain(obj)[0][:]))
+
+    def test_with_pydantic(self):
+        from pydantic import BaseModel, Field
+
+        class Model(BaseModel):
+            a: list["Model"] | int
+            b: list[list["Model"]] = Field(default_factory=list)
+
+        m = Model(a=[{"a": [{"a": 1}, {"a": 2}], "b": [[{"a": 4}, {"a": 5}]]}, {"a": 3}])
+
+        self.assertListEqual([Model(a=1, b=[]), Model(a=2, b=[]), 3], list(UnpackChain(m).a.a))
+        self.assertListEqual([1, 2], list(UnpackChain(m).a.a.a))
+        self.assertListEqual([4, 5], list(UnpackChain(m).a.b[0].a))
+        self.assertListEqual([], list(UnpackChain(m).a.b.a))
+        # It is unfortunate that this doesn't produce [4, 5], but it's logically sound:
+        self.assertListEqual([], list(UnpackChain(m).a.b[:].a))
