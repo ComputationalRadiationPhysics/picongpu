@@ -42,6 +42,18 @@ _DESC = (
 )
 
 
+def _ask(question):
+    """Ask *question*, letting Ctrl-C (KeyboardInterrupt) propagate to the caller.
+
+    ``questionary``'s ``Question.ask()`` swallows ``KeyboardInterrupt``, prints
+    "Cancelled by user" and returns ``None``. Callers then mistake that ``None``
+    for a real answer (e.g. "No"), so the prompt re-appears and the tool cannot
+    be aborted. ``unsafe_ask()`` is the documented variant that does *not* catch
+    the interrupt, which ``main()`` handles once.
+    """
+    return question.unsafe_ask()
+
+
 def _explain(key, indent="      "):
     """Print the registered description (and example) for *key*, indented, if any."""
     parameter = get_profile_parameter(key)
@@ -67,7 +79,7 @@ def _gather_missing(p):
             var = e.__cause__.args[0] if e.__cause__ else e.args[0]
             questionary.print(f'Found missing variable "{var}". Please provide a value:')
             _explain(var)
-            p[var] = questionary.text(f"{var} = ").ask()
+            p[var] = _ask(questionary.text(f"{var} = "))
 
 
 _MULTI_LINE_KEYS = {"module_section", "spack_section", "profile_content", "profile_template_content"}
@@ -120,7 +132,7 @@ def _show_parameters(p):
             "  (<multi-line content hidden for module_section, spack_section, profile_content, "
             "profile_template_content>)"
         )
-        show = questionary.confirm("Show multi-line content?", default=False).ask()
+        show = _ask(questionary.confirm("Show multi-line content?", default=False))
         if show:
             for key, value in multi_entries:
                 questionary.print(f"\n--- {key} ---")
@@ -137,14 +149,16 @@ def _edit_parameters(p, all_keys):
         return set()
 
     keys_to_edit = (
-        questionary.checkbox(
-            "Which parameters would you like to change?",
-            choices=editable_keys,
-            use_search_filter=True,
-            use_jk_keys=False,
-            instruction=_PARAM_CHECKBOX_INSTRUCTION,
-            validate=_require_selection,
-        ).ask()
+        _ask(
+            questionary.checkbox(
+                "Which parameters would you like to change?",
+                choices=editable_keys,
+                use_search_filter=True,
+                use_jk_keys=False,
+                instruction=_PARAM_CHECKBOX_INSTRUCTION,
+                validate=_require_selection,
+            )
+        )
         or []
     )
 
@@ -157,7 +171,7 @@ def _edit_parameters(p, all_keys):
         else:
             questionary.print(f"Current value: {key} = {_toml_serialize(p[key])}")
         _explain(key, indent="      ")
-        new_value = questionary.text(f"New value for {key}: ").ask()
+        new_value = _ask(questionary.text(f"New value for {key}: "))
         if new_value is not None:
             p[key] = new_value
             overridden.add(key)
@@ -183,10 +197,10 @@ def _offer_param_edits(p):
         return set()
 
     overridden = set()
-    while questionary.confirm("\nWant to see all set parameters to make edits?", default=False).ask():
+    while _ask(questionary.confirm("\nWant to see all set parameters to make edits?", default=False)):
         _show_parameters(p)
 
-        if not questionary.confirm("\nWant to change any of these parameters?", default=False).ask():
+        if not _ask(questionary.confirm("\nWant to change any of these parameters?", default=False)):
             continue
 
         overridden |= _edit_parameters(p, [k for k, _ in all_entries])
@@ -195,15 +209,15 @@ def _offer_param_edits(p):
 
 def _offer_custom_params(p):
     """Allow the user to add arbitrary custom key-value pairs."""
-    if not questionary.confirm("\nWant to add custom parameters?", default=False).ask():
+    if not _ask(questionary.confirm("\nWant to add custom parameters?", default=False)):
         return
 
     questionary.print("Enter key names and values. Leave key empty to finish.")
     while True:
-        key = questionary.text("Key name (empty to finish): ").ask()
+        key = _ask(questionary.text("Key name (empty to finish): "))
         if not key or key == "":
             break
-        value = questionary.text(f"Value for {key}: ").ask()
+        value = _ask(questionary.text(f"Value for {key}: "))
         if value is not None:
             p[key] = value
 
@@ -275,11 +289,24 @@ def write_output(output, path):
 def main(argv=None):
     """Entry point for the picrc-builder CLI.
 
+    Runs the interactive builder and aborts cleanly on Ctrl-C: all prompts go
+    through ``_ask`` (``unsafe_ask``), which lets ``KeyboardInterrupt`` reach
+    this handler. Nothing is written before the final confirmation, so an
+    interrupt never leaves a partial configuration behind.
+
     Parameters
     ----------
     argv : list[str] | None
         Command-line arguments (defaults to ``sys.argv[1:]``).
     """
+    try:
+        return _run(argv)
+    except KeyboardInterrupt:
+        questionary.print("\nAborted. Nothing was written.")
+        return None
+
+
+def _run(argv=None):
     parser = argparse.ArgumentParser(
         prog="picrc-builder",
         description=_DESC,
@@ -320,7 +347,7 @@ def main(argv=None):
             print("Error: No presets found in etc/picongpu.")
             return
 
-        preset = questionary.select("Select a preset:", choices=available_presets).ask()
+        preset = _ask(questionary.select("Select a preset:", choices=available_presets))
 
         if preset is None:
             print("Aborted.")
@@ -345,23 +372,27 @@ def main(argv=None):
     questionary.print("Do you want to write this configuration?")
 
     if target is not None:
-        choice = questionary.select(
-            "Please choose",
-            choices=[
-                "Don't write.",
-                f"Yes, to {target}.",
-                "Yes, but ask for a new path.",
-            ],
-        ).ask()
+        choice = _ask(
+            questionary.select(
+                "Please choose",
+                choices=[
+                    "Don't write.",
+                    f"Yes, to {target}.",
+                    "Yes, but ask for a new path.",
+                ],
+            )
+        )
         choice = choice if choice is not None else "Don't write."
     else:
-        choice = questionary.select(
-            "Please choose",
-            choices=[
-                "Don't write.",
-                "Yes, but ask for a path.",
-            ],
-        ).ask()
+        choice = _ask(
+            questionary.select(
+                "Please choose",
+                choices=[
+                    "Don't write.",
+                    "Yes, but ask for a path.",
+                ],
+            )
+        )
         choice = choice if choice is not None else "Don't write."
 
     if choice == f"Yes, to {target}.":
@@ -370,7 +401,7 @@ def main(argv=None):
         questionary.print("You can start your simulation now.")
     elif choice in ("Yes, but ask for a path.", "Yes, but ask for a new path."):
         default_path = Path("./.picongpurc.toml")
-        new_path_str = questionary.path("Path to write:", default=str(default_path)).ask()
+        new_path_str = _ask(questionary.path("Path to write:", default=str(default_path)))
 
         if new_path_str is None:
             print("Aborted.")
@@ -379,10 +410,12 @@ def main(argv=None):
         new_path = Path(new_path_str)
 
         if new_path.exists():
-            if not questionary.confirm(
-                f"{new_path} already exists. Overwrite?",
-                default=False,
-            ).ask():
+            if not _ask(
+                questionary.confirm(
+                    f"{new_path} already exists. Overwrite?",
+                    default=False,
+                )
+            ):
                 questionary.print("Aborted. Nothing was written.")
                 return
         write_output(output, new_path)
