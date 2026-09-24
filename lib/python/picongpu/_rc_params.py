@@ -216,7 +216,6 @@ PROFILE_PARAMETERS = [
             "account (just under a different name); on JSC sites (juwels/jureca/jupiter) PROJID is the "
             "project id while account is the budget account."
         ),
-        example="<yourProject>",
     ),
     ProfileParameter(
         rc_key="pic_node_oversubscription_pt",

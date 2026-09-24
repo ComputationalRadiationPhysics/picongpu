@@ -42,14 +42,14 @@ _DESC = (
 )
 
 
-def _explain(key):
-    """Print the registered description (and example) for *key*, if any."""
+def _explain(key, indent="      "):
+    """Print the registered description (and example) for *key*, indented, if any."""
     parameter = get_profile_parameter(key)
     if parameter is None:
         return
-    questionary.print(f"  {parameter.description}")
+    questionary.print(f"{indent}{parameter.description}")
     if parameter.example:
-        questionary.print(f"  Example: {parameter.example}")
+        questionary.print(f"{indent}Example: {parameter.example}")
 
 
 def _gather_missing(p):
@@ -98,10 +98,12 @@ def _offer_param_edits(p):
 
     questionary.print("\nYour configuration contains the following parameters:")
     for key, value in short_entries:
+        questionary.print("")
         questionary.print(f"  {key} = {_toml_serialize(value)}")
-        _explain(key)
+        _explain(key, indent="      ")
 
     if multi_entries:
+        questionary.print("")
         questionary.print(
             "  (<multi-line content hidden for module_section, spack_section, profile_content, "
             "profile_template_content>)"
@@ -120,12 +122,13 @@ def _offer_param_edits(p):
 
     overridden = set()
     for key in keys_to_edit:
+        questionary.print("")
         if key in _MULTI_LINE_KEYS:
-            questionary.print(f"\nCurrent value of {key}:")
-            questionary.print(f"{p[key]}\n")
+            questionary.print(f"Current value of {key}:")
+            questionary.print(f"{p[key]}")
         else:
-            questionary.print(f"\nCurrent value: {key} = {_toml_serialize(p[key])}")
-        _explain(key)
+            questionary.print(f"Current value: {key} = {_toml_serialize(p[key])}")
+        _explain(key, indent="      ")
         new_value = questionary.text(f"New value for {key}: ").ask()
         if new_value is not None:
             p[key] = new_value
