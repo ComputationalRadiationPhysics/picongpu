@@ -192,7 +192,7 @@ eSPec_binning = binning.Binning(
     deposition_functor=eSpec_deposition_functor,
     axes=[energyAxis, thetaAxis],
     species=electrons,
-    period=picmi.diagnostics.TimeStepSpec[::100],
+    period=picmi.diagnostics.TS[::100],
 )
 
 
@@ -203,7 +203,7 @@ sim.diagnostics = [
         species=electrons,
         # Resulting values for period:
         # 0, 17, 50, 57, 64, 71, 100, 200, ...
-        period=picmi.diagnostics.TimeStepSpec[::100, 50:72:7, 17],
+        period=picmi.diagnostics.TS[::100, 50:72:7, 17],
         spatial_coordinate="y",
         momentum_coordinate="py",
         min_momentum=-1.0,
@@ -213,21 +213,21 @@ sim.diagnostics = [
         species=electrons,
         # Resulting values for period:
         # 0, 100, 200, ...
-        period=picmi.diagnostics.TimeStepSpec[::100],
+        period=picmi.diagnostics.TS[::100],
         bin_count=1024,
         min_energy=0.0,
         max_energy=1000.0,
     ),
     picmi.diagnostics.MacroParticleCount(
         species=electrons,
-        period=picmi.diagnostics.TimeStepSpec[::100],
+        period=picmi.diagnostics.TS[::100],
     ),
     picmi.diagnostics.Checkpoint(
-        period=picmi.diagnostics.TimeStepSpec[::100],
+        period=picmi.diagnostics.TS[::100],
     ),
     picmi.diagnostics.Radiation(
         species=electrons,
-        period=picmi.diagnostics.TimeStepSpec[100::100],
+        period=picmi.diagnostics.TS[100::100],
         observer=RadiationObserverConfiguration(
             N_observer=N_OBSERVER,
             index_to_direction=lambda i: [

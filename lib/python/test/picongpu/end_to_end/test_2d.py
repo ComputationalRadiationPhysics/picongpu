@@ -26,7 +26,7 @@ from picongpu.picmi import (
     UniformDistribution,
 )
 from picongpu.picmi.constants import c
-from picongpu.picmi.diagnostics import Checkpoint, TimeStepSpec
+from picongpu.picmi.diagnostics import Checkpoint, TS
 from picongpu.picmi.lasers import GaussianLaser, PolarizationType
 
 from .arbitrary_parameters import directory_in_home, gather_results
@@ -74,7 +74,7 @@ def basic_simulation():
         phi0=0.0,
     )
     sim.add_laser(laser, None)
-    sim.diagnostics = [Checkpoint(period=TimeStepSpec[::100])]
+    sim.diagnostics = [Checkpoint(period=TS[::100])]
     return sim
 
 

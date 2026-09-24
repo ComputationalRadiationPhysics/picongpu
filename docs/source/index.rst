@@ -48,10 +48,14 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 
 .. toctree::
    :caption: PIConGPU PYTHON PACKAGE
-   :maxdepth: 2
+   :maxdepth: 1
    :hidden:
 
-   python_package/index
+   python_package/quickstart
+   python_package/tutorial
+   python_package/foundations/index
+   python_package/selected_topics/index
+   python_package/api/index
 
 .. toctree::
    :caption: TUTORIALS
@@ -70,7 +74,6 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    usage/param
    usage/plugins
    usage/tbg
-   usage/picmi/index
    usage/python_utils
    usage/examples
    usage/tests
@@ -151,17 +154,3 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    testing/testbuilding
    testing/examples
    
-   
-.. toctree::
-   :caption: PyPIConGPU
-   :maxdepth: 1
-   :hidden:
-
-   pypicongpu/intro
-   pypicongpu/translation
-   pypicongpu/testing
-   pypicongpu/running
-   pypicongpu/species
-   pypicongpu/misc
-   pypicongpu/faq
-   pypicongpu/howto/index

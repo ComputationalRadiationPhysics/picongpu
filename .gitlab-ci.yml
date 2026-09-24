@@ -253,6 +253,9 @@ docs-snippets:
     # build the documentation
     - cd $CI_PROJECT_DIR/docs
     - doxygen
+    # pipefail so a real sphinx-build failure is not masked by the `tee` pipe
+    # (a missing snippet file only produces a warning, hence the explicit check below)
+    - set -o pipefail
     - sphinx-build -b html source build/html 2>&1 | tee $CI_PROJECT_DIR/docs-snippets-sphinx.log
     # a missing snippet file only produces a sphinx warning, so fail explicitly
     - |
@@ -261,6 +264,15 @@ docs-snippets:
           exit 1
       fi
       grep "build succeeded" $CI_PROJECT_DIR/docs-snippets-sphinx.log
+    # the pydantic-based picmi API reference must render without autodoc import
+    # failures (e.g. inherited pydantic fields); a regression is otherwise only a
+    # warning and would silently drop fields from the generated reference
+    - |
+      if grep -E "failed to import pydantic_field|Unknown directive type \"autopydantic" \
+          $CI_PROJECT_DIR/docs-snippets-sphinx.log; then
+          echo "ERROR: the pydantic API reference failed to render (autodoc-pydantic)"
+          exit 1
+      fi
   tags:
     - cpuonly
     - x86_64

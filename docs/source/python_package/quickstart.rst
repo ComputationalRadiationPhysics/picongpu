@@ -1,151 +1,98 @@
 Quick Start
 ===========
 
-This quick start guide will get you
-from zero to running a complete PIConGPU simulation with minimal effort.
-It describes one among many different ways to use PIConGPU.
-You can use it as a starting point to explore for yourself
-or dive deeper and explore the key concepts and configuration options
-with our :ref:`Foundations <python_package/foundations/index:Foundations>` chapter.
-If you are more interested in how to setup up a particular aspect of your simulation,
-you'll find information in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
+This section gets you from zero to a running PIConGPU simulation
+in five steps.
+For everything beyond this minimal workflow,
+follow the references to the other chapters.
 
-What You'll Build
------------------
+Step 1: Install ``uv``
+----------------------
 
-We will set up and start a minimal simulation
-of the electromagnetic field on a small 3D grid
-with periodic boundary conditions.
-Even though it does not contain any particles or lasers yet,
-it exercises the full machinery of the Python package:
-input file generation, compilation of a tailored binary and submission of the simulation.
-Afterwards, you can add the physical ingredients of your experiment
-to the same skeleton (see :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>`).
+.. literalinclude:: snippets/running_simulation/uv_install.sh
+   :language: bash
+   :start-after: BEGIN-UV-INSTALL
+   :end-before: END-UV-INSTALL
 
-Prerequisites
--------------
+``uv`` is a fast Python package installer and runner
+(see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`
+for alternatives and details).
 
-* Python 3.11, 3.12 or 3.13.
-* To run locally on your machine: nothing else is required.
-* To run on a cluster: access to the cluster
-  and, if necessary, an account on the systems that provide the software
-  (compilers, libraries) to compile and run PIConGPU.
+Step 2: Build Your Runtime Configuration
+----------------------------------------
 
-Step 1: Write Your Input File
------------------------------
+.. literalinclude:: snippets/quickstart/picrc_builder.sh
+   :language: bash
+   :start-after: BEGIN-PICRC-BUILDER
+   :end-before: END-PICRC-BUILDER
 
-A PIConGPU simulation is defined in a plain Python script.
-Create a file ``my_first_simulation.py`` with the following content:
+``picrc-builder`` guides you interactively through writing the
+``.picongpurc.toml`` runtime configuration:
+it asks for the preset of your system and writes the file.
+See :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`
+for the search order of that file, the available presets and all further knobs.
 
-.. literalinclude:: snippets/quickstart/my_first_simulation.py
-   :language: python
+Step 3: Install the Dependencies
+--------------------------------
 
-The lines at the top (after the shebang) are `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__.
-Tools like `uv <https://docs.astral.sh/uv/>`__ read them to install the necessary dependencies on-the-fly,
-so the script is self-contained and documents the version of PIConGPU it is meant to run with.
-To fix the version even more tightly, replace ``@dev`` with a concrete ``@<commit hash>``.
+.. literalinclude:: snippets/quickstart/pic_deps_install.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-INSTALL
+   :end-before: END-PIC-DEPS-INSTALL
 
-The rest of the script does three things:
+``pic-deps`` is a best-effort driver over your preset's own
+``dependencies_autoinstall.sh``,
+building PIConGPU's compile-time dependencies.
+This step is only available for the presets that ship such a script
+(the cluster presets that build their toolchain from source);
+for presets that rely on system modules it is not needed.
+See :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`
+for the presets that ship with the package.
 
-* The ``Cartesian3DGrid`` defines the spatial domain:
-  128 cells per dimension, each cell 7.8125e-9 m (``upper_bound``/``number_of_cells``) in size,
-  with periodic boundary conditions on all sides.
-* The ``ElectromagneticSolver`` solves Maxwell's equations with the Yee scheme.
-  The parameter ``cfl`` is the Courant number:
-  together with the cell size, it determines the size of the simulation time step
-  (0.95 is a common, stable choice).
-* The ``Simulation`` object ties the solver and the grid together
-  and sets the runtime to 100 time steps (``max_steps``).
-  Finally, ``simulation.run()`` generates the PIConGPU input files from the simulation,
-  compiles a tailored binary and submits the simulation
-  (see `step 3`_ below for what exactly happens).
+Step 4: Download the Minimal Example
+------------------------------------
 
-Step 2: Configure Your Environment
-----------------------------------
+.. literalinclude:: snippets/quickstart/download_minimal_example.sh
+   :language: bash
+   :start-after: BEGIN-DOWNLOAD-MINIMAL-EXAMPLE
+   :end-before: END-DOWNLOAD-MINIMAL-EXAMPLE
 
-Besides your simulation, PIConGPU needs a *runtime configuration*:
-it describes the system you run on and the metadata (e.g. your name)
-to record along with your results.
-It is kept in a ``TOML`` file that is found when the ``picongpu`` package is imported
-(search order, presets, and all available knobs are documented in
-:ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`).
+This is a small PICMI input file
+that sets up the electromagnetic field on a small 3D grid with periodic boundaries.
+See :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>`
+to add particles, lasers and diagnostics to this skeleton.
 
-For a local run on your machine, a minimal configuration is sufficient.
-Create a file ``.picongpurc.toml`` next to your input script::
+.. dropdown:: The full minimal example
 
-  preset = "bash"
+   The downloaded file defines a ``Simulation`` with a ``max_steps`` budget
+   and an electromagnetic solver on a 3D grid, then calls ``simulation.run()``
+   to generate the input files, compile a tailored binary and submit the run.
 
-The ``preset`` selects the curated environment configuration for your system.
-To run on a cluster, use the preset of your system instead
-(a full list of the presets shipped with the package is shown in
-:ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Presets>`).
-Many cluster presets additionally require you to tell PIConGPU who you are,
-so that your runs carry proper metadata::
+   .. literalinclude:: ../../../lib/python/examples/tutorial/01_minimal.py
+      :language: python
 
-  preset = "rosi-hzdr"
-  author = "Your Name"
-  email = "you@example.org"
-
-.. _step 3:
-
-Step 3: Run It
+Step 5: Run It
 --------------
 
-With ``uv`` installed (see the :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>` page),
-the whole thing is a single command:
-
-.. literalinclude:: snippets/quickstart/run_with_uv.sh
+.. literalinclude:: snippets/quickstart/run_minimal_example.sh
    :language: bash
+   :start-after: BEGIN-RUN-MINIMAL-EXAMPLE
+   :end-before: END-RUN-MINIMAL-EXAMPLE
 
-``uv`` reads the PEP 723 metadata of the script,
-installs the pinned version of PIConGPU (and its dependencies) into an ephemeral environment
-and runs the script with it.
-
-If you prefer to install PIConGPU manually into a virtual environment first,
-you can also simply execute the script with that environment's ``python``.
-The installation is a single ``pip`` command:
-
-.. literalinclude:: snippets/quickstart/install_from_git.sh
-   :language: bash
-
-When the script runs, the package
-
-#. writes the PIConGPU input files into ``my_first_simulation_setup/``,
-#. compiles a PIConGPU binary tailored to exactly this simulation, and
-#. submits the simulation to the system given by your runtime configuration:
-   on a cluster this is usually a batch system job
-   (with the ``bash`` preset, the simulation is started on your machine).
-
-The script returns as soon as the submission is done
-and does not wait for the simulation to finish.
-On a cluster, you now interact with your job as usual
-(e.g. via the job id to monitor its progress).
-
-Step 4: Where Are Your Results?
--------------------------------
-
-After the simulation has run,
-the output data is found in the ``simOutput/`` directory of the run.
-The run directory (``my_first_simulation_run/``) contains a helper script
-``link_results.sh`` that creates a link to that directory,
-e.g. into a folder of your choice:
-
-.. literalinclude:: snippets/running_simulation/link_results.sh
-   :language: bash
-
-For the details on the layout of the run directory,
-on the steps the package performs under the hood,
-and on how to re-run or inspect individual steps,
-see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`.
+The script carries `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__,
+so ``uv`` installs the pinned PIConGPU version on the fly.
+It then generates the input files, compiles a tailored binary and submits the simulation
+to the system given by your runtime configuration.
+See :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`
+for what happens under the hood and where the results end up.
 
 Next Steps
 ----------
 
-* Add physics to your simulation:
-  lasers, species, particle distributions and interactions
-  are covered in :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>`.
-* Record what you want to measure:
-  the available diagnostics are documented in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
-* Take control of your environment:
-  presets, fine-tuning and custom profiles are explained in
-  :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`.
+* The core concepts and configuration options are introduced in
+  :ref:`Foundations <python_package/foundations/index:Foundations>`.
+* Particular features
+  (lasers, species, distributions, interactions, diagnostics, ...)
+  are covered in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
+* The complete reference of the PICMI frontend is the
+  :ref:`API Documentation <python_package/api/index:API Documentation>`.

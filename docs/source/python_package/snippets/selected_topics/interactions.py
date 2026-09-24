@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Defines three small simulations demonstrating the supported interactions:
@@ -52,9 +52,13 @@ adk = picmi.ADK(
     ionization_current=None,
 )
 
-sim_adk = picmi.Simulation(max_steps=10, solver=solver, picongpu_interaction=[adk])
-sim_adk.add_species(hydrogen, layout)
-sim_adk.add_species(electrons, None)
+sim_adk = picmi.Simulation(
+    max_steps=10,
+    solver=solver,
+    species=[hydrogen, electrons],
+    layouts=[layout, None],
+    picongpu_interaction=[adk],
+)
 sim_adk.run(setup_dir=Path("adk_setup"), run_dir=Path("adk_run"))
 # END-INTERACTIONS-ADK
 
@@ -78,9 +82,13 @@ bsi = picmi.BSI(
     BSI_extensions=(picmi.BSIExtension.StarkShift,),
 )
 
-sim_bsi = picmi.Simulation(max_steps=10, solver=solver, picongpu_interaction=[bsi])
-sim_bsi.add_species(bsi_hydrogen, layout)
-sim_bsi.add_species(bsi_electrons, None)
+sim_bsi = picmi.Simulation(
+    max_steps=10,
+    solver=solver,
+    species=[bsi_hydrogen, bsi_electrons],
+    layouts=[layout, None],
+    picongpu_interaction=[bsi],
+)
 sim_bsi.run(setup_dir=Path("bsi_setup"), run_dir=Path("bsi_run"))
 # END-INTERACTIONS-BSI
 
@@ -98,8 +106,12 @@ photons = picmi.Species(
 
 synchrotron = picmi.Synchrotron(electron_species=sync_electrons, photon_species=photons)
 
-sim_sync = picmi.Simulation(max_steps=10, solver=solver, picongpu_interaction=[synchrotron])
-sim_sync.add_species(sync_electrons, layout)
-sim_sync.add_species(photons, None)
+sim_sync = picmi.Simulation(
+    max_steps=10,
+    solver=solver,
+    species=[sync_electrons, photons],
+    layouts=[layout, None],
+    picongpu_interaction=[synchrotron],
+)
 sim_sync.run(setup_dir=Path("synchrotron_setup"), run_dir=Path("synchrotron_run"))
 # END-INTERACTIONS-SYNCHROTRON

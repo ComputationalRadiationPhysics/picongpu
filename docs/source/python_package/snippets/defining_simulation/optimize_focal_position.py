@@ -9,7 +9,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Optimizes the laser focal position of an LWFA simulation
@@ -22,34 +22,30 @@ from pathlib import Path
 
 import numpy as np
 from picongpu import picmi
+from picongpu.picmi import constants
 from scipy.constants import c
 from scipy.optimize import minimize
 
 NUM_CELLS = [192, 2048, 192]
 CELL_SIZE = [0.1772e-6, 0.4430e-7, 0.1772e-6]
 
-FIXED_KWARGS = dict(
-    max_steps=100,
-)
-FIXED_LASER_KWARGS = dict(
-    wavelength=0.8e-6,
-    waist=5.0e-6 / 1.17741,
-    duration=5.0e-15,
-    propagation_direction=[0.0, 1.0, 0.0],
-    polarization_direction=[1.0, 0.0, 0.0],
-    a0=8.0,
-    phi0=0.0,
-)
 PULSE_INIT = 15.0  # in units of the laser pulse duration
 
 TRANSVERSE_FOCUS = NUM_CELLS[0] * CELL_SIZE[0] / 2.0
 
 
 def make_laser(focal_position):
+    duration = 5.0e-15
     return picmi.GaussianLaser(
-        **FIXED_LASER_KWARGS,
+        wavelength=0.8e-6,
+        waist=5.0e-6 / 1.17741,
+        duration=duration,
+        propagation_direction=[0.0, 1.0, 0.0],
+        polarization_direction=[1.0, 0.0, 0.0],
+        a0=8.0,
+        phi0=0.0,
         focal_position=[TRANSVERSE_FOCUS, focal_position, TRANSVERSE_FOCUS],
-        centroid_position=[TRANSVERSE_FOCUS, -0.5 * PULSE_INIT * FIXED_LASER_KWARGS["duration"] * c, TRANSVERSE_FOCUS],
+        centroid_position=[TRANSVERSE_FOCUS, -0.5 * PULSE_INIT * duration * c, TRANSVERSE_FOCUS],
     )
 
 
@@ -64,17 +60,61 @@ def make_simulation(focal_position):
     electrons = picmi.Species(name="electrons", particle_type="electron")
     energy_histogram = picmi.diagnostics.EnergyHistogram(
         species=electrons,
-        period=picmi.diagnostics.TimeStepSpec[-1],
+        period=picmi.diagnostics.TS[-1],
         bin_count=100,
         min_energy=0.0,
-        max_energy=1000.0,
+        max_energy=1000.0 * constants.keV,
     )
     return picmi.Simulation(
-        **FIXED_KWARGS,
+        max_steps=100,
         solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid),
-        picongpu_lasers=[make_laser(focal_position)],
-        picongpu_diagnostics=[energy_histogram],
+        lasers=[make_laser(focal_position)],
+        diagnostics=[energy_histogram],
     )
+
+
+def gather_results(run_dir, timeout_count=100, sleep_interval=5):
+    """Best-effort wait until the results of a submitted simulation are available.
+
+    This follows the approach of the end-to-end tests: the submitted job has to
+    finish, and the workflow has to link its results. Both are system specific
+    (see "Immediate post-processing"); this implementation is defensive and only
+    waits when the submission information is present, so it is a no-op for a
+    simulation that has already run (e.g. locally with the ``bash`` preset).
+    """
+    from subprocess import run as subprocess_run
+    from time import sleep
+
+    from picongpu import rc_params
+
+    submission_information = run_dir / "submission_information.txt"
+    if submission_information.exists():
+        pid = int(submission_information.read_text().split()[-1])
+        submission_system = rc_params.get("tbg_submit", "bash")
+
+        def finished():
+            if submission_system.startswith(("bash", "zsh")):
+                import psutil
+
+                return not psutil.pid_exists(pid)
+            if submission_system.startswith("s"):
+                states = subprocess_run(["sacct", "-S", "2026-01-01", "-XPno", "jobid,state"], capture_output=True)
+                return any(
+                    line.startswith(str(pid)) and line.split("|")[1] in ("COMPLETED", "FAILED")
+                    for line in states.stdout.decode().splitlines()
+                )
+            raise NotImplementedError(f"Unknown submission system {submission_system!r}.")
+
+        for _ in range(timeout_count):
+            if finished():
+                break
+            sleep(sleep_interval)
+        else:
+            raise TimeoutError(f"Simulation in {run_dir} did not finish in time.")
+
+    link_results = run_dir / "link_results.sh"
+    if link_results.exists():
+        subprocess_run([str(link_results), str(run_dir)], check=True)
 
 
 def count_electrons_in_energy_range(run_dir, min_energy_kev=100.0, max_energy_kev=1000.0):
@@ -95,9 +135,9 @@ def electron_count_of(focal_position):
         shutil.rmtree(run_dir)
     simulation = make_simulation(focal_position)
     simulation.run(setup_dir=run_dir / "setup", run_dir=run_dir)
-    # Note: waiting for the submitted job to finish before reading its results
-    # is system specific (see "Immediate post-processing");
-    # in a real workflow, you would insert that wait here.
+    # best-effort wait for the submitted job and its linked results
+    # (system specific, see "Immediate post-processing"):
+    gather_results(run_dir)
     return count_electrons_in_energy_range(run_dir)
 
 

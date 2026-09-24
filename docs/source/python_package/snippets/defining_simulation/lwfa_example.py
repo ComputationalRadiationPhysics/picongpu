@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 """
 
@@ -86,24 +86,22 @@ adk = picmi.ADK(
 )
 # END-LWFA-ADK
 
+# BEGIN-LWFA-DIAGNOSTICS
+checkpoint = picmi.diagnostics.Checkpoint(period=picmi.diagnostics.TS[::50])
+macro_particle_count = picmi.diagnostics.MacroParticleCount(species=electrons, period=picmi.diagnostics.TS[::10])
+# END-LWFA-DIAGNOSTICS
+
 # BEGIN-LWFA-SIMULATION
 sim = picmi.Simulation(
     max_steps=100,
     solver=solver,
-    picongpu_lasers=[laser],
+    lasers=[laser],
+    species=[hydrogen, electrons],
+    layouts=[layout, None],
     picongpu_interaction=[adk],
+    diagnostics=[checkpoint, macro_particle_count],
 )
-sim.add_species(hydrogen, layout)
-sim.add_species(electrons, None)
 # END-LWFA-SIMULATION
-
-# BEGIN-LWFA-DIAGNOSTICS
-checkpoint = picmi.diagnostics.Checkpoint(period=picmi.diagnostics.TimeStepSpec[::50])
-macro_particle_count = picmi.diagnostics.MacroParticleCount(
-    species=electrons, period=picmi.diagnostics.TimeStepSpec[::10]
-)
-sim.diagnostics = [checkpoint, macro_particle_count]
-# END-LWFA-DIAGNOSTICS
 
 # BEGIN-LWFA-RUN
 sim.run(setup_dir=Path("lwfa_example_setup"), run_dir=Path("lwfa_example_run"))

@@ -56,361 +56,35 @@ The most useful for interacting with PIConGPU are:
 
 For other means of interacting with your simulation, see the corresponding :ref:`API Documentation <python_package/api/index:API Documentation>`.
 
-The following sections describe the core building blocks
-that you will combine in your input files:
-grids and solvers, lasers, species, particle distributions and layouts.
-The `tutorial`_ below then puts them together in a complete example.
+The core building blocks
+that you will combine in your input files
+are grids and solvers, lasers, species with their distributions and layouts,
+and the symbolic functors used to express arbitrary quantities.
+Each of them has its own deep-dive page in
+:ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`:
+
+* :ref:`Grids and solvers <python_package/selected_topics/grids_and_solvers:Grids and Solvers>`
+  define the simulation domain and advance the fields.
+* :ref:`Lasers <python_package/selected_topics/lasers:Lasers>`
+  add laser pulses to the simulation.
+* :ref:`Species, distributions and layouts <python_package/selected_topics/species_distributions_layouts:Species, Distributions and Layouts>`
+  describe the particles.
+* :ref:`Functors, particle functors and filters <python_package/selected_topics/functors:Functors, Particle Functors and Filters>`
+  express arbitrary particle quantities and analytic densities.
+
+The separate :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`
+then puts them together in a complete example.
 
-Grids and Solvers
------------------
-
-The ``Cartesian3DGrid`` defines the spatial domain of your simulation:
-
-* ``number_of_cells``: the number of cells per dimension,
-* ``lower_bound`` / ``upper_bound``: the extent of the domain in metres
-  (the lower bound must be ``[0.0, 0.0, 0.0]``), and
-* ``lower_boundary_conditions`` / ``upper_boundary_conditions``:
-  ``"open"`` (absorbing) or ``"periodic"`` per dimension;
-  the lower and the upper condition of a dimension must be equal.
-
-The cell size per dimension is derived as ``(upper_bound - lower_bound) / number_of_cells``.
-
- By default, the simulation is placed on a single GPU.
- To distribute it over several GPUs,
- give the grid the ``picongpu_n_gpus`` parameter (a list):
- ``[N]`` distributes over ``N`` GPUs in the (preferred) ``y`` direction,
- ``[Nx, Ny, Nz]`` over all three directions.
- Optionally, ``picongpu_grid_dist``
- (a per-dimension list of the cell counts assigned to each GPU)
- assigns explicit numbers of cells to the GPUs
- instead of a uniform distribution.
- The grid must be divisible by the GPU count and the super-cell size
- (``picongpu_super_cell_size``, default ``(8, 8, 4)``) in each dimension;
- the frontend checks this for you and tells you which dimension fails.
-
-The time step of the simulation is fixed by one of the two equivalent quantities:
-
-* ``simulation.time_step_size`` in seconds, or
-* ``solver.cfl``, the Courant number,
-
-if the solver is ``"Yee"`` (or ``"Lehe"``) on a Cartesian grid:
-giving one derives the other from the cell size,
-and giving both must yield consistent values
-(the frontend checks this and reports a mismatch).
-One of the two must be given;
-if neither is set, the input file generation fails.
-
-Laser Pulses
-------------
-
-Lasers are added to the simulation via the ``picongpu_lasers`` parameter
-or the ``add_laser`` method.
-All lasers share a few properties and constraints:
-
-* ``wavelength`` in metres,
-* ``duration`` in seconds (the 1-sigma width of the intensity profile),
-* ``propagation_direction`` and ``polarization_direction``:
-  normalized 3D vectors
-  (the propagation direction must point into the simulation box,
-  i.e. have a positive ``y`` component),
-* ``centroid_position``: the position of the pulse at time zero;
-  it must be outside of the simulation box,
-  such that the pulse enters the box during the simulation.
-
-``GaussianLaser``
-  A Gaussian pulse with the parameters
-  ``waist`` (the 1/e² radius at focus), ``focal_position``,
-  ``phi0`` (the carrier-envelope phase) and the field amplitude.
-  The amplitude is given by exactly one of
-  ``a0`` (the normalized vector potential) or ``E0`` (the peak electric field in V/m);
-  the other is derived.
-  By default, the polarization is linear;
-  circular polarization is selected via
-  ``picongpu_polarization_type=picmi.lasers.PolarizationType.CIRCULAR``.
-  Structured beams can be described with the (matching-length) arrays
-  ``picongpu_laguerre_modes`` and ``picongpu_laguerre_phases``.
-
-``DispersivePulseLaser``
-  A Gaussian pulse with additional dispersion parameters:
-  ``picongpu_spectral_support`` (width of the spectral support),
-  ``picongpu_sd_si`` (spatial dispersion), ``picongpu_ad_si`` (angular dispersion),
-  ``picongpu_gdd_si`` (group delay dispersion) and ``picongpu_tod_si`` (third-order dispersion).
-
-``FromOpenPMDPulseLaser``
-  A pulse imported from an `openPMD <https://www.openpmd.org/>`__ file
-  (``file_path``, ``iteration``, ``dataset_name``, ...),
-  for initial conditions that are too complex to describe analytically.
-
-.. literalinclude:: ../snippets/defining_simulation/laser_variants.py
-   :language: python
-
-``TWTSLaser``
-   An obliquely incident, pulse-front-tilted Gaussian pulse
-   (``laserIncidenceAngle`` and ``polarizationAngle`` parameterize
-   the incidence relative to the ``y`` axis)
-   for traveling-wave Thomson-scattering setups;
-   ``waist``, ``focal_position`` and the amplitude work as for ``GaussianLaser``.
-
-.. note::
-
-   The ``PlaneWaveLaser`` class exists but currently does not work:
-   generating the input files from a simulation that uses it fails,
-   because the frontend does not provide the ``focal_position`` and
-   ``laser_nofocus_constant_si`` parameters the rendering requires.
-   It is therefore not described in detail here.
-
-Species
--------
-
-A ``Species`` describes one type of particle in your simulation.
-Its most important parameters are:
-
-* ``name``:
-  the name of the species (also used in the output files).
-  If not given, the name is derived from the particle type.
-* ``particle_type``:
-  the physical identity of the particle.
-  This is either an element symbol (``"H"``, ``"He"``, ``"C"``, ...),
-  one of the predefined particle types
-  (``"electron"``, ``"positron"``, ``"proton"``, ``"anti-proton"``, ``"photon"``, ...)
-  or a custom particle of the form ``"other:<name>"``.
-  The mass and charge of known particle types are filled in automatically.
-* ``charge_state``:
-  the initial charge state of an ion
-  (0 for neutral, 1 for singly ionized, ...).
-  Only meaningful together with an element ``particle_type``.
-  Ions that can be ionized further during the simulation
-  (see :ref:`Interactions <python_package/selected_topics/interactions:Interactions>`)
-  must specify their initial charge state explicitly.
-* ``picongpu_fixed_charge``:
-  for ion species that are *not* subject to ionization,
-  this fixes the charge of all their particles for the entire simulation.
-  It can be combined with ``charge_state`` to choose the charge.
-* ``mass`` / ``charge``:
-  override the (element-)derived mass and charge in SI units.
-  This is how you define custom particles (``particle_type="other:my_particle"``).
-* ``particle_shape``:
-  the particle shape used for current/charge deposition
-  (default is quadratic, i.e. TSC).
-* ``method``:
-  the particle pusher (default is ``Boris``;
-  ``Vay`` and ``HigueraCary`` are relativistic variants,
-  ``ReducedLandauLifshitz`` adds radiation reaction).
-
-.. _distributions:
-
-Particle Distributions
-----------------------
-
-A distribution describes *where* the particles of a species are placed
-(their density profile)
-and *how they move* initially.
-All distributions take
-
-* ``rms_velocity``:
-  a 3D vector of thermal velocity spreads in m/s
-  (they are converted to a temperature internally), and
-* ``directed_velocity``:
-  a 3D vector of a collective drift velocity in m/s.
-
-The available distributions are:
-
-``UniformDistribution``
-   A constant density throughout the box (``density`` in m⁻³).
-
-   .. note::
-
-      The ``lower_bound``/``upper_bound`` and ``fill_in`` parameters
-      are accepted but currently ignored (they log a warning when set
-      to non-default values): the density fills the entire simulation
-      box. For sub-volume densities use ``AnalyticDistribution``,
-      ``GaussianDistribution`` or ``FoilDistribution`` instead.
-
-``GaussianDistribution``
-  A constant-density region with Gaussian ramps at the front and the rear
-  of the box (in ``y`` direction):
-  ``center_front``/``center_rear`` and ``sigma_front``/``sigma_rear``
-  give the position and width of the ramps,
-  ``power`` the exponent (2 is Gaussian, 4 and up super-Gaussian),
-  ``factor`` the (negative) scaling of the ramps,
-  and ``vacuum_front`` the vacuum in front of the profile.
-
-``FoilDistribution``
-  A thin foil of constant ``thickness`` at position ``front``
-  (perpendicular to ``y``),
-  with optional exponential pre- and post-plasma ramps
-  (``exponential_pre_plasma_length``/``_cutoff`` and ``exponential_post_plasma_length``/``_cutoff``).
-
-``CylindricalDistribution``
-  A cylinder of ``radius`` around the axis ``cylinder_axis``
-  through the point ``center_position``,
-  with an optional exponential pre-plasma ramp
-  (``exponential_pre_plasma_length``/``_cutoff``).
-
-``AnalyticDistribution``
-  A density given by an analytic expression in the coordinates ``x``, ``y``, ``z``
-  (in SI units), written with `sympy <https://www.sympy.org/>`__.
-  The expression is compiled into the simulation binary,
-  so it is evaluated on the GPU at runtime.
-
-Several species can share the same distribution:
-they are then placed at the same positions,
-which is the standard way to build charge-neutral plasmas.
-The ``density_scale`` parameter of a species
-rescales its density relative to the shared profile
-(1.0 keeps it unchanged),
-and ``simulation.picongpu_base_density``
-(default ``1.0e25`` m⁻³) is the reference density
-used to normalize the code units.
-
-Layouts
--------
-
-The layout determines the positions of the particles *within* a cell.
-It is given per species via ``simulation.add_species(species, layout)``:
-
-``PseudoRandomLayout``
-  ``n_macroparticles_per_cell`` particles per cell at pseudo-random positions.
-  This is the default choice for most simulations.
-
-``GriddedLayout``
-  A regular sub-grid of ``n_macroparticles_per_cell = [nx, ny, nz]``
-  positions per cell (``nx * ny * nz`` particles per cell).
-  Useful for well-resolved, low-noise configurations.
-
-``OnePositionLayout``
-  A single position per cell
-  (``n_macroparticles_per_cell`` particles per cell, all at the same point,
-  shifted by ``in_cell_offset`` in units of the cell size).
-
-.. literalinclude:: ../snippets/defining_simulation/warm_plasma.py
-   :language: python
-
-The above snippet builds a warm, quasi-neutral plasma:
-ions and electrons share the same uniform density profile
-(and thus the same particle positions),
-each cell carries 8 macroparticles on a 2×2×2 sub-grid.
-
-.. _tutorial:
-
-Tutorial: Setting up a simple LWFA
-----------------------------------
-
-We will now add some interesting physics to our minimal example.
-This tutorial is supposed to give you a good introduction to the features
-you will typically use in your daily work.
-More details can be found in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
-
-Extracting global constants
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For starters, it is typically helpful to have access to some parameters in different parts of your input.
-In order to do so, we extract some constants and decompose the definition of the solver:
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :end-before: END-LWFA-CONSTANTS
-
-Lasers
-^^^^^^
-
-There are various lasers defined in `the PICMI standard <https://picmi-standard.github.io/>`__ and its :ref:`PIConGPU extension <PICMI_Extensions>`.
-We define a Gaussian laser as moving into positive ``y`` direction
-(this is the convention PIConGPU is optimized for):
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :start-after: BEGIN-LWFA-LASER
-   :end-before: END-LWFA-LASER
-
-Species and particles
-^^^^^^^^^^^^^^^^^^^^^
-
-In the PICMI standard we define `abstract species <https://picmi-standard.github.io/>`__
-and `distributions <https://picmi-standard.github.io/>`__ of particles belonging to such species among the cells.
-The precise location of a particle inside of a cell is finally determined by `the layout <https://picmi-standard.github.io/>`__.
-Thus, in order to add particles to our simulation we need three components:
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :start-after: BEGIN-LWFA-SPECIES
-   :end-before: END-LWFA-SPECIES
-
-We add two species:
-``hydrogen``, initialized from the ``GaussianDistribution``,
-and ``electrons``, which is initially empty (``initial_distribution=None``).
-The hydrogen is created in its ground state (``charge_state=0``, i.e. neutral),
-so the plasma is charge neutral before ionization sets in.
-The electron species does not receive any initial particles;
-they are created by the ionization model below.
-
-We can add various `interactions <https://picmi-standard.github.io/>`__ among our species.
-As an example, we allow to ionize the hydrogen into the corresponding electron species:
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :start-after: BEGIN-LWFA-ADK
-   :end-before: END-LWFA-ADK
-
-Creating the simulation
-^^^^^^^^^^^^^^^^^^^^^^^
-
-We can now create the simulation,
-passing it the solver, the laser, the ionization interaction and the species:
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :start-after: BEGIN-LWFA-SIMULATION
-   :end-before: END-LWFA-SIMULATION
-
-Diagnostics
-^^^^^^^^^^^
-
-Diagnostics, i.e. simulation output, are an important part of your simulation.
-PIConGPU allows to define general diagnostics in a flexible way.
-See :ref:`the diagnostics topic <python_package/selected_topics/index:Selected Topics>` for a full overview of the capabilities.
-There are also various predefined diagnostics you can choose from.
-Some of these provide quick access to heavily used features/debugging tools.
-Others provide some optimized code for the diagnostic.
-For example, we add a checkpoint and a macro-particle counter
-(a useful tool for debugging the particle content of your simulation):
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :start-after: BEGIN-LWFA-DIAGNOSTICS
-   :end-before: END-LWFA-DIAGNOSTICS
-
-Running the simulation
-^^^^^^^^^^^^^^^^^^^^^^
-
-As a last step, we add the following lines to run the simulation upon execution of the script:
-
-.. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
-   :language: python
-   :start-after: BEGIN-LWFA-RUN
-   :end-before: END-LWFA-RUN
 
 (De-)serializing a Simulation
 -----------------------------
 
-The PyPIConGPU middle layer representation of your simulation
-and the individual PICMI elements
-are based on `Pydantic <https://docs.pydantic.dev/>`__.
-This provides automatic validation and (de-)serialization capabilities.
-You can serialize the PyPIConGPU representation of your ``Simulation``
-into a machine-readable `JSON <https://json.org/>`__ representation
-and recover individual elements from such a representation:
-
-.. literalinclude:: ../snippets/defining_simulation/serialize_simulation.py
-   :language: python
-   :start-after: BEGIN-SERIALIZE-SIMULATION
-   :end-before: END-SERIALIZE-SIMULATION
-
-We refer the reader to the `official documentation <https://docs.pydantic.dev/latest/concepts/serialization/>`__ for further details.
-Such a JSON representation of the simulation
-can be found in ``metadata/pypicongpu_runner.json``
-in every generated set of input files.
-As such, you can flexibly reuse various aspects of your previous simulations.
+All elements of the interface and middle layer are based on
+`Pydantic <https://docs.pydantic.dev/>`__,
+which provides automatic validation and (de-)serialization.
+See
+:ref:`(De-)Serialization and Reproducibility <python_package/selected_topics/serialization:(De-)Serialization and Reproducibility>`
+for the API and the metadata that a generated setup carries.
 
 Multiple simulations in a single script
 ---------------------------------------
@@ -423,6 +97,9 @@ there are still some interesting applications for this.
 
 As an example application we will consider
 an optimization of the focal position in a Laser Wakefield Acceleration (LWFA) simulation.
+It reuses the grid and the Gaussian laser of the
+:ref:`LWFA tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`,
+turning the laser focal position into a free parameter.
 We can maximize the ejection of electrons from the plasma
 in a particular energy range by adjusting the focal position of the laser.
 Very loosely speaking:
@@ -440,8 +117,7 @@ exposing only those degrees of freedom we're actually interested in:
    :start-after: BEGIN-MS-WRAP
    :end-before: END-MS-WRAP
 
-The ``FIXED_KWARGS`` and ``FIXED_LASER_KWARGS`` are global dictionaries
-containing common parameters.
+``make_laser`` and ``make_simulation`` fix all parameters but the laser focal position.
 Note that the simulation is equipped with an ``EnergyHistogram`` diagnostic
 that we will use for the post-processing below.
 We will use ``make_simulation`` as a shortcut to defining many simulations
@@ -462,20 +138,15 @@ Each simulation writes its input files and results
 to its own ``scan/focal_<position>/`` directory,
 so that the runs do not interfere with each other.
 
-Immediate post-processing
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Post-processing
+^^^^^^^^^^^^^^^
 
-Our static parameter scan is now submitted to the cluster
-and we have to wait for the simulations run and finish.
-If we want to programmatically post-process the results in the same script,
-we have to wait until all simulations have run.
-As this is very system specific,
-we don't provide an officially supported method for doing so.
-
+Our static parameter scan is now submitted to the cluster.
+We wait for the simulations to finish (by whatever means the system provides)
+and then post-process the results separately, e.g. in a second invocation of the script.
 We can use the output of the ``EnergyHistogram`` diagnostic
 that a run directory contains
-to post-process the results,
-e.g. to count the electrons in a particular energy range (given in keV)
+to count the electrons in a particular energy range (given in keV)
 and to plot it:
 
 .. literalinclude:: ../snippets/defining_simulation/postprocess_histogram.py
@@ -486,13 +157,27 @@ and to plot it:
 Dynamic parameter scans / optimization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+If we want to programmatically post-process the results in the same script,
+we have to wait until all simulations have run.
+As this is very system specific,
+there is no generally supported method for doing so.
+A best-effort helper that waits for the submitted job
+on a local machine (bash) or typical slurm cluster
+is included below.
+It might not be portable across different systems:
+it reads ``submission_information.txt``,
+waits for the job to finish according to the configured submission system
+and runs the generated ``link_results.sh``.
+It is defensive and only acts when the corresponding files exist,
+so it is a no-op for a simulation that has already run
+(e.g. locally with the ``bash`` preset).
+You should adapt it to your system's scheduler before relying on it.
+
 From the above plot, you can easily read off a good estimate for the ``focal_position``.
 But we want to do better and run a full optimization on the problem.
 In order to do so, we define our target function as follows:
 for any given focal position, this defines and runs the simulation,
 then reads the results and returns the value of interest.
-(As noted above, the wait for the submitted job to finish
-is system specific and not provided by the package.)
 This function can be used in an optimization routine, for example:
 
 .. literalinclude:: ../snippets/defining_simulation/optimize_focal_position.py

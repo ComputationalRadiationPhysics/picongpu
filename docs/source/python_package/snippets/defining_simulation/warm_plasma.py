@@ -8,13 +8,14 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 A warm, quasi-neutral plasma:
 ions and electrons share the same uniform density profile.
 """
 
+# BEGIN-WARM-PLASMA
 from pathlib import Path
 
 from picongpu import picmi
@@ -55,8 +56,12 @@ electrons = picmi.Species(
 # place 8 macroparticles per cell on a 2x2x2 sub-grid
 layout = picmi.GriddedLayout(n_macroparticles_per_cell=[2, 2, 2])
 
-simulation = picmi.Simulation(max_steps=100, solver=solver)
-simulation.add_species(ions, layout)
-simulation.add_species(electrons, layout)
+simulation = picmi.Simulation(
+    max_steps=100,
+    solver=solver,
+    species=[ions, electrons],
+    layouts=[layout, layout],
+)
 
 simulation.run(setup_dir=Path("warm_plasma_setup"), run_dir=Path("warm_plasma_run"))
+# END-WARM-PLASMA

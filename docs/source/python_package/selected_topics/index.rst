@@ -11,24 +11,27 @@ If you are just getting started,
 you will probably have the best experience from following our :ref:`Quick Start <python_package/quickstart:Quick Start>` guide first.
 You can return here afterwards to expand your knowledge on specific aspects.
 
-The first pages cover the individual diagnostics (plugins)
-that let you extract data from your simulation
-and how to schedule them in time;
-the following pages are deep dives into the more involved features.
+The sections below are grouped by the kind of entity they describe:
+the building blocks of a simulation
+(grids, solvers, lasers, species, distributions, layouts),
+the symbolic machinery used to express arbitrary quantities
+(functors and filters),
+the diagnostics (plugins) that extract data,
+and the physics interactions between particles.
+The remaining pages are deep dives into cross-cutting features.
 
 .. toctree::
    :maxdepth: 2
    :hidden:
 
-   time_steps
-   phase_space
-   energy_histogram
-   macro_particle_count
-   openpmd
-   binning
-   radiation
-   checkpoint
+   grids_and_solvers
+   lasers
+   species_distributions_layouts
+   functors
+   simulation_settings
+   diagnostics/index
    interactions
+   units
+   serialization
+   custom_input
    hpc_submission
-   troubleshooting
-   verification

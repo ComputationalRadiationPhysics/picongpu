@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Defines a simulation with a checkpoint diagnostic:
@@ -20,7 +20,7 @@ so that the run can be resumed from the latest checkpoint.
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import Checkpoint, TimeStepSpec
+from picongpu.picmi.diagnostics import Checkpoint, TS
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -34,15 +34,19 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-sim = picmi.Simulation(max_steps=100, solver=solver)
-sim.add_species(electrons, layout)
-
 checkpoint = Checkpoint(
-    period=TimeStepSpec[::20],
+    period=TS[::20],
     directory="checkpoints",
     file="checkpoint",
 )
-sim.add_diagnostic(checkpoint)
+
+sim = picmi.Simulation(
+    max_steps=100,
+    solver=solver,
+    species=[electrons],
+    layouts=[layout],
+    diagnostics=[checkpoint],
+)
 
 # A follow-up run that resumes from the latest checkpoint
 # (or starts from scratch if none exists) uses:

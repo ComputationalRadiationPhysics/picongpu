@@ -198,3 +198,8 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
                 for s in self.specs + self._transform_to_steps(self.specs_in_seconds, time_step_size)
             ]
         )
+
+
+# Shorthand for the class above, for the common case that a diagnostic period
+# is written inline. `TS[::10]` reads much better than `TimeStepSpec[::10]`.
+TS = TimeStepSpec

@@ -3,7 +3,7 @@ Pytest suite for the documentation snippets in this directory.
 
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Every Python snippet is executed in a subprocess (fresh working directory,
@@ -16,7 +16,7 @@ Per-snippet expected artifacts are checked afterwards.
 
 Every TOML snippet (``.picongpurc.toml`` examples) is parsed with ``tomllib``
 and then applied for real: a subprocess with an isolated ``HOME`` and
-``PIC_RC`` pointed at the snippet file imports the PIConGPU python package,
+``PIC_RC`` pointed at the snippet file imports the PIConGPU Python package,
 and the resulting ``rc_params`` content is checked.
 
 Every bash snippet is syntax-checked with ``bash -n`` in this suite.
@@ -53,14 +53,25 @@ RUN_SNIPPET = SNIPPETS_DIR / "run_snippet.py"
 PYTHON_SNIPPETS = sorted(
     path
     for path in SNIPPETS_DIR.glob("**/*.py")
-    if path.name not in ("test_snippets.py", "run_snippet.py", "conftest.py")
+    if path.name not in ("test_snippets.py", "test_docs_sync.py", "run_snippet.py", "conftest.py")
 )
 BASH_SNIPPETS = sorted(SNIPPETS_DIR.glob("**/*.sh"))
 TOML_SNIPPETS = sorted(SNIPPETS_DIR.glob("**/*.toml"))
 
 TOML_EXPECTED = {
-    "configuring_environment/rc_params_minimal.toml": {
+    "configuring_environment/rc_params_minimal_bash.toml": {
         "preset": "bash",
+    },
+    "configuring_environment/rc_params_minimal_rosi.toml": {
+        "preset": "rosi-hzdr",
+        "author": "Your Name",
+        "email": "you@example.org",
+    },
+    "configuring_environment/rc_params_minimal_jupiter.toml": {
+        "preset": "jupiter-jsc",
+        "author": "Your Name",
+        "email": "you@example.org",
+        "project_id": "your-project-id",
     },
     "configuring_environment/rc_params_finetune_preset.toml": {
         "preset": "rosi-hzdr",
@@ -109,15 +120,6 @@ EXPECTED_FILES = {
             "minimal_example_setup/workflow/workflow.cwl",
             "minimal_example_setup/workflow/scripts/picongpu.profile",
             "minimal_example_setup/metadata/pypicongpu_runner.json",
-        ],
-    },
-    "quickstart/my_first_simulation.py": {
-        "no_run": True,
-        "files": [
-            "my_first_simulation_setup/include/picongpu/param/simulation.param",
-            "my_first_simulation_setup/workflow/workflow.cwl",
-            "my_first_simulation_setup/workflow/scripts/picongpu.profile",
-            "my_first_simulation_setup/metadata/pypicongpu_runner.json",
         ],
     },
     "defining_simulation/lwfa_example.py": {
@@ -202,7 +204,7 @@ EXPECTED_FILES = {
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.period 0:-1:10"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.space y"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.momentum py"),
-            # momentum range in units of m_species*c (see the phase_space page)
+            # SI momentum input converted to m_species*c by the frontend (see the phase_space page)
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.min -1.0"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.max 1.0"),
         ],
@@ -282,13 +284,6 @@ EXPECTED_FILES = {
             ("checkpoint_setup/etc/picongpu/N.cfg", "--checkpoint.directory checkpoints"),
         ],
     },
-    "troubleshooting/validate_before_submit.py": {
-        "files": [
-            "validated_setup/workflow/workflow.cwl",
-            "validated_setup/metadata/pypicongpu_runner.json",
-        ],
-        "stdout_contains": ["Input files generated in"],
-    },
     "selected_topics/interactions.py": {
         "no_run": True,
         "files": [
@@ -301,6 +296,91 @@ EXPECTED_FILES = {
             ("adk_setup/include/picongpu/param/speciesDefinition.param", "ADKLinPol"),
             ("bsi_setup/include/picongpu/param/speciesDefinition.param", "BSIStarkShifted"),
             ("synchrotron_setup/include/picongpu/param/speciesDefinition.param", "synchrotron<species_photons>"),
+        ],
+    },
+    "selected_topics/grids_and_solvers.py": {
+        "no_run": True,
+        "files": [
+            "grids_and_solvers_setup/etc/picongpu/N.cfg",
+            "grids_and_solvers_setup/include/picongpu/param/fieldSolver.param",
+        ],
+        "file_contains": [
+            ("grids_and_solvers_setup/etc/picongpu/N.cfg", "TBG_devices_y=2"),
+            ("grids_and_solvers_setup/etc/picongpu/N.cfg", 'TBG_gridSize="128 128 128"'),
+        ],
+    },
+    "selected_topics/lasers.py": {
+        "no_run": True,
+        "files": [
+            "lasers_setup/include/picongpu/param/incidentField.param",
+        ],
+        "file_contains": [
+            ("lasers_setup/include/picongpu/param/incidentField.param", "PyPIConGPUGaussianPulseParam"),
+            ("lasers_setup/include/picongpu/param/incidentField.param", "GaussianPulse"),
+        ],
+    },
+    "selected_topics/simulation_settings.py": {
+        "no_run": True,
+        "files": [
+            "simulation_settings_setup/etc/picongpu/N.cfg",
+            "simulation_settings_setup/include/picongpu/param/simulation.param",
+            "simulation_settings_setup/include/picongpu/param/precision.param",
+            "simulation_settings_setup/include/picongpu/param/memory.param",
+        ],
+        "file_contains": [
+            ("simulation_settings_setup/etc/picongpu/N.cfg", "windowMovePoint 0.9"),
+            ("simulation_settings_setup/etc/picongpu/N.cfg", "stopWindow 800"),
+            ("simulation_settings_setup/etc/picongpu/N.cfg", 'wallTime="1:00:00"'),
+            ("simulation_settings_setup/include/picongpu/param/simulation.param", "TYPICAL_PARTICLES_PER_CELL = 4"),
+            ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionPIConGPU = precision64Bit"),
+            ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionSqrt = precision64Bit"),
+            (
+                "simulation_settings_setup/include/picongpu/param/memory.param",
+                "reservedGpuMemorySize = 350 * 1024 * 1024",
+            ),
+        ],
+    },
+    "selected_topics/species_distributions_layouts.py": {
+        "no_run": True,
+        "files": [
+            "species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param",
+            "species_distributions_layouts_setup/include/picongpu/param/speciesInitialization.param",
+        ],
+        "file_contains": [
+            ("species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param", "species_ions"),
+            ("species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
+        ],
+    },
+    "selected_topics/particle_functors.py": {
+        "no_run": True,
+        "files": [
+            "particle_functors_setup/etc/picongpu/N.cfg",
+            "particle_functors_setup/include/picongpu/param/particleFilters.param",
+        ],
+        "file_contains": [
+            ("particle_functors_setup/etc/picongpu/N.cfg", "--electrons_energyHistogram.filter fast"),
+            ("particle_functors_setup/include/picongpu/param/particleFilters.param", '"fast"'),
+        ],
+    },
+    "selected_topics/units_and_constants.py": {
+        "stdout_contains": ["max_energy_si", "one_rest_mass_momentum_si", "E0_si", "It worked!"],
+    },
+    "selected_topics/custom_input.py": {
+        "files": [
+            "custom_input_setup/include/picongpu/my_param",
+        ],
+        "file_contains": [
+            ("custom_input_setup/include/picongpu/my_param", "MY_NUMBER = 42"),
+        ],
+        "stdout_contains": ["MY_NUMBER = 42", "It worked!"],
+    },
+    "selected_topics/custom_iteration.py": {
+        "files": [
+            "custom_iteration_setup/include/picongpu/species_report",
+        ],
+        "file_contains": [
+            ("custom_iteration_setup/include/picongpu/species_report", "electrons: mine"),
+            ("custom_iteration_setup/include/picongpu/species_report", "ions: mine"),
         ],
     },
 }

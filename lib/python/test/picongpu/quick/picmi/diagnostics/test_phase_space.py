@@ -8,7 +8,7 @@ from unittest import TestCase
 
 from picongpu import picmi
 from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import PhaseSpace, TimeStepSpec
+from picongpu.picmi.diagnostics import PhaseSpace, TS
 from picongpu.picmi.particle_functor import ParticleFilter
 
 
@@ -20,7 +20,7 @@ class TestPhaseSpace(TestCase):
     def __get_phase_space(self, species, min_momentum_si, max_momentum_si):
         return PhaseSpace(
             species=species,
-            period=TimeStepSpec[:16:2],
+            period=TS[:16:2],
             spatial_coordinate="y",
             momentum_coordinate="pz",
             min_momentum=min_momentum_si,
@@ -65,7 +65,7 @@ class TestPhaseSpace(TestCase):
 
         phase_space = PhaseSpace(
             species=filtered,
-            period=TimeStepSpec[:16:2],
+            period=TS[:16:2],
             spatial_coordinate="y",
             momentum_coordinate="pz",
             min_momentum=-2.0 * momentum_unit_si,

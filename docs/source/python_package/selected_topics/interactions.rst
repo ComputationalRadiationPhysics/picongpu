@@ -15,9 +15,9 @@ They are passed to the simulation via the
 .. note::
 
    The PICMI-standard method ``simulation.add_interaction()``
-   is *not* supported by PIConGPU
-   (it only emits an "unsupported" warning) --
-   always use the ``picongpu_interaction`` parameter instead.
+   is *not* supported by PIConGPU:
+   it raises an ``UnsupportedFeatureError``.
+   Always use the ``picongpu_interaction`` parameter instead.
 
 Each interaction is attached to the species it acts on
 (and, where applicable, creates new species);
@@ -41,7 +41,7 @@ Each model is one of:
    ADK tunnel ionization
    (``ADK_variant`` selects ``picmi.ADKVariant.LinearPolarization``
    or ``picmi.ADKVariant.CircularPolarization``).
-   This is the model of the :ref:`LWFA tutorial <tutorial>`.
+   This is the model of the :ref:`LWFA tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`.
 
 ``picmi.BSI``
    Barrier suppression ionization;
@@ -57,8 +57,10 @@ which selects how the ionization current
 (the momentum carried away by the electrons)
 is treated for energy conservation
 (pass ``None`` to disable it).
-Note that the rendered output currently always uses ``None``:
-a non-``None`` choice is accepted but not yet applied.
+A non-``None`` choice is bridged to the corresponding pypicongpu
+ionization-current model and applied in the rendered output;
+an unknown current that cannot be converted raises an error instead of
+being silently dropped.
 
 .. literalinclude:: ../snippets/selected_topics/interactions.py
    :language: python
@@ -105,23 +107,15 @@ Coulomb logarithm) are represented by
 
 ``picmi.CollisionalPhysicsSetup``
    An optional container that holds several collisions
-   together with the ``screening_species`` and numerical options
-   (``precision``, ``cell_list_chunk_size``).
+   together with the ``screening_species`` and a ``numerics_config``
+   (a ``CollisionNumericsConfig`` with ``precision``,
+   ``cell_list_chunk_size`` and ``debug_screening_length``).
    If you pass bare ``Collision`` objects,
    they are combined into such a setup automatically;
    if you pass a setup, *all* collisions must be subsumed under it.
 
-.. note::
-
-   The collision API is currently broken:
-   generating the input files for a simulation that contains
-   a collision fails with an internal serialization error.
-   The class and constructor signatures above are the intended interface;
-   until the bug is fixed, collisions cannot be used from the
-   Python interface.
-
-   Deep dive:
-   :ref:`the binary collision model in the PIConGPU code <model-binaryCollisions>`.
+Deep dive:
+:ref:`the binary collision model in the PIConGPU code <model-binaryCollisions>`.
 
 .. _synchrotron:
 

@@ -19,6 +19,7 @@ will use most:
    :members:
    :imported-members:
    :undoc-members:
+   :noindex:
 
 Submodules
 ----------
@@ -43,6 +44,8 @@ but you can also import them directly:
    diagnostics
 
 The ``pypicongpu`` package is the internal middle layer that the
-``picmi`` frontend renders into; it is not part of the stable public API.
-Its own (auto-generated) reference is included elsewhere in these
-documentation.
+``picmi`` frontend renders into, and the template layer renders it into the
+C++ and configuration files. It is not part of the stable public API.
+Its own (auto-generated) reference is rendered from the
+``pypicongpu`` docstrings; see :ref:`Foundations <python_package/foundations/index:Foundations>`
+for how the layers fit together.

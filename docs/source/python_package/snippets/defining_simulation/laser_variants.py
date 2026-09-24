@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Several laser types in a single simulation:
@@ -16,6 +16,7 @@ a standard Gaussian pulse specified via its peak electric field
 and a dispersive Gaussian pulse with group delay dispersion.
 """
 
+# BEGIN-LASER-VARIANTS
 from pathlib import Path
 
 from picongpu import picmi
@@ -57,7 +58,8 @@ dispersive = picmi.DispersivePulseLaser(
 simulation = picmi.Simulation(
     max_steps=10,
     solver=solver,
-    picongpu_lasers=[gaussian, dispersive],
+    lasers=[gaussian, dispersive],
 )
 
 simulation.run(setup_dir=Path("laser_variants_setup"), run_dir=Path("laser_variants_run"))
+# END-LASER-VARIANTS

@@ -10,7 +10,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Usage: python postprocess_histogram.py [run_dir ...]

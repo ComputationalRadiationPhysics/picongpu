@@ -2,7 +2,7 @@
 #
 # This file is part of PIConGPU.
 # Copyright 2026 PIConGPU contributors
-# Authors: opencode
+# Authors: Julian Lenz
 # License: GPLv3+
 #
 # Profile check for the "docs-snippets" GitLab job.

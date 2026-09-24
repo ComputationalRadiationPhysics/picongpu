@@ -1,0 +1,4 @@
+#!/bin/bash
+# BEGIN-RUN-MINIMAL-EXAMPLE
+uv run 01_minimal.py
+# END-RUN-MINIMAL-EXAMPLE

@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 """
 
@@ -39,8 +39,10 @@ print(f"serialized simulation into {len(simulation_json)} top-level fields")
 
 
 def serialize_species(species, path):
+    # computed fields (e.g. picongpu_element) are read-only and would be
+    # rejected as extra inputs on validation, so exclude them here
     with Path(path).open("w") as file:
-        json.dump(species.model_dump(mode="json"), file)
+        json.dump(species.model_dump(mode="json", exclude_computed_fields=True), file)
 
 
 def deserialize_species(path):

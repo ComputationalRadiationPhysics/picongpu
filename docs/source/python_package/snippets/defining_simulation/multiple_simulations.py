@@ -8,31 +8,20 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 """
 
 from pathlib import Path
 
 from picongpu import picmi
+from picongpu.picmi import constants
 from scipy.constants import c
 
 NUM_CELLS = [192, 2048, 192]
 CELL_SIZE = [0.1772e-6, 0.4430e-7, 0.1772e-6]
 
 # BEGIN-MS-WRAP
-FIXED_KWARGS = dict(
-    max_steps=100,
-)
-FIXED_LASER_KWARGS = dict(
-    wavelength=0.8e-6,
-    waist=5.0e-6 / 1.17741,
-    duration=5.0e-15,
-    propagation_direction=[0.0, 1.0, 0.0],
-    polarization_direction=[1.0, 0.0, 0.0],
-    a0=8.0,
-    phi0=0.0,
-)
 # where to initialize the laser pulse, in units of the pulse duration
 PULSE_INIT = 15.0
 
@@ -40,10 +29,17 @@ TRANSVERSE_FOCUS = NUM_CELLS[0] * CELL_SIZE[0] / 2.0
 
 
 def make_laser(focal_position):
+    duration = 5.0e-15
     return picmi.GaussianLaser(
-        **FIXED_LASER_KWARGS,
+        wavelength=0.8e-6,
+        waist=5.0e-6 / 1.17741,
+        duration=duration,
+        propagation_direction=[0.0, 1.0, 0.0],
+        polarization_direction=[1.0, 0.0, 0.0],
+        a0=8.0,
+        phi0=0.0,
         focal_position=[TRANSVERSE_FOCUS, focal_position, TRANSVERSE_FOCUS],
-        centroid_position=[TRANSVERSE_FOCUS, -0.5 * PULSE_INIT * FIXED_LASER_KWARGS["duration"] * c, TRANSVERSE_FOCUS],
+        centroid_position=[TRANSVERSE_FOCUS, -0.5 * PULSE_INIT * duration * c, TRANSVERSE_FOCUS],
     )
 
 
@@ -58,16 +54,16 @@ def make_simulation(focal_position):
     electrons = picmi.Species(name="electrons", particle_type="electron")
     energy_histogram = picmi.diagnostics.EnergyHistogram(
         species=electrons,
-        period=picmi.diagnostics.TimeStepSpec[-1],
+        period=picmi.diagnostics.TS[-1],
         bin_count=100,
         min_energy=0.0,
-        max_energy=1000.0,
+        max_energy=1000.0 * constants.keV,
     )
     return picmi.Simulation(
-        **FIXED_KWARGS,
+        max_steps=100,
         solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid),
-        picongpu_lasers=[make_laser(focal_position)],
-        picongpu_diagnostics=[energy_histogram],
+        lasers=[make_laser(focal_position)],
+        diagnostics=[energy_histogram],
     )
 
 

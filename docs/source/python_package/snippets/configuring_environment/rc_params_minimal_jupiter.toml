@@ -1,0 +1,4 @@
+preset = "jupiter-jsc"
+author = "Your Name"
+email = "you@example.org"
+project_id = "your-project-id"

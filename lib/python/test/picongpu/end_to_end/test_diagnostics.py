@@ -35,7 +35,7 @@ from picongpu.picmi.diagnostics import (
     NativeFieldDump,
     OpenPMDConfig,
     ParticleDump,
-    TimeStepSpec,
+    TS,
 )
 from picongpu.picmi.diagnostics.backend_config import RangeSpec
 from picongpu.picmi.layout import OnePositionLayout
@@ -319,7 +319,7 @@ def setup_sim():
     sim = basic_simulation()
     for species in SPECIES:
         sim.add_species(species, LAYOUT)
-    sim.diagnostics = [Checkpoint(period=TimeStepSpec[:])] + generate_diagnostics(SPECIES, FUNCTORS)
+    sim.diagnostics = [Checkpoint(period=TS[:])] + generate_diagnostics(SPECIES, FUNCTORS)
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"

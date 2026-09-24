@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Defines a simulation with a radiation diagnostic for the electron species:
@@ -22,7 +22,7 @@ from pathlib import Path
 from sympy import cos, pi, sin
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import Radiation, TimeStepSpec
+from picongpu.picmi.diagnostics import Radiation, TS
 from picongpu.pypicongpu.output.radiation import RadiationObserverConfiguration
 
 N_OBSERVER = 32
@@ -48,16 +48,20 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-sim = picmi.Simulation(max_steps=100, solver=solver)
-sim.add_species(electrons, layout)
-
 radiation = Radiation(
     species=electrons,
-    period=TimeStepSpec[2:-1:5],
+    period=TS[2:-1:5],
     observer=RadiationObserverConfiguration(N_observer=N_OBSERVER, index_to_direction=observation_direction),
     num_accumulation_steps=5,
     total_radiation=True,
 )
-sim.add_diagnostic(radiation)
+
+sim = picmi.Simulation(
+    max_steps=100,
+    solver=solver,
+    species=[electrons],
+    layouts=[layout],
+    diagnostics=[radiation],
+)
 
 sim.run(setup_dir=Path("radiation_setup"), run_dir=Path("radiation_run"))

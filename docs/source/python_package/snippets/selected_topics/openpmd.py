@@ -8,7 +8,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Defines a simulation with openPMD-based output:
@@ -30,11 +30,12 @@ from picongpu.picmi.diagnostics import (
     NativeFieldDump,
     OpenPMDConfig,
     ParticleDump,
-    TimeStepSpec,
+    TS,
 )
 from picongpu.picmi.particle_functor import ParticleFunctor
 
 
+@ParticleFunctor(name="kineticEnergy")
 def kinetic_energy(particle):
     return particle.get("kinetic energy")
 
@@ -51,24 +52,25 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-sim = picmi.Simulation(max_steps=100, solver=solver)
-sim.add_species(electrons, layout)
-
-sim.add_diagnostic(ParticleDump(species=electrons, period=TimeStepSpec[::5]))
-sim.add_diagnostic(NativeFieldDump(fieldname="E", period=TimeStepSpec[::5]))
-sim.add_diagnostic(
-    DerivedFieldDump(
-        species=electrons,
-        functor=ParticleFunctor(functor=kinetic_energy, name="kineticEnergy"),
-        period=TimeStepSpec[::5],
-    )
+particle_dump = ParticleDump(species=electrons, period=TS[::5])
+electric_field_dump = NativeFieldDump(fieldname="E", period=TS[::5])
+kinetic_energy_dump = DerivedFieldDump(
+    species=electrons,
+    functor=kinetic_energy,
+    period=TS[::5],
 )
-sim.add_diagnostic(
-    NativeFieldDump(
-        fieldname="B",
-        period=TimeStepSpec[::5],
-        options=OpenPMDConfig(file="magneticField"),
-    )
+magnetic_field_dump = NativeFieldDump(
+    fieldname="B",
+    period=TS[::5],
+    options=OpenPMDConfig(file="magneticField"),
+)
+
+sim = picmi.Simulation(
+    max_steps=100,
+    solver=solver,
+    species=[electrons],
+    layouts=[layout],
+    diagnostics=[particle_dump, electric_field_dump, kinetic_energy_dump, magnetic_field_dump],
 )
 
 sim.run(setup_dir=Path("openpmd_setup"), run_dir=Path("openpmd_run"))

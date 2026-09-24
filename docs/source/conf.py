@@ -46,6 +46,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autodoc",
+    "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
     "breathe",
     "sphinxcontrib.programoutput",
@@ -83,7 +84,28 @@ autodoc_default_options = {
     "members": True,
     "undoc-members": True,
     "show-inheritance": True,
+    # include inherited PICMI-standard fields (e.g. ``Species.particle_type``) but
+    # stop at pydantic's ``BaseModel`` so that its own API stays hidden
+    "inherited-members": "BaseModel",
+    # hide pydantic internals that would otherwise be documented as members
+    "exclude-members": (
+        "model_post_init,model_config,model_fields,model_computed_fields,"
+        "model_dump,model_dump_json,model_validate,model_validate_json,model_json_schema,"
+        "model_copy,model_construct,model_rebuild,model_extra,model_fields_set"
+    ),
 }
+# render pydantic fields like plain parameters (no giant constructor signature)
+autodoc_pydantic_model_hide_paramlist = True
+autodoc_pydantic_model_show_json = False
+autodoc_pydantic_model_show_config_summary = False
+autodoc_pydantic_model_show_validator_summary = False
+autodoc_pydantic_model_show_validator_members = False
+autodoc_pydantic_model_show_field_summary = False
+autodoc_pydantic_model_member_order = "groupwise"
+autodoc_pydantic_field_list_validators = False
+autodoc_pydantic_field_show_constraints = False
+autodoc_pydantic_field_show_default = True
+autodoc_pydantic_field_signature_prefix = "parameter"
 autodoc_typehints = "description"
 autodoc_member_order = "bysource"
 
@@ -278,3 +300,55 @@ autoapi_options = [
 autoapi_root = "pypicongpu/autoapi"
 # toctree entry is added manually
 autoapi_add_toctree_entry = False
+
+
+def setup(app):
+    """Register project-specific directives."""
+
+    from docutils import nodes
+    from docutils.parsers.rst import Directive
+    from docutils.statemachine import StringList
+
+    class PresetDefaultsDirective(Directive):
+        """Render the preset-default parameters (name, description, example).
+
+        The content is generated from ``picongpu._rc_params.PROFILE_PARAMETERS``
+        so that the documentation cannot drift from the implementation.
+        """
+
+        has_content = False
+
+        def run(self):
+            from picongpu._rc_params import PROFILE_PARAMETERS
+
+            lines = []
+            for parameter in PROFILE_PARAMETERS:
+                if parameter.is_required:
+                    continue
+                lines.append(f"* ``{parameter.rc_key}``:")
+                lines.append(f"  {parameter.description}")
+                if parameter.example:
+                    lines.append(f"  (e.g. ``{parameter.example}``)")
+            container = nodes.Element()
+            self.state.nested_parse(StringList(lines), 0, container)
+            return container.children
+
+    app.add_directive("picongpu-preset-defaults", PresetDefaultsDirective)
+
+    # Pydantic fields are always annotated instance attributes, but Sphinx'
+    # generic probe trips over pydantic's own ``ClassVar`` annotations (it
+    # evaluates them with ``typing.get_type_hints`` in the *subclass* module,
+    # which need not import ``ClassVar``). Resolve fields from ``model_fields``
+    # instead. Drop this once autodoc-pydantic handles inherited fields itself.
+    from sphinx.ext.autodoc import UninitializedInstanceAttributeMixin
+    from sphinxcontrib.autodoc_pydantic.directives.autodocumenters import PydanticFieldDocumenter
+
+    _sphinx_is_uninitialized = UninitializedInstanceAttributeMixin.is_uninitialized_instance_attribute
+
+    def picongpu_is_pydantic_field_attribute(self, parent):
+        fields = getattr(parent, "model_fields", None)
+        if fields is not None:
+            return self.objpath[-1] in fields
+        return _sphinx_is_uninitialized(self, parent)
+
+    PydanticFieldDocumenter.is_uninitialized_instance_attribute = picongpu_is_pydantic_field_attribute

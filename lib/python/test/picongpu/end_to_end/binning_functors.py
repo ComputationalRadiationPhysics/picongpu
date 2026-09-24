@@ -14,7 +14,7 @@ from picongpu.picmi.diagnostics.binning import (
     BinningFunctor,
     BinSpec,
 )
-from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
+from picongpu.picmi.diagnostics.timestepspec import TS
 from scipy.constants import speed_of_light
 
 from .arbitrary_parameters import (
@@ -129,7 +129,7 @@ def position_binning_for(species, timestep):
             )
         ],
         species=species,
-        period=TimeStepSpec[:],
+        period=TS[:],
         openPMDBackendConfig={"hdf5": {"dataset": {"chunks": "auto"}}},
         openPMDExt="h5",
     )

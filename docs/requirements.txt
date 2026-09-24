@@ -10,7 +10,11 @@ breathe==4.35.0
 sphinx>=5.3,<7.2
 sphinxcontrib.programoutput
 sphinxcontrib-napoleon>=0.7
-sphinx-autoapi
+# sphinx-autoapi 3.6 requires sphinx>=7.4, which conflicts with sphinx<7.2 above
+sphinx-autoapi<3.6
+# render the pydantic-based picmi classes in the API reference (fields as
+# parameters with descriptions and defaults, no giant constructor signature)
+autodoc_pydantic>=2
 typeguard
 # generate plots
 matplotlib

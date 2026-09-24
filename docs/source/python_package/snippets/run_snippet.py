@@ -3,7 +3,7 @@ Test harness runner for the documentation snippets.
 
 This file is part of PIConGPU.
 Copyright 2026 PIConGPU contributors
-Authors: opencode
+Authors: Julian Lenz
 License: GPLv3+
 
 Runs a Python snippet in this process with ``runpy`` so that it behaves

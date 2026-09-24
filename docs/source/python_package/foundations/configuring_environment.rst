@@ -11,12 +11,36 @@ This is in contrast to the :ref:`Defining Your Simulation <python_package/founda
 which is used to specify the simulations and physical intent
 independent of the machine, user, project, ... running this.
 We use the name "runtime configuration" for all aspects orthogonal to simulation definition.
-This includes aspects that in C/C++ jargon are considered "compiletime".
 
 At the time of writing, the runtime configuration is used for the following aspects:
 
   * On a specific machine making the correct compilers, libraries, etc. available.
   * For a specific user configuring the correct metadata to facilitate FAIR workflows.
+
+.. _configuring_env_picrc_builder:
+
+Recommended: The ``picrc-builder`` Tool
+---------------------------------------
+
+In order to streamline the onboarding onto a new system,
+the ``picongpu`` package ships the ``picrc-builder`` tool.
+It guides you interactively through writing a runtime configuration file
+``.picongpurc.toml``:
+it lets you pick one of the available presets (see `Presets`_ below)
+and asks for the required parameters as well as any additional fine-tuning.
+
+If the package is installed (see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`),
+you can simply run::
+
+  picrc-builder
+
+You can also run it without installing anything
+using the `uv <https://docs.astral.sh/uv/>`__ tool::
+
+  uv run --with="picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python" picrc-builder
+
+In either case, store the generated file in one of the locations
+described in `The .picongpurc.toml File`_ below.
 
 .. _configuring_env_toml_file:
 
@@ -24,12 +48,27 @@ The ``.picongpurc.toml`` File
 -----------------------------
 
 The runtime configuration is kept in a `TOML <https://toml.io/>`__ file
-that will be read when importing the PIConGPU python package for the first time.
+that will be read when importing the PIConGPU Python package for the first time.
 You can create this file by hand;
-a minimal configuration just sets the preset to use on this machine (see `Presets`_ below):
+a minimal configuration just sets the preset to use on this machine (see `Presets`_ below)
+and the few parameters that the preset requires:
 
-.. literalinclude:: ../snippets/configuring_environment/rc_params_minimal.toml
-   :language: toml
+.. tab-set::
+
+    .. tab-item:: local (bash)
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash.toml
+           :language: toml
+
+    .. tab-item:: rosi-hzdr
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_rosi.toml
+           :language: toml
+
+    .. tab-item:: Jupiter
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_jupiter.toml
+           :language: toml
 
 Oftentimes, it is convenient to have one ``.picongpurc.toml`` file
 in a central (user-specific) location
@@ -42,7 +81,7 @@ if they are closer to the input in the directory tree.
 The file is named ``picongpurc.toml``
 (and is searched in different locations under slightly different names,
 as described below).
-The search is performed once, when the PIConGPU python package is imported:
+The search is performed once, when the PIConGPU Python package is imported:
 
   1. If the ``PIC_RC`` environment variable is set,
      the file it points to is used.
@@ -62,7 +101,7 @@ the runtime configuration starts out with its built-in defaults.
 The ``rc_params`` Object
 ------------------------
 
-The PIConGPU python package's approach to runtime configuration
+The PIConGPU Python package's approach to runtime configuration
 is inspired by `Matplotlib's rcParams <https://matplotlib.org/stable/users/explain/customizing.html>`__:
 The code interacts with the runtime configuration
 via a global instance of a ``dict``-like ``RCParams`` class named ``picongpu.rc_params``.
@@ -127,27 +166,16 @@ listing the valid preset names to choose from.
 
 Besides the profile (see `Manually Configuring Profile Content`_ below),
 a preset loads default values for the parameters
-that the profile example defines,
-most notably:
+that the profile example defines.
+The following list is generated from the code
+(``picongpu._rc_params.PROFILE_PARAMETERS``) and cannot drift from the implementation:
 
-* ``tbg_submit``:
-  the submission command used to send the simulation to the system
-  (e.g. ``sbatch`` for Slurm-based systems, ``bash`` for local execution)
-* ``tbg_tpl_file``:
-  the template file from which the batch script is generated
-  (e.g. ``etc/picongpu/rosi-hzdr/gpu-v100.tpl``)
-* ``tbg_partition``:
-  the queue/partition to submit to
-* ``pic_backend``:
-  the GPU/CPU backend to compile for
-* ``module_section`` / ``spack_section``:
-  module or spack commands to load the necessary software
+.. picongpu-preset-defaults::
 
 Many presets additionally require a small number of parameters
 to be set explicitly,
-e.g. ``author`` and ``email`` (used to record the metadata of your runs)
-or ``pic_src_path`` (the installation path of PIConGPU,
-which is already deduced automatically in most cases).
+e.g. ``author`` and ``email`` (used to record the metadata of your runs).
+
 The parameters a preset requires are available as
 ``rc_params["required_information"]``.
 If one of them is not set,
@@ -176,7 +204,7 @@ You can temporarily or permanently disable this:
 
 The ``dirty_reset_policy`` can take the values ``"raise"`` (the default),
 ``"warn"`` or ``"ignore"``, or an arbitrary handler to finetune the behaviour.
-We generally recommend to do runtime configuration via `configuring_env_toml_file`_ outside of your script.
+We generally recommend to do runtime configuration via :ref:`the .picongpurc.toml file <configuring_env_toml_file>` outside of your script.
 
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^
