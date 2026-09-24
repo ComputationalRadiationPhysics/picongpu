@@ -77,6 +77,16 @@ autosectionlabel_maxdepth = 4
 
 # napoleon autodoc config
 napoleon_include_init_with_doc = True
+
+# autodoc defaults for the generated API reference of the picmi frontend
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
+}
+autodoc_typehints = "description"
+autodoc_member_order = "bysource"
+
 autodoc_mock_imports = [
     "h5py",
     "pandas",
