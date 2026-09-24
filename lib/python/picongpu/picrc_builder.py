@@ -70,14 +70,15 @@ def _gather_missing(p):
             p[var] = questionary.text(f"{var} = ").ask()
 
 
-_MULTI_LINE_KEYS = {"module_section", "profile_content", "profile_template_content"}
+_MULTI_LINE_KEYS = {"module_section", "spack_section", "profile_content", "profile_template_content"}
 
 
 def _offer_param_edits(p):
     """Show current parameters (excluding large multi-line content) and let the user edit any.
 
-    Multi-line fields (module_section, profile_content, profile_template_content)
-    are shown only if the user requests them via an expand option.
+    Multi-line fields (module_section, spack_section, profile_content,
+    profile_template_content) are shown only if the user requests them via an
+    expand option.
 
     Returns
     -------
@@ -102,7 +103,8 @@ def _offer_param_edits(p):
 
     if multi_entries:
         questionary.print(
-            "  (<multi-line content hidden for module_section, profile_content, profile_template_content>)"
+            "  (<multi-line content hidden for module_section, spack_section, profile_content, "
+            "profile_template_content>)"
         )
         show = questionary.confirm("Show multi-line content?", default=False).ask()
         if show:

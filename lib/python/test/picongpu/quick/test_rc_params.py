@@ -102,6 +102,20 @@ def test_profile_parameters_have_descriptions():
         assert parameter.description, parameter.rc_key
 
 
+def test_the_exact_required_parameter_set_is_pinned():
+    # This is the regression guard for the is_required flags: flipping any of
+    # them (e.g. pic_libs -> False) must not go unnoticed.
+    assert {parameter.rc_key for parameter in PROFILE_PARAMETERS if parameter.is_required} == {
+        "author",
+        "email",
+        "pic_libs",
+        "pic_src_path",
+        "project_id",
+        "project_name",
+        "scratch_dir",
+    }
+
+
 def test_get_profile_parameter_roundtrips():
     for parameter in PROFILE_PARAMETERS:
         assert get_profile_parameter(parameter.rc_key) is parameter
@@ -119,6 +133,22 @@ def test_required_information_is_exactly_the_required_preset_parameters(my_rc_pa
 
 def test_non_required_parameters_are_kept_as_default(my_rc_params):
     my_rc_params["preset"] = "hemera-hzdr/defq_picongpu"
+    assert "tbg_submit" not in my_rc_params["required_information"]
+    assert "tbg_submit" in my_rc_params
+
+
+def test_required_partition_for_a_preset_declaring_optional_keys(my_rc_params):
+    # perlmutter declares pic_libs/project_id, so it exercises the required
+    # flags that hemera-hzdr/defq_picongpu never touches.
+    my_rc_params["preset"] = "perlmutter-nersc/gpu"
+    assert set(my_rc_params["required_information"]) == {
+        "author",
+        "email",
+        "pic_src_path",
+        "pic_libs",
+        "project_id",
+    }
+    # a non-required parameter declared by this preset stays a retained default
     assert "tbg_submit" not in my_rc_params["required_information"]
     assert "tbg_submit" in my_rc_params
 

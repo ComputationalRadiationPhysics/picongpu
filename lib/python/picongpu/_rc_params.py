@@ -83,7 +83,7 @@ PROFILE_PARAMETERS = [
         export_name=None,
         is_required=False,
         description=(
-            "The block of environment-module commands (module / ml) from the preset profile "
+            "The block of environment-module commands (module ...) from the preset profile "
             "that sets up the software environment (compilers, CUDA/ROCm, MPI, HDF5, ...). "
             "Retained from the preset; edit only to change the environment."
         ),
@@ -108,7 +108,7 @@ PROFILE_PARAMETERS = [
         rc_key="email",
         export_name="MY_MAIL",
         is_required=True,
-        description="Contact email for batch-system notifications and output metadata.",
+        description="Contact email for batch-system notifications.",
         example="someone@example.com",
     ),
     ProfileParameter(
@@ -135,7 +135,7 @@ PROFILE_PARAMETERS = [
         rc_key="tbg_submit",
         export_name="TBG_SUBMIT",
         is_required=False,
-        description="Command used by the tbg job template to submit a run to the batch system.",
+        description="Command tbg uses to submit the run to the batch system (e.g. sbatch).",
         example="sbatch",
     ),
     ProfileParameter(
@@ -180,7 +180,10 @@ PROFILE_PARAMETERS = [
         rc_key="disco_partition",
         export_name="disco_partition",
         is_required=False,
-        description="Partition used by the preset's interactive/development-session helper.",
+        description=(
+            "Partition name used for both the batch system (the preset's .tpl) and the "
+            "interactive/development-session helper on Discoverer."
+        ),
         example="common",
     ),
     ProfileParameter(
