@@ -75,15 +75,18 @@ _MULTI_LINE_KEYS = {"module_section", "spack_section", "profile_content", "profi
 _PARAM_CHECKBOX_INSTRUCTION = "(type to filter, arrow keys to move, <space> to select, <enter> to confirm)"
 
 
-def _editable_keys(all_keys, required_information):
+_INTERNAL_KEYS = {"required_information"}
+
+
+def _editable_keys(all_keys):
     """Return the keys that may be offered for editing.
 
-    Required information is collected in ``_gather_missing`` and must not be
-    editable again here; ``required_information`` itself is internal bookkeeping
-    rather than a user parameter.
+    Every user-facing parameter can be re-edited, including required ones
+    (re-entering them is allowed). Only the internal ``required_information``
+    bookkeeping key is excluded: it is not a parameter and editing it as text
+    would break its list-valued semantics.
     """
-    required = set(required_information or [])
-    return [key for key in all_keys if key not in required and key != "required_information"]
+    return [key for key in all_keys if key not in _INTERNAL_KEYS]
 
 
 def _require_selection(selected):
@@ -98,26 +101,10 @@ def _require_selection(selected):
     return "Select at least one parameter with <space> (or abort with <ctrl-c>)."
 
 
-def _offer_param_edits(p):
-    """Show current parameters (excluding large multi-line content) and let the user edit any.
-
-    Multi-line fields (module_section, spack_section, profile_content,
-    profile_template_content) are shown only if the user requests them via an
-    expand option.
-
-    Returns
-    -------
-    set[str]
-        Keys that the user actually changed.
-    """
+def _show_parameters(p):
+    """Print the current parameters (multi-line content hidden unless requested)."""
     data = p.model_dump()
     all_entries = [(k, v) for k, v in data.items() if v is not None and k != "preset"]
-    if not all_entries:
-        return set()
-
-    if not questionary.confirm("\nWant to see all set parameters to make edits?", default=False).ask():
-        return set()
-
     short_entries = sorted((k, v) for k, v in all_entries if k not in _MULTI_LINE_KEYS)
     multi_entries = sorted((k, v) for k, v in all_entries if k in _MULTI_LINE_KEYS)
 
@@ -139,12 +126,14 @@ def _offer_param_edits(p):
                 questionary.print(f"\n--- {key} ---")
                 questionary.print(f"{value}\n")
 
-    if not questionary.confirm("\nWant to change any of these parameters?", default=False).ask():
-        return set()
 
-    editable_keys = _editable_keys([k for k, _ in all_entries], p.get("required_information", []))
+def _edit_parameters(p, all_keys):
+    """Prompt for a selection of parameters and let the user edit each.
+
+    Returns the set of keys that were changed.
+    """
+    editable_keys = _editable_keys(all_keys)
     if not editable_keys:
-        questionary.print("There are no optional parameters to change.")
         return set()
 
     keys_to_edit = (
@@ -172,6 +161,35 @@ def _offer_param_edits(p):
         if new_value is not None:
             p[key] = new_value
             overridden.add(key)
+    return overridden
+
+
+def _offer_param_edits(p):
+    """Repeatedly show the current parameters and let the user edit any.
+
+    Loops: "Want to see all set parameters?" -> (show) -> edit -> ask again,
+    until the user declines to see them again. Multi-line fields
+    (module_section, spack_section, profile_content, profile_template_content)
+    are shown only if the user requests them via an expand option.
+
+    Returns
+    -------
+    set[str]
+        Keys that the user actually changed.
+    """
+    data = p.model_dump()
+    all_entries = [(k, v) for k, v in data.items() if v is not None and k != "preset"]
+    if not all_entries:
+        return set()
+
+    overridden = set()
+    while questionary.confirm("\nWant to see all set parameters to make edits?", default=False).ask():
+        _show_parameters(p)
+
+        if not questionary.confirm("\nWant to change any of these parameters?", default=False).ask():
+            continue
+
+        overridden |= _edit_parameters(p, [k for k, _ in all_entries])
     return overridden
 
 

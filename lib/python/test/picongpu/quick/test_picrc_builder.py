@@ -57,16 +57,12 @@ def test_require_selection_rejects_empty():
     assert _require_selection([]) is not True
 
 
-def test_editable_keys_excludes_required_information():
+def test_editable_keys_excludes_only_internal_bookkeeping():
     keys = ["pic_backend", "pic_src_path", "required_information", "tbg_partition"]
-    assert _editable_keys(keys, ["pic_src_path"]) == ["pic_backend", "tbg_partition"]
+    assert _editable_keys(keys) == ["pic_backend", "pic_src_path", "tbg_partition"]
 
 
-def test_editable_keys_keeps_optional_parameters():
+def test_editable_keys_keeps_required_and_optional_parameters():
+    # Re-editing required parameters is allowed; only `required_information` is internal.
     keys = ["pic_backend", "tbg_partition", "scratch_dir"]
-    assert _editable_keys(keys, ["scratch_dir"]) == ["pic_backend", "tbg_partition"]
-
-
-def test_editable_keys_with_empty_required_information():
-    assert _editable_keys(["a", "b"], []) == ["a", "b"]
-    assert _editable_keys(["a", "b"], None) == ["a", "b"]
+    assert _editable_keys(keys) == keys
