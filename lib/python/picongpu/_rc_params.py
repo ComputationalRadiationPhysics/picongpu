@@ -46,36 +46,194 @@ def _drop_nones(dictionary):
     return {key: value for key, value in dictionary.items() if value is not None}
 
 
-_POTENTIAL_EXPORTS = {
-    "author": "MY_NAME",
-    "email": "MY_MAIL",
-    "pic_src_path": "PICSRC",
-    "pic_backend": "PIC_BACKEND",
-    "tbg_submit": "TBG_SUBMIT",
-    "tbg_tpl_file": "TBG_TPLFILE",
-    "tbg_partition": "TBG_partition",
-    "pic_libs": "PIC_LIBS",
-    "account": "account",
-    "qos": "qos",
-    "disco_partition": "disco_partition",
-    "scratch_dir": "SCRATCH",
-    "project_id": "PROJID",
-    "pic_node_oversubscription_pt": "PIC_NODE_OVERSUBSCRIPTION_PT",
-    "project_name": "PROJECT_NAME",
+class ProfileParameter(BaseModel):
+    """A single parameter that can appear in a PIConGPU environment profile.
+
+    Parameters
+    ----------
+    rc_key : str
+        The key under which the parameter is stored in ``RCParams`` and
+        referenced as a template variable.
+    export_name : str | None
+        The shell variable the parameter is exported as in a preset profile.
+        ``None`` for parameters that are not a single ``export`` line (the
+        module and Spack sections).
+    is_required : bool
+        ``True`` if the value cannot be inferred from the preset and must be
+        supplied by the user. ``False`` if the preset's value is kept as a
+        (per-system) default.
+    description : str
+        A human-readable explanation of the parameter's effect, shown to the
+        user by picrc-builder.
+    example : str
+        An illustrative value, shown alongside the description. Empty if
+        there is no useful example.
+    """
+
+    rc_key: str
+    export_name: str | None = None
+    is_required: bool = True
+    description: str
+    example: str = ""
+
+
+PROFILE_PARAMETERS = [
+    ProfileParameter(
+        rc_key="module_section",
+        export_name=None,
+        is_required=False,
+        description=(
+            "The block of environment-module commands (module / ml) from the preset profile "
+            "that sets up the software environment (compilers, CUDA/ROCm, MPI, HDF5, ...). "
+            "Retained from the preset; edit only to change the environment."
+        ),
+    ),
+    ProfileParameter(
+        rc_key="spack_section",
+        export_name=None,
+        is_required=False,
+        description=(
+            "The block of Spack commands from the preset profile used on Spack-based systems "
+            "to load or build dependencies. Retained from the preset; edit only to change the environment."
+        ),
+    ),
+    ProfileParameter(
+        rc_key="author",
+        export_name="MY_NAME",
+        is_required=True,
+        description="Your name, used as the job author in output metadata and batch-system submissions.",
+        example="$(whoami) <$MY_MAIL>",
+    ),
+    ProfileParameter(
+        rc_key="email",
+        export_name="MY_MAIL",
+        is_required=True,
+        description="Contact email for batch-system notifications and output metadata.",
+        example="someone@example.com",
+    ),
+    ProfileParameter(
+        rc_key="pic_src_path",
+        export_name="PICSRC",
+        is_required=True,
+        description=(
+            "Path to a PIConGPU source checkout. The profile prepends it and its bin/ to PATH "
+            "and derives PIC_EXAMPLES from it."
+        ),
+        example="$HOME/src/picongpu",
+    ),
+    ProfileParameter(
+        rc_key="pic_backend",
+        export_name="PIC_BACKEND",
+        is_required=False,
+        description=(
+            "Compile-time compute backend, selecting the architecture PIConGPU is built for, "
+            "e.g. cuda:80 (NVIDIA A100), cuda:90 (H100), hip:gfx90a (AMD MI200) or omp2b:<arch> (CPU)."
+        ),
+        example="cuda:80",
+    ),
+    ProfileParameter(
+        rc_key="tbg_submit",
+        export_name="TBG_SUBMIT",
+        is_required=False,
+        description="Command used by the tbg job template to submit a run to the batch system.",
+        example="sbatch",
+    ),
+    ProfileParameter(
+        rc_key="tbg_tpl_file",
+        export_name="TBG_TPLFILE",
+        is_required=False,
+        description="Path to the tbg batch-submission template defining the scheduler directives for this system.",
+        example="etc/picongpu/perlmutter-nersc/gpu.tpl",
+    ),
+    ProfileParameter(
+        rc_key="tbg_partition",
+        export_name="TBG_partition",
+        is_required=False,
+        description="Batch-system queue/partition requested by the tbg template.",
+        example="defq",
+    ),
+    ProfileParameter(
+        rc_key="pic_libs",
+        export_name="PIC_LIBS",
+        is_required=True,
+        description=(
+            "Base directory containing PIConGPU's dependencies (Boost, openPMD-api, PNGwriter, ADIOS2, "
+            "BLOSC, ...). The profile derives the individual *_ROOT / CPATH / LD_LIBRARY_PATH entries from it."
+        ),
+        example="$HOME/pic-libs",
+    ),
+    ProfileParameter(
+        rc_key="account",
+        export_name="account",
+        is_required=False,
+        description="Batch-system accounting/project name the job is charged to (SLURM --account).",
+        example="my_project",
+    ),
+    ProfileParameter(
+        rc_key="qos",
+        export_name="qos",
+        is_required=False,
+        description="Quality-of-service level requested from the batch system (SLURM --qos).",
+        example="default",
+    ),
+    ProfileParameter(
+        rc_key="disco_partition",
+        export_name="disco_partition",
+        is_required=False,
+        description="Partition used by the preset's interactive/development-session helper.",
+        example="common",
+    ),
+    ProfileParameter(
+        rc_key="scratch_dir",
+        export_name="SCRATCH",
+        is_required=True,
+        description="Fast scratch directory used for simulation output.",
+        example="/scratch/$USER",
+    ),
+    ProfileParameter(
+        rc_key="project_id",
+        export_name="PROJID",
+        is_required=True,
+        description=(
+            "Identifier of your computing-time allocation/project (batch-system account), "
+            "used to locate project directories and charge the job."
+        ),
+        example="<yourProject>",
+    ),
+    ProfileParameter(
+        rc_key="pic_node_oversubscription_pt",
+        export_name="PIC_NODE_OVERSUBSCRIPTION_PT",
+        is_required=False,
+        description=(
+            "Oversubscribe the node allocation by this many parts per thousand to absorb node "
+            "failures, as consumed by the tbg template."
+        ),
+        example="2",
+    ),
+    ProfileParameter(
+        rc_key="project_name",
+        export_name="PROJECT_NAME",
+        is_required=True,
+        description=(
+            "Human-readable name of your allocation/project, used by some sites "
+            "(e.g. zih-tud) to build the dependency install path."
+        ),
+        example="p_name_of_your_project",
+    ),
+]
+
+_PROFILE_PARAMETERS_BY_KEY = {parameter.rc_key: parameter for parameter in PROFILE_PARAMETERS}
+_PROFILE_EXPORT_NAMES = {
+    parameter.rc_key: parameter.export_name for parameter in PROFILE_PARAMETERS if parameter.export_name is not None
 }
 
-_KEEP_AS_DEFAULT = [
-    "module_section",
-    "spack_section",
-    "pic_backend",
-    "tbg_submit",
-    "tbg_partition",
-    "tbg_tpl_file",
-    "account",
-    "qos",
-    "disco_partition",
-    "pic_node_oversubscription_pt",
-]
+
+_REQUIRED_INFORMATION_KEYS = {parameter.rc_key for parameter in PROFILE_PARAMETERS if parameter.is_required}
+
+
+def get_profile_parameter(rc_key: str) -> ProfileParameter | None:
+    """Return the `ProfileParameter` registered for `rc_key`, or `None` if there is none."""
+    return _PROFILE_PARAMETERS_BY_KEY.get(rc_key)
 
 
 def _parse_example_content(example_content):
@@ -85,13 +243,13 @@ def _parse_example_content(example_content):
             "module_section": "\n".join(filter(_is_module_line, lines)),
             "spack_section": "\n".join(filter(_is_spack_line, lines)),
         }
-        | {key: _parse_export(lines, value) for key, value in _POTENTIAL_EXPORTS.items()}
+        | {key: _parse_export(lines, value) for key, value in _PROFILE_EXPORT_NAMES.items()}
     )
 
 
 def _split_into_default_and_required(parsed_example):
-    return {k: v for k, v in parsed_example.items() if k in _KEEP_AS_DEFAULT} | {
-        "required_information": [k for k in parsed_example.keys() if k not in _KEEP_AS_DEFAULT]
+    return {k: v for k, v in parsed_example.items() if k not in _REQUIRED_INFORMATION_KEYS} | {
+        "required_information": [k for k in parsed_example.keys() if k in _REQUIRED_INFORMATION_KEYS]
     }
 
 
@@ -134,7 +292,7 @@ def _replace_exports_with_templates(lines, replacements):
 
 def _make_template_from_example(profile_content):
     lines = profile_content.split("\n")
-    lines = _replace_exports_with_templates(lines, _POTENTIAL_EXPORTS)
+    lines = _replace_exports_with_templates(lines, _PROFILE_EXPORT_NAMES)
     module_section_start = _find_first_index(_is_module_line, lines)
     if module_section_start is not None:
         lines = [

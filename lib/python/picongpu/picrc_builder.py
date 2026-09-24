@@ -24,9 +24,11 @@ import tomli_w
 
 from moosetash import MissingVariable
 
-from picongpu._rc_params import RCParams, _KEEP_AS_DEFAULT, get_available_presets
+from picongpu._rc_params import PROFILE_PARAMETERS, RCParams, get_available_presets, get_profile_parameter
 
 __all__ = ["main"]
+
+_NON_REQUIRED_KEYS = {parameter.rc_key for parameter in PROFILE_PARAMETERS if not parameter.is_required}
 
 _DESC = (
     "picrc-builder -- interactive .picongpurc.toml configuration builder\n"
@@ -40,11 +42,22 @@ _DESC = (
 )
 
 
+def _explain(key):
+    """Print the registered description (and example) for *key*, if any."""
+    parameter = get_profile_parameter(key)
+    if parameter is None:
+        return
+    questionary.print(f"  {parameter.description}")
+    if parameter.example:
+        questionary.print(f"  Example: {parameter.example}")
+
+
 def _gather_missing(p):
     """Ask the user for every template variable the preset requires.
 
     Repeatedly accesses ``p.profile_content`` until no ``MissingVariable``
-    is raised, prompting the user for each missing key.
+    is raised, prompting the user for each missing key. Where the parameter is
+    registered, its description and example are shown before the prompt.
     """
     while True:
         try:
@@ -53,6 +66,7 @@ def _gather_missing(p):
         except MissingVariable as e:
             var = e.__cause__.args[0] if e.__cause__ else e.args[0]
             questionary.print(f'Found missing variable "{var}". Please provide a value:')
+            _explain(var)
             p[var] = questionary.text(f"{var} = ").ask()
 
 
@@ -84,6 +98,7 @@ def _offer_param_edits(p):
     questionary.print("\nYour configuration contains the following parameters:")
     for key, value in short_entries:
         questionary.print(f"  {key} = {_toml_serialize(value)}")
+        _explain(key)
 
     if multi_entries:
         questionary.print(
@@ -108,6 +123,7 @@ def _offer_param_edits(p):
             questionary.print(f"{p[key]}\n")
         else:
             questionary.print(f"\nCurrent value: {key} = {_toml_serialize(p[key])}")
+        _explain(key)
         new_value = questionary.text(f"New value for {key}: ").ask()
         if new_value is not None:
             p[key] = new_value
@@ -176,7 +192,7 @@ def _filter_user_keys(data, /, original_data):
         "missing_variable_policy",
         "required_information",
         "pic_src_path",
-    } | set(_KEEP_AS_DEFAULT)
+    } | _NON_REQUIRED_KEYS
     output = {}
     for key in ("preset",):
         if data.get(key) is not None:
