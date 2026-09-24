@@ -101,14 +101,13 @@ PROFILE_PARAMETERS = [
         rc_key="author",
         export_name="MY_NAME",
         is_required=True,
-        description="Your name, used as the job author in output metadata and batch-system submissions.",
-        example="$(whoami) <$MY_MAIL>",
+        description="Your name, used as the job author in output metadata.",
     ),
     ProfileParameter(
         rc_key="email",
         export_name="MY_MAIL",
         is_required=True,
-        description="Contact email for batch-system notifications.",
+        description="Contact email for batch-system notifications and metadata.",
         example="someone@example.com",
     ),
     ProfileParameter(
@@ -117,9 +116,9 @@ PROFILE_PARAMETERS = [
         is_required=True,
         description=(
             "Path to a PIConGPU source checkout. The profile prepends it and its bin/ to PATH "
-            "and derives PIC_EXAMPLES from it."
+            "and derives PIC_EXAMPLES from it. This is set dynamically to the PIConGPU "
+            "installation path by RCParams (_DEFAULT_CONTENT); overriding it is typically a bug."
         ),
-        example="$HOME/src/picongpu",
     ),
     ProfileParameter(
         rc_key="pic_backend",
@@ -142,7 +141,12 @@ PROFILE_PARAMETERS = [
         rc_key="tbg_tpl_file",
         export_name="TBG_TPLFILE",
         is_required=False,
-        description="Path to the tbg batch-submission template defining the scheduler directives for this system.",
+        description=(
+            "Path to the tbg batch-submission template defining the scheduler directives for this system. "
+            "tbg resolves it as: the -t|--tpl argument wins, otherwise $TBG_TPLFILE. A relative path is "
+            "interpreted relative to the current working directory (checked with [ -f ] and only afterwards "
+            "made absolute)."
+        ),
         example="etc/picongpu/perlmutter-nersc/gpu.tpl",
     ),
     ProfileParameter(
@@ -158,7 +162,11 @@ PROFILE_PARAMETERS = [
         is_required=True,
         description=(
             "Base directory containing PIConGPU's dependencies (Boost, openPMD-api, PNGwriter, ADIOS2, "
-            "BLOSC, ...). The profile derives the individual *_ROOT / CPATH / LD_LIBRARY_PATH entries from it."
+            "BLOSC, ...). The profile derives the individual *_ROOT / CPATH / LD_LIBRARY_PATH entries from it. "
+            "On some systems no separate install is needed because the path in the preset profile already "
+            "points to a shared, pre-installed read-only library directory (e.g. rosi-hzdr). Otherwise the "
+            "dependencies can be built and verified with `pic-deps install` / `pic-deps check` "
+            "(see lib/python/picongpu/pic_deps.py)."
         ),
         example="$HOME/pic-libs",
     ),
@@ -166,7 +174,11 @@ PROFILE_PARAMETERS = [
         rc_key="account",
         export_name="account",
         is_required=False,
-        description="Batch-system accounting/project name the job is charged to (SLURM --account).",
+        description=(
+            "Batch-system accounting name the job is charged to (SLURM --account). This is the same concept "
+            "as project_id, just under the name used by the profiles that do not also track a separate "
+            "allocation; where both exist, account is the budget account and project_id the allocation."
+        ),
         example="my_project",
     ),
     ProfileParameter(
@@ -181,8 +193,9 @@ PROFILE_PARAMETERS = [
         export_name="disco_partition",
         is_required=False,
         description=(
-            "Partition name used for both the batch system (the preset's .tpl) and the "
-            "interactive/development-session helper on Discoverer."
+            "Discoverer-specific partition name, consumed by the Discoverer preset's .tpl and by its "
+            "interactive/development-session helper. Unlike tbg_partition, which is the generic variable "
+            "expanded by many preset .tpl files, this one only exists for Discoverer."
         ),
         example="common",
     ),
@@ -198,8 +211,10 @@ PROFILE_PARAMETERS = [
         export_name="PROJID",
         is_required=True,
         description=(
-            "Identifier of your computing-time allocation/project (batch-system account), "
-            "used to locate project directories and charge the job."
+            "Identifier of your computing-time allocation/project, used to locate project directories and as "
+            "the SLURM --account. On sites with a single accounting notion it carries the same value as "
+            "account (just under a different name); on JSC sites (juwels/jureca/jupiter) PROJID is the "
+            "project id while account is the budget account."
         ),
         example="<yourProject>",
     ),
@@ -219,7 +234,8 @@ PROFILE_PARAMETERS = [
         is_required=True,
         description=(
             "Human-readable name of your allocation/project, used by some sites "
-            "(e.g. zih-tud) to build the dependency install path."
+            "(e.g. zih-tud) to build the dependency install path. Unlike account/project_id this is not a "
+            "batch-system accounting name but a path component."
         ),
         example="p_name_of_your_project",
     ),
