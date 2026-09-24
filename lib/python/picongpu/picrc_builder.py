@@ -75,6 +75,17 @@ _MULTI_LINE_KEYS = {"module_section", "spack_section", "profile_content", "profi
 _PARAM_CHECKBOX_INSTRUCTION = "(type to filter, arrow keys to move, <space> to select, <enter> to confirm)"
 
 
+def _editable_keys(all_keys, required_information):
+    """Return the keys that may be offered for editing.
+
+    Required information is collected in ``_gather_missing`` and must not be
+    editable again here; ``required_information`` itself is internal bookkeeping
+    rather than a user parameter.
+    """
+    required = set(required_information or [])
+    return [key for key in all_keys if key not in required and key != "required_information"]
+
+
 def _require_selection(selected):
     """Validate that at least one parameter was selected in the multi-select.
 
@@ -131,11 +142,15 @@ def _offer_param_edits(p):
     if not questionary.confirm("\nWant to change any of these parameters?", default=False).ask():
         return set()
 
-    all_keys = [k for k, _ in all_entries]
+    editable_keys = _editable_keys([k for k, _ in all_entries], p.get("required_information", []))
+    if not editable_keys:
+        questionary.print("There are no optional parameters to change.")
+        return set()
+
     keys_to_edit = (
         questionary.checkbox(
             "Which parameters would you like to change?",
-            choices=all_keys,
+            choices=editable_keys,
             use_search_filter=True,
             use_jk_keys=False,
             instruction=_PARAM_CHECKBOX_INSTRUCTION,

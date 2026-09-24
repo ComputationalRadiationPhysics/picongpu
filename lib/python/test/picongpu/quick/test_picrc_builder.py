@@ -8,7 +8,7 @@ License: GPLv3+
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from picongpu.picrc_builder import _require_selection, resolve_target_path, write_output
+from picongpu.picrc_builder import _editable_keys, _require_selection, resolve_target_path, write_output
 
 
 def test_resolve_none_is_new_target():
@@ -55,3 +55,18 @@ def test_require_selection_rejects_empty():
     # questionary.checkbox confirms on <enter> even with nothing toggled, so an
     # empty selection must be rejected rather than silently skipping the edits.
     assert _require_selection([]) is not True
+
+
+def test_editable_keys_excludes_required_information():
+    keys = ["pic_backend", "pic_src_path", "required_information", "tbg_partition"]
+    assert _editable_keys(keys, ["pic_src_path"]) == ["pic_backend", "tbg_partition"]
+
+
+def test_editable_keys_keeps_optional_parameters():
+    keys = ["pic_backend", "tbg_partition", "scratch_dir"]
+    assert _editable_keys(keys, ["scratch_dir"]) == ["pic_backend", "tbg_partition"]
+
+
+def test_editable_keys_with_empty_required_information():
+    assert _editable_keys(["a", "b"], []) == ["a", "b"]
+    assert _editable_keys(["a", "b"], None) == ["a", "b"]
