@@ -8,7 +8,7 @@ License: GPLv3+
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from picongpu.picrc_builder import resolve_target_path, write_output
+from picongpu.picrc_builder import _require_selection, resolve_target_path, write_output
 
 
 def test_resolve_none_is_new_target():
@@ -45,3 +45,13 @@ def test_write_output_creates_missing_parent_dirs():
         assert deep.exists()
         content = deep.read_text()
         assert "preset" in content
+
+
+def test_require_selection_accepts_non_empty():
+    assert _require_selection(["any_key"]) is True
+
+
+def test_require_selection_rejects_empty():
+    # questionary.checkbox confirms on <enter> even with nothing toggled, so an
+    # empty selection must be rejected rather than silently skipping the edits.
+    assert _require_selection([]) is not True

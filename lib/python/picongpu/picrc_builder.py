@@ -72,6 +72,20 @@ def _gather_missing(p):
 
 _MULTI_LINE_KEYS = {"module_section", "spack_section", "profile_content", "profile_template_content"}
 
+_PARAM_CHECKBOX_INSTRUCTION = "(type to filter, arrow keys to move, <space> to select, <enter> to confirm)"
+
+
+def _require_selection(selected):
+    """Validate that at least one parameter was selected in the multi-select.
+
+    ``questionary.checkbox`` confirms on <enter> regardless of whether anything
+    was toggled, so without this an empty selection would silently skip the
+    edit step.
+    """
+    if selected:
+        return True
+    return "Select at least one parameter with <space> (or abort with <ctrl-c>)."
+
 
 def _offer_param_edits(p):
     """Show current parameters (excluding large multi-line content) and let the user edit any.
@@ -118,7 +132,17 @@ def _offer_param_edits(p):
         return set()
 
     all_keys = [k for k, _ in all_entries]
-    keys_to_edit = questionary.checkbox("Which parameters would you like to change?", choices=all_keys).ask() or []
+    keys_to_edit = (
+        questionary.checkbox(
+            "Which parameters would you like to change?",
+            choices=all_keys,
+            use_search_filter=True,
+            use_jk_keys=False,
+            instruction=_PARAM_CHECKBOX_INSTRUCTION,
+            validate=_require_selection,
+        ).ask()
+        or []
+    )
 
     overridden = set()
     for key in keys_to_edit:
