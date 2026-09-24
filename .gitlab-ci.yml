@@ -253,6 +253,9 @@ docs-snippets:
     # build the documentation
     - cd $CI_PROJECT_DIR/docs
     - doxygen
+    # pipefail so a real sphinx-build failure is not masked by the `tee` pipe
+    # (a missing snippet file only produces a warning, hence the explicit check below)
+    - set -o pipefail
     - sphinx-build -b html source build/html 2>&1 | tee $CI_PROJECT_DIR/docs-snippets-sphinx.log
     # a missing snippet file only produces a sphinx warning, so fail explicitly
     - |

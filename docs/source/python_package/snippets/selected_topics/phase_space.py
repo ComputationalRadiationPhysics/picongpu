@@ -13,13 +13,14 @@ License: GPLv3+
 
 Defines a simulation with a phase-space diagnostic for the electron species:
 the y-position is plotted against the y-momentum, sampled every 10th step.
-The momentum range is +-1 in units of the electron rest-mass momentum
-(m_e*c): min_momentum/max_momentum are not SI momenta.
+The momentum range is +-1 electron rest-mass momentum (m_e*c), given as the
+SI momentum 1.0 * m_e * c (the frontend converts it to m_e*c internally).
 """
 
 from pathlib import Path
 
 from picongpu import picmi
+from picongpu.picmi import constants
 from picongpu.picmi.diagnostics import PhaseSpace, TimeStepSpec
 
 grid = picmi.Cartesian3DGrid(
@@ -42,8 +43,8 @@ phase_space = PhaseSpace(
     period=TimeStepSpec[::10],
     spatial_coordinate="y",
     momentum_coordinate="py",
-    min_momentum=-1.0,
-    max_momentum=1.0,
+    min_momentum=-1.0 * constants.m_e * constants.c,
+    max_momentum=1.0 * constants.m_e * constants.c,
 )
 sim.add_diagnostic(phase_space)
 

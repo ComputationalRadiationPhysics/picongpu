@@ -103,7 +103,7 @@ if neither is set, the input file generation fails.
 Laser Pulses
 ------------
 
-Lasers are added to the simulation via the ``picongpu_lasers`` parameter
+Lasers are added to the simulation via the ``lasers`` parameter
 or the ``add_laser`` method.
 All lasers share a few properties and constraints:
 
@@ -143,6 +143,8 @@ All lasers share a few properties and constraints:
 
 .. literalinclude:: ../snippets/defining_simulation/laser_variants.py
    :language: python
+   :start-after: BEGIN-LASER-VARIANTS
+   :end-before: END-LASER-VARIANTS
 
 ``TWTSLaser``
    An obliquely incident, pulse-front-tilted Gaussian pulse
@@ -151,13 +153,13 @@ All lasers share a few properties and constraints:
    for traveling-wave Thomson-scattering setups;
    ``waist``, ``focal_position`` and the amplitude work as for ``GaussianLaser``.
 
-.. note::
-
-   The ``PlaneWaveLaser`` class exists but currently does not work:
-   generating the input files from a simulation that uses it fails,
-   because the frontend does not provide the ``focal_position`` and
-   ``laser_nofocus_constant_si`` parameters the rendering requires.
-   It is therefore not described in detail here.
+``PlaneWaveLaser``
+   A plane wave with a temporal shape;
+   ``wavelength``, ``duration``, ``propagation_direction``,
+   ``polarization_direction``, ``centroid_position`` and the amplitude
+   work as for ``GaussianLaser``.
+   The focus is fixed at the origin (``focal_position`` and
+   ``laser_nofocus_constant_si`` are supplied by the frontend).
 
 Species
 -------
@@ -194,8 +196,8 @@ Its most important parameters are:
   (default is quadratic, i.e. TSC).
 * ``method``:
   the particle pusher (default is ``Boris``;
-  ``Vay`` and ``HigueraCary`` are relativistic variants,
-  ``ReducedLandauLifshitz`` adds radiation reaction).
+  ``Vay`` and ``Higuera-Cary`` are relativistic variants,
+  ``LLRK4`` adds radiation reaction).
 
 .. _distributions:
 
@@ -221,10 +223,11 @@ The available distributions are:
    .. note::
 
       The ``lower_bound``/``upper_bound`` and ``fill_in`` parameters
-      are accepted but currently ignored (they log a warning when set
-      to non-default values): the density fills the entire simulation
-      box. For sub-volume densities use ``AnalyticDistribution``,
-      ``GaussianDistribution`` or ``FoilDistribution`` instead.
+      are not supported: setting them to non-default values raises an
+      ``UnsupportedFeatureError`` at input-file generation, while the
+      density fills the entire simulation box. For sub-volume densities
+      use ``AnalyticDistribution``, ``GaussianDistribution`` or
+      ``FoilDistribution`` instead.
 
 ``GaussianDistribution``
   A constant-density region with Gaussian ramps at the front and the rear
@@ -285,6 +288,8 @@ It is given per species via ``simulation.add_species(species, layout)``:
 
 .. literalinclude:: ../snippets/defining_simulation/warm_plasma.py
    :language: python
+   :start-after: BEGIN-WARM-PLASMA
+   :end-before: END-WARM-PLASMA
 
 The above snippet builds a warm, quasi-neutral plasma:
 ions and electrons share the same uniform density profile

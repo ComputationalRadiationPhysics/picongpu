@@ -21,13 +21,16 @@ Parameters:
 * ``bin_count``:
   the number of histogram bins (must be positive).
 * ``min_energy`` / ``max_energy``:
-  the range of the histogram, **in keV**;
+  the range of the histogram, **in SI joules**;
+  the frontend divides the value by ``constants.keV`` internally,
+  so pass e.g. ``500 * picmi.constants.keV`` for 500 keV;
   ``min_energy`` must be smaller than ``max_energy``.
 
 The output is a plain ASCII file
 ``simOutput/<species>_energyHistogram_<filter>.dat``
 (one per species and filter):
-the first line holds the bin edges in keV,
+the first line holds the bin edges in keV (the reader
+:class:`~picongpu.extra.plugins.data.EnergyHistogramData` returns them in keV),
 and each recorded time step appends one line of counts.
 Because the file format is fixed,
 you can post-process it directly with `numpy`_ and `matplotlib`_ --

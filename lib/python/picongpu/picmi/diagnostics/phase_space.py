@@ -57,13 +57,13 @@ class PhaseSpace(BaseModel):
 
     min_momentum: float
         Minimum value for the phase-space coordinate range.
-        Unit: m_species*c, i.e. a multiple of the species rest-mass
-        momentum (the C++ plugin scales the value by the species mass
-        times the speed of light).
+        Unit: SI momentum (kg*m/s). The frontend converts it to the
+        plugin's internal unit m_species*c by dividing by the species
+        rest-mass momentum.
 
     max_momentum: float
         Maximum value for the phase-space coordinate range.
-        Unit: m_species*c (see min_momentum).
+        Unit: SI momentum (kg*m/s) (see min_momentum).
 
     name: string, optional
         Optional name for the phase-space plugin.

@@ -15,6 +15,7 @@ A warm, quasi-neutral plasma:
 ions and electrons share the same uniform density profile.
 """
 
+# BEGIN-WARM-PLASMA
 from pathlib import Path
 
 from picongpu import picmi
@@ -60,3 +61,4 @@ simulation.add_species(ions, layout)
 simulation.add_species(electrons, layout)
 
 simulation.run(setup_dir=Path("warm_plasma_setup"), run_dir=Path("warm_plasma_run"))
+# END-WARM-PLASMA

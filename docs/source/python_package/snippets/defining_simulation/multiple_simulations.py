@@ -15,6 +15,7 @@ License: GPLv3+
 from pathlib import Path
 
 from picongpu import picmi
+from picongpu.picmi import constants
 from scipy.constants import c
 
 NUM_CELLS = [192, 2048, 192]
@@ -61,13 +62,13 @@ def make_simulation(focal_position):
         period=picmi.diagnostics.TimeStepSpec[-1],
         bin_count=100,
         min_energy=0.0,
-        max_energy=1000.0,
+        max_energy=1000.0 * constants.keV,
     )
     return picmi.Simulation(
         **FIXED_KWARGS,
         solver=picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid),
-        picongpu_lasers=[make_laser(focal_position)],
-        picongpu_diagnostics=[energy_histogram],
+        lasers=[make_laser(focal_position)],
+        diagnostics=[energy_histogram],
     )
 
 

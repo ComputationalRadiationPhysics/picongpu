@@ -53,7 +53,7 @@ binning = Binning(
     axes=[
         BinningAxis(
             functor=ParticleFunctor(functor=gamma, name="gamma"),
-            bin_spec=BinSpec("linear", 1.0, 100.0, 100),
+            bin_spec=BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100),
         ),
     ],
     species=electrons,
@@ -82,7 +82,7 @@ fast_binning = Binning(
     axes=[
         BinningAxis(
             functor=ParticleFunctor(functor=gamma, name="gamma"),
-            bin_spec=BinSpec("linear", 1.0, 100.0, 100),
+            bin_spec=BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100),
         ),
     ],
     species=fast_electrons,

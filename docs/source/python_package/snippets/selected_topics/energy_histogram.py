@@ -12,12 +12,14 @@ Authors: opencode
 License: GPLv3+
 
 Defines a simulation with an energy histogram diagnostic for the electron
-species: 50 bins between 0 and 500 keV, written every 10th step.
+species: 50 bins between 0 and 500 keV (given as the SI energy
+500 * constants.keV), written every 10th step.
 """
 
 from pathlib import Path
 
 from picongpu import picmi
+from picongpu.picmi import constants
 from picongpu.picmi.diagnostics import EnergyHistogram, TimeStepSpec
 
 grid = picmi.Cartesian3DGrid(
@@ -40,7 +42,7 @@ histogram = EnergyHistogram(
     period=TimeStepSpec[::10],
     bin_count=50,
     min_energy=0.0,
-    max_energy=500.0,
+    max_energy=500.0 * constants.keV,
 )
 sim.add_diagnostic(histogram)
 

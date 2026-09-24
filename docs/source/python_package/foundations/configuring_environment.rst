@@ -18,13 +18,38 @@ At the time of writing, the runtime configuration is used for the following aspe
   * On a specific machine making the correct compilers, libraries, etc. available.
   * For a specific user configuring the correct metadata to facilitate FAIR workflows.
 
+.. _configuring_env_picrc_builder:
+
+Recommended: The ``picrc-builder`` Tool
+---------------------------------------
+
+In order to streamline the onboarding onto a new system,
+the ``picongpu`` package ships the ``picrc-builder`` tool.
+It guides you interactively through writing a runtime configuration file
+``.picongpurc.toml``:
+it lets you pick one of the available presets (see `Presets`_ below)
+and asks for the required parameters as well as any additional fine-tuning.
+
+If the package is installed (see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`),
+you can simply run::
+
+  picrc-builder
+
+You can also run it without installing anything
+using the `uv <https://docs.astral.sh/uv/>`__ tool::
+
+  uv run --with="picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python" picrc-builder
+
+In either case, store the generated file in one of the locations
+described in `The .picongpurc.toml File`_ below.
+
 .. _configuring_env_toml_file:
 
 The ``.picongpurc.toml`` File
 -----------------------------
 
 The runtime configuration is kept in a `TOML <https://toml.io/>`__ file
-that will be read when importing the PIConGPU python package for the first time.
+that will be read when importing the PIConGPU Python package for the first time.
 You can create this file by hand;
 a minimal configuration just sets the preset to use on this machine (see `Presets`_ below):
 
@@ -42,7 +67,7 @@ if they are closer to the input in the directory tree.
 The file is named ``picongpurc.toml``
 (and is searched in different locations under slightly different names,
 as described below).
-The search is performed once, when the PIConGPU python package is imported:
+The search is performed once, when the PIConGPU Python package is imported:
 
   1. If the ``PIC_RC`` environment variable is set,
      the file it points to is used.
@@ -62,7 +87,7 @@ the runtime configuration starts out with its built-in defaults.
 The ``rc_params`` Object
 ------------------------
 
-The PIConGPU python package's approach to runtime configuration
+The PIConGPU Python package's approach to runtime configuration
 is inspired by `Matplotlib's rcParams <https://matplotlib.org/stable/users/explain/customizing.html>`__:
 The code interacts with the runtime configuration
 via a global instance of a ``dict``-like ``RCParams`` class named ``picongpu.rc_params``.

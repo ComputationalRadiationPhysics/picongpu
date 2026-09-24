@@ -19,6 +19,7 @@ will use most:
    :members:
    :imported-members:
    :undoc-members:
+   :noindex:
 
 Submodules
 ----------
@@ -44,5 +45,5 @@ but you can also import them directly:
 
 The ``pypicongpu`` package is the internal middle layer that the
 ``picmi`` frontend renders into; it is not part of the stable public API.
-Its own (auto-generated) reference is included elsewhere in these
-documentation.
+Its own (auto-generated) reference is documented in the
+:ref:`PyPIConGPU developer chapter <pypicongpu>`.

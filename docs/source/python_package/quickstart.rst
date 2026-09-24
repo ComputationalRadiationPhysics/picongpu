@@ -7,7 +7,7 @@ It describes one among many different ways to use PIConGPU.
 You can use it as a starting point to explore for yourself
 or dive deeper and explore the key concepts and configuration options
 with our :ref:`Foundations <python_package/foundations/index:Foundations>` chapter.
-If you are more interested in how to setup up a particular aspect of your simulation,
+If you are more interested in how to set up a particular aspect of your simulation,
 you'll find information in :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
 
 What You'll Build
@@ -58,7 +58,7 @@ The rest of the script does three things:
   and sets the runtime to 100 time steps (``max_steps``).
   Finally, ``simulation.run()`` generates the PIConGPU input files from the simulation,
   compiles a tailored binary and submits the simulation
-  (see `step 3`_ below for what exactly happens).
+  (see :ref:`Step 3 <quickstart-step-3>` below for what exactly happens).
 
 Step 2: Configure Your Environment
 ----------------------------------
@@ -86,7 +86,7 @@ so that your runs carry proper metadata::
   author = "Your Name"
   email = "you@example.org"
 
-.. _step 3:
+.. _quickstart-step-3:
 
 Step 3: Run It
 --------------

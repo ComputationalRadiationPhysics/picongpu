@@ -24,10 +24,11 @@ Parameters:
 * ``momentum_coordinate``:
   one of ``"px"``, ``"py"``, ``"pz"`` -- the momentum axis.
 * ``min_momentum`` / ``max_momentum``:
-   the range of the momentum axis, **in units of ``m_species·c``** --
-   a dimensionless multiple of the species' rest-mass momentum
-   (``1.0`` is one ``m_e·c`` for electrons);
+   the range of the momentum axis, given as **SI momenta in kg·m/s**
+   (the frontend converts them to the plugin's internal unit ``m_species·c``);
    ``min_momentum`` must be smaller than ``max_momentum``.
+   For example, ``1.0 * m_e * c`` (≈ ``2.73e-22`` kg·m/s) is one electron
+   rest-mass momentum.
 
 The output is written as `openPMD <https://www.openpmd.org/>`__ files
 into the ``simOutput/phaseSpace/`` directory;
@@ -44,11 +45,12 @@ so in a moving-window simulation the covered region changes with time.
    Choose it wide enough for the highest momenta you expect,
    or you will miss them.
 
-   The ``min_momentum``/``max_momentum`` values above are *not* SI
-   momenta: the frontend passes them to the simulation unconverted and
-   the C++ plugin scales them by the species rest-mass momentum
-   (``m_species·c``). The ``picmi.PhaseSpace`` docstring used to state
-   SI units (kg·m/s), which did not match the compiled behavior;
-   a value like ``2e-26`` would therefore cover a range of only
-   ~``1e-47`` kg·m/s and every particle would fall into the
-   underflow bin.
+   ``min_momentum``/``max_momentum`` are SI momenta (kg·m/s), *not* raw
+   plugin units. The frontend divides the value you give by the species
+   rest-mass momentum (``m_species·c``) before handing it to the C++
+   plugin, which is what produces the dimensionless ``m_species·c``
+   range shown in ``N.cfg``. Do not pass raw plugin units (a
+   dimensionless multiple of ``m_species·c``) here: a value of ``2.0``
+   intended as two ``m_e·c`` would be interpreted as ``2.0`` kg·m/s,
+   i.e. about ``7e21`` ``m_e·c``, and every particle would fall into
+   the underflow bin.

@@ -16,7 +16,7 @@ Per-snippet expected artifacts are checked afterwards.
 
 Every TOML snippet (``.picongpurc.toml`` examples) is parsed with ``tomllib``
 and then applied for real: a subprocess with an isolated ``HOME`` and
-``PIC_RC`` pointed at the snippet file imports the PIConGPU python package,
+``PIC_RC`` pointed at the snippet file imports the PIConGPU Python package,
 and the resulting ``rc_params`` content is checked.
 
 Every bash snippet is syntax-checked with ``bash -n`` in this suite.
@@ -202,7 +202,7 @@ EXPECTED_FILES = {
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.period 0:-1:10"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.space y"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.momentum py"),
-            # momentum range in units of m_species*c (see the phase_space page)
+            # SI momentum input converted to m_species*c by the frontend (see the phase_space page)
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.min -1.0"),
             ("phase_space_setup/etc/picongpu/N.cfg", "--electrons_phaseSpace.max 1.0"),
         ],

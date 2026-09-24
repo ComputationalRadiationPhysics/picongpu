@@ -67,9 +67,9 @@ Runtime configuration (RCParams)
   and metadata to be automatically recorded in order to facilitate FAIRness of your research.
   Users are supposed to configure this (roughly) once for each system/project they are on.
 
-PyPIConGPU middlelayer
+PyPIConGPU middle layer
   Input to the PICMI frontend is translated
-  into a middlelayer Python representation called PyPIConGPU.
+  into a middle layer Python representation called PyPIConGPU.
   Users might occasionally interact with elements from this layer
   either for fine-grained control and customization
   or while debugging their input files.

@@ -90,7 +90,7 @@ adk = picmi.ADK(
 sim = picmi.Simulation(
     max_steps=100,
     solver=solver,
-    picongpu_lasers=[laser],
+    lasers=[laser],
     picongpu_interaction=[adk],
 )
 sim.add_species(hydrogen, layout)
