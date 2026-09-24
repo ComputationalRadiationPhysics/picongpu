@@ -27,16 +27,20 @@ The individual submodules hold the classes grouped by concern.
 Most of them are re-exported in the top-level namespace above,
 but you can also import them directly:
 
-* :mod:`picongpu.picmi.diagnostics` -- the output/diagnostic plugins
-* :mod:`picongpu.picmi.lasers` -- the laser pulse classes
-* :mod:`picongpu.picmi.distribution` -- the particle distribution classes
-* :mod:`picongpu.picmi.interaction` -- ionization, collision and synchrotron
-* :mod:`picongpu.picmi.particle_functor` -- particle functors and filters
-* :mod:`picongpu.picmi.grid` -- the simulation grid
-* :mod:`picongpu.picmi.solver` -- the field solver
-* :mod:`picongpu.picmi.species` -- particle species
-* :mod:`picongpu.picmi.layout` -- particle layouts
-* :mod:`picongpu.picmi.simulation` -- the :class:`Simulation` object
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   simulation
+   grid
+   solver
+   species
+   layout
+   particle_functor
+   distribution
+   lasers
+   interaction
+   diagnostics
 
 The ``pypicongpu`` package is the internal middle layer that the
 ``picmi`` frontend renders into; it is not part of the stable public API.
