@@ -11,7 +11,8 @@ on the simulation.
 Custom user input
 -----------------
 
-Create a :class:`~picongpu.pypicongpu.customuserinput.CustomUserInput`
+Create a ``CustomUserInput``
+(from ``picongpu.pypicongpu.customuserinput``)
 and add key/value pairs under a tag,
 then register it on the simulation with
 ``picongpu_add_custom_user_input``:

@@ -67,8 +67,8 @@ because you must tell it *where* to look.
 The remaining parameters (frequency range ``frequencies``,
 ``nyquist_factor``, ``form_factor``, window function, ``rad_per_gpu``, ...)
 control the spectral resolution and the particle-charge form factor;
-see the ``RadiationConfiguration``/``RadiationPluginConfig`` model
-in ``picongpu.pypicongpu.output.radiation`` for their full documentation.
+they are defined by the ``RadiationConfiguration``/``RadiationPluginConfig``
+models in ``picongpu.pypicongpu.output.radiation``.
 
 .. note::
 

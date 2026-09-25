@@ -37,19 +37,19 @@ In a typical setup the electron species starts out empty
 and is populated purely by ionization.
 Each model is one of:
 
-``picmi.ADK``
+:class:`~picongpu.picmi.interaction.ionization.fieldionization.ADK`
    ADK tunnel ionization
    (``ADK_variant`` selects ``picmi.ADKVariant.LinearPolarization``
    or ``picmi.ADKVariant.CircularPolarization``).
    This is the model of the :ref:`LWFA tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`.
 
-``picmi.BSI``
+:class:`~picongpu.picmi.interaction.ionization.fieldionization.BSI`
    Barrier suppression ionization;
    ``BSI_extensions`` (a tuple, required -- pass ``()`` to use the plain
    model without extensions) adds
    ``picmi.BSIExtension.StarkShift`` or ``picmi.BSIExtension.EffectiveZ``.
 
-``picmi.Keldysh``
+:class:`~picongpu.picmi.interaction.ionization.fieldionization.Keldysh`
    The quantum Keldysh model, which interpolates between
    tunnel (ADK) and multiphoton ionization.
 
@@ -96,7 +96,7 @@ Binary collisions between particle species
 (Coulomb collisions with a constant or dynamically computed
 Coulomb logarithm) are represented by
 
-``picmi.Collision``
+:class:`~picongpu.picmi.interaction.collision.Collision`
    One collision between pairs of species
    (``species_pairs`` is a list of ``(lhs, rhs)`` pairs;
    convenience constructors ``construct_one_to_all``
@@ -106,7 +106,7 @@ Coulomb logarithm) are represented by
    or ``picmi.DynamicLogCollision()``
    (the latter requires *screening species* to compute the log from).
 
-``picmi.CollisionalPhysicsSetup``
+:class:`~picongpu.picmi.interaction.collision.CollisionalPhysicsSetup`
    An optional container that holds several collisions
    together with the ``screening_species`` and a ``numerics_config``
    (a ``CollisionNumericsConfig`` with ``precision``,
@@ -123,7 +123,7 @@ Deep dive:
 Synchrotron Radiation
 ---------------------
 
-``picmi.Synchrotron``
+:class:`~picongpu.picmi.interaction.synchrotron.Synchrotron`
    Couples an *electron species* to a *photon species*
    (``particle_type="photon"``; the species starts out empty
    and is populated by the radiation):

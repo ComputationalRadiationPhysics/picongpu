@@ -268,7 +268,7 @@ docs-snippets:
     # marker warnings too; otherwise the docs could silently include the wrong
     # (or no) lines while the job still reports success
     - |
-      if grep -E "start-after pattern not found|end-before pattern not found|start-at pattern not found|line number spec is out of range" \
+      if grep -E "pattern not found|line number spec is out of range" \
           $CI_PROJECT_DIR/docs-snippets-sphinx.log; then
           echo "ERROR: a literalinclude marker did not match the snippet"
           exit 1
@@ -277,7 +277,7 @@ docs-snippets:
     # failures (e.g. inherited pydantic fields); a regression is otherwise only a
     # warning and would silently drop fields from the generated reference
     - |
-      if grep -E "failed to import pydantic_field|Unknown directive type \"autopydantic" \
+      if grep -E "failed to import pydantic_field|Unknown directive type \"pydantic" \
           $CI_PROJECT_DIR/docs-snippets-sphinx.log; then
           echo "ERROR: the pydantic API reference failed to render (autodoc-pydantic)"
           exit 1

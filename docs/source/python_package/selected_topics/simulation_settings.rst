@@ -39,7 +39,7 @@ Normalization
 PIConGPU normalizes the simulation to a reference density and a typical
 particle count per cell:
 
-* ``picongpu_base_density``:
+* :attr:`~picongpu.picmi.simulation.Simulation.picongpu_base_density`:
   the reference density in m⁻³ (default ``1.0e25``).
   All species densities are normalized by it.
 * ``picongpu_typical_ppc``:
@@ -53,7 +53,7 @@ their defaults.
 Numerical precision
 -------------------
 
-``picongpu_precision`` selects the floating-point precision of the
+:attr:`~picongpu.picmi.simulation.Simulation.picongpu_precision` selects the floating-point precision of the
 simulation core:
 
 * ``32``: single precision (the default),
@@ -102,7 +102,7 @@ readability, e.g. ``reserved_gpu_memory_size=350 * picmi.constants.MiB``.
 Wall-clock limit
 ----------------
 
-``picongpu_walltime`` (a ``datetime.timedelta``) asks the scheduler to
+:attr:`~picongpu.picmi.simulation.Simulation.picongpu_walltime` (a ``datetime.timedelta``) asks the scheduler to
 stop the simulation once the given wall-clock time has passed
 (the value must be positive).
 On systems whose preset uses a batch scheduler this becomes the job's

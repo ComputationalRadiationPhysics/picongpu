@@ -16,10 +16,10 @@ Grids
 
 PIConGPU supports two grids:
 
-``Cartesian3DGrid``
+:class:`~picongpu.picmi.grid.Cartesian3DGrid`
    A 3D Cartesian grid (3D3V).
 
-``Cartesian2DGrid``
+:class:`~picongpu.picmi.grid.Cartesian2DGrid`
    A 2D Cartesian grid (2D3V);
    the position along the third axis is a fixed thickness
    (``picongpu_cell_depth_si``).
@@ -69,7 +69,7 @@ if unset, PIConGPU's default is used.
 Solvers
 -------
 
-``picmi.ElectromagneticSolver`` advances the electromagnetic fields.
+:class:`~picongpu.picmi.solver.ElectromagneticSolver` advances the electromagnetic fields.
 The ``method`` selects the solver:
 
 ``"Yee"``
@@ -106,7 +106,7 @@ grid, not ``sqrt(3)``).
 Field smoothing
 ^^^^^^^^^^^^^^^
 
-The current can be smoothed with ``picmi.BinomialSmoother``
+The current can be smoothed with :class:`~picongpu.picmi.solver.BinomialSmoother`
 (passed via ``source_smoother``).
 PIConGPU's binomial current deposition is a fixed, single-pass filter,
 so ``n_pass`` may only be ``None``, ``1`` or an all-ones vector.

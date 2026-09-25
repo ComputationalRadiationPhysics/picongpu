@@ -23,7 +23,7 @@ In order to do so, we extract some constants and decompose the definition of the
 Lasers
 ------
 
-There are various lasers defined in `the PICMI standard <https://picmi-standard.github.io/>`__ and its :ref:`PIConGPU extension <python_package/selected_topics/lasers:Lasers>`.
+There are various lasers defined in `the PICMI standard <https://picmi.readthedocs.io/en/latest/standard/laser_profiles.html>`__ and its :ref:`PIConGPU extension <python_package/selected_topics/lasers:Lasers>`.
 We define a Gaussian laser as moving into positive ``y`` direction
 (this is the convention PIConGPU is optimized for):
 
@@ -35,9 +35,9 @@ We define a Gaussian laser as moving into positive ``y`` direction
 Species and particles
 ---------------------
 
-In the PICMI standard we define `abstract species <https://picmi-standard.github.io/>`__
-and `distributions <https://picmi-standard.github.io/>`__ of particles belonging to such species among the cells.
-The precise location of a particle inside of a cell is finally determined by `the layout <https://picmi-standard.github.io/>`__.
+In the PICMI standard we define `abstract species <https://picmi.readthedocs.io/en/latest/standard/species.html>`__
+and `distributions <https://picmi.readthedocs.io/en/latest/standard/distribution.html>`__ of particles belonging to such species among the cells.
+The precise location of a particle inside of a cell is finally determined by `the layout <https://picmi.readthedocs.io/en/latest/standard/layout.html>`__.
 Thus, in order to add particles to our simulation we need three components:
 
 .. literalinclude:: snippets/defining_simulation/lwfa_example.py
@@ -56,7 +56,7 @@ they are created by the ionization model below.
 Interactions
 ------------
 
-We can add various `interactions <https://picmi-standard.github.io/>`__ among our species.
+We can add various `ionization interactions <https://picmi.readthedocs.io/en/latest/standard/ionization.html>`__ among our species.
 As an example, we allow to ionize the hydrogen into the corresponding electron species:
 
 .. literalinclude:: snippets/defining_simulation/lwfa_example.py
@@ -69,7 +69,7 @@ Diagnostics
 
 Diagnostics, i.e. simulation output, are an important part of your simulation.
 PIConGPU allows to define general diagnostics in a flexible way.
-See :ref:`the diagnostics topic <python_package/selected_topics/index:Selected Topics>` for a full overview of the capabilities.
+See :ref:`the diagnostics topic <python_package/selected_topics/diagnostics/index:Diagnostics>` for a full overview of the capabilities.
 There are also various predefined diagnostics you can choose from.
 Some of these provide quick access to heavily used features/debugging tools.
 Others provide some optimized code for the diagnostic.
@@ -109,3 +109,9 @@ The full script
 
    .. literalinclude:: snippets/defining_simulation/lwfa_example.py
       :language: python
+
+This tutorial only scratches the surface.
+For a systematic account of the concepts it uses,
+see the :ref:`Foundations <python_package/foundations/index:Foundations>` chapter;
+deeper dives into individual features live in
+:ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.

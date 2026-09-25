@@ -1,7 +1,7 @@
 Defining Your Simulation
 ========================
 
-Our frontend implements the `PICMI standard <https://picmi-standard.github.io/>`__.
+Our frontend implements the `PICMI standard <https://picmi.readthedocs.io/en/latest/standard/standard.html>`__.
 This is a declarative Python interface for particle-in-cell simulation codes
 standardized in the community.
 We comply with the standard in the following sense:
@@ -41,7 +41,7 @@ See :ref:`Running Your Simulation <python_package/foundations/running_simulation
 The PICMI standard defines various methods to interact with a ``Simulation`` instance.
 The most useful for interacting with PIConGPU are:
 
-``simulation.run()``
+:meth:`~picongpu.picmi.simulation.Simulation.run`
   Generates the PIConGPU input files,
   compiles a tailored binary and submits the simulation
   to the system given by your runtime configuration (e.g. a batch system).
@@ -50,7 +50,7 @@ The most useful for interacting with PIConGPU are:
   (see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`
   for the details of what happens under the hood).
 
-``simulation.write_input_file()``
+:meth:`~picongpu.picmi.simulation.Simulation.write_input_file`
   Only generate the PIConGPU input files.
   This can be useful in more complex workflows and/or for fine-grained control and debugging.
 

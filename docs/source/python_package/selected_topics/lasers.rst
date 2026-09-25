@@ -49,7 +49,7 @@ All lasers share a few properties:
 Laser types
 -----------
 
-``GaussianLaser``
+:class:`~picongpu.picmi.lasers.GaussianLaser`
    A Gaussian pulse.
    Structured beams can be described with the (matching-length) arrays
    ``picongpu_laguerre_modes`` and ``picongpu_laguerre_phases``.
@@ -57,7 +57,7 @@ Laser types
    circular polarization is selected via
    ``picongpu_polarization_type=picmi.lasers.PolarizationType.CIRCULAR``.
 
-``DispersivePulseLaser``
+:class:`~picongpu.picmi.lasers.DispersivePulseLaser`
    A Gaussian pulse with additional dispersion parameters:
    ``picongpu_spectral_support`` (width of the spectral support),
    ``picongpu_sd_si`` (spatial dispersion),
@@ -66,19 +66,19 @@ Laser types
    ``picongpu_tod_si`` (third-order dispersion).
    It does not support Laguerre modes.
 
-``TWTSLaser``
+:class:`~picongpu.picmi.lasers.TWTSLaser`
    An obliquely incident, pulse-front-tilted Gaussian pulse
    for traveling-wave Thomson-scattering setups;
    ``laserIncidenceAngle`` and ``polarizationAngle`` parameterize
    the incidence relative to the ``y`` axis.
 
-``PlaneWaveLaser``
+:class:`~picongpu.picmi.lasers.PlaneWaveLaser`
    A plane wave with a temporal shape.
    The focus is fixed at the origin
    (``focal_position`` and ``laser_nofocus_constant_si``
    are supplied by the frontend).
 
-``FromOpenPMDPulseLaser``
+:class:`~picongpu.picmi.lasers.FromOpenPMDPulseLaser`
    A pulse imported from an `openPMD <https://www.openpmd.org/>`__ file
    (``file_path``, ``iteration``, ``dataset_name``, ...),
    for initial conditions that are too complex to describe analytically.

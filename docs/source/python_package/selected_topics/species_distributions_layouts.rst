@@ -25,7 +25,7 @@ They are passed to the simulation together:
 Species
 -------
 
-A ``Species`` describes one type of particle.
+A :class:`~picongpu.picmi.species.Species` describes one type of particle.
 Its most important parameters are:
 
 * ``name``:
@@ -85,7 +85,7 @@ All distributions take
 
 The available distributions are:
 
-``UniformDistribution``
+:class:`~picongpu.picmi.distribution.UniformDistribution`
    A constant density throughout the box (``density`` in m⁻³).
 
    .. note::
@@ -97,7 +97,7 @@ The available distributions are:
       use ``AnalyticDistribution``, ``GaussianDistribution`` or
       ``FoilDistribution`` instead.
 
-``GaussianDistribution``
+:class:`~picongpu.picmi.distribution.GaussianDistribution`
    A constant-density region with Gaussian ramps at the front and the rear
    of the box (in ``y`` direction):
    ``center_front``/``center_rear`` and ``sigma_front``/``sigma_rear``
@@ -106,20 +106,20 @@ The available distributions are:
    ``factor`` the (negative) scaling of the ramps,
    and ``vacuum_front`` the vacuum in front of the profile.
 
-``FoilDistribution``
+:class:`~picongpu.picmi.distribution.FoilDistribution`
    A thin foil of constant ``thickness`` at position ``front``
    (perpendicular to ``y``),
    with optional exponential pre- and post-plasma ramps
    (``exponential_pre_plasma_length``/``_cutoff`` and
    ``exponential_post_plasma_length``/``_cutoff``).
 
-``CylindricalDistribution``
+:class:`~picongpu.picmi.distribution.CylindricalDistribution`
    A cylinder of ``radius`` around the axis ``cylinder_axis``
    through the point ``center_position``,
    with an optional exponential pre-plasma ramp
    (``exponential_pre_plasma_length``/``_cutoff``).
 
-``AnalyticDistribution``
+:class:`~picongpu.picmi.distribution.AnalyticDistribution`
    A density given by an analytic expression
    (see :ref:`the functors page <functors>`).
 
@@ -132,16 +132,16 @@ Layouts
 The layout determines the positions of the particles *within* a cell.
 It is given per species via the ``layouts`` list:
 
-``PseudoRandomLayout``
+:class:`~picongpu.picmi.layout.PseudoRandomLayout`
   ``n_macroparticles_per_cell`` particles per cell at pseudo-random positions.
   This is the default choice for most simulations.
 
-``GriddedLayout``
+:class:`~picongpu.picmi.layout.GriddedLayout`
   A regular sub-grid of ``n_macroparticle_per_cell = [nx, ny, nz]``
   positions per cell (``nx * ny * nz`` particles per cell).
   Useful for well-resolved, low-noise configurations.
 
-``OnePositionLayout``
+:class:`~picongpu.picmi.layout.OnePositionLayout`
   A single position per cell
   (``n_macroparticles_per_cell`` particles per cell, all at the same point,
   shifted by ``in_cell_offset`` in units of the cell size).

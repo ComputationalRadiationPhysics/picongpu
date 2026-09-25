@@ -52,6 +52,10 @@ In this case, you can use one of the following:
            :start-after: BEGIN-UV-RUN
            :end-before: END-UV-RUN
 
+        (``uv run`` executes a script or project in its own environment;
+        ``uvx`` -- short for ``uv tool run`` -- is the equivalent for invoking
+        an *installed* console script such as ``pic-deps``.)
+
     .. tab-item:: pip-run
 
         `pip-run <https://github.com/jaraco/pip-run>`__ is a small,
@@ -70,6 +74,26 @@ In this case, you can use one of the following:
            :language: bash
            :start-after: BEGIN-PIP-RUN
            :end-before: END-PIP-RUN
+
+    .. tab-item:: pipx
+
+        `pipx <https://pipx.pypa.io/>`__ installs and runs Python applications
+        in isolated environments. Like ``uv``, ``pipx run`` reads the
+        `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__
+        and accepts git URLs.
+        Install it with
+
+        .. literalinclude:: ../snippets/running_simulation/pipx_install.sh
+           :language: bash
+           :start-after: BEGIN-PIPX-INSTALL
+           :end-before: END-PIPX-INSTALL
+
+        Then run
+
+        .. literalinclude:: ../snippets/running_simulation/pipx_run.sh
+           :language: bash
+           :start-after: BEGIN-PIPX-RUN
+           :end-before: END-PIPX-RUN
 
     .. tab-item:: hatch
 
@@ -346,6 +370,11 @@ In effect, you can run:
 
 to achieve roughly the same result that a call to ``simulation.run()`` would have had.
 You will still benefit in parts from the additional features like better metadata, etc.
+
+.. seealso::
+
+   The :ref:`HPC Submission Internals <hpc-submission>` page
+   documents the generated submission machinery that this legacy block drives.
 
 Manual and Partial Workflow Execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

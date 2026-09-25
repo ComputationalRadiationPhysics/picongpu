@@ -22,7 +22,6 @@ The remaining pages are deep dives into cross-cutting features.
 
 .. toctree::
    :maxdepth: 2
-   :hidden:
 
    grids_and_solvers
    lasers

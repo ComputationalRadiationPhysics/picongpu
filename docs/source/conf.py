@@ -316,8 +316,18 @@ def setup(app):
     # Pydantic fields are always annotated instance attributes, but Sphinx'
     # generic probe trips over pydantic's own ``ClassVar`` annotations (it
     # evaluates them with ``typing.get_type_hints`` in the *subclass* module,
-    # which need not import ``ClassVar``). Resolve fields from ``model_fields``
-    # instead. Drop this once autodoc-pydantic handles inherited fields itself.
+    # which need not import ``ClassVar``). The resulting ``NameError`` makes
+    # Sphinx' wrapper fall back to ``__annotations__``, which for a subclass
+    # holds only its *own* annotations -- inherited pydantic fields are then
+    # missed and dropped from the reference (verified: it silently drops
+    # ``NativeFieldDump.period``/``.options`` and ``DerivedFieldDump.period``/
+    # ``.options``, i.e. the fields inherited from ``_FieldDump``; pydantic's
+    # ``ClassVar`` declarations live in ``pydantic.main``). Resolve fields from
+    # ``model_fields`` instead. Drop this once autodoc-pydantic handles
+    # inherited fields itself; see
+    # https://github.com/sphinx-doc/sphinx/issues/10934 and
+    # https://github.com/mansenfranzen/autodoc_pydantic/issues/303
+    # (Sphinx' ``sphinx.util.typing.get_type_hints`` catch of ``NameError``).
     from sphinx.ext.autodoc import UninitializedInstanceAttributeMixin
     from sphinxcontrib.autodoc_pydantic.directives.autodocumenters import PydanticFieldDocumenter
 
