@@ -80,6 +80,7 @@ from .precision_config import PrecisionConfig as PrecisionConfig
 from .simulation import Simulation as Simulation
 from .solver import BinomialSmoother as BinomialSmoother
 from .solver import ElectromagneticSolver as ElectromagneticSolver
+from .solver import ElectrostaticSolver as ElectrostaticSolver
 from .species import Species as Species
 
 assert _sys.version_info.major > 3 or _sys.version_info.minor >= 11, "Python 3.11 is required for PIConGPU PICMI"
