@@ -49,8 +49,9 @@ sim = picmi.Simulation(
 )
 
 # A follow-up run that resumes from the latest checkpoint
-# (or starts from scratch if none exists) uses:
+# (or starts from scratch if none exists) keeps a period and adds
+# the restart option:
 #
-#     Checkpoint(tryRestart=True)
+#     Checkpoint(period=TS[::20], tryRestart=True)
 
 sim.run(setup_dir=Path("checkpoint_setup"), run_dir=Path("checkpoint_run"))

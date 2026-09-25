@@ -26,8 +26,13 @@ Common properties and constraints
 All lasers share a few properties:
 
 * ``wavelength`` in metres,
-* ``duration`` in seconds
-  (the 1-sigma width of the intensity profile),
+* ``duration`` in seconds:
+  for the standard Gaussian lasers (``GaussianLaser`` and the dispersive
+  pulse) this is the 1/e half-width of the electric-field envelope
+  (``E ~ exp(-t^2 / duration^2)``), i.e. the intensity (``E^2``) has the
+  1-sigma width ``duration / 2``;
+  ``PlaneWaveLaser`` and ``TWTSLaser`` instead take ``duration`` directly
+  as the 1-sigma width of the intensity profile,
 * ``propagation_direction`` and ``polarization_direction``:
   normalized 3D vectors.
   The propagation direction must point *into* the simulation box,

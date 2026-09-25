@@ -80,7 +80,7 @@ Step 5: Run It
    :end-before: END-RUN-MINIMAL-EXAMPLE
 
 The script carries `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__,
-so ``uv`` installs the pinned PIConGPU version on the fly.
+so ``uv`` installs PIConGPU from its floating ``@dev`` branch on the fly.
 It then generates the input files, compiles a tailored binary and submits the simulation
 to the system given by your runtime configuration.
 See :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`

@@ -1,3 +1,6 @@
 preset = "rosi-hzdr"
 author = "Your Name"
 email = "you@example.org"
+# rosi-hzdr's preset provides a shared, pre-installed library directory as a
+# default; pic_libs must still be given and may point at that same location.
+pic_libs = "/bigdata/hplsim/development/rosi-picongpu-libs/"

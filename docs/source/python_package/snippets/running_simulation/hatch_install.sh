@@ -1,4 +1,4 @@
 #!/bin/bash
 # BEGIN-HATCH-INSTALL
-pip install hatch hatch-run
+pip install hatch
 # END-HATCH-INSTALL

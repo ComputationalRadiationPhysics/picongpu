@@ -16,7 +16,9 @@ which you can dump to machine-readable `JSON <https://json.org/>`__.
 Individual elements such as ``Species`` can be serialized and recovered
 the same way.
 Computed (read-only) fields must be excluded when dumping
-(``exclude_computed_fields=True``),
+(``exclude_computed_fields=True``, available since `Pydantic 2.12
+<https://docs.pydantic.dev/latest/changelog/>`__;
+on older versions filter ``model_computed_fields`` yourself),
 and validators run again on ``model_validate``;
 making the plain dump round-trip without that opt-out is tracked in
 https://github.com/chillenzer-agents/picongpu/issues/65:

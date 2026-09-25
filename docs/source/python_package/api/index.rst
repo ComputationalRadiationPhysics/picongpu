@@ -45,7 +45,7 @@ but you can also import them directly:
 
 The ``pypicongpu`` package is the internal middle layer that the
 ``picmi`` frontend renders into, and the template layer renders it into the
-C++ and configuration files. It is not part of the stable public API.
-Its own (auto-generated) reference is rendered from the
-``pypicongpu`` docstrings; see :ref:`Foundations <python_package/foundations/index:Foundations>`
+C++ and configuration files. It is not part of the stable public API and is
+intentionally not documented in this reference;
+see :ref:`Foundations <python_package/foundations/index:Foundations>`
 for how the layers fit together.

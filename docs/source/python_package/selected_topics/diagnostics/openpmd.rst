@@ -93,5 +93,6 @@ It lists, per time step, which fields and particles are written:
   ``"mappedMemory"`` (default) or ``"doubleBuffer"``
   (lower memory, but the output of one step is only available after the next).
 * ``backend_config``:
-  a path to an additional openPMD backend configuration file
-  for options that are not exposed here.
+  additional openPMD backend options that are not exposed here,
+  passed as an inline TOML/JSON configuration rather than a file path
+  (rendered into the plugin's ``backendConfig`` setting).

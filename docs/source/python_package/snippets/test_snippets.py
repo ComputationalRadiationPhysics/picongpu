@@ -66,12 +66,14 @@ TOML_EXPECTED = {
         "preset": "rosi-hzdr",
         "author": "Your Name",
         "email": "you@example.org",
+        "pic_libs": "/bigdata/hplsim/development/rosi-picongpu-libs/",
     },
     "configuring_environment/rc_params_minimal_jupiter.toml": {
         "preset": "jupiter-jsc",
         "author": "Your Name",
         "email": "you@example.org",
         "project_id": "your-project-id",
+        "pic_libs": "$PROJECT/$USER/share/lib",
     },
     "configuring_environment/rc_params_finetune_preset.toml": {
         "preset": "rosi-hzdr",
@@ -85,7 +87,7 @@ TOML_EXPECTED = {
         "my_rc_params_value": "Rendering template content directly",
         "profile_content": "echo 'Using profile_content directly'",
         "profile_path": "/path/to/my/profile",
-        "profile_template_content": "echo {my_rc_params_value}",
+        "profile_template_content": "echo {{{my_rc_params_value}}}",
         "profile_template_path": "/path/to/my/profile-template",
     },
 }
@@ -482,13 +484,24 @@ def test_toml_snippet(snippet, tmp_path):
     environment["HOME"] = str(home)
     environment["PIC_RC"] = str(snippet)
 
+    # the "minimal" configurations claim to be complete, so they must render a
+    # profile; the other TOML snippets are fragments/overlays, so only their
+    # parsed values are checked and the profile is not rendered
+    relative = snippet.relative_to(SNIPPETS_DIR).as_posix()
+    must_render = "rc_params_minimal" in relative
+
+    render = "rendered = len(rc_params.profile_content)\n" if must_render else "rendered = 1\n"
     result = subprocess.run(
         [
             sys.executable,
             "-c",
             "import json\n"
             "from picongpu import rc_params\n"
-            "print(json.dumps({key: str(value) for key, value in rc_params.items()}))",
+            "# render the profile as generation would; a missing required\n"
+            "# parameter raises here, so this covers the whole minimal config\n"
+            f"{render}"
+            "print(json.dumps({key: str(value) for key, value in rc_params.items()}))\n"
+            "print(json.dumps({'profile_content_length': rendered}))",
         ],
         cwd=tmp_path,
         env=environment,
@@ -498,8 +511,13 @@ def test_toml_snippet(snippet, tmp_path):
     )
     assert result.returncode == 0, f"snippet {snippet} failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
 
-    applied = json.loads(result.stdout)
+    applied = json.loads(result.stdout.splitlines()[0])
     for key, value in expected.items():
         assert applied[key] == str(value), (
             f"expected rc_params[{key!r}] == {value!r} after loading {snippet.name}, got {applied.get(key)!r}"
+        )
+    rendered = json.loads(result.stdout.splitlines()[1])
+    if must_render:
+        assert rendered["profile_content_length"] > 0, (
+            f"rendering the profile from {snippet.name} produced empty content"
         )

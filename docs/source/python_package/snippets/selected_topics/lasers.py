@@ -27,7 +27,8 @@ LASER_DURATION = 5.0e-15
 laser = picmi.GaussianLaser(
     wavelength=0.8e-6,
     waist=5.0e-6 / 1.17741,
-    # the pulse duration is the 1-sigma width of the intensity profile:
+    # GaussianLaser's duration is the 1/e half-width of the field envelope
+    # (the intensity is 1/e^2, i.e. 1-sigma width = duration / 2):
     duration=LASER_DURATION,
     # the propagation direction must point into the box (positive y):
     propagation_direction=[0.0, 1.0, 0.0],

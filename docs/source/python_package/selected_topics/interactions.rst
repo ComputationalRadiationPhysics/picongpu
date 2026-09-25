@@ -45,7 +45,8 @@ Each model is one of:
 
 ``picmi.BSI``
    Barrier suppression ionization;
-   ``BSI_extensions`` (a tuple) optionally adds
+   ``BSI_extensions`` (a tuple, required -- pass ``()`` to use the plain
+   model without extensions) adds
    ``picmi.BSIExtension.StarkShift`` or ``picmi.BSIExtension.EffectiveZ``.
 
 ``picmi.Keldysh``

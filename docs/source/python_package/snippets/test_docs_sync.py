@@ -163,3 +163,64 @@ def test_documented_run_directory_matches_workflow_outputs(tmp_path):
 
     missing = documented - produced
     assert not missing, f"documented run-directory entries not produced by the workflow: {sorted(missing)}"
+
+
+UNITS = DOCS_SOURCE / "python_package/selected_topics/units.rst"
+FUNCTORS = DOCS_SOURCE / "python_package/selected_topics/functors.rst"
+
+
+def _documented_constant_names():
+    """Return the ``picongpu.picmi.constants`` names listed on the units page."""
+    text = UNITS.read_text()
+    section = text.split("ships with the frontend as", 1)[1].split("Use them to build", 1)[0]
+    return set(re.findall(r"``([A-Za-z_][A-Za-z0-9_]*)``", section))
+
+
+def test_documented_constants_match_module():
+    """Every constant named in the units list exists in the constants module."""
+    from picongpu.picmi import constants
+
+    documented = _documented_constant_names()
+    # names that are prose, not module attributes
+    documented -= {"epsilon_0"}
+    assert documented, "failed to parse the documented constants list"
+    missing = documented - set(dir(constants))
+    assert not missing, f"documented constants not found in picongpu.picmi.constants: {sorted(missing)}"
+
+
+def test_documented_unit_dimension_order_matches_module():
+    """The documented unit-dimension letter order matches the module's index map."""
+    from picongpu.picmi.particle_functor.unit_dimension import _UNIT_INDEX_MAP
+
+    text = UNITS.read_text()
+    theta = "\u0398"  # capital theta, the temperature dimension
+    assert f"``L M T I {theta} N J``" in text, "the documented unit-dimension order changed"
+    order = ["L", "M", "T", "I", theta, "N", "J"]
+    indices = [_UNIT_INDEX_MAP[name] for name in order]
+    assert indices == list(range(7)), f"documented order disagrees with _UNIT_INDEX_MAP: {indices}"
+
+
+def test_documented_unit_dimension_singletons_exist():
+    """The ``L``, ``M``, ``T`` and ``I`` singletons named in the docs exist."""
+    from picongpu.picmi.particle_functor import unit_dimension
+
+    text = UNITS.read_text()
+    assert "singletons ``L``, ``M``, ``T`` and ``I``" in text
+    for name in ("L", "M", "T", "I"):
+        assert hasattr(unit_dimension, name), f"documented singleton {name} is missing"
+
+
+def test_documented_binning_origins_match_code():
+    """The origins listed for particle functors match the implemented accessors."""
+    from picongpu.picmi.particle_functor import particle_functor as frontend
+    from picongpu.pypicongpu.particle_functor import particle_functor as backend
+
+    text = FUNCTORS.read_text()
+    # the binning list is the five origins without "cell"; the general list adds it
+    binning_origins = {key[1] for key in backend.BINNING_ACCESSORS if isinstance(key, tuple) and key[0] == "position"}
+    general_origins = {key[0] for key in frontend._COORDINATE_SYSTEM if isinstance(key, tuple)}
+    assert binning_origins == {"total", "global", "local", "moving_window", "local_with_guards"}
+    assert general_origins == binning_origins | {"cell"}
+    # the page must not claim cell as a binning origin
+    assert "binning functors" in text
+    assert "not for binning functors" in text

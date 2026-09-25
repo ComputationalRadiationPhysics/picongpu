@@ -134,6 +134,9 @@ The ``pic_src_path`` parameter is a special parameter.
 You can override it with an explicit value
 but its intention is to be automatically deduced
 to point to the PIConGPU installation in use.
+Although it appears in ``required_information`` together with the
+preset's other required parameters, it is always pre-filled from the
+installation path, so you normally never have to set it yourself.
 
 Presets
 -------

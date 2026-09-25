@@ -44,8 +44,8 @@ particle count per cell:
   All species densities are normalized by it.
 * ``picongpu_typical_ppc``:
   the typical number of macro-particles per cell used for code-unit
-  normalization. If unset, the median of all species' particle counts
-  is used.
+  normalization. If unset, the integer midpoint between the smallest and
+  largest per-layout ``ppc`` of the initialized species is used.
 
 Both are mostly relevant as numerical knobs and can usually be left at
 their defaults.

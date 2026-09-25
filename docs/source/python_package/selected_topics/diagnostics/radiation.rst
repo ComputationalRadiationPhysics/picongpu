@@ -28,7 +28,7 @@ because you must tell it *where* to look.
    The :ref:`time steps <time-steps>` at which output is written.
    Note that the plugin **cannot produce output at time step 0**
    (it needs a few steps of particle history),
-   so the first entry of the period must be ``>= 2``.
+   so the period must not contain step 0.
 
 ``observer``
    A ``RadiationObserverConfiguration`` (from

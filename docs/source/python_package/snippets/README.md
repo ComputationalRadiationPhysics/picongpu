@@ -46,6 +46,16 @@ exactly the code that is executed in CI**.
 
 ## Which snippets are executed where
 
+> **Limitation (not covered by the harness).** A few short, illustrative
+> fragments are written as inline `.. code-block:: python` blocks directly
+> in the `.rst` files instead of being rendered from a checked-in script
+> (e.g. the `UnitDimension` examples in `units.rst`, the analytic-density
+> decorator in `functors.rst`, and the `Simulation(...)` one-liners in
+> `simulation_settings.rst`, `interactions.rst`, `lasers.rst` and
+> `species_distributions_layouts.rst`). Those blocks are **not** executed
+> or syntax-checked. They are kept short and are covered by the executed
+> pages around them; do not rely on them as the source of truth.
+
 - **Executed by the pytest suite (one test per file):** all Python snippets
   in `configuring_environment/` and `defining_simulation/` (the ones that
   call `simulation.run()` are run with the run step emulated, see above).

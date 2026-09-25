@@ -44,8 +44,8 @@ Other parameters:
 Restarting a run
 ----------------
 
-A new run resumes from a checkpoint by giving it the restart options
-instead of a fresh ``period``:
+A new run resumes from a checkpoint by adding the restart options
+(in addition to the mandatory ``period`` or ``timePeriod``):
 
 ``restart=True``
    Restart from the latest checkpoint

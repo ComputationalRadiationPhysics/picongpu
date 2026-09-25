@@ -3,5 +3,5 @@ my_rc_params_value = "Rendering template content directly"
 
 profile_content = "echo 'Using profile_content directly'"
 profile_path = "/path/to/my/profile"
-profile_template_content = "echo {my_rc_params_value}"
+profile_template_content = "echo {{{my_rc_params_value}}}"
 profile_template_path = "/path/to/my/profile-template"

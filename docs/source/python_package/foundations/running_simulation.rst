@@ -54,9 +54,9 @@ In this case, you can use one of the following:
 
     .. tab-item:: pip-run
 
-        `pip-run <https://pip-tools.readthedocs.io/>`__ is part of the ``pip-tools``
-        project, a small set of plugins around ``pip``
-        for running scripts with transient, isolated dependencies.
+        `pip-run <https://github.com/jaraco/pip-run>`__ is a small,
+        standalone tool for running scripts with transient, isolated
+        dependencies.
         Install it with
 
         .. literalinclude:: ../snippets/running_simulation/pip_run_install.sh
@@ -73,9 +73,13 @@ In this case, you can use one of the following:
 
     .. tab-item:: hatch
 
-        `hatch <https://hatch.pypa.io/>`__ is a Python project manager
-        that also supports running scripts from a single file using the
-        `hatch-run <https://hatch.pypa.io/latest/config/cli/#run>`__ plugin.
+        `hatch <https://hatch.pypa.io/>`__ is a Python project manager.
+        Its ``hatch run`` command executes a script that carries
+        `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__
+        directly, creating a dedicated environment with the declared
+        dependencies
+        (see the `hatch script documentation
+        <https://hatch.pypa.io/latest/how-to/run/python-scripts/>`__).
         Install it with
 
         .. literalinclude:: ../snippets/running_simulation/hatch_install.sh
@@ -173,6 +177,10 @@ are written into ``workflow/input.yaml``
 and can be customized by passing them as keyword arguments
 to ``simulation.run()`` / ``simulation.write_input_file()``
 (e.g. ``simulation.run(jobs=8, force=True)``).
+The runner accepts the step short names for the ones that have one:
+``cmake_build_system`` is also ``G``, ``cfg_file`` is ``cfg``,
+``submit_system`` is ``submit`` (or ``s``), ``template_file`` is ``tpl``
+and ``overwrite_vars`` is ``o``.
 The ``setup_dir`` / ``run_dir`` keyword arguments of
 ``simulation.run()`` are different:
 they only choose where the runner writes the setup directory
@@ -201,9 +209,9 @@ the run directory looks like this::
   └── .cwl_cache/                 # the step cache of the workflow engine (see below)
 
 The simulation itself is executed by the batch script in its working directory,
-which the workflow engine (``cwltool``) creates in the system's temporary directory
-(default: ``/tmp/``) and keeps after the workflow has finished
-(the destination path the submission was pinned to).
+which the workflow engine (``cwltool``) creates per step inside its job cache
+``<run_dir>/.cwl_cache/<md5>/`` and keeps after the workflow has finished
+(``rm_tmpdir=False``; the destination path the submission was pinned to).
 The output is written to ``simOutput/`` in that directory.
 ``link_results.sh`` encodes the absolute path of that location
 and creates a symbolic link to its ``simOutput/`` at a path you choose
@@ -347,8 +355,11 @@ Manually running the full workflow
 
 Starting from a generated setup (see `running_simulation_legacy_workflow`_),
 we can find a full workflow definition in `Common Workflow Language (CWL) <https://www.commonwl.org/>`__ in ``workflow/``.
-The exact equivalent of using ``simulation.run()`` directly
-can be achieved on a generated setup the following invocation of the `cwltool <https://github.com/common-workflow-language/cwltool>`__:
+The equivalent of using ``simulation.run()`` directly
+can be achieved on a generated setup by the following invocation of the `cwltool <https://github.com/common-workflow-language/cwltool>`__,
+which mirrors the runner's runtime context (``--leave-tmpdir`` for
+``rm_tmpdir=False``, ``--preserve-entire-environment`` and the same
+``--cachedir``), and then links the results as the runner does:
 
 .. literalinclude:: ../snippets/running_simulation/cwltool_workflow.sh
    :language: bash
@@ -396,21 +407,26 @@ If you want to embed PIConGPU runs into your own workflows
 a cluster-specific pipeline, ...),
 the generated setup directory is designed to be the integration point:
 
-* It is **self-contained**:
-  the runtime configuration is baked into the scripts,
-  the workflow is a standard CWL 1.2 definition
+* It is **largely self-contained**:
+  the runtime configuration is baked into the scripts and the workflow is a
+  standard CWL 1.2 definition
   (drivable by any CWL engine,
   not only the ``cwltool`` invocation that ``simulation.run()`` uses),
   and the scripts can be invoked directly
   (see `Running the individual scripts manually`_).
+  It still relies on the environment the generated profile describes
+  (a PIConGPU source checkout and its dependencies), so it is reproducible
+  on a configured system rather than on an arbitrary machine.
 * It is **self-describing**:
   the ``metadata/`` directory and the RO-Crate
   (see `Metadata and Provenance`_)
-  capture the simulation and the environment completely,
+  record the simulation input and the runtime configuration
+  (``pypicongpu_runner.json`` / ``rc_params.json``),
   so that other tools (and your future self) can inspect and reuse it.
 * It is **parameterized**:
-  ``workflow/input.yaml`` contains all inputs of the workflow steps
-  as plain data,
+  ``workflow/input.yaml`` contains the inputs of the workflow steps
+  (build flags, the run step's ``tbg`` configuration and the referenced
+  files/directories) as plain data,
   which you can modify and feed to your own workflow engine.
 
 A typical integration strategy is to call ``simulation.write_input_file()``

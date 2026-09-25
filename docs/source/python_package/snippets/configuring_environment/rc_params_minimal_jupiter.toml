@@ -2,3 +2,6 @@ preset = "jupiter-jsc"
 author = "Your Name"
 email = "you@example.org"
 project_id = "your-project-id"
+# jupiter-jsc derives its dependency paths from pic_libs; point it at the
+# shared installation on JUPITER (or your own `pic-deps install` location).
+pic_libs = "$PROJECT/$USER/share/lib"

@@ -29,8 +29,10 @@ and evaluated on the GPU at runtime:
        return 1e25 * exp(-((x - 1e-6) / 1e-7) ** 2)
 
 Use ``sympy.Piecewise`` for conditional profiles;
-its momentum parameters (``rms_velocity``, ``directed_velocity``)
-are currently restricted to their defaults.
+the momentum parameters ``rms_velocity`` and ``directed_velocity``
+are currently only partially supported
+(``rms_velocity`` is pinned to zero; ``directed_velocity`` is accepted
+but untested).
 
 The same symbolic machinery is the natural building block for other
 user-supplied, code-level expressions;
@@ -55,11 +57,13 @@ through ``particle.get("...")``:
 
 * ``"position"``:
   a 3D vector; the keyword arguments ``origin``
-  (``"total"`` (default), ``"cell"``, ``"local"``, ``"global"``,
+  (``"total"`` (default), ``"local"``, ``"global"``,
   ``"moving_window"`` or ``"local_with_guards"``),
   ``precision`` (``"cell"`` (default) or ``"sub_cell"``)
   and ``unit`` (``"cell"`` (default), ``"pic"`` or ``"si"``)
   select the reference frame, the resolution and the units.
+  (``"cell"`` is only available as an ``origin`` for derived-field and
+  filter functors, not for binning functors.)
 * ``"momentum"`` / ``"momentumPrev1"``:
   the 3D momentum (index it as
   ``px, py, pz = particle.get("momentum")``).
@@ -113,8 +117,9 @@ which is also what you will find in the output files.
 .. note::
 
    Deep dive:
-   functors are compiled into the binary
-   as ``ALPAKA_FN_ACC`` lambdas in the generated
+   functors are compiled into the binary -- binning expressions as
+   ``ALPAKA_FN_ACC`` lambdas, derived attributes (file output) as
+   ``DINLINE`` call operators of generated functor structs -- in
    ``binningSetup.param`` / ``fileOutput.param``
    (see :ref:`the binning plugin documentation <usage-plugins-binningPlugin>`
    for the underlying C++ implementation).
