@@ -9,7 +9,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, BeforeValidator, PlainSerializer, field_serializer
 
-from picongpu.pypicongpu.grid import serialise_vec
+from picongpu.pypicongpu.grid import serialise_vec3
 
 
 def _non_negative(values):
@@ -55,12 +55,12 @@ class MemoryConfig(BaseModel):
     """exchange buffer bytes for corners (default 8 KiB)."""
 
     ref_local_dom_size: Annotated[
-        tuple[int, int, int], BeforeValidator(_non_negative), PlainSerializer(serialise_vec, return_type=dict)
+        tuple[int, int, int], BeforeValidator(_non_negative), PlainSerializer(serialise_vec3, return_type=dict)
     ] = (0, 0, 0)
     """reference local domain size for exchange scaling; three non-negative ints (0 = no scaling)."""
 
     dir_scaling_factor: Annotated[
-        tuple[float, float, float], BeforeValidator(_non_negative), PlainSerializer(serialise_vec, return_type=dict)
+        tuple[float, float, float], BeforeValidator(_non_negative), PlainSerializer(serialise_vec3, return_type=dict)
     ] = (0.0, 0.0, 0.0)
     """per-direction scaling rate for the exchange buffers; three non-negative floats (0.0 = no scaling)."""
 
