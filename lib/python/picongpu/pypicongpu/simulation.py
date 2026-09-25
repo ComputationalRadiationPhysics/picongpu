@@ -8,7 +8,7 @@ License: GPLv3+
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_serializer, field_validator
+from pydantic import BaseModel, Field, computed_field, field_serializer, field_validator
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
 from picongpu.pypicongpu.output.radiation import RadiationPlugin
@@ -22,8 +22,10 @@ from .customuserinput import CustomUserInput
 from .field_solver import AnySolver
 from .grid import AnyGrid
 from .laser import AnyLaser
+from .memory import MemoryConfig
 from .movingwindow import MovingWindow
 from .output import AnyPlugin, OpenPMDPlugin
+from .precision_config import PrecisionConfig
 from .rendering import RenderedObject
 from .walltime import Walltime
 
@@ -94,6 +96,36 @@ class Simulation(RenderedObject, BaseModel):
     (double precision). Controls ``namespace precisionPIConGPU`` in the generated
     ``include/picongpu/param/precision.param``.
     """
+
+    precision_overrides: PrecisionConfig = PrecisionConfig()
+    """per-namespace precision overrides rendered into ``precision.param`` (see ``PrecisionConfig``)."""
+
+    memory_config: MemoryConfig = MemoryConfig()
+    """memory / exchange-buffer knobs rendered into ``memory.param`` (see ``MemoryConfig``)."""
+
+    @computed_field
+    def precisionSqrt(self) -> str:
+        return (
+            "precisionPIConGPU"
+            if self.precision_overrides.sqrt == "core"
+            else f"precision{self.precision_overrides.sqrt}Bit"
+        )
+
+    @computed_field
+    def precisionExp(self) -> str:
+        return (
+            "precisionPIConGPU"
+            if self.precision_overrides.exp == "core"
+            else f"precision{self.precision_overrides.exp}Bit"
+        )
+
+    @computed_field
+    def precisionTrigonometric(self) -> str:
+        return (
+            "precisionPIConGPU"
+            if self.precision_overrides.trig == "core"
+            else f"precision{self.precision_overrides.trig}Bit"
+        )
 
     @field_validator("output", mode="after")
     @classmethod

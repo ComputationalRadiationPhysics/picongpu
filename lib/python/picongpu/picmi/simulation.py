@@ -38,6 +38,8 @@ from picongpu.picmi.species_requirements import (
     resolving_add,
     run_construction,
 )
+from picongpu.picmi.memory_config import MemoryConfig
+from picongpu.picmi.precision_config import PrecisionConfig
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
@@ -208,6 +210,20 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     32 (single precision, default) or 64 (double precision). Controls the
     ``precisionPIConGPU`` namespace in the generated ``precision.param``.
+    """
+
+    picongpu_precision_config: PrecisionConfig = Field(default_factory=PrecisionConfig)
+    """
+    per-namespace precision overrides (sqrt/exp/trig) rendered into ``precision.param``
+    (see ``PrecisionConfig``).
+
+    ``"core"`` (default) aliases the core ``precisionPIConGPU`` precision; ``32``/``64``
+    force ``precision32Bit``/``precision64Bit`` respectively.
+    """
+
+    picongpu_memory_config: MemoryConfig = Field(default_factory=MemoryConfig)
+    """
+    memory / exchange-buffer knobs rendered into ``memory.param`` (see ``MemoryConfig``).
     """
 
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
@@ -494,6 +510,8 @@ class Simulation(picmistandard.PICMI_Simulation):
             synchrotron_params=synchrotron_params[0],
             collisional_physics=collisions[0].get_as_pypicongpu(),
             precision=self.picongpu_precision,
+            precision_overrides=self.picongpu_precision_config.get_as_pypicongpu(),
+            memory_config=self.picongpu_memory_config.get_as_pypicongpu(),
         )
 
     def _get_base_density(self) -> float:

@@ -262,9 +262,12 @@ class TestCartesian3DGrid(TestCase):
         template = (templates.path() / "include" / "picongpu" / "param" / "memory.param.mustache").read_text()
 
         def rendered_guard(grid):
+            from picongpu.pypicongpu.memory import MemoryConfig
+
             context = {
                 "grid": grid.get_as_pypicongpu().model_dump(mode="json"),
                 "collisional_physics": {"num_tmp_field_slots": 4},
+                "memory_config": MemoryConfig().model_dump(mode="json"),
             }
             rendered = Renderer.get_rendered_template(Renderer.get_context_preprocessed(context), template)
             match = re.search(r"using GuardSize = typename mCT::shrinkTo<mCT::Int<([^>]*)>,", rendered)
