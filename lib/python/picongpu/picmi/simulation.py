@@ -400,7 +400,8 @@ class Simulation(picmistandard.PICMI_Simulation):
     def _check_huygens_surface_positions(self):
         # Every laser renders into the single incidentField, so all lasers must
         # share one Huygens surface. Enforce strict list-equality of the three
-        # [neg, pos] pairs, using the first laser as the reference (#115).
+        # [neg, pos] pairs, using the first laser as the reference
+        # (https://github.com/chillenzer-agents/picongpu/issues/115).
         if len(self.lasers) <= 1:
             return
         reference = self.lasers[0].picongpu_huygens_surface_positions

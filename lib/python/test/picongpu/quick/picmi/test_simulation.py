@@ -147,7 +147,7 @@ class TestPicmiSimulation(TestCase):
             get_sim_cfl_helper(1, 0.99, (3, 4, 5), "Yee")
 
     def test_huygens_surface_positions_mismatch_raises(self):
-        """two lasers with differing Huygens surface positions are rejected at translate time (#115)"""
+        """two lasers with differing Huygens surface positions are rejected at translate time (https://github.com/chillenzer-agents/picongpu/issues/115)"""
         sim = self.__get_sim()
         sim.add_laser(get_laser([[16, -16], [16, -16], [16, -16]]), None)
         sim.add_laser(get_laser([[1, -1], [1, -1], [1, -1]]), None)
@@ -155,7 +155,7 @@ class TestPicmiSimulation(TestCase):
             sim.get_as_pypicongpu()
 
     def test_huygens_surface_positions_matching_ok(self):
-        """identical Huygens surface positions across multiple lasers translate fine (#115)"""
+        """identical Huygens surface positions across multiple lasers translate fine (https://github.com/chillenzer-agents/picongpu/issues/115)"""
         sim = self.__get_sim()
         sim.add_laser(get_laser([[3, -3], [3, -3], [3, -3]]), None)
         sim.add_laser(get_laser([[3, -3], [3, -3], [3, -3]]), None)
@@ -163,13 +163,13 @@ class TestPicmiSimulation(TestCase):
         assert sim.get_as_pypicongpu().model_dump() != {}
 
     def test_huygens_surface_positions_single_laser_ok(self):
-        """a single laser needs no cross-laser consistency check (#115)"""
+        """a single laser needs no cross-laser consistency check (https://github.com/chillenzer-agents/picongpu/issues/115)"""
         sim = self.__get_sim()
         sim.add_laser(get_laser([[9, -9], [9, -9], [9, -9]]), None)
         assert sim.get_as_pypicongpu().model_dump() != {}
 
     def test_huygens_surface_positions_mixed_laser_types(self):
-        """the consistency check is type-agnostic and compares across laser kinds (#115)"""
+        """the consistency check is type-agnostic and compares across laser kinds (https://github.com/chillenzer-agents/picongpu/issues/115)"""
         # differing positions across two different laser types are rejected
         sim = self.__get_sim()
         sim.add_laser(get_laser([[16, -16], [16, -16], [16, -16]]), None)
