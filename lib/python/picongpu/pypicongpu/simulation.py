@@ -24,6 +24,7 @@ from .grid import AnyGrid
 from .laser import AnyLaser
 from .memory import MemoryConfig
 from .movingwindow import MovingWindow
+from .poissonsolver import PoissonSolver
 from .output import AnyPlugin, OpenPMDPlugin
 from .precision_config import PrecisionConfig
 from .rendering import RenderedObject
@@ -74,6 +75,9 @@ class Simulation(RenderedObject, BaseModel):
 
     moving_window: MovingWindow | None
     """used moving Window, set to None to disable"""
+
+    poisson_solver: PoissonSolver | None
+    """used poisson solver for electrostatic calculations for the starting conditions, set to None to disable"""
 
     walltime: Walltime
     """time limit of the simulation run"""
