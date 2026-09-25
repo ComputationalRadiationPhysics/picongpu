@@ -26,15 +26,17 @@ class MemoryConfig(BaseModel):
     Memory / exchange-buffer knobs exposed at the PICMI level and rendered into
     ``include/picongpu/param/memory.param``.
 
-    This is the user-facing grouping of the memory knobs. The human-readable
-    rendering (e.g. ``350 * 1024 * 1024``) is a pypicongpu concern and is
-    applied by :class:`picongpu.pypicongpu.memory.MemoryConfig` on conversion
-    (see ``get_as_pypicongpu``). ``super_cell_size`` intentionally lives on the
-    grid, not here.
+    This is the user-facing grouping of the memory knobs. All values are raw
+    byte counts; use the byte-size constants from :mod:`picongpu.picmi.constants`
+    for readability, e.g. ``reserved_gpu_memory_size=350 * MiB``. The
+    human-readable rendering (e.g. ``350 * 1024 * 1024``) is a pypicongpu concern
+    and is applied by :class:`picongpu.pypicongpu.memory.MemoryConfig` on
+    conversion (see ``get_as_pypicongpu``). ``super_cell_size`` intentionally
+    lives on the grid, not here.
     """
 
-    reserved_gpu_memory_size: Annotated[int, Field(ge=0)] = 350
-    """reserved GPU-internal memory, in MiB (rendered as ``<mib> * 1024 * 1024`` bytes)."""
+    reserved_gpu_memory_size: Annotated[int, Field(ge=0)] = 350 * 1024 * 1024
+    """reserved GPU-internal memory, in bytes (default 350 MiB)."""
 
     bytes_exchange_x: Annotated[int, Field(gt=0)] = 1 * 1024 * 1024
     """exchange buffer bytes for the x direction (default 1 MiB)."""

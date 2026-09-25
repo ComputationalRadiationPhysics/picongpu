@@ -11,6 +11,7 @@ import pytest
 from pydantic import ValidationError
 
 from picongpu import picmi, templates
+from picongpu.picmi.constants import MiB, kB
 from picongpu.picmi.memory_config import MemoryConfig
 from picongpu.picmi.precision_config import PrecisionConfig
 from picongpu.pypicongpu import memory as pypicongpu_memory
@@ -42,11 +43,11 @@ def _rendered(template_name, sim):
 class TestMemoryConfigDefaults(TestCase):
     def test_defaults_round_trip(self):
         config = MemoryConfig()
-        assert config.reserved_gpu_memory_size == 350
+        assert config.reserved_gpu_memory_size == 350 * MiB
         assert (config.bytes_exchange_x, config.bytes_exchange_y, config.bytes_exchange_z) == (
-            1 * 1024 * 1024,
-            3 * 1024 * 1024,
-            1 * 1024 * 1024,
+            1 * MiB,
+            3 * MiB,
+            1 * MiB,
         )
         assert (config.bytes_edges, config.bytes_corner) == (32 * 1024, 8 * 1024)
         assert config.ref_local_dom_size == (0, 0, 0)
@@ -58,9 +59,17 @@ class TestMemoryConfigDefaults(TestCase):
         dumped = MemoryConfig().get_as_pypicongpu().model_dump(mode="json")
         assert dumped["reserved_gpu_memory_size"] == "350 * 1024 * 1024"
 
-    def test_reserved_mib_custom(self):
-        dumped = MemoryConfig(reserved_gpu_memory_size=100).get_as_pypicongpu().model_dump(mode="json")
+    def test_reserved_bytes_accepts_unit_constants(self):
+        # all memory values are byte counts; unit constants make them readable
+        assert MemoryConfig(reserved_gpu_memory_size=2 * MiB).reserved_gpu_memory_size == 2 * 1024 * 1024
+        assert MemoryConfig(bytes_edges=64 * kB).bytes_edges == 64_000
+
+    def test_reserved_custom_rendering(self):
+        dumped = MemoryConfig(reserved_gpu_memory_size=100 * MiB).get_as_pypicongpu().model_dump(mode="json")
         assert dumped["reserved_gpu_memory_size"] == "100 * 1024 * 1024"
+        # non-round byte counts fall back to a plain integer literal
+        dumped = MemoryConfig(bytes_edges=1234).get_as_pypicongpu().model_dump(mode="json")
+        assert dumped["bytes_edges"] == "1234"
 
     def test_vec_serialised_to_xyz_dict(self):
         dumped = (
@@ -101,11 +110,11 @@ class TestMemoryConfigValidation(TestCase):
 class TestPrecisionOverrides(TestCase):
     def test_default_is_core(self):
         sim = _sim()
-        assert isinstance(sim.picongpu_precision_overrides, PrecisionConfig)
+        assert isinstance(sim.picongpu_precision_config, PrecisionConfig)
         assert (
-            sim.picongpu_precision_overrides.sqrt,
-            sim.picongpu_precision_overrides.exp,
-            sim.picongpu_precision_overrides.trig,
+            sim.picongpu_precision_config.sqrt,
+            sim.picongpu_precision_config.exp,
+            sim.picongpu_precision_config.trig,
         ) == (
             "core",
             "core",
@@ -121,7 +130,7 @@ class TestPrecisionOverrides(TestCase):
     def test_values_map_to_namespaces(self):
         sim = _sim(
             picongpu_precision=64,
-            picongpu_precision_overrides=PrecisionConfig(sqrt=64, exp="core", trig=32),
+            picongpu_precision_config=PrecisionConfig(sqrt=64, exp="core", trig=32),
         )
         p = sim.get_as_pypicongpu()
         assert (p.precision_overrides.sqrt, p.precision_overrides.exp, p.precision_overrides.trig) == (
@@ -138,12 +147,12 @@ class TestPrecisionOverrides(TestCase):
     def test_invalid_precision_rejected(self):
         for value in (128, 0, 16):
             with pytest.raises(ValidationError):
-                _sim(picongpu_precision_overrides=PrecisionConfig(sqrt=value))
+                _sim(picongpu_precision_config=PrecisionConfig(sqrt=value))
 
 
 class TestMemoryTranslation(TestCase):
     def test_default_is_memory_config(self):
-        assert isinstance(_sim().picongpu_memory, MemoryConfig)
+        assert isinstance(_sim().picongpu_memory_config, MemoryConfig)
 
     def test_memory_translates_to_pypicongpu(self):
         # the PICMI grouping is translated to the pypicongpu rendering model
@@ -151,22 +160,22 @@ class TestMemoryTranslation(TestCase):
 
     def test_custom_memory_flows_through(self):
         sim = _sim(
-            picongpu_memory=MemoryConfig(
-                reserved_gpu_memory_size=100,
+            picongpu_memory_config=MemoryConfig(
+                reserved_gpu_memory_size=100 * MiB,
                 ref_local_dom_size=(2, 3, 4),
                 dir_scaling_factor=(0.5, 0.25, 1.0),
                 field_tmp_support_gather_communication=False,
             )
         )
         mem = sim.get_as_pypicongpu().memory_config
-        assert mem.reserved_gpu_memory_size == 100
+        assert mem.reserved_gpu_memory_size == 100 * MiB
         assert mem.ref_local_dom_size == (2, 3, 4)
         assert mem.dir_scaling_factor == (0.5, 0.25, 1.0)
         assert mem.field_tmp_support_gather_communication is False
 
     def test_invalid_memory_rejected(self):
         with pytest.raises(ValidationError):
-            _sim(picongpu_memory=MemoryConfig(bytes_edges=0))
+            _sim(picongpu_memory_config=MemoryConfig(bytes_edges=0))
 
 
 class TestTemplateRendering(TestCase):
@@ -186,8 +195,8 @@ class TestTemplateRendering(TestCase):
 
     def test_memory_param_custom(self):
         sim = _sim(
-            picongpu_memory=MemoryConfig(
-                reserved_gpu_memory_size=100,
+            picongpu_memory_config=MemoryConfig(
+                reserved_gpu_memory_size=100 * MiB,
                 bytes_exchange_x=2 * 1024 * 1024,
                 ref_local_dom_size=(2, 3, 4),
                 dir_scaling_factor=(0.5, 0.25, 1.0),
@@ -211,7 +220,7 @@ class TestTemplateRendering(TestCase):
     def test_precision_param_overrides(self):
         sim = _sim(
             picongpu_precision=64,
-            picongpu_precision_overrides=PrecisionConfig(sqrt=32, exp=64, trig="core"),
+            picongpu_precision_config=PrecisionConfig(sqrt=32, exp=64, trig="core"),
         )
         rendered = _rendered("precision.param.mustache", sim)
         assert "namespace precisionPIConGPU = precision64Bit;" in rendered

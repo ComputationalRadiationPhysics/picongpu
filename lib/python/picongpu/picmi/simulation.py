@@ -212,7 +212,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     ``precisionPIConGPU`` namespace in the generated ``precision.param``.
     """
 
-    picongpu_precision_overrides: PrecisionConfig = Field(default_factory=PrecisionConfig)
+    picongpu_precision_config: PrecisionConfig = Field(default_factory=PrecisionConfig)
     """
     per-namespace precision overrides (sqrt/exp/trig) rendered into ``precision.param``
     (see ``PrecisionConfig``).
@@ -221,7 +221,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     force ``precision32Bit``/``precision64Bit`` respectively.
     """
 
-    picongpu_memory: MemoryConfig = Field(default_factory=MemoryConfig)
+    picongpu_memory_config: MemoryConfig = Field(default_factory=MemoryConfig)
     """
     memory / exchange-buffer knobs rendered into ``memory.param`` (see ``MemoryConfig``).
     """
@@ -510,8 +510,8 @@ class Simulation(picmistandard.PICMI_Simulation):
             synchrotron_params=synchrotron_params[0],
             collisional_physics=collisions[0].get_as_pypicongpu(),
             precision=self.picongpu_precision,
-            precision_overrides=self.picongpu_precision_overrides.get_as_pypicongpu(),
-            memory_config=self.picongpu_memory.get_as_pypicongpu(),
+            precision_overrides=self.picongpu_precision_config.get_as_pypicongpu(),
+            memory_config=self.picongpu_memory_config.get_as_pypicongpu(),
         )
 
     def _get_base_density(self) -> float:

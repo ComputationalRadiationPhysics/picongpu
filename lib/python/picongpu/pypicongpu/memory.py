@@ -30,15 +30,14 @@ class MemoryConfig(BaseModel):
     """
     Memory / exchange-buffer knobs rendered into ``include/picongpu/param/memory.param``.
 
-    ``reserved_gpu_memory_size`` is given in MiB (rendered as ``<mib> * 1024 * 1024`` bytes);
-    the ``bytes_*`` exchange sizes are raw byte counts (rendered human-readable, e.g.
+    All sizes are raw byte counts (rendered human-readable where possible, e.g.
     ``1 * 1024 * 1024`` / ``32 * 1024``); ``ref_local_dom_size`` are three
     non-negative ints (0 = no scaling); ``dir_scaling_factor`` are three floats (0.0 = no
     scaling). ``super_cell_size`` intentionally lives on the grid, not here.
     """
 
-    reserved_gpu_memory_size: Annotated[int, Field(ge=0)] = 350
-    """reserved GPU-internal memory, in MiB (rendered as ``<mib> * 1024 * 1024`` bytes)."""
+    reserved_gpu_memory_size: Annotated[int, Field(ge=0)] = 350 * 1024 * 1024
+    """reserved GPU-internal memory, in bytes (default 350 MiB)."""
 
     bytes_exchange_x: Annotated[int, Field(gt=0)] = 1 * 1024 * 1024
     """exchange buffer bytes for the x direction (default 1 MiB)."""
@@ -68,12 +67,14 @@ class MemoryConfig(BaseModel):
     field_tmp_support_gather_communication: bool = True
     """whether ``FieldTmp`` may gather neighbor ("ghost"/"halo") information across devices."""
 
-    @field_serializer("reserved_gpu_memory_size", return_type=str)
-    def _render_reserved(self, value: int) -> str:
-        return f"{value} * 1024 * 1024"
-
     @field_serializer(
-        "bytes_exchange_x", "bytes_exchange_y", "bytes_exchange_z", "bytes_edges", "bytes_corner", return_type=str
+        "reserved_gpu_memory_size",
+        "bytes_exchange_x",
+        "bytes_exchange_y",
+        "bytes_exchange_z",
+        "bytes_edges",
+        "bytes_corner",
+        return_type=str,
     )
     def _render_bytes(self, value: int) -> str:
         return _human_bytes(value)

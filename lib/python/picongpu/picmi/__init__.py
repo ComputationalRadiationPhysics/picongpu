@@ -7,6 +7,7 @@ import sys
 import picmistandard
 
 from . import constants, diagnostics
+from .constants import B, GB, GiB, KiB, MB, MiB, kB
 from .distribution import (
     AnalyticDistribution,
     CylindricalDistribution,
@@ -38,7 +39,9 @@ from .lasers import (
     TWTSLaser,
 )
 from .layout import GriddedLayout, OnePositionLayout, PseudoRandomLayout
+from .memory_config import MemoryConfig
 from .particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
+from .precision_config import PrecisionConfig
 from .simulation import Simulation
 from .solver import BinomialSmoother, ElectromagneticSolver
 from .species import Species
@@ -58,12 +61,21 @@ __all__ = [
     "TWTSLaser",
     "PlaneWaveLaser",
     "Species",
+    "MemoryConfig",
+    "PrecisionConfig",
     "FilteredSpecies",
     "ParticleFilter",
     "PseudoRandomLayout",
     "GriddedLayout",
     "OnePositionLayout",
     "constants",
+    "B",
+    "kB",
+    "MB",
+    "GB",
+    "KiB",
+    "MiB",
+    "GiB",
     "FoilDistribution",
     "UniformDistribution",
     "GaussianDistribution",
