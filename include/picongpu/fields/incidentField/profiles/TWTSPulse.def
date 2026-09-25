@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Axel Huebl, Alexander Debus, Richard Pausch, Sergei Bastrakov
+/* Copyright 2014-2026 Axel Huebl, Alexander Debus, Richard Pausch, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -60,9 +60,9 @@ namespace picongpu::fields::incidentField
                 }
                 else if((switchEndStep >= switchStartStep) && (n_off >= 0) && (n_off <= length))
                 {
-                    return a0 - a1 * math::cos(float_X(2.0) * PI * n_on / length / float_X(2.0))
-                           + a2 * math::cos(float_X(4.0) * PI * n_on / length / float_X(2.0))
-                           - a3 * math::cos(float_X(6.0) * PI * n_on / length / float_X(2.0));
+                    return a0 - a1 * math::cos(float_X(2.0) * PI * n_off / length / float_X(2.0))
+                           + a2 * math::cos(float_X(4.0) * PI * n_off / length / float_X(2.0))
+                           - a3 * math::cos(float_X(6.0) * PI * n_off / length / float_X(2.0));
                 }
                 return float_X(1.0);
             }

@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Alexander Debus, Axel Huebl, Sergei Bastrakov
+/* Copyright 2014-2026 Alexander Debus, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -116,8 +116,8 @@ namespace picongpu::templates::twtstight
         /** TWTS interaction angle
          *  Enclosed by the laser propagation direction and the y-axis.
          *  For a positive value of the interaction angle, the laser propagation direction
-         *  points along the y-axis and against the z-axis.
-         *  That is, for phi = 90 degree the laser propagates in the -z direction.
+         *  points along the y-axis and z-axis.
+         *  That is, for phi = 90 degree the laser propagates in the +z direction.
          * [rad]
          */
         PMACC_ALIGN(phi, float_64 const);

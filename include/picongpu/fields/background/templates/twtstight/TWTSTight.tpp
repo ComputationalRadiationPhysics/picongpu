@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Alexander Debus, Axel Huebl, Sergei Bastrakov
+/* Copyright 2014-2026 Alexander Debus, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -310,8 +310,8 @@ namespace picongpu::templates::twtstight
         float_T const psi0 = float_T(2.0) / k;
         float_T const w02 = w0 * w0;
         float_T const beta02 = beta0 * beta0;
-        float_T const nu = (y * cosPhi - z * sinPhi) / cspeed;
-        float_T const xi = (-z * cosPhi - y * sinPhi) * tanAlpha / cspeed;
+        float_T const nu = (y * cosPhi + z * sinPhi) / cspeed;
+        float_T const xi = (-z * cosPhi + y * sinPhi) * tanAlpha / cspeed;
         float_T const besselI0const = math::bessel::i0(k * k * sinPhi * w02 / float_T(2.0));
 
         complex_T const Xm = -z - complex_T(0, 0.5) * (k * w02);
@@ -342,7 +342,7 @@ namespace picongpu::templates::twtstight
             = (beta0 * tauG)
               / (math::sqrt(float_T(2.0))
                  * math::exp(
-                     beta02 * omega0 * math::cPow(t - nu + xi, static_cast<uint32_t>(2u))
+                     beta02 * omega0 * math::cPow(t - nu - xi, static_cast<uint32_t>(2u))
                      / (beta02 * omega0 * tauG2 - complex_T(0, 2) * (beta02 * (nu - xi) * cotPhi * cotPhi)
                         + complex_T(0, 2) * (beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi)
                         - complex_T(0, 2) * (nu / sinPhi_2)))
