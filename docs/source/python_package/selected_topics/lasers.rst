@@ -59,16 +59,49 @@ All lasers share a few properties:
   as the 1-sigma width of the intensity profile,
 * ``propagation_direction`` and ``polarization_direction``:
   normalized 3D vectors.
-  The propagation direction must point *into* the simulation box,
-  i.e. have a positive ``y`` component.
+  The propagation direction must point *into* the simulation box;
+  its dominant component determines the entry face
+  (see `Propagation direction and entry face`_ below).
 * ``centroid_position``: the position of the pulse at time zero.
-  It must be *outside* of the simulation box
-  (``centroid_position[1] <= 0``),
+  It must be *outside* of the simulation box on the entry side
+  (see `Propagation direction and entry face`_ below),
   so that the pulse enters the box during the simulation.
 * the field amplitude, given by exactly one of
   ``a0`` (the normalized vector potential) or
   ``E0`` (the peak electric field in V/m);
   the other is derived.
+
+Propagation direction and entry face
+------------------------------------
+
+A laser enters the simulation box through the coordinate face whose normal
+is the dominant component of its ``propagation_direction``: the component
+with the largest absolute value. A positive dominant component selects the
+``Min`` face of that axis (low side), a negative one the ``Max`` face
+(high side). For example ``[0, 1, 0]`` enters through ``YMin`` (the
+conventional head-on case), ``[1, 0, 0]`` through ``XMin`` and
+``[0, 0, -1]`` through ``ZMax``. Exactly the same rule validates
+``centroid_position``: it must lie outside the box on the entry side, i.e.
+the entry-axis component of the centroid must not point along the
+propagation direction (``centroid[axis] * propagation_direction[axis] <= 0``).
+
+For a genuinely diagonal direction with several equally large components
+(e.g. a 45-degree incidence), the tie is resolved to the first axis in
+``x``, ``y``, ``z`` order by convention, not by physics. Use a
+non-symmetric direction so the dominant component is unambiguous.
+
+The example below places three lasers on three different faces — ``XMin``,
+``YMax`` and ``ZMin`` — and checks the generated incident field:
+
+.. literalinclude:: ../snippets/selected_topics/laser_entry_faces.py
+   :language: python
+   :start-after: # BEGIN-LASER-ENTRY-FACES
+   :end-before: # END-LASER-ENTRY-FACES
+
+:class:`~picongpu.picmi.lasers.TWTSLaser` is the exception: it keeps its
+dedicated fixed placement (always ``YMin``, plus ``ZMin``/``ZMax`` chosen
+by the sign of ``laserIncidenceAngle``) and its ``+y``-only validation,
+regardless of the entry-face rule above.
 
 Laser types
 -----------
@@ -95,6 +128,9 @@ Laser types
    for traveling-wave Thomson-scattering setups;
    ``laserIncidenceAngle`` and ``polarizationAngle`` parameterize
    the incidence relative to the ``y`` axis.
+   Its placement is fixed to the ``YMin``/``ZMin``/``ZMax`` faces
+   (it always enters through ``YMin``); ``propagation_direction``
+   must still point into the box (positive ``y`` component).
 
 :class:`~picongpu.picmi.lasers.PlaneWaveLaser`
    A plane wave with a temporal shape:

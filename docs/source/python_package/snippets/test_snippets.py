@@ -376,6 +376,17 @@ EXPECTED_FILES = {
             "It worked!",
         ],
     },
+    "selected_topics/laser_entry_faces.py": {
+        "files": [
+            "laser_entry_faces_setup/include/picongpu/param/incidentField.param",
+        ],
+        "stdout_contains": [
+            "laser 0 enters through XMin",
+            "laser 1 enters through YMax",
+            "laser 2 enters through ZMin",
+            "It worked!",
+        ],
+    },
     "selected_topics/simulation_settings.py": {
         "no_run": True,
         "files": [
