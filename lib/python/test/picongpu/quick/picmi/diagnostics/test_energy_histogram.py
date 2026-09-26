@@ -11,7 +11,7 @@ from unittest import TestCase
 
 from picongpu import picmi
 from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import EnergyHistogram, TimeStepSpec
+from picongpu.picmi.diagnostics import EnergyHistogram, TS
 
 
 class TestEnergyHistogram(TestCase):
@@ -22,7 +22,7 @@ class TestEnergyHistogram(TestCase):
     def __get_histogram(self, species, max_energy_keV):
         return EnergyHistogram(
             species=species,
-            period=TimeStepSpec[:16:2],
+            period=TS[:16:2],
             bin_count=32,
             min_energy=0.0,
             max_energy=max_energy_keV * constants.keV,
@@ -41,7 +41,7 @@ class TestEnergyHistogram(TestCase):
     def test_min_energy_converted(self):
         histogram = EnergyHistogram(
             species=self.__get_species(),
-            period=TimeStepSpec[:16:2],
+            period=TS[:16:2],
             bin_count=32,
             min_energy=7.0 * constants.keV,
             max_energy=42.0 * constants.keV,
@@ -56,7 +56,7 @@ class TestEnergyHistogram(TestCase):
         with self.assertRaises(ValueError):
             histogram = EnergyHistogram(
                 species=self.__get_species(),
-                period=TimeStepSpec[:16:2],
+                period=TS[:16:2],
                 bin_count=32,
                 min_energy=42e-16,
                 max_energy=7.0 * constants.keV,

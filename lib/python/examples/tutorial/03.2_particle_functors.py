@@ -26,7 +26,7 @@ from picongpu.picmi import (
     Species,
 )
 from picongpu.picmi.constants import c
-from picongpu.picmi.diagnostics import Checkpoint, MacroParticleCount, TimeStepSpec
+from picongpu.picmi.diagnostics import Checkpoint, MacroParticleCount, TS
 from picongpu.picmi.diagnostics.binning import Binning, BinningAxis, BinSpec
 from picongpu.picmi.diagnostics.field_dump import DerivedFieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
@@ -100,12 +100,12 @@ adk_ionization = ADK(
     ionization_current=None,
 )
 
-checkpoint = Checkpoint(period=TimeStepSpec[::100])
+checkpoint = Checkpoint(period=TS[::100])
 macro_particle_count = MacroParticleCount(
     species=electrons,
     # Resulting values for period:
     # 0, 17, 50, 57, 64, 71, 100, 200, ...
-    period=TimeStepSpec[::100, 50:72:7, 17],
+    period=TS[::100, 50:72:7, 17],
 )
 
 
@@ -114,9 +114,7 @@ def kinetic_energy_density(macro_particle):
     return macro_particle.get("kinetic energy") / np.prod(CELL_SIZE)
 
 
-electron_energy_density = DerivedFieldDump(
-    species=electrons, functor=kinetic_energy_density, period=TimeStepSpec[::100]
-)
+electron_energy_density = DerivedFieldDump(species=electrons, functor=kinetic_energy_density, period=TS[::100])
 
 
 @ParticleFunctor(unit_dimension=M * L / T)
@@ -147,7 +145,7 @@ electron_momentum = Binning(
     species=electrons,
     deposition_functor=macro_particles,
     axes=[BinningAxis(functor=f, bin_spec=momentum_bins) for f in (momentum_x, momentum_y, momentum_z)],
-    period=TimeStepSpec[::100],
+    period=TS[::100],
 )
 
 

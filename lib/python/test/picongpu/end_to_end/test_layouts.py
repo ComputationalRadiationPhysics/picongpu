@@ -23,7 +23,7 @@ from picongpu.picmi import (
 from picongpu.picmi import Species as Species
 from picongpu.picmi.diagnostics import (
     Checkpoint,
-    TimeStepSpec,
+    TS,
 )
 
 from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
@@ -84,7 +84,7 @@ def setup_sim():
     sim = basic_simulation()
     for species, layout in SPECIES_AND_LAYOUTS.values():
         sim.add_species(species, layout)
-    sim.diagnostics = [Checkpoint(period=TimeStepSpec[:])]
+    sim.diagnostics = [Checkpoint(period=TS[:])]
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"

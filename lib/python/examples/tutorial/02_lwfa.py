@@ -26,7 +26,7 @@ from picongpu.picmi import (
     Species,
 )
 from picongpu.picmi.constants import c
-from picongpu.picmi.diagnostics import Checkpoint, MacroParticleCount, TimeStepSpec
+from picongpu.picmi.diagnostics import Checkpoint, MacroParticleCount, TS
 from picongpu.picmi.distribution import GaussianDistribution
 from picongpu.picmi.lasers import GaussianLaser, PolarizationType
 
@@ -93,12 +93,12 @@ adk_ionization = ADK(
     ionization_current=None,
 )
 
-checkpoint = Checkpoint(period=TimeStepSpec[::100])
+checkpoint = Checkpoint(period=TS[::100])
 macro_particle_count = MacroParticleCount(
     species=electrons,
     # Resulting values for period:
     # 0, 17, 50, 57, 64, 71, 100, 200, ...
-    period=TimeStepSpec[::100, 50:72:7, 17],
+    period=TS[::100, 50:72:7, 17],
 )
 
 sim = Simulation(

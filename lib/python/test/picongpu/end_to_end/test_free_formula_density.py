@@ -11,7 +11,7 @@ from unittest import TestCase
 
 import numpy as np
 from picongpu import picmi, rc_params
-from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
+from picongpu.picmi.diagnostics.timestepspec import TS
 from picongpu.picmi.diagnostics.checkpoint import Checkpoint
 
 from .arbitrary_parameters import CELL_SIZE, NUMBER_OF_CELLS, UPPER_BOUNDARY, directory_in_home, gather_results
@@ -93,7 +93,7 @@ def setup_sim():
     # translation unit that compiles all these functors.
     representative = [next(s for s in species if s.name == generate_name(*REPRESENTATIVE))]
     diagnostics = (
-        [Checkpoint(period=TimeStepSpec[:])]
+        [Checkpoint(period=TS[:])]
         + sum((density_binning_for(s) for s in species), [])
         + sum((position_binning_for(s, sim.time_step_size) for s in representative), [])
     )

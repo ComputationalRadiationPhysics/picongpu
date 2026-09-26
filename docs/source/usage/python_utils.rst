@@ -3,7 +3,7 @@
 Python Utilities
 ================
 
-PIConGPU python package includes plugin output processing tools, tools listed below and our :ref:`PICMI <PICMI>` and PyPIConGPU interface.
+PIConGPU python package includes plugin output processing tools, tools listed below and our :ref:`PICMI <python_package/quickstart:Quick Start>` interface.
 We suggest installing the picongpu package with pip.
 Due to how our current PICMI implementation manages relative paths it has to be installed with the `-e` option (in edit mode, without copying source files out of PIConGPU source).
 This will also install all the required dependencies.

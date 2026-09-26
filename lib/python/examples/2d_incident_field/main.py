@@ -19,7 +19,7 @@ from typing import Literal
 
 import numpy as np
 from picongpu import picmi
-from picongpu.picmi.diagnostics import Checkpoint, TimeStepSpec
+from picongpu.picmi.diagnostics import Checkpoint, TS
 
 """
 @file PICMI user script reproducing a minimal 2D laser-injection benchmark
@@ -86,7 +86,7 @@ sim = picmi.Simulation(
 
 sim.add_species(electrons, layout=random_layout)
 sim.add_laser(laser, None)
-sim.diagnostics = [Checkpoint(period=TimeStepSpec[::100])]
+sim.diagnostics = [Checkpoint(period=TS[::100])]
 
 
 if __name__ == "__main__":

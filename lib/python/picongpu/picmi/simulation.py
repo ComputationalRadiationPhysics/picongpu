@@ -181,7 +181,8 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     used for normalization of code units
 
-    optional, if set to None, will be set to median ppc of all species ppcs
+    optional, if set to None, will be set to the integer midpoint between the
+    smallest and largest per-layout ppc of the initialized species
     """
 
     picongpu_template_dir: Annotated[tuple[Path, ...], BeforeValidator(_normalise_template_dir)] = Field(default=())

@@ -39,6 +39,11 @@ The following requirements need to be installed (once) to build our documentatio
     # python tools & style theme
     pip install -r requirements.txt # --user
 
+    # the API reference page (python_package/api) autodocs the public
+    # picongpu.picmi package, which must be importable in the docs
+    # environment; install it from this checkout
+    pip install ../lib/python
+
 In order to not break any of your existing Python configurations, you can also create a new environment that you only use for building the documentation.
 Since it is possible to install doxygen with Micromamba, the following demonstrates this.
 

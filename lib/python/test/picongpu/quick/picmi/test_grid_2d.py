@@ -12,7 +12,7 @@ import pytest
 from picongpu import picmi
 from picongpu import templates
 from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import PhaseSpace, TimeStepSpec
+from picongpu.picmi.diagnostics import PhaseSpace, TS
 from picongpu.pypicongpu.rendering.renderer import Renderer
 
 
@@ -172,7 +172,7 @@ class TestCartesian2DGrid(TestCase):
 
         ps = PhaseSpace(
             species=electrons,
-            period=TimeStepSpec[::10],
+            period=TS[::10],
             spatial_coordinate="z",
             momentum_coordinate="py",
             min_momentum=-1.0,
