@@ -20,6 +20,30 @@ A simulation can carry several lasers at once;
 the :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`
 adds a Gaussian pulse to a full setup.
 
+Analytic fields
+---------------
+
+:class:`~picongpu.picmi.lasers.GaussianLaser` and
+:class:`~picongpu.picmi.lasers.PlaneWaveLaser` can evaluate the analytic
+electric field they describe, which is what PIConGPU injects for them.
+:meth:`~picongpu.picmi.lasers.GaussianLaser.complex_amplitude` returns the
+complex field amplitude, :meth:`~picongpu.picmi.lasers.GaussianLaser.envelope`
+its absolute value, and
+:meth:`~picongpu.picmi.lasers.GaussianLaser.E` the real vector field
+(also available per component as ``Ex``/``Ey``/``Ez``).
+The coordinates ``x``, ``y`` and ``z`` may be numpy arrays of equal shape
+(e.g. from ``numpy.meshgrid``); the vector field is returned
+*component first*, i.e. with shape ``(3,) + x.shape``.
+The convention matches the injected field: the on-axis, in-focus amplitude
+of a :class:`~picongpu.picmi.lasers.GaussianLaser` is its ``E0``, the field
+envelope decays as ``exp(-t^2 / duration^2)``, and the ``GaussianLaser``
+``duration`` is the 1/e half-width of that field envelope.
+
+.. literalinclude:: ../snippets/selected_topics/laser_fields.py
+   :language: python
+   :start-after: # BEGIN-LASER-FIELDS
+   :end-before: # END-LASER-FIELDS
+
 Common properties and constraints
 ---------------------------------
 
@@ -73,7 +97,9 @@ Laser types
    the incidence relative to the ``y`` axis.
 
 :class:`~picongpu.picmi.lasers.PlaneWaveLaser`
-   A plane wave with a temporal shape.
+   A plane wave with a temporal shape:
+   a Gaussian ramp followed by a plateau of length
+   ``picongpu_plateau_duration`` and a Gaussian fall-off.
    The focus is fixed at the origin
    (``focal_position`` and ``laser_nofocus_constant_si``
    are supplied by the frontend).
