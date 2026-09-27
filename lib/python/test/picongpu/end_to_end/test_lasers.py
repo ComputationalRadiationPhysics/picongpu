@@ -24,6 +24,7 @@ from picongpu.picmi import Species as Species
 from picongpu.picmi.diagnostics import Checkpoint, TimeStepSpec
 from picongpu.picmi.lasers import PolarizationType
 
+from .arbitrary_parameters import gather_results
 from .compare_particles import read_fields, read_grids
 
 logging.basicConfig(level=logging.INFO)
@@ -236,6 +237,8 @@ class TestLasers(TestCase):
         global SIM
         if SIM is None:
             SIM = setup_sim()
+            self.sim = SIM
+            gather_results(self.result_path)
         self.sim = SIM
         self.coordinates = np.transpose(
             np.meshgrid(
