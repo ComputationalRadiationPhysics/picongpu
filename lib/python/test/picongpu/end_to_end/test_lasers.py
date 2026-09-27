@@ -123,7 +123,7 @@ def setup_sim():
     sim = basic_simulation()
     for laser in LASERS:
         sim.add_laser(laser, None)
-    sim.diagnostics = [Checkpoint(TimeStepSpec[::100])]
+    sim.diagnostics = [Checkpoint(period=TimeStepSpec[::100])]
     if RUN_DIR:
         sim.picongpu_get_runner().run_dir = str(RUN_DIR)
     else:
