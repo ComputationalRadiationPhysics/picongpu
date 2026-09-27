@@ -157,7 +157,16 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
 
         w0x = self.waist
         w0y = self.waist
-        tau0 = self.duration / np.sqrt(2 * np.log(2))
+        # Temporal envelope convention of the C++ GaussianPulse profile:
+        # exp(-(t / (2 * PULSE_DURATION))^2), see GaussianPulse.hpp.  The frontend
+        # writes `duration` verbatim into PULSE_DURATION (interpreted as the sigma
+        # of the intensity profile), so the effective field-duration here is
+        #     tau0 = 2 * duration .
+        # The "duration" given in the docs of models/lasers.rst is the FWHM of the
+        # intensity, i.e. sqrt(2 ln 2) * PULSE_DURATION, which is only consistent
+        # with the code after the frontend converts accordingly.  Keep in sync with
+        # the duration-semantics handling of the frontend (see pulse_duration_si).
+        tau0 = 2 * self.duration
         zRx = 0.5 * self._Omega0() * w0x**2 / c
         zRy = 0.5 * self._Omega0() * w0y**2 / c
         Rx_inv = self._inverse_curvature_radius(z, w0x)
@@ -166,9 +175,12 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
         wy = w0y * np.sqrt(1 + z**2 / zRy**2)
         gamma4 = (t - z / c - 0.5 / c * (x**2 * Rx_inv + y**2 * Ry_inv)) / tau0
 
+        # The field of the DispersivePulse/GaussianPulse profiles is normalized such
+        # that its on-axis, in-focus amplitude is AMPLITUDE (= E0).  The 1/(tau0
+        # sqrt(pi)) factor appearing in models/lasers.rst belongs to the normalized
+        # input spectrum and must *not* be multiplied here.
         return (
             self.E0
-            / (tau0 * np.sqrt(np.pi))
             * (1 + z**2 / zRx**2) ** (-1 / 4)
             * (1 + z**2 / zRy**2) ** (-1 / 4)
             * np.exp(1.0j * self._Omega0() * gamma4 * tau0)

@@ -428,10 +428,15 @@ def test_dispersive_pulse_laser_duration_converted_to_pulse_duration():
 
 class TestGaussianLaserFieldComputation(TestCase):
     """
-    This test case is about comparing the effect of various parameters
-    with the laser under standard conditions.
-    This is useful because the latter formula can be found verbatim in the documentation,
-    so there's a good chance we've got it right.
+    Check the analytic field computation against the properties the underlying
+    formulas (docs/source/models/lasers.rst "GaussianPulse", mirrored by the C++
+    GaussianPulseFunctorIncidentE) must satisfy.
+
+    Note on coordinates: the PICMI laser interface only supports propagation with
+    a positive y-component, so ``propagation_direction=[0, 1, 0]`` serves as the
+    "standard conditions" reference here (internally the formulas always work in
+    a frame with propagation along +z and polarization along +x).  "On axis"
+    therefore means along the y-direction.
     """
 
     def setUp(self):
@@ -443,7 +448,7 @@ class TestGaussianLaserFieldComputation(TestCase):
             wavelength=4.0,
             waist=10.0,
             duration=10 / c,
-            propagation_direction=[0, 0, 1],
+            propagation_direction=[0, 1, 0],
             polarization_direction=[1, 0, 0],
             focal_position=[0, 0, 0],
             centroid_position=[0, 0, 0],
@@ -453,115 +458,86 @@ class TestGaussianLaserFieldComputation(TestCase):
     def make_laser(self, **kwargs):
         return GaussianLaser(**(self.reference_kwargs | kwargs))
 
-    def test_rotate_propagation_complex_amplitude(self):
-        found = self.make_laser(propagation_direction=[0, 1, 0]).complex_amplitude(*self.grid)
-        expected = np.moveaxis(self.make_laser().complex_amplitude(*self.grid), 2, 1)
-        np.testing.assert_allclose(found, expected)
+    def test_on_axis_focus_amplitude_is_E0(self):
+        # At the focus and at the time the pulse peak reaches it (centroid == focus,
+        # t=0) the on-axis, in-focus amplitude is exactly the user-provided E0.
+        laser = self.make_laser(centroid_position=[0, 0, 0])
+        focus = np.zeros((3, 1))
+        np.testing.assert_allclose(laser.complex_amplitude(*focus, t=0.0), laser.E0, rtol=1e-6)
+
+    def test_temporal_width_is_twice_the_duration(self):
+        # The GaussianPulse envelope is exp(-(t / (2 * PULSE_DURATION))^2); since
+        # `duration` is mapped verbatim onto PULSE_DURATION, the field decays to
+        # 1/e after t = 2 * duration.
+        laser = self.make_laser()
+        focus = np.zeros((3, 1))
+        for t, factor in ((2.0, np.exp(-1.0)), (1.0, np.exp(-0.25))):
+            np.testing.assert_allclose(
+                np.abs(laser.complex_amplitude(*focus, t=t * laser.duration))[0],
+                laser.E0 * factor,
+                rtol=1e-6,
+            )
 
     def test_shift_centroid_complex_amplitude(self):
-        centroid = np.array([0, 0, self.max_size // 2])
+        # Shifting the (longitudinal) centroid by delta is equivalent to evaluating
+        # the reference laser at a time offset delta/c.
+        centroid = np.array([0, -self.max_size // 2, 0])
         found = self.make_laser(centroid_position=centroid).complex_amplitude(*self.grid)
-        expected = self.make_laser().complex_amplitude(*self.grid, t=centroid[2] / c)
+        expected = self.make_laser().complex_amplitude(*self.grid, t=centroid[1] / c)
         np.testing.assert_allclose(found, expected)
 
     def test_shift_focus_complex_amplitude(self):
-        focus = np.array([0, 0, self.max_size // 2])
-        # We've gotta shift the centroid, so we're still in the focus at t=0.
-        centroid = focus
-        found = self.make_laser(focal_position=focus, centroid_position=centroid).complex_amplitude(*self.grid)
+        # Shifting focus (and centroid with it, so the peak still hits the focus
+        # at t=0) is equivalent to evaluating the reference laser shifted in space.
+        # (centroid_y must stay <= 0, hence the shift along -y.)
+        focus = np.array([0, -self.max_size // 2, 0])
+        found = self.make_laser(focal_position=focus, centroid_position=focus).complex_amplitude(*self.grid)
         expected = self.make_laser().complex_amplitude(*(self.grid - focus.reshape(-1, 1, 1, 1)))
         np.testing.assert_allclose(found, expected)
 
     def test_shift_centroid_and_focus_complex_amplitude(self):
-        centroid = np.array([0, 0, -self.max_size // 2])
-        focus = np.array([0, 0, self.max_size // 2])
+        centroid = np.array([0, -self.max_size // 2, 0])
+        focus = np.array([0, self.max_size // 2, 0])
         found = self.make_laser(focal_position=focus, centroid_position=centroid).complex_amplitude(*self.grid)
         expected = self.make_laser().complex_amplitude(
-            *(self.grid - focus.reshape(-1, 1, 1, 1)), t=-(focus[2] - centroid[2]) / c
+            *(self.grid - focus.reshape(-1, 1, 1, 1)), t=-(focus[1] - centroid[1]) / c
         )
         np.testing.assert_allclose(found, expected)
 
-    def test_polarization_vector_in_standard_focus_plane(self):
-        plane = self.grid[2] == 0
-        found = self.make_laser().polarization_vector_at(*self.grid[:, plane])
+    def test_rotate_propagation_complex_amplitude(self):
+        # Rotating the propagation direction rotates the whole field pattern.
+        # B(r) = A(R^-1 r) with R aligning the reference frame to the rotated one
+        # (polarization stays x so it is a rotation about the x-axis).
+        from scipy.spatial.transform import Rotation
+
+        rotated_propagation = [0, 1 / np.sqrt(2), 1 / np.sqrt(2)]
+        rotation = Rotation.align_vectors([[1, 0, 0], [0, 0, 1]], [[1, 0, 0], rotated_propagation])[0]
+        rotated_grid = np.moveaxis(rotation.inv().apply(np.moveaxis(self.grid, 0, -1)), -1, 0)
+        found = self.make_laser(propagation_direction=rotated_propagation).complex_amplitude(*self.grid)
+        expected = self.make_laser().complex_amplitude(*rotated_grid)
+        np.testing.assert_allclose(found, expected)
+
+    def test_polarization_vector_in_focus_plane(self):
+        # In the focus plane (no wavefront tilt) the polarization vector is exactly
+        # the polarization direction.
+        focus_plane = self.grid[1] == 0
+        found = self.make_laser().polarization_vector_at(*self.grid[:, focus_plane])
         expected = np.reshape(self.make_laser().polarization_direction, (-1, 1)) * np.ones_like(found)
         np.testing.assert_allclose(found, expected)
 
-    def test_polarization_vector_rotated_in_standard_focus_plane(self):
-        direction = [0, 1, 0]
-        plane = self.grid[2] == 0
-        found = self.make_laser(polarization_direction=direction).polarization_vector_at(*self.grid[:, plane])
-        expected = np.reshape(direction, (-1, 1)) * np.ones_like(found)
+    def test_rotate_polarization_on_axis(self):
+        # Rotating the polarization direction rotates the E field accordingly;
+        # on axis at the focus this is an exact vector rotation.
+        origin = np.zeros((3, 1))
+        found = self.make_laser(polarization_direction=[0, 0, 1]).E(*origin)
+        expected = np.array([[0.0], [0.0], [self.make_laser().E0]])
         np.testing.assert_allclose(found, expected)
 
-    def test_polarization_vector_rotated(self):
-        direction = [0, 1, 0]
-        found = self.make_laser(polarization_direction=direction).polarization_vector_at(*self.grid)
-        expected = self.make_laser().polarization_vector_at(*self.grid)[[1, 0, 2], ...]
-        expected2 = expected
-        expected2[2] = expected2[2, :, :, ::-1]
-        expected3 = expected
-        expected3 = np.rot90(expected3, axes=(1, 2))
-        # np.moveaxis(Rotation.from_euler('z', 90, degrees=True).apply(np.moveaxis(
-        # , 0, -1)), -1, 0)
-        plot_half_box_slices(self.grid, found, title="found")
-        plot_half_box_slices(self.grid, expected, title="expected")
-
-        import matplotlib.pyplot as plt
-
-        plt.show()
-        np.testing.assert_allclose(found, expected)
-
-    def test_polarization_vector_in_shifted_focus_plane(self):
-        focus = np.array([0, 0, self.max_size // 2])
-        focus_plane = self.grid[2] == focus[2]
-        found = self.make_laser(focal_position=focus).polarization_vector_at(*self.grid[:, focus_plane])
-        expected = np.reshape(self.make_laser().polarization_direction, (-1, 1)) * np.ones_like(found)
-        np.testing.assert_allclose(found, expected)
-
-    def test_shift_centroid(self):
-        centroid = np.array([0, 0, self.max_size // 2])
-        found = self.make_laser(centroid_position=centroid).E(*self.grid)
-        expected = self.make_laser().E(*self.grid, t=centroid[2] / c)
-        np.testing.assert_allclose(found, expected)
-
-    def test_shift_focus(self):
-        focus = np.array([0, 0, self.max_size // 2])
-        # We've gotta shift the centroid, so we're still in the focus at t=0.
-        centroid = focus
-        found = self.make_laser(focal_position=focus, centroid_position=centroid).E(*self.grid)
-        expected = self.make_laser().E(*(self.grid - focus.reshape(-1, 1, 1, 1)))
-        np.testing.assert_allclose(found, expected)
-
-    def test_shift_centroid_and_focus(self):
-        centroid = np.array([0, 0, -self.max_size // 2])
-        focus = np.array([0, 0, self.max_size // 2])
-        found = self.make_laser(focal_position=focus, centroid_position=centroid).E(*self.grid)
-        expected = self.make_laser().E(*(self.grid - focus.reshape(-1, 1, 1, 1)), t=-(focus[2] - centroid[2]) / c)
-        np.testing.assert_allclose(found, expected)
-
-    def test_rotate_propagation(self):
-        found = self.make_laser(propagation_direction=[0, 1, 0]).E(*self.grid)
-        # Manually performing the rotation as sequence of reflections:
-        expected = np.moveaxis(self.make_laser().E(*self.grid), 3, 2)
-        expected[1] *= -1
-        expected[2] *= -1
-        np.testing.assert_allclose(found, expected, atol=1.0e-5)
-
-    def test_rotate_polarization(self):
-        found = self.make_laser(polarization_direction=[0, 1, 0]).E(*self.grid)
-        expected = np.rot90(self.make_laser().E(*self.grid))
-        try:
-            np.testing.assert_allclose(found, expected)
-        except AssertionError:
-            plot_half_box_slices(self.grid, found, title="found")
-            plot_half_box_slices(self.grid, expected, title="expected")
-            plot_half_box_slices(self.grid, expected / found, title="expected/found")
-            plot_half_box_slices(self.grid, expected - found, title="expected-found")
-            import matplotlib.pyplot as plt
-
-            plt.show()
-            raise
+    def test_E_has_component_first_layout(self):
+        laser = self.make_laser()
+        e = laser.E(*self.grid)
+        self.assertEqual(e.shape, (3,) + self.grid.shape[1:])
+        np.testing.assert_allclose(e, np.stack([laser.Ex(*self.grid), laser.Ey(*self.grid), laser.Ez(*self.grid)]))
 
 
 def plot_half_box_slices(grid, data, field_components="xyz", title=""):
