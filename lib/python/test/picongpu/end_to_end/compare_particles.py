@@ -47,16 +47,33 @@ def apply_range(particles, range):
     return particles.loc(axis=0)[mask]
 
 
-def read_fields(series_name, names=("E", "B")):
+def read_grids(series_name, names=("E", "B"), iteration=0):
     series = opmd.Series(str(series_name), opmd.Access.read_only)
     tmp = {}
     for name in names:
+        mesh = series.iterations[iteration].meshes[name]
         try:
-            tmp[name] = [series.iterations[0].meshes[name][c].load_chunk() for c in "xyz"]
+            shape = mesh["x"].shape
         except ErrorWrongAPIUsage:
-            tmp[name] = series.iterations[0].meshes[name].load_chunk()
-    series.flush()
+            shape = mesh.shape
+        tmp[name] = (
+            np.reshape(mesh.grid_global_offset, (-1, 1, 1, 1))
+            + np.reshape(mesh.grid_spacing, (-1, 1, 1, 1)) * np.mgrid[*map(slice, shape)]
+        ) * mesh.grid_unit_SI
     return {key: np.array(value) for key, value in tmp.items()}
+
+
+def read_fields(series_name, names=("E", "B"), iteration=0):
+    series = opmd.Series(str(series_name), opmd.Access.read_only)
+    tmp = {}
+    for name in names:
+        mesh = series.iterations[iteration].meshes[name]
+        try:
+            tmp[name] = ([mesh[c].load_chunk() for c in "xyz"], mesh["x"].unit_SI)
+        except ErrorWrongAPIUsage:
+            tmp[name] = (mesh.load_chunk(), mesh.unit_SI)
+    series.flush()
+    return {key: np.array(value) * unit for key, (value, unit) in tmp.items()}
 
 
 def read_particles(series_name):
