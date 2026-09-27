@@ -45,11 +45,18 @@ SOLVER = ElectromagneticSolver(grid=GRID, method="Yee", cfl=0.9)
 
 
 PULSE_INIT = 15.0
-LASER_DURATION = 5.0e-15
+# PIConGPU's PULSE_DURATION (1 sigma of the intensity) that the (already existing)
+# simulation run used:
+LASER_DURATION_SIGMA = 5.0e-15
+# The PICMI-standard `duration` is the 1/e field width tau, i.e. twice the sigma
+# (PULSE_DURATION = duration / 2); see GaussianLaser._pulse_duration_sigma_si (#5739).
+LASER_DURATION = 2 * LASER_DURATION_SIGMA
 FOCAL_POSITION = NUMBER_OF_CELLS / 2 * CELL_SIZE
 FOCAL_POSITION[1] = 4.62e-5
 CENTROID_POSITION = NUMBER_OF_CELLS / 2 * CELL_SIZE
-CENTROID_POSITION[1] = -0.5 * PULSE_INIT * LASER_DURATION * constants.c
+# pulse_init (a multiple of PULSE_DURATION) is derived from the centroid via the
+# sigma, keep the same pulse_init=15 as in the existing run:
+CENTROID_POSITION[1] = -0.5 * PULSE_INIT * LASER_DURATION_SIGMA * constants.c
 
 LASERS = [
     GaussianLaser(
@@ -58,8 +65,8 @@ LASERS = [
         duration=LASER_DURATION,
         propagation_direction=[0.0, 1.0, 0.0],
         polarization_direction=[1.0, 0.0, 0.0],
-        focal_position=FOCAL_POSITION,
-        centroid_position=CENTROID_POSITION,
+        focal_position=FOCAL_POSITION.tolist(),
+        centroid_position=CENTROID_POSITION.tolist(),
         picongpu_polarization_type=PolarizationType.LINEAR,
         a0=8.0,
         phi0=0.0,
@@ -69,7 +76,7 @@ LASERS = [
         duration=LASER_DURATION,
         propagation_direction=[0.0, 1.0, 0.0],
         polarization_direction=[1.0, 0.0, 0.0],
-        centroid_position=CENTROID_POSITION,
+        centroid_position=CENTROID_POSITION.tolist(),
         picongpu_polarization_type=PolarizationType.LINEAR,
         a0=8.0,
         phi0=0.0,

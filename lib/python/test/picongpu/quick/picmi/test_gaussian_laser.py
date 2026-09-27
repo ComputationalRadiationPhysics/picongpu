@@ -465,13 +465,14 @@ class TestGaussianLaserFieldComputation(TestCase):
         focus = np.zeros((3, 1))
         np.testing.assert_allclose(laser.complex_amplitude(*focus, t=0.0), laser.E0, rtol=1e-6)
 
-    def test_temporal_width_is_twice_the_duration(self):
-        # The GaussianPulse envelope is exp(-(t / (2 * PULSE_DURATION))^2); since
-        # `duration` is mapped verbatim onto PULSE_DURATION, the field decays to
-        # 1/e after t = 2 * duration.
+    def test_temporal_width_is_the_duration(self):
+        # The GaussianPulse envelope is exp(-(t / (2 * PULSE_DURATION))^2) with
+        # PULSE_DURATION = duration / 2 (the 1 sigma of the intensity; the PICMI
+        # duration is the 1/e field width tau).  Hence the field decays as
+        # exp(-(t / duration)^2), i.e. to 1/e of its peak at t = duration.
         laser = self.make_laser()
         focus = np.zeros((3, 1))
-        for t, factor in ((2.0, np.exp(-1.0)), (1.0, np.exp(-0.25))):
+        for t, factor in ((1.0, np.exp(-1.0)), (2.0, np.exp(-4.0))):
             np.testing.assert_allclose(
                 np.abs(laser.complex_amplitude(*focus, t=t * laser.duration))[0],
                 laser.E0 * factor,
@@ -482,7 +483,7 @@ class TestGaussianLaserFieldComputation(TestCase):
         # Shifting the (longitudinal) centroid by delta is equivalent to evaluating
         # the reference laser at a time offset delta/c.
         centroid = np.array([0, -self.max_size // 2, 0])
-        found = self.make_laser(centroid_position=centroid).complex_amplitude(*self.grid)
+        found = self.make_laser(centroid_position=centroid.tolist()).complex_amplitude(*self.grid)
         expected = self.make_laser().complex_amplitude(*self.grid, t=centroid[1] / c)
         np.testing.assert_allclose(found, expected)
 
@@ -491,14 +492,18 @@ class TestGaussianLaserFieldComputation(TestCase):
         # at t=0) is equivalent to evaluating the reference laser shifted in space.
         # (centroid_y must stay <= 0, hence the shift along -y.)
         focus = np.array([0, -self.max_size // 2, 0])
-        found = self.make_laser(focal_position=focus, centroid_position=focus).complex_amplitude(*self.grid)
+        found = self.make_laser(focal_position=focus.tolist(), centroid_position=focus.tolist()).complex_amplitude(
+            *self.grid
+        )
         expected = self.make_laser().complex_amplitude(*(self.grid - focus.reshape(-1, 1, 1, 1)))
         np.testing.assert_allclose(found, expected)
 
     def test_shift_centroid_and_focus_complex_amplitude(self):
         centroid = np.array([0, -self.max_size // 2, 0])
         focus = np.array([0, self.max_size // 2, 0])
-        found = self.make_laser(focal_position=focus, centroid_position=centroid).complex_amplitude(*self.grid)
+        found = self.make_laser(focal_position=focus.tolist(), centroid_position=centroid.tolist()).complex_amplitude(
+            *self.grid
+        )
         expected = self.make_laser().complex_amplitude(
             *(self.grid - focus.reshape(-1, 1, 1, 1)), t=-(focus[1] - centroid[1]) / c
         )

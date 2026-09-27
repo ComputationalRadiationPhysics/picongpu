@@ -113,7 +113,6 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
 
         return z / (z**2 + (0.5 * self._Omega0() * w0**2 / c) ** 2)
 
-
     def _pulse_duration_sigma_si(self):
         """Convert the PICMI-standard laser ``duration`` to the PIConGPU
         ``PULSE_DURATION`` parameter.
@@ -157,16 +156,14 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
 
         w0x = self.waist
         w0y = self.waist
-        # Temporal envelope convention of the C++ GaussianPulse profile:
-        # exp(-(t / (2 * PULSE_DURATION))^2), see GaussianPulse.hpp.  The frontend
-        # writes `duration` verbatim into PULSE_DURATION (interpreted as the sigma
-        # of the intensity profile), so the effective field-duration here is
-        #     tau0 = 2 * duration .
-        # The "duration" given in the docs of models/lasers.rst is the FWHM of the
-        # intensity, i.e. sqrt(2 ln 2) * PULSE_DURATION, which is only consistent
-        # with the code after the frontend converts accordingly.  Keep in sync with
-        # the duration-semantics handling of the frontend (see pulse_duration_si).
-        tau0 = 2 * self.duration
+        # Temporal envelope of the C++ GaussianPulse profile is
+        # exp(-(t / (2 * PULSE_DURATION))^2) (see GaussianPulse.hpp) with
+        # PULSE_DURATION = duration / 2 (the 1 sigma of the intensity), because
+        # the PICMI `duration` is the 1/e field width (tau), cf. #5739.  Hence the
+        # field decays as exp(-(t / duration)^2), i.e. the effective field duration
+        # here is simply
+        #     tau0 = duration .
+        tau0 = self.duration
         zRx = 0.5 * self._Omega0() * w0x**2 / c
         zRy = 0.5 * self._Omega0() * w0y**2 / c
         Rx_inv = self._inverse_curvature_radius(z, w0x)
