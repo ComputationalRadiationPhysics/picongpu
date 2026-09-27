@@ -13,6 +13,7 @@ import re
 import tempfile
 import pytest
 from picongpu import picmi
+from picongpu.picmi import Cartesian3DGrid, ElectromagneticSolver, GaussianLaser, Simulation
 from pydantic import ValidationError
 from scipy.constants import c
 
@@ -26,7 +27,7 @@ def _pulse_duration(duration_picmi_si):
 class TestPicmiGaussianLaser(TestCase):
     def test_basic(self):
         """full laser example"""
-        picmi_laser = picmi.GaussianLaser(
+        picmi_laser = GaussianLaser(
             wavelength=1,
             waist=2,
             duration=3,
@@ -76,7 +77,7 @@ class TestPicmiGaussianLaser(TestCase):
     def test_duration_converted_to_pulse_duration(self):
         """picmi `duration` is the PICMI-standard 1/e field width, pypicongpu expects PULSE_DURATION = duration / 2 (#5739)"""
         duration_picmi_si = 30e-15
-        picmi_laser = picmi.GaussianLaser(
+        picmi_laser = GaussianLaser(
             wavelength=800e-9,
             waist=12e-6,
             duration=duration_picmi_si,
@@ -110,7 +111,7 @@ class TestPicmiGaussianLaser(TestCase):
         # x, z checked against centroid pos
 
         # all ok (difference in x)
-        picmi_laser = picmi.GaussianLaser(
+        picmi_laser = GaussianLaser(
             wavelength=1,
             waist=2,
             duration=3,
@@ -138,7 +139,7 @@ class TestPicmiGaussianLaser(TestCase):
 
         for invalid_propagation_vector in invalid_propagation_vectors:
             with self.assertRaises(ValidationError):
-                picmi.GaussianLaser(
+                GaussianLaser(
                     wavelength=1,
                     waist=2,
                     duration=3,
@@ -150,7 +151,7 @@ class TestPicmiGaussianLaser(TestCase):
                 )
 
         # positive direction works
-        picmi.GaussianLaser(
+        GaussianLaser(
             wavelength=1,
             waist=2,
             duration=3,
@@ -172,7 +173,7 @@ class TestPicmiGaussianLaser(TestCase):
 
         for invalid_polarization in invalid_polarizations:
             with self.assertRaises(ValidationError):
-                picmi.GaussianLaser(
+                GaussianLaser(
                     wavelength=1,
                     waist=2,
                     duration=3,
@@ -187,7 +188,7 @@ class TestPicmiGaussianLaser(TestCase):
         valid_polarization_vectors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
         for valid_polarization_vector in valid_polarization_vectors:
-            picmi_laser = picmi.GaussianLaser(
+            picmi_laser = GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -203,7 +204,7 @@ class TestPicmiGaussianLaser(TestCase):
     def test_minimal(self):
         """mimimal possible initialization"""
         # does not throw, normal usage process works
-        picmi_laser = picmi.GaussianLaser(
+        picmi_laser = GaussianLaser(
             wavelength=1,
             waist=2,
             duration=3,
@@ -220,7 +221,7 @@ class TestPicmiGaussianLaser(TestCase):
         """centroid position must have y<=0"""
 
         with self.assertRaises(ValidationError):
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -233,7 +234,7 @@ class TestPicmiGaussianLaser(TestCase):
 
         # valid example:
         assert (
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -251,7 +252,7 @@ class TestPicmiGaussianLaser(TestCase):
     def test_laguerre_modes_types(self):
         """laguerre type-check before translation"""
         with self.assertRaises(ValidationError):
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -265,7 +266,7 @@ class TestPicmiGaussianLaser(TestCase):
     def test_laguerre_modes_optional(self):
         """laguerre modes are optional"""
         # allowed: not given at all
-        picmi_laser = picmi.GaussianLaser(
+        picmi_laser = GaussianLaser(
             wavelength=1,
             waist=2,
             duration=3,
@@ -281,7 +282,7 @@ class TestPicmiGaussianLaser(TestCase):
 
         # not allowed: only phases (or only modes) given
         with pytest.raises(Exception, match=".*[Ll]aguerre.*"):
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -294,7 +295,7 @@ class TestPicmiGaussianLaser(TestCase):
             )
 
         with pytest.raises(Exception, match=".*[Ll]aguerre.*"):
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -309,7 +310,7 @@ class TestPicmiGaussianLaser(TestCase):
     def test_values_centroid_position_center(self):
         """centroid position is fixed for given bounding box"""
         # on its own, any centroid poisition with y=0 is permitted
-        picmi_laser = picmi.GaussianLaser(
+        picmi_laser = GaussianLaser(
             wavelength=1,
             waist=2,
             duration=3,
@@ -321,7 +322,7 @@ class TestPicmiGaussianLaser(TestCase):
         )
         assert picmi_laser.get_as_pypicongpu().model_dump() != {}
 
-        grid_valid = picmi.Cartesian3DGrid(
+        grid_valid = Cartesian3DGrid(
             number_of_cells=[128, 512, 256],
             lower_bound=[0, 0, 0],
             upper_bound=[17, 192, 42],
@@ -330,8 +331,8 @@ class TestPicmiGaussianLaser(TestCase):
         )
 
         # valid grid-laser combination working
-        solver_valid = picmi.ElectromagneticSolver(method="Yee", grid=grid_valid)
-        sim_valid = picmi.Simulation(time_step_size=1, max_steps=2, solver=solver_valid)
+        solver_valid = ElectromagneticSolver(method="Yee", grid=grid_valid)
+        sim_valid = Simulation(time_step_size=1, max_steps=2, solver=solver_valid)
         sim_valid.add_laser(picmi_laser, None)
 
         # translates without issue:
@@ -341,7 +342,7 @@ class TestPicmiGaussianLaser(TestCase):
         """only either a0 or E0 allowed to be set"""
 
         with self.assertRaises(ValidationError):
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -357,7 +358,7 @@ class TestPicmiGaussianLaser(TestCase):
         """either a0 or E0 have to be set"""
 
         with self.assertRaises(ValidationError):
-            picmi.GaussianLaser(
+            GaussianLaser(
                 wavelength=1,
                 waist=2,
                 duration=3,
@@ -372,7 +373,7 @@ def test_duration_rendered_into_incident_field():
     """the PICMI-standard duration (1/e field width) must be rendered as PULSE_DURATION = duration / 2
     (1 sigma of the intensity) in incidentField.param (#5739)"""
     duration_picmi_si = 30e-15
-    laser = picmi.GaussianLaser(
+    laser = GaussianLaser(
         wavelength=800e-9,
         waist=12e-6,
         duration=duration_picmi_si,
@@ -382,15 +383,15 @@ def test_duration_rendered_into_incident_field():
         polarization_direction=[1, 0, 0],
         a0=1.0,
     )
-    grid = picmi.Cartesian3DGrid(
+    grid = Cartesian3DGrid(
         number_of_cells=[128, 512, 256],
         lower_bound=[0, 0, 0],
         upper_bound=[17, 192, 42],
         lower_boundary_conditions=["periodic", "periodic", "open"],
         upper_boundary_conditions=["periodic", "periodic", "open"],
     )
-    solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
-    sim = picmi.Simulation(time_step_size=1, max_steps=2, solver=solver)
+    solver = ElectromagneticSolver(method="Yee", grid=grid)
+    sim = Simulation(time_step_size=1, max_steps=2, solver=solver)
     sim.add_laser(laser, None)
 
     with tempfile.TemporaryDirectory() as tmpdir:
