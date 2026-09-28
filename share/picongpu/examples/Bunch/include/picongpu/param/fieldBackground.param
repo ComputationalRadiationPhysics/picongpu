@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Axel Huebl, Alexander Debus, Richard Pausch
+/* Copyright 2014-2026 Axel Huebl, Alexander Debus, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,11 +20,7 @@
 #pragma once
 
 /** Load pre-defined templates */
-#if PARAM_TWTSTIGHT == 1
-#    include "picongpu/fields/background/templates/twtstight/TWTSTight.hpp"
-#else
-#    include "picongpu/fields/background/templates/TWTS/TWTS.hpp"
-#endif
+#include "picongpu/fields/background/templates/twtstight/TWTSTight.hpp"
 
 #ifndef PARAM_INCLUDE_FIELDBACKGROUND
 #    define PARAM_INCLUDE_FIELDBACKGROUND false
@@ -48,11 +44,7 @@ namespace picongpu
          *  Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
          *        roughly float_64 the number of registers in the corresponding kernel on the device.
          */
-#if PARAM_TWTSTIGHT == 1
-        const templates::twtstight::EField twtsFieldE;
-#else
-        const templates::twts::EField twtsFieldE;
-#endif
+        templates::twtstight::EField const twtsFieldE;
 
         /** Constructor is host-only, because of subGrid and halfSimSize initialization */
         HINLINE FieldBackgroundE(float3_64 const unitField)
@@ -66,22 +58,16 @@ namespace picongpu
                   10.0e-15 / 2.3548200450309493820231386529194,
                   /* w_x [m], cylindrically focused spot size */
                   5.0e-6,
-#if PARAM_TWTSTIGHT == 0
-                  /* w_y [m] */
-                  0.01,
-#endif
                   /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
                   60. * (PI / 180.),
                   /* propagation speed of overlap [speed of light]. */
                   1.0,
                   /* manual time delay [s] if auto_tdelay is false */
                   39.3e-6 / sim.si.getSpeedOfLight(),
-#if PARAM_TWTSTIGHT == 1
-                  /* distance to TWTS laser focus in z-direction [m] relative to centered origin */
-                  0.0,
-#endif
                   /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                  false)
+                  false,
+                  /* distance to TWTS laser focus in z-direction [m] relative to centered origin */
+                  0.0)
         {
         }
 
@@ -140,13 +126,9 @@ namespace picongpu
          *  Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
          *        roughly float_64 the number of registers in the corresponding kernel on the device.
          */
-#if PARAM_TWTSTIGHT == 1
-        const templates::twtstight::BField twtsFieldB;
-#else
-        const templates::twts::BField twtsFieldB;
-#endif
+        templates::twtstight::BField const twtsFieldB;
 
-        HINLINE FieldBackgroundB(const float3_64 unitField)
+        HINLINE FieldBackgroundB(float3_64 const unitField)
             : m_unitField(unitField)
             , twtsFieldB(
                   /* focus_y [m], the distance to the laser focus in y-direction */
@@ -157,22 +139,16 @@ namespace picongpu
                   10.0e-15 / 2.3548200450309493820231386529194,
                   /* w_x [m], cylindrically focused spot size */
                   5.0e-6,
-#if PARAM_TWTSTIGHT == 0
-                  /* w_y [m] */
-                  0.01,
-#endif
                   /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
                   60. * (PI / 180.),
                   /* propagation speed of overlap [speed of light]. */
                   1.0,
                   /* manual time delay [s] if auto_tdelay is false */
                   39.3e-6 / sim.si.getSpeedOfLight(),
-#if PARAM_TWTSTIGHT == 1
-                  /* distance to TWTS laser focus in z-direction [m] relative to centered origin */
-                  0.0,
-#endif
                   /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
-                  false)
+                  false,
+                  /* distance to TWTS laser focus in z-direction [m] relative to centered origin */
+                  0.0)
         {
         }
 
