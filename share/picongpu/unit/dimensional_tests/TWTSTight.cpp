@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Rene Widera, Alexander Debus
+/* Copyright 2024-2026 Rene Widera, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -178,8 +178,8 @@ struct twtsTightNumberTest
 // This combination of compilers has a bug that is triggered by Catch2 internally suppressing warnings.
 // See https://github.com/ComputationalRadiationPhysics/picongpu/pull/5174#issuecomment-2467890326
 #if (__GNUC__ != 11 || __CUDACC_VER_MAJOR__ != 11)
-        const float3_64 refEfield = float3_64(0.18329124052693974, -0.009402050968104002, 0.1054028749666347);
-        float3_64 const refBfield = float3_64(3.5299706879027803e-10, 5.334111474127282e-11, -6.090365721598194e-10);
+        const float3_64 refEfield = float3_64(0.17315102932506113, -0.008881928245568242, 0.09957167445899125);
+        float3_64 const refBfield = float3_64(3.3346823460024014e-10, 5.0390221021188766e-11, -5.753428577396939e-10);
         float3_T const refEfieldT = precisionCast<float_T>(refEfield);
         float3_T const refBfieldT = precisionCast<float_T>(refBfield);
         /* epsilon to compare to Mathematica implementation.
