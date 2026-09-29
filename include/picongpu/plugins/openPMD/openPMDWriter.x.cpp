@@ -608,7 +608,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         inline void ThreadParams::initFromConfig(
             Help& help,
             size_t id,
-            uint32_t const currentStep,
             std::string const& dir,
             std::optional<std::string> file)
         {
@@ -704,11 +703,15 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     "Wrong write access mode specified: '" + writeAccessString + "'. Pick either [create|append].");
             }
 
+            particleIOChunkSize = std::stoull(particleIOChunkSizeString);
+        }
+
+        inline void ThreadParams::updateWindow(uint32_t const currentStep)
+        {
             SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
             /* window selection */
             auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
             window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
-            particleIOChunkSize = std::stoull(particleIOChunkSizeString);
         }
 
         /** Writes simulation data to openPMD.
@@ -1298,6 +1301,19 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
+            /** Parse and validate the openPMD configuration at plugin load time.
+             *
+             * This happens before the simulation starts (time step zero) and
+             * independently of the configured output period, so that invalid
+             * configuration is reported early instead of only when the plugin
+             * is first executed.
+             */
+            void init() override
+            {
+                eventSystem::getTransactionEvent().waitForFinished();
+                mThreadParams.initFromConfig(*m_help, m_id, outputDirectory);
+            }
+
             void notify(uint32_t currentStep) override
             {
                 // notify is only allowed if the plugin is not controlled by the
@@ -1306,7 +1322,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 eventSystem::getTransactionEvent().waitForFinished();
 
-                mThreadParams.initFromConfig(*m_help, m_id, currentStep, outputDirectory);
+                mThreadParams.updateWindow(currentStep);
 
                 mThreadParams.isCheckpoint = false;
                 dumpData(currentStep);
@@ -1339,7 +1355,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* if file name is relative, prepend with common directory */
 
                 mThreadParams.isCheckpoint = true;
-                mThreadParams.initFromConfig(*m_help, m_id, currentStep, checkpointDirectory, checkpointFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, checkpointDirectory, checkpointFilename);
 
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
                 updatePmlSlabViewsIfEnabled(currentStep);
@@ -1428,7 +1444,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // Checkpoint
                 assert(!m_help->selfRegister);
 
-                mThreadParams.initFromConfig(*m_help, m_id, restartStep, restartDirectory, constRestartFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, restartDirectory, constRestartFilename);
 
                 mThreadParams.cellDescription = m_cellDescription;
 
