@@ -161,15 +161,25 @@ namespace picongpu
 
             void closeSeries();
 
-            /*
+            /** Read and validate all configuration that does not depend on the
+             * current simulation step.
+             *
+             * This is called once at plugin initialization (i.e. at time step
+             * zero) as well as before every write. Doing it at initialization
+             * time ensures that configuration errors are reported before the
+             * simulation starts instead of only when the plugin is first
+             * executed, which may be many steps into the simulation.
+             *
              * If file is empty, read from command line parameters.
              */
-            void initFromConfig(
-                Help&,
-                size_t id,
-                uint32_t const currentStep,
-                std::string const& dir,
-                std::optional<std::string> file = {});
+            void initFromConfig(Help&, size_t id, std::string const& dir, std::optional<std::string> file = {});
+
+            /** Update the output window for the given time step.
+             *
+             * The window depends on the current step because of the moving
+             * window, so it has to be recomputed before every write.
+             */
+            void updateWindow(uint32_t const currentStep);
 #if (ENABLE_OPENPMD == 1)
             /**
              * Wrapper for ::openPMD::resetDataset, set dataset parameters
