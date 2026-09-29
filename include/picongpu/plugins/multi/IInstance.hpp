@@ -44,6 +44,18 @@ namespace picongpu
                 //! must be implemented by the user
                 static std::shared_ptr<IHelp> getHelp();
 
+                /** Initialize the plugin instance.
+                 *
+                 * This is called once while the plugins are loaded, i.e. before
+                 * the simulation starts (time step zero), independent of when the
+                 * plugin is first executed. Plugins should parse and validate
+                 * their configuration here so that configuration errors are
+                 * reported early instead of only at the first notification.
+                 */
+                virtual void init()
+                {
+                }
+
                 //! restart the plugin from a checkpoint
                 virtual void restart(uint32_t restartStep, std::string const& restartDirectory) = 0;
 

@@ -118,7 +118,11 @@ namespace picongpu
                         instanceHelp->validateOptions();
                     for(size_t i = 0; i < numInstances; ++i)
                     {
-                        instanceList.emplace_back(instanceHelp->create(instanceHelp, i, m_cellDescription));
+                        auto instance = instanceHelp->create(instanceHelp, i, m_cellDescription);
+                        // initialize the instance at load time (i.e. at time step zero) so that
+                        // configuration errors are reported before the simulation starts
+                        instance->init();
+                        instanceList.emplace_back(std::move(instance));
                     }
                 }
 
