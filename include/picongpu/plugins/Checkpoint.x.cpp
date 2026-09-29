@@ -161,8 +161,14 @@ namespace picongpu
                         std::string("IO-backend ") + checkpointBackendName
                         + " for checkpoints not found, possible backends: " + activeBackends);
                 else
-                    ioBackends[checkpointBackendName] = std::static_pointer_cast<IIOBackend>(
+                {
+                    auto backend = std::static_pointer_cast<IIOBackend>(
                         cBackendHelp->second->create(cBackendHelp->second, 0, m_cellDescription));
+                    // initialize the backend at load time (i.e. at time step zero) so that
+                    // configuration errors are reported before the simulation starts
+                    backend->init();
+                    ioBackends[checkpointBackendName] = std::move(backend);
+                }
             }
             // create restart backend
             if(!ioBackendsHelp.empty() && checkpointBackendName != restartBackendName)
@@ -173,8 +179,14 @@ namespace picongpu
                         std::string("IO-backend ") + restartBackendName
                         + " for restarts not found, possible backends: " + activeBackends);
                 else
-                    ioBackends[restartBackendName] = std::static_pointer_cast<IIOBackend>(
+                {
+                    auto backend = std::static_pointer_cast<IIOBackend>(
                         rBackend->second->create(rBackend->second, 0, m_cellDescription));
+                    // initialize the backend at load time (i.e. at time step zero) so that
+                    // configuration errors are reported before the simulation starts
+                    backend->init();
+                    ioBackends[restartBackendName] = std::move(backend);
+                }
             }
 
             if(restartFilename.empty())
