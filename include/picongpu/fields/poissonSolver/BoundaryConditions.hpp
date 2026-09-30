@@ -33,15 +33,17 @@ namespace picongpu::fields::poissonSolver
     {
         HDINLINE auto operator()(math::Vector<double, 3u> const& totalCellCoordinate) const
         {
-            return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
-                   + 3.0 * math::sin(totalCellCoordinate.z())
-                   + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
+            return 0.0;
+            // return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
+            //        + 3.0 * math::sin(totalCellCoordinate.z())
+            //        + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
         }
 
         HDINLINE auto operator()(math::Vector<double, 2u> const& totalCellCoordinate) const
         {
-            return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
-                   + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
+            return 0.0;
+            // return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
+            //        + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
         }
     };
 
