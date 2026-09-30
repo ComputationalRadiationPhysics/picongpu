@@ -131,6 +131,7 @@ namespace picongpu
                     zkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
                     azkBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
                     fieldV = std::make_shared<fields::poissonSolver::FieldV>(m_mappingDesc.value());
+                    fieldV->fieldVBuffer->getDeviceBuffer().setValue(0.0);
 
                     yBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
                     wBuffer = std::make_unique<GridBuffer<float_64, simDim>>(m_mappingDesc->getGridLayout());
@@ -244,56 +245,78 @@ namespace picongpu
 
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    eigenMin += 4.0 * math::sin(1.0 * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
-                                * math::sin(1.0 * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
-                                / (cellSizeSquared[d]);
-
-                    eigenMax
-                        += 4.0
-                           * math::sin(globalDomain[d] * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
-                           * math::sin(globalDomain[d] * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1))
-                           / (cellSizeSquared[d]);
+                    float_64 sinMin = math::sin(pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1));
+                    float_64 sinMax
+                        = math::sin(globalDomain[d] * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1));
+                    eigenMin += 4.0 * sinMin * sinMin / cellSizeSquared[d];
+                    eigenMax += 4.0 * sinMax * sinMax / cellSizeSquared[d];
                 }
 
                 float_64 const theta = 0.5 * (eigenMax + eigenMin);
                 float_64 const delta = 0.5 * (eigenMax - eigenMin);
                 float_64 const sigma = theta / delta;
+                // precalculate inverse values to avoid division in the kernel
+                float_64 const invtheta = 1.0 / theta;
+                float_64 const invdelta = 1.0 / delta;
+                float_64 const invsigma = 1.0 / sigma;
 
-                float_64 rhoOld = 1. / sigma;
-                float_64 rhoCurrent = 1. / (2. * sigma - rhoOld);
+                auto guardMapper = makeAreaMapper<GUARD>(m_mappingDesc.value());
 
+                // set guard cells to zero, important for open boundaries,
+                // otherwise the comunication will overwrite the guard cells anyway
+                pmacc::algorithms::forEachCell(
+                    guardMapper,
+                    [] DEVICEONLY(auto) -> float_64 { return 0.0; },
+                    bBuffer->getDeviceBuffer());
                 bBuffer->communication();
 
                 auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
 
                 namespace poi = fields::poissonSolver;
 
+                // Step i = 0: initial approximation
                 pmacc::algorithms::forEachCell(
                     coreBorderMapper,
-                    [theta] DEVICEONLY(auto, auto const bValue) -> float_64 { return bValue / theta; },
+                    [invtheta] DEVICEONLY(auto, auto const bValue) -> float_64 { return bValue * invtheta; },
                     zBuffer->getDeviceBuffer(),
                     bBuffer->getDeviceBuffer());
 
+                if(m_maxPreconditionerSteps <= 1)
+                {
+                    xBuffer->getDeviceBuffer().copyFrom(zBuffer->getDeviceBuffer());
+                    return;
+                }
+
+                // Step i = 1: first iteration
                 poi::stencil(
                     coreBorderMapper,
                     poi::StencilFunc{},
                     yBuffer->getDeviceBuffer(),
                     bBuffer->getDeviceBuffer());
 
+                float_64 rhoOld = invsigma;
+                float_64 rhoCurrent = 1. / (2. * sigma - rhoOld);
+
                 pmacc::algorithms::forEachCell(
                     coreBorderMapper,
-                    [rhoCurrent, theta, delta] DEVICEONLY(auto const yValue) -> float_64
-                    { return -2.0 * rhoCurrent * yValue / theta / delta; },
+                    [rhoCurrent, invtheta, invdelta] DEVICEONLY(auto const yValue) -> float_64
+                    { return -2.0 * rhoCurrent * yValue * invtheta * invdelta; },
                     yBuffer->getDeviceBuffer());
 
                 pmacc::algorithms::forEachCell(
                     coreBorderMapper,
-                    [rhoCurrent, delta] DEVICEONLY(auto const yValue, auto const bValue) -> float_64
-                    { return yValue + 4.0 * bValue * rhoCurrent / delta; },
+                    [rhoCurrent, invdelta] DEVICEONLY(auto const yValue, auto const bValue) -> float_64
+                    { return yValue + 4.0 * bValue * rhoCurrent * invdelta; },
                     yBuffer->getDeviceBuffer(),
                     bBuffer->getDeviceBuffer());
 
+                if(m_maxPreconditionerSteps <= 2)
+                {
+                    xBuffer->getDeviceBuffer().copyFrom(yBuffer->getDeviceBuffer());
+                    return;
+                }
 
+                // Step i >= 2: subsequent iterations
                 uint32_t iterMax = m_maxPreconditionerSteps;
                 for(uint32_t i = 2; i < iterMax; ++i)
                 {
@@ -309,14 +332,14 @@ namespace picongpu
 
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
-                        [rhoCurrent, delta] DEVICEONLY(auto const wValue) -> float_64
-                        { return -2.0 * rhoCurrent * wValue / delta; },
+                        [rhoCurrent, invdelta] DEVICEONLY(auto const wValue) -> float_64
+                        { return -2.0 * rhoCurrent * wValue * invdelta; },
                         wBuffer->getDeviceBuffer());
 
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
-                        [rhoCurrent, delta] DEVICEONLY(auto const wValue, auto const bValue) -> float_64
-                        { return wValue + 2.0 * rhoCurrent * bValue / delta; },
+                        [rhoCurrent, invdelta] DEVICEONLY(auto const wValue, auto const bValue) -> float_64
+                        { return wValue + 2.0 * rhoCurrent * bValue * invdelta; },
                         wBuffer->getDeviceBuffer(),
                         bBuffer->getDeviceBuffer());
 
@@ -338,6 +361,7 @@ namespace picongpu
                     yBuffer->getDeviceBuffer().copyFrom(wBuffer->getDeviceBuffer());
                 } // loop
                 xBuffer->getDeviceBuffer().copyFrom(wBuffer->getDeviceBuffer());
+                return;
             }
 
             void Poisson::operator()(uint32_t const currentStep)
@@ -345,7 +369,7 @@ namespace picongpu
                 namespace poi = fields::poissonSolver;
 
                 // only one rank is writing status initial information of the poisson solver
-                bool mainRank = Environment<simDim>::get().GridController().getGlobalRank() == 0;
+                bool mainRank = pmacc::Environment<simDim>::get().GridController().getGlobalRank() == 0;
                 if(mainRank)
                     log<picLog::PHYSICS>("Poisson solver:");
                 if(!m_useSolver)
@@ -354,20 +378,19 @@ namespace picongpu
                         log<picLog::PHYSICS>("  - disabled");
                     return;
                 }
-                eventSystem::getTransactionEvent().waitForFinished();
+                pmacc::eventSystem::getTransactionEvent().waitForFinished();
                 auto beginT = std::chrono::high_resolution_clock::now();
 
-                using namespace pmacc;
                 constexpr uint fieldRhoSlot = 0;
-                DataConnector& dc = Environment<>::get().DataConnector();
+                pmacc::DataConnector& dc = pmacc::Environment<>::get().DataConnector();
                 auto& fieldRho = *dc.get<FieldTmp>(FieldTmp::getUniqueId(fieldRhoSlot));
 
-                DataSpace<simDim> numGuardCells = fieldRho.getGridLayout().guardSizeND();
-                DataSpace<simDim> coreBorderSize = fieldRho.getGridLayout().sizeWithoutGuardND();
+                pmacc::DataSpace<simDim> numGuardCells = fieldRho.getGridLayout().guardSizeND();
+                pmacc::DataSpace<simDim> coreBorderSize = fieldRho.getGridLayout().sizeWithoutGuardND();
 
                 using EligibleSpecies = pmacc::mp_filter<SpeciesEligibleForChargeConservation, VectorAllSpecies>;
                 /* calculate and add the charge density values from all species in FieldTmp */
-                meta::ForEach<
+                pmacc::meta::ForEach<
                     EligibleSpecies,
                     detail::ComputeChargeDensity<boost::mpl::_1, pmacc::mp_int<CORE + BORDER>>,
                     boost::mpl::_1>
@@ -377,47 +400,61 @@ namespace picongpu
                 computeChargeDensity(fieldRho, currentStep);
 
                 /* add results of all species that are still in GUARD to next GPUs BORDER */
-                EventTask fieldTmpEvent = fieldRho.asyncCommunication(eventSystem::getTransactionEvent());
-                eventSystem::setTransactionEvent(fieldTmpEvent);
+                pmacc::EventTask fieldTmpEvent
+                    = fieldRho.asyncCommunication(pmacc::eventSystem::getTransactionEvent());
+                pmacc::eventSystem::setTransactionEvent(fieldTmpEvent);
 
                 auto boundaryConditionsDirichlet = poi::BoundaryConditionsDirichlet{};
                 boundaryConditionsDirichlet(*fieldV.get(), m_mappingDesc.value());
 
-                auto rightHandSideNormalization = poi::RightHandSideNormalization{};
-                rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc.value());
+                // auto rightHandSideNormalization = poi::RightHandSideNormalization{};
+                // rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc.value());
 
 
+                /* calculate normalization constant */
                 float_64 normRho;
                 {
                     auto rhoDeviceBox = fieldRho.getDeviceDataBox().shift(numGuardCells);
                     TransformDataBox fieldTransform(
-                        [rhoDeviceBox] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
-                        { return precisionCast<float_64>(rhoDeviceBox[idx].x() * rhoDeviceBox[idx].x()); });
+                        [rhoDeviceBox] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
+                        {
+                            return pmacc::algorithms::precisionCast::precisionCast<float_64>(
+                                rhoDeviceBox[idx].x() * rhoDeviceBox[idx].x());
+                        });
 
                     normRho = std::sqrt(reduceGlobal(coreBorderSize, fieldTransform));
                 }
-                // recalculate rho
-                fieldRho.getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
-                computeChargeDensity(fieldRho, currentStep);
-                /* add results of all species that are still in GUARD to next GPUs BORDER */
-                eventSystem::setTransactionEvent(fieldRho.asyncCommunication(eventSystem::getTransactionEvent()));
 
-                auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
+                if(!std::isfinite(normRho))
+                {
+                    if(mainRank)
+                        log<picLog::PHYSICS>("  - non-finite RHS norm: %1%") % normRho;
+                    throw std::runtime_error("Poisson solver encountered a non-finite RHS norm");
+                }
+
+                float_64 const normalizationScale = normRho > 0.0 ? normRho : 1.0;
+
+                /* make mappers*/
+                auto coreBorderMapper = pmacc::makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
+                auto allMapper = pmacc::makeAreaMapper<CORE + BORDER + GUARD>(m_mappingDesc.value());
 
                 // normalize rho
                 pmacc::algorithms::forEachCell(
                     coreBorderMapper,
-                    [normRho] DEVICEONLY(auto rhoValue) -> float_64 { return rhoValue.x() / normRho; },
+                    [normalizationScale] DEVICEONLY(auto rhoValue) -> float_64
+                    { return rhoValue.x() / normalizationScale; },
                     fieldRho.getGridBuffer().getDeviceBuffer());
-
-                auto vMapper = makeAreaMapper<GUARD>(m_mappingDesc.value());
 
                 // normalize v
                 pmacc::algorithms::forEachCell(
-                    vMapper,
-                    [normRho] DEVICEONLY(auto const vValue) -> float_64 { return vValue / normRho; },
+                    allMapper,
+                    [normalizationScale] DEVICEONLY(auto const vValue) -> float_64
+                    { return vValue * sim.pic.getEps0() / normalizationScale; },
                     fieldV->fieldVBuffer->getDeviceBuffer());
+                fieldV->fieldVBuffer->communication();
 
+                // set the buffer to 0 first so the guard cell values don't cause trouble later on
+                r0Buffer->getDeviceBuffer().setValue(0.0);
                 poi::stencil(
                     coreBorderMapper,
                     poi::StencilFunc{},
@@ -441,20 +478,20 @@ namespace picongpu
                     auto r0BoxBorderGuard = r0Box.shift(numGuardCells);
 
                     TransformDataBox fieldTransform(
-                        [r0BoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                        [r0BoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
                         { return r0BoxBorderGuard[idx] * r0BoxBorderGuard[idx]; });
 
                     rho0 = reduceGlobal(coreBorderSize, fieldTransform);
                 }
 
                 float_64 rho1 = rho0;
-                float_64 totalSum2;
-
+                // rho0 is the globally reduced squared norm of the initial residual.
+                float_64 totalSum2 = rho0;
                 int maxIterations = m_maxSolverSteps;
-
-                bool foundSolution = false;
                 int iteration = 0;
-                for(; iteration < maxIterations; ++iteration)
+                bool foundSolution = std::sqrt(rho0) <= m_solverTolerance;
+
+                for(; iteration < maxIterations && !foundSolution; ++iteration)
                 {
                     // preconditioner
                     if(m_disablePreconditioner)
@@ -481,7 +518,8 @@ namespace picongpu
                         auto ampkBoxBorderGuard = ampkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [r0BoxBorderGuard, ampkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            [r0BoxBorderGuard,
+                             ampkBoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
                             { return r0BoxBorderGuard[idx] * ampkBoxBorderGuard[idx]; });
 
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
@@ -494,6 +532,33 @@ namespace picongpu
                         { return rkValue - alpha * ampkValue; },
                         rkBuffer->getDeviceBuffer(),
                         ampkBuffer->getDeviceBuffer());
+
+                    // half step convergence check
+                    {
+                        auto rkBox = rkBuffer->getDeviceBuffer().getDataBox();
+                        auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
+
+                        TransformDataBox residualSquared(
+                            [rkBoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
+                            { return rkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
+
+                        totalSum2 = reduceGlobal(coreBorderSize, residualSquared);
+                    }
+
+                    if(std::sqrt(totalSum2) < m_solverTolerance)
+                    {
+                        // x += alpha * M^-1 p
+                        pmacc::algorithms::forEachCell(
+                            coreBorderMapper,
+                            [alpha] DEVICEONLY(auto const vValue, auto const mpkValue) -> float_64
+                            { return vValue + alpha * mpkValue; },
+                            fieldV->fieldVBuffer->getDeviceBuffer(),
+                            mpkBuffer->getDeviceBuffer());
+
+                        foundSolution = true;
+                        ++iteration; // increment iteration to reflect the actual number of iterations performed
+                        break;
+                    }
 
                     // preconditioner
                     if(m_disablePreconditioner)
@@ -519,19 +584,20 @@ namespace picongpu
                         auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [azkBoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            [azkBoxBorderGuard,
+                             rkBoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
                             { return azkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
 
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
                     }
 
-                    /* totalSum1 = azk * azk */
+                    /* totalSum2 = azk * azk */
                     {
                         auto azkBox = azkBuffer->getDeviceBuffer().getDataBox();
                         auto azkBoxBorderGuard = azkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [azkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            [azkBoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
                             { return azkBoxBorderGuard[idx] * azkBoxBorderGuard[idx]; });
 
                         totalSum2 = reduceGlobal(coreBorderSize, fieldTransform);
@@ -566,7 +632,8 @@ namespace picongpu
                         auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [r0BoxBorderGuard, rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            [r0BoxBorderGuard,
+                             rkBoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
                             { return r0BoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
 
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
@@ -577,20 +644,24 @@ namespace picongpu
                         auto rkBoxBorderGuard = rkBox.shift(numGuardCells);
 
                         TransformDataBox fieldTransform(
-                            [rkBoxBorderGuard] DEVICEONLY(DataSpace<simDim> const& idx) -> float_64
+                            [rkBoxBorderGuard] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
                             { return rkBoxBorderGuard[idx] * rkBoxBorderGuard[idx]; });
 
                         totalSum2 = reduceGlobal(coreBorderSize, fieldTransform);
                     }
 
-                    rho1 = totalSum1;
-                    float_64 beta = rho1 / rho0 * alpha / omega;
-                    rho0 = rho1;
+                    // check convergence
                     if(std::sqrt(totalSum2) < m_solverTolerance)
                     {
                         foundSolution = true;
+                        iteration++; // increment iteration to reflect the actual number of iterations performed
                         break;
                     }
+
+                    rho1 = totalSum1;
+                    float_64 beta = rho1 / rho0 * alpha / omega;
+                    rho0 = rho1;
+
                     // pk = rk + beta * (pk - omega * ampk)
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
@@ -603,10 +674,10 @@ namespace picongpu
 
                 } // for loop
 
-                // avid deadlock due blocking colective MPI operation
-                eventSystem::getTransactionEvent().waitForFinished();
+                // avoid deadlock due blocking colective MPI operation
+                pmacc::eventSystem::getTransactionEvent().waitForFinished();
 
-                bool ioRank = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
+                bool ioRank = mpiReduce.hasResult(pmacc::mpi::reduceMethods::Reduce());
 
                 int maxGlobalIterations = 0;
                 mpiReduce(
@@ -614,10 +685,15 @@ namespace picongpu
                     &maxGlobalIterations,
                     &iteration,
                     1,
-                    mpi::reduceMethods::Reduce());
+                    pmacc::mpi::reduceMethods::Reduce());
 
                 float_64 maxGlobalNormRho = 0.0;
-                mpiReduce(pmacc::math::operation::Max(), &maxGlobalNormRho, &normRho, 1, mpi::reduceMethods::Reduce());
+                mpiReduce(
+                    pmacc::math::operation::Max(),
+                    &maxGlobalNormRho,
+                    &normRho,
+                    1,
+                    pmacc::mpi::reduceMethods::Reduce());
 
                 float_64 maxGlobalTotalSum2 = 0.0;
                 mpiReduce(
@@ -625,7 +701,7 @@ namespace picongpu
                     &maxGlobalTotalSum2,
                     &totalSum2,
                     1,
-                    mpi::reduceMethods::Reduce());
+                    pmacc::mpi::reduceMethods::Reduce());
 
                 if(foundSolution)
                 {
@@ -635,9 +711,9 @@ namespace picongpu
 
                     // normalize v back
                     pmacc::algorithms::forEachCell(
-                        coreBorderMapper,
-                        [normRho] DEVICEONLY(auto const vValue) -> float_64
-                        { return vValue * normRho / sim.pic.getEps0(); },
+                        allMapper,
+                        [normalizationScale] DEVICEONLY(auto const vValue) -> float_64
+                        { return vValue * normalizationScale / sim.pic.getEps0(); },
                         fieldV->fieldVBuffer->getDeviceBuffer());
                     fieldV->fieldVBuffer->communication();
 
@@ -649,29 +725,34 @@ namespace picongpu
                         poi::GetFieldEStencil{},
                         eField.getGridBuffer().getDeviceBuffer(),
                         fieldV->fieldVBuffer->getDeviceBuffer());
-                    setTransactionEvent(eField.asyncCommunication(eventSystem::getTransactionEvent()));
+                    pmacc::eventSystem::setTransactionEvent(
+                        eField.asyncCommunication(pmacc::eventSystem::getTransactionEvent()));
                 }
 
-                eventSystem::getTransactionEvent().waitForFinished();
+                pmacc::eventSystem::getTransactionEvent().waitForFinished();
                 auto endT = std::chrono::high_resolution_clock::now();
                 double duration = std::chrono::duration<double>(endT - beginT).count();
 
-                // avid deadlock due blocking collective MPI operation
-                eventSystem::getTransactionEvent().waitForFinished();
+                // avoid deadlock due blocking collective MPI operation
+                pmacc::eventSystem::getTransactionEvent().waitForFinished();
                 double globalMaxDuration = 0.0;
                 mpiReduce(
                     pmacc::math::operation::Max(),
                     &globalMaxDuration,
                     &duration,
                     1,
-                    mpi::reduceMethods::Reduce());
+                    pmacc::mpi::reduceMethods::Reduce());
                 if(ioRank)
                     log<picLog::PHYSICS>("  - duration %1% sec") % globalMaxDuration;
 
-                if(ioRank && !foundSolution)
+                if(!foundSolution)
                 {
-                    log<picLog::PHYSICS>("  - not converge after %1% iterations with norm=%2%, total epsilon=%3%")
-                        % maxIterations % normRho % std::sqrt(rho1);
+                    if(ioRank)
+                    {
+                        log<picLog::PHYSICS>(
+                            "  - did not converge after %1% iterations with norm=%2%, total epsilon=%3%")
+                            % maxIterations % normRho % std::sqrt(rho1);
+                    }
                     throw std::runtime_error("Poisson solver did not converge after max iterations");
                 }
             }
