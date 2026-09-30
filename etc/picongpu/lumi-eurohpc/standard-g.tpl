@@ -176,9 +176,6 @@ if [ $node_check_err -eq 0 ] || [ $run_cuda_memtest -eq 0 ] ; then
     echo "Start PIConGPU."
     test $n_broken_nodes -ne 0 && exclude_nodes="-x./bad_nodes.txt"
 
-    # As of 2025-08-22 with LUMI/24.03 software, `--mpiDirect` leads to errors of the form
-    # `Memory access fault by GPU node-10 (Agent handle: 0xcc8ea0) on address 0x150bea400000. Reason: Unknown.`
-    # Therefore, it is not applied.
     srun --cpu-bind=${CPU_BIND}  -n !TBG_tasks --nodes=!TBG_nodes $exclude_nodes -K1 ./select_gpu $TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
 else
     echo "Job stopped because of previous issues."
