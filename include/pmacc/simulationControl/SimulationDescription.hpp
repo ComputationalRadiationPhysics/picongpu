@@ -89,6 +89,44 @@ namespace pmacc
                 return currentStep;
             }
 
+            /** Whether checkpoint creation has been configured by the user
+             *
+             * This allows plugins (e.g. the checkpoint IO-backends) to skip
+             * initialization when checkpointing is not requested.
+             */
+            bool isCheckpointingConfigured() const
+            {
+                return checkpointingConfigured;
+            }
+
+            /** Set whether checkpoint creation has been configured
+             *
+             * @see isCheckpointingConfigured
+             */
+            void setCheckpointingConfigured(bool const value)
+            {
+                checkpointingConfigured = value;
+            }
+
+            /** Whether a restart from a checkpoint has been requested
+             *
+             * This allows plugins (e.g. the checkpoint IO-backends) to skip
+             * initialization when no restart is requested.
+             */
+            bool isRestartConfigured() const
+            {
+                return restartConfigured;
+            }
+
+            /** Set whether a restart from a checkpoint has been requested
+             *
+             * @see isRestartConfigured
+             */
+            void setRestartConfigured(bool const value)
+            {
+                restartConfigured = value;
+            }
+
             /** Set the current time step
              *
              * @see getCurrentStep
@@ -109,6 +147,12 @@ namespace pmacc
 
             /** current time step of simulation */
             uint32_t currentStep{0};
+
+            /** whether checkpoint creation has been configured */
+            bool checkpointingConfigured{false};
+
+            /** whether a restart from a checkpoint has been requested */
+            bool restartConfigured{false};
 
         private:
             friend struct detail::Environment;

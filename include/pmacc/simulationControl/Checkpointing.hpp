@@ -285,6 +285,21 @@ namespace pmacc::simulationControl
             return restartDirectory;
         }
 
+        /** Whether the user configured periodic checkpoint creation
+         *
+         * Note: signal-triggered checkpoints are not covered here.
+         */
+        [[nodiscard]] bool isCheckpointingConfigured() const
+        {
+            return !checkpointPeriod.empty() || checkpointPeriodMinutes != 0u;
+        }
+
+        /** Whether the user requested a restart from a checkpoint */
+        [[nodiscard]] bool isRestartConfigured() const
+        {
+            return restartState == RestartState::TRY || restartState == RestartState::FORCE;
+        }
+
     private:
         /** Presentations: loop the whole simulation `softRestarts` times from
          *                 initial step to runSteps */
@@ -452,6 +467,18 @@ namespace pmacc::simulationControl
         [[nodiscard]] std::string const& getRestartDir() const
         {
             return restartDirectory;
+        }
+
+        /** Checkpointing is disabled at compile time. */
+        [[nodiscard]] bool isCheckpointingConfigured() const
+        {
+            return false;
+        }
+
+        /** Restarting is disabled at compile time. */
+        [[nodiscard]] bool isRestartConfigured() const
+        {
+            return false;
         }
 
     private:
