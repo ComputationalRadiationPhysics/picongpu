@@ -13,6 +13,7 @@ exactly the code that is executed in CI**.
    - `configuring_environment/`: `rc_params` usage
    - `defining_simulation/`: PICMI input scripts
    - `running_simulation/`: bash commands and workflow invocations
+     (plus the install commands rendered on the `python_package/install` page)
    - `quickstart/`: the commands of the quick start guide
    - `selected_topics/`: the feature deep dives
    - `troubleshooting/`: input-file-generation validation

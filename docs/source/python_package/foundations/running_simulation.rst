@@ -19,6 +19,12 @@ multiple times in the same script (see :ref:`Defining Your Simulation <python_pa
 For simplicity, the following guide assumes that a single simulation setup/run is handled
 but the concepts apply equally to multi-simulation scripts.
 
+.. seealso::
+
+   If you want to install the Python package once and reuse it across many
+   scripts, see :ref:`Installing the Python Package
+   <python_package/install:Installing the Python Package>`.
+
 Full Execution
 --------------
 
