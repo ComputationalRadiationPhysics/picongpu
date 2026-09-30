@@ -166,7 +166,7 @@ namespace picongpu
                         cBackendHelp->second->create(cBackendHelp->second, 0, m_cellDescription));
                     // initialize the backend at load time (i.e. at time step zero) so that
                     // configuration errors are reported before the simulation starts
-                    backend->init();
+                    backend->init(plugins::multi::IInstance::InstanceKind::Checkpoint);
                     ioBackends[checkpointBackendName] = std::move(backend);
                 }
             }
@@ -184,7 +184,7 @@ namespace picongpu
                         rBackend->second->create(rBackend->second, 0, m_cellDescription));
                     // initialize the backend at load time (i.e. at time step zero) so that
                     // configuration errors are reported before the simulation starts
-                    backend->init();
+                    backend->init(plugins::multi::IInstance::InstanceKind::Restart);
                     ioBackends[restartBackendName] = std::move(backend);
                 }
             }

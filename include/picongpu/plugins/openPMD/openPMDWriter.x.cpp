@@ -1309,10 +1309,20 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * configuration is reported early instead of only when the plugin
              * is first executed.
              */
-            void init() override
+            void init(InstanceKind instanceKind) override
             {
                 eventSystem::getTransactionEvent().waitForFinished();
                 mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, outputDirectory);
+                switch(instanceKind)
+                {
+                case InstanceKind::Checkpoint:
+                case InstanceKind::Regular:
+                    mThreadParams.openSeries(mThreadParams.writeAccess);
+                    break;
+                case InstanceKind::Restart:
+                    mThreadParams.openSeries(::openPMD::Access::READ_ONLY);
+                    break;
+                }
             }
 
             void notify(uint32_t currentStep) override

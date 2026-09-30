@@ -41,6 +41,13 @@ namespace picongpu
              */
             struct IInstance : public pmacc::INotify
             {
+                enum class InstanceKind : std::uint8_t
+                {
+                    Regular,
+                    Checkpoint,
+                    Restart
+                };
+
                 //! must be implemented by the user
                 static std::shared_ptr<IHelp> getHelp();
 
@@ -52,7 +59,7 @@ namespace picongpu
                  * their configuration here so that configuration errors are
                  * reported early instead of only at the first notification.
                  */
-                virtual void init()
+                virtual void init(InstanceKind)
                 {
                 }
 
