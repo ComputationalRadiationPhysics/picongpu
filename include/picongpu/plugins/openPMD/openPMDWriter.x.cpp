@@ -608,6 +608,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         inline void ThreadParams::initFromConfig(
             Help& help,
             size_t id,
+            std::optional<uint32_t> currentStep,
             std::string const& dir,
             std::optional<std::string> file)
         {
@@ -704,14 +705,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             }
 
             particleIOChunkSize = std::stoull(particleIOChunkSizeString);
-        }
 
-        inline void ThreadParams::updateWindow(uint32_t const currentStep)
-        {
-            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-            /* window selection */
-            auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
-            window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
+            if(currentStep.has_value())
+            {
+                SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                /* window selection */
+                auto simulationOutputWindow = MovingWindow::getInstance().getWindow(*currentStep);
+                window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
+            }
         }
 
         /** Writes simulation data to openPMD.
@@ -1311,7 +1312,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             void init() override
             {
                 eventSystem::getTransactionEvent().waitForFinished();
-                mThreadParams.initFromConfig(*m_help, m_id, outputDirectory);
+                mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, outputDirectory);
             }
 
             void notify(uint32_t currentStep) override
@@ -1322,7 +1323,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 eventSystem::getTransactionEvent().waitForFinished();
 
-                mThreadParams.updateWindow(currentStep);
+                mThreadParams.initFromConfig(*m_help, m_id, currentStep, outputDirectory);
 
                 mThreadParams.isCheckpoint = false;
                 dumpData(currentStep);
@@ -1355,7 +1356,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* if file name is relative, prepend with common directory */
 
                 mThreadParams.isCheckpoint = true;
-                mThreadParams.initFromConfig(*m_help, m_id, checkpointDirectory, checkpointFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, checkpointDirectory, checkpointFilename);
 
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
                 updatePmlSlabViewsIfEnabled(currentStep);
@@ -1444,7 +1445,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // Checkpoint
                 assert(!m_help->selfRegister);
 
-                mThreadParams.initFromConfig(*m_help, m_id, restartDirectory, constRestartFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, restartDirectory, constRestartFilename);
 
                 mThreadParams.cellDescription = m_cellDescription;
 
