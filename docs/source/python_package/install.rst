@@ -3,7 +3,7 @@ Installing the Python Package
 
 The PIConGPU PICMI interface is distributed as the Python package
 ``picongpu``.
-There are three common ways to install it.
+There are several common ways to install it.
 All of them fetch the package from our `source repository
 <https://github.com/ComputationalRadiationPhysics/picongpu>`__
 and install the ``picmi`` frontend together with the command line tools
