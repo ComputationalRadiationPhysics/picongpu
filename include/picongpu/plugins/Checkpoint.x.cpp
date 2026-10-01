@@ -170,7 +170,11 @@ namespace picongpu
                     // backend would open an unused (and possibly empty) output file.
                     auto const& simulationDescription = Environment<>::get().SimulationDescription();
                     if(simulationDescription.isCheckpointingConfigured())
-                        backend->init(plugins::multi::IInstance::InstanceKind::Checkpoint);
+                        backend->init(
+                            plugins::multi::IInstance::CheckpointInstance{
+                                plugins::multi::IInstance::CheckpointKind::Write,
+                                checkpointFilename,
+                                "DIRECTORY MISSING"});
                     ioBackends[checkpointBackendName] = std::move(backend);
                 }
             }
@@ -191,7 +195,13 @@ namespace picongpu
                     // Only do so if a restart is actually requested.
                     auto const& simulationDescription = Environment<>::get().SimulationDescription();
                     if(simulationDescription.isRestartConfigured())
-                        backend->init(plugins::multi::IInstance::InstanceKind::Restart);
+                    {
+                        backend->init(
+                            plugins::multi::IInstance::CheckpointInstance{
+                                plugins::multi::IInstance::CheckpointKind::Read,
+                                restartFilename,
+                                "DIRECTORY MISSING"});
+                    }
                     ioBackends[restartBackendName] = std::move(backend);
                 }
             }

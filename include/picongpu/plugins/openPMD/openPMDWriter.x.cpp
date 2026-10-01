@@ -88,6 +88,7 @@
 #    include <tuple>
 
 #    include <openPMD/auxiliary/StringManip.hpp>
+#    include <openPMD/auxiliary/Variant.hpp>
 #    include <openPMD/openPMD.hpp>
 
 #    if !defined(_WIN32)
@@ -1402,23 +1403,40 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             void init(InstanceKind instanceKind) override
             {
                 eventSystem::getTransactionEvent().waitForFinished();
-                mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, outputDirectory);
 
-                // Defer all initialization (including configuration parsing and
-                // opening the output Series) to the first run if requested.
-                if(mThreadParams.lateInit)
-                {
-                    return;
-                }
-                switch(instanceKind)
-                {
-                case InstanceKind::Regular:
-                case InstanceKind::Checkpoint:
-                    mThreadParams.openSeries(mThreadParams.writeAccess);
-                    break;
-                case InstanceKind::Restart:
-                    mThreadParams.openSeries(::openPMD::Access::READ_RANDOM_ACCESS);
-                }
+                std::visit(
+                    ::openPMD::auxiliary::overloaded{
+                        [&](RegularInstance const&)
+                        {
+                            mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, outputDirectory);
+                            // Defer all initialization (including configuration parsing and
+                            // opening the output Series) to the first run if requested.
+                            if(mThreadParams.lateInit)
+                            {
+                                return;
+                            }
+                            mThreadParams.openSeries(mThreadParams.writeAccess);
+                        },
+                        [&](CheckpointInstance const& instance)
+                        {
+                            mThreadParams
+                                .initFromConfig(*m_help, m_id, std::nullopt, instance.directory, instance.filename);
+                            // Defer all initialization (including configuration parsing and
+                            // opening the output Series) to the first run if requested.
+                            if(mThreadParams.lateInit)
+                            {
+                                return;
+                            }
+                            switch(instance.checkpointKind)
+                            {
+                            case CheckpointKind::Write:
+                                mThreadParams.openSeries(mThreadParams.writeAccess);
+                                break;
+                            case CheckpointKind::Read:
+                                mThreadParams.openSeries(::openPMD::Access::READ_RANDOM_ACCESS);
+                            }
+                        }},
+                    instanceKind);
             }
 
             void notify(uint32_t currentStep) override

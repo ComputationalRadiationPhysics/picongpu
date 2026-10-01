@@ -123,7 +123,7 @@ namespace picongpu
                         // initialize the instance at load time (i.e. at time step zero) so that
                         // plugins have the chance to check for configuration errors and report them  before the
                         // simulation starts
-                        instance->init(IInstance::InstanceKind::Regular);
+                        instance->init(IInstance::RegularInstance{});
                     }
                 }
 

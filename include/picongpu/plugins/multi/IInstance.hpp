@@ -24,6 +24,7 @@
 #include <pmacc/pluginSystem/INotify.hpp>
 
 #include <memory>
+#include <variant>
 
 namespace picongpu
 {
@@ -41,12 +42,23 @@ namespace picongpu
              */
             struct IInstance : public pmacc::INotify
             {
-                enum class InstanceKind : std::uint8_t
+                struct RegularInstance
                 {
-                    Regular,
-                    Checkpoint,
-                    Restart
                 };
+                enum class CheckpointKind : std::uint8_t
+                {
+                    Write,
+                    Read
+                };
+
+                struct CheckpointInstance
+                {
+                    CheckpointKind checkpointKind;
+                    std::string filename;
+                    std::string directory;
+                };
+
+                using InstanceKind = std::variant<RegularInstance, CheckpointInstance>;
 
                 //! must be implemented by the user
                 static std::shared_ptr<IHelp> getHelp();
