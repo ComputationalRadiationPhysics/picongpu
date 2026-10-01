@@ -174,7 +174,7 @@ namespace picongpu
                             plugins::multi::IInstance::CheckpointInstance{
                                 plugins::multi::IInstance::CheckpointKind::Write,
                                 checkpointFilename,
-                                "DIRECTORY MISSING"});
+                                simulationDescription.getCheckpointDirectory()});
                     ioBackends[checkpointBackendName] = std::move(backend);
                 }
             }
@@ -200,7 +200,7 @@ namespace picongpu
                             plugins::multi::IInstance::CheckpointInstance{
                                 plugins::multi::IInstance::CheckpointKind::Read,
                                 restartFilename,
-                                "DIRECTORY MISSING"});
+                                simulationDescription.getRestartDirectory()});
                     }
                     ioBackends[restartBackendName] = std::move(backend);
                 }
