@@ -210,6 +210,9 @@ struct twtsTightNumberTest
  * ``isOutsideTWTSEnvelope`` is public, so it is probed directly: this is
  * deterministic and has no dependence on the oscillatory field amplitude.
  */
+// This combination of compilers has a bug that is triggered by Catch2 internally suppressing warnings.
+// See https://github.com/ComputationalRadiationPhysics/picongpu/pull/5174#issuecomment-2467890326
+#if (__GNUC__ != 11 || __CUDACC_VER_MAJOR__ != 11)
 struct twtsTightEnvelopeGuardTest
 {
     /** Walk along z at fixed y and t from the envelope center across its
@@ -256,14 +259,65 @@ struct twtsTightEnvelopeGuardTest
         }
     }
 
+    /** End-to-end check of the negative interaction angle (phi < 0) sign path.
+     *
+     * ``defineMinimalCoordinates`` applies ``phiPositive`` (negation of x and
+     * z) for phi < 0 and evaluates ``deltaT`` with ``cos(phi) = cos(|phi|)``,
+     * while the guard works on helpers built from ``abs(phi)`` and is therefore
+     * sign invariant. This check drives ``calcTWTSField*`` through
+     * ``defineMinimalCoordinates`` with a negative phi and host coordinates
+     * derived from that mapping, asserting a non-zero field inside the envelope
+     * and an exactly zero field beyond the zero cutoff.
+     */
+    static void checkNegativePhi()
+    {
+        using float_T = templates::twtstight::float_T;
+
+        float_64 const phi = -30. * (PI / 180.);
+        templates::twtstight::EField const
+            testEfield{0.0, 800.0e-9, 30.0e-15, 2.5e-6, phi, 1.0, 0.0, false, 0.0, 30. * (PI / 180.)};
+        auto const& vars = testEfield.basicTWTSHelperVariables;
+        float_T const tanAlpha = vars[4];
+        float_64 const phiPositive = testEfield.phiPositive;
+        float_64 const unitLength = testEfield.unit_length;
+        float_64 const unitTime = testEfield.dt;
+
+        /* For beta_0 = 1 the guard argument reduces to t - y - z*tanAlpha, so
+         * the envelope center line is y = t - z*tanAlpha. The chosen reduced
+         * time is below one period, deltaT = wavelength / c / (1 - beta_0*cos(phi)),
+         * hence ``numberOfPeriods`` is zero and ``defineMinimalCoordinates``
+         * maps pos.y()/time directly while negating x and z via phiPositive.
+         * Invert that mapping to obtain the host position and time.
+         */
+        float_64 const insideZ = 9000.0;
+        float_64 const insideT = 100.0;
+        float_64 const insideY = insideT - insideZ * tanAlpha;
+        float3_64 const posInside = float3_64{0.0, insideY * unitLength, phiPositive * insideZ * unitLength};
+        float_64 const timeInside = insideT * unitTime;
+
+        INFO("phi = " << phi);
+        CHECK(testEfield.calcTWTSFieldX(posInside, timeInside) != float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldY(posInside, timeInside) != float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldZ(posInside, timeInside) != float_T(0.0));
+
+        /* |t - y - z*tanAlpha| = 20000*tanAlpha exceeds the cutoff
+         * numSigmas*tauG*cspeed, so all field components must be zero. */
+        float3_64 const posOutside = float3_64{0.0, 0.0, phiPositive * 20000.0 * unitLength};
+        CHECK(testEfield.calcTWTSFieldX(posOutside, 0.0) == float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldY(posOutside, 0.0) == float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldZ(posOutside, 0.0) == float_T(0.0));
+    }
+
     void operator()() const
     {
         checkEnvelope(1.0, 30. * (PI / 180.));
         checkEnvelope(1.0, 90. * (PI / 180.));
         checkEnvelope(0.9, 30. * (PI / 180.));
         checkEnvelope(0.9, 90. * (PI / 180.));
+        checkNegativePhi();
     }
 };
+#endif
 
 TEST_CASE("unit::TWTSTight", "[TWTSTight laser math test]")
 {
@@ -272,5 +326,7 @@ TEST_CASE("unit::TWTSTight", "[TWTSTight laser math test]")
 
 TEST_CASE("unit::TWTSTightEnvelopeGuard", "[TWTSTight laser envelope guard test]")
 {
+#if (__GNUC__ != 11 || __CUDACC_VER_MAJOR__ != 11)
     twtsTightEnvelopeGuardTest{}();
+#endif
 }
