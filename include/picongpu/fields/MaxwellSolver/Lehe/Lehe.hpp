@@ -145,9 +145,9 @@ namespace picongpu
                     for(uint32_t d = 0; d < simDim; d++)
                         rhs += sSquared[d] / stepSquared[d];
                     rhs -= 4.0 * delta * sSquared[dir0] * sSquared[dir0] / stepSquared[dir0];
-                    rhs -= 4.0 * (betaDir1 / stepSquared[dir1] + betaDir0 / stepSquared[dir0]) * sSquared[dir0]
+                    rhs -= 4.0 * (betaDir1 / stepSquared[dir0] + betaDir0 / stepSquared[dir1]) * sSquared[dir0]
                            * sSquared[dir1];
-                    rhs -= 4.0 * (betaDir2 / stepSquared[dir2] + betaDir0 / stepSquared[dir0]) * sSquared[dir0]
+                    rhs -= 4.0 * (betaDir2 / stepSquared[dir0] + betaDir0 / stepSquared[dir2]) * sSquared[dir0]
                            * sSquared[dir2];
                     auto const lhsTerm = math::sin(0.5 * omega * timeStep) / (sim.pic.getSpeedOfLight() * timeStep);
                     auto const lhs = lhsTerm * lhsTerm;
@@ -182,10 +182,10 @@ namespace picongpu
                     // d(q^2)/dk = 2*q*dq/dk supplies the extra factor 2, giving -8 here.
                     result -= 8.0 * delta * sSquared[dir0] * sSquaredDerivative[dir0] / stepSquared[dir0];
                     result
-                        -= 4.0 * (betaDir1 / stepSquared[dir1] + betaDir0 / stepSquared[dir0])
+                        -= 4.0 * (betaDir1 / stepSquared[dir0] + betaDir0 / stepSquared[dir1])
                            * (sSquared[dir0] * sSquaredDerivative[dir1] + sSquaredDerivative[dir0] * sSquared[dir1]);
                     result
-                        -= 4.0 * (betaDir2 / stepSquared[dir2] + betaDir0 / stepSquared[dir0])
+                        -= 4.0 * (betaDir2 / stepSquared[dir0] + betaDir0 / stepSquared[dir2])
                            * (sSquared[dir0] * sSquaredDerivative[dir2] + sSquaredDerivative[dir0] * sSquared[dir2]);
                     return result;
                 }

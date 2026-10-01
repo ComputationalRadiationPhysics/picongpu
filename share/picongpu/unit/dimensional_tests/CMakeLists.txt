@@ -8,6 +8,15 @@ foreach(dim 2 3)
         alpaka_add_executable(${testExe} ${testCaseFilepath})
         target_include_directories(${testExe} PRIVATE BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include")
         target_include_directories(${testExe} PRIVATE BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+        if(testCase STREQUAL "leheDispersionRelation")
+            target_include_directories(
+                ${testExe}
+                BEFORE
+                PRIVATE
+                    "${CMAKE_CURRENT_SOURCE_DIR}/leheDispersionRelation/include"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+            )
+        endif()
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
         target_link_libraries(${testExe} PRIVATE pmacc::pmacc)
