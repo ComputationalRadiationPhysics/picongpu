@@ -178,12 +178,14 @@ namespace picongpu
                     auto result = 0.0;
                     for(uint32_t d = 0; d < simDim; d++)
                         result += sSquaredDerivative[d] / stepSquared[d];
-                    result -= 4.0 * delta * sSquared[dir0] * sSquaredDerivative[dir0] / stepSquared[dir0];
+                    // The dispersion relation contains -4 * delta * s^4 / step^2. With q = s^2,
+                    // d(q^2)/dk = 2*q*dq/dk supplies the extra factor 2, giving -8 here.
+                    result -= 8.0 * delta * sSquared[dir0] * sSquaredDerivative[dir0] / stepSquared[dir0];
                     result
                         -= 4.0 * (betaDir1 / stepSquared[dir1] + betaDir0 / stepSquared[dir0])
                            * (sSquared[dir0] * sSquaredDerivative[dir1] + sSquaredDerivative[dir0] * sSquared[dir1]);
                     result
-                        -= 4.0 * (betaDir1 / stepSquared[dir1] + betaDir0 / stepSquared[dir0])
+                        -= 4.0 * (betaDir2 / stepSquared[dir2] + betaDir0 / stepSquared[dir0])
                            * (sSquared[dir0] * sSquaredDerivative[dir2] + sSquaredDerivative[dir0] * sSquared[dir2]);
                     return result;
                 }
