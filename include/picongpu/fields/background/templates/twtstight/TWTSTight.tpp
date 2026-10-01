@@ -242,7 +242,8 @@ namespace picongpu::templates::twtstight
         /* To avoid underflows in computation, fields are set to zero
          * before and after the respective TWTS pulse envelope.
          */
-        if(math::abs(y - z * tanAlpha - (beta0 * cspeed * t)) > (numSigmas * tauG * cspeed))
+        if(math::abs(cspeed * t - y * (cosPhi + sinPhi * tanAlpha) - z * (sinPhi - cosPhi * tanAlpha))
+           > (numSigmas * tauG * cspeed))
         {
             return true;
         }
