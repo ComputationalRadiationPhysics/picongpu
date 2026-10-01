@@ -49,7 +49,7 @@ grid = Cartesian3DGrid(
 )
 solver = ElectromagneticSolver(method="Yee", grid=grid, cfl=0.95)
 
-LASER_DURATION = 5.0e-15
+LASER_DURATION = 2 * 5.0e-15
 PULSE_INIT = 15.0
 
 laser = GaussianLaser(
@@ -65,7 +65,7 @@ laser = GaussianLaser(
     ],
     centroid_position=[
         float(NUM_CELLS[0] * CELL_SIZE[0] / 2.0),
-        -0.5 * PULSE_INIT * LASER_DURATION * c,
+        -0.25 * PULSE_INIT * LASER_DURATION * c,
         float(NUM_CELLS[2] * CELL_SIZE[2] / 2.0),
     ],
     picongpu_polarization_type=PolarizationType.LINEAR,
