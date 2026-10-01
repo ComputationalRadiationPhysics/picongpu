@@ -131,7 +131,14 @@ namespace
         return res;
     }
 
-    static bool specialConversions(std::string const& keyName, toml::value const& tomlConfigAtKey, std::string& target)
+    template<typename TargetType>
+    bool specialConversions(std::string const& keyName, toml::value const&, TargetType& target)
+    {
+        return false;
+    }
+
+    template<>
+    bool specialConversions(std::string const& keyName, toml::value const& tomlConfigAtKey, std::string& target)
     {
         if(keyName == "backend_config" && tomlConfigAtKey.is_table())
         {
@@ -146,38 +153,18 @@ namespace
     void parsePluginParameters(
         picongpu::openPMD::PluginParameters& options,
         toml::value tomlConfig,
-        std::vector<picongpu::toml::TomlParameter> tomlParameters)
+        std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters)
     {
-        auto parseOption = [&tomlConfig](std::string& target, std::string const& key)
+        auto config_as_any = std::make_any<toml::value const*>(&tomlConfig);
+        for(auto const& tomlParameter : tomlParameters)
         {
-            if(!tomlConfig.contains(key))
-            {
-                return; // leave the default option
-            }
-            if(specialConversions(key, tomlConfig.at(key), target))
-            {
-                return;
-            }
-            try
-            {
-                target = toml::find<std::string>(tomlConfig, key);
-            }
-            catch(toml::type_error const& e)
-            {
-                throw std::runtime_error(
-                    "[openPMD plugin] Global key '" + key + "' must point to a value of string type.");
-            }
-        };
-
-        for(auto const& [param, target_pointer] : tomlParameters)
-        {
-            parseOption(options.*target_pointer, param);
+            tomlParameter->parseOption(config_as_any, options);
         }
     }
 
     PeriodTable_t parseTomlFile(
         picongpu::toml::DataSources& dataSources,
-        std::vector<picongpu::toml::TomlParameter> tomlParameters,
+        std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
         std::string const& content,
         std::string const& file = "unknown file")
     {
@@ -187,7 +174,7 @@ namespace
             return toml::parse(istream, file);
         }();
 
-        parsePluginParameters(dataSources.openPMDPluginParameters, data, tomlParameters);
+        parsePluginParameters(dataSources.openPMDPluginParameters, data, std::move(tomlParameters));
 
         if(not data.contains("sink"))
         {
@@ -238,7 +225,7 @@ namespace
     template<typename ChronoDuration>
     PeriodTable_t waitForAndParseTomlFile(
         picongpu::toml::DataSources& dataSources,
-        std::vector<picongpu::toml::TomlParameter> tomlParameters,
+        std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
         std::string const path,
         ChronoDuration const& sleepInterval,
         ChronoDuration const& timeout,
@@ -282,7 +269,7 @@ namespace
         picongpu::toml::writeLog("openPMD: Reading pluginConfig file  (TOMLcollectively");
         std::string fileContents = picongpu::collective_file_read(path, comm);
 
-        return parseTomlFile(dataSources, tomlParameters, fileContents, path);
+        return parseTomlFile(dataSources, std::move(tomlParameters), fileContents, path);
     }
 } // namespace
 
@@ -294,6 +281,31 @@ namespace picongpu
         constexpr std::chrono::seconds const WAIT_TIME = 5s;
         constexpr std::chrono::seconds const TIMEOUT = 5min;
 
+        template<typename TargetType>
+        void TomlParameter<TargetType>::parseOption(std::any tomlConfig_any, openPMD::PluginParameters& options) const
+        {
+            auto tomlConfig = std::any_cast<::toml::value const*>(tomlConfig_any);
+            if(!tomlConfig->contains(optionName))
+            {
+                return; // leave the default option
+            }
+            if(specialConversions(optionName, tomlConfig->at(optionName), destination))
+            {
+                return;
+            }
+            try
+            {
+                options.*destination = ::toml::find<TargetType>(*tomlConfig, optionName);
+            }
+            catch(::toml::type_error const& e)
+            {
+                throw std::runtime_error(
+                    "[openPMD plugin] Global key '" + optionName + "' must point to a value of string type.");
+            }
+        }
+        template struct TomlParameter<std::string>;
+        template struct TomlParameter<bool>;
+
         std::string TimeSlice::asString() const
         {
             return std::to_string(start) + ':' + std::to_string(end) + ':' + std::to_string(period);
@@ -301,7 +313,7 @@ namespace picongpu
 
         DataSources::DataSources(
             std::string const& tomlFile,
-            std::vector<picongpu::toml::TomlParameter> tomlParameters,
+            std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
             std::vector<std::string> const& allowedDataSources,
             MPI_Comm comm,
             openPMD::PluginParameters openPMDPluginParameters_in)
@@ -311,7 +323,7 @@ namespace picongpu
              * Do NOT put the following line as part of the constructor initializers!
              * It takes *this as first parameter, so things must be fully default-constructed before calling it.
              */
-            m_periods = waitForAndParseTomlFile(*this, tomlParameters, tomlFile, WAIT_TIME, TIMEOUT, comm);
+            m_periods = waitForAndParseTomlFile(*this, std::move(tomlParameters), tomlFile, WAIT_TIME, TIMEOUT, comm);
             for(auto& periodicity : m_periods)
             {
                 for(auto const& source : periodicity.sources)

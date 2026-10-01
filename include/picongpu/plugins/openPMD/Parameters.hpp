@@ -23,5 +23,15 @@ namespace picongpu::openPMD
         std::string rangeString;
         std::string backendConfigRestartString;
         std::string writeAccessString;
+        /** Delay plugin initialization until the first run.
+         *
+         * By default the plugin parses and validates its configuration and
+         * opens the output Series directly at simulation startup (time step
+         * zero). This gives early failure for invalid configuration but may
+         * lead to hangups in certain contexts, e.g. when the underlying
+         * file system is not ready yet. Set this flag to opt out and defer
+         * initialization to the first actual run.
+         */
+        bool lateInit;
     };
 } // namespace picongpu::openPMD
