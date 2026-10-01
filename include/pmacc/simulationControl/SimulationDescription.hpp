@@ -108,6 +108,42 @@ namespace pmacc
                 checkpointingConfigured = value;
             }
 
+            /** Return the common directory for checkpoints
+             *
+             * @return std::string checkpoint directory
+             */
+            std::string const& getCheckpointDirectory() const
+            {
+                return checkpointDirectory;
+            }
+
+            /** Set the common directory for checkpoints
+             *
+             * @see getCheckpointDirectory
+             */
+            void setCheckpointDirectory(std::string const& value)
+            {
+                checkpointDirectory = value;
+            }
+
+            /** Return the common directory for restarts
+             *
+             * @return std::string restart directory
+             */
+            std::string const& getRestartDirectory() const
+            {
+                return restartDirectory;
+            }
+
+            /** Set the common directory for restarts
+             *
+             * @see getRestartDirectory
+             */
+            void setRestartDirectory(std::string const& value)
+            {
+                restartDirectory = value;
+            }
+
             /** Whether a restart from a checkpoint has been requested
              *
              * This allows plugins (e.g. the checkpoint IO-backends) to skip
@@ -153,6 +189,12 @@ namespace pmacc
 
             /** whether a restart from a checkpoint has been requested */
             bool restartConfigured{false};
+
+            /** common directory for checkpoints */
+            std::string checkpointDirectory{"checkpoints"};
+
+            /** common directory for restarts */
+            std::string restartDirectory{"checkpoints"};
 
         private:
             friend struct detail::Environment;
