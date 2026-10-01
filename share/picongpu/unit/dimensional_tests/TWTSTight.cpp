@@ -202,7 +202,75 @@ struct twtsTightNumberTest
     }
 };
 
+/** Regression test for the TWTS envelope zero-cutoff guard
+ *
+ * The guard must test the same envelope argument (t - nu - xi) that is used by
+ * the field calculation. Before the fix it tested a differently oriented plane
+ * and therefore spuriously zeroed field values close to the envelope center.
+ * ``isOutsideTWTSEnvelope`` is public, so it is probed directly: this is
+ * deterministic and has no dependence on the oscillatory field amplitude.
+ */
+struct twtsTightEnvelopeGuardTest
+{
+    /** Walk along z at fixed y and t from the envelope center across its
+     *  boundary at ``numSigmas * tauG * cspeed``. Points up to half the
+     *  boundary distance inside must not be classified as outside, while a
+     *  point two boundary distances away must be outside.
+     */
+    static void checkEnvelope(float_64 const beta_0, float_64 const phi)
+    {
+        using float_T = templates::twtstight::float_T;
+
+        templates::twtstight::EField const
+            testEfield{0.0, 800.0e-9, 30.0e-15, 2.5e-6, phi, beta_0, 0.0, false, 0.0, 30. * (PI / 180.)};
+        auto const& vars = testEfield.basicTWTSHelperVariables;
+        float_T const sinPhi = vars[1];
+        float_T const cosPhi = vars[2];
+        float_T const tanAlpha = vars[4];
+        float_T const cspeed = vars[5];
+        float_T const tauG = vars[8];
+
+        /* Envelope argument: t - nu - xi
+         *   = (cspeed*t - y*(cosPhi + sinPhi*tanAlpha) - z*(sinPhi - cosPhi*tanAlpha)) / cspeed
+         */
+        float_T const yCoeff = cosPhi + sinPhi * tanAlpha;
+        float_T const zCoeff = sinPhi - cosPhi * tanAlpha;
+        float_T const boundary = float_T(templates::twtstight::numSigmas) * tauG * cspeed;
+        float_T const y = float_T(50.0) * boundary;
+        float_T const t = float_T(0.0);
+        /* z of the envelope center line for the chosen y and t */
+        float_T const zCenter = (cspeed * t - y * yCoeff) / zCoeff;
+
+        INFO("beta_0 = " << beta_0 << ", phi = " << phi);
+        {
+            float_T const z = zCenter;
+            CHECK_FALSE(testEfield.isOutsideTWTSEnvelope(std::array<float_T, 4u>{float_T(0.0), y, z, t}));
+        }
+        {
+            float_T const z = zCenter - float_T(0.5) * boundary / zCoeff;
+            CHECK_FALSE(testEfield.isOutsideTWTSEnvelope(std::array<float_T, 4u>{float_T(0.0), y, z, t}));
+        }
+        {
+            float_T const z = zCenter - float_T(2.0) * boundary / zCoeff;
+            CHECK(testEfield.isOutsideTWTSEnvelope(std::array<float_T, 4u>{float_T(0.0), y, z, t}));
+        }
+    }
+
+    void operator()() const
+    {
+        checkEnvelope(1.0, 30. * (PI / 180.));
+        checkEnvelope(1.0, 90. * (PI / 180.));
+        checkEnvelope(0.9, 30. * (PI / 180.));
+        checkEnvelope(0.9, 90. * (PI / 180.));
+    }
+};
+
 TEST_CASE("unit::TWTSTight", "[TWTSTight laser math test]")
 {
     twtsTightNumberTest()();
+}
+
+TEST_CASE("unit::TWTSTightEnvelopeGuard", "[TWTSTight laser envelope guard test]")
+{
+    twtsTightEnvelopeGuardTest{}();
 }
