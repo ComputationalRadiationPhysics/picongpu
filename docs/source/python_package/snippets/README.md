@@ -49,9 +49,8 @@ exactly the code that is executed in CI**.
 > **Limitation (not covered by the harness).** A few short, illustrative
 > fragments are written as inline `.. code-block:: python` blocks directly
 > in the `.rst` files instead of being rendered from a checked-in script
-> (e.g. the `UnitDimension` examples in `units.rst`, the analytic-density
-> decorator in `functors.rst`, and the `Simulation(...)` one-liners in
-> `simulation_settings.rst`, `interactions.rst`, `lasers.rst` and
+> (e.g. the `UnitDimension` examples in `units.rst` and the `Simulation(...)`
+> one-liners in `simulation_settings.rst`, `interactions.rst`, `lasers.rst` and
 > `species_distributions_layouts.rst`). Those blocks are **not** executed
 > or syntax-checked. They are kept short and are covered by the executed
 > pages around them; do not rely on them as the source of truth.

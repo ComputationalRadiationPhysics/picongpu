@@ -50,6 +50,19 @@ particle count per cell:
 Both are mostly relevant as numerical knobs and can usually be left at
 their defaults.
 
+Macro-particle weighting
+------------------------
+
+PIConGPU's particle initialization never creates a macro-particle whose weighting is
+below a floor: such particles are skipped at initialization and removed
+during the run. This floor is exposed as
+:attr:`~picongpu.picmi.simulation.Simulation.picongpu_min_weighting`:
+
+* ``picongpu_min_weighting``: the minimum macro-particle weighting, given as
+  a bare ``float`` in PIConGPU code units (``unit: none``, i.e. **not** SI).
+  It must be finite and strictly positive. If unset, PIConGPU's default of
+  ``10.0`` is used (this matches the C++ ``MIN_WEIGHTING`` default).
+
 Numerical precision
 -------------------
 
@@ -66,6 +79,18 @@ functions) can be overridden individually via
 ``picongpu_precision_config`` (a ``picmi.PrecisionConfig``):
 each of ``sqrt``, ``exp`` and ``trig`` takes ``"core"`` (the default,
 which follows the core precision), ``32`` or ``64``.
+
+Particle shape
+--------------
+
+:attr:`~picongpu.picmi.simulation.Simulation.particle_shape` sets the default
+particle shape used for current/charge deposition, inherited by every
+:class:`~picongpu.picmi.species.Species` that does not set its own
+(see :ref:`Species, Distributions and Layouts <species>`).
+It accepts the PICMI-standard shapes (``"NGP"``, ``"linear"``,
+``"quadratic"``, ``"cubic"``) and PIConGPU ``"other:"`` extensions.
+An explicit per-species ``particle_shape`` overrides it; if both are unset,
+PIConGPU uses its native default ``"quadratic"`` (TSC).
 
 Memory
 ------

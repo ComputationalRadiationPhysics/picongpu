@@ -39,7 +39,7 @@ def _pass_first_parameter_to(f, parameter, kwargs):
     return lambda decorated: f(**{parameter.name: decorated}, **kwargs)
 
 
-def decorating_class(cls_or_name, parameter=None):
+def decorating_class(cls_or_name, parameter=None, keyword_construction=False):
     """
     A decorating class can be used as decorator, i.e., in the following example `a` and `b` are identical:
 
@@ -54,10 +54,20 @@ def decorating_class(cls_or_name, parameter=None):
 
         @decorating_class("density_function")
         class AnalyticDistribution(...):
+
+    By default a call without a leading (decorated) argument is treated as the
+    setup of a decoration, i.e. it returns a callable that later receives the
+    decorated object. Setting ``keyword_construction=True`` instead treats such a
+    call as a direct (keyword-only) construction, so that the model's validators
+    run. This lets a class accept alternative inputs via keyword arguments while
+    keeping the ``@Class`` (and ``@Class(...)``) decorator syntax for calls that
+    pass the decorated object positionally.
     """
     if isinstance(cls_or_name, str):
         name = cls_or_name
-        return lambda cls: decorating_class(cls, parameter=Parameter(name=name, kind=Parameter.KEYWORD_ONLY))
+        return lambda cls: decorating_class(
+            cls, parameter=Parameter(name=name, kind=Parameter.KEYWORD_ONLY), keyword_construction=keyword_construction
+        )
     # It is important to extract the signature before decorating the class.
     # Otherwise, we'll only see the names of the decorator's arguments.
     parameter = parameter or _extract_first_parameter(cls_or_name)
@@ -83,6 +93,10 @@ def decorating_class(cls_or_name, parameter=None):
             if decorated is None and parameter.name in kwargs:
                 decorated = kwargs.pop(parameter.name)
             if decorated is None:
+                if keyword_construction:
+                    # Direct (keyword-only) construction: no decorated object is present,
+                    # so build a bare instance and let __init__ run the model validators.
+                    return object.__new__(cls)
                 # @MyClass(extra=...) -- no decorated object (yet):
                 # return a callable that accepts the future @decorator.
                 return _pass_first_parameter_to(cls, parameter, kwargs)

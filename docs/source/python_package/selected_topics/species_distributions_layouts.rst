@@ -53,8 +53,11 @@ Its most important parameters are:
   override the (element-)derived mass and charge in SI units.
   This is how you define custom particles.
 * ``particle_shape``:
-  the particle shape used for current/charge deposition
-  (default ``"quadratic"``, i.e. TSC).
+  the particle shape used for current/charge deposition.
+  If left unset, it is inherited from
+  :attr:`~picongpu.picmi.simulation.Simulation.particle_shape`
+  and, if that too is unset, falls back to the PIConGPU default
+  ``"quadratic"`` (i.e. TSC).
 * ``method``:
   the particle pusher (default ``"Boris"``;
   ``"Vay"`` and ``"Higuera-Cary"`` are relativistic variants,
@@ -62,6 +65,19 @@ Its most important parameters are:
 * ``density_scale``:
   rescales the species' density relative to a shared profile
   (see below).
+
+The per-species shape and pusher method default to the Simulation:
+:attr:`~picongpu.picmi.simulation.Simulation.particle_shape`
+is inherited by every species that does not set its own
+(an explicit species ``particle_shape`` overrides it), while an unset
+``method`` falls back to ``"Boris"``.
+If neither the species nor the Simulation sets a shape,
+PIConGPU uses its native default ``"quadratic"`` (TSC):
+
+.. literalinclude:: ../snippets/selected_topics/species_shape_and_method.py
+   :language: python
+   :start-after: BEGIN-SPECIES_SHAPE
+   :end-before: END-SPECIES_SHAPE
 
 When several species share the same distribution and layout,
 they are placed at the same positions with their ``density_scale``
@@ -122,6 +138,24 @@ The available distributions are:
 :class:`~picongpu.picmi.distribution.AnalyticDistribution`
    A density given by an analytic expression
    (see :ref:`the functors page <functors>`).
+
+:class:`~picongpu.picmi.distribution.GaussianBunchDistribution`
+   A finite 3D Gaussian particle bunch (the PICMI-standard
+   ``GaussianBunchDistribution``).
+   It is described by the number of physical particles
+   ``n_physical_particles``, the per-axis RMS size ``rms_bunch_size``
+   and the ``centroid_position`` of the bunch,
+   plus an optional rigid ``centroid_velocity`` (given as ``gamma * v``)
+   and a thermal ``rms_velocity``.
+   The correlated ``velocity_divergence`` is not supported
+   (a non-zero value raises an ``UnsupportedFeatureError``), and
+   because the bunch is inherently three-dimensional it is rejected on a
+   2D grid (an ``UnsupportedFeatureError`` at input-file generation).
+
+   .. literalinclude:: ../snippets/selected_topics/gaussian_bunch.py
+      :language: python
+      :start-at: bunch = picmi.GaussianBunchDistribution
+      :end-before: electrons = picmi.Species
 
 The reference density used to normalize the code units is
 ``simulation.picongpu_base_density`` (default ``1.0e25`` m⁻³).

@@ -8,7 +8,7 @@ License: GPLv3+
 import re
 from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Any
+from typing import Any, ClassVar
 
 from picmistandard import PICMI_Species
 from pydantic import (
@@ -87,17 +87,26 @@ class Species(PICMI_Species):
 
     `particle_shape` accepts the PICMI-standard shapes ('NGP', 'linear',
     'quadratic', 'cubic') and PIConGPU extensions prefixed with 'other:'
-    (e.g. 'other:quartic', 'other:counter').
+    (e.g. 'other:quartic', 'other:counter'). If left unset it is inherited
+    from the owning Simulation (see ``Simulation.particle_shape``) and, if
+    that too is unset, falls back to the PIConGPU default 'quadratic' (TSC).
 
     `method` accepts the PICMI-standard pusher methods ('Boris', 'Vay',
     'Higuera-Cary', 'Li', 'free-streaming', 'LLRK4') and PIConGPU-specific
     pushers prefixed with 'other:' (e.g. 'other:Acceleration',
-    'other:Photon', 'other:Probe', 'other:Axel').
+    'other:Photon', 'other:Probe', 'other:Axel'). If left unset it falls back
+    to the PIConGPU default 'Boris'.
     """
 
+    # PIConGPU's native default particle shape (TSC). This is the code-level
+    # fallback used whenever neither the species nor its owning Simulation sets
+    # a shape. Declared here (rather than buried in a resolution method) so the
+    # intention is discoverable on the class that actually resolves the shape.
+    DEFAULT_PARTICLE_SHAPE: ClassVar[str] = "quadratic"
+
     picongpu_fixed_charge: bool = False
-    particle_shape: str | None = "quadratic"
-    method: str | None = "Boris"
+    particle_shape: str | None = None
+    method: str | None = None
 
     # Theoretically, Position(), Momentum() and Weighting() are also requirements imposed from the outside,
     # e.g., by the current deposition, pusher, ..., but these concepts are not separately modelled in PICMI
@@ -195,17 +204,27 @@ class Species(PICMI_Species):
         )
         self.register_requirements(particle_type_requirements(self.particle_type) + constants)
 
-    def _shape(self) -> Shape:
-        return _lookup("particle shape", _SHAPE_BY_NAME, self.particle_shape or "quadratic")
+    def _shape(self, default_particle_shape: str | None = None) -> Shape:
+        return _lookup("particle shape", _SHAPE_BY_NAME, self._resolved_particle_shape(default_particle_shape))
 
     def _pusher(self) -> Pusher:
         return _lookup("pusher method", _PUSHER_BY_NAME, self.method or "Boris")
 
-    def get_as_pypicongpu(self, *args, **kwargs):
+    def _resolved_particle_shape(self, default_particle_shape: str | None = None) -> str:
+        # An unset species shape falls back to the shape supplied by the owning
+        # Simulation (passed in at translation time), then to the PIConGPU
+        # default declared on the class.
+        if self.particle_shape is not None:
+            return self.particle_shape
+        if default_particle_shape is not None:
+            return default_particle_shape
+        return self.DEFAULT_PARTICLE_SHAPE
+
+    def get_as_pypicongpu(self, *args, default_particle_shape: str | None = None, **kwargs):
         return PyPIConGPUSpecies(
             name=self.name,
             **self._evaluate_species_requirements(),
-            shape=self._shape(),
+            shape=self._shape(default_particle_shape),
             pusher=self._pusher(),
         )
 

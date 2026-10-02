@@ -20,13 +20,24 @@ takes a ``density_function`` of three sympy symbols ``x``, ``y``, ``z``
 The expression is compiled into the simulation binary
 and evaluated on the GPU at runtime:
 
-.. code-block:: python
+.. literalinclude:: ../snippets/selected_topics/analytic_distribution.py
+   :language: python
+   :start-after: BEGIN-DENSITY-FUNCTION
+   :end-before: END-DENSITY-FUNCTION
 
-   from sympy import exp
+Instead of a callable you may pass the density as a sympy-parseable
+string via the ``density_expression`` keyword;
+it is string-normalised (as in the PICMI standard) and parsed with
+``sympy.sympify``, so non-string values are coerced to their string form
+(a bare number gives a constant density) and the result is exactly
+equivalent to the matching ``density_function``:
 
-   @picmi.AnalyticDistribution
-   def density(x, y, z):
-       return 1e25 * exp(-((x - 1e-6) / 1e-7) ** 2)
+.. literalinclude:: ../snippets/selected_topics/analytic_distribution.py
+   :language: python
+   :start-after: BEGIN-DENSITY-EXPRESSION
+   :end-before: END-DENSITY-EXPRESSION
+
+Provide exactly one of ``density_function`` or ``density_expression``.
 
 Use ``sympy.Piecewise`` for conditional profiles;
 the momentum parameters ``rms_velocity`` and ``directed_velocity``

@@ -249,6 +249,28 @@ EXPECTED_FILES = {
             "kineticEnergy",
         ],
     },
+    "selected_topics/openpmd_backend_config.py": {
+        "no_run": True,
+        "files": [
+            "openpmd_backend_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("openpmd_backend_setup/etc/picongpu/N.cfg", "--openPMD.pluginConfig"),
+        ],
+        "stdout_contains": [
+            "[backend_config]",
+            'backend = "adios2"',
+            'iteration_encoding = "group_based"',
+            'rank_table = "hostname"',
+            "[backend_config.adios2.engine]",
+            'BufferGrowthFactor = "1.2"',
+            "[[backend_config.adios2.dataset]]",
+            'type = "blosc"',
+            "select = [",
+            "[backend_config.hdf5.dataset]",
+            'chunks = "auto"',
+        ],
+    },
     "selected_topics/binning.py": {
         "no_run": True,
         "files": [
@@ -334,6 +356,10 @@ EXPECTED_FILES = {
             ("simulation_settings_setup/etc/picongpu/N.cfg", "stopWindow 800"),
             ("simulation_settings_setup/etc/picongpu/N.cfg", 'wallTime="1:00:00"'),
             ("simulation_settings_setup/include/picongpu/param/simulation.param", "TYPICAL_PARTICLES_PER_CELL = 4"),
+            (
+                "simulation_settings_setup/include/picongpu/param/particle.param",
+                "constexpr float_X MIN_WEIGHTING = 10.0;",
+            ),
             ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionPIConGPU = precision64Bit"),
             ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionSqrt = precision64Bit"),
             (
@@ -351,6 +377,36 @@ EXPECTED_FILES = {
         "file_contains": [
             ("species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param", "species_ions"),
             ("species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
+        ],
+    },
+    "selected_topics/analytic_distribution.py": {
+        "no_run": True,
+        "files": [
+            "analytic_distribution_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("analytic_distribution_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
+        ],
+    },
+    "selected_topics/species_shape_and_method.py": {
+        "no_run": True,
+        "files": [
+            "species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            # ions inherit the Simulation-level "linear" shape (CIC)
+            ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::CIC"),
+            # electrons override it with their own "cubic" shape (PQS)
+            ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::PQS"),
+        ],
+    },
+    "selected_topics/gaussian_bunch.py": {
+        "no_run": True,
+        "files": [
+            "gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
         ],
     },
     "selected_topics/particle_functors.py": {

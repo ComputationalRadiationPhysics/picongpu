@@ -17,7 +17,16 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import picmistandard
-from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import (
+    AfterValidator,
+    BeforeValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    field_validator,
+    model_validator,
+)
 from sympy import Symbol
 
 from picongpu import pypicongpu, templates
@@ -30,7 +39,7 @@ from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
 from picongpu.picmi.interaction import Interaction, Synchrotron
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.layout import AnyLayout
-from picongpu.picmi.species import Species
+from picongpu.picmi.species import _STANDARD_SHAPES, Species
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
     SimpleMomentumOperation,
@@ -67,6 +76,41 @@ class _DensityImpl(BaseModel):
                 SimpleMomentumOperation(species=self.species),
             ]
         )
+
+
+def _validate_species_layout(species, layout):
+    """Validate one (species, layout) pair.
+
+    Extracted from ``_picongpu_add_species`` so that both the imperative
+    ``add_species`` path and the declarative constructor path share exactly the
+    same validation.
+    """
+    if species.density_scale is not None and (layout is None and species.initial_distribution is None):
+        raise ValueError("layout and initial distribution must be set to use density scale")
+    if layout is not None and species.initial_distribution is None:
+        raise ValueError(
+            f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
+        )
+
+
+def _derive_density_distributions(species, layouts, grid):
+    """Derive the ``_DensityImpl`` list for a declarative (species, layouts) pair of lists.
+
+    Fully stateless: it validates the pairs over ``zip(species, layouts)`` and
+    constructs the implementations directly, so ``Simulation(species=[...],
+    layouts=[...])`` needs neither a construction guard nor a replay through
+    ``_picongpu_add_species``.
+    """
+    if len(layouts) != len(species):
+        raise ValueError(
+            f"species and layouts must have the same length, but you gave {len(species)=} and {len(layouts)=}."
+        )
+    distributions = []
+    for one_species, layout in zip(species, layouts):
+        _validate_species_layout(one_species, layout)
+        if one_species.initial_distribution is not None:
+            distributions.append(_DensityImpl(species=one_species, layout=layout, grid=grid))
+    return distributions
 
 
 def is_iterable(obj):
@@ -153,6 +197,30 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
+    # Override the standard's particle_shape (default "linear") to default to None:
+    # an unset Simulation-level shape lets each species fall back to the PIConGPU
+    # default ('quadratic'/TSC), while a set value is inherited by species that
+    # don't specify their own shape. The accepted values match Species.particle_shape
+    # (the PICMI-standard names plus PIConGPU 'other:' extensions).
+    particle_shape: str | None = Field(
+        default=None,
+        description="Default particle shape for species added to this simulation. "
+        "One of 'NGP', 'linear', 'quadratic', 'cubic' or a PIConGPU 'other:' extension "
+        "(unlike the PICMI standard, integer interpolation orders are not accepted). "
+        "Species without their own particle_shape inherit this value; if it is unset "
+        "they fall back to the PIConGPU default 'quadratic' (TSC).",
+    )
+
+    @field_validator("particle_shape")
+    @classmethod
+    def _validate_particle_shape(cls, value):
+        if value is not None and value not in _STANDARD_SHAPES and not value.startswith("other:"):
+            raise ValueError(
+                f"Unsupported particle shape {value!r}. Must be one of "
+                f"{', '.join(_STANDARD_SHAPES)} or be prefixed with 'other:'."
+            )
+        return value
+
     # Excluded from model dumps because it is passed through to the pypicongpu
     # Simulation as-is (single owner is the pypicongpu model) and because
     # CustomUserInput.rendering_context may hold arbitrary, non-serializable user data.
@@ -205,6 +273,20 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
+    def _validate_min_weighting(value: float | None) -> float | None:
+        if value is not None and not (math.isfinite(value) and value > 0):
+            raise ValueError(f"Minimum weighting must be finite and > 0, not {value=}.")
+        return value
+
+    picongpu_min_weighting: Annotated[float | None, AfterValidator(_validate_min_weighting)] = Field(default=None)
+    """
+    minimum macro-particle weighting below which particles are not created / are deleted
+
+    unit: none (bare float in PIConGPU code units, not SI)
+
+    optional; if set to None, PIConGPU's default of 10.0 is used
+    """
+
     picongpu_precision: Literal[32, 64] = Field(default=32)
     """
     floating point precision of the simulation core (see ``precision.param``)
@@ -253,6 +335,15 @@ class Simulation(picmistandard.PICMI_Simulation):
         ):
             self._compute_cfl_or_delta_t()
         return self
+
+    def model_post_init(self, __context) -> None:
+        # Honour the documented declarative constructor style
+        # ``Simulation(species=[...], layouts=[...])`` once, at construction.
+        # Unlike an after-validator this hook does not run on later assignments,
+        # so the inherited ``add_species_through_plane`` (whose base ``_append``
+        # sets ``species`` and ``layouts`` in two separate steps) is unaffected.
+        if self.species or self.layouts:
+            self.picongpu_distributions = _derive_density_distributions(self.species, self.layouts, self.solver.grid)
 
     def _compute_cfl_or_delta_t(self) -> None:
         """
@@ -375,14 +466,14 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         self.picongpu_run(**flags)
 
-    def _generate_openpmd_plugins(self, diagnostics, num_steps):
+    def _generate_openpmd_plugins(self, diagnostics, num_steps, default_particle_shape=None):
         diagnostics = list(diagnostics)
         return [
             OpenPMDPlugin(
                 sources=[
                     (
                         diagnostic.period.get_as_pypicongpu(time_step_size=self.time_step_size, num_steps=num_steps),
-                        diagnostic.species.get_as_pypicongpu()
+                        diagnostic.species.get_as_pypicongpu(default_particle_shape=default_particle_shape)
                         if isinstance(diagnostic, ParticleDump)
                         else PyPIConGPUFieldDump(
                             name=diagnostic.fieldname,
@@ -400,19 +491,21 @@ class Simulation(picmistandard.PICMI_Simulation):
             for options in unique(map(lambda x: x.options, diagnostics))
         ]
 
-    def _generate_plugins(self, num_steps):
+    def _generate_plugins(self, num_steps, default_particle_shape=None):
         return [
             entry.get_as_pypicongpu(
                 time_step_size=self.time_step_size,
                 num_steps=num_steps,
+                default_particle_shape=default_particle_shape,
             )
             for entry in self.diagnostics
             if not handled_via_openpmd(entry)
-        ] + self._generate_openpmd_plugins(filter(handled_via_openpmd, self.diagnostics), num_steps)
+        ] + self._generate_openpmd_plugins(
+            filter(handled_via_openpmd, self.diagnostics), num_steps, default_particle_shape
+        )
 
     def _check_compatibility(self):
         pypicongpu.util.unsupported("verbose", self.verbose)
-        pypicongpu.util.unsupported("particle shape", self.particle_shape, "linear")
         pypicongpu.util.unsupported("gamma boost", self.gamma_boost)
         if len(self.laser_injection_methods) != self.laser_injection_methods.count(None):
             pypicongpu.util.unsupported("laser injection method", self.laser_injection_methods, [])
@@ -511,7 +604,9 @@ class Simulation(picmistandard.PICMI_Simulation):
         ]
 
         return pypicongpu.simulation.Simulation(
-            species=map(get_as_pypicongpu, sorted(self.species)),
+            species=map(
+                lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape), sorted(self.species)
+            ),
             init_operations=init_operations,
             typical_ppc=typical_ppc,
             delta_t_si=self.time_step_size,
@@ -523,11 +618,12 @@ class Simulation(picmistandard.PICMI_Simulation):
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
-            output=self._generate_plugins(time_steps),
+            output=self._generate_plugins(time_steps, self.particle_shape),
             particle_filters=self._collect_particle_filters(),
             base_density=self._get_base_density(),
             synchrotron_params=synchrotron_params[0],
-            collisional_physics=collisions[0].get_as_pypicongpu(),
+            collisional_physics=collisions[0].get_as_pypicongpu(default_particle_shape=self.particle_shape),
+            min_weighting=self.picongpu_min_weighting,
             precision=self.picongpu_precision,
             precision_overrides=self.picongpu_precision_config.get_as_pypicongpu(),
             memory_config=self.picongpu_memory_config.get_as_pypicongpu(),
@@ -558,12 +654,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def _picongpu_add_species(self, species, layout):
         self.species.append(species)
         self.layouts.append(layout)
-        if species.density_scale is not None and (layout is None and species.initial_distribution is None):
-            raise ValueError("layout and initial distribution must be set to use density scale")
-        if layout is not None and species.initial_distribution is None:
-            raise ValueError(
-                f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
-            )
+        _validate_species_layout(species, layout)
         if species.initial_distribution is not None:
             self.picongpu_distributions.append(_DensityImpl(species=species, layout=layout, grid=self.solver.grid))
 

@@ -8,7 +8,8 @@ License: GPLv3+
 import math
 from collections.abc import Sequence
 
-from pydantic import BaseModel, Field, computed_field, model_validator
+from picmistandard import PICMI_Laser, resolve_once
+from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
@@ -19,7 +20,7 @@ from .. import constants
 
 
 @default_converts_to(laser.TWTSLaser)
-class TWTSLaser(BaseModel, BaseLaser):
+class TWTSLaser(PICMI_Laser, BaseLaser):
     """
     Specifies a Traveling-Wave Thomson Scattering (TWTS) laser
 
@@ -106,6 +107,7 @@ class TWTSLaser(BaseModel, BaseLaser):
         return (self.focal_position[1] - self.centroid_position[1]) / (self.beta0 * constants.c)
 
     @model_validator(mode="after")
+    @resolve_once
     def _validate(self):
         self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
         self._validate_common_properties()

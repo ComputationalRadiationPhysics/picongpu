@@ -47,6 +47,8 @@ simulation = picmi.Simulation(
     # normalization reference density (default 1.0e25 m^-3) and typical ppc:
     picongpu_base_density=1.0e25,
     picongpu_typical_ppc=4,
+    # minimum macro-particle weighting, in PIConGPU code units (unit: none; default 10.0):
+    picongpu_min_weighting=10.0,
     # floating-point precision of the simulation core: 32 (single) or 64 (double)
     picongpu_precision=64,
     # per-namespace precision overrides ("core", 32 or 64; "core" = follow the core):

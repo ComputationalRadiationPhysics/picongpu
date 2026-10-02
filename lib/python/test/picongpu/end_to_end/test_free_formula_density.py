@@ -6,11 +6,13 @@ License: GPLv3+
 """
 
 import logging
+import math
 from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
 from picongpu import picmi, rc_params
+from picongpu.picmi import constants
 from picongpu.picmi.diagnostics.timestepspec import TS
 from picongpu.picmi.diagnostics.checkpoint import Checkpoint
 
@@ -28,24 +30,6 @@ from .distributions import DISTRIBUTIONS
 logging.basicConfig(level=logging.INFO)
 
 LAYOUT = picmi.OnePositionLayout(n_macroparticles_per_cell=2)
-
-
-def basic_simulation():
-    return picmi.Simulation(
-        max_steps=0,
-        solver=picmi.ElectromagneticSolver(
-            method="Yee",
-            cfl=1.0,
-            grid=picmi.Cartesian3DGrid(
-                number_of_cells=NUMBER_OF_CELLS,
-                lower_bound=[0, 0, 0],
-                # cell size is slightly different from 1
-                upper_bound=UPPER_BOUNDARY,
-                lower_boundary_conditions=["open", "open", "open"],
-                upper_boundary_conditions=["open", "open", "open"],
-            ),
-        ),
-    )
 
 
 def generate_name(name, suffix):
@@ -69,13 +53,21 @@ SPECIES_COMBINATIONS = tuple(
 )
 
 # Representative species on which the density-independent position/origin/unit
-# checks are instantiated (see setup_sim): the first (setup, impl) combination.
+# checks are instantiated (see basic_simulation): the first (setup, impl) combination.
 REPRESENTATIVE = SPECIES_COMBINATIONS[0]
 
 
-def setup_sim():
-    sim = basic_simulation()
+def _derived_time_step_size():
+    """The time step the simulation derives from ``cfl=1.0`` on this grid.
 
+    Mirrors ``Simulation._compute_cfl_or_delta_t`` (Yee: ``cfl / (c * sqrt(sum 1/dx^2))``),
+    so the density-independent position checks can be built at construction time.
+    """
+    return 1.0 / (constants.c * math.sqrt(sum(1.0 / cs**2 for cs in CELL_SIZE)))
+
+
+def basic_simulation():
+    """Fully declarative free-formula-density simulation, built in one construction."""
     species = sum(
         (
             generate_species(generate_name(name, suffix), dist)
@@ -92,16 +84,36 @@ def setup_sim():
     # every species would blow up the memory of the single BinningDispatcher
     # translation unit that compiles all these functors.
     representative = [next(s for s in species if s.name == generate_name(*REPRESENTATIVE))]
+    time_step_size = _derived_time_step_size()
     diagnostics = (
         [Checkpoint(period=TS[:])]
         + sum((density_binning_for(s) for s in species), [])
-        + sum((position_binning_for(s, sim.time_step_size) for s in representative), [])
+        + sum((position_binning_for(s, time_step_size) for s in representative), [])
     )
 
-    for s in species:
-        sim.add_species(s, LAYOUT)
-    sim.diagnostics = diagnostics
+    return picmi.Simulation(
+        max_steps=0,
+        time_step_size=time_step_size,
+        solver=picmi.ElectromagneticSolver(
+            method="Yee",
+            cfl=1.0,
+            grid=picmi.Cartesian3DGrid(
+                number_of_cells=NUMBER_OF_CELLS,
+                lower_bound=[0, 0, 0],
+                # cell size is slightly different from 1
+                upper_bound=UPPER_BOUNDARY,
+                lower_boundary_conditions=["open", "open", "open"],
+                upper_boundary_conditions=["open", "open", "open"],
+            ),
+        ),
+        species=species,
+        layouts=[LAYOUT] * len(species),
+        diagnostics=diagnostics,
+    )
 
+
+def setup_sim():
+    sim = basic_simulation()
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"

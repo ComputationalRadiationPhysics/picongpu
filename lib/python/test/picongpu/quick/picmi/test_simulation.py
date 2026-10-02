@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import copy
+import math
 import os
 import shutil
 import tempfile
@@ -15,9 +16,22 @@ from unittest import TestCase
 import pytest
 from pydantic import ValidationError
 from picongpu import picmi
+from picongpu import templates
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
 from picongpu.pypicongpu.field_solver import ArbitraryOrderFDTDSolver
+from picongpu.pypicongpu.rendering.renderer import Renderer
+
+
+def render_min_weighting(sim) -> str:
+    """Render the production particle.param template and return its MIN_WEIGHTING line."""
+    pypic = sim.get_as_pypicongpu()
+    context = pypic.get_rendering_context()
+    Renderer.check_rendering_context(context)
+    preprocessed = Renderer.get_context_preprocessed(context)
+    template = (templates.path() / "include" / "picongpu" / "param" / "particle.param.mustache").read_text()
+    rendered = Renderer.get_rendered_template(preprocessed, template)
+    return next(line.strip() for line in rendered.splitlines() if "MIN_WEIGHTING =" in line)
 
 
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
@@ -213,6 +227,174 @@ class TestPicmiSimulation(TestCase):
         # check typical ppc is derived
         assert picongpu.typical_ppc == 3
 
+    def test_declarative_species_registers_density(self):
+        """constructor species/layouts must register the same density init as add_species (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+
+        def new_species():
+            return picmi.Species(name="declarative", mass=3, charge=4, initial_distribution=profile)
+
+        declarative = picmi.Simulation(
+            time_step_size=17, max_steps=4, solver=solver, species=[new_species()], layouts=[layout]
+        )
+        imperative = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver)
+        imperative.add_species(new_species(), layout)
+
+        assert len(declarative.picongpu_distributions) == 1
+        declarative_ops = declarative.get_as_pypicongpu().init_operations
+        imperative_ops = imperative.get_as_pypicongpu().init_operations
+        assert declarative_ops != []
+        assert [type(op).__name__ for op in declarative_ops] == [type(op).__name__ for op in imperative_ops]
+
+    def test_declarative_species_skips_none_distribution(self):
+        """a None initial_distribution is skipped and layout-less species stay unplaced (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        placed = picmi.Species(name="placed", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+        not_placed = picmi.Species(name="not_placed", mass=1)
+
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17, max_steps=4, solver=solver, species=[placed, not_placed], layouts=[layout, None]
+        )
+
+        assert len(sim.picongpu_distributions) == 1
+        assert len(sim.species) == 2
+        assert len(sim.layouts) == 2
+        assert sim.get_as_pypicongpu().init_operations != []
+
+    def test_declarative_species_layout_without_distribution_raises(self):
+        """a layout with no initial distribution is rejected as in add_species (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        with pytest.raises(Exception, match=".*initial.*distribution.*"):
+            picmi.Simulation(
+                time_step_size=17,
+                max_steps=4,
+                solver=solver,
+                species=[picmi.Species(name="dummy")],
+                layouts=[layout],
+            )
+
+    def test_declarative_species_length_mismatch_raises(self):
+        """species and layouts must have equal length (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        with pytest.raises(Exception, match=".*same length.*"):
+            picmi.Simulation(
+                time_step_size=17,
+                max_steps=4,
+                solver=solver,
+                species=[
+                    picmi.Species(name="a", initial_distribution=picmi.UniformDistribution(density=42)),
+                    picmi.Species(name="b", initial_distribution=picmi.UniformDistribution(density=42)),
+                ],
+                layouts=[layout],
+            )
+
+    def test_declarative_species_then_add_species_appends(self):
+        """a later add_species appends to the declarative lists without double registering (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[picmi.Species(name="declarative", mass=1, initial_distribution=profile)],
+            layouts=[layout],
+        )
+        sim.add_species(picmi.Species(name="imperative", mass=1, initial_distribution=profile), layout)
+
+        assert len(sim.picongpu_distributions) == 2
+        assert len(sim.species) == 2
+        assert len(sim.layouts) == 2
+
+    def test_add_species_through_plane_after_construction(self):
+        """the inherited add_species_through_plane still appends after construction (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver)
+
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        injection = picmi.Species(
+            name="injected", mass=1, charge=1, initial_distribution=picmi.UniformDistribution(density=42)
+        )
+        sim.add_species_through_plane(injection, layout, [0, 0, 0], [1, 0, 0])
+
+        assert len(sim.species) == 1
+        assert len(sim.layouts) == 1
+
+    def test_declarative_species_2d(self):
+        """the declarative registration also works with a 2D grid (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[64, 64],
+            lower_bound=[0, 0],
+            upper_bound=[64, 64],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[
+                picmi.Species(name="declarative2d", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+            ],
+            layouts=[layout],
+        )
+
+        assert len(sim.picongpu_distributions) == 1
+        assert sim.get_as_pypicongpu().init_operations != []
+
+    def test_declarative_species_oneposition_layout(self):
+        """OnePositionLayout is accepted by the declarative constructor too (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[
+                picmi.Species(name="oneposition", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+            ],
+            layouts=[picmi.OnePositionLayout(n_macroparticles_per_cell=2)],
+        )
+
+        assert len(sim.picongpu_distributions) == 1
+        assert sim.get_as_pypicongpu().init_operations != []
+
+    def test_declarative_registration_is_stateless(self):
+        """later assignments do not re-run or mutate the declarative registration (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[
+                picmi.Species(name="declarative", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+            ],
+            layouts=[layout],
+        )
+        registered = list(sim.picongpu_distributions)
+
+        # Re-validating the model (any assignment) must not add or drop entries.
+        sim.max_steps = 5
+        assert sim.picongpu_distributions == registered
+
     def test_explicit_typical_ppc(self):
         grid = get_grid(1, 1, 1, 64)
         solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
@@ -250,6 +432,31 @@ class TestPicmiSimulation(TestCase):
         for value in wrongTypes:
             with pytest.raises(ValueError, match="Typical ppc should be > 0"):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
+
+    def test_min_weighting_default_renders_as_float(self):
+        """unset picongpu_min_weighting falls back to the C++ default 10.0 (float literal)"""
+        assert render_min_weighting(self.sim) == "constexpr float_X MIN_WEIGHTING = 10.0;"
+
+    def test_min_weighting_explicit_renders_as_float(self):
+        """an explicit picongpu_min_weighting is threaded into the rendered MIN_WEIGHTING"""
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_min_weighting=2.0)
+        assert render_min_weighting(sim) == "constexpr float_X MIN_WEIGHTING = 2.0;"
+
+    def test_min_weighting_rejects_non_positive_and_non_finite(self):
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        for value in (0.0, -1.0, math.inf, -math.inf, math.nan):
+            with pytest.raises(ValidationError, match="Minimum weighting must be finite and > 0"):
+                picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_min_weighting=value)
+
+    def test_pypicongpu_min_weighting_rejects_non_positive_and_non_finite(self):
+        """the pypicongpu model validates directly, not only via the PICMI surface"""
+        pypic = self.sim.get_as_pypicongpu()
+        for value in (0.0, -1.0, math.inf, -math.inf, math.nan):
+            with pytest.raises(ValidationError, match="Minimum weighting must be finite and > 0"):
+                type(pypic)(**{**pypic.__dict__, "min_weighting": value})
 
     def test_invalid_placement(self):
         profile = picmi.UniformDistribution(density=42)
