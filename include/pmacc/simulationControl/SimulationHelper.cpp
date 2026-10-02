@@ -141,6 +141,13 @@ namespace pmacc
             uint32_t currentStep = fillSimulation();
             Environment<>::get().SimulationDescription().setCurrentStep(currentStep);
 
+            /* Notify plugins that the simulation has been initialized or
+             * restarted, i.e. after the restart (if any) and before the first
+             * time step. Plugins may use this to act on the final initial
+             * state, e.g. the checkpoint backend opens its write Series here.
+             */
+            Environment<>::get().PluginConnector().simulationStartPlugins();
+
             /* Ensure all ranks finished the initialization.
              * This synchronization costs a little bit time but possible errors during the initialization will be
              * easier to hunt because the rank that outputs timings will only show the timing for the initialization if

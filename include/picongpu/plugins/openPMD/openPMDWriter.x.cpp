@@ -1395,10 +1395,16 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * this point, which also validates the backend configuration against
              * the openPMD API. This can be disabled via --openPMD.lateInit.
              *
-             * The checkpoint and restart backends use dedicated directories and
-             * file names that are only known once a checkpoint is actually
-             * written or read, so they only validate their configuration here
-             * and open their Series lazily.
+             * The checkpoint backend additionally opens its write Series here so
+             * that configuration and backend errors are reported at simulation
+             * start instead of at the first checkpoint. This must only be done
+             * after a possible restart has happened, otherwise the write Series
+             * would conflict with the read Series opened while restarting, so
+             * the Checkpoint plugin decides when to call this for writing.
+             *
+             * The restart backend only validates its configuration here: its
+             * read Series is opened and closed by doRestart() when the restart
+             * actually happens.
              */
             void init(InstanceKind instanceKind) override
             {
@@ -1419,14 +1425,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         },
                         [&](CheckpointInstance const& instance)
                         {
-                            // The checkpoint and restart backends use dedicated directories and
-                            // file names that are only known once a checkpoint is actually
-                            // written or read, so only validate the configuration here and open
-                            // the Series lazily. Opening it here would leave a stale Series
-                            // behind that conflicts with the series opened during the actual
-                            // checkpoint/restart.
                             mThreadParams
                                 .initFromConfig(*m_help, m_id, std::nullopt, instance.directory, instance.filename);
+                            if(instance.checkpointKind != CheckpointKind::Write)
+                            {
+                                return;
+                            }
+                            // Defer opening the output Series to the first run if requested.
+                            if(mThreadParams.lateInit)
+                            {
+                                return;
+                            }
+                            mThreadParams.openSeries(mThreadParams.writeAccess);
                         }},
                     instanceKind);
             }

@@ -104,6 +104,15 @@ namespace pmacc
         void restartPlugins(uint32_t restartStep, std::string const restartDirectory);
 
         /**
+         * Notifies plugins that the simulation has been initialized or restarted.
+         *
+         * This is called once after the simulation was initialized or restarted
+         * and before the first time step, allowing plugins to act on the final
+         * initial state.
+         */
+        void simulationStartPlugins();
+
+        /**
          * Get a vector of pointers of all registered plugin instances of a given type.
          *
          * @tparam Plugin type of plugin
