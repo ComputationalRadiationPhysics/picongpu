@@ -289,7 +289,7 @@ namespace picongpu
             {
                 return; // leave the default option
             }
-            if(specialConversions(optionName, tomlConfig->at(optionName), options.*destination))
+            if(specialConversions<TargetType>(optionName, tomlConfig->at(optionName), options.*destination))
             {
                 return;
             }
