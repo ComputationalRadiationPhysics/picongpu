@@ -12,6 +12,7 @@ from .distribution import (
     AnalyticDistribution,
     CylindricalDistribution,
     FoilDistribution,
+    GaussianBunchDistribution,
     GaussianDistribution,
     UniformDistribution,
 )
@@ -79,6 +80,7 @@ __all__ = [
     "FoilDistribution",
     "UniformDistribution",
     "GaussianDistribution",
+    "GaussianBunchDistribution",
     "AnalyticDistribution",
     "ADK",
     "ADKVariant",

@@ -378,6 +378,15 @@ EXPECTED_FILES = {
             ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::PQS"),
         ],
     },
+    "selected_topics/gaussian_bunch.py": {
+        "no_run": True,
+        "files": [
+            "gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
+        ],
+    },
     "selected_topics/particle_functors.py": {
         "no_run": True,
         "files": [

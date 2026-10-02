@@ -222,6 +222,50 @@ class LinearExponential:
         return density * sympy.Piecewise(vacuum, linear_slope, exponential_slope)
 
 
+class GaussianBunchFreeForm(picmi.AnalyticDistribution):
+    """
+    Free-form twin of :class:`picmi.GaussianBunchDistribution`.
+
+    The base ``AnalyticDistribution`` pins ``rms_velocity`` to zero, so a free-form
+    bunch could not carry the same temperature as the predefined one. Relaxing the
+    field here lets the e2e pairwise comparison (which includes momentum) actually
+    validate the predefined profile against its hand-written analytic equivalent.
+    """
+
+    rms_velocity: tuple[float, float, float] = (0.0, 0.0, 0.0)
+
+
+# A PICMI-standard Gaussian bunch, rendered through the analytic path.
+class GaussianBunch:
+    def __init__(self):
+        # The bunch must be resolved by the grid: an unbounded Gaussian whose
+        # peak number density is far below BASE_DENSITY leaves the tails below
+        # MIN_WEIGHTING, so those cells get no macro-particles and the comparison
+        # against the analytic profile fails. Choose a large, well-resolved bunch
+        # (peak density ~ BASE_DENSITY) centered in the box instead.
+        self.parameters = dict(
+            n_physical_particles=4.0e29,
+            rms_bunch_size=[16.0, 16.0, 10.0],
+            centroid_position=[32.0, 33.0, 37.0],
+            rms_velocity=[1.0e5, 1.0e5, 1.0e5],
+            centroid_velocity=[0.0, 0.0, 0.0],
+        )
+        self.distributions = {
+            "predefined": picmi.GaussianBunchDistribution(**self.parameters),
+            "free_form": GaussianBunchFreeForm(
+                lambda x, y, z: self.free_form(x, y, z, **self.parameters),
+                rms_velocity=tuple(self.parameters["rms_velocity"]),
+            ),
+        }
+
+    @staticmethod
+    def free_form(x, y, z, n_physical_particles, rms_bunch_size, centroid_position, rms_velocity, centroid_velocity):
+        sx, sy, sz = rms_bunch_size
+        cx, cy, cz = centroid_position
+        n0 = n_physical_particles / ((2.0 * sympy.pi) ** 1.5 * sx * sy * sz)
+        return n0 * sympy.exp(-0.5 * (((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2 + ((z - cz) / sz) ** 2))
+
+
 # This is a predefined setup within PIConGPU but not PICMI.
 class SphereFlanks:
     def __init__(self):
@@ -263,5 +307,6 @@ DISTRIBUTIONS = {
     "LinearExponential": LinearExponential().distributions,
     "SphereFlanks": SphereFlanks().distributions,
     "Cylinder": Cylinder().distributions,
+    "GaussianBunch": GaussianBunch().distributions,
     "Uniformdec": {"predefined": Uniform().distributions["predefined"], "free_form": uniformdec},
 }
