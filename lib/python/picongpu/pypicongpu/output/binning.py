@@ -6,7 +6,7 @@ License: GPLv3+
 """
 
 import json
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import (
     BaseModel,
@@ -16,6 +16,7 @@ from pydantic import (
     field_validator,
 )
 
+from picongpu.pypicongpu.output.openpmd_backend import OpenPMDBackendConfig
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
@@ -56,7 +57,7 @@ class Binning(BaseModel):
     axes: list[BinningAxis]
     species: list[Species | FilteredSpecies]
     period: TimeStepSpec
-    openPMDBackendConfig: dict[str, Any] | None
+    openPMDBackendConfig: OpenPMDBackendConfig | None
     openPMDExtension: str | None = Field(alias="openPMDExt")
     openPMDInfix: str | None
     dumpPeriod: int
@@ -87,4 +88,7 @@ class Binning(BaseModel):
 
     @field_serializer("openPMDBackendConfig")
     def _serialize_openPMDBackendConfig(self, value) -> str | None:
-        return None if value is None else json.dumps(value)
+        if value is None:
+            return None
+        config = value.model_dump(mode="json")
+        return json.dumps(config) if config else None
