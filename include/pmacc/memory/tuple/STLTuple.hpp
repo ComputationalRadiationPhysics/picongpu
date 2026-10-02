@@ -39,6 +39,7 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Config.hpp>
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -121,7 +122,7 @@ namespace pmacc
                 }
             }
 
-            /// Const version of `get`
+            /// Const lvalue version of `get`
             template<size_t k, typename T, typename... Ts>
             HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...> const& t)
             {
@@ -132,6 +133,34 @@ namespace pmacc
                 else
                 {
                     return get<k - 1>(t.tail);
+                }
+            }
+
+            /// Rvalue version of `get`
+            template<size_t k, typename T, typename... Ts>
+            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...>&& t)
+            {
+                if constexpr(k == 0)
+                {
+                    return static_cast<T&&>(t.head);
+                }
+                else
+                {
+                    return get<k - 1>(std::move(t.tail));
+                }
+            }
+
+            /// Const rvalue version of `get`
+            template<size_t k, typename T, typename... Ts>
+            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...> const&& t)
+            {
+                if constexpr(k == 0)
+                {
+                    return static_cast<T const&&>(t.head);
+                }
+                else
+                {
+                    return get<k - 1>(std::move(t.tail));
                 }
             }
 
