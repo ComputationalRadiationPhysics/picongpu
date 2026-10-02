@@ -289,7 +289,7 @@ namespace picongpu
             {
                 return; // leave the default option
             }
-            if(specialConversions(optionName, tomlConfig->at(optionName), destination))
+            if(specialConversions(optionName, tomlConfig->at(optionName), options.*destination))
             {
                 return;
             }
@@ -300,7 +300,7 @@ namespace picongpu
             catch(::toml::type_error const& e)
             {
                 throw std::runtime_error(
-                    "[openPMD plugin] Global key '" + optionName + "' must point to a value of string type.");
+                    "[openPMD plugin] Global key '" + optionName + "' has an invalid type: " + std::string(e.what()));
             }
         }
         template struct TomlParameter<std::string>;
