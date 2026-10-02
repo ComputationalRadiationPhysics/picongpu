@@ -152,6 +152,14 @@ namespace picongpu
                         pluginGetName() + ": is no a multi plugin, each option can only be selected once.");
             }
 
+            // If no dedicated restart filename was given, reuse the checkpoint filename.
+            // This must happen before the restart backend is initialized below so that
+            // the backend receives the effective restart filename.
+            if(restartFilename.empty())
+            {
+                restartFilename = checkpointFilename;
+            }
+
             // create checkpoint creation backend
             if(!ioBackendsHelp.empty())
             {
@@ -204,11 +212,6 @@ namespace picongpu
                     }
                     ioBackends[restartBackendName] = std::move(backend);
                 }
-            }
-
-            if(restartFilename.empty())
-            {
-                restartFilename = checkpointFilename;
             }
         }
 
