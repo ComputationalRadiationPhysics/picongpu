@@ -1419,22 +1419,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         },
                         [&](CheckpointInstance const& instance)
                         {
+                            // The checkpoint and restart backends use dedicated directories and
+                            // file names that are only known once a checkpoint is actually
+                            // written or read, so only validate the configuration here and open
+                            // the Series lazily. Opening it here would leave a stale Series
+                            // behind that conflicts with the series opened during the actual
+                            // checkpoint/restart.
                             mThreadParams
                                 .initFromConfig(*m_help, m_id, std::nullopt, instance.directory, instance.filename);
-                            // Defer all initialization (including configuration parsing and
-                            // opening the output Series) to the first run if requested.
-                            if(mThreadParams.lateInit)
-                            {
-                                return;
-                            }
-                            switch(instance.checkpointKind)
-                            {
-                            case CheckpointKind::Write:
-                                mThreadParams.openSeries(mThreadParams.writeAccess);
-                                break;
-                            case CheckpointKind::Read:
-                                mThreadParams.openSeries(::openPMD::Access::READ_RANDOM_ACCESS);
-                            }
                         }},
                     instanceKind);
             }
