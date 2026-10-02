@@ -78,6 +78,41 @@ class _DensityImpl(BaseModel):
         )
 
 
+def _validate_species_layout(species, layout):
+    """Validate one (species, layout) pair.
+
+    Extracted from ``_picongpu_add_species`` so that both the imperative
+    ``add_species`` path and the declarative constructor path share exactly the
+    same validation.
+    """
+    if species.density_scale is not None and (layout is None and species.initial_distribution is None):
+        raise ValueError("layout and initial distribution must be set to use density scale")
+    if layout is not None and species.initial_distribution is None:
+        raise ValueError(
+            f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
+        )
+
+
+def _derive_density_distributions(species, layouts, grid):
+    """Derive the ``_DensityImpl`` list for a declarative (species, layouts) pair of lists.
+
+    Fully stateless: it validates the pairs over ``zip(species, layouts)`` and
+    constructs the implementations directly, so ``Simulation(species=[...],
+    layouts=[...])`` needs neither a construction guard nor a replay through
+    ``_picongpu_add_species``.
+    """
+    if len(layouts) != len(species):
+        raise ValueError(
+            f"species and layouts must have the same length, but you gave {len(species)=} and {len(layouts)=}."
+        )
+    distributions = []
+    for one_species, layout in zip(species, layouts):
+        _validate_species_layout(one_species, layout)
+        if one_species.initial_distribution is not None:
+            distributions.append(_DensityImpl(species=one_species, layout=layout, grid=grid))
+    return distributions
+
+
 def is_iterable(obj):
     try:
         iter(obj)
@@ -300,6 +335,15 @@ class Simulation(picmistandard.PICMI_Simulation):
         ):
             self._compute_cfl_or_delta_t()
         return self
+
+    def model_post_init(self, __context) -> None:
+        # Honour the documented declarative constructor style
+        # ``Simulation(species=[...], layouts=[...])`` once, at construction.
+        # Unlike an after-validator this hook does not run on later assignments,
+        # so the inherited ``add_species_through_plane`` (whose base ``_append``
+        # sets ``species`` and ``layouts`` in two separate steps) is unaffected.
+        if self.species or self.layouts:
+            self.picongpu_distributions = _derive_density_distributions(self.species, self.layouts, self.solver.grid)
 
     def _compute_cfl_or_delta_t(self) -> None:
         """
@@ -610,12 +654,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     def _picongpu_add_species(self, species, layout):
         self.species.append(species)
         self.layouts.append(layout)
-        if species.density_scale is not None and (layout is None and species.initial_distribution is None):
-            raise ValueError("layout and initial distribution must be set to use density scale")
-        if layout is not None and species.initial_distribution is None:
-            raise ValueError(
-                f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
-            )
+        _validate_species_layout(species, layout)
         if species.initial_distribution is not None:
             self.picongpu_distributions.append(_DensityImpl(species=species, layout=layout, grid=self.solver.grid))
 
