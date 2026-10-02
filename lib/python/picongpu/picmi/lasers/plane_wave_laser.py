@@ -9,7 +9,8 @@ from collections.abc import Sequence
 
 import math
 
-from pydantic import BaseModel, Field, computed_field, model_validator
+from picmistandard import PICMI_Laser, resolve_once
+from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
@@ -24,7 +25,7 @@ from .polarization_type import PolarizationType
         "laser_nofocus_constant_si": lambda self: 0.0,
     },
 )
-class PlaneWaveLaser(BaseModel, BaseLaser):
+class PlaneWaveLaser(PICMI_Laser, BaseLaser):
     """
     Specifies a plane wave with a temporal shape
 
@@ -76,6 +77,7 @@ class PlaneWaveLaser(BaseModel, BaseLaser):
         return [0.0, 0.0, 0.0]
 
     @model_validator(mode="after")
+    @resolve_once
     def _validate(self):
         self.a0, self.E0 = self._compute_E0_and_a0(self.k0, self.E0, self.a0)
         self._validate_common_properties()

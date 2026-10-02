@@ -5,7 +5,7 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from picmistandard import PICMI_Extension
+from picmistandard import PICMI_Distribution
 
 from ...pypicongpu import species
 
@@ -31,7 +31,7 @@ this method returns None.
 """
 
 
-class Distribution(PICMI_Extension):
+class Distribution(PICMI_Distribution):
     rms_velocity: tuple[float, float, float] = (0, 0, 0)
     """thermal velocity spread [m/s]"""
 

@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import logging
+import math
 from typing import Annotated
 
 import numpy as np
@@ -47,13 +48,24 @@ class BaseLaser:
     def _compute_E0_and_a0(self, k0, E0, a0):
         if (E0 is None) and (a0 is None):
             raise ValueError("Both E0 or a0 are None. You must specify exactly one.")
+
+        factor = constants.m_e * constants.c**2 * k0 / constants.q_e
         if (E0 is not None) and (a0 is not None):
-            raise ValueError("Only one of E0 or a0 should be specified. You set both.")
+            # Both amplitudes are set. This happens when an already-validated laser
+            # instance is re-validated (e.g. when it is passed to
+            # ``Simulation.add_laser``): at construction only one amplitude was given
+            # and the other was derived. Treat that as "already resolved" and keep the
+            # values, checking them for consistency rather than rejecting them. This is
+            # what makes the validator idempotent, as required now that picmistandard
+            # types ``Simulation.lasers`` and re-validates the instances it stores.
+            if not math.isclose(E0, a0 * factor, rel_tol=1.0e-6):
+                raise ValueError(f"Inconsistent E0 and a0: {E0=} and {a0=}.")
+            return a0, E0
 
         if E0 is None:
-            E0 = a0 * constants.m_e * constants.c**2 * k0 / constants.q_e
+            E0 = a0 * factor
         if a0 is None:
-            a0 = E0 / (constants.m_e * constants.c**2 * k0 / constants.q_e)
+            a0 = E0 / factor
         return a0, E0
 
     def _pulse_duration_sigma_si(self):

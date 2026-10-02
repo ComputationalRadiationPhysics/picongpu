@@ -7,7 +7,8 @@ License: GPLv3+
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from picmistandard import PICMI_Diagnostic
+from pydantic import ConfigDict
 
 from picongpu.picmi import constants
 from picongpu.picmi.copy_attributes import default_converts_to
@@ -33,7 +34,7 @@ def _momentum_si_to_mc(diagnostic, momentum_si: float) -> float:
         "max_momentum": lambda self, *_, **__: _momentum_si_to_mc(self, self.max_momentum),
     },
 )
-class PhaseSpace(BaseModel):
+class PhaseSpace(PICMI_Diagnostic):
     """
     Specifies the parameters for the output of Phase Space of species such as electrons.
 

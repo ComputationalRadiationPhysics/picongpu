@@ -8,6 +8,7 @@ License: GPLv3+
 import warnings
 from pathlib import Path
 
+from picmistandard import PICMI_Diagnostic, resolve_once
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from picongpu.picmi.diagnostics.backend_config import OpenPMDConfig
@@ -58,7 +59,7 @@ class BinningAxis(BaseModel):
         )
 
 
-class Binning(BaseModel):
+class Binning(PICMI_Diagnostic):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     name: str
@@ -98,6 +99,7 @@ class Binning(BaseModel):
         return particle_region
 
     @model_validator(mode="after")
+    @resolve_once
     def _set_default_period(self):
         self.period = self.period or TimeStepSpec[:]
         return self
