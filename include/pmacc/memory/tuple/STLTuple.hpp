@@ -112,7 +112,8 @@ namespace pmacc
             {
                 if constexpr(k == 0)
                 {
-                    return t.head;
+                    // Explicit cast to avoid GCC 13 and 14 misdeducing decltype(auto) for rvalue-reference members.
+                    return static_cast<T&>(t.head);
                 }
                 else
                 {
@@ -126,7 +127,7 @@ namespace pmacc
             {
                 if constexpr(k == 0)
                 {
-                    return t.head;
+                    return static_cast<std::add_const_t<T>&>(t.head);
                 }
                 else
                 {
