@@ -53,8 +53,11 @@ Its most important parameters are:
   override the (element-)derived mass and charge in SI units.
   This is how you define custom particles.
 * ``particle_shape``:
-  the particle shape used for current/charge deposition
-  (default ``"quadratic"``, i.e. TSC).
+  the particle shape used for current/charge deposition.
+  If left unset, it is inherited from
+  :attr:`~picongpu.picmi.simulation.Simulation.particle_shape`
+  and, if that too is unset, falls back to the PIConGPU default
+  ``"quadratic"`` (i.e. TSC).
 * ``method``:
   the particle pusher (default ``"Boris"``;
   ``"Vay"`` and ``"Higuera-Cary"`` are relativistic variants,
@@ -62,6 +65,19 @@ Its most important parameters are:
 * ``density_scale``:
   rescales the species' density relative to a shared profile
   (see below).
+
+The per-species shape and pusher method default to the Simulation:
+:attr:`~picongpu.picmi.simulation.Simulation.particle_shape`
+is inherited by every species that does not set its own
+(an explicit species ``particle_shape`` overrides it), while an unset
+``method`` falls back to ``"Boris"``.
+If neither the species nor the Simulation sets a shape,
+PIConGPU uses its native default ``"quadratic"`` (TSC):
+
+.. literalinclude:: ../snippets/selected_topics/species_shape_and_method.py
+   :language: python
+   :start-after: BEGIN-SPECIES_SHAPE
+   :end-before: END-SPECIES_SHAPE
 
 When several species share the same distribution and layout,
 they are placed at the same positions with their ``density_scale``

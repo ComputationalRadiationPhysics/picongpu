@@ -42,10 +42,10 @@ class Radiation(RadiationPluginConfig, PICMI_Diagnostic):
                 [MomentumPrev1()] + ([RadiationMask()] if self.gamma_filter_threshold is not None else [])
             )
 
-    def get_as_pypicongpu(self, time_step_size, num_steps):
+    def get_as_pypicongpu(self, time_step_size, num_steps, default_particle_shape=None):
         return RadiationPlugin(
             config=self,
-            species=[s.get_as_pypicongpu() for s in self.species],
+            species=[s.get_as_pypicongpu(default_particle_shape=default_particle_shape) for s in self.species],
             period=self.period.get_as_pypicongpu(time_step_size=time_step_size, num_steps=num_steps),
         )
 
