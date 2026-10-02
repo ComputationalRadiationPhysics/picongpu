@@ -12,8 +12,8 @@ from typing import Literal
 
 import numpy as np
 from picmistandard import PICMI_Distribution
-from pydantic import ConfigDict, Field, PrivateAttr, computed_field
-from sympy import Expr, Symbol, lambdify, symbols
+from pydantic import ConfigDict, Field, PrivateAttr, computed_field, model_validator
+from sympy import Expr, Symbol, lambdify, symbols, sympify
 
 from picongpu.pypicongpu import species
 from picongpu.pypicongpu.util import decorating_class
@@ -40,7 +40,7 @@ this method returns None.
 """
 
 
-@decorating_class("density_function")
+@decorating_class("density_function", keyword_construction=True)
 class AnalyticDistribution(PICMI_Distribution):
     """
     This class represents a plasma with a density defined by an analytic expression.
@@ -109,10 +109,19 @@ class AnalyticDistribution(PICMI_Distribution):
       That's the way chosen in the end-to-end tests.
 
     Parameters:
-        density_expression (Callable):
+        density_function (Callable):
             A Python function that takes x, y, z coordinates (in SI units)
             and returns the density (in SI units) at that point.
             It should use sympy functionality.
+            Provide exactly one of `density_function` or `density_expression`.
+        density_expression (str):
+            A sympy-parseable string expression of the density in terms of
+            `x`, `y` and `z` (e.g. `"x*y*z"`). It is string-normalised (mirroring
+            the PICMI standard) and then parsed with `sympy.sympify`, so
+            non-string inputs are coerced to their string form (e.g. a bare number
+            yields a constant density) rather than rejected. It is equivalent to
+            the matching `density_function`.
+            Provide exactly one of `density_function` or `density_expression`.
         directed_velocity (3-tuple of float):
             A collective velocity for the particle distribution.
             (currently untested)
@@ -124,6 +133,24 @@ class AnalyticDistribution(PICMI_Distribution):
     _warned_about_lambdify_failure: bool = PrivateAttr(False)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _resolve_density(cls, data):
+        if not isinstance(data, dict):
+            return data
+        has_function = data.get("density_function") is not None
+        has_expression = data.get("density_expression") is not None
+        if has_function == has_expression:
+            raise ValueError("exactly one of density_function or density_expression must be provided")
+        if has_expression:
+            # Normalise like the PICMI standard does, then sympify into the
+            # equivalent callable so the computed density_expression is identical.
+            sx, sy, sz = symbols("x,y,z")
+            parsed = sympify(f"{data['density_expression']}".replace("\n", ""))
+            del data["density_expression"]
+            data["density_function"] = lambda x, y, z: parsed.subs({sx: x, sy: y, sz: z})
+        return data
 
     @computed_field
     def density_expression(self) -> Expr:
