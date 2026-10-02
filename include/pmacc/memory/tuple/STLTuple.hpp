@@ -87,8 +87,8 @@ namespace pmacc
                 HDINLINE constexpr Tuple& operator=(Tuple const&) noexcept = default;
                 HDINLINE constexpr Tuple& operator=(Tuple&&) noexcept = default;
 
-                T head;
-                Tuple<Ts...> tail;
+                [[no_unique_address]] T head;
+                [[no_unique_address]] Tuple<Ts...> tail;
             };
 
             // Base case for empty tuple
