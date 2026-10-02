@@ -334,6 +334,10 @@ EXPECTED_FILES = {
             ("simulation_settings_setup/etc/picongpu/N.cfg", "stopWindow 800"),
             ("simulation_settings_setup/etc/picongpu/N.cfg", 'wallTime="1:00:00"'),
             ("simulation_settings_setup/include/picongpu/param/simulation.param", "TYPICAL_PARTICLES_PER_CELL = 4"),
+            (
+                "simulation_settings_setup/include/picongpu/param/particle.param",
+                "constexpr float_X MIN_WEIGHTING = 10.0;",
+            ),
             ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionPIConGPU = precision64Bit"),
             ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionSqrt = precision64Bit"),
             (

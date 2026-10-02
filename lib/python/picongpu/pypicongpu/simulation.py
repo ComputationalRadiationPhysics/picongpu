@@ -5,10 +5,19 @@ Authors: Hannes Troepgen, Brian Edward Marre, Julian Lenz
 License: GPLv3+
 """
 
+import math
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, computed_field, field_serializer, field_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    Field,
+    computed_field,
+    field_serializer,
+    field_validator,
+)
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
 from picongpu.pypicongpu.output.radiation import RadiationPlugin
@@ -28,6 +37,18 @@ from .output import AnyPlugin, OpenPMDPlugin
 from .precision_config import PrecisionConfig
 from .rendering import RenderedObject
 from .walltime import Walltime
+
+
+def _default_min_weighting(value: float | None) -> float:
+    """Fall back to PIConGPU's C++ default (10.0) when no weighting is given (unit: none)."""
+    return 10.0 if value is None else value
+
+
+def _validate_min_weighting(value: float) -> float:
+    """Reject non-positive and non-finite weightings; mirrors the C++ MIN_WEIGHTING assumption (unit: none)."""
+    if not (math.isfinite(value) and value > 0):
+        raise ValueError(f"Minimum weighting must be finite and > 0, not {value=}.")
+    return value
 
 
 class Simulation(RenderedObject, BaseModel):
@@ -87,6 +108,16 @@ class Simulation(RenderedObject, BaseModel):
     synchrotron_params: SynchrotronParams = SynchrotronParams()
     collisional_physics: CollisionalPhysicsSetup = CollisionalPhysicsSetup()
     particle_filters: list[ParticleFunctor] = Field(default_factory=list)
+
+    min_weighting: Annotated[
+        float, BeforeValidator(_default_min_weighting), AfterValidator(_validate_min_weighting)
+    ] = 10.0
+    """
+    minimum macro-particle weighting below which particles are not created / are deleted, unit: none
+
+    rendered as ``MIN_WEIGHTING`` into ``include/picongpu/param/particle.param``;
+    defaults to PIConGPU's C++ default of 10.0
+    """
 
     precision: Literal[32, 64] = 32
     """
