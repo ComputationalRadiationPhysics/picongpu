@@ -238,6 +238,20 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
+    def _validate_min_weighting(value: float | None) -> float | None:
+        if value is not None and not (math.isfinite(value) and value > 0):
+            raise ValueError(f"Minimum weighting must be finite and > 0, not {value=}.")
+        return value
+
+    picongpu_min_weighting: Annotated[float | None, AfterValidator(_validate_min_weighting)] = Field(default=None)
+    """
+    minimum macro-particle weighting below which particles are not created / are deleted
+
+    unit: none (bare float in PIConGPU code units, not SI)
+
+    optional; if set to None, PIConGPU's default of 10.0 is used
+    """
+
     picongpu_precision: Literal[32, 64] = Field(default=32)
     """
     floating point precision of the simulation core (see ``precision.param``)
@@ -565,6 +579,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             base_density=self._get_base_density(),
             synchrotron_params=synchrotron_params[0],
             collisional_physics=collisions[0].get_as_pypicongpu(default_particle_shape=self.particle_shape),
+            min_weighting=self.picongpu_min_weighting,
             precision=self.picongpu_precision,
             precision_overrides=self.picongpu_precision_config.get_as_pypicongpu(),
             memory_config=self.picongpu_memory_config.get_as_pypicongpu(),

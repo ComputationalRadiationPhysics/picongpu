@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import copy
+import math
 import os
 import shutil
 import tempfile
@@ -15,9 +16,22 @@ from unittest import TestCase
 import pytest
 from pydantic import ValidationError
 from picongpu import picmi
+from picongpu import templates
 from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
 from picongpu.pypicongpu import customuserinput, species
 from picongpu.pypicongpu.field_solver import ArbitraryOrderFDTDSolver
+from picongpu.pypicongpu.rendering.renderer import Renderer
+
+
+def render_min_weighting(sim) -> str:
+    """Render the production particle.param template and return its MIN_WEIGHTING line."""
+    pypic = sim.get_as_pypicongpu()
+    context = pypic.get_rendering_context()
+    Renderer.check_rendering_context(context)
+    preprocessed = Renderer.get_context_preprocessed(context)
+    template = (templates.path() / "include" / "picongpu" / "param" / "particle.param.mustache").read_text()
+    rendered = Renderer.get_rendered_template(preprocessed, template)
+    return next(line.strip() for line in rendered.splitlines() if "MIN_WEIGHTING =" in line)
 
 
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
@@ -250,6 +264,31 @@ class TestPicmiSimulation(TestCase):
         for value in wrongTypes:
             with pytest.raises(ValueError, match="Typical ppc should be > 0"):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
+
+    def test_min_weighting_default_renders_as_float(self):
+        """unset picongpu_min_weighting falls back to the C++ default 10.0 (float literal)"""
+        assert render_min_weighting(self.sim) == "constexpr float_X MIN_WEIGHTING = 10.0;"
+
+    def test_min_weighting_explicit_renders_as_float(self):
+        """an explicit picongpu_min_weighting is threaded into the rendered MIN_WEIGHTING"""
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_min_weighting=2.0)
+        assert render_min_weighting(sim) == "constexpr float_X MIN_WEIGHTING = 2.0;"
+
+    def test_min_weighting_rejects_non_positive_and_non_finite(self):
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        for value in (0.0, -1.0, math.inf, -math.inf, math.nan):
+            with pytest.raises(ValidationError, match="Minimum weighting must be finite and > 0"):
+                picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_min_weighting=value)
+
+    def test_pypicongpu_min_weighting_rejects_non_positive_and_non_finite(self):
+        """the pypicongpu model validates directly, not only via the PICMI surface"""
+        pypic = self.sim.get_as_pypicongpu()
+        for value in (0.0, -1.0, math.inf, -math.inf, math.nan):
+            with pytest.raises(ValidationError, match="Minimum weighting must be finite and > 0"):
+                type(pypic)(**{**pypic.__dict__, "min_weighting": value})
 
     def test_invalid_placement(self):
         profile = picmi.UniformDistribution(density=42)
