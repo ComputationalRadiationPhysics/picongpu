@@ -7,7 +7,8 @@ License: GPLv3+
 
 import logging
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
+from pathlib import Path
 
 from pydantic import (
     BaseModel,
@@ -16,7 +17,12 @@ from pydantic import (
     PlainSerializer,
     computed_field,
     model_validator,
+    ConfigDict,
+    model_serializer,
 )
+
+from lasy.laser import Laser as LasyLaser
+from ..extra.input.prepareLasyLaser import laser_to_openPMD
 
 
 class PolarizationType(Enum):
@@ -188,7 +194,7 @@ class FromOpenPMDPulseLaser(BaseModel):
         tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
     ]
     """direction of polarization (normalized vector)"""
-    file_path: str
+    file_path: Path
     """File path to the OpenPMD file containing the pulse data"""
     iteration: int
     """Iteration in the OpenPMD file to use"""
@@ -205,6 +211,93 @@ class FromOpenPMDPulseLaser(BaseModel):
     huygens_surface_positions: Annotated[list[list[int]], PlainSerializer(_get_huygens_surface_serialized)]
     """Position in cells of the Huygens surface relative to start/
        edge(negative numbers) of the total domain"""
+
+
+class FromLasyLaser(BaseModel):
+    """
+    Lasy laser converter using PIConGPU FromOpenPMDPulseLaser
+
+    Holds Parameters to specify a laser pulse from a Lasy laser
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    propagation_direction: Annotated[
+        tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
+    ]
+    """propagation direction (normalized vector)"""
+    polarization_direction: Annotated[
+        tuple[_Component, _Component, _Component], BeforeValidator(validate_component_vector)
+    ]
+    """direction of polarization (normalized vector)"""
+    file_path: Path
+    """File path to the OpenPMD file meant to contain the pulse data"""
+    iteration: int = 0
+    """Iteration in the OpenPMD file to use"""
+    time_offset_si: float
+    """Time offset in seconds to apply to the pulse data [s]"""
+    huygens_surface_positions: Annotated[list[list[int]], PlainSerializer(_get_huygens_surface_serialized)]
+    """Position in cells of the Huygens surface relative to start/
+       edge(negative numbers) of the total domain"""
+    lasyLaser: LasyLaser
+    """The Lasy laser to be converted"""
+    Nt: int | None = None
+    """Number of time points on which field should be sampled. None for the original grid"""
+    Nx: int | None = None
+    """Number of x-points the field should be cut down to. None for the original grid"""
+    Ny: int | None = None
+    """Number of y-points the field should be cut down to. None for the original grid"""
+    points_between_r: float = 1.0
+    """If laser.dim=="rt" the field is converted to xyt to write into the file.
+    This argument describes, how many points in x and y directions should be placed
+    (interpolated) between two given values in the r direction."""
+    forced_dt: float | None = None
+    """Forces dt to be this value, if possible."""
+    data_step: int = 1
+    """Only saves every (data_step)th data point to the file transversally."""
+    append: bool = False
+    """append to an existing file intead of potentially overwriting it."""
+
+    def _create_openPMD_file(self) -> None:
+        filename = self.file_path.name.rsplit(sep=".", maxsplit=1)[0]
+        directory = str(self.file_path.parent)
+        extension = self.file_path.name.rsplit(sep=".")[-1]
+        laser_to_openPMD(
+            self.lasyLaser,
+            filename,
+            write_dir=directory,
+            file_format=extension,
+            iteration=self.iteration,
+            Nt=self.Nt,
+            Nx=self.Nx,
+            Ny=self.Ny,
+            points_between_r=self.points_between_r,
+            forced_dt=self.forced_dt,
+            data_step=self.data_step,
+            append=self.append,
+        )
+
+    @model_serializer(mode="plain")
+    def _get_serialized(self) -> dict[str, Any] | None:
+        self._create_openPMD_file()
+
+        if self.lasyLaser.profile.pol[0] > self.lasyLaser.profile.pol[1]:
+            pol = "x"
+        else:
+            pol = "y"
+        fromOpenPMDPulseLaser = FromOpenPMDPulseLaser(
+            propagation_direction=self.propagation_direction,
+            polarization_direction=self.polarization_direction,
+            file_path=self.file_path.absolute(),
+            iteration=self.iteration,
+            dataset_name="E",
+            datatype="float",
+            time_offset_si=self.time_offset_si,
+            polarisationAxisOpenPMD=pol,
+            propagationAxisOpenPMD="z",
+            huygens_surface_positions=self.huygens_surface_positions,
+        )
+        return fromOpenPMDPulseLaser.model_dump(mode="json")
 
 
 class TWTSLaser(_BaseLaser):
@@ -246,4 +339,4 @@ class TWTSLaser(_BaseLaser):
        edge(negative numbers) of the total domain"""
 
 
-AnyLaser = DispersivePulseLaser | FromOpenPMDPulseLaser | GaussianLaser | PlaneWaveLaser | TWTSLaser
+AnyLaser = DispersivePulseLaser | FromOpenPMDPulseLaser | FromLasyLaser | GaussianLaser | PlaneWaveLaser | TWTSLaser
