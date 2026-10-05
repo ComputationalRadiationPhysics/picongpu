@@ -40,6 +40,7 @@ but you can also import them directly:
    particle_functor
    distribution
    lasers
+   applied_field
    interaction
    diagnostics
 

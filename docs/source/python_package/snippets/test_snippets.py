@@ -345,6 +345,27 @@ EXPECTED_FILES = {
             ("lasers_setup/include/picongpu/param/incidentField.param", "GaussianPulse"),
         ],
     },
+    "selected_topics/applied_fields.py": {
+        "no_run": True,
+        "files": [
+            "applied_fields_setup/include/picongpu/param/fieldBackground.param",
+            "applied_fields_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "FieldBackgroundE"),
+            # the analytic expression is rendered into the C++ functor:
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "pmacc::math::sin"),
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "wavelength"),
+            # both the string expression and the callable contribute a parameter:
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "E0"),
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "E1"),
+            # the constant field is summed into the same functor pair:
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "1000000.0"),
+            # the default influence knobs are rendered explicitly
+            ("applied_fields_setup/etc/picongpu/N.cfg", "--fieldBackground.influencesPlugins true"),
+            ("applied_fields_setup/etc/picongpu/N.cfg", "--fieldBackground.influencesDumps true"),
+        ],
+    },
     "selected_topics/simulation_settings.py": {
         "no_run": True,
         "files": [

@@ -31,6 +31,7 @@ from sympy import Symbol
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
+from picongpu.picmi.applied_field import AnyAppliedField, combine_applied_fields
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
@@ -55,6 +56,7 @@ from picongpu.picmi.species_requirements import (
 )
 from picongpu.picmi.memory_config import MemoryConfig
 from picongpu.picmi.precision_config import PrecisionConfig
+from picongpu.pypicongpu.backgroundfield import BackgroundField as PyPIConGPUBackgroundField
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
@@ -711,6 +713,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
+            background_field=self._get_background_field(),
             output=self._generate_plugins(time_steps, self.particle_shape),
             particle_filters=self._collect_particle_filters(),
             base_density=self._get_base_density(),
@@ -724,6 +727,24 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def _get_base_density(self) -> float:
         return self.picongpu_base_density or 1.0e25
+
+    def _get_background_field(self) -> PyPIConGPUBackgroundField | None:
+        """
+        Translate the configured applied fields into a single pypicongpu background field.
+
+        The C++ core only evaluates one ``FieldBackgroundE``/``FieldBackgroundB``
+        functor pair, so the contributions of all applied fields are summed per
+        component. The influence knobs of the individual fields must agree, as
+        they configure that single pair.
+        """
+        unsupported = [f for f in self.applied_fields if not isinstance(f, AnyAppliedField)]
+        if unsupported:
+            pypicongpu.util.unsupported(
+                "applied fields other than ConstantAppliedField and AnalyticAppliedField", unsupported
+            )
+        if not self.applied_fields:
+            return None
+        return combine_applied_fields(self.applied_fields)
 
     def run(self, *args, **kwargs) -> None:
         return self.picongpu_run(*args, **kwargs)

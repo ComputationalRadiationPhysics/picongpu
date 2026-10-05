@@ -27,6 +27,7 @@ from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.species.operation import AnyOperation
 from picongpu.pypicongpu.species.species import Species
 
+from .backgroundfield import BackgroundField
 from .customuserinput import CustomUserInput
 from .field_solver import AnySolver
 from .grid import AnyGrid
@@ -75,6 +76,15 @@ class Simulation(RenderedObject, BaseModel):
 
     laser: list[AnyLaser] | None
     """List of laser objects to use in the simulation, or None to disable lasers"""
+
+    background_field: BackgroundField | None = None
+    """
+    Background field applied to the grid E and B fields (see BackgroundField),
+    or None to disable the field background.
+
+    A background field is added to the fields around the particle push, i.e.
+    it affects the particles but is not evolved by the field solver itself.
+    """
 
     solver: AnySolver
     """Used Solver"""

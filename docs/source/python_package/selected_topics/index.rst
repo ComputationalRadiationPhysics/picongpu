@@ -25,6 +25,7 @@ The remaining pages are deep dives into cross-cutting features.
 
    grids_and_solvers
    lasers
+   applied_fields
    species_distributions_layouts
    functors
    simulation_settings

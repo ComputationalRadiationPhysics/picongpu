@@ -88,6 +88,10 @@ TBG_currentInterpolation="--currentInterpolation binomial"
 TBG_currentInterpolation="--currentInterpolation none"
 {{/binomial_current_interpolation}}
 
+{{#background_field}}
+TBG_fieldBackground="--fieldBackground.influencesPlugins {{#influences_plugins}}true{{/influences_plugins}}{{^influences_plugins}}false{{/influences_plugins}} --fieldBackground.influencesDumps {{#influences_dumps}}true{{/influences_dumps}}{{^influences_dumps}}false{{/influences_dumps}}"
+{{/background_field}}
+
 pypicongpu_output_with_newlines="
   {{#output}}
 
@@ -227,6 +231,9 @@ TBG_programParams="-d !TBG_deviceDist   \
                    {{/grid.grid_dist}}
                    !TBG_periodic        \
            !TBG_currentInterpolation   \
+                   {{#background_field}}
+                    !TBG_fieldBackground \
+                   {{/background_field}}
                    !TBG_plugins         \
                    {{#moving_window}}
                     !TBG_movingWindow    \

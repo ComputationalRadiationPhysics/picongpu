@@ -13,9 +13,10 @@ from typing import Literal
 import numpy as np
 from picmistandard import PICMI_Distribution
 from pydantic import ConfigDict, Field, PrivateAttr, computed_field, model_validator
-from sympy import Expr, Symbol, lambdify, symbols, sympify
+from sympy import Expr, Symbol, lambdify, symbols
 
 from picongpu.pypicongpu import species
+from picongpu.pypicongpu._field_functor import sympify_expression
 from picongpu.pypicongpu.util import decorating_class
 
 """
@@ -147,7 +148,7 @@ class AnalyticDistribution(PICMI_Distribution):
             # Normalise like the PICMI standard does, then sympify into the
             # equivalent callable so the computed density_expression is identical.
             sx, sy, sz = symbols("x,y,z")
-            parsed = sympify(f"{data['density_expression']}".replace("\n", ""))
+            parsed = sympify_expression(data["density_expression"])
             del data["density_expression"]
             data["density_function"] = lambda x, y, z: parsed.subs({sx: x, sy: y, sz: z})
         return data
