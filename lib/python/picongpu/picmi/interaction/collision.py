@@ -39,9 +39,15 @@ class Collision(BaseModel):
         combine = combinations_with_replacement if include_self_collisions else combinations
         return cls(species_pairs=list(combine(species, 2)), **kwargs)
 
-    def get_as_pypicongpu(self):
+    def get_as_pypicongpu(self, default_particle_shape=None):
         return PyPIConGPUCollision(
-            species_pairs=[(lhs.get_as_pypicongpu(), rhs.get_as_pypicongpu()) for lhs, rhs in self.species_pairs],
+            species_pairs=[
+                (
+                    lhs.get_as_pypicongpu(default_particle_shape=default_particle_shape),
+                    rhs.get_as_pypicongpu(default_particle_shape=default_particle_shape),
+                )
+                for lhs, rhs in self.species_pairs
+            ],
             functor=self.functor,
         )
 
@@ -82,9 +88,11 @@ class CollisionalPhysicsSetup(BaseModel):
             raise ValueError(message)
         return self
 
-    def get_as_pypicongpu(self):
+    def get_as_pypicongpu(self, default_particle_shape=None):
         return PyPIConGPUCollisionalPhysicsSetup(
-            collisions=[c.get_as_pypicongpu() for c in self.collisions],
-            screening_species=[s.get_as_pypicongpu() for s in self.screening_species],
+            collisions=[c.get_as_pypicongpu(default_particle_shape=default_particle_shape) for c in self.collisions],
+            screening_species=[
+                s.get_as_pypicongpu(default_particle_shape=default_particle_shape) for s in self.screening_species
+            ],
             numerics_config=self.numerics_config,
         )

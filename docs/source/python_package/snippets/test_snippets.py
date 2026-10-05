@@ -362,6 +362,18 @@ EXPECTED_FILES = {
             ("analytic_distribution_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
         ],
     },
+    "selected_topics/species_shape_and_method.py": {
+        "no_run": True,
+        "files": [
+            "species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            # ions inherit the Simulation-level "linear" shape (CIC)
+            ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::CIC"),
+            # electrons override it with their own "cubic" shape (PQS)
+            ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::PQS"),
+        ],
+    },
     "selected_topics/particle_functors.py": {
         "no_run": True,
         "files": [

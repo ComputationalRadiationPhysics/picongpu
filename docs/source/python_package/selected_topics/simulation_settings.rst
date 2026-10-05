@@ -67,6 +67,18 @@ functions) can be overridden individually via
 each of ``sqrt``, ``exp`` and ``trig`` takes ``"core"`` (the default,
 which follows the core precision), ``32`` or ``64``.
 
+Particle shape
+--------------
+
+:attr:`~picongpu.picmi.simulation.Simulation.particle_shape` sets the default
+particle shape used for current/charge deposition, inherited by every
+:class:`~picongpu.picmi.species.Species` that does not set its own
+(see :ref:`Species, Distributions and Layouts <species>`).
+It accepts the PICMI-standard shapes (``"NGP"``, ``"linear"``,
+``"quadratic"``, ``"cubic"``) and PIConGPU ``"other:"`` extensions.
+An explicit per-species ``particle_shape`` overrides it; if both are unset,
+PIConGPU uses its native default ``"quadratic"`` (TSC).
+
 Memory
 ------
 
