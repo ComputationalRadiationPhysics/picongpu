@@ -112,6 +112,14 @@ def decorating_class(cls_or_name, parameter=None, keyword_construction=False):
     return Tmp
 
 
+def is_iterable(obj):
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        return False
+
+
 def alt(expr, alternative, *exprs, ignore=(AttributeError, TypeError, IndexError)):
     """
     Try to evaluate the expression and return the first valid.

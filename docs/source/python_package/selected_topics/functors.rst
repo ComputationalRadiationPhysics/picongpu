@@ -57,11 +57,16 @@ Particle functors
 A :class:`~picongpu.picmi.particle_functor.ParticleFunctor`
 is a Python function of one (or two) arguments
 that describes a particle property symbolically.
-It is used as a decorator::
+It is used as a decorator, and its first argument must be annotated with the
+particle flavour it operates on --
+:class:`~picongpu.picmi.particle_functor.MacroParticle` (the default) or
+:class:`~picongpu.picmi.particle_functor.PhysicalParticle`.
+A minimal (tested) example is shown at the end of this section:
 
-   @ParticleFunctor
-   def gamma(particle):
-       ...
+.. literalinclude:: ../snippets/selected_topics/particle_functors.py
+   :language: python
+   :start-after: BEGIN-PARTICLE-FUNCTOR
+   :end-before: END-PARTICLE-FUNCTOR
 
 The ``particle`` argument provides access to the particle's attributes
 through ``particle.get("...")``:
@@ -97,10 +102,79 @@ is not enough, and ``unit_dimension``
 (a :class:`~picongpu.picmi.particle_functor.UnitDimension`)
 to declare the physical unit of the result.
 
+Single-particle semantics
+-------------------------
+
+Every functor is *implemented* on macroparticles, but the type annotation of
+its first argument declares what the returned quantity *means*:
+
+* :class:`~picongpu.picmi.particle_functor.MacroParticle`
+  (also the default when no annotation is given) is a macro-particle,
+  weighting-scaled property -- this is what the accessors produce as-is.
+* :class:`~picongpu.picmi.particle_functor.PhysicalParticle`
+  interprets the result as a single-particle property.
+  The generated code symbolically divides the weighting out of the
+  scaling-sensitive symbols (``"mass"``, ``"charge"``,
+  ``"kinetic energy"``), so e.g. a mass functor returns the physical
+  particle mass rather than the macroparticle mass, while per-particle
+  quantities such as momentum, velocity, position and
+  ``"damped_weighting"`` are already unaffected.
+
 .. literalinclude:: ../snippets/selected_topics/particle_functors.py
    :language: python
-   :start-after: BEGIN-PARTICLE-FUNCTOR
-   :end-before: END-PARTICLE-FUNCTOR
+   :start-after: BEGIN-PHYSICAL-PARTICLE
+   :end-before: END-PHYSICAL-PARTICLE
+
+A quantity that is *not* a pure per-particle property but still scales with a
+known power of the weighting (e.g. a density) can set
+``scales_with_weighting`` on a ``PhysicalParticle`` functor.
+Setting it **replaces** the automatic per-symbol rescaling described above
+rather than adding to it: the automatic ``/weighting`` of ``"mass"``,
+``"charge"`` and ``"kinetic energy"`` is switched off and, instead, the
+*whole* returned expression is scaled by ``weighting**(-scales_with_weighting)``.
+In the example in this section, adding ``scales_with_weighting=2`` to the mass
+functor therefore yields ``mass/weighting**2`` -- **not**
+``weighting**2 * mass/weighting``: the automatic division is *not* applied in
+addition.
+``scales_with_weighting`` is only allowed on ``PhysicalParticle`` functors and
+is the manual escape hatch for quantities the automatic per-symbol rescaling
+cannot express.
+
+If the functor's result has a physical unit, declare it with the
+``unit_dimension`` (see :ref:`units`); the generated derived-field trait then
+reports it through ``getUnit()`` / ``getUnitDimension()``.
+For pure monomial quantities these are derived automatically from the
+7-component unit vector, matching the built-in derived attributes.
+``unit_factor`` is an optional escape hatch for the cases the automatic
+derivation cannot handle: it gives the numeric scale factor returned by
+``getUnit()`` (the openPMD ``unitSI`` factor, i.e. the value of one internal
+unit in SI units). It defaults to ``None``, meaning "derive the
+``sim.unit.*`` monomial from ``unit_dimension``"; setting it overrides that
+derivation. It accepts a number (implicitly converted), a sympy expression,
+or a :class:`~collections.abc.Callable` returning one, and is rendered
+through the same ``PMAccPrinter`` as the rest of the functor interface -- like
+the ``AnalyticDistribution`` expressions, there are **no C++ code strings** in
+the interface. Use it when the dimension is not a pure monomial -- it has
+a temperature, amount-of-substance or luminous-intensity component, or a
+non-integer exponent -- because such a dimension cannot be turned into a
+numeric scale, and input-file generation raises instead.
+A typical case is a count/density quantity whose unit carries the
+macro-particle weighting ``N_ppm``. As a number you would write e.g.
+``unit_factor=1e6`` when one internal unit corresponds to :math:`10^6` SI
+units; if the factor itself must reference an internal unit expression, pass a
+sympy expression built from ``sympy.Symbol("sim.unit.mass()")`` and friends
+(rendered verbatim by the printer).
+
+.. literalinclude:: ../snippets/selected_topics/particle_functors.py
+   :language: python
+   :start-after: BEGIN-UNIT-FACTOR
+   :end-before: END-UNIT-FACTOR
+
+Because a functor or filter accesses concrete particle attributes, using one
+with a species registers those attributes on that species (via
+``Species.register_requirements``): a functor reading ``"momentumPrev1"``, for
+instance, adds the ``momentumPrev1`` attribute to the species it is used with,
+so the attribute need not be declared by hand.
 
 .. _particle-filters:
 

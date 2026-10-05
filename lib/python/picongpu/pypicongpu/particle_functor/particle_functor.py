@@ -107,6 +107,55 @@ ACCESSORS = {
 }
 
 
+def _format_exponent(exponent):
+    value = float(exponent)
+    return f"{int(value)}.0" if value == int(value) else repr(value)
+
+
+def _unit_monomial(exponents):
+    """Render the numeric ``sim.unit.*`` monomial for ``getUnit()``.
+
+    The internal unit system is a monomial in the base SI values
+    (``sim.unit.length = c * dt``, ``.mass``, ``.time = dt``, ``.charge``),
+    so for any pure-monomial quantity the SI value of one internal unit is
+    fully determined by the 7-vector. Temperature, amount-of-substance (the
+    ``N_ppm`` count factor) and luminous intensity cannot be derived and must
+    be provided via an explicit ``unit_factor`` instead.
+    """
+    length, mass, time, current = (float(exp) for exp in exponents[:4])
+    if any(abs(float(exp)) > 1.0e-12 for exp in exponents[4:]):
+        raise ValueError(
+            "getUnit() cannot be auto-derived from this unit_dimension "
+            "(it has temperature/amount-of-substance/luminous-intensity components). "
+            "Provide an explicit unit_factor."
+        )
+    if any(abs(float(exp) - round(float(exp))) > 1.0e-12 for exp in exponents[:4]):
+        raise ValueError(
+            f"getUnit() cannot be auto-derived from a non-integer unit_dimension. "
+            f"Provide an explicit unit_factor. You gave: {list(exponents[:4])}."
+        )
+    # The SI current is a charge per time, so it folds into charge^I * time^-I.
+    aggregated = {
+        "sim.unit.length()": int(round(length)),
+        "sim.unit.mass()": int(round(mass)),
+        "sim.unit.time()": int(round(time - current)),
+        "sim.unit.charge()": int(round(current)),
+    }
+    numerator, denominator = [], []
+    for base, exponent in aggregated.items():
+        if exponent > 0:
+            numerator.extend([base] * exponent)
+        elif exponent < 0:
+            denominator.extend([base] * -exponent)
+    if not numerator and not denominator:
+        return "1."
+    if numerator and not denominator:
+        return " * ".join(numerator)
+    if not numerator:
+        return f"1. / {' * '.join(denominator)}"
+    return f"({' * '.join(numerator)}) / ({' * '.join(denominator)})"
+
+
 def symbol_to_string(symbol):
     return str(symbol) if not isinstance(symbol, tuple) else "[" + ",".join(map(str, symbol)) + "]"
 
@@ -133,12 +182,30 @@ class ParticleFunctor(RenderedObject, BaseModel):
     functor_preamble: list[_PreambleStatement]
     return_type: Annotated[str, BeforeValidator(translate_to_cpp_type)]
     unit_dimension: UnitDimension | None = UnitDimension()
+    # Already-rendered C++ text of ``getUnit()``; the public (picmi) interface
+    # accepts Python expressions/callables and renders them before constructing
+    # this pypicongpu model.
+    unit_factor: str | None = None
     needs_total_position: bool = False
     rng_info: RNGInfo | None = None
 
     @computed_field
     def typename(self) -> str:
         return f"{self.name}_{uuid().hex}"
+
+    @computed_field
+    def unit_dimension_cpp(self) -> str:
+        """Render the 7-vector as a C++ brace-initializer for ``getUnitDimension()``."""
+        return "{" + ", ".join(_format_exponent(exp) for exp in self._exponents()) + "}"
+
+    @computed_field
+    def get_unit_cpp(self) -> str:
+        if self.unit_factor is not None:
+            return self.unit_factor
+        return _unit_monomial(self._exponents())
+
+    def _exponents(self) -> list[float]:
+        return list(self.unit_dimension.unit_dimension) if self.unit_dimension is not None else [0.0] * 7
 
     @model_validator(mode="after")
     def _validate(self):
@@ -149,6 +216,10 @@ class ParticleFunctor(RenderedObject, BaseModel):
                 raise ValueError(
                     f"unit_dimension is not supported for integral types. You gave {self.unit_dimension=}."
                 )
+        # Validate up front that `getUnit()` can be auto-derived (or an explicit
+        # `unit_factor` was given), so a non-derivable dimension is rejected at
+        # construction rather than surfacing a wrong value at render time.
+        self.get_unit_cpp
         if self.needs_total_position and self.rng_info is not None:
             raise ValueError(
                 f"PIConGPU does not support particle functors that need total position and random numbers. You gave: {self.rng_info=}."

@@ -561,10 +561,44 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         )
 
+    def _register_functor_requirements(self):
+        """Register the species attributes each diagnostic functor accesses.
+
+        Diagnostics own both the functor and the species it runs on, so this is
+        the point where ``Species.register_requirements`` can be handed the
+        functor. The functor translates its accessed attributes (e.g.
+        ``momentumPrev1``) into the corresponding ``Attribute`` requirements.
+        Particle filters are registered from ``FilteredSpecies`` instead.
+        """
+        for diagnostic in self.diagnostics:
+            functors = [
+                functor
+                for name in ("functor", "deposition_functor")
+                if (functor := getattr(diagnostic, name, None)) is not None
+            ] + [axis.functor for axis in getattr(diagnostic, "axes", None) or []]
+            if not functors:
+                continue
+            species = getattr(diagnostic, "species", None)
+            for one_species in species if isinstance(species, list) else [species]:
+                if one_species is None:
+                    continue
+                while hasattr(one_species, "species"):
+                    # A FilteredSpecies wraps the owner species; its filter
+                    # accesses attributes just like the diagnostic functor, so
+                    # register them on the (eventual) owner as well. This is
+                    # needed for diagnostics (e.g. DerivedFieldDump) that only
+                    # read the species by name and never convert the wrapper.
+                    if (filter_functor := getattr(one_species, "functor", None)) is not None:
+                        one_species.species.register_requirements(filter_functor.get_required_attributes())
+                    one_species = one_species.species
+                for functor in functors:
+                    one_species.register_requirements(functor.get_required_attributes())
+
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
         self._check_compatibility()
         self._check_huygens_surface_positions()
+        self._register_functor_requirements()
 
         init_operations = organise_init_operations(
             chain(*(s.get_operation_requirements() for s in sorted(self.species)))
