@@ -353,6 +353,15 @@ EXPECTED_FILES = {
             ("species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
         ],
     },
+    "selected_topics/analytic_distribution.py": {
+        "no_run": True,
+        "files": [
+            "analytic_distribution_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("analytic_distribution_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
+        ],
+    },
     "selected_topics/particle_functors.py": {
         "no_run": True,
         "files": [
