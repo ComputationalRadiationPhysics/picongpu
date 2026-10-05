@@ -222,6 +222,19 @@ class LinearExponential:
         return density * sympy.Piecewise(vacuum, linear_slope, exponential_slope)
 
 
+class GaussianBunchFreeForm(picmi.AnalyticDistribution):
+    """
+    Free-form twin of :class:`picmi.GaussianBunchDistribution`.
+
+    The base ``AnalyticDistribution`` pins ``rms_velocity`` to zero, so a free-form
+    bunch could not carry the same temperature as the predefined one. Relaxing the
+    field here lets the e2e pairwise comparison (which includes momentum) actually
+    validate the predefined profile against its hand-written analytic equivalent.
+    """
+
+    rms_velocity: tuple[float, float, float] = (0.0, 0.0, 0.0)
+
+
 # A PICMI-standard Gaussian bunch, rendered through the analytic path.
 class GaussianBunch:
     def __init__(self):
@@ -245,7 +258,10 @@ class GaussianBunch:
         )
         self.distributions = {
             "predefined": picmi.GaussianBunchDistribution(**self.parameters),
-            "free_form": picmi.AnalyticDistribution(lambda x, y, z: self.free_form(x, y, z, **self.parameters)),
+            "free_form": GaussianBunchFreeForm(
+                lambda x, y, z: self.free_form(x, y, z, **self.parameters),
+                rms_velocity=tuple(self.parameters["rms_velocity"]),
+            ),
         }
 
     @staticmethod

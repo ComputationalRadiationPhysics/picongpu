@@ -11,7 +11,7 @@ from operator import gt, le
 
 import numpy as np
 import picmistandard
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import Field, computed_field, field_validator
 
 from ..pypicongpu.species.operation.layout import OnePosition as PyPIConGPU_OnePosition
 from ..pypicongpu.species.operation.layout import Quiet, Random
@@ -41,7 +41,7 @@ class GriddedLayout(picmistandard.PICMI_GriddedLayout):
         ).T / self.n_macroparticles_per_cell
 
 
-class OnePositionLayout(BaseModel):
+class OnePositionLayout(picmistandard.PICMI_Layout):
     n_macroparticles_per_cell: int = Field(gt=0, description="Number of particles per cell")
     in_cell_offset: tuple[float, ...] = Field(
         (0.0, 0.0, 0.0),
