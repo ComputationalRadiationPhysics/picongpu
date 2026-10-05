@@ -249,6 +249,28 @@ EXPECTED_FILES = {
             "kineticEnergy",
         ],
     },
+    "selected_topics/openpmd_backend_config.py": {
+        "no_run": True,
+        "files": [
+            "openpmd_backend_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("openpmd_backend_setup/etc/picongpu/N.cfg", "--openPMD.pluginConfig"),
+        ],
+        "stdout_contains": [
+            "[backend_config]",
+            'backend = "adios2"',
+            'iteration_encoding = "group_based"',
+            'rank_table = "hostname"',
+            "[backend_config.adios2.engine]",
+            'BufferGrowthFactor = "1.2"',
+            "[[backend_config.adios2.dataset]]",
+            'type = "blosc"',
+            "select = [",
+            "[backend_config.hdf5.dataset]",
+            'chunks = "auto"',
+        ],
+    },
     "selected_topics/binning.py": {
         "no_run": True,
         "files": [

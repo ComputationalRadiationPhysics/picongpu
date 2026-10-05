@@ -21,8 +21,10 @@ from pydantic import (
     ValidationError,
     field_validator,
     model_serializer,
+    model_validator,
 )
 
+from picongpu.pypicongpu.output.openpmd_backend import OpenPMDBackendConfig
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.filtered_species import FilteredSpecies
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
@@ -58,7 +60,7 @@ class OpenPMDConfig(BaseModel):
     file: PathLike | str
     infix: str = "_%06T"
     ext: Annotated[str, AfterValidator(lambda s: s.strip("."))] = "bp5"
-    backend_config: PathLike | None = None
+    backend_config: OpenPMDBackendConfig | None = None
     data_preparation_strategy: Literal["mappedMemory", "doubleBuffer"] = "mappedMemory"
     range: RangeSpec = RangeSpec()
 
@@ -73,6 +75,14 @@ class OpenPMDConfig(BaseModel):
             except ValidationError as error2:
                 raise error2 from error1
         return value
+
+    @model_validator(mode="after")
+    def _normalise_empty_backend_config(self):
+        # An explicit-but-empty backend config is equivalent to no configuration at all,
+        # so drop it to keep the generated toml free of a spurious empty `backend_config` key.
+        if self.backend_config is not None and not self.backend_config.model_dump(mode="json"):
+            self.backend_config = None
+        return self
 
     def full_filename(self):
         return f"{self.file}{self.infix}.{self.ext}"
