@@ -93,3 +93,62 @@ def test_editable_keys_keeps_required_and_optional_parameters():
     # Re-editing required parameters is allowed; only `required_information` is internal.
     keys = ["pic_backend", "tbg_partition", "scratch_dir"]
     assert _editable_keys(keys) == keys
+
+
+def test_gather_missing_prefills_the_preset_default(monkeypatch):
+    # For a preset that offers a site default (rosi-hzdr's pic_libs), the prompt
+    # is pre-filled so the user can accept it by pressing enter
+    # (https://github.com/chillenzer-agents/picongpu/issues/204).
+    from picongpu._rc_params import RCParams
+
+    captured = []
+
+    def fake_text(message, default=""):
+        captured.append((message, default))
+
+        class _AnswerDefault:
+            def unsafe_ask(self):
+                # emulates pressing enter: accepting the pre-filled default
+                return default
+
+        return _AnswerDefault()
+
+    monkeypatch.setattr(picrc_builder.questionary, "text", fake_text)
+    monkeypatch.setattr(picrc_builder.questionary, "print", lambda *args, **kwargs: None)
+
+    p = RCParams(preset="rosi-hzdr/gpu-v100")
+    p["author"] = "Me <me@example.com>"
+    p["email"] = "me@example.com"
+    picrc_builder._gather_missing(p)
+
+    pic_libs_prompts = [default for message, default in captured if message == "pic_libs = "]
+    assert pic_libs_prompts == ["/bigdata/hplsim/development/rosi-picongpu-libs/"]
+    assert p["pic_libs"] == "/bigdata/hplsim/development/rosi-picongpu-libs/"
+
+
+def test_gather_missing_does_not_prefill_unregistered_parameters(monkeypatch):
+    # pic_src_path is required but has no registered site default -> empty prompt.
+    from picongpu._rc_params import RCParams
+
+    captured = []
+
+    def fake_text(message, default=""):
+        captured.append((message, default))
+
+        class _AnswerDefault:
+            def unsafe_ask(self):
+                return default
+
+        return _AnswerDefault()
+
+    monkeypatch.setattr(picrc_builder.questionary, "text", fake_text)
+    monkeypatch.setattr(picrc_builder.questionary, "print", lambda *args, **kwargs: None)
+
+    p = RCParams(preset="rosi-hzdr/gpu-v100")
+    p["author"] = "Me <me@example.com>"
+    p["email"] = "me@example.com"
+    # remove the auto-set pic_src_path so it becomes the missing variable
+    p._data.pop("pic_src_path", None)
+    picrc_builder._gather_missing(p)
+    # pic_src_path is required but has no registered site default -> empty prompt
+    assert [default for message, default in captured if message == "pic_src_path = "] == [""]

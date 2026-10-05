@@ -28,6 +28,11 @@ It guides you interactively through writing a runtime configuration file
 ``.picongpurc.toml``:
 it lets you pick one of the available presets (see `Presets`_ below)
 and asks for the required parameters as well as any additional fine-tuning.
+Where a preset already pins a required parameter to a concrete, site-provided
+default, the prompt is pre-filled with that value,
+so you can just press enter to accept it.
+This applies only to explicitly registered preset parameters;
+currently that is the ``pic_libs`` directory on ``rosi-hzdr``.
 
 If the package is installed (see :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`),
 you can simply run::
