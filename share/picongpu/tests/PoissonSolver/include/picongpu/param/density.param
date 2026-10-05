@@ -45,7 +45,7 @@ namespace picongpu
                 return rel_inner_amplitude
                        * float_X(
                            radiusSquared < innerRadius_SI * innerRadius_SI && position_SI.y() > 16 * cellSize_SI.y()
-                           && position_SI.y() < (128 - 16) * cellSize_SI.y());
+                           && position_SI.y() < (512 - 16) * cellSize_SI.y());
             }
         };
 
@@ -59,7 +59,7 @@ namespace picongpu
 
                 return float_X(
                     radiusSquared >= innerRadius_SI * innerRadius_SI && radiusSquared < outerRadius_SI * outerRadius_SI
-                    && position_SI.y() > 16 * cellSize_SI.y() && position_SI.y() < (128 - 16) * cellSize_SI.y());
+                    && position_SI.y() > 16 * cellSize_SI.y() && position_SI.y() < (512 - 16) * cellSize_SI.y());
             }
         };
 
