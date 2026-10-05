@@ -11,7 +11,7 @@ from collections.abc import Callable
 from typing import Literal
 
 import numpy as np
-from picmistandard import PICMI_Extension
+from picmistandard import PICMI_Distribution
 from pydantic import ConfigDict, Field, PrivateAttr, computed_field
 from sympy import Expr, Symbol, lambdify, symbols
 
@@ -41,7 +41,7 @@ this method returns None.
 
 
 @decorating_class("density_function")
-class AnalyticDistribution(PICMI_Extension):
+class AnalyticDistribution(PICMI_Distribution):
     """
     This class represents a plasma with a density defined by an analytic expression.
 

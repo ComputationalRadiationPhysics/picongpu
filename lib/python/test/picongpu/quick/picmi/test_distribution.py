@@ -474,7 +474,6 @@ def _gaussian_distribution(rms_velocity):
         power=2.0,
         factor=-9.0,
         vacuum_front=0.0,
-        vacuum_rear=0.0,
         rms_velocity=rms_velocity,
     )
 

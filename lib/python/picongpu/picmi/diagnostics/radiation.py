@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from picmistandard import PICMI_Diagnostic
 from pydantic import ConfigDict, field_validator
 
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
@@ -25,7 +26,7 @@ from picongpu.pypicongpu.species.attribute.momentum_prev_1 import MomentumPrev1
 from picongpu.pypicongpu.species.attribute.radiation_mask import RadiationMask
 
 
-class Radiation(RadiationPluginConfig):
+class Radiation(RadiationPluginConfig, PICMI_Diagnostic):
     species: list[Species]
     period: TimeStepSpec
 

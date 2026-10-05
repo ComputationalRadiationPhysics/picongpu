@@ -5,7 +5,8 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, ConfigDict
+from picmistandard import PICMI_Diagnostic
+from pydantic import ConfigDict
 
 from picongpu.picmi.copy_attributes import default_converts_to
 
@@ -17,7 +18,7 @@ from .timestepspec import TimeStepSpec
 
 
 @default_converts_to(PyPIConGPUMacroParticleCount)
-class MacroParticleCount(BaseModel):
+class MacroParticleCount(PICMI_Diagnostic):
     """
     Specifies the parameters for counting the total number of macro particles of a given species.
 

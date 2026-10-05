@@ -5,6 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre
 License: GPLv3+
 """
 
+from collections.abc import Sequence
 from functools import partial
 from operator import gt, le
 
@@ -34,7 +35,7 @@ class GriddedLayout(picmistandard.PICMI_GriddedLayout):
         return Quiet(ppc=np.prod(self.n_macroparticles_per_cell), n_points=self.n_macroparticles_per_cell)
 
     @computed_field
-    def in_cell_offsets(self) -> np.ndarray:
+    def in_cell_offsets(self) -> Sequence[Sequence[float]]:
         return (np.mgrid[*map(slice, self.n_macroparticles_per_cell)] + 0.5).reshape(
             len(self.n_macroparticles_per_cell), -1
         ).T / self.n_macroparticles_per_cell
