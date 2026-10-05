@@ -20,7 +20,6 @@ import picmistandard
 from pydantic import (
     AfterValidator,
     BeforeValidator,
-    BaseModel,
     ConfigDict,
     Field,
     PrivateAttr,
@@ -35,7 +34,7 @@ from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
-from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
+from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
 from picongpu.picmi.interaction import (
     SUPPORTED_INTERACTION_TYPES,
     Interaction,
@@ -44,8 +43,7 @@ from picongpu.picmi.interaction import (
 )
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
-from picongpu.picmi.layout import AnyLayout
-from picongpu.picmi.species import _STANDARD_SHAPES, Species
+from picongpu.picmi.species import _STANDARD_SHAPES
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
     SimpleMomentumOperation,
@@ -66,58 +64,61 @@ from picongpu.pypicongpu.util import UnpackChain, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
-class _DensityImpl(BaseModel):
-    layout: AnyLayout
-    grid: AnyGrid
-    species: Species
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.species.register_requirements(
-            [
-                Weighting(),
-                SimpleDensityOperation(species=self.species, layout=self.layout, grid=self.grid),
-                Momentum(),
-                SimpleMomentumOperation(species=self.species),
-            ]
-        )
+def _is_multi_species(entry):
+    """Whether a ``species`` entry is a PICMI ``MultiSpecies`` group."""
+    return isinstance(entry, picmistandard.PICMI_MultiSpecies)
 
 
-def _validate_species_layout(species, layout):
-    """Validate one (species, layout) pair.
+def _entry_members(entry):
+    """The plain species making up a ``species`` entry, in order."""
+    return entry.species_instances_list if _is_multi_species(entry) else [entry]
 
-    Extracted from ``_picongpu_add_species`` so that both the imperative
-    ``add_species`` path and the declarative constructor path share exactly the
-    same validation.
+
+def _register_density_operation(entry, layout, grid):
+    """Register the density (and momentum) requirements of one species entry.
+
+    A whole :class:`picmi.MultiSpecies` entry is treated as one coordinated group:
+    all of its members share a single :class:`SimpleDensityOperation`, so they
+    are placed on identical in-cell positions (collective/charge-neutral
+    initialisation). A standalone species is always its own operation
+    (independent by default). Each member additionally gets its per-species
+    momentum initialisation.
     """
-    if species.density_scale is not None and (layout is None and species.initial_distribution is None):
-        raise ValueError("layout and initial distribution must be set to use density scale")
-    if layout is not None and species.initial_distribution is None:
-        raise ValueError(
-            f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
-        )
+    members = _entry_members(entry)
+    profile = members[0].initial_distribution
+    if profile is None:
+        return
+    members[0].register_requirements([Weighting(), SimpleDensityOperation(species=members, layout=layout, grid=grid)])
+    for member in members:
+        member.register_requirements([Momentum(), SimpleMomentumOperation(species=member)])
 
 
-def _derive_density_distributions(species, layouts, grid):
-    """Derive the ``_DensityImpl`` list for a declarative (species, layouts) pair of lists.
+def _validate_species_layout(entry, layout):
+    """Validate one ``(species entry, layout)`` pair.
 
-    Fully stateless: it validates the pairs over ``zip(species, layouts)`` and
-    constructs the implementations directly, so ``Simulation(species=[...],
-    layouts=[...])`` needs neither a construction guard nor a replay through
-    ``_picongpu_add_species``.
+    Shared by the imperative ``add_species`` path and the declarative
+    constructor path. Validation is per member: a ``MultiSpecies`` group passes
+    one layout for all members.
     """
+    for species in _entry_members(entry):
+        if species.density_scale is not None and (layout is None and species.initial_distribution is None):
+            raise ValueError("layout and initial distribution must be set to use density scale")
+        if layout is not None and species.initial_distribution is None:
+            raise ValueError(
+                f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
+            )
+        if species.initial_distribution is not None and layout is None:
+            raise ValueError(
+                f"A species with an initial distribution needs a layout. "
+                f"You gave {species.initial_distribution=} but {layout=}."
+            )
+
+
+def _validate_lengths(species, layouts):
     if len(layouts) != len(species):
         raise ValueError(
             f"species and layouts must have the same length, but you gave {len(species)=} and {len(layouts)=}."
         )
-    distributions = []
-    for one_species, layout in zip(species, layouts):
-        _validate_species_layout(one_species, layout)
-        if one_species.initial_distribution is not None:
-            distributions.append(_DensityImpl(species=one_species, layout=layout, grid=grid))
-    return distributions
 
 
 def is_iterable(obj):
@@ -362,8 +363,6 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
 
-    picongpu_distributions: list[_DensityImpl] = Field(default_factory=list)
-
     _runner: Runner | None = PrivateAttr(default=None)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -389,11 +388,17 @@ class Simulation(picmistandard.PICMI_Simulation):
     def model_post_init(self, __context) -> None:
         # Honour the documented declarative constructor style
         # ``Simulation(species=[...], layouts=[...])`` once, at construction.
-        # Unlike an after-validator this hook does not run on later assignments,
-        # so the inherited ``add_species_through_plane`` (whose base ``_append``
-        # sets ``species`` and ``layouts`` in two separate steps) is unaffected.
+        # The entries are stored AS GIVEN (a ``MultiSpecies`` stays one entry,
+        # it is not expanded into its members); translation maps each entry onto
+        # one density operation. Unlike an after-validator this hook does not run
+        # on later assignments, so the inherited ``add_species_through_plane``
+        # (whose base ``_append`` sets ``species`` and ``layouts`` in two
+        # separate steps) is unaffected.
         if self.species or self.layouts:
-            self.picongpu_distributions = _derive_density_distributions(self.species, self.layouts, self.solver.grid)
+            _validate_lengths(self.species, self.layouts)
+            for entry, layout in zip(self.species, self.layouts):
+                _validate_species_layout(entry, layout)
+                _register_density_operation(entry, layout, self.solver.grid)
 
     def _compute_cfl_or_delta_t(self) -> None:
         """
@@ -579,13 +584,14 @@ class Simulation(picmistandard.PICMI_Simulation):
                         "A phase-space diagnostic with spatial coordinate 'z' is not supported in 2D. "
                         f"You gave {diagnostic.spatial_coordinate=} on a 2D grid."
                     )
-            for species in self.species:
-                if isinstance(species.initial_distribution, AnalyticDistribution):
-                    if species.initial_distribution.dim == 3:
-                        raise ValueError(
-                            "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
-                            f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
-                        )
+            for entry in self.species:
+                for species in _entry_members(entry):
+                    if isinstance(species.initial_distribution, AnalyticDistribution):
+                        if species.initial_distribution.dim == 3:
+                            raise ValueError(
+                                "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
+                                f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
+                            )
 
     def _check_huygens_surface_positions(self):
         # Every laser renders into the single incidentField, so all lasers must
@@ -660,8 +666,9 @@ class Simulation(picmistandard.PICMI_Simulation):
         self._check_huygens_surface_positions()
         self._register_functor_requirements()
 
+        all_species = chain.from_iterable(_entry_members(entry) for entry in self.species)
         init_operations = organise_init_operations(
-            chain(*(s.get_operation_requirements() for s in sorted(self.species)))
+            chain(*(s.get_operation_requirements() for s in sorted(all_species)))
         )
 
         typical_ppc = (
@@ -699,7 +706,8 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         return pypicongpu.simulation.Simulation(
             species=map(
-                lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape), sorted(self.species)
+                lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape),
+                sorted(chain.from_iterable(_entry_members(entry) for entry in self.species)),
             ),
             init_operations=init_operations,
             typical_ppc=typical_ppc,
@@ -764,18 +772,23 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         return self._runner
 
-    def _picongpu_add_species(self, species, layout):
+    def _picongpu_add_species(self, species, layout, initialize_self_field=None):
+        # PICMI-standard interface: a ``MultiSpecies`` is added as one object
+        # together with one layout for the whole group. The entry is stored AS
+        # GIVEN (not expanded into its members); translation maps it onto one
+        # density operation covering all its members.
         self.species.append(species)
         self.layouts.append(layout)
         _validate_species_layout(species, layout)
-        if species.initial_distribution is not None:
-            self.picongpu_distributions.append(_DensityImpl(species=species, layout=layout, grid=self.solver.grid))
+        _register_density_operation(species, layout, self.solver.grid)
 
-    def add_species(self, *args, **kwargs):
-        return self._picongpu_add_species(*args, **kwargs)
+    def add_species(self, species, layout, initialize_self_field=None):
+        return self._picongpu_add_species(species, layout, initialize_self_field)
 
 
 def organise_init_operations(operations):
+    # materialise -- resolving_add is multi-pass
+    operations = list(operations)
     cleaned = []
     for op in operations:
         cleaned = resolving_add(op, cleaned)

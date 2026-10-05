@@ -11,11 +11,10 @@ Copyright 2026 PIConGPU contributors
 Authors: Julian Lenz
 License: GPLv3+
 
-A warm, quasi-neutral plasma:
-ions and electrons share the same uniform density profile.
+Collective (coordinated) initialisation of ions and electrons with a
+``MultiSpecies``, so both are placed on identical in-cell positions.
 """
 
-# BEGIN-WARM-PLASMA
 from pathlib import Path
 
 from picongpu import picmi
@@ -29,34 +28,32 @@ grid = picmi.Cartesian3DGrid(
 )
 solver = picmi.ElectromagneticSolver(method="Yee", cfl=0.7, grid=grid)
 
-# a uniform plasma with a thermal velocity spread
-# and a small collective drift in x direction
+# the one density profile shared by all members of the group
 plasma = picmi.UniformDistribution(
     density=1.0e24,
     rms_velocity=[0.01 * picmi.constants.c] * 3,
-    directed_velocity=[0.001 * picmi.constants.c, 0.0, 0.0],
 )
 
-# collective initialisation: electrons are placed at the same in-cell
-# positions as the ions; equal proportions keep the plasma charge-neutral
+# BEGIN-MULTI-SPECIES
+# explicit collective initialisation: all members share the distribution and
+# their proportion becomes their density scale (electron/ion number ratio 1)
 multispecies = picmi.MultiSpecies(
     particle_types=["H", "electron"],
     names=["ions", "electrons"],
-    charge_states=[1, None],
     proportions=[1.0, 1.0],
     initial_distribution=plasma,
 )
 
-# place 8 macroparticles per cell on a 2x2x2 sub-grid
-layout = picmi.GriddedLayout(n_macroparticles_per_cell=[2, 2, 2])
+# the MultiSpecies is passed as one species together with one layout for the
+# entire group (fully declarative)
+layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
 
-# pass the whole group as one species together with one layout for all members
 simulation = picmi.Simulation(
     max_steps=100,
     solver=solver,
     species=[multispecies],
     layouts=[layout],
 )
+# END-MULTI-SPECIES
 
-simulation.run(setup_dir=Path("warm_plasma_setup"), run_dir=Path("warm_plasma_run"))
-# END-WARM-PLASMA
+simulation.write_input_file(Path("multi_species_setup"))

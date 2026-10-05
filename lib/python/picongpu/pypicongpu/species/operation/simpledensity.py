@@ -45,7 +45,13 @@ class SimpleDensity(BaseModel):
     def validate_species(cls, species):
         return sorted(
             set(species),
-            key=lambda species: 0 if species.constants.density_ratio is None else species.constants.density_ratio.ratio,
+            key=lambda species: (
+                0 if species.constants.density_ratio is None else species.constants.density_ratio.ratio,
+                # stable tie-break so that the placement order (and thereby the
+                # choice of `placed_species_initial`) is reproducible, in
+                # particular for MultiSpecies members with equal density ratios
+                species.name,
+            ),
         )
 
     @computed_field

@@ -79,10 +79,49 @@ PIConGPU uses its native default ``"quadratic"`` (TSC):
    :start-after: BEGIN-SPECIES_SHAPE
    :end-before: END-SPECIES_SHAPE
 
-When several species share the same distribution and layout,
-they are placed at the same positions with their ``density_scale``
-respected --
-the standard way to build charge-neutral plasmas.
+By default, every species is initialised **independently**: even when several
+species happen to share the same distribution and layout, each one draws its
+own in-cell positions.
+To place several species *collectively* -- i.e. on exactly the same in-cell
+positions, the standard way to build charge-neutral plasmas -- group them in a
+:class:`~picongpu.picmi.multi_species.MultiSpecies`
+(see :ref:`multi_species`).
+
+.. _multi_species:
+
+MultiSpecies: collective initialisation
+---------------------------------------
+
+A :class:`~picongpu.picmi.multi_species.MultiSpecies` is the explicit way to
+request **collective (coordinated) initialisation**: all its members share one
+``initial_distribution`` and one layout, and the whole group is placed with a
+single density operation, so the members occupy exactly the same in-cell
+positions -- and are therefore charge-neutral by construction, irrespective of
+per-member momentum or temperature.
+
+.. literalinclude:: ../snippets/selected_topics/multi_species.py
+   :language: python
+   :start-after: BEGIN-MULTI-SPECIES
+   :end-before: END-MULTI-SPECIES
+
+The whole :class:`~picongpu.picmi.multi_species.MultiSpecies` is one entry of
+the simulation's ``species`` list, paired with a single layout in ``layouts``
+(passed declaratively as shown above or via
+:meth:`~picongpu.picmi.simulation.Simulation.add_species`). Its individual
+members can be addressed by index or, if named, by name (e.g.
+``multispecies["electrons"]``) and used elsewhere as needed.
+The value at each position of ``proportions`` becomes the corresponding member's
+``density_scale`` (its ``DensityRatio`` on the C++ level), so a
+``proportions=[1.0, 1.0]`` ion/electron pair yields a neutral plasma.
+
+.. note::
+
+   Grouping is **structural**: the :class:`~picongpu.picmi.Simulation` stores
+   each ``species`` entry as given. A whole ``MultiSpecies`` becomes one density
+   operation covering all of its members; every standalone
+   :class:`~picongpu.picmi.species.Species` entry becomes its own operation.
+   There is therefore no implicit merging of look-alike species: to initialise
+   species collectively, you must group them in a ``MultiSpecies``.
 
 .. _distributions:
 
