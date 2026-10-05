@@ -144,7 +144,7 @@ sim = picmi.Simulation(
     time_step_size=1.39e-16,
     picongpu_moving_window_move_point=0.9,
     picongpu_walltime=datetime.timedelta(hours=2.0),
-    picongpu_interaction=interaction,
+    interactions=interaction,
 )
 
 for species, layout in species_list:

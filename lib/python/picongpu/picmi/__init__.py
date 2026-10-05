@@ -30,6 +30,7 @@ from .interaction.ionization.fieldionization import (
     BSI,
     ADKVariant,
     BSIExtension,
+    FieldIonization,
     Keldysh,
 )
 from .lasers import (
@@ -87,6 +88,7 @@ __all__ = [
     "BSI",
     "BSIExtension",
     "Keldysh",
+    "FieldIonization",
     "ThomasFermi",
     "Synchrotron",
     "Interaction",

@@ -11,10 +11,11 @@ Copyright 2026 PIConGPU contributors
 Authors: Julian Lenz
 License: GPLv3+
 
-Defines three small simulations demonstrating the supported interactions:
+Defines four small simulations demonstrating the supported interactions:
 ADK tunnel ionization of hydrogen,
 BSI (with the Stark-shift extension) ionization of hydrogen,
-and synchrotron radiation from electrons.
+synchrotron radiation from electrons,
+and the standard field-ionization entry point ``picmi.FieldIonization``.
 """
 
 from pathlib import Path
@@ -57,7 +58,7 @@ sim_adk = picmi.Simulation(
     solver=solver,
     species=[hydrogen, electrons],
     layouts=[layout, None],
-    picongpu_interaction=[adk],
+    interactions=[adk],
 )
 sim_adk.run(setup_dir=Path("adk_setup"), run_dir=Path("adk_run"))
 # END-INTERACTIONS-ADK
@@ -87,7 +88,7 @@ sim_bsi = picmi.Simulation(
     solver=solver,
     species=[bsi_hydrogen, bsi_electrons],
     layouts=[layout, None],
-    picongpu_interaction=[bsi],
+    interactions=[bsi],
 )
 sim_bsi.run(setup_dir=Path("bsi_setup"), run_dir=Path("bsi_run"))
 # END-INTERACTIONS-BSI
@@ -111,7 +112,36 @@ sim_sync = picmi.Simulation(
     solver=solver,
     species=[sync_electrons, photons],
     layouts=[layout, None],
-    picongpu_interaction=[synchrotron],
+    interactions=[synchrotron],
 )
 sim_sync.run(setup_dir=Path("synchrotron_setup"), run_dir=Path("synchrotron_run"))
 # END-INTERACTIONS-SYNCHROTRON
+
+# BEGIN-INTERACTIONS-STANDARD
+standard_hydrogen = picmi.Species(
+    name="standard_hydrogen",
+    particle_type="H",
+    charge_state=0,
+    initial_distribution=distribution,
+)
+standard_electrons = picmi.Species(
+    name="standard_electrons",
+    particle_type="electron",
+    initial_distribution=None,
+)
+
+sim_standard = picmi.Simulation(
+    max_steps=10,
+    solver=solver,
+    species=[standard_hydrogen, standard_electrons],
+    layouts=[layout, None],
+    interactions=[
+        picmi.FieldIonization(
+            model="Keldysh",
+            ionized_species=standard_hydrogen,
+            product_species=standard_electrons,
+        )
+    ],
+)
+sim_standard.run(setup_dir=Path("standard_setup"), run_dir=Path("standard_run"))
+# END-INTERACTIONS-STANDARD

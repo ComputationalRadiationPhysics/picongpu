@@ -5,13 +5,13 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from .fieldionization import FieldIonization
+from .fieldionization import _FieldIonizationModel
 
 from .....pypicongpu.species.constant import ionizationmodel
 
 
-class Keldysh(FieldIonization):
-    """Barrier Suppression Ioniztion model"""
+class Keldysh(_FieldIonizationModel):
+    """Keldysh ionization model"""
 
     MODEL_NAME: str = "Keldysh"
 

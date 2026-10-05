@@ -36,8 +36,14 @@ from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
 from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
-from picongpu.picmi.interaction import Interaction, Synchrotron
+from picongpu.picmi.interaction import (
+    SUPPORTED_INTERACTION_TYPES,
+    Interaction,
+    PICMI_Interaction,
+    Synchrotron,
+)
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
+from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
 from picongpu.picmi.layout import AnyLayout
 from picongpu.picmi.species import _STANDARD_SHAPES, Species
 from picongpu.picmi.species_requirements import (
@@ -158,6 +164,40 @@ def handled_via_openpmd(diagnostic):
     return isinstance(diagnostic, (ParticleDump, _FieldDump))
 
 
+def _normalise_interaction(interaction):
+    """Map a standard interaction onto the equivalent PIConGPU interaction.
+
+    ``picmi.FieldIonization`` (and the plain standard
+    ``picmistandard.PICMI_FieldIonization``) are converted to the matching
+    concrete PIConGPU field ionization model. Everything else is returned
+    unchanged and validated below.
+    """
+    if isinstance(interaction, FieldIonization):
+        return interaction.get_as_pypicongpu()
+    if isinstance(interaction, picmistandard.PICMI_FieldIonization):
+        # A plain standard object carries only model/ionized_species/product_species;
+        # the conversion reports the required-knob errors for ADK/BSI.
+        return FieldIonization(
+            model=interaction.model,
+            ionized_species=interaction.ionized_species,
+            product_species=interaction.product_species,
+        ).get_as_pypicongpu()
+    if isinstance(interaction, PICMI_Interaction) and not isinstance(interaction, SUPPORTED_INTERACTION_TYPES):
+        pypicongpu.util.unsupported("This PICMI interaction type is not supported by PIConGPU", interaction)
+    return interaction
+
+
+def _prepare_interactions(interactions):
+    """Normalise and validate the interaction list.
+
+    This is the single pipeline shared by the constructor ``interactions=[...]``
+    parameter and :meth:`add_interaction`: standard field ionization is mapped
+    to PIConGPU's concrete model, and bare collisions are merged into a
+    ``CollisionalPhysicsSetup``.
+    """
+    return _validate_collisional_physics_setup([_normalise_interaction(x) for x in interactions])
+
+
 def _validate_collisional_physics_setup(interactions):
     # Validation is meant in the pydantic sense of checking correctness AND constructing.
     def by_type(x):
@@ -233,10 +273,19 @@ class Simulation(picmistandard.PICMI_Simulation):
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    picongpu_interaction: Annotated[list[Interaction], BeforeValidator(_validate_collisional_physics_setup)] = Field(
+    interactions: Annotated[list[Interaction | PICMI_Interaction], BeforeValidator(_prepare_interactions)] = Field(
         default_factory=list
     )
-    """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
+    """
+    All particle interactions of the simulation.
+
+    The standard ``interactions=[...]`` constructor parameter and
+    :meth:`add_interaction` are the entry points. They accept every interaction
+    type PIConGPU supports: field ionization (``picmi.FieldIonization``),
+    collisions (``picmi.Collision``/``picmi.CollisionalPhysicsSetup``),
+    synchrotron radiation (``picmi.Synchrotron``) and the concrete ionization
+    models.
+    """
 
     def _validate_typical_ppc(value: int | None) -> int | None:
         if value is not None and value <= 0:
@@ -454,9 +503,19 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_custom_user_input = (self.picongpu_custom_user_input or []) + [custom_user_input]
 
     def add_interaction(self, interaction) -> None:
-        pypicongpu.util.unsupported(
-            "PICMI standard interactions are not supported by PIConGPU, use the picongpu specific Interaction object instead"
-        )
+        """
+        Add an interaction to the simulation.
+
+        Accepts every interaction type PIConGPU supports: field ionization
+        (``picmi.FieldIonization`` or the plain standard
+        ``picmistandard.PICMI_FieldIonization``, both converted to the matching
+        concrete model) as well as PIConGPU's own collision,
+        collisional-physics-setup and synchrotron objects.
+
+        Equivalent to appending to the ``interactions=[...]`` constructor
+        parameter; both go through the same pipeline.
+        """
+        self.interactions = [*(self.interactions or []), interaction]
 
     # @todo add refactor once restarts are supported by the Runner, Brian Marre, 2024
     def step(self, nsteps: int = 1, **flags):
@@ -555,8 +614,8 @@ class Simulation(picmistandard.PICMI_Simulation):
                 get_as_pypicongpu,
                 chain(
                     UnpackChain(self).diagnostics.species.functor,
-                    UnpackChain(self).picongpu_interaction.screening_species.functor,
-                    UnpackChain(self).picongpu_interaction.collisions.species_pairs[:].functor,
+                    UnpackChain(self).interactions.screening_species.functor,
+                    UnpackChain(self).interactions.collisions.species_pairs[:].functor,
                 ),
             )
         )
@@ -623,7 +682,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         time_steps = self.max_steps if self.max_steps is not None else math.ceil(self.max_time / self.time_step_size)
         # We provide the default as last element and we'll only read the first element:
         synchrotron_params = unique(
-            [x.synchrotron_parameters for x in self.picongpu_interaction if isinstance(x, Synchrotron)]
+            [x.synchrotron_parameters for x in self.interactions if isinstance(x, Synchrotron)]
         ) + [SynchrotronParams()]
         if len(synchrotron_params) > 2:
             raise ValueError(
@@ -631,9 +690,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         # We need to make sure that bare collisions are merged into a setup,
         # no matter if the interactions were assembled at construction time or later.
-        self.picongpu_interaction = _validate_collisional_physics_setup(self.picongpu_interaction)
+        self.interactions = _validate_collisional_physics_setup(self.interactions)
         # We provide the default as last element and we'll only read the first element:
-        collisions = [x for x in self.picongpu_interaction if isinstance(x, CollisionalPhysicsSetup)] + [
+        collisions = [x for x in self.interactions if isinstance(x, CollisionalPhysicsSetup)] + [
             CollisionalPhysicsSetup()
         ]
 

@@ -5,19 +5,17 @@ Interactions describe the physics that acts on your particles
 *in addition to* the electromagnetic fields
 the solver provides:
 ionization, binary collisions and radiation reaction.
-They are passed to the simulation via the
-``picongpu_interaction`` parameter:
+
+Interactions are passed through the standard
+``interactions=[...]`` constructor parameter or added with
+:meth:`~picongpu.picmi.simulation.Simulation.add_interaction`;
+both accept exactly the same types
+(field ionization, collisions, collisional physics setups
+and synchrotron radiation).
 
 .. code-block:: python
 
-   sim = picmi.Simulation(max_steps=100, solver=solver, picongpu_interaction=[...])
-
-.. note::
-
-   The PICMI-standard method ``simulation.add_interaction()``
-   is *not* supported by PIConGPU:
-   it raises an ``UnsupportedFeatureError``.
-   Always use the ``picongpu_interaction`` parameter instead.
+   sim = picmi.Simulation(max_steps=100, solver=solver, interactions=[...])
 
 Each interaction is attached to the species it acts on
 (and, where applicable, creates new species);
@@ -86,6 +84,35 @@ The same snippet also shows the BSI variant:
    Deep dive:
    :ref:`the ionization models in the PIConGPU code <model-fieldIonization>`
    and :ref:`the collisional ionization model <model-collisionalIonization>`.
+
+Standard interface
+^^^^^^^^^^^^^^^^^^
+
+:class:`~picongpu.picmi.interaction.ionization.fieldionization.FieldIonization`
+is PIConGPU's field ionization following the PICMI standard interface.
+It is a subclass of the standard ``picmistandard.PICMI_FieldIonization``
+that adds the PIConGPU-specific knobs
+``ionization_current``, ``ADK_variant`` and ``BSI_extensions``.
+At translation time it is converted to the matching concrete model
+(``ADK``, ``BSI`` or ``Keldysh``),
+so the rest of the workflow is identical to using a concrete model directly.
+
+The ``model`` string is matched case-insensitively against the concrete
+models' ``MODEL_NAME``
+(``"adk"``, ``"Adk"`` and ``"ADK"`` all select the ADK model).
+Model-specific knobs are required rather than defaulted:
+the ADK model requires ``ADK_variant``
+and the BSI model requires ``BSI_extensions``
+(pass ``BSI_extensions=()`` for the plain BSI model without extensions).
+A knob that does not belong to the selected model is rejected rather than
+silently ignored.
+A bare standard field ionization with ``ionization_current=None``
+disables the ionization current.
+
+.. literalinclude:: ../snippets/selected_topics/interactions.py
+   :language: python
+   :start-after: BEGIN-INTERACTIONS-STANDARD
+   :end-before: END-INTERACTIONS-STANDARD
 
 .. _collisions:
 
