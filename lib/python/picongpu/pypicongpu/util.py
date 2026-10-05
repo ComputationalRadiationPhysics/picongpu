@@ -57,11 +57,20 @@ def decorating_class(cls_or_name, parameter=None, keyword_construction=False):
 
     By default a call without a leading (decorated) argument is treated as the
     setup of a decoration, i.e. it returns a callable that later receives the
-    decorated object. Setting ``keyword_construction=True`` instead treats such a
-    call as a direct (keyword-only) construction, so that the model's validators
-    run. This lets a class accept alternative inputs via keyword arguments while
-    keeping the ``@Class`` (and ``@Class(...)``) decorator syntax for calls that
-    pass the decorated object positionally.
+    decorated object.
+
+    ``keyword_construction`` instead treats such a call as a direct
+    (keyword-only) construction, so that the model's validators run. This lets a
+    class accept alternative inputs via keyword arguments while keeping the
+    ``@Class`` (and ``@Class(...)``) decorator syntax for calls that pass the
+    decorated object positionally.
+
+    To support both at once, ``keyword_construction`` may also be a collection of
+    key names: a call without a decorated object is then only a direct
+    construction if at least one of those keys is present, and otherwise remains
+    the setup of a decoration. This lets a class construct directly via, say,
+    ``MyClass(density_expression=...)`` while still supporting extra keyword
+    arguments carried by a decorator, e.g. ``@MyClass(a=1, b=2)``.
     """
     if isinstance(cls_or_name, str):
         name = cls_or_name
@@ -93,7 +102,21 @@ def decorating_class(cls_or_name, parameter=None, keyword_construction=False):
             if decorated is None and parameter.name in kwargs:
                 decorated = kwargs.pop(parameter.name)
             if decorated is None:
-                if keyword_construction:
+                # ``keyword_construction=True`` always constructs directly; a
+                # collection of key names constructs directly only when one of those
+                # keys is present. A subclass that defines its own ``__init__`` always
+                # constructs directly, so it is not mistaken for a decorator setup.
+                if keyword_construction is True:
+                    direct = True
+                elif keyword_construction is False:
+                    direct = False
+                else:
+                    direct = (
+                        cls.__init__ is not Tmp.__init__
+                        or not kwargs
+                        or any(key in kwargs for key in keyword_construction)
+                    )
+                if direct:
                     # Direct (keyword-only) construction: no decorated object is present,
                     # so build a bare instance and let __init__ run the model validators.
                     return object.__new__(cls)

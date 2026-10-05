@@ -14,36 +14,77 @@ Analytic densities
 
 The most direct use is an analytic density:
 :class:`~picongpu.picmi.distribution.AnalyticDistribution`
-takes a ``density_function`` of three sympy symbols ``x``, ``y``, ``z``
-(in SI units) and returns a density expression
-(also in SI units).
-The expression is compiled into the simulation binary
-and evaluated on the GPU at runtime:
+describes three field families symbolically as functions of the three sympy
+symbols ``x``, ``y``, ``z`` (in SI units):
+
+* the density ``density_*`` (in SI units), and -- both optional, defaulting to
+  no drift and no thermal spread -- the per-axis momentum ``momentum_*``
+  (``gamma * velocity`` in m/s) and the per-axis momentum spread
+  ``momentum_spread_*`` (a Gaussian thermal sigma in m/s).
+
+The expressions are compiled into the simulation binary and evaluated on the
+GPU at runtime. The three families are treated on the same footing: each can be
+given as a sympy-parseable string, as a sympy callable, or read back as a parsed
+sympy expression, and all three share the same keyword substitution.
+
+The string spelling uses ``density_expression``, ``momentum_expressions`` and
+``momentum_spread_expressions`` (the latter two are lists aligned per axis;
+``None`` marks an axis that is not supplied). The strings are string-normalised
+(as in the PICMI standard) and parsed with ``sympy.sympify``, so non-string
+values are coerced to their string form (a bare number gives a constant):
 
 .. literalinclude:: ../snippets/selected_topics/analytic_distribution.py
    :language: python
-   :start-after: BEGIN-DENSITY-FUNCTION
-   :end-before: END-DENSITY-FUNCTION
+   :start-after: BEGIN-FIELD-EXPRESSIONS
+   :end-before: END-FIELD-EXPRESSIONS
 
-Instead of a callable you may pass the density as a sympy-parseable
-string via the ``density_expression`` keyword;
-it is string-normalised (as in the PICMI standard) and parsed with
-``sympy.sympify``, so non-string values are coerced to their string form
-(a bare number gives a constant density) and the result is exactly
-equivalent to the matching ``density_function``:
+The callable spelling uses ``density_function``, ``momentum_functions`` and
+``momentum_spread_functions`` with the same per-axis alignment. Provide exactly
+one of the string or the callable spelling per field; the other is computed from
+it, so after construction both are available and consistent. The two spellings
+are interchangeable and describe the same distribution:
 
 .. literalinclude:: ../snippets/selected_topics/analytic_distribution.py
    :language: python
-   :start-after: BEGIN-DENSITY-EXPRESSION
-   :end-before: END-DENSITY-EXPRESSION
+   :start-after: BEGIN-FIELD-FUNCTIONS
+   :end-before: END-FIELD-FUNCTIONS
 
-Provide exactly one of ``density_function`` or ``density_expression``.
+The parsed sympy expressions are exposed as the public ``density_sympy``,
+``momentum_sympy`` and ``momentum_spread_sympy`` properties (e.g. for inspection
+or LaTeX export):
 
-Use ``sympy.Piecewise`` for conditional profiles;
-the momentum parameters ``rms_velocity`` and ``directed_velocity``
-are currently only partially supported
-(``rms_velocity`` is pinned to zero; ``directed_velocity`` is accepted
-but untested).
+.. literalinclude:: ../snippets/selected_topics/analytic_distribution.py
+   :language: python
+   :start-after: BEGIN-FIELD-SYMPY
+   :end-before: END-FIELD-SYMPY
+
+Constants used in any of the expressions may be passed as additional keyword
+arguments; they are collected automatically into ``user_defined_kw`` and
+substituted before rendering, uniformly across the three families, mirroring
+the PICMI standard. For an expression string, any identifier that appears in it
+may be given this way. For a callable, only the extra parameters explicitly
+named in the signature beyond ``x``, ``y`` and ``z`` are bound this way, and the
+matching keyword arguments give their values:
+
+.. literalinclude:: ../snippets/selected_topics/analytic_distribution.py
+   :language: python
+   :start-after: BEGIN-FIELD-KWARGS
+   :end-before: END-FIELD-KWARGS
+
+Momentum and momentum spread are rendered into the constant pypicongpu
+``Drift`` and ``Temperature`` operations. Position-dependent (function of
+``x``/``y``/``z``) momentum and spread expressions are not implemented yet and
+raise an ``UnsupportedFeatureError`` at input-file generation. ``directed_velocity``
+(a plain velocity) and ``rms_velocity`` are combined with the standard
+parameters (``rms_velocity`` takes the per-axis maximum of itself and the
+constant spread expressions). ``directed_velocity`` and ``momentum_expressions``
+are mutually exclusive ways of setting the drift; supplying a non-zero
+``directed_velocity`` together with a ``momentum_expressions`` entry raises.
+An axis without a momentum expression falls back to ``directed_velocity``. The
+standard's ``lower_bound``, ``upper_bound`` and ``fill_in`` are not supported and
+raise if set to non-default values.
+
+Use ``sympy.Piecewise`` for conditional profiles.
 
 The same symbolic machinery is the natural building block for other
 user-supplied, code-level expressions;
