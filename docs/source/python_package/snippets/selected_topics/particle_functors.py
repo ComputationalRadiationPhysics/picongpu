@@ -19,8 +19,15 @@ from pathlib import Path
 from sympy import sqrt
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import BinSpec, Binning, BinningAxis, EnergyHistogram
-from picongpu.picmi.particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
+from picongpu.picmi.diagnostics import BinSpec, Binning, BinningAxis, DerivedFieldDump, EnergyHistogram
+from picongpu.picmi.particle_functor import (
+    FilteredSpecies,
+    MacroParticle,
+    ParticleFilter,
+    ParticleFunctor,
+    PhysicalParticle,
+)
+from picongpu.picmi.particle_functor.unit_dimension import M, UnitDimension
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -40,7 +47,7 @@ electrons = picmi.Species(
 
 # BEGIN-PARTICLE-FUNCTOR
 @ParticleFunctor
-def gamma(particle):
+def gamma(particle: MacroParticle) -> float:
     mass = particle.get("mass")
     px, py, pz = particle.get("momentum")
     return sqrt(mass**2 + px**2 + py**2 + pz**2) / mass
@@ -49,8 +56,40 @@ def gamma(particle):
 # END-PARTICLE-FUNCTOR
 
 
+# BEGIN-PHYSICAL-PARTICLE
+# The argument's type annotation declares which particle flavour the functor
+# refers to: MacroParticle (the default) or PhysicalParticle.
+@ParticleFunctor(unit_dimension=M)
+def macroparticle_mass(particle: MacroParticle) -> float:
+    return particle.get("mass")
+
+
+# PhysicalParticle reads the same macro-particle attribute, but the returned
+# quantity is interpreted as a single-particle (per-particle) value: the
+# weighting factor is symbolically divided out of the scaling-sensitive
+# symbols (mass, charge, kinetic energy) at code generation.
+@ParticleFunctor(unit_dimension=M)
+def physical_mass(particle: PhysicalParticle) -> float:
+    return particle.get("mass")
+
+
+# END-PHYSICAL-PARTICLE
+
+
+# BEGIN-UNIT-FACTOR
+# unit_factor pins the numeric scale returned by getUnit() when the automatic
+# derivation cannot handle the unit (here a count whose unit carries N_ppm).
+# It takes a number, a sympy expression, or a callable returning one.
+@ParticleFunctor(unit_dimension=UnitDimension(N=1), unit_factor=1.0e6)
+def explicit_scale(particle: MacroParticle) -> float:
+    return 1.0
+
+
+# END-UNIT-FACTOR
+
+
 @ParticleFunctor
-def count(particle):
+def count(particle: MacroParticle):
     return 1.0
 
 
@@ -66,7 +105,7 @@ gamma_distribution = Binning(
 
 # BEGIN-PARTICLE-FILTER
 @ParticleFilter
-def fast(particle):
+def fast(particle: MacroParticle) -> bool:
     return particle.get("gamma") > 10.0
 
 
@@ -83,12 +122,23 @@ histogram = EnergyHistogram(
     max_energy=1000.0 * picmi.constants.keV,
 )
 
+# Derived fields expose the single-particle semantics in the output: the
+# physical-particle mass is dumped per particle, while the macro-particle mass
+# stays a weighting-scaled grid quantity.
+physical_mass_dump = DerivedFieldDump(species=electrons, functor=physical_mass, period=picmi.diagnostics.TS[::10])
+macroparticle_mass_dump = DerivedFieldDump(
+    species=electrons, functor=macroparticle_mass, period=picmi.diagnostics.TS[::10]
+)
+# unit_factor pins the numeric getUnit() scale (here 1e6) instead of the
+# auto-derived sim.unit.* monomial.
+explicit_scale_dump = DerivedFieldDump(species=electrons, functor=explicit_scale, period=picmi.diagnostics.TS[::10])
+
 simulation = picmi.Simulation(
     max_steps=100,
     solver=solver,
     species=[electrons],
     layouts=[picmi.PseudoRandomLayout(n_macroparticles_per_cell=2)],
-    diagnostics=[gamma_distribution, histogram],
+    diagnostics=[gamma_distribution, histogram, physical_mass_dump, macroparticle_mass_dump, explicit_scale_dump],
 )
 
 simulation.write_input_file(Path("particle_functors_setup"))

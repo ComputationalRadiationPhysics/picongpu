@@ -6,18 +6,34 @@ License: GPLv3+
 """
 
 import copy
+import math
 import os
 import shutil
 import tempfile
 from pathlib import Path
 from unittest import TestCase
 
+import picmistandard
 import pytest
 from pydantic import ValidationError
 from picongpu import picmi
-from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant
+from picongpu import templates
+from picongpu.picmi.interaction.collision import CollisionalPhysicsSetup
+from picongpu.picmi.interaction.ionization.fieldionization import ADK, ADKVariant, BSI, BSIExtension, Keldysh
 from picongpu.pypicongpu import customuserinput, species
 from picongpu.pypicongpu.field_solver import ArbitraryOrderFDTDSolver
+from picongpu.pypicongpu.rendering.renderer import Renderer
+
+
+def render_min_weighting(sim) -> str:
+    """Render the production particle.param template and return its MIN_WEIGHTING line."""
+    pypic = sim.get_as_pypicongpu()
+    context = pypic.get_rendering_context()
+    Renderer.check_rendering_context(context)
+    preprocessed = Renderer.get_context_preprocessed(context)
+    template = (templates.path() / "include" / "picongpu" / "param" / "particle.param.mustache").read_text()
+    rendered = Renderer.get_rendered_template(preprocessed, template)
+    return next(line.strip() for line in rendered.splitlines() if "MIN_WEIGHTING =" in line)
 
 
 def get_grid(delta_x: float, delta_y: float, delta_z: float, n: int):
@@ -213,6 +229,169 @@ class TestPicmiSimulation(TestCase):
         # check typical ppc is derived
         assert picongpu.typical_ppc == 3
 
+    def test_declarative_species_registers_density(self):
+        """constructor species/layouts must register the same density init as add_species (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+
+        def new_species():
+            return picmi.Species(name="declarative", mass=3, charge=4, initial_distribution=profile)
+
+        declarative = picmi.Simulation(
+            time_step_size=17, max_steps=4, solver=solver, species=[new_species()], layouts=[layout]
+        )
+        imperative = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver)
+        imperative.add_species(new_species(), layout)
+
+        declarative_ops = declarative.get_as_pypicongpu().init_operations
+        imperative_ops = imperative.get_as_pypicongpu().init_operations
+        assert declarative_ops != []
+        assert [type(op).__name__ for op in declarative_ops] == [type(op).__name__ for op in imperative_ops]
+
+    def test_declarative_species_skips_none_distribution(self):
+        """a None initial_distribution is skipped and layout-less species stay unplaced (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        placed = picmi.Species(name="placed", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+        not_placed = picmi.Species(name="not_placed", mass=1)
+
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17, max_steps=4, solver=solver, species=[placed, not_placed], layouts=[layout, None]
+        )
+
+        assert len(sim.species) == 2
+        assert len(sim.layouts) == 2
+        assert sim.get_as_pypicongpu().init_operations != []
+
+    def test_declarative_species_layout_without_distribution_raises(self):
+        """a layout with no initial distribution is rejected as in add_species (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        with pytest.raises(Exception, match=".*initial.*distribution.*"):
+            picmi.Simulation(
+                time_step_size=17,
+                max_steps=4,
+                solver=solver,
+                species=[picmi.Species(name="dummy")],
+                layouts=[layout],
+            )
+
+    def test_declarative_species_length_mismatch_raises(self):
+        """species and layouts must have equal length (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        with pytest.raises(Exception, match=".*same length.*"):
+            picmi.Simulation(
+                time_step_size=17,
+                max_steps=4,
+                solver=solver,
+                species=[
+                    picmi.Species(name="a", initial_distribution=picmi.UniformDistribution(density=42)),
+                    picmi.Species(name="b", initial_distribution=picmi.UniformDistribution(density=42)),
+                ],
+                layouts=[layout],
+            )
+
+    def test_declarative_species_then_add_species_appends(self):
+        """a later add_species appends to the declarative lists without double registering (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[picmi.Species(name="declarative", mass=1, initial_distribution=profile)],
+            layouts=[layout],
+        )
+        sim.add_species(picmi.Species(name="imperative", mass=1, initial_distribution=profile), layout)
+
+        assert len(sim.species) == 2
+        assert len(sim.layouts) == 2
+
+    def test_add_species_through_plane_after_construction(self):
+        """the inherited add_species_through_plane still appends after construction (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver)
+
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        injection = picmi.Species(
+            name="injected", mass=1, charge=1, initial_distribution=picmi.UniformDistribution(density=42)
+        )
+        sim.add_species_through_plane(injection, layout, [0, 0, 0], [1, 0, 0])
+
+        assert len(sim.species) == 1
+        assert len(sim.layouts) == 1
+
+    def test_declarative_species_2d(self):
+        """the declarative registration also works with a 2D grid (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        grid = picmi.Cartesian2DGrid(
+            number_of_cells=[64, 64],
+            lower_bound=[0, 0],
+            upper_bound=[64, 64],
+            lower_boundary_conditions=["open", "open"],
+            upper_boundary_conditions=["open", "open"],
+        )
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[
+                picmi.Species(name="declarative2d", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+            ],
+            layouts=[layout],
+        )
+
+        assert sim.get_as_pypicongpu().init_operations != []
+
+    def test_declarative_species_oneposition_layout(self):
+        """OnePositionLayout is accepted by the declarative constructor too (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[
+                picmi.Species(name="oneposition", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+            ],
+            layouts=[picmi.OnePositionLayout(n_macroparticles_per_cell=2)],
+        )
+
+        assert sim.get_as_pypicongpu().init_operations != []
+
+    def test_declarative_registration_is_stateless(self):
+        """later assignments do not re-run or mutate the declarative registration (https://github.com/chillenzer-agents/picongpu/issues/189)"""
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        grid = get_grid(1, 1, 1, 64)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=solver,
+            species=[
+                picmi.Species(name="declarative", mass=1, initial_distribution=picmi.UniformDistribution(density=42))
+            ],
+            layouts=[layout],
+        )
+        registered = list(sim.species[0].get_operation_requirements())
+
+        # Re-validating the model (any assignment) must not add or drop entries.
+        sim.max_steps = 5
+        assert list(sim.species[0].get_operation_requirements()) == registered
+
     def test_explicit_typical_ppc(self):
         grid = get_grid(1, 1, 1, 64)
         solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
@@ -251,6 +430,31 @@ class TestPicmiSimulation(TestCase):
             with pytest.raises(ValueError, match="Typical ppc should be > 0"):
                 picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_typical_ppc=value)
 
+    def test_min_weighting_default_renders_as_float(self):
+        """unset picongpu_min_weighting falls back to the C++ default 10.0 (float literal)"""
+        assert render_min_weighting(self.sim) == "constexpr float_X MIN_WEIGHTING = 10.0;"
+
+    def test_min_weighting_explicit_renders_as_float(self):
+        """an explicit picongpu_min_weighting is threaded into the rendered MIN_WEIGHTING"""
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        sim = picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_min_weighting=2.0)
+        assert render_min_weighting(sim) == "constexpr float_X MIN_WEIGHTING = 2.0;"
+
+    def test_min_weighting_rejects_non_positive_and_non_finite(self):
+        grid = get_grid(1, 1, 1, 32)
+        solver = picmi.ElectromagneticSolver(method="Yee", grid=grid)
+        for value in (0.0, -1.0, math.inf, -math.inf, math.nan):
+            with pytest.raises(ValidationError, match="Minimum weighting must be finite and > 0"):
+                picmi.Simulation(time_step_size=17, max_steps=4, solver=solver, picongpu_min_weighting=value)
+
+    def test_pypicongpu_min_weighting_rejects_non_positive_and_non_finite(self):
+        """the pypicongpu model validates directly, not only via the PICMI surface"""
+        pypic = self.sim.get_as_pypicongpu()
+        for value in (0.0, -1.0, math.inf, -math.inf, math.nan):
+            with pytest.raises(ValidationError, match="Minimum weighting must be finite and > 0"):
+                type(pypic)(**{**pypic.__dict__, "min_weighting": value})
+
     def test_invalid_placement(self):
         profile = picmi.UniformDistribution(density=42)
         layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
@@ -274,20 +478,27 @@ class TestPicmiSimulation(TestCase):
             sim.get_as_pypicongpu()
 
     def test_operations_simple_density_translated(self):
-        """simple density operations are correctly derived"""
+        """simple density operations are correctly derived
+
+        Species are initialised independently by default (picmi-standard
+        semantics, Option B): only members of the same explicit MultiSpecies
+        share a density operation (collective initialisation), everything else
+        is split into individual operations.
+        """
         profile = picmi.UniformDistribution(density=42)
         other_profile = picmi.UniformDistribution(density=17)
         layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
         other_layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
 
-        self.sim.add_species(
-            picmi.Species(name="colocated1", mass=1, density_scale=4, initial_distribution=profile),
-            layout,
+        # explicitly coordinated group, added as a whole (standard PICMI form)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H"],
+            names=["colocated1", "colocated2"],
+            proportions=[4, 2],
+            initial_distribution=profile,
         )
-        self.sim.add_species(
-            picmi.Species(name="colocated2", mass=2, density_scale=2, initial_distribution=profile),
-            layout,
-        )
+        self.sim.add_species(species=multispecies, layout=layout)
+        # independent species that merely look the same w.r.t. profile/layout
         self.sim.add_species(
             picmi.Species(name="separate1", mass=3, initial_distribution=other_profile),
             layout,
@@ -322,10 +533,10 @@ class TestPicmiSimulation(TestCase):
 
             # ensure grouping:
             if "separate1" in species_names or "separate2" in species_names:
-                # one of the two lone species
+                # one of the two lone species (no MultiSpecies -> independent)
                 assert len(species_names) == 1
             else:
-                # the two colocated species
+                # the two colocated species (explicit MultiSpecies)
                 assert len(species_names) == 2
 
             # check profile
@@ -343,6 +554,282 @@ class TestPicmiSimulation(TestCase):
             else:
                 # used "other_layout"
                 assert op.layout.ppc == 4
+
+    def test_simple_density_independent_by_default(self):
+        """same distribution+layout do not merge: standalone species are independent (Option B)"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=3)
+        for name in ("electron_1", "electron_2"):
+            self.sim.add_species(
+                picmi.Species(name=name, particle_type="electron", initial_distribution=profile), layout
+            )
+
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                self.sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        assert len(density_operations) == 2
+
+    def test_multispecies_three_members_one_created_two_derived(self):
+        """#5762 shape: 3 members, same density but differing momentum -> 1 created + 2 derived"""
+        base_profile = picmi.UniformDistribution(density=42)
+        momenta = [
+            picmi.UniformDistribution(density=42, rms_velocity=[0.0, 0.0, 0.0]),
+            picmi.UniformDistribution(density=42, rms_velocity=[1.0e6, 1.0e6, 1.0e6]),
+            picmi.UniformDistribution(density=42, rms_velocity=[2.0e6, 1.0e6, 5.0e5]),
+        ]
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H", "He"],
+            names=["a", "b", "c"],
+            proportions=[1.0, 1.0, 1.0],
+            initial_distribution=base_profile,
+        )
+        for member, distribution in zip(multispecies, momenta, strict=True):
+            member.initial_distribution = distribution
+        # add the whole group at once with one shared layout
+        self.sim.add_species(species=multispecies, layout=layout)
+
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                self.sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        # exactly ONE CreateDensity placing the *single* created species...
+        assert len(density_operations) == 1
+        op = density_operations[0]
+        assert isinstance(op.placed_species_initial, species.Species)
+        assert len(op.placed_species_copied) == 2
+        # ... plus per-species momentum (SimpleMomentum) for all three members
+        momentum_operations = list(
+            filter(
+                lambda op_: isinstance(op_, species.operation.SimpleMomentum),
+                self.sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        assert len(momentum_operations) == 3
+
+    def test_multispecies_grouping_is_structural(self):
+        """grouping is structural: the Simulation stores the MultiSpecies entry as-is"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H"],
+            names=["electron", "proton"],
+            proportions=[1.0, 1.0],
+            initial_distribution=profile,
+        )
+        sim = picmi.Simulation(
+            time_step_size=17, max_steps=4, solver=self.sim.solver, species=[multispecies], layouts=[layout]
+        )
+        # one entry, stored as given -- not expanded into its members
+        assert sim.species == [multispecies]
+        assert sim.layouts == [layout]
+        assert len(multispecies) == 2
+
+    def test_multispecies_members_and_density_ratio(self):
+        """MultiSpecies members share one distribution and map proportions to DensityRatio"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=8)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H"],
+            names=["electron", "proton"],
+            proportions=[1.0, 2.0],
+            initial_distribution=profile,
+        )
+        assert len(multispecies) == 2
+
+        for member, proportion in zip(multispecies, [1.0, 2.0], strict=True):
+            # plain picmi species sharing the distribution
+            assert isinstance(member, picmi.Species)
+            assert member.initial_distribution is profile
+            assert member.density_scale == proportion
+            # density_scale maps to DensityRatio on the pypicongpu level
+            assert member._evaluate_species_requirements()["constants"] and any(
+                ratio.ratio == proportion
+                for ratio in member._evaluate_species_requirements()["constants"]
+                if hasattr(ratio, "ratio")
+            )
+
+        # the whole MultiSpecies is added as one object with a single shared layout
+        self.sim.add_species(species=multispecies, layout=layout)
+
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                self.sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        assert len(density_operations) == 1
+        op = density_operations[0]
+        # exactly one species is created ("placed"), the other one is derived
+        assert len(op.placed_species_copied) == 1
+        assert set(s.name for s in op.species) == {"electron", "proton"}
+
+    def test_multispecies_added_as_whole_object(self):
+        """the standard interface adds the MultiSpecies in one add_species call
+
+        Mirrors the PICMI-standard example (``sim.add_species(species=multi,
+        layout=layout)``): the object is stored as one entry carrying the shared
+        layout and is collectively initialised as a whole.
+        """
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["H", "electron"],
+            names=["ions", "electrons"],
+            proportions=[1.0, 1.0],
+            initial_distribution=profile,
+        )
+
+        self.sim.add_species(species=multispecies, layout=layout)
+
+        # the whole group is one entry with the one shared layout
+        assert self.sim.species == [multispecies]
+        assert self.sim.layouts == [layout]
+
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                self.sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        # collective initialisation: a single density operation for both members
+        assert len(density_operations) == 1
+        assert set(s.name for s in density_operations[0].species) == {"ions", "electrons"}
+
+    def test_multispecies_added_as_whole_object_declaratively(self):
+        """the declarative constructor accepts a MultiSpecies as one species
+
+        ``Simulation(species=[multi], layouts=[layout])``: the group is stored as
+        one entry carrying the shared layout and is collectively initialised --
+        the declarative equivalent of the ``add_species`` form.
+        """
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["H", "electron"],
+            names=["ions", "electrons"],
+            proportions=[1.0, 1.0],
+            initial_distribution=profile,
+        )
+
+        sim = picmi.Simulation(
+            time_step_size=17, max_steps=4, solver=self.sim.solver, species=[multispecies], layouts=[layout]
+        )
+
+        assert sim.species == [multispecies]
+        assert sim.layouts == [layout]
+
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        assert len(density_operations) == 1
+        assert set(s.name for s in density_operations[0].species) == {"ions", "electrons"}
+
+    def test_multispecies_members_addressed_by_name_and_index(self):
+        """members are addressable by name or index, as in the standard example"""
+        profile = picmi.UniformDistribution(density=42)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["He", "Ar", "electron"],
+            names=["He+", "Argon", "e-"],
+            charge_states=[1, 5, None],
+            proportions=[0.2, 0.8, 0.2 + 5 * 0.8],
+            initial_distribution=profile,
+        )
+        assert multispecies["Argon"] is multispecies[1]
+        assert multispecies["e-"] is multispecies[-1]
+
+    def test_multispecies_same_density_different_momentum_charge_neutral(self):
+        """#5762: same density, differing momentum -> grouped (charge-neutral)"""
+        # density distribution common to all members, different momenta per member
+        base_profile = picmi.UniformDistribution(density=42)
+        profile_cold = picmi.UniformDistribution(density=42, rms_velocity=[0.0, 0.0, 0.0])
+        profile_hot = picmi.UniformDistribution(density=42, rms_velocity=[1.0e6, 1.0e6, 1.0e6])
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H"],
+            names=["colder", "hotter"],
+            proportions=[1.0, 1.0],
+            initial_distribution=base_profile,
+        )
+        # customize the momentum (rms_velocity) per member while keeping the density
+        multispecies[0].initial_distribution = profile_cold
+        multispecies[1].initial_distribution = profile_hot
+        self.sim.add_species(species=multispecies, layout=layout)
+
+        pypic = self.sim.get_as_pypicongpu()
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                pypic.init_operations,
+            )
+        )
+        momentum_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleMomentum),
+                pypic.init_operations,
+            )
+        )
+        # differing momentum must NOT prevent collective (charge-neutral) init:
+        # one density op placing both species on identical in-cell positions...
+        assert len(density_operations) == 1
+        assert len(density_operations[0].species) == 2
+        # ... while momentum is still applied individually per species
+        assert len(momentum_operations) == 2
+
+    def test_members_added_separately_are_independent(self):
+        """adding MultiSpecies members individually makes them independent entries"""
+        profile = picmi.UniformDistribution(density=42)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H"],
+            names=["electron", "proton"],
+            proportions=[1.0, 1.0],
+            initial_distribution=profile,
+        )
+        # Adding the members one by one is *not* collective: each becomes its own
+        # entry and thereby its own density operation (grouping is structural).
+        for member in multispecies:
+            self.sim.add_species(member, picmi.PseudoRandomLayout(n_macroparticles_per_cell=4))
+
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                self.sim.get_as_pypicongpu().init_operations,
+            )
+        )
+        assert len(density_operations) == 2
+        for op in density_operations:
+            assert len(op.species) == 1
+
+    def test_multispecies_grouping_survives_deepcopy(self):
+        """explicit MultiSpecies grouping survives a simulation round-trip (deepcopy)"""
+        profile = picmi.UniformDistribution(density=42)
+        layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=4)
+        multispecies = picmi.MultiSpecies(
+            particle_types=["electron", "H"],
+            names=["electron", "proton"],
+            proportions=[1.0, 1.0],
+            initial_distribution=profile,
+        )
+        self.sim.add_species(species=multispecies, layout=layout)
+
+        sim_copy = copy.deepcopy(self.sim)
+        density_operations = list(
+            filter(
+                lambda op: isinstance(op, species.operation.SimpleDensity),
+                sim_copy.get_as_pypicongpu().init_operations,
+            )
+        )
+        # grouping must survive the copy, i.e. the two members still share one op
+        assert len(density_operations) == 1
+        assert len(density_operations[0].species) == 2
 
     def test_operation_not_placed_translated(self):
         """non-placed species are correctly translated"""
@@ -435,7 +922,7 @@ class TestPicmiSimulation(TestCase):
         sim.add_species(ion2, None)
 
         # in use should be set via simulation constructor
-        sim.picongpu_interaction = interaction
+        sim.interactions = interaction
 
         pypic_sim = sim.get_as_pypicongpu()
         operations = pypic_sim.init_operations
@@ -816,3 +1303,231 @@ class TestPicmiSimulation(TestCase):
             time_step_size=good.time_step_size,
             solver=picmi.ElectromagneticSolver(method="CKC", grid=get_grid(*delta_3d, n=n), cfl=0.9),
         )
+
+
+def _interaction_sim():
+    """Build a minimal simulation with one ion and its electron product species."""
+    sim = picmi.Simulation(
+        time_step_size=17,
+        max_steps=4,
+        solver=picmi.ElectromagneticSolver(method="Yee", grid=get_grid(1, 1, 1, 32)),
+    )
+    e = picmi.Species(name="e", particle_type="electron")
+    ion = picmi.Species(name="hydrogen", particle_type="H", charge_state=+1)
+    sim.add_species(e, None)
+    sim.add_species(ion, None)
+    return sim, ion, e
+
+
+def _render_species_definition(sim) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_dir = os.path.join(tmpdir, "input")
+        sim.write_input_file(output_dir)
+        rendered_path = os.path.join(output_dir, "include", "picongpu", "param", "speciesDefinition.param")
+        with open(rendered_path) as rendered_file:
+            return rendered_file.read()
+
+
+class TestAddInteraction:
+    def test_keldysh_bare(self):
+        """a bare standard FieldIonization with model=Keldysh renders the Keldysh model"""
+        sim, ion, e = _interaction_sim()
+        sim.add_interaction(picmi.FieldIonization(model="Keldysh", ionized_species=ion, product_species=e))
+
+        model = sim.interactions[0]
+        assert isinstance(model, Keldysh)
+        # the standard names are mapped onto the concrete model
+        assert model.ion_species is ion
+        assert model.ionization_electron_species is e
+        # a bare standard field ionization defaults to the C++ current::None
+        assert model.ionization_current is None
+
+        rendered = _render_species_definition(sim)
+        assert "Keldysh" in rendered
+        assert "particles::ionization::current::None" in rendered
+
+    def test_adk_with_variant(self):
+        """the ADK model carries the supplied ADK variant"""
+        sim, ion, e = _interaction_sim()
+        sim.add_interaction(
+            picmi.FieldIonization(
+                model="ADK", ionized_species=ion, product_species=e, ADK_variant=ADKVariant.LinearPolarization
+            )
+        )
+        model = sim.interactions[0]
+        assert isinstance(model, ADK)
+        assert model.ADK_variant is ADKVariant.LinearPolarization
+
+    def test_bsi_with_extensions(self):
+        """the BSI model carries the supplied BSI extensions"""
+        sim, ion, e = _interaction_sim()
+        sim.add_interaction(
+            picmi.FieldIonization(
+                model="BSI", ionized_species=ion, product_species=e, BSI_extensions=[BSIExtension.StarkShift]
+            )
+        )
+        model = sim.interactions[0]
+        assert isinstance(model, BSI)
+        assert model.BSI_extensions == (BSIExtension.StarkShift,)
+
+    def test_adk_missing_variant_raises(self):
+        """the ADK model requires an ADK variant and raises a clear error without one"""
+        sim, ion, e = _interaction_sim()
+        with pytest.raises(ValueError, match="ADK_variant"):
+            sim.add_interaction(picmi.FieldIonization(model="ADK", ionized_species=ion, product_species=e))
+
+    def test_bsi_missing_extensions_raises(self):
+        """the BSI model requires extensions and raises a clear error without them"""
+        sim, ion, e = _interaction_sim()
+        with pytest.raises(ValueError, match="BSI_extensions"):
+            sim.add_interaction(picmi.FieldIonization(model="BSI", ionized_species=ion, product_species=e))
+
+    @pytest.mark.parametrize(
+        "model_name",
+        ["ADK", "adk", "Adk", "BSI", "bsi", "Keldysh", "keldysh", "KeLDySh"],
+    )
+    def test_model_name_case_insensitive(self, model_name):
+        """model selection matches the MODEL_NAME constants case-insensitively"""
+        _, ion, e = _interaction_sim()
+        field_ionization = picmi.FieldIonization(
+            model=model_name,
+            ionized_species=ion,
+            product_species=e,
+            ADK_variant=ADKVariant.LinearPolarization,
+            BSI_extensions=[BSIExtension.StarkShift],
+        )
+        expected = {"adk": ADK, "bsi": BSI, "keldysh": Keldysh}[model_name.lower()]
+        assert field_ionization._resolve_model_class() is expected
+
+    def test_concrete_models_are_picmi_interactions(self):
+        """the concrete ionization models are accepted by the standard interactions field"""
+        from picmistandard import PICMI_Interaction
+
+        for model_class in (ADK, BSI, Keldysh):
+            assert issubclass(model_class, PICMI_Interaction)
+        assert issubclass(picmi.FieldIonization, picmistandard.PICMI_FieldIonization)
+
+    def test_constructor_interactions_accepts_field_ionization(self):
+        """the standard interactions=[...] constructor parameter is a first-class entry point"""
+        e = picmi.Species(name="e", particle_type="electron")
+        ion = picmi.Species(name="hydrogen", particle_type="H", charge_state=+1)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=picmi.ElectromagneticSolver(method="Yee", grid=get_grid(1, 1, 1, 32)),
+            species=[ion, e],
+            layouts=[None, None],
+            interactions=[picmi.FieldIonization(model="Keldysh", ionized_species=ion, product_species=e)],
+        )
+        assert isinstance(sim.interactions[0], Keldysh)
+        assert "Keldysh" in _render_species_definition(sim)
+
+    def test_constructor_interactions_accepts_plain_standard(self):
+        """a plain picmistandard.PICMI_FieldIonization in the constructor list is mapped too"""
+        e = picmi.Species(name="e", particle_type="electron")
+        ion = picmi.Species(name="hydrogen", particle_type="H", charge_state=+1)
+        sim = picmi.Simulation(
+            time_step_size=17,
+            max_steps=4,
+            solver=picmi.ElectromagneticSolver(method="Yee", grid=get_grid(1, 1, 1, 32)),
+            species=[ion, e],
+            layouts=[None, None],
+            interactions=[picmistandard.PICMI_FieldIonization(model="Keldysh", ionized_species=ion, product_species=e)],
+        )
+        assert isinstance(sim.interactions[0], Keldysh)
+
+    def test_add_interaction_accepts_collisions_and_synchrotron(self):
+        """add_interaction accepts the same types as the constructor list, not only field ionization"""
+        sim, ion, e = _interaction_sim()
+        photon = picmi.Species(name="photons", particle_type="photon")
+        sim.add_species(photon, None)
+
+        synchrotron = picmi.Synchrotron(electron_species=e, photon_species=photon)
+        sim.add_interaction(synchrotron)
+        assert sim.interactions == [synchrotron]
+
+        collision = picmi.Collision.construct_all_to_all([e, ion], functor=picmi.ConstLogCollision(coulomb_log=2.0))
+        sim.add_interaction(collision)
+        # the bare collision is merged into a CollisionalPhysicsSetup by the shared pipeline
+        assert isinstance(sim.interactions[-1], CollisionalPhysicsSetup)
+        assert sim.interactions[-1].collisions == [collision]
+
+    def test_unsupported_standard_interaction_raises(self):
+        """a standard interaction type PIConGPU does not support is rejected, not silently dropped"""
+        from picmistandard import PICMI_Interaction
+
+        class _UnsupportedInteraction(PICMI_Interaction):
+            pass
+
+        sim, _, _ = _interaction_sim()
+        with pytest.raises(ValueError, match="not .* implemented by PIConGPU|not supported by PIConGPU"):
+            sim.add_interaction(_UnsupportedInteraction())
+
+    def test_standard_base_field_ionization_keldysh(self):
+        """a plain picmistandard.PICMI_FieldIonization is accepted and mapped to the concrete model"""
+        sim, ion, e = _interaction_sim()
+        standard = picmistandard.PICMI_FieldIonization(model="Keldysh", ionized_species=ion, product_species=e)
+        # the base class is not an instance of the PIConGPU adapter
+        assert not isinstance(standard, picmi.FieldIonization)
+
+        sim.add_interaction(standard)
+
+        model = sim.interactions[0]
+        assert isinstance(model, Keldysh)
+        assert model.ion_species is ion
+        assert model.ionization_electron_species is e
+        rendered = _render_species_definition(sim)
+        assert "Keldysh" in rendered
+
+    def test_standard_base_field_ionization_adk_needs_variant(self):
+        """a plain standard ADK request raises the actionable ADK_variant error (no knob on the standard object)"""
+        sim, ion, e = _interaction_sim()
+        standard = picmistandard.PICMI_FieldIonization(model="ADK", ionized_species=ion, product_species=e)
+        with pytest.raises(ValueError, match="ADK_variant"):
+            sim.add_interaction(standard)
+
+    def test_standard_base_field_ionization_unknown_model(self):
+        """a plain standard object with an unsupported model raises the clear model error"""
+        sim, ion, e = _interaction_sim()
+        standard = picmistandard.PICMI_FieldIonization(model="ThomasFermi", ionized_species=ion, product_species=e)
+        with pytest.raises(ValueError, match="Unsupported field ionization model"):
+            sim.add_interaction(standard)
+
+    def test_plain_bsi_with_empty_extensions_renders(self):
+        """BSI_extensions=() selects the plain BSI model without extensions"""
+        sim, ion, e = _interaction_sim()
+        sim.add_interaction(
+            picmi.FieldIonization(model="BSI", ionized_species=ion, product_species=e, BSI_extensions=())
+        )
+        model = sim.interactions[0]
+        assert isinstance(model, BSI)
+        assert model.BSI_extensions == ()
+        assert "BSI" in _render_species_definition(sim)
+
+    def test_irrelevant_knobs_are_rejected(self):
+        """a knob that does not belong to the selected model is rejected, not silently ignored"""
+        sim, ion, e = _interaction_sim()
+        with pytest.raises(ValueError, match="ADK_variant is only valid for the ADK model"):
+            sim.add_interaction(
+                picmi.FieldIonization(
+                    model="Keldysh",
+                    ionized_species=ion,
+                    product_species=e,
+                    ADK_variant=ADKVariant.LinearPolarization,
+                )
+            )
+        sim, ion, e = _interaction_sim()
+        with pytest.raises(ValueError, match="BSI_extensions is only valid for the BSI model"):
+            sim.add_interaction(
+                picmi.FieldIonization(
+                    model="Keldysh",
+                    ionized_species=ion,
+                    product_species=e,
+                    BSI_extensions=[BSIExtension.StarkShift],
+                )
+            )
+
+    def test_unknown_model_raises(self):
+        sim, ion, e = _interaction_sim()
+        with pytest.raises(ValueError, match="Unsupported field ionization model"):
+            sim.add_interaction(picmi.FieldIonization(model="ThomasFermi", ionized_species=ion, product_species=e))

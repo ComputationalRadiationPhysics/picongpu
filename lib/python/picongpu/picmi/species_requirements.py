@@ -7,6 +7,7 @@ License: GPLv3+
 
 from types import UnionType
 from typing import Any, Callable
+
 from scipy.constants import electron_volt
 
 import numpy as np
@@ -226,6 +227,15 @@ class SetChargeStateOperation(DelayedConstruction):
 
 
 class SimpleDensityOperation(DelayedConstruction):
+    """Place one coordinated group of species with a single density operation.
+
+    One operation is created per ``picmi.Simulation`` species *entry*: a whole
+    :class:`picmi.MultiSpecies` entry maps to one operation covering all of its
+    members (collective/charge-neutral initialisation), while each standalone
+    :class:`picmi.Species` entry maps to its own operation (independent
+    initialisation). This is structural, so no per-operation merging is needed.
+    """
+
     def __init__(self, /, species, grid, layout):
         def constructor(self):
             kwargs = self.metadata.kwargs
@@ -235,24 +245,16 @@ class SimpleDensityOperation(DelayedConstruction):
                 layout=kwargs["layout"].get_as_pypicongpu(),
             )
 
-        def try_update_with(self, other):
-            return (
-                isinstance(other, SimpleDensityOperation)
-                and other.metadata.kwargs["profile"] == self.metadata.kwargs["profile"]
-                and other.metadata.kwargs["layout"] == self.metadata.kwargs["layout"]
-                and (self.metadata.kwargs["species"].extend(other.metadata.kwargs["species"]) or True)
-            )
-
         metadata = {
             "Type": SimpleDensity,
             "kwargs": {
-                "species": [species],
-                "profile": species.initial_distribution,
+                "species": list(species),
+                "profile": species[0].initial_distribution,
                 "layout": layout,
                 "grid": grid,
             },
         }
-        operators = {"constructor": constructor, "try_update_with": try_update_with}
+        operators = {"constructor": constructor}
 
         return super().__init__(metadata=metadata, operators=operators)
 

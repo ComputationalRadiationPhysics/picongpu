@@ -43,13 +43,12 @@ namespace picongpu
     struct {{{typename}}} {
          HDINLINE float1_64 getUnit() const
          {
-             return 1.;
+             return {{{get_unit_cpp}}};
          }
 
          HINLINE std::vector<float_64> getUnitDimension() const
          {
-             std::vector<float_64> unitDimension(7, 0.0);
-             return unitDimension;
+             return std::vector<float_64>{{{unit_dimension_cpp}}};
          }
 
          HINLINE static std::string getName()

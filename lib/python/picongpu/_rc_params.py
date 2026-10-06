@@ -254,6 +254,52 @@ def get_profile_parameter(rc_key: str) -> ProfileParameter | None:
     return _PROFILE_PARAMETERS_BY_KEY.get(rc_key)
 
 
+# Required parameters whose preset-declared value is a site-provided default that
+# a user can simply accept (press enter) instead of typing it out again. Keyed by
+# preset directory and rc_key; the value itself is read from the preset profile,
+# so it stays a single source of truth. See
+# https://github.com/chillenzer-agents/picongpu/issues/204.
+_PREFILLED_PRESET_DEFAULTS = {
+    ("rosi-hzdr", "pic_libs"),
+}
+
+
+def preset_default_prefill(preset, rc_key: str) -> str | None:
+    """Return the site default ``preset`` offers for the required variable ``rc_key``.
+
+    Some presets pin a required parameter to a concrete, site-provided location
+    that the user normally just accepts (e.g. the ``pic_libs`` directory
+    installed on ``rosi-hzdr``). For those, picrc-builder pre-fills the prompt so
+    the user can press enter. Returns ``None`` for every other preset/parameter
+    (or when the preset does not declare a usable literal value).
+    """
+    if preset is None or (str(preset).split("/")[0], rc_key) not in _PREFILLED_PRESET_DEFAULTS:
+        return None
+    return get_preset_declared_value(preset, rc_key)
+
+
+def get_preset_declared_value(preset, rc_key: str) -> str | None:
+    """Return the concrete value ``preset`` declares for the profile variable ``rc_key``.
+
+    Returns ``None`` when the preset does not declare the variable or declares it
+    as a shell construct (``$VAR`` expansion, ``$(...)``/backtick command
+    substitution) or as a value that is entirely an angle-bracket placeholder --
+    i.e. when there is no literal value a user could just accept.
+    """
+    if preset is None:
+        return None
+    try:
+        declared = _parse_example_content(_read_preset(preset)).get(rc_key)
+    except ValueError:
+        return None
+    if not isinstance(declared, str):
+        return None
+    value = declared.strip()
+    if not value or any(marker in value for marker in ("$", "`")) or (value.startswith("<") and value.endswith(">")):
+        return None
+    return value
+
+
 def _parse_example_content(example_content):
     lines = example_content.split("\n")
     return _drop_nones(

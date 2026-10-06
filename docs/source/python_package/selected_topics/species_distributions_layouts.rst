@@ -53,8 +53,11 @@ Its most important parameters are:
   override the (element-)derived mass and charge in SI units.
   This is how you define custom particles.
 * ``particle_shape``:
-  the particle shape used for current/charge deposition
-  (default ``"quadratic"``, i.e. TSC).
+  the particle shape used for current/charge deposition.
+  If left unset, it is inherited from
+  :attr:`~picongpu.picmi.simulation.Simulation.particle_shape`
+  and, if that too is unset, falls back to the PIConGPU default
+  ``"quadratic"`` (i.e. TSC).
 * ``method``:
   the particle pusher (default ``"Boris"``;
   ``"Vay"`` and ``"Higuera-Cary"`` are relativistic variants,
@@ -63,10 +66,62 @@ Its most important parameters are:
   rescales the species' density relative to a shared profile
   (see below).
 
-When several species share the same distribution and layout,
-they are placed at the same positions with their ``density_scale``
-respected --
-the standard way to build charge-neutral plasmas.
+The per-species shape and pusher method default to the Simulation:
+:attr:`~picongpu.picmi.simulation.Simulation.particle_shape`
+is inherited by every species that does not set its own
+(an explicit species ``particle_shape`` overrides it), while an unset
+``method`` falls back to ``"Boris"``.
+If neither the species nor the Simulation sets a shape,
+PIConGPU uses its native default ``"quadratic"`` (TSC):
+
+.. literalinclude:: ../snippets/selected_topics/species_shape_and_method.py
+   :language: python
+   :start-after: BEGIN-SPECIES_SHAPE
+   :end-before: END-SPECIES_SHAPE
+
+By default, every species is initialised **independently**: even when several
+species happen to share the same distribution and layout, each one draws its
+own in-cell positions.
+To place several species *collectively* -- i.e. on exactly the same in-cell
+positions, the standard way to build charge-neutral plasmas -- group them in a
+:class:`~picongpu.picmi.multi_species.MultiSpecies`
+(see :ref:`multi_species`).
+
+.. _multi_species:
+
+MultiSpecies: collective initialisation
+---------------------------------------
+
+A :class:`~picongpu.picmi.multi_species.MultiSpecies` is the explicit way to
+request **collective (coordinated) initialisation**: all its members share one
+``initial_distribution`` and one layout, and the whole group is placed with a
+single density operation, so the members occupy exactly the same in-cell
+positions -- and are therefore charge-neutral by construction, irrespective of
+per-member momentum or temperature.
+
+.. literalinclude:: ../snippets/selected_topics/multi_species.py
+   :language: python
+   :start-after: BEGIN-MULTI-SPECIES
+   :end-before: END-MULTI-SPECIES
+
+The whole :class:`~picongpu.picmi.multi_species.MultiSpecies` is one entry of
+the simulation's ``species`` list, paired with a single layout in ``layouts``
+(passed declaratively as shown above or via
+:meth:`~picongpu.picmi.simulation.Simulation.add_species`). Its individual
+members can be addressed by index or, if named, by name (e.g.
+``multispecies["electrons"]``) and used elsewhere as needed.
+The value at each position of ``proportions`` becomes the corresponding member's
+``density_scale`` (its ``DensityRatio`` on the C++ level), so a
+``proportions=[1.0, 1.0]`` ion/electron pair yields a neutral plasma.
+
+.. note::
+
+   Grouping is **structural**: the :class:`~picongpu.picmi.Simulation` stores
+   each ``species`` entry as given. A whole ``MultiSpecies`` becomes one density
+   operation covering all of its members; every standalone
+   :class:`~picongpu.picmi.species.Species` entry becomes its own operation.
+   There is therefore no implicit merging of look-alike species: to initialise
+   species collectively, you must group them in a ``MultiSpecies``.
 
 .. _distributions:
 
@@ -122,6 +177,24 @@ The available distributions are:
 :class:`~picongpu.picmi.distribution.AnalyticDistribution`
    A density given by an analytic expression
    (see :ref:`the functors page <functors>`).
+
+:class:`~picongpu.picmi.distribution.GaussianBunchDistribution`
+   A finite 3D Gaussian particle bunch (the PICMI-standard
+   ``GaussianBunchDistribution``).
+   It is described by the number of physical particles
+   ``n_physical_particles``, the per-axis RMS size ``rms_bunch_size``
+   and the ``centroid_position`` of the bunch,
+   plus an optional rigid ``centroid_velocity`` (given as ``gamma * v``)
+   and a thermal ``rms_velocity``.
+   The correlated ``velocity_divergence`` is not supported
+   (a non-zero value raises an ``UnsupportedFeatureError``), and
+   because the bunch is inherently three-dimensional it is rejected on a
+   2D grid (an ``UnsupportedFeatureError`` at input-file generation).
+
+   .. literalinclude:: ../snippets/selected_topics/gaussian_bunch.py
+      :language: python
+      :start-at: bunch = picmi.GaussianBunchDistribution
+      :end-before: electrons = picmi.Species
 
 The reference density used to normalize the code units is
 ``simulation.picongpu_base_density`` (default ``1.0e25`` m⁻³).

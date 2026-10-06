@@ -37,30 +37,25 @@ plasma = picmi.UniformDistribution(
     directed_velocity=[0.001 * picmi.constants.c, 0.0, 0.0],
 )
 
-ions = picmi.Species(
-    name="ions",
-    particle_type="H",
-    charge_state=1,
+# collective initialisation: electrons are placed at the same in-cell
+# positions as the ions; equal proportions keep the plasma charge-neutral
+multispecies = picmi.MultiSpecies(
+    particle_types=["H", "electron"],
+    names=["ions", "electrons"],
+    charge_states=[1, None],
+    proportions=[1.0, 1.0],
     initial_distribution=plasma,
-)
-# the electrons share the same density profile
-# and are placed at the same positions as the ions;
-# a density_scale of 1.0 keeps the plasma charge-neutral
-electrons = picmi.Species(
-    name="electrons",
-    particle_type="electron",
-    initial_distribution=plasma,
-    density_scale=1.0,
 )
 
 # place 8 macroparticles per cell on a 2x2x2 sub-grid
 layout = picmi.GriddedLayout(n_macroparticles_per_cell=[2, 2, 2])
 
+# pass the whole group as one species together with one layout for all members
 simulation = picmi.Simulation(
     max_steps=100,
     solver=solver,
-    species=[ions, electrons],
-    layouts=[layout, layout],
+    species=[multispecies],
+    layouts=[layout],
 )
 
 simulation.run(setup_dir=Path("warm_plasma_setup"), run_dir=Path("warm_plasma_run"))

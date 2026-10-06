@@ -5,7 +5,7 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from .fieldionization import FieldIonization
+from .fieldionization import _FieldIonizationModel
 
 from ..... import pypicongpu
 from .....pypicongpu.species.constant import ionizationmodel
@@ -19,18 +19,18 @@ class BSIExtension(enum.Enum):
     # add additional extensions here
 
 
-class BSI(FieldIonization):
+class BSI(_FieldIonizationModel):
     """Barrier Suppression Ionization model"""
 
     MODEL_NAME: str = "BSI"
 
-    BSI_extensions: tuple[BSIExtension]
-    """extension to the BSI model"""
+    BSI_extensions: tuple[BSIExtension, ...]
+    """extension to the BSI model; pass ``()`` for the plain model without extensions"""
 
     def get_as_pypicongpu(self) -> ionizationmodel.IonizationModel:
         self.check()
 
-        if self.BSI_extensions == []:
+        if not self.BSI_extensions:
             return ionizationmodel.BSI(
                 ionization_current=self._get_ionization_current(),
                 ionization_electron_species=self.ionization_electron_species.get_as_pypicongpu(),

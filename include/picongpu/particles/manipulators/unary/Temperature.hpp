@@ -75,7 +75,14 @@ namespace picongpu
                                  * For the macroweighted momentums we store as particle[ momentum_ ],
                                  * the same relation holds, just m and E are also macroweighted
                                  */
-                                auto const energy = sim.pic.conv().eV2Joule(temperatureKeV * 1.0e3);
+                                // ``temperatureKeV`` may be a per-component (float3_X) vector.
+                                // Convert the scalar 1 keV to energy units and scale with it, so
+                                // the conversion broadcasts over every component. Calling
+                                // eV2Joule() with the vector directly would deduce T_Type as the
+                                // vector and construct it from the scalar conversion factor,
+                                // filling only component 0 -- every direction but the first
+                                // would stay cold.
+                                auto const energy = temperatureKeV * sim.pic.conv().eV2Joule<float_X>(1.0e3);
                                 float_X const macroWeighting = particle[weighting_];
                                 auto const macroEnergy = macroWeighting * energy;
                                 float_X const macroMass

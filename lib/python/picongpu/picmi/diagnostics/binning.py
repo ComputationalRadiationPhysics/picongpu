@@ -8,9 +8,10 @@ License: GPLv3+
 import warnings
 from pathlib import Path
 
+from picmistandard import PICMI_Diagnostic, resolve_once
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
-from picongpu.picmi.diagnostics.backend_config import OpenPMDConfig
+from picongpu.picmi.diagnostics.backend_config import OpenPMDBackendConfig, OpenPMDConfig
 from picongpu.picmi.particle_functor import ParticleFunctor as BinningFunctor
 from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies
 from picongpu.picmi.species import Species
@@ -58,7 +59,7 @@ class BinningAxis(BaseModel):
         )
 
 
-class Binning(BaseModel):
+class Binning(PICMI_Diagnostic):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     name: str
@@ -66,7 +67,7 @@ class Binning(BaseModel):
     axes: list[BinningAxis]
     species: Species | FilteredSpecies | list[Species | FilteredSpecies]
     period: TimeStepSpec | None = None
-    openPMDBackendConfig: dict | None = None
+    openPMDBackendConfig: OpenPMDBackendConfig | None = None
     openPMDExt: str | None = None
     openPMDInfix: str | None = None
     dumpPeriod: int = 1
@@ -98,6 +99,7 @@ class Binning(BaseModel):
         return particle_region
 
     @model_validator(mode="after")
+    @resolve_once
     def _set_default_period(self):
         self.period = self.period or TimeStepSpec[:]
         return self
@@ -124,12 +126,15 @@ class Binning(BaseModel):
         self,
         time_step_size,
         num_steps,
+        default_particle_shape=None,
     ) -> PyPIConGPUBinning:
         return PyPIConGPUBinning(
             name=self.name,
             deposition_functor=self.deposition_functor.get_as_pypicongpu(mode="Binning"),
             axes=list(map(BinningAxis.get_as_pypicongpu, self.axes)),
-            species=[s.get_as_pypicongpu(mode="Binning") for s in self.species],
+            species=[
+                s.get_as_pypicongpu(mode="Binning", default_particle_shape=default_particle_shape) for s in self.species
+            ],
             period=self.period.get_as_pypicongpu(time_step_size, num_steps),
             openPMDBackendConfig=self.openPMDBackendConfig,
             openPMDExt=self.openPMDExt,

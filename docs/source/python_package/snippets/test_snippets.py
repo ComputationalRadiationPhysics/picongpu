@@ -151,6 +151,9 @@ EXPECTED_FILES = {
         "file_contains": [
             ("warm_plasma_setup/include/picongpu/param/speciesDefinition.param", "ions"),
             ("warm_plasma_setup/include/picongpu/param/speciesDefinition.param", "electrons"),
+            # collective initialisation via MultiSpecies: one CreateDensity + derive
+            ("warm_plasma_setup/include/picongpu/param/speciesInitialization.param", "CreateDensity"),
+            ("warm_plasma_setup/include/picongpu/param/speciesInitialization.param", "ManipulateDerive"),
         ],
     },
     "defining_simulation/laser_variants.py": {
@@ -249,6 +252,28 @@ EXPECTED_FILES = {
             "kineticEnergy",
         ],
     },
+    "selected_topics/openpmd_backend_config.py": {
+        "no_run": True,
+        "files": [
+            "openpmd_backend_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("openpmd_backend_setup/etc/picongpu/N.cfg", "--openPMD.pluginConfig"),
+        ],
+        "stdout_contains": [
+            "[backend_config]",
+            'backend = "adios2"',
+            'iteration_encoding = "group_based"',
+            'rank_table = "hostname"',
+            "[backend_config.adios2.engine]",
+            'BufferGrowthFactor = "1.2"',
+            "[[backend_config.adios2.dataset]]",
+            'type = "blosc"',
+            "select = [",
+            "[backend_config.hdf5.dataset]",
+            'chunks = "auto"',
+        ],
+    },
     "selected_topics/binning.py": {
         "no_run": True,
         "files": [
@@ -293,11 +318,13 @@ EXPECTED_FILES = {
             "bsi_setup/include/picongpu/param/speciesDefinition.param",
             "synchrotron_setup/include/picongpu/param/synchrotron.param",
             "synchrotron_setup/workflow/workflow.cwl",
+            "standard_setup/include/picongpu/param/speciesDefinition.param",
         ],
         "file_contains": [
             ("adk_setup/include/picongpu/param/speciesDefinition.param", "ADKLinPol"),
             ("bsi_setup/include/picongpu/param/speciesDefinition.param", "BSIStarkShifted"),
             ("synchrotron_setup/include/picongpu/param/speciesDefinition.param", "synchrotron<species_photons>"),
+            ("standard_setup/include/picongpu/param/speciesDefinition.param", "Keldysh"),
         ],
     },
     "selected_topics/grids_and_solvers.py": {
@@ -321,6 +348,27 @@ EXPECTED_FILES = {
             ("lasers_setup/include/picongpu/param/incidentField.param", "GaussianPulse"),
         ],
     },
+    "selected_topics/applied_fields.py": {
+        "no_run": True,
+        "files": [
+            "applied_fields_setup/include/picongpu/param/fieldBackground.param",
+            "applied_fields_setup/etc/picongpu/N.cfg",
+        ],
+        "file_contains": [
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "FieldBackgroundE"),
+            # the analytic expression is rendered into the C++ functor:
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "pmacc::math::sin"),
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "wavelength"),
+            # both the string expression and the callable contribute a parameter:
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "E0"),
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "E1"),
+            # the constant field is summed into the same functor pair:
+            ("applied_fields_setup/include/picongpu/param/fieldBackground.param", "1000000.0"),
+            # the default influence knobs are rendered explicitly
+            ("applied_fields_setup/etc/picongpu/N.cfg", "--fieldBackground.influencesPlugins true"),
+            ("applied_fields_setup/etc/picongpu/N.cfg", "--fieldBackground.influencesDumps true"),
+        ],
+    },
     "selected_topics/simulation_settings.py": {
         "no_run": True,
         "files": [
@@ -334,6 +382,10 @@ EXPECTED_FILES = {
             ("simulation_settings_setup/etc/picongpu/N.cfg", "stopWindow 800"),
             ("simulation_settings_setup/etc/picongpu/N.cfg", 'wallTime="1:00:00"'),
             ("simulation_settings_setup/include/picongpu/param/simulation.param", "TYPICAL_PARTICLES_PER_CELL = 4"),
+            (
+                "simulation_settings_setup/include/picongpu/param/particle.param",
+                "constexpr float_X MIN_WEIGHTING = 10.0;",
+            ),
             ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionPIConGPU = precision64Bit"),
             ("simulation_settings_setup/include/picongpu/param/precision.param", "precisionSqrt = precision64Bit"),
             (
@@ -353,15 +405,65 @@ EXPECTED_FILES = {
             ("species_distributions_layouts_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
         ],
     },
+    "selected_topics/analytic_distribution.py": {
+        "no_run": True,
+        "files": [
+            "analytic_distribution_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("analytic_distribution_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
+        ],
+    },
+    "selected_topics/species_shape_and_method.py": {
+        "no_run": True,
+        "files": [
+            "species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            # ions inherit the Simulation-level "linear" shape (CIC)
+            ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::CIC"),
+            # electrons override it with their own "cubic" shape (PQS)
+            ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::PQS"),
+        ],
+    },
+    "selected_topics/gaussian_bunch.py": {
+        "no_run": True,
+        "files": [
+            "gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
+        ],
+    },
+    "selected_topics/multi_species.py": {
+        "no_run": True,
+        "files": [
+            "multi_species_setup/include/picongpu/param/speciesDefinition.param",
+            "multi_species_setup/include/picongpu/param/speciesInitialization.param",
+        ],
+        "file_contains": [
+            ("multi_species_setup/include/picongpu/param/speciesDefinition.param", "species_ions"),
+            ("multi_species_setup/include/picongpu/param/speciesDefinition.param", "species_electrons"),
+            # collective initialisation: one CreateDensity placing the first member,
+            # the remaining members derived from it (identical in-cell positions)
+            ("multi_species_setup/include/picongpu/param/speciesInitialization.param", "CreateDensity"),
+            ("multi_species_setup/include/picongpu/param/speciesInitialization.param", "ManipulateDerive"),
+        ],
+    },
     "selected_topics/particle_functors.py": {
         "no_run": True,
         "files": [
             "particle_functors_setup/etc/picongpu/N.cfg",
             "particle_functors_setup/include/picongpu/param/particleFilters.param",
+            "particle_functors_setup/include/picongpu/param/fileOutput.param",
         ],
         "file_contains": [
             ("particle_functors_setup/etc/picongpu/N.cfg", "--electrons_energyHistogram.filter fast"),
             ("particle_functors_setup/include/picongpu/param/particleFilters.param", '"fast"'),
+            # the functor's unit is derived from its unit_dimension
+            ("particle_functors_setup/include/picongpu/param/fileOutput.param", "sim.unit.mass()"),
+            # unit_factor pins the numeric getUnit() scale (no C++ code string)
+            ("particle_functors_setup/include/picongpu/param/fileOutput.param", "return 1000000.0;"),
         ],
     },
     "selected_topics/units_and_constants.py": {

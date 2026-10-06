@@ -107,7 +107,7 @@ def _render_speciesDefinition(ionizer) -> str:
     )
     sim.add_species(ionizer.ionization_electron_species, None)
     sim.add_species(ionizer.ion_species, None)
-    sim.picongpu_interaction = [ionizer]
+    sim.interactions = [ionizer]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         output_dir = os.path.join(tmpdir, "input")

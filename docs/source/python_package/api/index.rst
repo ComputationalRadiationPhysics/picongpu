@@ -36,10 +36,12 @@ but you can also import them directly:
    grid
    solver
    species
+   multi_species
    layout
    particle_functor
    distribution
    lasers
+   applied_field
    interaction
    diagnostics
 

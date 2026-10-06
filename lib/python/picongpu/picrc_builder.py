@@ -24,7 +24,13 @@ import tomli_w
 
 from moosetash import MissingVariable
 
-from picongpu._rc_params import PROFILE_PARAMETERS, RCParams, get_available_presets, get_profile_parameter
+from picongpu._rc_params import (
+    PROFILE_PARAMETERS,
+    RCParams,
+    get_available_presets,
+    get_profile_parameter,
+    preset_default_prefill,
+)
 
 __all__ = ["main"]
 
@@ -69,7 +75,11 @@ def _gather_missing(p):
 
     Repeatedly accesses ``p.profile_content`` until no ``MissingVariable``
     is raised, prompting the user for each missing key. Where the parameter is
-    registered, its description and example are shown before the prompt.
+    registered, its description and example are shown before the prompt. A
+    preset may offer a site-provided default for a required parameter (e.g.
+    ``pic_libs`` on rosi-hzdr); the prompt is then pre-filled with it so the
+    user can simply press enter to accept it (see
+    https://github.com/chillenzer-agents/picongpu/issues/204).
     """
     while True:
         try:
@@ -79,7 +89,10 @@ def _gather_missing(p):
             var = e.__cause__.args[0] if e.__cause__ else e.args[0]
             questionary.print(f'Found missing variable "{var}". Please provide a value:')
             _explain(var)
-            p[var] = _ask(questionary.text(f"{var} = "))
+            prefill = preset_default_prefill(p.preset, var)
+            if prefill is not None:
+                questionary.print(f"      (preset default: {prefill}; press enter to accept)")
+            p[var] = _ask(questionary.text(f"{var} = ", default=prefill or ""))
 
 
 _MULTI_LINE_KEYS = {"module_section", "spack_section", "profile_content", "profile_template_content"}

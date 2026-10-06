@@ -17,20 +17,33 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import picmistandard
-from pydantic import AfterValidator, BeforeValidator, BaseModel, ConfigDict, Field, PrivateAttr, model_validator
-from sympy import Symbol
+from pydantic import (
+    AfterValidator,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    field_validator,
+    model_validator,
+)
 
 from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
+from picongpu.picmi.applied_field import AnyAppliedField, combine_applied_fields
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
-from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
-from picongpu.picmi.interaction import Interaction, Synchrotron
+from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
+from picongpu.picmi.interaction import (
+    SUPPORTED_INTERACTION_TYPES,
+    Interaction,
+    PICMI_Interaction,
+    Synchrotron,
+)
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
-from picongpu.picmi.layout import AnyLayout
-from picongpu.picmi.species import Species
+from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
+from picongpu.picmi.species import _STANDARD_SHAPES
 from picongpu.picmi.species_requirements import (
     SimpleDensityOperation,
     SimpleMomentumOperation,
@@ -40,6 +53,7 @@ from picongpu.picmi.species_requirements import (
 )
 from picongpu.picmi.memory_config import MemoryConfig
 from picongpu.picmi.precision_config import PrecisionConfig
+from picongpu.pypicongpu.backgroundfield import BackgroundField as PyPIConGPUBackgroundField
 from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFieldDump
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
@@ -50,22 +64,60 @@ from picongpu.pypicongpu.util import UnpackChain, unique
 from picongpu.pypicongpu.walltime import Walltime
 
 
-class _DensityImpl(BaseModel):
-    layout: AnyLayout
-    grid: AnyGrid
-    species: Species
+def _is_multi_species(entry):
+    """Whether a ``species`` entry is a PICMI ``MultiSpecies`` group."""
+    return isinstance(entry, picmistandard.PICMI_MultiSpecies)
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.species.register_requirements(
-            [
-                Weighting(),
-                SimpleDensityOperation(species=self.species, layout=self.layout, grid=self.grid),
-                Momentum(),
-                SimpleMomentumOperation(species=self.species),
-            ]
+def _entry_members(entry):
+    """The plain species making up a ``species`` entry, in order."""
+    return entry.species_instances_list if _is_multi_species(entry) else [entry]
+
+
+def _register_density_operation(entry, layout, grid):
+    """Register the density (and momentum) requirements of one species entry.
+
+    A whole :class:`picmi.MultiSpecies` entry is treated as one coordinated group:
+    all of its members share a single :class:`SimpleDensityOperation`, so they
+    are placed on identical in-cell positions (collective/charge-neutral
+    initialisation). A standalone species is always its own operation
+    (independent by default). Each member additionally gets its per-species
+    momentum initialisation.
+    """
+    members = _entry_members(entry)
+    profile = members[0].initial_distribution
+    if profile is None:
+        return
+    members[0].register_requirements([Weighting(), SimpleDensityOperation(species=members, layout=layout, grid=grid)])
+    for member in members:
+        member.register_requirements([Momentum(), SimpleMomentumOperation(species=member)])
+
+
+def _validate_species_layout(entry, layout):
+    """Validate one ``(species entry, layout)`` pair.
+
+    Shared by the imperative ``add_species`` path and the declarative
+    constructor path. Validation is per member: a ``MultiSpecies`` group passes
+    one layout for all members.
+    """
+    for species in _entry_members(entry):
+        if species.density_scale is not None and (layout is None and species.initial_distribution is None):
+            raise ValueError("layout and initial distribution must be set to use density scale")
+        if layout is not None and species.initial_distribution is None:
+            raise ValueError(
+                f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
+            )
+        if species.initial_distribution is not None and layout is None:
+            raise ValueError(
+                f"A species with an initial distribution needs a layout. "
+                f"You gave {species.initial_distribution=} but {layout=}."
+            )
+
+
+def _validate_lengths(species, layouts):
+    if len(layouts) != len(species):
+        raise ValueError(
+            f"species and layouts must have the same length, but you gave {len(species)=} and {len(layouts)=}."
         )
 
 
@@ -114,6 +166,40 @@ def handled_via_openpmd(diagnostic):
     return isinstance(diagnostic, (ParticleDump, _FieldDump))
 
 
+def _normalise_interaction(interaction):
+    """Map a standard interaction onto the equivalent PIConGPU interaction.
+
+    ``picmi.FieldIonization`` (and the plain standard
+    ``picmistandard.PICMI_FieldIonization``) are converted to the matching
+    concrete PIConGPU field ionization model. Everything else is returned
+    unchanged and validated below.
+    """
+    if isinstance(interaction, FieldIonization):
+        return interaction.get_as_pypicongpu()
+    if isinstance(interaction, picmistandard.PICMI_FieldIonization):
+        # A plain standard object carries only model/ionized_species/product_species;
+        # the conversion reports the required-knob errors for ADK/BSI.
+        return FieldIonization(
+            model=interaction.model,
+            ionized_species=interaction.ionized_species,
+            product_species=interaction.product_species,
+        ).get_as_pypicongpu()
+    if isinstance(interaction, PICMI_Interaction) and not isinstance(interaction, SUPPORTED_INTERACTION_TYPES):
+        pypicongpu.util.unsupported("This PICMI interaction type is not supported by PIConGPU", interaction)
+    return interaction
+
+
+def _prepare_interactions(interactions):
+    """Normalise and validate the interaction list.
+
+    This is the single pipeline shared by the constructor ``interactions=[...]``
+    parameter and :meth:`add_interaction`: standard field ionization is mapped
+    to PIConGPU's concrete model, and bare collisions are merged into a
+    ``CollisionalPhysicsSetup``.
+    """
+    return _validate_collisional_physics_setup([_normalise_interaction(x) for x in interactions])
+
+
 def _validate_collisional_physics_setup(interactions):
     # Validation is meant in the pydantic sense of checking correctness AND constructing.
     def by_type(x):
@@ -153,6 +239,30 @@ class Simulation(picmistandard.PICMI_Simulation):
     https://picmi-standard.github.io/standard/simulation.html
     """
 
+    # Override the standard's particle_shape (default "linear") to default to None:
+    # an unset Simulation-level shape lets each species fall back to the PIConGPU
+    # default ('quadratic'/TSC), while a set value is inherited by species that
+    # don't specify their own shape. The accepted values match Species.particle_shape
+    # (the PICMI-standard names plus PIConGPU 'other:' extensions).
+    particle_shape: str | None = Field(
+        default=None,
+        description="Default particle shape for species added to this simulation. "
+        "One of 'NGP', 'linear', 'quadratic', 'cubic' or a PIConGPU 'other:' extension "
+        "(unlike the PICMI standard, integer interpolation orders are not accepted). "
+        "Species without their own particle_shape inherit this value; if it is unset "
+        "they fall back to the PIConGPU default 'quadratic' (TSC).",
+    )
+
+    @field_validator("particle_shape")
+    @classmethod
+    def _validate_particle_shape(cls, value):
+        if value is not None and value not in _STANDARD_SHAPES and not value.startswith("other:"):
+            raise ValueError(
+                f"Unsupported particle shape {value!r}. Must be one of "
+                f"{', '.join(_STANDARD_SHAPES)} or be prefixed with 'other:'."
+            )
+        return value
+
     # Excluded from model dumps because it is passed through to the pypicongpu
     # Simulation as-is (single owner is the pypicongpu model) and because
     # CustomUserInput.rendering_context may hold arbitrary, non-serializable user data.
@@ -165,10 +275,19 @@ class Simulation(picmistandard.PICMI_Simulation):
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    picongpu_interaction: Annotated[list[Interaction], BeforeValidator(_validate_collisional_physics_setup)] = Field(
+    interactions: Annotated[list[Interaction | PICMI_Interaction], BeforeValidator(_prepare_interactions)] = Field(
         default_factory=list
     )
-    """Interaction instance containing all particle interactions of the simulation, set to None to have no interactions"""
+    """
+    All particle interactions of the simulation.
+
+    The standard ``interactions=[...]`` constructor parameter and
+    :meth:`add_interaction` are the entry points. They accept every interaction
+    type PIConGPU supports: field ionization (``picmi.FieldIonization``),
+    collisions (``picmi.Collision``/``picmi.CollisionalPhysicsSetup``),
+    synchrotron radiation (``picmi.Synchrotron``) and the concrete ionization
+    models.
+    """
 
     def _validate_typical_ppc(value: int | None) -> int | None:
         if value is not None and value <= 0:
@@ -205,6 +324,20 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
+    def _validate_min_weighting(value: float | None) -> float | None:
+        if value is not None and not (math.isfinite(value) and value > 0):
+            raise ValueError(f"Minimum weighting must be finite and > 0, not {value=}.")
+        return value
+
+    picongpu_min_weighting: Annotated[float | None, AfterValidator(_validate_min_weighting)] = Field(default=None)
+    """
+    minimum macro-particle weighting below which particles are not created / are deleted
+
+    unit: none (bare float in PIConGPU code units, not SI)
+
+    optional; if set to None, PIConGPU's default of 10.0 is used
+    """
+
     picongpu_precision: Literal[32, 64] = Field(default=32)
     """
     floating point precision of the simulation core (see ``precision.param``)
@@ -230,8 +363,6 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_walltime: datetime.timedelta | None = Field(default=None)
     """time after which the cluster scheduler will stop the simulation"""
 
-    picongpu_distributions: list[_DensityImpl] = Field(default_factory=list)
-
     _runner: Runner | None = PrivateAttr(default=None)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -253,6 +384,21 @@ class Simulation(picmistandard.PICMI_Simulation):
         ):
             self._compute_cfl_or_delta_t()
         return self
+
+    def model_post_init(self, __context) -> None:
+        # Honour the documented declarative constructor style
+        # ``Simulation(species=[...], layouts=[...])`` once, at construction.
+        # The entries are stored AS GIVEN (a ``MultiSpecies`` stays one entry,
+        # it is not expanded into its members); translation maps each entry onto
+        # one density operation. Unlike an after-validator this hook does not run
+        # on later assignments, so the inherited ``add_species_through_plane``
+        # (whose base ``_append`` sets ``species`` and ``layouts`` in two
+        # separate steps) is unaffected.
+        if self.species or self.layouts:
+            _validate_lengths(self.species, self.layouts)
+            for entry, layout in zip(self.species, self.layouts):
+                _validate_species_layout(entry, layout)
+                _register_density_operation(entry, layout, self.solver.grid)
 
     def _compute_cfl_or_delta_t(self) -> None:
         """
@@ -363,9 +509,19 @@ class Simulation(picmistandard.PICMI_Simulation):
         self.picongpu_custom_user_input = (self.picongpu_custom_user_input or []) + [custom_user_input]
 
     def add_interaction(self, interaction) -> None:
-        pypicongpu.util.unsupported(
-            "PICMI standard interactions are not supported by PIConGPU, use the picongpu specific Interaction object instead"
-        )
+        """
+        Add an interaction to the simulation.
+
+        Accepts every interaction type PIConGPU supports: field ionization
+        (``picmi.FieldIonization`` or the plain standard
+        ``picmistandard.PICMI_FieldIonization``, both converted to the matching
+        concrete model) as well as PIConGPU's own collision,
+        collisional-physics-setup and synchrotron objects.
+
+        Equivalent to appending to the ``interactions=[...]`` constructor
+        parameter; both go through the same pipeline.
+        """
+        self.interactions = [*(self.interactions or []), interaction]
 
     # @todo add refactor once restarts are supported by the Runner, Brian Marre, 2024
     def step(self, nsteps: int = 1, **flags):
@@ -375,14 +531,14 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         self.picongpu_run(**flags)
 
-    def _generate_openpmd_plugins(self, diagnostics, num_steps):
+    def _generate_openpmd_plugins(self, diagnostics, num_steps, default_particle_shape=None):
         diagnostics = list(diagnostics)
         return [
             OpenPMDPlugin(
                 sources=[
                     (
                         diagnostic.period.get_as_pypicongpu(time_step_size=self.time_step_size, num_steps=num_steps),
-                        diagnostic.species.get_as_pypicongpu()
+                        diagnostic.species.get_as_pypicongpu(default_particle_shape=default_particle_shape)
                         if isinstance(diagnostic, ParticleDump)
                         else PyPIConGPUFieldDump(
                             name=diagnostic.fieldname,
@@ -400,19 +556,21 @@ class Simulation(picmistandard.PICMI_Simulation):
             for options in unique(map(lambda x: x.options, diagnostics))
         ]
 
-    def _generate_plugins(self, num_steps):
+    def _generate_plugins(self, num_steps, default_particle_shape=None):
         return [
             entry.get_as_pypicongpu(
                 time_step_size=self.time_step_size,
                 num_steps=num_steps,
+                default_particle_shape=default_particle_shape,
             )
             for entry in self.diagnostics
             if not handled_via_openpmd(entry)
-        ] + self._generate_openpmd_plugins(filter(handled_via_openpmd, self.diagnostics), num_steps)
+        ] + self._generate_openpmd_plugins(
+            filter(handled_via_openpmd, self.diagnostics), num_steps, default_particle_shape
+        )
 
     def _check_compatibility(self):
         pypicongpu.util.unsupported("verbose", self.verbose)
-        pypicongpu.util.unsupported("particle shape", self.particle_shape, "linear")
         pypicongpu.util.unsupported("gamma boost", self.gamma_boost)
         if len(self.laser_injection_methods) != self.laser_injection_methods.count(None):
             pypicongpu.util.unsupported("laser injection method", self.laser_injection_methods, [])
@@ -426,13 +584,14 @@ class Simulation(picmistandard.PICMI_Simulation):
                         "A phase-space diagnostic with spatial coordinate 'z' is not supported in 2D. "
                         f"You gave {diagnostic.spatial_coordinate=} on a 2D grid."
                     )
-            for species in self.species:
-                if isinstance(species.initial_distribution, AnalyticDistribution):
-                    if Symbol("z") in species.initial_distribution.density_expression.free_symbols:
-                        raise ValueError(
-                            "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
-                            f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
-                        )
+            for entry in self.species:
+                for species in _entry_members(entry):
+                    if isinstance(species.initial_distribution, AnalyticDistribution):
+                        if species.initial_distribution.dim == 3:
+                            raise ValueError(
+                                "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
+                                f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
+                            )
 
     def _check_huygens_surface_positions(self):
         # Every laser renders into the single incidentField, so all lasers must
@@ -462,19 +621,54 @@ class Simulation(picmistandard.PICMI_Simulation):
                 get_as_pypicongpu,
                 chain(
                     UnpackChain(self).diagnostics.species.functor,
-                    UnpackChain(self).picongpu_interaction.screening_species.functor,
-                    UnpackChain(self).picongpu_interaction.collisions.species_pairs[:].functor,
+                    UnpackChain(self).interactions.screening_species.functor,
+                    UnpackChain(self).interactions.collisions.species_pairs[:].functor,
                 ),
             )
         )
+
+    def _register_functor_requirements(self):
+        """Register the species attributes each diagnostic functor accesses.
+
+        Diagnostics own both the functor and the species it runs on, so this is
+        the point where ``Species.register_requirements`` can be handed the
+        functor. The functor translates its accessed attributes (e.g.
+        ``momentumPrev1``) into the corresponding ``Attribute`` requirements.
+        Particle filters are registered from ``FilteredSpecies`` instead.
+        """
+        for diagnostic in self.diagnostics:
+            functors = [
+                functor
+                for name in ("functor", "deposition_functor")
+                if (functor := getattr(diagnostic, name, None)) is not None
+            ] + [axis.functor for axis in getattr(diagnostic, "axes", None) or []]
+            if not functors:
+                continue
+            species = getattr(diagnostic, "species", None)
+            for one_species in species if isinstance(species, list) else [species]:
+                if one_species is None:
+                    continue
+                while hasattr(one_species, "species"):
+                    # A FilteredSpecies wraps the owner species; its filter
+                    # accesses attributes just like the diagnostic functor, so
+                    # register them on the (eventual) owner as well. This is
+                    # needed for diagnostics (e.g. DerivedFieldDump) that only
+                    # read the species by name and never convert the wrapper.
+                    if (filter_functor := getattr(one_species, "functor", None)) is not None:
+                        one_species.species.register_requirements(filter_functor.get_required_attributes())
+                    one_species = one_species.species
+                for functor in functors:
+                    one_species.register_requirements(functor.get_required_attributes())
 
     def get_as_pypicongpu(self) -> pypicongpu.simulation.Simulation:
         """translate to PyPIConGPU object"""
         self._check_compatibility()
         self._check_huygens_surface_positions()
+        self._register_functor_requirements()
 
+        all_species = chain.from_iterable(_entry_members(entry) for entry in self.species)
         init_operations = organise_init_operations(
-            chain(*(s.get_operation_requirements() for s in sorted(self.species)))
+            chain(*(s.get_operation_requirements() for s in sorted(all_species)))
         )
 
         typical_ppc = (
@@ -496,7 +690,7 @@ class Simulation(picmistandard.PICMI_Simulation):
         time_steps = self.max_steps if self.max_steps is not None else math.ceil(self.max_time / self.time_step_size)
         # We provide the default as last element and we'll only read the first element:
         synchrotron_params = unique(
-            [x.synchrotron_parameters for x in self.picongpu_interaction if isinstance(x, Synchrotron)]
+            [x.synchrotron_parameters for x in self.interactions if isinstance(x, Synchrotron)]
         ) + [SynchrotronParams()]
         if len(synchrotron_params) > 2:
             raise ValueError(
@@ -504,14 +698,17 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         # We need to make sure that bare collisions are merged into a setup,
         # no matter if the interactions were assembled at construction time or later.
-        self.picongpu_interaction = _validate_collisional_physics_setup(self.picongpu_interaction)
+        self.interactions = _validate_collisional_physics_setup(self.interactions)
         # We provide the default as last element and we'll only read the first element:
-        collisions = [x for x in self.picongpu_interaction if isinstance(x, CollisionalPhysicsSetup)] + [
+        collisions = [x for x in self.interactions if isinstance(x, CollisionalPhysicsSetup)] + [
             CollisionalPhysicsSetup()
         ]
 
         return pypicongpu.simulation.Simulation(
-            species=map(get_as_pypicongpu, sorted(self.species)),
+            species=map(
+                lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape),
+                sorted(chain.from_iterable(_entry_members(entry) for entry in self.species)),
+            ),
             init_operations=init_operations,
             typical_ppc=typical_ppc,
             delta_t_si=self.time_step_size,
@@ -523,11 +720,13 @@ class Simulation(picmistandard.PICMI_Simulation):
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
-            output=self._generate_plugins(time_steps),
+            background_field=self._get_background_field(),
+            output=self._generate_plugins(time_steps, self.particle_shape),
             particle_filters=self._collect_particle_filters(),
             base_density=self._get_base_density(),
             synchrotron_params=synchrotron_params[0],
-            collisional_physics=collisions[0].get_as_pypicongpu(),
+            collisional_physics=collisions[0].get_as_pypicongpu(default_particle_shape=self.particle_shape),
+            min_weighting=self.picongpu_min_weighting,
             precision=self.picongpu_precision,
             precision_overrides=self.picongpu_precision_config.get_as_pypicongpu(),
             memory_config=self.picongpu_memory_config.get_as_pypicongpu(),
@@ -535,6 +734,24 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     def _get_base_density(self) -> float:
         return self.picongpu_base_density or 1.0e25
+
+    def _get_background_field(self) -> PyPIConGPUBackgroundField | None:
+        """
+        Translate the configured applied fields into a single pypicongpu background field.
+
+        The C++ core only evaluates one ``FieldBackgroundE``/``FieldBackgroundB``
+        functor pair, so the contributions of all applied fields are summed per
+        component. The influence knobs of the individual fields must agree, as
+        they configure that single pair.
+        """
+        unsupported = [f for f in self.applied_fields if not isinstance(f, AnyAppliedField)]
+        if unsupported:
+            pypicongpu.util.unsupported(
+                "applied fields other than ConstantAppliedField and AnalyticAppliedField", unsupported
+            )
+        if not self.applied_fields:
+            return None
+        return combine_applied_fields(self.applied_fields)
 
     def run(self, *args, **kwargs) -> None:
         return self.picongpu_run(*args, **kwargs)
@@ -555,23 +772,23 @@ class Simulation(picmistandard.PICMI_Simulation):
             )
         return self._runner
 
-    def _picongpu_add_species(self, species, layout):
+    def _picongpu_add_species(self, species, layout, initialize_self_field=None):
+        # PICMI-standard interface: a ``MultiSpecies`` is added as one object
+        # together with one layout for the whole group. The entry is stored AS
+        # GIVEN (not expanded into its members); translation maps it onto one
+        # density operation covering all its members.
         self.species.append(species)
         self.layouts.append(layout)
-        if species.density_scale is not None and (layout is None and species.initial_distribution is None):
-            raise ValueError("layout and initial distribution must be set to use density scale")
-        if layout is not None and species.initial_distribution is None:
-            raise ValueError(
-                f"An initial distribution needs a layout. You've given {layout=} but {species.initial_distribution=}."
-            )
-        if species.initial_distribution is not None:
-            self.picongpu_distributions.append(_DensityImpl(species=species, layout=layout, grid=self.solver.grid))
+        _validate_species_layout(species, layout)
+        _register_density_operation(species, layout, self.solver.grid)
 
-    def add_species(self, *args, **kwargs):
-        return self._picongpu_add_species(*args, **kwargs)
+    def add_species(self, species, layout, initialize_self_field=None):
+        return self._picongpu_add_species(species, layout, initialize_self_field)
 
 
 def organise_init_operations(operations):
+    # materialise -- resolving_add is multi-pass
+    operations = list(operations)
     cleaned = []
     for op in operations:
         cleaned = resolving_add(op, cleaned)

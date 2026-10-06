@@ -7,11 +7,13 @@ import sys
 import picmistandard
 
 from . import constants, diagnostics
+from .applied_field import AnalyticAppliedField, ConstantAppliedField
 from .constants import B, GB, GiB, KiB, MB, MiB, kB
 from .distribution import (
     AnalyticDistribution,
     CylindricalDistribution,
     FoilDistribution,
+    GaussianBunchDistribution,
     GaussianDistribution,
     UniformDistribution,
 )
@@ -29,6 +31,7 @@ from .interaction.ionization.fieldionization import (
     BSI,
     ADKVariant,
     BSIExtension,
+    FieldIonization,
     Keldysh,
 )
 from .lasers import (
@@ -40,6 +43,7 @@ from .lasers import (
 )
 from .layout import GriddedLayout, OnePositionLayout, PseudoRandomLayout
 from .memory_config import MemoryConfig
+from .multi_species import MultiSpecies
 from .particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
 from .precision_config import PrecisionConfig
 from .simulation import Simulation
@@ -60,9 +64,12 @@ __all__ = [
     "GaussianLaser",
     "TWTSLaser",
     "PlaneWaveLaser",
+    "ConstantAppliedField",
+    "AnalyticAppliedField",
     "Species",
     "MemoryConfig",
     "PrecisionConfig",
+    "MultiSpecies",
     "FilteredSpecies",
     "ParticleFilter",
     "PseudoRandomLayout",
@@ -79,12 +86,14 @@ __all__ = [
     "FoilDistribution",
     "UniformDistribution",
     "GaussianDistribution",
+    "GaussianBunchDistribution",
     "AnalyticDistribution",
     "ADK",
     "ADKVariant",
     "BSI",
     "BSIExtension",
     "Keldysh",
+    "FieldIonization",
     "ThomasFermi",
     "Synchrotron",
     "Interaction",

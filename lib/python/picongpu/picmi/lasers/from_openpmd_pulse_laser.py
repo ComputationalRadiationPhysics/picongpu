@@ -5,14 +5,15 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, Field
+from picmistandard import PICMI_Laser
+from pydantic import Field
 
 from ...pypicongpu import laser
 from ..copy_attributes import default_converts_to
 
 
 @default_converts_to(laser.FromOpenPMDPulseLaser)
-class FromOpenPMDPulseLaser(BaseModel):
+class FromOpenPMDPulseLaser(PICMI_Laser):
     """PICMI object for FromOpenPMDPulseLaser"""
 
     propagation_direction: list[float]

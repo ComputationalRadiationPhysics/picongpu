@@ -43,6 +43,9 @@ class FilteredSpecies(BaseModel):
     def get_as_pypicongpu(self, mode="Filter", *args, **kwargs):
         # additional arguments (e.g. time_step_size, num_steps) are forwarded by the conversion
         # machinery of diagnostics and are not used by this class
+        # The filter accesses attributes on the wrapped species: register them so
+        # the species actually carries them instead of being excluded as ineligible.
+        self.species.register_requirements(self.functor.get_required_attributes())
         return PyPIConGPUFilteredSpecies(
             species=self.species.get_as_pypicongpu(*args, **kwargs),
             functor=self.functor.get_as_pypicongpu(mode=mode),

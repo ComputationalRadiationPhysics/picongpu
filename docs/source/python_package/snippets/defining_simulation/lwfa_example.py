@@ -98,7 +98,7 @@ sim = picmi.Simulation(
     lasers=[laser],
     species=[hydrogen, electrons],
     layouts=[layout, None],
-    picongpu_interaction=[adk],
+    interactions=[adk],
     diagnostics=[checkpoint, macro_particle_count],
 )
 # END-LWFA-SIMULATION

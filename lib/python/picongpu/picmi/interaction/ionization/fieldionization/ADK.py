@@ -5,7 +5,7 @@ Authors: Brian Edward Marre
 License: GPLv3+
 """
 
-from .fieldionization import FieldIonization
+from .fieldionization import _FieldIonizationModel
 
 from .....pypicongpu.species.constant.ionizationmodel import (
     ADKLinearPolarization,
@@ -22,7 +22,7 @@ class ADKVariant(enum.Enum):
     CircularPolarization = 1
 
 
-class ADK(FieldIonization):
+class ADK(_FieldIonizationModel):
     """ADK Tunneling Ionization model"""
 
     MODEL_NAME: str = "ADK"

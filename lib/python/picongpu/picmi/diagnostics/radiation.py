@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+from picmistandard import PICMI_Diagnostic
 from pydantic import ConfigDict, field_validator
 
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
@@ -25,7 +26,7 @@ from picongpu.pypicongpu.species.attribute.momentum_prev_1 import MomentumPrev1
 from picongpu.pypicongpu.species.attribute.radiation_mask import RadiationMask
 
 
-class Radiation(RadiationPluginConfig):
+class Radiation(RadiationPluginConfig, PICMI_Diagnostic):
     species: list[Species]
     period: TimeStepSpec
 
@@ -41,10 +42,10 @@ class Radiation(RadiationPluginConfig):
                 [MomentumPrev1()] + ([RadiationMask()] if self.gamma_filter_threshold is not None else [])
             )
 
-    def get_as_pypicongpu(self, time_step_size, num_steps):
+    def get_as_pypicongpu(self, time_step_size, num_steps, default_particle_shape=None):
         return RadiationPlugin(
             config=self,
-            species=[s.get_as_pypicongpu() for s in self.species],
+            species=[s.get_as_pypicongpu(default_particle_shape=default_particle_shape) for s in self.species],
             period=self.period.get_as_pypicongpu(time_step_size=time_step_size, num_steps=num_steps),
         )
 

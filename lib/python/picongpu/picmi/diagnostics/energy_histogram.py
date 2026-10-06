@@ -5,7 +5,8 @@ Authors: Masoud Afshari, Julian Lenz
 License: GPLv3+
 """
 
-from pydantic import BaseModel, ConfigDict
+from picmistandard import PICMI_Diagnostic
+from pydantic import ConfigDict
 
 from picongpu.picmi import constants
 from picongpu.picmi.copy_attributes import default_converts_to
@@ -23,7 +24,7 @@ from picongpu.pypicongpu.output.energy_histogram import EnergyHistogram as PyPIC
         "max_energy": lambda self, *_, **__: self.max_energy / constants.keV,
     },
 )
-class EnergyHistogram(BaseModel):
+class EnergyHistogram(PICMI_Diagnostic):
     """
     Specifies the parameters for the output of Energy Histogram of species such as electrons.
 
