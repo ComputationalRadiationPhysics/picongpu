@@ -69,9 +69,13 @@ class TestAccumulationPeriod(TestCase):
 
 
 class TestBinningPeriodRendering(TestCase):
-    def test_unshifted_period_renders_byte_identical(self):
-        """An unshifted period still renders the same integer start:stop:step token."""
-        assert '.setNotifyPeriod("0:-1:10")' in _rendered(_binning(period=TS[::10]))
+    def test_unshifted_period_renders_unchanged_token(self):
+        """An unshifted period renders the same integer start:stop:step token as before."""
+        rendered = _rendered(_binning(period=TS[::10]))
+        assert '.setNotifyPeriod("0:-1:10")' in rendered
+        # and the resolved specs are exactly the unshifted ones (no hidden offset)
+        converted = _binning(period=TS[::10]).get_as_pypicongpu(time_step_size=1.0, num_steps=100)
+        assert [(s.start, s.stop, s.step) for s in converted.period.specs] == [(0, -1, 10)]
 
     def test_shifted_period_renders_shifted_token(self):
         shifted = TS[::10]("steps") + 5 * TS.steps

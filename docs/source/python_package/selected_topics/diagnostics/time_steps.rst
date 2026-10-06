@@ -57,9 +57,11 @@ starts at step ``5``), and an open end (``stop`` omitted) stays open.
 
 Shifts are resolved together with the unit conversion, i.e. when the
 specification is translated to simulation steps. This means a shift **in
-seconds** may be written *before* the simulation's time step size is known, and
-a shift in steps is converted to seconds for a seconds-based specification.
-The most explicit form combines both:
+seconds** may be written *before* the simulation's time step size is known: it is
+converted to the nearest whole step at translation time. A shift in steps is
+applied directly to the resulting integer
+indices, so it always moves by exactly that many steps regardless of the time
+step size. The most explicit form combines both:
 
 .. literalinclude:: ../../snippets/selected_topics/time_steps.py
    :language: python

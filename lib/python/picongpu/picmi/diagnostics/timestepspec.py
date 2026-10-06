@@ -5,19 +5,39 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from enum import StrEnum
+from enum import EnumType, StrEnum
 from math import ceil, floor
 
 from ...pypicongpu.output import TimeStepSpec as PyPIConGPUTimeStepSpec
 
 
-class TimeStepUnits(StrEnum):
+class _TimeStepUnitsMeta(EnumType):
+    """
+    Metaclass that keeps case-insensitive membership for :class:`TimeStepUnits`.
+
+    A plain :class:`enum.StrEnum` answers ``__contains__`` by exact value/id
+    comparison, so only ``"steps"`` would be ``in TimeStepUnits``. The unit
+    strings are accepted case-insensitively everywhere else (via ``_missing_``),
+    so membership must be case-insensitive too.
+    """
+
+    def __contains__(cls, value):
+        try:
+            cls(value)
+        except ValueError:
+            return False
+        return True
+
+
+class TimeStepUnits(StrEnum, metaclass=_TimeStepUnitsMeta):
     """
     Units allowed in TimeStepSpec.
 
-    This is a plain :class:`enum.StrEnum` (Python >= 3.11), so the former
-    custom metaclass that emulated ``StrEnum`` on older Python versions is
-    gone. Unit names are still accepted case-insensitively via ``_missing_``.
+    This is a :class:`enum.StrEnum` (Python >= 3.11) with a metaclass that
+    restores the case-insensitive ``__contains__`` the former custom shim
+    provided: ``"STEPS" in TimeStepUnits`` and ``"Steps" in TimeStepUnits`` are
+    both ``True``. Unit names are accepted case-insensitively via ``_missing_``
+    as well.
     """
 
     STEPS = "steps"
@@ -140,7 +160,10 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     rounding must happen in the translation into steps (the only unit available in the backend). This
     rounding is implemented to round down (up) for the lower (upper) bound such that the interval will
     never be clipped. The time step is always rounded down to the next available multiple of the time
-    step size, such that for long and sparsely sampled intervals distortions may occur.
+    step size, such that for long and sparsely sampled intervals distortions may occur. A shift in steps
+    on a seconds-based specification is applied directly to the resulting integer indices and therefore
+    moves by exactly that many steps, independent of the time step size; a shift expressed in seconds is
+    converted to the nearest integer step (rounding half away from zero).
 
     A whole specification (or any of its parts) may additionally be shifted by a number of
     steps or a physical time via the unit accessors `TimeStepSpec.steps` and
@@ -274,14 +297,24 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
                 seconds_offset += shift.amount
         return steps_offset, seconds_offset
 
+    @staticmethod
+    def _round_to_nearest(value):
+        # Round half away from zero, so the rounding is symmetric for positive
+        # and negative values. This is the single rounding for seconds shifts,
+        # on both the steps-spec and the seconds-spec path.
+        return floor(value + 0.5) if value >= 0 else ceil(value - 0.5)
+
     def _seconds_to_steps(self, seconds, time_step_size):
-        # Convert a shift in seconds into steps, flooring like the lower bound in
-        # `_transform_to_steps` so a shift does not silently move an index.
+        # Convert a shift in seconds into steps. `floor` would under-shift a
+        # nominal `0.3 s` at `dt = 0.1` to two steps (`0.3/0.1 == 2.999...`),
+        # while an `int()` truncation would round negative shifts differently
+        # than positive ones. Rounding to the nearest step, half away from zero,
+        # is sign-symmetric and used by both paths.
         if seconds == 0:
             return 0
         if time_step_size <= 0:
             raise ValueError(f"Time step size must be strictly positive. You gave {time_step_size}.")
-        return floor(seconds / time_step_size)
+        return self._round_to_nearest(seconds / time_step_size)
 
     @staticmethod
     def _shift_slice(spec, offset):
@@ -346,11 +379,15 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
             specs.append(self._interpret_negatives(self._interpret_nones(shifted), num_steps))
         for spec, shifts in zip(self.specs_in_seconds, self.shifts_in_seconds):
             steps_offset, seconds_offset = self._accumulate_shifts(shifts)
-            shifted = self._shift_slice(spec, seconds_offset)
-            for converted in self._transform_to_steps((shifted,), time_step_size):
-                # apply a shift in steps directly to the integer index, so that it
-                # moves by exactly `steps_offset` steps regardless of `dt`
-                converted = self._shift_slice(converted, steps_offset)
+            for converted in self._transform_to_steps((spec,), time_step_size):
+                # Apply the whole shift to the resulting integer index: a shift in
+                # steps moves by exactly `steps_offset` steps regardless of `dt`,
+                # and a shift in seconds is rounded to the nearest step with the
+                # very same helper (round half away from zero). Applying the
+                # seconds shift to the already-converted index keeps unshifted
+                # seconds specs byte-identical and makes both paths agree.
+                offset = steps_offset + self._seconds_to_steps(seconds_offset, time_step_size)
+                converted = self._shift_slice(converted, offset)
                 specs.append(self._interpret_negatives(self._interpret_nones(converted), num_steps))
         return PyPIConGPUTimeStepSpec(specs)
 

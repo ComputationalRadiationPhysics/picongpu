@@ -11,7 +11,7 @@ from math import floor, ceil
 
 import pytest
 
-from picongpu.picmi.diagnostics import TS, TimeStepSpec
+from picongpu.picmi.diagnostics import TS, TimeStepSpec, TimeStepUnits
 from picongpu.picmi.diagnostics.timestepspec import TimeStepShift
 from picongpu.pypicongpu.output.timestepspec import Spec
 
@@ -341,11 +341,37 @@ class TestTimeStepShift(TestCase):
         ts = TimeStepSpec[::1e-1]("seconds") + 3 * TimeStepSpec.steps
         assert ts.get_as_pypicongpu(0.1, INDEX_MAX).specs == [Spec(start=3, stop=-1, step=1)]
 
-    def test_seconds_shift_uses_floor_rounding(self):
-        # 0.3 s at dt = 0.1 s must be rounded consistently with the interval
-        # (floor), not via an int() truncation of a drifting float
+    def test_seconds_shift_rounds_to_nearest(self):
+        # 0.3 s at dt = 0.1 s is nominally 3 steps, but 0.3/0.1 == 2.999...
+        # in binary floating point: the shift must round to three, agreeing
+        # with a plain interval bound, not floor to two.
         ts = TimeStepSpec[::1e-1]("seconds") + 0.3 * TimeStepSpec.seconds
-        assert ts.get_as_pypicongpu(0.1, INDEX_MAX).specs == [Spec(start=2, stop=-1, step=1)]
+        assert ts.get_as_pypicongpu(0.1, INDEX_MAX).specs == [Spec(start=3, stop=-1, step=1)]
+
+    def test_seconds_shift_rounding_is_sign_symmetric(self):
+        # +0.3 s and -0.3 s must move by +3 and -3 steps, not +2/-2 (int) or
+        # +2/-3 (floor). The two paths (steps spec and seconds spec) agree.
+        for spec_unit in ("steps", "seconds"):
+            with self.subTest(spec_unit=spec_unit):
+                pos = TimeStepSpec[::1](spec_unit) + 0.3 * TimeStepSpec.seconds
+                neg = TimeStepSpec[::1](spec_unit) + (-0.3) * TimeStepSpec.seconds
+                # INDEX_MAX == 200: an open-start spec shifted down by 3 starts at 197.
+                assert pos.get_as_pypicongpu(0.1, INDEX_MAX).specs[0].start == 3
+                assert neg.get_as_pypicongpu(0.1, INDEX_MAX).specs[0].start == 197
+
+    def test_seconds_shift_matches_across_spec_units(self):
+        # The two resolution paths (a steps spec and a seconds spec) must agree
+        # on the step offset for both signs.
+        for shift in (0.3, -0.3):
+            with self.subTest(shift=shift):
+                steps_spec = (TimeStepSpec[10:10]("steps") + shift * TimeStepSpec.seconds).get_as_pypicongpu(
+                    0.1, INDEX_MAX
+                )
+                seconds_spec = (TimeStepSpec[1.0:1.0]("seconds") + shift * TimeStepSpec.seconds).get_as_pypicongpu(
+                    0.1, INDEX_MAX
+                )
+                # `[10:10]` steps == `[1.0:1.0]` seconds at dt = 0.1
+                assert steps_spec.specs[0].start == seconds_spec.specs[0].start
 
     def test_unqualified_spec_adopts_shift_unit(self):
         seconds_rest = TimeStepSpec[::1e-5] + 2.0e-6 * TimeStepSpec.seconds
@@ -398,6 +424,15 @@ class TestTimeStepShift(TestCase):
     def test_unknown_unit_shift(self):
         with pytest.raises(ValueError, match="Unknown time step unit."):
             TimeStepShift(1, "meters")
+
+    def test_units_membership_is_case_insensitive(self):
+        # Public `TimeStepUnits` is exported; `in` must stay case-insensitive
+        # (the metaclass shim provided this before the StrEnum swap).
+        for value in ("steps", "STEPS", "Steps", "seconds", "SECONDS", "Seconds"):
+            with self.subTest(value=value):
+                assert value in TimeStepUnits
+        assert "meters" not in TimeStepUnits
+        assert TimeStepUnits.STEPS in TimeStepUnits
 
     def test_dont_reset_shifted_seconds_unit(self):
         ts = TimeStepSpec[::10] + 5 * TimeStepSpec.seconds
