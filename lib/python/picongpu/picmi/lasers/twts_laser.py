@@ -211,8 +211,19 @@ class TWTSLaser(PICMI_Laser, BaseLaser):
         """
         if cell_size is None or domain_cells is None:
             return 0.0
-        domain_center = np.asarray(cell_size, dtype=float) * np.asarray(domain_cells, dtype=float) / 2.0
+        cell_size = np.asarray(cell_size, dtype=float)
+        if len(cell_size) < 3:
+            # 2D: there is no z axis, so the lateral (z) focus offset is meaningless.
+            return 0.0
+        domain_center = cell_size * np.asarray(domain_cells, dtype=float) / 2.0
         return float(self.focal_position[2] - domain_center[2])
+
+    def _uses_entry_faces(self) -> bool:
+        # TWTS keeps its dedicated fixed placement (YMin plus ZMin/ZMax chosen by
+        # the sign of laserIncidenceAngle) rendered by the template's type_twts
+        # branch. The derived all-crossed face list is unused, so unlike the
+        # standard lasers it must not be validated against the grid dimension.
+        return False
 
     def _validate_twts_properties(self):
         """Validation for the TWTS laser.
@@ -221,6 +232,12 @@ class TWTSLaser(PICMI_Laser, BaseLaser):
         +y-entry validation (positive-y propagation, centroid_y <= 0) rather
         than the direction-generalized BaseLaser._validate_common_properties().
         """
+        if self.picongpu_entry_faces is not None:
+            raise ValueError(
+                "TWTSLaser has a fixed Huygens placement (always YMin, plus ZMin/ZMax chosen "
+                "by the sign of laserIncidenceAngle) and does not support `picongpu_entry_faces`."
+            )
+
         if not np.allclose(n := np.linalg.norm(self.polarization_direction), 1):
             raise ValueError(
                 "The polarization direction vector must be normalized. "

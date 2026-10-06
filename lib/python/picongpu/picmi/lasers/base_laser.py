@@ -39,6 +39,25 @@ class BaseLaser:
     Base class for all PICMI laser implementations to reduce code duplication
     """
 
+    # Explicit per-laser selection of the Huygens faces this pulse is injected
+    # through. If left as None, all faces crossed by the propagation direction
+    # are used (see _entry_faces). Declared here rather than on each concrete
+    # laser because _entry_faces reads it and every standard laser rendered via
+    # the on_* membership flags supports it.
+    picongpu_entry_faces: list[str] | None = None
+
+    def _uses_entry_faces(self) -> bool:
+        """Whether the entry-face selection actually drives this laser's placement.
+
+        Standard lasers are rendered under their ``on_*`` face guards and their
+        derived/explicit face list is validated by :meth:`validate_entry_faces`.
+        TWTS keeps a dedicated fixed placement (always ``YMin`` plus
+        ``ZMin``/``ZMax`` chosen by the incidence-angle sign) that the template
+        selects via ``type_twts``, so its derived face list is unused and must
+        not be validated against the grid dimensionality.
+        """
+        return True
+
     def _propagation_connects_centroid_and_focus(self):
         # check that propagation_direction is parallel to the difference of focal_position and centroid_position
         diff_vec = difference(self.focal_position, self.centroid_position)
@@ -96,7 +115,7 @@ class BaseLaser:
         :meth:`validate_entry_faces` (answer 5), which is called by
         :class:`~picongpu.picmi.Simulation` where the dimensionality is known.
         """
-        if (explicit := getattr(self, "picongpu_entry_faces", None)) is not None:
+        if (explicit := self.picongpu_entry_faces) is not None:
             faces = list(explicit)
             illegal = [face for face in faces if face not in pypicongpu_laser.ENTRY_FACES]
             if illegal:
@@ -121,7 +140,7 @@ class BaseLaser:
         This is called by :class:`~picongpu.picmi.Simulation`, which knows the
         grid's dimensionality during translation.
         """
-        if dimension < 3:
+        if dimension < 3 and self._uses_entry_faces():
             faces = self._entry_faces()
             z_faces = [face for face in faces if face.startswith("Z")]
             if z_faces:

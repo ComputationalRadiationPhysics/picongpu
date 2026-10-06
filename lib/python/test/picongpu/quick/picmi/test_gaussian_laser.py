@@ -665,6 +665,68 @@ def test_2d_rejects_z_face_injection():
     assert sim_x.get_as_pypicongpu() is not None
 
 
+def test_2d_twts_laser_is_not_rejected():
+    """A 2D TWTS laser keeps its dedicated placement and is not rejected by the Z-face check (#180).
+
+    TWTS renders on YMin plus ZMin/ZMax (chosen by the sign of laserIncidenceAngle)
+    via the template's type_twts branch; its derived all-crossed face list (which
+    contains ZMin for a non-zero incidence angle) is unused by the engine, and the
+    engine prunes Z profiles in 2D (Solver.hpp). 2D TWTS therefore worked before
+    and must not trip the new validate_entry_faces check.
+    """
+    grid = picmi.Cartesian2DGrid(
+        number_of_cells=[128, 512],
+        lower_bound=[0, 0],
+        upper_bound=[17, 192],
+        lower_boundary_conditions=["periodic", "periodic"],
+        upper_boundary_conditions=["periodic", "periodic"],
+    )
+    solver = ElectromagneticSolver(method="Yee", grid=grid)
+    twts = picmi.TWTSLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        laserIncidenceAngle=pi / 6,
+        polarizationAngle=pi / 4,
+        focal_position=[0.0, 5e-6, 0.0],
+        centroid_position=[0.0, -5e-6, 10e-6],
+        a0=1.0,
+    )
+    sim = Simulation(time_step_size=1, max_steps=2, solver=solver)
+    sim.add_laser(twts, None)
+    assert sim.get_as_pypicongpu() is not None
+
+
+def test_twts_rejects_entry_faces_override():
+    """picongpu_entry_faces is meaningless for TWTS's fixed placement and is rejected (#180)."""
+    with pytest.raises(ValidationError, match="fixed Huygens placement"):
+        picmi.TWTSLaser(
+            wavelength=800e-9,
+            waist=12e-6,
+            duration=30e-15,
+            laserIncidenceAngle=pi / 6,
+            polarizationAngle=pi / 4,
+            focal_position=[0.0, 5e-6, 0.0],
+            centroid_position=[0.0, -5e-6, 10e-6],
+            a0=1.0,
+            picongpu_entry_faces=["YMin"],
+        )
+
+
+def test_plane_wave_explicit_entry_faces_override():
+    """picongpu_entry_faces overrides the derived set for PlaneWaveLaser too (#180)."""
+    pw = picmi.PlaneWaveLaser(
+        wavelength=800e-9,
+        duration=30e-15,
+        propagation_direction=[0.5, 0.0, sqrt(3) / 2.0],
+        polarization_direction=[0, 1, 0],
+        centroid_position=[-2.5e-6, 0.0, -4.330127018922193e-6],
+        a0=1.0,
+        picongpu_entry_faces=["XMin"],
+    )
+    assert pw.get_as_pypicongpu().entry_faces == ["XMin"]
+
+
 def test_twts_laser_entry_behavior_unchanged():
     """TWTS keeps its dedicated YMin + ZMin/ZMax two-plane placement and the +y entry face (#88).
 

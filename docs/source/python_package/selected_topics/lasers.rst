@@ -117,7 +117,11 @@ must be identical across all lasers, but each laser independently chooses
 which of those surfaces it uses; injecting on a strict subset is allowed.
 Use the PIConGPU extension keyword ``picongpu_entry_faces`` to give an
 explicit per-laser face list, which overrides the derived all-crossed
-default:
+default. It is available on the standard lasers
+(:class:`~picongpu.picmi.lasers.GaussianLaser`,
+:class:`~picongpu.picmi.lasers.DispersivePulseLaser` and
+:class:`~picongpu.picmi.lasers.PlaneWaveLaser`); ``TWTSLaser`` and
+``FromOpenPMDPulseLaser`` have a fixed placement and reject it.
 
 .. literalinclude:: ../snippets/selected_topics/laser_multi_face.py
    :language: python
