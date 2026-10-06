@@ -12,6 +12,7 @@ from .energy_histogram import EnergyHistogram
 from .field_dump import DerivedFieldDump, NativeFieldDump
 from .field_energy_monitor import FieldEnergyMonitor
 from .macro_particle_count import MacroParticleCount
+from .optical_imaging import OpticalImaging, Shadowgraphy
 from .particle_dump import ParticleDump
 from .particle_energy import ParticleEnergy
 from .phase_space import PhaseSpace
@@ -26,6 +27,7 @@ AnyDiagnostic = (
     | NativeFieldDump
     | FieldEnergyMonitor
     | MacroParticleCount
+    | OpticalImaging
     | ParticleDump
     | ParticleEnergy
     | PhaseSpace
@@ -53,4 +55,6 @@ __all__ = [
     "TS",
     "Checkpoint",
     "Radiation",
+    "OpticalImaging",
+    "Shadowgraphy",
 ]

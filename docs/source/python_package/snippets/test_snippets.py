@@ -304,6 +304,43 @@ EXPECTED_FILES = {
             ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.dump 5"),
         ],
     },
+    "selected_topics/optical_imaging.py": {
+        "no_run": True,
+        "files": [
+            "optical_imaging_setup/etc/picongpu/N.cfg",
+            "optical_imaging_setup/include/picongpu/param/shadowgraphy.param",
+        ],
+        "file_contains": [
+            # both instances render their own set of --shadowgraphy.* options
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.start 0"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.duration 600"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.file shadowgram"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.finalOutput true"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.start 200"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.duration 400"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.file shadowgram_back"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.fourierOutput true"),
+            # the compile-time params and the rendered mask functions
+            ("optical_imaging_setup/include/picongpu/param/shadowgraphy.param", "constexpr unsigned int tRes = 2;"),
+            ("optical_imaging_setup/include/picongpu/param/shadowgraphy.param", "positionWf"),
+            ("optical_imaging_setup/include/picongpu/param/shadowgraphy.param", "pmacc::math::cos"),
+        ],
+    },
+    "selected_topics/optical_imaging_custom.py": {
+        "no_run": True,
+        "files": [
+            "optical_imaging_custom_setup/etc/picongpu/N.cfg",
+            "optical_imaging_custom_setup/include/picongpu/param/shadowgraphy.param",
+        ],
+        "file_contains": [
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.start 200"),
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.duration 400"),
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.focusPos 0.001"),
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.fourierOutput true"),
+            # the constant user masks render as plain `1.0` returns
+            ("optical_imaging_custom_setup/include/picongpu/param/shadowgraphy.param", "return 1.0;"),
+        ],
+    },
     "selected_topics/checkpoint.py": {
         "no_run": True,
         "files": [

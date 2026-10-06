@@ -17,6 +17,16 @@ External Dependencies
 The plugin is available as soon as the :ref:`FFWT3 <install-dependencies>` is compiled in.
 
 
+PICMI
+^^^^^
+The plugin is available from the Python frontend as the
+:ref:`optical-imaging diagnostic <optical-imaging>`: the general
+``picongpu.picmi.diagnostics.OpticalImaging`` class exposes the full
+configuration surface, and ``Shadowgraphy`` is a ready-made preset that fills
+in the Tukey windows and the numerical-aperture band-pass mask. See the
+:ref:`optical-imaging` page for the Python API and examples.
+
+
 Usage
 ^^^^^
 ========================================= ==============================================================================================================================
@@ -32,6 +42,8 @@ Command line option                       Description
 ``--shadowgraphy.file``                   Output file prefix for openPMD output.          
 ``--shadowgraphy.ext``                    Backend for openPMD output.
 ``--shadowgraphy.fourierOutput``          If enabled, the fields will also be stored on disk in in ``(x, y, \omega)`` Fourier space in an openPMD file.
+``--shadowgraphy.intermediateOutput``     If enabled, the intermediate ``(k_x, k_y, \omega)`` Fourier fields are stored on disk.
+``--shadowgraphy.finalOutput``            If enabled, the Fourier propagator is run and the final shadowgram is written.
 ========================================= ==============================================================================================================================
 
 .. note::

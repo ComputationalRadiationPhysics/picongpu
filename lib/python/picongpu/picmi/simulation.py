@@ -31,6 +31,7 @@ from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
 from picongpu.picmi.applied_field import AnyAppliedField, combine_applied_fields
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
+from picongpu.picmi.diagnostics.optical_imaging import OpticalImaging
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
@@ -597,6 +598,13 @@ class Simulation(picmistandard.PICMI_Simulation):
             for laser in self.lasers:
                 if (validate := getattr(laser, "validate_entry_faces", None)) is not None:
                     validate(2)
+            optical_imaging = [d for d in self.diagnostics if isinstance(d, OpticalImaging)]
+            if optical_imaging:
+                raise ValueError(
+                    "An OpticalImaging/Shadowgraphy diagnostic requires a 3D simulation (it extracts a slice in "
+                    "the z direction), but you configured a 2D grid. "
+                    f"You gave {len(optical_imaging)} such diagnostic(s) on a 2D grid."
+                )
             for diagnostic in filter(lambda d: isinstance(d, PhaseSpace), self.diagnostics):
                 if diagnostic.spatial_coordinate == "z":
                     raise ValueError(
