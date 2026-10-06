@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+import math
 from collections.abc import Iterable
 from typing import Annotated, Literal
 
@@ -12,12 +13,18 @@ from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, PlainSer
 
 from .rendering import RenderedObject
 
+DEFAULT_THICKNESS = 12
+"""Default per-side absorber thickness in cells, the C++ ``THICKNESS`` convenience constant."""
+
+DEFAULT_STRENGTH = 1e-3
+"""Default exponential absorber strength, mirroring ``exponential::STRENGTH`` in the static C++ file."""
+
 
 def _validate_absorber_matrix(values, *, field: str):
     """
     Validate a per-axis x per-boundary ``[3][2]`` matrix, mirroring ``NUM_CELLS`` / ``exponential::STRENGTH``.
 
-    Every entry must be present and greater than or equal to 0.
+    Every entry must be present and a finite value greater than or equal to 0.
     """
     try:
         flattened = [values[axis][boundary] for axis in range(3) for boundary in range(2)]
@@ -25,6 +32,8 @@ def _validate_absorber_matrix(values, *, field: str):
         raise ValueError(f"{field=} must have shape [3][2], but got {values=}.") from error
     if wrong := [x for x in flattened if x < 0]:
         raise ValueError(f"{field=} contains negative values {wrong=}, which is not allowed.")
+    if non_finite := [x for x in flattened if not math.isfinite(x)]:
+        raise ValueError(f"{field=} contains non-finite values {non_finite=}, which is not allowed.")
     return values
 
 
@@ -108,16 +117,16 @@ class FieldAbsorber(RenderedObject, BaseModel):
     kind: Literal["pml", "exponential"] = "pml"
     """absorber kind, selects the ``--fieldAbsorber`` command line value"""
 
-    thickness_default: int = Field(default=12, ge=0)
+    thickness_default: int = Field(default=DEFAULT_THICKNESS, ge=0)
     """C++ ``THICKNESS`` convenience constant: the default per-side thickness in cells"""
 
     thickness: _int_matrix = Field(
-        default_factory=lambda: ((12, 12), (12, 12), (12, 12)),
+        default_factory=lambda: ((DEFAULT_THICKNESS, DEFAULT_THICKNESS),) * 3,
     )
     """thickness of the absorbing layer in cells, ``NUM_CELLS[3][2]`` (axis x/y/z, boundary negative/positive)"""
 
     strength: _float_matrix = Field(
-        default_factory=lambda: ((1e-3, 1e-3), (1e-3, 1e-3), (1e-3, 1e-3)),
+        default_factory=lambda: ((DEFAULT_STRENGTH, DEFAULT_STRENGTH),) * 3,
     )
     """strength of the exponential absorber, ``exponential::STRENGTH[3][2]`` (axis x/y/z, boundary negative/positive)"""
 

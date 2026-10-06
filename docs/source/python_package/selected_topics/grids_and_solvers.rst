@@ -117,8 +117,10 @@ For the exponential absorber the strength is exposed per axis and direction via
 Validation
 """"""""""
 
-* An explicitly configured absorber that does not fit into the domain is a hard
-  error (increase ``number_of_cells`` or reduce the depth).
+* An explicitly configured depth (``pml_cells`` or ``picongpu_pml_cells``) that
+  does not fit into the domain is a hard error (increase ``number_of_cells`` or
+  reduce the depth). Selecting only a profile or a strength is not a depth
+  choice and is not subject to this check.
 * A depth on a periodic axis is ignored (with a warning), and on an all-periodic
   grid the C++ core disables the absorber entirely (with a warning).
 

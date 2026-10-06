@@ -55,6 +55,15 @@ def test_validation_negative_strength():
         FieldAbsorber(strength=((0.5, -0.1), (1e-3, 1e-3), (1e-3, 1e-3)))
 
 
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+def test_validation_non_finite_strength(bad):
+    """non-finite strengths must be rejected at validation, not crash at render"""
+    with pytest.raises(ValidationError):
+        FieldAbsorber(strength=((bad, 1e-3), (1e-3, 1e-3), (1e-3, 1e-3)))
+    with pytest.raises(ValidationError):
+        FieldAbsorber(strength=((1e-3, 1e-3), (1e-3, 1e-3), (bad, 1e-3)))
+
+
 def test_validation_wrong_shape():
     with pytest.raises(ValidationError):
         FieldAbsorber(thickness=((12, 12), (12, 12)))

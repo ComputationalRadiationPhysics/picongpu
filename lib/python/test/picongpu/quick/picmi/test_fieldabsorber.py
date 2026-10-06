@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import tempfile
+import warnings
 from pathlib import Path
 
 import pytest
@@ -69,10 +70,14 @@ def test_per_direction_depth_extension():
 
 def test_exponential_strength_extension():
     """the picongpu_exponential_strength extension exposes exponential::STRENGTH"""
-    absorber = _grid(
-        picongpu_absorber_kind="exponential",
-        picongpu_exponential_strength=[[1e-2, 2e-2], [1e-3, 1e-3], [1e-3, 2.5e-3]],
-    ).get_as_pypicongpu().field_absorber
+    absorber = (
+        _grid(
+            picongpu_absorber_kind="exponential",
+            picongpu_exponential_strength=[[1e-2, 2e-2], [1e-3, 1e-3], [1e-3, 2.5e-3]],
+        )
+        .get_as_pypicongpu()
+        .field_absorber
+    )
     assert absorber.strength == ((1e-2, 2e-2), (1e-3, 1e-3), (1e-3, 2.5e-3))
 
 
@@ -100,6 +105,51 @@ def test_domain_fit_error_per_direction():
     grid = _grid(number_of_cells=[80, 2048, 64], picongpu_pml_cells=[[0, 100], [12, 12], [12, 12]])
     with pytest.raises(ValueError, match=".*field absorber in x direction does not fit.*"):
         grid.get_as_pypicongpu()
+
+
+def test_profile_only_is_not_a_depth_choice():
+    """selecting only a profile (kind or strength) must not trigger the depth fit error"""
+    # small domain: the default depth of 12 per side would not fit
+    grid = _grid(number_of_cells=[16, 16, 16], picongpu_absorber_kind="exponential")
+    grid.get_as_pypicongpu()
+
+    grid = _grid(
+        number_of_cells=[16, 16, 16],
+        picongpu_exponential_strength=[[1e-3, 1e-3], [1e-3, 1e-3], [1e-3, 1e-3]],
+    )
+    grid.get_as_pypicongpu()
+
+
+def test_kind_only_does_not_warn_about_default_thickness_on_periodic_axis():
+    """picking a profile without a depth must not warn about the default thickness"""
+    grid = picmi.Cartesian3DGrid(
+        number_of_cells=[40, 40, 40],
+        lower_bound=[0, 0, 0],
+        upper_bound=[4e-5, 4e-5, 4e-5],
+        lower_boundary_conditions=["periodic", "open", "open"],
+        upper_boundary_conditions=["periodic", "open", "open"],
+        picongpu_absorber_kind="exponential",
+    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        grid.get_as_pypicongpu()
+
+
+def test_warning_points_at_caller():
+    """the periodic-axis warning must not point into the library internals"""
+    grid = picmi.Cartesian3DGrid(
+        number_of_cells=[40, 40, 40],
+        lower_bound=[0, 0, 0],
+        upper_bound=[4e-5, 4e-5, 4e-5],
+        lower_boundary_conditions=["periodic", "open", "open"],
+        upper_boundary_conditions=["periodic", "open", "open"],
+        pml_cells=[12, 12, 12],
+    )
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        grid.get_as_pypicongpu()
+    assert caught
+    assert caught[0].filename == __file__
 
 
 def test_periodic_axis_is_noop_warning():

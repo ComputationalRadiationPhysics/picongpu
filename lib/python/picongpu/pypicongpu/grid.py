@@ -113,6 +113,15 @@ def check_absorber_fits(cell_cnt, gpu_cnt, grid_dist, boundary_condition, field_
     and ``gpu_cnt`` are iterated over their length, so the same helper serves the
     2D and 3D grids (the absorber thickness is always the full ``[3][2]`` matrix,
     only the simulated axes are considered).
+
+    Note: the C++ check additionally relaxes the per-boundary requirement to
+    ``max(negative, positive)`` on both boundary devices of the y axis while a
+    moving window is active (``m_movingWindowEnabled && dim == 1``), i.e. it is
+    then *stricter* than this helper. ``Grid`` cannot see the ``Simulation``'s
+    moving-window setting, so we always use the per-direction requirement here and
+    can only *under*-report such a setup (never reject one C++ accepts). That is
+    acceptable: C++ would grow the domain while ``autoAdjustGrid`` is on, and the
+    hard error is reserved for an explicit depth per issue #124 answer 4.
     """
     for axis, condition in enumerate(boundary_condition):
         if condition == BoundaryCondition.PERIODIC:

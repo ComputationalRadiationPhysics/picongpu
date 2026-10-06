@@ -5,6 +5,7 @@ Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Julian Lenz
 License: GPLv3+
 """
 
+import inspect
 import warnings
 from typing import Annotated, Literal, Sequence
 import picmistandard
@@ -12,6 +13,22 @@ from pydantic import AfterValidator, BeforeValidator, Field, computed_field, mod
 
 from ..pypicongpu import fieldabsorber, grid, util
 from .copy_attributes import converts_to
+
+
+def _warn_user(message: str) -> None:
+    """Emit a ``UserWarning`` attributed to the first frame outside the picongpu package.
+
+    The validation runs from several entry points (``check()`` and the
+    ``get_as_pypicongpu()`` preamble) with different call depths, so a fixed
+    ``stacklevel`` would either point into pydantic internals or stay inside this
+    package. Walking out of the package attributes the warning to the caller.
+    """
+    stacklevel = 1
+    frame = inspect.currentframe()
+    while frame is not None and (frame.f_globals.get("__package__") or "").startswith("picongpu"):
+        frame = frame.f_back
+        stacklevel += 1
+    warnings.warn(message, stacklevel=stacklevel)
 
 
 def _normalise_type(kw, key, t):
@@ -134,7 +151,7 @@ def _absorber_thickness_and_strength(self, n_axes: int) -> tuple[tuple, tuple]:
             "please use only one of them."
         )
 
-    default = 12
+    default = fieldabsorber.DEFAULT_THICKNESS
     thickness = [[default, default] for _ in range(3)]
     if self.pml_cells is not None:
         cells = list(self.pml_cells)
@@ -161,7 +178,7 @@ def _absorber_thickness_and_strength(self, n_axes: int) -> tuple[tuple, tuple]:
                 _as_non_negative_int(pair[1], f"picongpu_pml_cells[{axis}][1] (positive)"),
             ]
 
-    default_strength = 1e-3
+    default_strength = fieldabsorber.DEFAULT_STRENGTH
     strength = [[default_strength, default_strength] for _ in range(3)]
     if self.picongpu_exponential_strength is not None:
         pairs = list(self.picongpu_exponential_strength)
@@ -199,41 +216,47 @@ def _check_field_absorber(self, dim_name):
     """Validate the absorber knobs and warn about no-op configurations on periodic axes."""
     n_axes = len(dim_name)
     thickness, _ = _absorber_thickness_and_strength(self, n_axes)
-    explicitly_configured = (
-        self.pml_cells is not None
-        or self.picongpu_pml_cells is not None
+    depth_configured = self.pml_cells is not None or self.picongpu_pml_cells is not None
+    absorber_configured = (
+        depth_configured
         or self.picongpu_exponential_strength is not None
         or "picongpu_absorber_kind" in self.model_fields_set
     )
-    if not explicitly_configured:
+    if not absorber_configured:
         return
 
-    # A hard domain-fit error only for an *explicitly configured* absorber. The
+    # A hard domain-fit error only for an *explicitly configured depth*. The
     # unconfigured default (12 cells per side, as in the static C++
     # fieldAbsorber.param) is subject to the C++ DomainAdjuster, which rounds the
     # local domain up at runtime; rejecting such grids here would break setups
-    # that never asked for a custom absorber (and, as in C++, still run).
-    grid.check_absorber_fits(
-        self.number_of_cells,
-        self.picongpu_n_gpus,
-        self.picongpu_grid_dist,
-        tuple(PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID[c] for c in self.lower_boundary_conditions),
-        _build_field_absorber(self, n_axes),
-    )
+    # that never asked for a custom absorber (and, as in C++, still run). Picking
+    # only a profile/kind or a strength is not a depth choice and must not be
+    # rejected for a depth the user never set.
+    if depth_configured:
+        grid.check_absorber_fits(
+            self.number_of_cells,
+            self.picongpu_n_gpus,
+            self.picongpu_grid_dist,
+            tuple(PICONGPU_BOUNDARY_CONDITION_BY_PICMI_ID[c] for c in self.lower_boundary_conditions),
+            _build_field_absorber(self, n_axes),
+        )
 
     periodic_axes = [axis for axis in range(n_axes) if self.lower_boundary_conditions[axis] == "periodic"]
     if len(periodic_axes) == n_axes:
-        warnings.warn(
+        _warn_user(
             "All boundaries are periodic; PIConGPU forces the field absorber kind to None, "
             "so the configured absorber has no effect."
         )
         return
-    for axis in periodic_axes:
-        if any(thickness[axis]):
-            warnings.warn(
-                f"The field absorber thickness on the periodic {dim_name[axis]} axis is ignored "
-                "(PIConGPU applies no absorber there)."
-            )
+    # Only an explicitly configured depth can be a no-op on a periodic axis; the
+    # default depth is not a configuration and must not warn.
+    if depth_configured:
+        for axis in periodic_axes:
+            if any(thickness[axis]):
+                _warn_user(
+                    f"The field absorber thickness on the periodic {dim_name[axis]} axis is ignored "
+                    "(PIConGPU applies no absorber there)."
+                )
 
 
 def _check_lower_bound_is_zero(self):
