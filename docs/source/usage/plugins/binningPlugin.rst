@@ -344,6 +344,9 @@ Defines the number of notify steps to reduce over. Note that this is not a reduc
 For example a value of 10 means that after every 10 notifies, an reduced file will be written out.
 If PIConGPU exits before executing 10 notifies, then there will be no output.
 The plugin dumps on every notify if this is set to either 0 or 1. This is the default behaviour.
+The number of contributed notifies (the accumulation width) is exposed in the PICMI frontend as the
+``accumulation_period`` argument of ``picongpu.picmi.diagnostics.Binning``; the name reflects that it is the
+period over which the (possibly averaged) output is accumulated, not a period in simulation steps.
 
 
 Binning Particles Leaving the Simulation Volume

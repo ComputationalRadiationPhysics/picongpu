@@ -5,33 +5,19 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from enum import Enum, EnumMeta
-from math import ceil
+from enum import StrEnum
+from math import ceil, floor
 
 from ...pypicongpu.output import TimeStepSpec as PyPIConGPUTimeStepSpec
 
 
-class CustomStrEnumMeta(EnumMeta):
-    """
-    This class provides some functionality of 3.12 StrEnum,
-    namely its __contains__() method.
-
-    You can safely remove this and inherit directly from StrEnum
-    once we switched to 3.12.
-    """
-
-    def __contains__(cls, val):
-        try:
-            cls(val)
-        except ValueError:
-            return False
-        else:
-            return True
-
-
-class TimeStepUnits(Enum, metaclass=CustomStrEnumMeta):
+class TimeStepUnits(StrEnum):
     """
     Units allowed in TimeStepSpec.
+
+    This is a plain :class:`enum.StrEnum` (Python >= 3.11), so the former
+    custom metaclass that emulated ``StrEnum`` on older Python versions is
+    gone. Unit names are still accepted case-insensitively via ``_missing_``.
     """
 
     STEPS = "steps"
@@ -46,6 +32,41 @@ class TimeStepUnits(Enum, metaclass=CustomStrEnumMeta):
         raise ValueError(f"Unknown time step unit. You gave {value}.")
 
 
+class TimeStepShift:
+    """
+    A pending shift of a :class:`TimeStepSpec` by ``amount`` units.
+
+    Instances are produced by multiplying one of the unit accessors of
+    :class:`TimeStepSpec`, for instance ``10 * TimeStepSpec.steps`` or
+    ``2.e-6 * TimeStepSpec.seconds``, and are added to a ``TimeStepSpec``.
+    The shift is deliberately *not* resolved at creation time: a shift may be
+    given in seconds while the simulation time step size is only known at
+    translation time, so it is stored on the spec and applied in
+    :meth:`TimeStepSpec.get_as_pypicongpu`.
+    """
+
+    def __init__(self, amount, unit):
+        self.amount = amount
+        self.unit = TimeStepUnits(unit)
+
+    def __rmul__(self, factor):
+        return TimeStepShift(self.amount * factor, self.unit)
+
+    def __mul__(self, factor):
+        return TimeStepShift(self.amount * factor, self.unit)
+
+    def __eq__(self, other):
+        if not isinstance(other, TimeStepShift):
+            return NotImplemented
+        return self.amount == other.amount and self.unit == other.unit
+
+    def __hash__(self):
+        return hash((self.amount, self.unit))
+
+    def __repr__(self):
+        return f"TimeStepShift({self.amount!r}, {self.unit.value!r})"
+
+
 # The following might look slightly convoluted but is preferred over the more obvious use of `__class_getitem__`.
 # This is because the latter is supposed to return a GenericAlias which is not what we want.
 # That would be like list[int].
@@ -56,7 +77,7 @@ class TimeStepUnits(Enum, metaclass=CustomStrEnumMeta):
 
 class _TimeStepSpecMeta(type):
     """
-    Custom metaclass providing the [] operator on its children.
+    Custom metaclass providing the [] operator and the unit accessors on its children.
     """
 
     # Provide this to have a nice syntax picmi.diagnostics.TimeStepSpec[10:200:5, 3, 7, 11, 17]
@@ -64,6 +85,26 @@ class _TimeStepSpecMeta(type):
         if not isinstance(args, tuple):
             args = (args,)
         return cls(*args)
+
+    @property
+    def steps(cls):
+        """
+        Unit accessor for a shift measured in simulation steps.
+
+        ``10 * TimeStepSpec.steps`` is a shift by ten steps, to be added to a
+        :class:`TimeStepSpec`.
+        """
+        return TimeStepShift(1, TimeStepUnits.STEPS)
+
+    @property
+    def seconds(cls):
+        """
+        Unit accessor for a shift measured in physical time.
+
+        ``2.e-6 * TimeStepSpec.seconds`` is a shift by two microseconds, to be
+        added to a :class:`TimeStepSpec`.
+        """
+        return TimeStepShift(1, TimeStepUnits.SECONDS)
 
 
 class TimeStepSpec(metaclass=_TimeStepSpecMeta):
@@ -101,20 +142,42 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
     never be clipped. The time step is always rounded down to the next available multiple of the time
     step size, such that for long and sparsely sampled intervals distortions may occur.
 
+    A whole specification (or any of its parts) may additionally be shifted by a number of
+    steps or a physical time via the unit accessors `TimeStepSpec.steps` and
+    `TimeStepSpec.seconds`, for instance
+
+        ts = (TimeStepSpec[::1]("steps") + 10 * TimeStepSpec.steps) + (
+            TimeStepSpec[::1.e-5] + 2.e-6 * TimeStepSpec.seconds
+        )
+
+    The shift is applied to every `start`/`stop` of the specification while leaving the
+    `step` untouched; open ends stay open. Shifts are resolved during the translation to
+    the backend (in `get_as_pypicongpu`), where the simulation time step size is known, so
+    a shift may be written in seconds even for a spec that will only be scaled later. An
+    unqualified spec adopts the unit of the first shift applied to it, so the example above
+    yields a steps-unit spec shifted by ten steps unioned with a seconds-unit spec shifted
+    by two microseconds.
+
     An extensive list of tests is available in the corresponding directory, mapping the syntax to
     concrete index sets. The reader is encouraged to look for clarification there.
     """
 
     unit_system = None
 
-    def __init__(self, *args, specs_in_seconds=tuple()):
+    def __init__(self, *args, specs_in_seconds=tuple(), shifts=tuple(), shifts_in_seconds=tuple()):
         self.specs = tuple()
         self.specs_in_seconds = tuple()
+        self.shifts = tuple()
+        self.shifts_in_seconds = tuple()
 
         # allow copy initialisation from another TimeStepSpec.
         if len(args) == 1 and isinstance(args[0], TimeStepSpec):
-            self.specs = args[0].specs
-            self.specs_in_seconds = args[0].specs_in_seconds
+            other = args[0]
+            self.specs = other.specs
+            self.specs_in_seconds = other.specs_in_seconds
+            self.shifts = other.shifts
+            self.shifts_in_seconds = other.shifts_in_seconds
+            self.unit_system = other.unit_system
             return
 
         self.specs = tuple(
@@ -128,22 +191,37 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
             for spec in args
         )
         self.specs_in_seconds = tuple(specs_in_seconds)
+        # `shifts` holds one (possibly empty) tuple of pending shifts per spec,
+        # so a shift stays attached to the part it was added to when two specs
+        # are unioned via `+`.
+        self.shifts = tuple(shifts) if shifts else (tuple(),) * len(self.specs)
+        self.shifts_in_seconds = (
+            tuple(shifts_in_seconds) if shifts_in_seconds else (tuple(),) * len(self.specs_in_seconds)
+        )
 
     def __call__(self, unit_system="steps"):
-        if unit_system not in TimeStepUnits:
-            raise ValueError(f"Unknown unit in TimeStepSpec. You gave {unit_system} which is not in TimeStepUnits.")
-        if self.unit_system is not None and self.unit_system != unit_system:
+        try:
+            unit = TimeStepUnits(unit_system)
+        except ValueError:
+            raise ValueError(
+                f"Unknown unit in TimeStepSpec. You gave {unit_system} which is not in TimeStepUnits."
+            ) from None
+        if self.unit_system is not None and self.unit_system != unit.value:
             raise ValueError(
                 "Don't reset units on a TimeStepSpec. "
-                f"You've tried to set {unit_system} but it's already {self.unit_system}."
+                f"You've tried to set {unit.value} but it's already {self.unit_system}."
             )
-        self.unit_system = unit_system
-        if unit_system == "seconds":
-            self.specs_in_seconds = self.specs
+        self.unit_system = unit.value
+        if unit is TimeStepUnits.SECONDS:
+            self.specs_in_seconds = (*self.specs_in_seconds, *self.specs)
             self.specs = tuple()
+            self.shifts_in_seconds = (*self.shifts_in_seconds, *self.shifts)
+            self.shifts = tuple()
         return self
 
     def __add__(self, other):
+        if isinstance(other, TimeStepShift):
+            return self._with_shift(other)
         if not (isinstance(other, TimeStepSpec)):
             raise TypeError(f"unsupported operand type(s) for +: TimeStepSpec and {type(other)}")
         ts = TimeStepSpec(
@@ -151,11 +229,71 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
             *other.specs,
             specs_in_seconds=(*self.specs_in_seconds, *other.specs_in_seconds),
         )
+        ts.shifts = (*self.shifts, *other.shifts)
+        ts.shifts_in_seconds = (*self.shifts_in_seconds, *other.shifts_in_seconds)
         # The following guards against setting units on the result of the addition.
         # Otherwise one could specify time steps in "steps" unit, add that to
         # another TimeStepSpec and reset the units.
         ts.unit_system = "mixed"
         return ts
+
+    def __radd__(self, other):
+        return self + other
+
+    def _with_shift(self, shift):
+        ts = TimeStepSpec(self)
+        if ts.unit_system is None:
+            # An unqualified spec adopts the unit of the first shift applied to
+            # it, so `TS[::1.e-5] + 2.e-6*TS.seconds` is a seconds-unit spec.
+            if shift.unit is TimeStepUnits.SECONDS:
+                ts.specs_in_seconds = (*ts.specs_in_seconds, *ts.specs)
+                ts.specs = tuple()
+                ts.shifts_in_seconds = (*ts.shifts_in_seconds, *ts.shifts)
+                ts.shifts = tuple()
+            ts.unit_system = shift.unit.value
+        # Apply the shift to every part of the spec it was added to.
+        ts.shifts = tuple((*pending, shift) for pending in ts.shifts)
+        ts.shifts_in_seconds = tuple((*pending, shift) for pending in ts.shifts_in_seconds)
+        return ts
+
+    def _accumulate_shifts(self, shifts):
+        """
+        Split a tuple of pending shifts into a step offset and a seconds offset.
+
+        Keeping the two units apart avoids a lossy seconds round-trip: a shift
+        ``N * TimeStepSpec.steps`` on a seconds spec is applied directly to the
+        resulting integer steps instead of being converted to ``N * dt`` seconds
+        and back.
+        """
+        steps_offset = 0
+        seconds_offset = 0.0
+        for shift in shifts:
+            if shift.unit is TimeStepUnits.STEPS:
+                steps_offset += shift.amount
+            else:
+                seconds_offset += shift.amount
+        return steps_offset, seconds_offset
+
+    def _seconds_to_steps(self, seconds, time_step_size):
+        # Convert a shift in seconds into steps, flooring like the lower bound in
+        # `_transform_to_steps` so a shift does not silently move an index.
+        if seconds == 0:
+            return 0
+        if time_step_size <= 0:
+            raise ValueError(f"Time step size must be strictly positive. You gave {time_step_size}.")
+        return floor(seconds / time_step_size)
+
+    @staticmethod
+    def _shift_slice(spec, offset):
+        # Open ends: a `None` start means "from the beginning", so it moves with
+        # the shift; a `None` stop means "to the end" and must stay open.
+        if offset == 0:
+            return spec
+        return slice(
+            spec.start + offset if spec.start is not None else offset,
+            spec.stop + offset if spec.stop is not None else None,
+            spec.step,
+        )
 
     def _transform_to_steps(self, specs_in_seconds, time_step_size):
         if time_step_size <= 0:
@@ -191,13 +329,30 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
         Creates the corresponding pypicongpu object by translating every specification
         into non-negative (except for -1) slices in units of steps. It takes `time_step_size`
         and `num_steps` to compute this transformation.
+
+        Pending shifts (added via the `TimeStepSpec.steps` / `TimeStepSpec.seconds` accessors)
+        are resolved here as well, because this is the point where `time_step_size` -- and
+        hence the conversion between the two units -- is known. A shift in steps always moves
+        the resulting integer indices by exactly that many steps; a shift in seconds is
+        converted with the same rounding as the interval bounds.
         """
-        return PyPIConGPUTimeStepSpec(
-            [
-                self._interpret_negatives(self._interpret_nones(s), num_steps)
-                for s in self.specs + self._transform_to_steps(self.specs_in_seconds, time_step_size)
-            ]
-        )
+        if time_step_size <= 0:
+            raise ValueError(f"Time step size must be strictly positive. You gave {time_step_size}.")
+        specs = []
+        for spec, shifts in zip(self.specs, self.shifts):
+            steps_offset, seconds_offset = self._accumulate_shifts(shifts)
+            offset = steps_offset + self._seconds_to_steps(seconds_offset, time_step_size)
+            shifted = self._shift_slice(spec, offset)
+            specs.append(self._interpret_negatives(self._interpret_nones(shifted), num_steps))
+        for spec, shifts in zip(self.specs_in_seconds, self.shifts_in_seconds):
+            steps_offset, seconds_offset = self._accumulate_shifts(shifts)
+            shifted = self._shift_slice(spec, seconds_offset)
+            for converted in self._transform_to_steps((shifted,), time_step_size):
+                # apply a shift in steps directly to the integer index, so that it
+                # moves by exactly `steps_offset` steps regardless of `dt`
+                converted = self._shift_slice(converted, steps_offset)
+                specs.append(self._interpret_negatives(self._interpret_nones(converted), num_steps))
+        return PyPIConGPUTimeStepSpec(specs)
 
 
 # Shorthand for the class above, for the common case that a diagnostic period

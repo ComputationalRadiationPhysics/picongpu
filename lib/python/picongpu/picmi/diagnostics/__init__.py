@@ -16,7 +16,7 @@ from .particle_dump import ParticleDump
 from .particle_energy import ParticleEnergy
 from .phase_space import PhaseSpace
 from .radiation import Radiation
-from .timestepspec import TS, TimeStepSpec
+from .timestepspec import TS, TimeStepShift, TimeStepSpec, TimeStepUnits
 
 AnyDiagnostic = (
     Binning
@@ -48,6 +48,8 @@ __all__ = [
     "NativeFieldDump",
     "DerivedFieldDump",
     "TimeStepSpec",
+    "TimeStepUnits",
+    "TimeStepShift",
     "TS",
     "Checkpoint",
     "Radiation",

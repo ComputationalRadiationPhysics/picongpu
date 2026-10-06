@@ -32,7 +32,14 @@ Parameters:
 * ``period``:
   the :ref:`time steps <time-steps>` at which to notify
   (i.e. bin) the particles; the default is every step.
-* ``openPMDExt`` / ``openPMDInfix`` / ``openPMDBackendConfig`` / ``dumpPeriod``:
+  It may be :ref:`shifted <time-steps>` by a number of steps or by a
+  physical time, e.g. ``TS[::10] + 5*TS.steps`` for a phase-offset notify period.
+* ``accumulation_period``:
+  how many notify periods are accumulated (averaged) before a file is written.
+  The default is ``1``, i.e. write on every notify. A value of ``0`` also means
+  "write on every notify". This is the number of *notify* steps to reduce over,
+  not a number of simulation steps.
+* ``openPMDExt`` / ``openPMDInfix`` / ``openPMDBackendConfig``:
   the output format details;
   the output is written as openPMD to
   ``simOutput/binningOpenPMD/<name>_%06T.bp5`` by default.

@@ -70,7 +70,7 @@ class Binning(PICMI_Diagnostic):
     openPMDBackendConfig: OpenPMDBackendConfig | None = None
     openPMDExt: str | None = None
     openPMDInfix: str | None = None
-    dumpPeriod: int = 1
+    accumulation_period: int = 1
     particle_region: list[ParticleRegion] | set[ParticleRegion] | tuple[ParticleRegion, ...] = ["Bounded"]
 
     @field_validator("species", mode="before")
@@ -139,6 +139,6 @@ class Binning(PICMI_Diagnostic):
             openPMDBackendConfig=self.openPMDBackendConfig,
             openPMDExt=self.openPMDExt,
             openPMDInfix=self.openPMDInfix,
-            dumpPeriod=self.dumpPeriod,
+            accumulation_period=self.accumulation_period,
             particle_region=self.particle_region,
         )

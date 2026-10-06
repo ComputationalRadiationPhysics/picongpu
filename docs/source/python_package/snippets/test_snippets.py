@@ -196,6 +196,7 @@ EXPECTED_FILES = {
             "slice(49, None, None)",
             "slice(1e-15, 5e-15, 2e-16)",
             "combined unit system: mixed",
+            "shifted unit system: mixed",
             "It worked!",
         ],
     },
@@ -283,6 +284,8 @@ EXPECTED_FILES = {
             ("binning_setup/include/picongpu/param/binningSetup.param", "gammaDistribution"),
             ("binning_setup/include/picongpu/param/binningSetup.param", "addParticleBinner"),
             ("binning_setup/include/picongpu/param/binningSetup.param", 'setNotifyPeriod("0:-1:10")'),
+            # accumulation_period renders the C++ setDumpPeriod argument
+            ("binning_setup/include/picongpu/param/binningSetup.param", "setDumpPeriod(2)"),
             # the filtered-species binner renders the filter as a boolean functor
             ("binning_setup/include/picongpu/param/binningSetup.param", "fastGammaDistribution"),
             ("binning_setup/include/picongpu/param/binningSetup.param", "FilteredSpecies"),
