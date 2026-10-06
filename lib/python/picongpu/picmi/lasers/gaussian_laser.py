@@ -81,6 +81,11 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
         Positions of the Huygens surface inside the PML. Each entry is a
         pair [min, max] indices along x, y, z.
 
+    - picongpu_entry_faces : list[str], optional
+        Explicit per-laser list of Huygens faces to inject through (e.g.
+        ``["XMin", "ZMin"]``). If not given, all faces crossed by
+        ``propagation_direction`` are used. Z faces are rejected in 2D.
+
     - phi0 : float, optional
     Initial phase offset [rad].
 
@@ -92,6 +97,10 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
     picongpu_laguerre_modes: list[float] = Field(default_factory=lambda: [1.0])
     picongpu_laguerre_phases: list[float] = Field(default_factory=lambda: [0.0])
+    # Explicit per-laser selection of the Huygens faces this pulse is injected
+    # through. If left as None, all faces crossed by the propagation direction
+    # are used (see BaseLaser._entry_faces).
+    picongpu_entry_faces: list[str] | None = None
     # make sure to always place Huygens-surface inside PML-boundaries,
     # default is valid for standard PMLs
     # @todo create check for insufficient dimension

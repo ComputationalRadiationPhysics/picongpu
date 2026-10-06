@@ -387,6 +387,18 @@ EXPECTED_FILES = {
             "It worked!",
         ],
     },
+    "selected_topics/laser_multi_face.py": {
+        "no_run": True,
+        "files": [
+            "laser_multi_face_setup/include/picongpu/param/incidentField.param",
+            "laser_multi_face_subset_setup/include/picongpu/param/incidentField.param",
+        ],
+        "stdout_contains": [
+            "default: one pulse injected through ['XMin', 'ZMin']",
+            "override: one pulse injected through ['XMin']",
+            "It worked!",
+        ],
+    },
     "selected_topics/simulation_settings.py": {
         "no_run": True,
         "files": [

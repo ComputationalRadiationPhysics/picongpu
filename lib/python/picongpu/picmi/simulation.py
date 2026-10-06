@@ -590,6 +590,13 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError("runtime not specified (neither as step count nor max time)")
         if isinstance(self.solver.grid, Cartesian2DGrid):
             # 2D3V: there is no spatial z coordinate (momentum still has all three components).
+            # A Huygens surface cannot be placed on a Z face either (answer 5 of
+            # https://github.com/chillenzer-agents/picongpu/issues/180). Only
+            # standard lasers carry an entry-face selection (TWTS and
+            # fromOpenPMDPulse keep their dedicated placement).
+            for laser in self.lasers:
+                if (validate := getattr(laser, "validate_entry_faces", None)) is not None:
+                    validate(2)
             for diagnostic in filter(lambda d: isinstance(d, PhaseSpace), self.diagnostics):
                 if diagnostic.spatial_coordinate == "z":
                     raise ValueError(

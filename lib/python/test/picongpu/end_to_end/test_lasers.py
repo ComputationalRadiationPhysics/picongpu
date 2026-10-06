@@ -346,3 +346,123 @@ class TestLasers(TestCase):
                 atol=0.1 * scale,
                 err_msg=f"Simulated and analytic laser E field disagree at iteration {it}.",
             )
+
+
+# ---------------------------------------------------------------------------
+# One physical pulse injected from multiple Huygens faces
+# (https://github.com/chillenzer-agents/picongpu/issues/180)
+# ---------------------------------------------------------------------------
+#
+# An obliquely incident pulse whose propagation direction has non-zero x and z
+# components crosses both the XMin and the ZMin face. The frontend injects the
+# *same* profile under both face guards, so inside the box the field must equal
+# the single analytic contribution of that one pulse -- not a sum of two
+# independent pulses. This is the acceptance criterion agreed in the issue.
+
+MULTIFACE_PROPAGATION = np.array([0.5, 0.0, np.sqrt(3.0) / 2.0])
+MULTIFACE_FOCAL_POSITION = FOCAL_POSITION + np.array([0.0, -1.0e-5, 0.0])
+# enough distance from the focus that the centroid is outside the box on both
+# the x- and the z-entry side, along the (negative) propagation direction:
+MULTIFACE_CENTROID_POSITION = MULTIFACE_FOCAL_POSITION - 9.0e-5 * MULTIFACE_PROPAGATION
+
+MULTIFACE_LASER = GaussianLaser(
+    wavelength=0.8e-6,
+    waist=5.0e-6 / 1.17741,
+    duration=LASER_DURATION,
+    propagation_direction=MULTIFACE_PROPAGATION.tolist(),
+    polarization_direction=[0.0, 1.0, 0.0],
+    focal_position=MULTIFACE_FOCAL_POSITION.tolist(),
+    centroid_position=MULTIFACE_CENTROID_POSITION.tolist(),
+    picongpu_polarization_type=PolarizationType.LINEAR,
+    a0=8.0,
+    phi0=0.0,
+)
+
+MULTIFACE_LASERS = [MULTIFACE_LASER]
+
+MULTIFACE_SIM = None
+
+
+def setup_multiface_sim():
+    sim = basic_simulation()
+    sim.add_laser(MULTIFACE_LASER, None)
+    sim.diagnostics = [Checkpoint(period=TimeStepSpec[::100])]
+    if RUN_DIR:
+        sim.picongpu_get_runner().run_dir = str(RUN_DIR)
+    else:
+        sim.step(STEPS)
+    return sim
+
+
+class TestMultiFaceLaser(TestCase):
+    """A single pulse injected through both its crossed faces (XMin and ZMin).
+
+    The interior field is compared against the *single* analytic field of the one
+    physical pulse, injected twice: the two Huygens contributions describe the
+    same wavefront, so they must not add up to twice the field.
+    """
+
+    _result_path = None
+
+    def setUp(self):
+        global MULTIFACE_SIM
+        assert MULTIFACE_LASER.picongpu_entry_faces is None
+        assert MULTIFACE_LASER.entry_faces == ["XMin", "ZMin"]
+        if MULTIFACE_SIM is None:
+            MULTIFACE_SIM = setup_multiface_sim()
+        self.sim = MULTIFACE_SIM
+        gather_results(self.result_path)
+        self.coordinates = np.transpose(
+            np.meshgrid(
+                *(
+                    np.linspace(low, up, n, endpoint=False)
+                    for low, up, n in zip(LOWER_BOUNDARY, UPPER_BOUNDARY, NUMBER_OF_CELLS)
+                )
+            ),
+            (0, 2, 1, 3),
+        )
+        self.checkpoint_steps = _indices(
+            self.sim.diagnostics[0].period.get_as_pypicongpu(self.sim.time_step_size, self.sim.max_steps)
+        )
+
+    @property
+    def result_path(self):
+        if self._result_path is None:
+            self._result_path = Path(self.sim.picongpu_get_runner().run_dir)
+        return self._result_path
+
+    @property
+    def checkpoint_pattern(self):
+        return self.result_path / "simOutput" / "checkpoints" / "checkpoint_%T.bp5"
+
+    def test_multiface_incident_field_is_single_pulse(self):
+        interior = _huygens_interior_mask(MULTIFACE_LASERS, CELL_SIZE, NUMBER_OF_CELLS)
+        compared_any = False
+        for it in self.checkpoint_steps:
+            time = it * self.sim.time_step_size
+            # one analytic contribution for the one physical pulse:
+            expected = _expected_E_field(self.coordinates, MULTIFACE_LASERS, time, CELL_SIZE, NUMBER_OF_CELLS)
+            fields = read_fields(self.checkpoint_pattern, iteration=it)
+            if it == self.checkpoint_steps[0]:
+                self.assertLess(
+                    np.abs(fields["E"]).max(),
+                    1.0e-3 * np.abs(expected).max(),
+                    f"Laser field present before the pulse has arrived (iteration {it}).",
+                )
+                continue
+            region = interior & _strong_field_mask(expected)
+            if not region.any():
+                continue
+            compared_any = True
+            scale = np.abs(expected[:, region]).max()
+            np.testing.assert_allclose(
+                fields["E"][:, region],
+                expected[:, region],
+                rtol=0.15,
+                atol=0.15 * scale,
+                err_msg=(
+                    f"Multi-face (XMin+ZMin) injected field does not match the single analytic pulse "
+                    f"at iteration {it}; the two Huygens faces must describe one wavefront, not two pulses."
+                ),
+            )
+        self.assertTrue(compared_any, "No iteration had a strong enough field to compare.")

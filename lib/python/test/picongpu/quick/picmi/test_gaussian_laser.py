@@ -127,28 +127,28 @@ class TestPicmiGaussianLaser(TestCase):
         assert picmi_laser.get_as_pypicongpu().focus_pos_si[2] == -5
 
     def test_values_propagation_direction(self):
-        """standard lasers may enter through any coordinate face; the entry face is the
-        one whose normal is the dominant propagation-direction component, and the
-        centroid must be outside the box on that entry side."""
+        """standard lasers may enter through any coordinate face; by default they are
+        injected through *all* faces crossed by the propagation direction, and the
+        centroid must be outside the box on each entry side."""
 
-        # (propagation_direction, centroid_position, focal_position, expected entry face)
+        # (propagation_direction, centroid_position, focal_position, expected entry faces)
         valid_cases = [
-            ([0, 1, 0], [0.5, -1, 0.5], [0.5, 2, 0.5], "YMin"),
-            ([0, -1, 0], [0.5, 1, 0.5], [0.5, 2, 0.5], "YMax"),
-            ([1, 0, 0], [-1, 0.5, 0.5], [2, 0.5, 0.5], "XMin"),
-            ([-1, 0, 0], [1, 0.5, 0.5], [2, 0.5, 0.5], "XMax"),
-            ([0, 0, 1], [0.5, 0.5, -1], [0.5, 0.5, 2], "ZMin"),
-            ([0, 0, -1], [0.5, 0.5, 1], [0.5, 0.5, 2], "ZMax"),
-            # non-axis direction with a clear dominant (+y) component
+            ([0, 1, 0], [0.5, -1, 0.5], [0.5, 2, 0.5], ["YMin"]),
+            ([0, -1, 0], [0.5, 1, 0.5], [0.5, 2, 0.5], ["YMax"]),
+            ([1, 0, 0], [-1, 0.5, 0.5], [2, 0.5, 0.5], ["XMin"]),
+            ([-1, 0, 0], [1, 0.5, 0.5], [2, 0.5, 0.5], ["XMax"]),
+            ([0, 0, 1], [0.5, 0.5, -1], [0.5, 0.5, 2], ["ZMin"]),
+            ([0, 0, -1], [0.5, 0.5, 1], [0.5, 0.5, 2], ["ZMax"]),
+            # non-axis direction: every non-zero component contributes its crossed face
             (
                 (np.array([1, 3, 1]) / sqrt(11)).tolist(),
                 (np.array([-2, -6, -2]) / sqrt(11)).tolist(),
                 [0, 0, 0],
-                "YMin",
+                ["XMin", "YMin", "ZMin"],
             ),
         ]
 
-        for propagation_direction, centroid, focal, expected_face in valid_cases:
+        for propagation_direction, centroid, focal, expected_faces in valid_cases:
             laser = GaussianLaser(
                 wavelength=1,
                 waist=2,
@@ -159,7 +159,7 @@ class TestPicmiGaussianLaser(TestCase):
                 polarization_direction=[1, 0, 0],
                 E0=1,
             )
-            self.assertEqual(laser.get_as_pypicongpu().entry_face, expected_face)
+            self.assertEqual(laser.get_as_pypicongpu().entry_faces, expected_faces)
 
         # invalid propagation directions: unnormalized, zero, or centroid not outside
         # the box on the entry side.
@@ -501,7 +501,7 @@ def test_entry_face_plus_y_regression():
         a0=1.0,
     )
     pypic = laser.get_as_pypicongpu()
-    assert pypic.entry_face == "YMin"
+    assert pypic.entry_faces == ["YMin"]
     # legacy +y formula, in units of PULSE_DURATION (= duration / 2):
     expected = -2.0 * laser.centroid_position[1] / c / _pulse_duration(laser.duration)
     assert abs(pypic.pulse_init - expected) < 1e-9
@@ -521,12 +521,148 @@ def test_entry_face_plus_z_and_pulse_init():
         a0=1.0,
     )
     pypic = laser.get_as_pypicongpu()
-    assert pypic.entry_face == "ZMin"
+    assert pypic.entry_faces == ["ZMin"]
     # generalized formula: -2 * dot(centroid, direction) / (c * PULSE_DURATION)
     expected = -2.0 * np.dot(laser.centroid_position, laser.propagation_direction) / c / _pulse_duration(laser.duration)
     assert abs(pypic.pulse_init - expected) < 1e-9
     assert pypic.pulse_init > 0.0
     assert _enabled_faces(_rendered_incident_field(laser)) == ["ZMin"]
+
+
+def test_oblique_laser_enables_all_crossed_faces():
+    """one oblique laser is injected through every crossed face (XMin and ZMin) (#180)."""
+    # direction (0.5, 0, sqrt(3)/2): crosses XMin and ZMin
+    propagation_direction = [0.5, 0.0, sqrt(3) / 2.0]
+    laser = GaussianLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.0, 0.0, 0.0],
+        # centroid outside the box on both entry sides (x < 0 and z < 0):
+        centroid_position=[-2.5e-6, 0.0, -4.330127018922193e-6],
+        propagation_direction=propagation_direction,
+        polarization_direction=[0, 1, 0],
+        a0=1.0,
+    )
+    pypic = laser.get_as_pypicongpu()
+    assert pypic.entry_faces == ["XMin", "ZMin"]
+
+    rendered = _rendered_incident_field(laser)
+    assert _enabled_faces(rendered) == ["XMin", "ZMin"]
+    # the *same* single profile is listed under both face guards
+    for face in ["XMin", "ZMin"]:
+        block = re.search(rf"using {face} = MakeSeq_t<(.*?)>;", rendered, re.DOTALL).group(1)
+        assert "LaserProfile_0" in block
+    # and under no other face
+    for face in ["XMax", "YMin", "YMax", "ZMax"]:
+        block = re.search(rf"using {face} = MakeSeq_t<(.*?)>;", rendered, re.DOTALL).group(1)
+        assert "LaserProfile_0" not in block
+
+
+def test_explicit_entry_faces_override_the_derived_set():
+    """an explicit per-laser face list overrides the all-crossed default, including subsets (#180)."""
+    propagation_direction = [0.5, 0.0, sqrt(3) / 2.0]
+    common = dict(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.0, 0.0, 0.0],
+        centroid_position=[-2.5e-6, 0.0, -4.330127018922193e-6],
+        propagation_direction=propagation_direction,
+        polarization_direction=[0, 1, 0],
+        a0=1.0,
+    )
+    # a strict subset of the crossed faces is allowed
+    subset = GaussianLaser(**common, picongpu_entry_faces=["XMin"])
+    assert subset.get_as_pypicongpu().entry_faces == ["XMin"]
+    assert _enabled_faces(_rendered_incident_field(subset)) == ["XMin"]
+
+    # an explicit list may even select a face the default would not (validated
+    # against the centroid, so the centroid must be outside on the selected side)
+    other = GaussianLaser(**common, picongpu_entry_faces=["YMax"])
+    assert other.get_as_pypicongpu().entry_faces == ["YMax"]
+
+
+def test_entry_faces_validation():
+    """unknown and duplicate faces are rejected at construction (#180)."""
+    common = dict(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.0, 0.0, 0.0],
+        centroid_position=[-2.5e-6, 0.0, -4.330127018922193e-6],
+        propagation_direction=[0.5, 0.0, sqrt(3) / 2.0],
+        polarization_direction=[0, 1, 0],
+        a0=1.0,
+    )
+    with pytest.raises(ValidationError, match="Unknown Huygens entry face"):
+        GaussianLaser(**common, picongpu_entry_faces=["XMin", "Middle"])
+    with pytest.raises(ValidationError, match="Duplicate Huygens entry face"):
+        GaussianLaser(**common, picongpu_entry_faces=["XMin", "XMin"])
+    # the empty selection has no face to inject through
+    with pytest.raises(ValidationError):
+        GaussianLaser(**common, picongpu_entry_faces=[])
+
+
+def test_2d_rejects_z_face_injection():
+    """2D simulation rejects injection through Z faces (#180, answer 5)."""
+    grid = picmi.Cartesian2DGrid(
+        number_of_cells=[128, 512],
+        lower_bound=[0, 0],
+        upper_bound=[17, 192],
+        lower_boundary_conditions=["periodic", "periodic"],
+        upper_boundary_conditions=["periodic", "periodic"],
+    )
+    solver = ElectromagneticSolver(method="Yee", grid=grid)
+
+    # an oblique direction crossing XMin and ZMin is invalid in 2D
+    laser = GaussianLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.0, 0.0, 0.0],
+        centroid_position=[-2.5e-6, 0.0, -4.330127018922193e-6],
+        propagation_direction=[0.5, 0.0, sqrt(3) / 2.0],
+        polarization_direction=[0, 1, 0],
+        a0=1.0,
+    )
+    sim = Simulation(time_step_size=1, max_steps=2, solver=solver)
+    sim.add_laser(laser, None)
+    with pytest.raises(Exception, match="Z face"):
+        sim.get_as_pypicongpu()
+
+    # explicitly selecting a Z face in 2D is rejected as well
+    laser_z = GaussianLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.0, 0.0, 0.0],
+        centroid_position=[-2.5e-6, 0.0, -4.330127018922193e-6],
+        propagation_direction=[0.5, 0.0, sqrt(3) / 2.0],
+        polarization_direction=[0, 1, 0],
+        a0=1.0,
+        picongpu_entry_faces=["ZMin"],
+    )
+    assert laser_z.get_as_pypicongpu().entry_faces == ["ZMin"]
+    sim_z = Simulation(time_step_size=1, max_steps=2, solver=solver)
+    sim_z.add_laser(laser_z, None)
+    with pytest.raises(Exception, match="Z face"):
+        sim_z.get_as_pypicongpu()
+
+    # an in-plane direction (XMin only) stays valid in 2D
+    laser_x = GaussianLaser(
+        wavelength=800e-9,
+        waist=12e-6,
+        duration=30e-15,
+        focal_position=[0.0, 0.0, 0.0],
+        centroid_position=[-5e-6, 0.0, 0.0],
+        propagation_direction=[1.0, 0.0, 0.0],
+        polarization_direction=[0, 1, 0],
+        a0=1.0,
+    )
+    sim_x = Simulation(time_step_size=1, max_steps=2, solver=solver)
+    sim_x.add_laser(laser_x, None)
+    assert sim_x.get_as_pypicongpu() is not None
 
 
 def test_twts_laser_entry_behavior_unchanged():
@@ -548,8 +684,8 @@ def test_twts_laser_entry_behavior_unchanged():
     )
     pypic = twts.get_as_pypicongpu()
     # the propagation direction is [0, cos(angle), sin(angle)] = +y for angle 0
-    assert pypic.entry_face == "YMin"
-    # TWTS now follows the Gaussian-family duration / 2 convention (PULSE_DURATION =
+    assert pypic.entry_faces == ["YMin"]
+    # TWTS follows the Gaussian-family duration / 2 convention (PULSE_DURATION =
     # sigma of the intensity), and for +y propagation the generalized pulse_init
     # reduces to the original expression.
     expected = -2.0 * twts.centroid_position[1] / c / twts._pulse_duration_sigma_si()

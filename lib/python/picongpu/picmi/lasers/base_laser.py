@@ -10,8 +10,9 @@ import math
 from typing import Annotated
 
 import numpy as np
-from pydantic import BeforeValidator
+from pydantic import BeforeValidator, computed_field
 
+from ...pypicongpu import laser as pypicongpu_laser
 from .. import constants
 
 PositiveFloat = Annotated[
@@ -78,34 +79,64 @@ class BaseLaser:
         """
         return self.duration
 
-    def _entry_axis(self) -> int:
-        """Axis index (0/1/2) of the dominant propagation-direction component.
+    def _entry_faces(self) -> list[str]:
+        """Coordinate faces this laser is injected through.
 
-        The laser enters the simulation box through the coordinate face whose normal
-        is this axis: a positive dominant component means entry from the ``Min`` face
-        (low side) and a negative one from the ``Max`` face (high side).
+        If the user gave the PIConGPU extension keyword
+        ``picongpu_entry_faces`` it is used verbatim (explicit per-laser list,
+        answer 1 of https://github.com/chillenzer-agents/picongpu/issues/180),
+        after checking the names and rejecting duplicates. Otherwise the default
+        is *all crossed faces*: for every non-zero propagation-direction
+        component ``d > 0`` the ``d``-Min face and for ``d < 0`` the ``d``-Max
+        face (answer 2). "Crossed" therefore means that the propagation direction
+        has a non-zero component pointing inward through that boundary. For the
+        oblique direction ``(0.5, 0, sqrt(3)/2)`` this is ``["XMin", "ZMin"]``.
 
-        The dominant component is ``argmax(abs(direction))``, which resolves exact
-        magnitude ties to the *first* axis in x, y, z order (no tolerance). A
-        genuinely-ambiguous 45° diagonal is therefore assigned to the lowest-index
-        tied axis by convention, not by physics; near-ties are decided by the larger
-        component and are unambiguous.
+        Z faces are not dropped here: a 2D simulation rejects a Z selection via
+        :meth:`validate_entry_faces` (answer 5), which is called by
+        :class:`~picongpu.picmi.Simulation` where the dimensionality is known.
         """
-        direction = np.asarray(self.propagation_direction, dtype=float)
-        axis = int(np.argmax(np.abs(direction)))
-        if direction[axis] == 0.0:
-            raise ValueError(
-                "The laser propagation direction has no dominant (largest-magnitude) "
-                "component, so the face through which it enters the simulation box "
-                f"cannot be determined. You gave {self.propagation_direction=}."
-            )
-        return axis
+        if (explicit := getattr(self, "picongpu_entry_faces", None)) is not None:
+            faces = list(explicit)
+            illegal = [face for face in faces if face not in pypicongpu_laser.ENTRY_FACES]
+            if illegal:
+                raise ValueError(
+                    f"Unknown Huygens entry face(s) {illegal}. "
+                    f"Valid faces are {list(pypicongpu_laser.ENTRY_FACES)}. You gave {explicit=}."
+                )
+            if len(set(faces)) != len(faces):
+                raise ValueError(f"Duplicate Huygens entry faces are not allowed. You gave {explicit=}.")
+            if not faces:
+                raise ValueError("At least one Huygens entry face must be selected.")
+        else:
+            faces = pypicongpu_laser.entry_faces_from_direction(self.propagation_direction)
+        return faces
 
-    def _entry_face(self) -> str:
-        """Name of the coordinate face the laser enters through (e.g. ``YMin``)."""
-        axis = self._entry_axis()
-        suffix = "Min" if self.propagation_direction[axis] > 0 else "Max"
-        return "xyz"[axis].upper() + suffix
+    def validate_entry_faces(self, dimension: int):
+        """Reject entry-face selections that are impossible in ``dimension`` dimensions.
+
+        A 2D (2D3V) simulation has no ``z`` coordinate and therefore no Z face to
+        inject through, so any selection containing ``ZMin``/``ZMax`` is invalid
+        (answer 5 of https://github.com/chillenzer-agents/picongpu/issues/180).
+        This is called by :class:`~picongpu.picmi.Simulation`, which knows the
+        grid's dimensionality during translation.
+        """
+        if dimension < 3:
+            faces = self._entry_faces()
+            z_faces = [face for face in faces if face.startswith("Z")]
+            if z_faces:
+                raise ValueError(
+                    "Injection through Z faces is not possible in a 2D simulation (there is no z coordinate). "
+                    f"The selected entry faces {faces} include {z_faces}. "
+                    "Choose a propagation direction without a z-component or set `picongpu_entry_faces` "
+                    "to a face subset that avoids ZMin/ZMax."
+                )
+
+    @computed_field
+    @property
+    def entry_faces(self) -> list[str]:
+        """The face list handed to the PyPIConGPU laser (see :meth:`_entry_faces`)."""
+        return self._entry_faces()
 
     def _focus_position_si(self) -> np.ndarray:
         """Focus position in SI, as used by the C++ ``FOCUS_POSITION_*_SI``.
@@ -196,16 +227,21 @@ class BaseLaser:
                 f"You gave {self.propagation_direction=} with norm {n}."
             )
 
-        axis = self._entry_axis()
-        entry_axis_name = "xyz"[axis]
-        if self.centroid_position[axis] * self.propagation_direction[axis] > 0.0:
-            raise ValueError(
-                "The laser maximum (centroid) must be located outside of the "
-                "simulation box on the entry side, otherwise it is impossible to "
-                "correctly initialize it using a huygens surface in the box. The "
-                f"laser enters through the {self._entry_face()} face, so the "
-                f"{entry_axis_name}-component of the centroid must not point along "
-                f"the propagation direction (centroid_{entry_axis_name} * "
-                f"direction_{entry_axis_name} <= 0). You gave "
-                f"{self.centroid_position=} and {self.propagation_direction=}."
-            )
+        # The centroid must lie outside the box on every entry side, so that the
+        # pulse has not yet reached the Huygens surface at t=0. For each selected
+        # face the corresponding centroid component must not point along the
+        # propagation direction (centroid_d * direction_d <= 0).
+        for face in self._entry_faces():
+            axis = "XYZ".index(face[0])
+            entry_axis_name = "xyz"[axis]
+            if self.centroid_position[axis] * self.propagation_direction[axis] > 0.0:
+                raise ValueError(
+                    "The laser maximum (centroid) must be located outside of the "
+                    "simulation box on each entry side, otherwise it is impossible to "
+                    "correctly initialize it using a huygens surface in the box. The "
+                    f"laser enters through the {face} face, so the "
+                    f"{entry_axis_name}-component of the centroid must not point along "
+                    f"the propagation direction (centroid_{entry_axis_name} * "
+                    f"direction_{entry_axis_name} <= 0). You gave "
+                    f"{self.centroid_position=} and {self.propagation_direction=}."
+                )

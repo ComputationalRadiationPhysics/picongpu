@@ -216,12 +216,13 @@ namespace picongpu::fields::incidentField
     {{/laser}}
 
 
-    // Each laser enters the box through a single coordinate face (the one whose
-    // normal is the dominant propagation-direction component, see entry_face).
-    // Standard lasers are placed on that face via the on_* flags below. TWTS
-    // keeps its dedicated two-plane behavior (always YMin, plus ZMin/ZMax chosen
-    // by the sign of the incidence angle). fromOpenPMDPulse has no entry-face
-    // flags, so it stays on YMin as before.
+    // A laser may enter the box through several coordinate faces at once: every
+    // face crossed by its propagation direction is driven by the same pulse
+    // profile, so one physical pulse enters across all of them (see entry_faces).
+    // Standard lasers are placed on exactly those faces via the on_* membership
+    // flags below. TWTS keeps its dedicated two-plane behavior (always YMin, plus
+    // ZMin/ZMax chosen by the sign of the incidence angle). fromOpenPMDPulse has
+    // no entry-face flags, so it stays on YMin as before.
     using YMin = MakeSeq_t<
     {{#laser}}
     {{#type_fromOpenPMDPulse}}
