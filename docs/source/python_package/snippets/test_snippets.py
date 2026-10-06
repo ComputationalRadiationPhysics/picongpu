@@ -338,6 +338,19 @@ EXPECTED_FILES = {
             ("grids_and_solvers_setup/etc/picongpu/N.cfg", 'TBG_gridSize="128 128 128"'),
         ],
     },
+    "selected_topics/grid_absorber.py": {
+        "no_run": True,
+        "files": [
+            "grid_absorber_setup/etc/picongpu/N.cfg",
+            "grid_absorber_setup/include/picongpu/param/fieldAbsorber.param",
+        ],
+        "file_contains": [
+            ("grid_absorber_setup/etc/picongpu/N.cfg", 'TBG_fieldAbsorber="--fieldAbsorber exponential"'),
+            ("grid_absorber_setup/include/picongpu/param/fieldAbsorber.param", "{16, 16}"),
+            ("grid_absorber_setup/include/picongpu/param/fieldAbsorber.param", "{THICKNESS, THICKNESS}"),
+            ("grid_absorber_setup/include/picongpu/param/fieldAbsorber.param", "constexpr float_X STRENGTH[3][2]"),
+        ],
+    },
     "selected_topics/lasers.py": {
         "no_run": True,
         "files": [

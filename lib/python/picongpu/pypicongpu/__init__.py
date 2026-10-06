@@ -2,7 +2,7 @@
 internal representation of params to generate PIConGPU input files
 """
 
-from . import backgroundfield, customuserinput, grid, laser, output, rendering, species, util
+from . import backgroundfield, customuserinput, fieldabsorber, grid, laser, output, rendering, species, util
 from .field_solver.ArbitraryOrderFDTD import ArbitraryOrderFDTDSolver
 from .field_solver.CKC import CKCSolver
 from .field_solver.Lehe import LeheSolver
@@ -32,6 +32,7 @@ __all__ = [
     "grid",
     "customuserinput",
     "backgroundfield",
+    "fieldabsorber",
     "PhaseSpace",
     "EnergyHistogram",
     "MacroParticleCount",

@@ -73,6 +73,8 @@ TBG_steps="{{{time_steps}}}"
   TBG_periodic="--periodic {{{x}}} {{{y}}}{{#grid.has_z}} {{{z}}}{{/grid.has_z}}"
 {{/grid.boundary_condition}}
 
+  TBG_fieldAbsorber="--fieldAbsorber {{{grid.field_absorber.kind}}}"
+
 {{#moving_window}}
   TBG_movingWindow="-m"
   TBG_windowMovePoint="--windowMovePoint {{{move_point}}}"
@@ -230,7 +232,8 @@ TBG_programParams="-d !TBG_deviceDist   \
                     !TBG_gridDist       \
                    {{/grid.grid_dist}}
                    !TBG_periodic        \
-           !TBG_currentInterpolation   \
+            !TBG_currentInterpolation  \
+                   !TBG_fieldAbsorber   \
                    {{#background_field}}
                     !TBG_fieldBackground \
                    {{/background_field}}
