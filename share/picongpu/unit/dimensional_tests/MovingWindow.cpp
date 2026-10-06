@@ -31,6 +31,8 @@
 
 using namespace picongpu;
 
+static_assert(simDim == TEST_DIM);
+
 //! Helper to setup the PMacc environment
 static pmacc::test::PMaccFixture<simDim> pmaccFixture;
 
