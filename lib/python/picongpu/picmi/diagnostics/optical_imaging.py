@@ -18,6 +18,7 @@ the ``PMAccPrinter``. The callables may reference the compile-time
 ``sympy.Symbol("params::posWfSizeX")`` -- see the ``Shadowgraphy`` preset.
 """
 
+import re
 from collections.abc import Callable
 from typing import Any
 
@@ -31,6 +32,18 @@ from picongpu.pypicongpu.output.optical_imaging import (
     COMPILE_TIME_FIELDS,
 )
 from picongpu.pypicongpu.output.optical_imaging import OpticalImaging as PyPIConGPUOpticalImaging
+
+#: A symbol the mask functions may reference by C++ name: a ``<namespace>::``
+#: qualified identifier (possibly with a template argument, e.g.
+#: ``pmacc::math::Pi<float_X>::value``) or a ``sim.*`` call like
+#: ``sim.si.getSpeedOfLight()``. Anchored so that a prefix alone (e.g.
+#: ``params::x); injected``) does not slip through.
+_ALLOWED_SYMBOL = re.compile(
+    r"^(?:"
+    r"(?:[A-Za-z_]\w*::)+[A-Za-z_]\w*(?:<[A-Za-z_]\w*(?:::\w+)*>)?(?:::\w+)?"
+    r"|sim(?:\.\w+)+(?:\(\))?"
+    r")$"
+)
 
 
 class _Params:
@@ -55,7 +68,7 @@ def render_mask_function(function: Callable, variables: tuple[str, ...], context
         expression = sympy.sympify(expression)
     for symbol in expression.free_symbols:
         name = str(symbol)
-        if name in variables or name.startswith(("params::", "sim.", "math::", "pmacc::")):
+        if name in variables or _ALLOWED_SYMBOL.match(name):
             continue
         raise ValueError(
             f"{context} references the undefined symbol {name!r}. The mask functions may only depend on "
@@ -81,8 +94,15 @@ def _default_position_wf(i, j, plugin_num_x, plugin_num_y):
 
 def _default_time_wf(t, sim_num_t):
     params = _Params()
-    plugin_num_t = sim_num_t / params.tRes
-    wf_size = params.tWfBuffer / params.tRes
+    # The C++ reference computes ``int pluginNumT = simNumT / tRes`` and
+    # ``float pluginWfSize = tWfBuffer / tRes`` and then compares
+    # ``t > pluginNumT - pluginWfSize`` in floating point. The plugin's
+    # ``tRes``/``tWfBuffer`` are ``constexpr unsigned int``, so we must force
+    # the rendered quotients to floating point: otherwise the subtraction is
+    # emitted in unsigned arithmetic and ``-tWfBuffer/tRes`` wraps around to
+    # ~2^32, so the trailing Tukey slope would never activate.
+    plugin_num_t = sympy.Float(1) * sim_num_t / params.tRes
+    wf_size = sympy.Float(1) * params.tWfBuffer / params.tRes
     return sympy.Piecewise(
         ((1 - sympy.cos(sympy.pi * t / wf_size)) / 2, t < wf_size),
         (
@@ -144,7 +164,6 @@ _RUNTIME_FIELDS = (
     "focus_pos",
     "fourier_output",
     "final_output",
-    "intermediate_output",
 )
 
 
@@ -185,10 +204,12 @@ class OpticalImaging(PICMI_Diagnostic):
         Focus position of the Fourier propagator relative to the slice point, in
         SI metres (default 0.0).
 
-    fourier_output / final_output / intermediate_output: bool
-        Optional openPMD outputs: the ``(x, y, omega)`` fields, the final
-        shadowgram (requires a propagator run) and the ``(kx, ky, omega)``
-        fields.
+    fourier_output / final_output: bool
+        Optional openPMD outputs: the ``(x, y, omega)`` fields and the final
+        shadowgram (which requires a propagator run). The plugin also registers
+        a ``--shadowgraphy.intermediateOutput`` option, but it is never read in
+        the C++ implementation and is therefore intentionally **not** exposed
+        here.
 
     t_res / x_res / y_res: int
         Time-integration and transverse resolutions (compile-time ``params``).
@@ -218,13 +239,12 @@ class OpticalImaging(PICMI_Diagnostic):
     # runtime (.cfg) options
     start: int = Field(0, ge=0)
     duration: int = Field(gt=0)
-    file: str = "shadowgram"
-    ext: str = "bp5"
+    file: str = Field("shadowgram", pattern=r"^\S+$")
+    ext: str = Field("bp5", pattern=r"^\S+$")
     slice_point: float = Field(0.5, ge=0.0, lt=1.0)
     focus_pos: float = 0.0
     fourier_output: bool = False
     final_output: bool = False
-    intermediate_output: bool = False
 
     # compile-time (params::) values
     t_res: int = Field(2, ge=1)

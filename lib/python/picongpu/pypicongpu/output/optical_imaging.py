@@ -31,7 +31,6 @@ class OpticalImaging(BaseModel):
     )
     fourier_output: bool = Field(False, description="Also dump the (x, y, omega) Fourier fields.")
     final_output: bool = Field(False, description="Run the propagator and write the final shadowgram.")
-    intermediate_output: bool = Field(False, description="Dump the (kx, ky, omega) Fourier fields.")
 
     # compile-time (params::) constants, rendered into shadowgraphy.param
     t_res: int = Field(2, ge=1, description="Time-integration resolution.")

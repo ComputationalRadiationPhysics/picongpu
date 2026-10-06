@@ -98,7 +98,6 @@ class TestOpticalImagingRendering(TestCase):
                     slice_point=0.25,
                     focus_pos=1e-3,
                     fourier_output=True,
-                    intermediate_output=True,
                 ),
             ]
         )
@@ -115,9 +114,55 @@ class TestOpticalImagingRendering(TestCase):
             "--shadowgraphy.slicePoint 0.25",
             "--shadowgraphy.focusPos 0.001",
             "--shadowgraphy.fourierOutput true",
-            "--shadowgraphy.intermediateOutput true",
         ):
             assert needle in n_cfg, f"{needle!r} not found in rendered N.cfg"
+
+    def test_default_file_prefixes_uniquified(self):
+        # two default-named instances must not clobber each other's output
+        sim = _simulation([Shadowgraphy(duration=30), Shadowgraphy(duration=12)])
+        n_cfg, _ = _render(sim)
+        assert "--shadowgraphy.file shadowgram\n" in n_cfg
+        assert "--shadowgraphy.file shadowgram_2\n" in n_cfg
+
+    def test_explicit_file_prefixes_preserved(self):
+        sim = _simulation([Shadowgraphy(duration=30, file="custom"), Shadowgraphy(duration=12, file="custom_2")])
+        n_cfg, _ = _render(sim)
+        assert "--shadowgraphy.file custom\n" in n_cfg
+        assert "--shadowgraphy.file custom_2\n" in n_cfg
+
+    def test_time_wf_trailing_slope_activates(self):
+        # B1 regression: tRes/tWfBuffer are unsigned in C++, so the rendered
+        # threshold must be floating point; otherwise -tWfBuffer/tRes wraps and
+        # the trailing Tukey slope never activates.
+        from picongpu.picmi.diagnostics.optical_imaging import render_mask_function
+
+        rendered = render_mask_function(Shadowgraphy(duration=30).time_wf, ("t", "simNumT"), "time_wf")
+        # the threshold is a difference of the two (floating-point) quotients
+        assert "t > -1.0*params::tWfBuffer/params::tRes + 1.0*simNumT/params::tRes" in rendered
+        # and not the bare (unsigned in C++) integer quotient form
+        assert "-params::tWfBuffer/params::tRes + simNumT/params::tRes" not in rendered
+
+    def test_mask_function_symbol_allow_list_is_anchored(self):
+        # arbitrary C++ must not slip through a mere prefix match (S2)
+        bad_symbols = [
+            "params::x); injected /*",
+            "sim.foo bar",
+            "pmacc::math::Pi<float_X>::value; evil",
+        ]
+        for name in bad_symbols:
+            with self.subTest(name=name):
+
+                def bad(kx, ky, omega, _name=name):
+                    return kx * sympy.Symbol(_name)
+
+                with self.assertRaises(ValueError):
+                    _unit_imaging(mask_fourier=bad).get_as_pypicongpu()
+
+        # the legitimate spellings still pass
+        def good(kx, ky, omega):
+            return kx * sympy.Symbol("params::numericalAperture") * sympy.Symbol("sim.si.getSpeedOfLight()")
+
+        _unit_imaging(mask_fourier=good).get_as_pypicongpu()
 
     def test_shadowgraphy_param_rendered(self):
         _, param = _render(_simulation([Shadowgraphy(duration=30)]))

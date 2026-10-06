@@ -91,11 +91,16 @@ The following options are written per instance into ``N.cfg``
    Focus position of the Fourier propagator relative to the slice point, in SI
    metres (default 0.0).
 
-``fourier_output`` / ``intermediate_output`` / ``final_output``
-   Optional openPMD outputs: the ``(x, y, omega)`` fields, the
-   ``(kx, ky, omega)`` fields, and the final shadowgram (which requires running
-   the propagator). ``Shadowgraphy`` sets ``final_output=True``; a bare
-   ``OpticalImaging`` does not.
+``fourier_output`` / ``final_output``
+   Optional openPMD outputs: the ``(x, y, omega)`` fields and the final
+   shadowgram (which requires running the propagator). ``Shadowgraphy`` sets
+   ``final_output=True``; a bare ``OpticalImaging`` does not.
+
+.. note::
+
+   The C++ plugin also registers a ``--shadowgraphy.intermediateOutput`` option,
+   but never reads it. It is therefore deliberately not exposed by the Python
+   frontend; do not expect ``(k_x, k_y, omega)`` output from it.
 
 Compile-time parameters
 -----------------------

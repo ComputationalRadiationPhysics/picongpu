@@ -65,6 +65,12 @@ def _optical_imaging_params(outputs) -> dict:
     in, so every ``OpticalImaging`` of a simulation must agree on it. Without an
     imaging diagnostic the C++ defaults with constant mask functions are
     returned, so ``shadowgraphy.param`` is always renderable.
+
+    The mask functions are compared as their **rendered C++ strings**: two
+    callables that are semantically equal but spelled differently (e.g.
+    ``x + x`` vs ``2 * x``) render differently and are rejected. That is
+    intentional -- the plugin compiles exactly one of them -- but callers
+    should share the callable rather than re-deriving an equal expression.
     """
     instances = [entry for entry in outputs or [] if isinstance(entry, OpticalImaging)]
     if not instances:
@@ -82,6 +88,30 @@ def _optical_imaging_params(outputs) -> dict:
                     "functions) identical across instances; only the .cfg options may differ."
                 )
     return values
+
+
+def _uniquify_optical_imaging_files(outputs) -> None:
+    """Give every optical-imaging instance a distinct output ``file`` prefix.
+
+    The plugin writes ``<file>_%T.<ext>`` per instance, so two instances sharing
+    a prefix (e.g. two default-named ``Shadowgraphy``) would overwrite each
+    other's output. Explicitly distinct prefixes are left untouched; a duplicate
+    gets the smallest free numeric suffix. Idempotent, so repeated validation
+    (e.g. a second ``get_as_pypicongpu`` call) does not keep appending.
+    """
+    used: set[str] = set()
+    for instance in outputs or []:
+        if not isinstance(instance, OpticalImaging):
+            continue
+        name = instance.file
+        if name not in used:
+            used.add(name)
+            continue
+        suffix = 2
+        while f"{name}_{suffix}" in used:
+            suffix += 1
+        instance.file = f"{name}_{suffix}"
+        used.add(instance.file)
 
 
 class Simulation(RenderedObject, BaseModel):
@@ -231,6 +261,9 @@ class Simulation(RenderedObject, BaseModel):
         # instances eagerly, so a mismatch is reported at simulation
         # construction rather than only when the params are accessed.
         _optical_imaging_params(outputs)
+        # two instances with the default prefix would clobber each other's
+        # ``<file>_%T`` output; ensure every prefix is distinct.
+        _uniquify_optical_imaging_files(outputs)
         return outputs
 
     @field_serializer("customuserinput")

@@ -42,7 +42,7 @@ Command line option                       Description
 ``--shadowgraphy.file``                   Output file prefix for openPMD output.          
 ``--shadowgraphy.ext``                    Backend for openPMD output.
 ``--shadowgraphy.fourierOutput``          If enabled, the fields will also be stored on disk in in ``(x, y, \omega)`` Fourier space in an openPMD file.
-``--shadowgraphy.intermediateOutput``     If enabled, the intermediate ``(k_x, k_y, \omega)`` Fourier fields are stored on disk.
+``--shadowgraphy.intermediateOutput``     Registered by the plugin but never read in the implementation; it has no effect.
 ``--shadowgraphy.finalOutput``            If enabled, the Fourier propagator is run and the final shadowgram is written.
 ========================================= ==============================================================================================================================
 
