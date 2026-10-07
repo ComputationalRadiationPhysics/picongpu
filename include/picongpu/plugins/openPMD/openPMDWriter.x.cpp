@@ -281,7 +281,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "Only initialize the openPMD plugin when it is first executed instead of at simulation startup. "
                    "This disables early validation of the plugin and backend configuration but can avoid hangups when "
                    "the file system is not ready at startup.",
-                   false};
+                   true};
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
              * the creation of checkpoints.
