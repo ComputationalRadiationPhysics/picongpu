@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <tuple>
 
@@ -35,5 +36,12 @@ namespace picongpu::openPMD
          * backend validation.
          */
         bool lateInit{true};
+        /** Time step at which to create an empty output Iteration.
+         *
+         * If set, the plugin runs once at the given time step but does not
+         * write any mesh or particle data, creating only the (otherwise
+         * empty) openPMD Iteration. A value below zero disables this.
+         */
+        int64_t emptyOutputIterationAt{-1};
     };
 } // namespace picongpu::openPMD

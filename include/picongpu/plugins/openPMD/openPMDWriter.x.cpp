@@ -284,6 +284,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "Configuration parsing and validation still happen at simulation startup. "
                    "Set to false to open the output Series already at simulation startup.",
                    true};
+
+            plugins::multi::Option<int64_t> emptyOutputIterationAt
+                = {"emptyOutputIterationAt",
+                   "Run the complete plugin once at the given time step without writing any mesh or particle data, "
+                   "creating only the openPMD Iteration. If the step is also covered by the output period, it is "
+                   "written as an empty iteration instead of a regular dump. Disabled by default.",
+                   -1};
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
              * the creation of checkpoints.
@@ -504,7 +511,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     ApplyParameter::OnlyInCheckpoint),
                 makeParam(&particleIOChunkSize, "particleIOChunkSize", &PluginParameters::particleIOChunkSizeString),
                 makeParam(&writeAccess, "write_mode", &PluginParameters::writeAccessString),
-                makeParam<bool>(&lateInit, "late_init", &PluginParameters::lateInit)};
+                makeParam<bool>(&lateInit, "late_init", &PluginParameters::lateInit),
+                makeParam<int64_t>(
+                    &emptyOutputIterationAt,
+                    "empty_output_iteration_at",
+                    &PluginParameters::emptyOutputIterationAt,
+                    ApplyParameter::NotInCheckpoint)};
 
             std::vector<std::shared_ptr<toml::ITomlParameter>> tomlParameters()
             {
@@ -694,6 +706,25 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     std::string dataSourceNames = source.get(id);
                     return plugins::misc::splitString(plugins::misc::removeSpaces(dataSourceNames));
                 }
+            }
+
+            /** Extend a notification period by the configured empty output step.
+             *
+             * The empty output step is added as an additional single-step time
+             * slice so that the plugin is executed at that step even if the
+             * regular period does not cover it.
+             *
+             * @param period original notification period string
+             * @param emptyStep configured empty output iteration, negative to disable
+             * @return extended notification period string
+             */
+            static std::string withEmptyOutputIteration(std::string const& period, int64_t const emptyStep)
+            {
+                if(emptyStep < 0)
+                    return period;
+                std::string const step = std::to_string(emptyStep);
+                std::string const slice = step + ":" + step + ":1";
+                return period.empty() ? slice : period + "," + slice;
             }
 
             PluginParameters pluginParameters(size_t id)
@@ -1343,7 +1374,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 "plugin instance twice?");
                         }
 
-                        Environment<>::get().PluginConnector().setNotificationPeriod(this, emplaced->second.periods());
+                        Environment<>::get().PluginConnector().setNotificationPeriod(
+                            this,
+                            m_help->withEmptyOutputIteration(
+                                emplaced->second.periods(),
+                                emplaced->second.openPMDPluginParameters.emptyOutputIterationAt));
 
                         if(gc.getGlobalRank() == 0)
                         {
@@ -1356,7 +1391,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     else if(not tomlSourcesSpecified && notifyPeriodSpecified)
                     {
                         std::string const& notifyPeriod = m_help->notifyPeriod.get(id);
-                        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+                        Environment<>::get().PluginConnector().setNotificationPeriod(
+                            this,
+                            m_help->withEmptyOutputIteration(notifyPeriod, m_help->emptyOutputIterationAt.get(id)));
 
                         if(gc.getGlobalRank() == 0)
                         {
@@ -2106,6 +2143,24 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     currentStep);
 
                 bool dumpAllParticles = plugins::misc::containsObject(vectorOfDataSourceNames, "species_all");
+
+                /* An empty output iteration runs the plugin including its meta
+                 * data handling, but deliberately writes neither mesh nor
+                 * particle data. */
+                if(!threadParams->isCheckpoint && threadParams->isEmptyIteration(currentStep))
+                {
+                    log<picLog::INPUT_OUTPUT>(
+                        "openPMD: skipping mesh and particle data for empty output iteration %1%")
+                        % currentStep;
+
+                    eventSystem::getTransactionEvent().waitForFinished();
+                    mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>(
+                        "Closing iteration " + std::to_string(currentStep));
+                    mThreadParams.openPMDSeries->writeIterations()[currentStep].close();
+                    mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>("Done.");
+                    mThreadParams.m_dumpTimes.flush();
+                    return;
+                }
 
                 /* write fields */
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) writing fields.");
