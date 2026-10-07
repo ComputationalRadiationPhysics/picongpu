@@ -37,6 +37,10 @@ namespace picongpu
             Definition of Species {{{name}}}
         ****************************************/
 
+        {{#pusher_activation_declaration}}
+        {{{pusher_activation_declaration}}}
+        {{/pusher_activation_declaration}}
+
         {{#constants}}
             {{#mass}}
                 value_identifier(float_X, MassRatio_{{{typename}}}, {{{mass_si}}} / sim.si.getBaseMass());
@@ -86,7 +90,7 @@ namespace picongpu
                 {{/synchrotron}}
             {{/constants}}
 
-            particlePusher<{{#pusher}}particles::pusher::{{{pusher}}}{{/pusher}}{{^pusher}}UsedParticlePusher{{/pusher}}>,
+            particlePusher<{{#pusher_cpp}}{{{pusher_cpp}}}{{/pusher_cpp}}{{^pusher_cpp}}UsedParticlePusher{{/pusher_cpp}}>,
             shape<{{#shape}}particles::shapes::{{{shape}}}{{/shape}}{{^shape}}UsedParticleShape{{/shape}}>,
             interpolation<UsedField2Particle>,
             current<UsedParticleCurrentSolver>>;

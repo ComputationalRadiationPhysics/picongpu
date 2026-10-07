@@ -737,7 +737,11 @@ class Simulation(picmistandard.PICMI_Simulation):
         # grid, which is only known here at translation time.
         return pypicongpu.simulation.Simulation(
             species=map(
-                lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape),
+                lambda s: s.get_as_pypicongpu(
+                    default_particle_shape=self.particle_shape,
+                    time_step_size=self.time_step_size,
+                    num_steps=time_steps,
+                ),
                 sorted(chain.from_iterable(_entry_members(entry) for entry in self.species)),
             ),
             init_operations=init_operations,

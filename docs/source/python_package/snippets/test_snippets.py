@@ -509,6 +509,19 @@ EXPECTED_FILES = {
             ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::PQS"),
         ],
     },
+    "selected_topics/composite_pusher.py": {
+        "no_run": True,
+        "files": [
+            "composite_pusher_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            # a step-dependent composite pusher with the generated activation functor
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "particles::pusher::Composite<"),
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "struct PusherActivation_"),
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "particles::pusher::Free"),
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "particles::pusher::Boris"),
+        ],
+    },
     "selected_topics/gaussian_bunch.py": {
         "no_run": True,
         "files": [

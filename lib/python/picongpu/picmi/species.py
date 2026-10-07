@@ -6,6 +6,7 @@ License: GPLv3+
 """
 
 import re
+import warnings
 from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Any, ClassVar
@@ -29,6 +30,7 @@ from picongpu.pypicongpu.species.constant.constant import Constant
 from picongpu.pypicongpu.species.constant.densityratio import DensityRatio
 from picongpu.pypicongpu.species.constant.mass import Mass
 from picongpu.pypicongpu.species.operation import AnyOperation
+from picongpu.pypicongpu.species.pusherschedule import build_pusher_schedule
 from picongpu.pypicongpu.species.species import Pusher, Shape
 from picongpu.pypicongpu.species.species import Species as PyPIConGPUSpecies
 
@@ -66,7 +68,6 @@ _PUSHER_BY_NAME: Mapping[str, Pusher] = MappingProxyType(
         "other:Acceleration": Pusher.Acceleration,
         "other:Photon": Pusher.Photon,
         "other:Probe": Pusher.Probe,
-        "other:Axel": Pusher.Axel,
     }
 )
 
@@ -79,6 +80,136 @@ def _lookup(kind: str, table: Mapping[str, Any], key: str):
         return table[key]
     except KeyError:
         raise ValueError(f"PIConGPU does not support {kind} {key!r}. Supported: {', '.join(table)}.") from None
+
+
+class CompositePusher(BaseModel):
+    """A step-dependent (composite) particle pusher.
+
+    Maps **pre-called** :class:`~picongpu.picmi.diagnostics.TimeStepSpec`
+    instances to pusher names.  The first matching specification wins, so the
+    order matters::
+
+        CompositePusher({
+            TimeStepSpec[::3]("steps"): "Boris",
+            TimeStepSpec[:5]("steps"): "Vay",
+            TimeStepSpec[6:]("steps"): "free-streaming",
+        })
+
+    expands, step by step, to Boris at 0, 3, 6, 9, 12; Vay at 1, 2, 4, 5; and
+    free-streaming elsewhere.
+
+    The specification keys must be given in the ``"steps"`` unit (a
+    ``"seconds"`` unit cannot be resolved without -- and would silently change
+    with -- the time step size, so it is rejected).  Accepted pusher names are
+    the same as for the scalar ``method`` string, including the ``other:``
+    extension prefix.
+
+    Every step in ``[0, max_steps)`` must be claimed by exactly one
+    specification; a gap is a hard error (there is no silent fallback).  A
+    composite with a single entry is allowed and behaves like the plain scalar
+    pusher.  A ``CompositePusher`` is given through the same ``method`` field as
+    the scalar pusher name, so the two cannot be set at once: when a
+    ``CompositePusher`` is given, the scalar ``method`` string is unused (and a
+    :class:`CompositePusher` is never accepted on the scalar string path).
+
+    Validation needs the simulation's step count, so it happens when the owning
+    :class:`~picongpu.picmi.simulation.Simulation` is translated.
+    """
+
+    _items: list[tuple[Any, str]] = PrivateAttr(default_factory=list)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def __init__(self, schedule: Mapping | None = None, **kwargs):
+        if schedule is None:
+            schedule = kwargs.pop("schedule", None)
+        if schedule is None:
+            raise ValueError("CompositePusher requires a mapping of TimeStepSpec to pusher name.")
+        super().__init__(**kwargs)
+        # TimeStepSpec keys are not valid pydantic dict-key types, so we accept
+        # the raw mapping ourselves (bypassing validation) and keep the ordered
+        # items for ordered, first-match resolution.
+        self._items = list(schedule.items())
+
+    @computed_field
+    def schedule(self) -> list[dict]:
+        """JSON-serialisable view of the schedule (ordered, first-match)."""
+        return [{"spec": repr(spec.specs), "pusher": name} for spec, name in self._items]
+
+    @property
+    def items(self) -> list[tuple[Any, str]]:
+        return list(self._items)
+
+    def _resolved_entries(self, num_steps: int):
+        """Resolve the ordered specifications to ``(slices, Pusher)`` stage entries.
+
+        ``slices`` are ``(start, stop, step)`` tuples in steps, inclusive on both
+        ends (``stop == -1`` meaning open).  The pusher is looked up by its PICMI
+        name.
+        """
+        entries = []
+        for spec, name in self._items:
+            if getattr(spec, "unit_system", None) != "steps":
+                raise ValueError(
+                    "CompositePusher keys must be TimeStepSpec instances given in the 'steps' unit, "
+                    f'i.e. TimeStepSpec[...]("steps"); you gave {spec!r} with unit_system='
+                    f"{getattr(spec, 'unit_system', None)!r}. Seconds cannot be used here because they "
+                    "depend on the time step size."
+                )
+            slices = [
+                (s.start, s.stop, s.step)
+                for s in (spec._interpret_negatives(spec._interpret_nones(s), num_steps) for s in spec.specs)
+            ]
+            entries.append((slices, _lookup("pusher method", _PUSHER_BY_NAME, name)))
+        return entries
+
+    def validate(self, num_steps: int) -> None:
+        """Check that every step in ``[0, num_steps)`` is claimed by exactly one entry."""
+        entries = self._resolved_entries(num_steps)
+        for step in range(num_steps):
+            if not any(any(_slice_contains(s, step) for s in slices) for slices, _ in entries):
+                raise ValueError(
+                    f"CompositePusher does not cover time step {step} (of {num_steps}). "
+                    "Every step in [0, max_steps) must be mapped to a pusher; add a catch-all "
+                    'specification such as TimeStepSpec[::1]("steps").'
+                )
+        _warn_on_adjacent_end_overlap(entries, num_steps)
+
+
+def _slice_contains(one_slice, step: int) -> bool:
+    start, stop, slicestep = one_slice
+    if step < start:
+        return False
+    if stop != -1 and step > stop:
+        return False
+    return (step - start) % slicestep == 0
+
+
+def _warn_on_adjacent_end_overlap(entries, num_steps: int) -> None:
+    """Warn when two adjacent entries both claim a shared interval end.
+
+    Overlaps that are *not* at a shared end are a deliberate first-match
+    feature and stay silent; a shared end is almost always an off-by-one in the
+    intended disjoint split and gets a message that says how to fix it.
+    """
+    for stage in range(len(entries) - 1):
+        earlier_stops = {stop for _start, stop, _step in entries[stage][0] if stop != -1}
+        later_starts = {start for start, _stop, _step in entries[stage + 1][0]}
+        for step in sorted(earlier_stops & later_starts):
+            if not (0 <= step < num_steps):
+                continue
+            if not any(_slice_contains(s, step) for s in entries[stage][0]):
+                continue
+            if not any(_slice_contains(s, step) for s in entries[stage + 1][0]):
+                continue
+            warnings.warn(
+                f"CompositePusher specifications {stage} and {stage + 1} both claim step {step} "
+                "(one interval ends where the next begins). The earlier specification wins, but you "
+                f'probably meant disjoint intervals; make them disjoint, e.g. TimeStepSpec[:{step}]("steps") '
+                f'and TimeStepSpec[{step + 1}:]("steps").',
+                UserWarning,
+                stacklevel=3,
+            )
 
 
 class Species(PICMI_Species):
@@ -94,8 +225,13 @@ class Species(PICMI_Species):
     `method` accepts the PICMI-standard pusher methods ('Boris', 'Vay',
     'Higuera-Cary', 'Li', 'free-streaming', 'LLRK4') and PIConGPU-specific
     pushers prefixed with 'other:' (e.g. 'other:Acceleration',
-    'other:Photon', 'other:Probe', 'other:Axel'). If left unset it falls back
+    'other:Photon', 'other:Probe'). If left unset it falls back
     to the PIConGPU default 'Boris'.
+
+    `method` additionally accepts a :class:`CompositePusher`, a step-dependent
+    schedule mapping pre-called :class:`~picongpu.picmi.diagnostics.TimeStepSpec`
+    instances to pusher names (first match wins); see the class docstring of
+    :class:`CompositePusher` for the supported syntax.
     """
 
     # PIConGPU's native default particle shape (TSC). This is the code-level
@@ -106,7 +242,7 @@ class Species(PICMI_Species):
 
     picongpu_fixed_charge: bool = False
     particle_shape: str | None = None
-    method: str | None = None
+    method: "str | CompositePusher | None" = None
 
     # Theoretically, Position(), Momentum() and Weighting() are also requirements imposed from the outside,
     # e.g., by the current deposition, pusher, ..., but these concepts are not separately modelled in PICMI
@@ -119,10 +255,12 @@ class Species(PICMI_Species):
     def _validate_method(cls, value):
         # Note: this shadows picmistandard.PICMI_Species._validate_method, whose
         # access to PICMI_Species.methods_list crashes with an AttributeError.
+        if isinstance(value, CompositePusher):
+            return value
         if value is not None and value not in _STANDARD_METHODS and not value.startswith("other:"):
             raise ValueError(
                 f"Unsupported pusher method {value!r}. Must be one of "
-                f"{', '.join(_STANDARD_METHODS)} or be prefixed with 'other:'."
+                f"{', '.join(_STANDARD_METHODS)}, a CompositePusher, or be prefixed with 'other:'."
             )
         return value
 
@@ -208,7 +346,30 @@ class Species(PICMI_Species):
         return _lookup("particle shape", _SHAPE_BY_NAME, self._resolved_particle_shape(default_particle_shape))
 
     def _pusher(self) -> Pusher:
+        if isinstance(self.method, CompositePusher):
+            # The scalar pusher field is unused for a step-dependent schedule;
+            # keep a valid default so the backend model stays well-formed.
+            return Pusher.Boris
         return _lookup("pusher method", _PUSHER_BY_NAME, self.method or "Boris")
+
+    def _pusher_schedule(self, time_step_size: float | None, num_steps: int | None):
+        """Render the step-dependent pusher for a ``CompositePusher`` ``method``.
+
+        Returns ``None`` for the scalar pusher path.  ``num_steps`` is only
+        known at Simulation translation; other translation sites (diagnostics,
+        collisions) translate the species for their own, pusher-independent
+        purposes and pass ``None``, so no schedule is produced there.  The
+        authoritative step-coverage validation therefore runs when the
+        Simulation translates its own species list.
+        """
+        if not isinstance(self.method, CompositePusher) or num_steps is None:
+            return None
+        self.method.validate(num_steps)
+        entries = self.method._resolved_entries(num_steps)
+        return build_pusher_schedule(
+            [slices for slices, _ in entries],
+            [pusher.cpp_name for _, pusher in entries],
+        )
 
     def _resolved_particle_shape(self, default_particle_shape: str | None = None) -> str:
         # An unset species shape falls back to the shape supplied by the owning
@@ -220,12 +381,21 @@ class Species(PICMI_Species):
             return default_particle_shape
         return self.DEFAULT_PARTICLE_SHAPE
 
-    def get_as_pypicongpu(self, *args, default_particle_shape: str | None = None, **kwargs):
+    def get_as_pypicongpu(
+        self,
+        *args,
+        default_particle_shape: str | None = None,
+        time_step_size: float | None = None,
+        num_steps: int | None = None,
+        **kwargs,
+    ):
+        pusher = self._pusher()
         return PyPIConGPUSpecies(
             name=self.name,
             **self._evaluate_species_requirements(),
             shape=self._shape(default_particle_shape),
-            pusher=self._pusher(),
+            pusher=pusher,
+            pusher_schedule=self._pusher_schedule(time_step_size, num_steps),
         )
 
     def picongpu_get_mass_si(self) -> float:

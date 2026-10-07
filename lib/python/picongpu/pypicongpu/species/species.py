@@ -21,6 +21,7 @@ from .constant import (
     GroundStateIonization,
     Mass,
 )
+from .pusherschedule import PusherSchedule
 
 
 class Shape(Enum):
@@ -43,7 +44,28 @@ class Pusher(Enum):
     Acceleration = "Acceleration"
     Photon = "Photon"
     Probe = "Probe"
-    Axel = "Axel"
+
+    @property
+    def cpp_name(self) -> str:
+        """Name of the corresponding C++ pusher struct (``particles::pusher::<cpp_name>``).
+
+        This is *not* always the enum value: ``Pusher.Higuera`` carries the
+        PICMI-facing name ``"Higuera-Cary"`` (a hyphen is not a valid C++
+        identifier), while the C++ struct is ``HigueraCary``.
+        """
+        return _PUSHER_CPP_NAME[self]
+
+
+_PUSHER_CPP_NAME = {
+    Pusher.Boris: "Boris",
+    Pusher.Vay: "Vay",
+    Pusher.Higuera: "HigueraCary",
+    Pusher.Free: "Free",
+    Pusher.ReducedLandauLifshitz: "ReducedLandauLifshitz",
+    Pusher.Acceleration: "Acceleration",
+    Pusher.Photon: "Photon",
+    Pusher.Probe: "Probe",
+}
 
 
 class Constants(BaseModel):
@@ -167,6 +189,26 @@ class Species(RenderedObject, BaseModel):
     """name of the species"""
 
     shape: Shape = Shape("TSC")
+
+    pusher_schedule: "PusherSchedule | None" = None
+    """Step-dependent pusher schedule; overrides ``pusher`` when set."""
+
+    @computed_field
+    def pusher_cpp(self) -> str:
+        """Full C++ type referenced by ``particles::pusher`` in ``speciesDefinition.param``.
+
+        A single-pusher schedule is equivalent to the scalar ``pusher`` and is
+        folded into it, so the composite path leaves the default rendering
+        unchanged when it is not used.
+        """
+        if self.pusher_schedule is not None:
+            return self.pusher_schedule.pusher_cpp
+        return f"particles::pusher::{self.pusher.cpp_name}"
+
+    @computed_field
+    def pusher_activation_declaration(self) -> str:
+        """Standalone C++ activation-functor structs the pusher refers to (may be empty)."""
+        return self.pusher_schedule.activation_declaration if self.pusher_schedule is not None else ""
 
     @computed_field
     def species_name(self) -> str:

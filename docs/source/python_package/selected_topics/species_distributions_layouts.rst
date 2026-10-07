@@ -62,6 +62,8 @@ Its most important parameters are:
   the particle pusher (default ``"Boris"``;
   ``"Vay"`` and ``"Higuera-Cary"`` are relativistic variants,
   ``"LLRK4"`` adds radiation reaction).
+  For a pusher that changes over the course of the simulation, pass a
+  :class:`~picongpu.picmi.species.CompositePusher` instead (see below).
 * ``density_scale``:
   rescales the species' density relative to a shared profile
   (see below).
@@ -78,6 +80,37 @@ PIConGPU uses its native default ``"quadratic"`` (TSC):
    :language: python
    :start-after: BEGIN-SPECIES_SHAPE
    :end-before: END-SPECIES_SHAPE
+
+Step-dependent pushers
+^^^^^^^^^^^^^^^^^^^^^^
+
+Instead of one pusher for the whole run, a
+:class:`~picongpu.picmi.species.CompositePusher` selects the active pusher per
+time step. It maps **pre-called** ``TimeStepSpec`` instances -- i.e.
+``TimeStepSpec[...]("steps")`` -- to pusher names; the **first matching
+specification wins**, so the order of the mapping matters:
+
+.. literalinclude:: ../snippets/selected_topics/composite_pusher.py
+   :language: python
+   :start-after: BEGIN-COMPOSITE-PUSHER
+   :end-before: END-COMPOSITE-PUSHER
+
+The example gives ``free-streaming`` for the first 100 steps and ``Boris``
+thereafter. The specification keys reuse the full
+:class:`~picongpu.picmi.diagnostics.TimeStepSpec` slice syntax (inclusive
+bounds, ``::n``, negatives, open ends), and periodic/interleaved schedules such
+as ``TimeStepSpec[::2]`` / ``TimeStepSpec[1::2]`` are supported. Keys must use
+the ``"steps"`` unit; ``"seconds"`` cannot be used here because it would depend
+on the time step size.
+
+Every step in ``[0, max_steps)`` must be claimed by exactly one specification.
+A gap is a hard error at input-file generation (there is no silent fallback), so
+a catch-all specification is usually needed. If two adjacent intervals overlap
+at a shared end -- for example ``TimeStepSpec[:5]("steps")`` and
+``TimeStepSpec[5:]("steps")`` both claim step 5 -- a warning is emitted telling
+you to make them disjoint (e.g. ``TimeStepSpec[:4]`` / ``TimeStepSpec[5:]``); the
+earlier specification still wins. A single-entry composite is allowed and
+behaves like the plain scalar pusher.
 
 By default, every species is initialised **independently**: even when several
 species happen to share the same distribution and layout, each one draws its

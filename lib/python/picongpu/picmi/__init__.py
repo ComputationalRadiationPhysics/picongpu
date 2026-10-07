@@ -48,7 +48,7 @@ from .particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
 from .precision_config import PrecisionConfig
 from .simulation import Simulation
 from .solver import BinomialSmoother, ElectromagneticSolver
-from .species import Species
+from .species import CompositePusher, Species
 
 assert sys.version_info.major > 3 or sys.version_info.minor >= 11, "Python 3.11 is required for PIConGPU PICMI"
 
@@ -67,6 +67,7 @@ __all__ = [
     "ConstantAppliedField",
     "AnalyticAppliedField",
     "Species",
+    "CompositePusher",
     "MemoryConfig",
     "PrecisionConfig",
     "MultiSpecies",
