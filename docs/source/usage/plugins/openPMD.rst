@@ -141,6 +141,10 @@ PIConGPU command line option                  description
                                               parses and validates its configuration at simulation startup; this option only controls whether the output Series is opened
                                               (and the backend configuration validated against the openPMD API) at simulation startup or at the first actual dump.
                                               Set to ``false`` for early backend validation, or to ``true`` (default) to avoid hangups when the file system is not ready yet.
+``--openPMD.emptyOutputIterationAt``          Run the complete plugin once at the given time step but without writing any mesh or particle data, creating only
+                                              the openPMD Iteration (including its meta data). If that step is also covered by the output period, it is written as an
+                                              empty iteration instead of a regular dump. This can be useful to verify I/O and metadata handling without the
+                                              cost of a full dump. Disabled by default.
 ============================================= ====================================================================================================================================================
 
 .. note::

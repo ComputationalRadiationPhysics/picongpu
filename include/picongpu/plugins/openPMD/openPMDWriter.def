@@ -82,6 +82,16 @@ namespace picongpu
             /** current dump is a checkpoint */
             bool isCheckpoint;
 
+            /** Whether the given step is the configured empty output iteration.
+             *
+             * At that step the plugin runs, but writes only the openPMD
+             * Iteration (including meta data) without any mesh or particle data.
+             */
+            bool isEmptyIteration(uint32_t const currentStep) const
+            {
+                return emptyOutputIterationAt >= 0 && static_cast<int64_t>(currentStep) == emptyOutputIterationAt;
+            }
+
             MPI_Comm communicator; /* MPI communicator for openPMD API */
 
             std::optional<std::string> backendConfigResolved;

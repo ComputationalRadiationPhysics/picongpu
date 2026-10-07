@@ -305,6 +305,7 @@ namespace picongpu
         }
         template struct TomlParameter<std::string>;
         template struct TomlParameter<bool>;
+        template struct TomlParameter<int64_t>;
 
         std::string TimeSlice::asString() const
         {
