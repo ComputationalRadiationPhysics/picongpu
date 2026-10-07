@@ -242,10 +242,14 @@ The available distributions are:
    otherwise every rank reads the whole record and keeps only the particles
    inside its own domain, which is correct for any such file but slower and
    less memory-efficient.
-   Because the particle positions come from the file, a from-file
-   distribution must **not** be paired with a layout: passing one raises a
-   ``ValueError``. It is currently rejected on a 2D grid, as is a
-   dimensionality that does not match the simulation.
+   The file's native datatype is read and converted explicitly, so a
+   double-precision file can be loaded into a single-precision simulation.
+   Because the particle positions and weightings come from the file, a
+   from-file distribution must **not** be paired with a layout and the
+   species must **not** set ``density_scale``: either raises a ``ValueError``.
+   It also cannot be used as a member of a ``MultiSpecies`` (a single file
+   cannot supply several differently-named species) and is currently rejected
+   on a 2D grid, as is a dimensionality that does not match the simulation.
 
    .. literalinclude:: ../snippets/selected_topics/from_file.py
       :language: python

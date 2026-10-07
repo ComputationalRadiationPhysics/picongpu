@@ -120,7 +120,17 @@ def _validate_species_layout(entry, layout):
     constructor path. Validation is per member: a ``MultiSpecies`` group passes
     one layout for all members.
     """
-    for species in _entry_members(entry):
+    members = _entry_members(entry)
+    if len(members) > 1 and any(isinstance(m.initial_distribution, FromFileDistribution) for m in members):
+        # A MultiSpecies shares one distribution across its members; a from-file
+        # distribution cannot satisfy two differently-named species from a single
+        # file (each member would look up its own species name in the same file).
+        raise ValueError(
+            "A from-file distribution cannot be combined with a MultiSpecies. "
+            "A single external file cannot supply several differently-named species; "
+            "add each from-file species as its own species entry instead."
+        )
+    for species in members:
         if isinstance(species.initial_distribution, FromFileDistribution):
             # The particle positions come from the file; a layout would be
             # silently ignored, so reject it explicitly.
@@ -128,6 +138,13 @@ def _validate_species_layout(entry, layout):
                 raise ValueError(
                     "A from-file distribution determines the particle positions itself and cannot be combined "
                     f"with a layout. You gave {species.initial_distribution=} but {layout=}."
+                )
+            # The weightings come from the file, so density_scale would be
+            # silently ignored; reject it instead.
+            if species.density_scale is not None:
+                raise ValueError(
+                    "density_scale cannot be combined with a from-file distribution: the particle weightings are "
+                    f"read from the file. You gave {species.density_scale=}."
                 )
             continue
         if species.density_scale is not None and (layout is None and species.initial_distribution is None):

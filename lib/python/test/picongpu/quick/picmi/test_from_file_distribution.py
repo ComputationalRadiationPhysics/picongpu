@@ -96,6 +96,27 @@ class TestFromFileDistributionRegistration(TestCase):
                 layouts=[picmi.OnePositionLayout(n_macroparticles_per_cell=1)],
             )
 
+    def test_density_scale_is_rejected(self):
+        sim = get_sim()
+        species = picmi.Species(
+            name="bunch",
+            particle_type="electron",
+            initial_distribution=FromFileDistribution(file_path="/x/bunch.bp5"),
+            density_scale=2.0,
+        )
+        with pytest.raises(ValueError, match="density_scale cannot be combined with a from-file distribution"):
+            sim.add_species(species, None)
+
+    def test_multispecies_from_file_is_rejected(self):
+        sim = get_sim()
+        multispecies = picmi.MultiSpecies(
+            names=["electrons", "ions"],
+            particle_types=["electron", "proton"],
+            initial_distribution=FromFileDistribution(file_path="/x/bunch.bp5"),
+        )
+        with pytest.raises(ValueError, match="cannot be combined with a MultiSpecies"):
+            sim.add_species(multispecies, None)
+
     def test_two_dimensional_grid_is_rejected(self):
         grid_2d = picmi.Cartesian2DGrid(
             lower_bound=[0, 0],
