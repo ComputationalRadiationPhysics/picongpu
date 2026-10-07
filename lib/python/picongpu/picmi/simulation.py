@@ -35,6 +35,7 @@ from picongpu.picmi.diagnostics.optical_imaging import OpticalImaging
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
+from picongpu.picmi.distribution.FromFileDistribution import FromFileDistribution
 from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
 from picongpu.picmi.interaction import (
     SUPPORTED_INTERACTION_TYPES,
@@ -46,6 +47,7 @@ from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSe
 from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
 from picongpu.picmi.species import _STANDARD_SHAPES
 from picongpu.picmi.species_requirements import (
+    ParticleFromFileOperation,
     SimpleDensityOperation,
     SimpleMomentumOperation,
     get_as_pypicongpu,
@@ -90,6 +92,22 @@ def _register_density_operation(entry, layout, grid):
     profile = members[0].initial_distribution
     if profile is None:
         return
+    if isinstance(profile, FromFileDistribution):
+        # Each from-file species has its own file and iteration; there is no
+        # coordinated density placement across a group.
+        for member in members:
+            member.register_requirements(
+                [
+                    Momentum(),
+                    Weighting(),
+                    ParticleFromFileOperation(
+                        species=member,
+                        file_path=member.initial_distribution.file_path,
+                        iteration=member.initial_distribution.iteration,
+                    ),
+                ]
+            )
+        return
     members[0].register_requirements([Weighting(), SimpleDensityOperation(species=members, layout=layout, grid=grid)])
     for member in members:
         member.register_requirements([Momentum(), SimpleMomentumOperation(species=member)])
@@ -103,6 +121,15 @@ def _validate_species_layout(entry, layout):
     one layout for all members.
     """
     for species in _entry_members(entry):
+        if isinstance(species.initial_distribution, FromFileDistribution):
+            # The particle positions come from the file; a layout would be
+            # silently ignored, so reject it explicitly.
+            if layout is not None:
+                raise ValueError(
+                    "A from-file distribution determines the particle positions itself and cannot be combined "
+                    f"with a layout. You gave {species.initial_distribution=} but {layout=}."
+                )
+            continue
         if species.density_scale is not None and (layout is None and species.initial_distribution is None):
             raise ValueError("layout and initial distribution must be set to use density scale")
         if layout is not None and species.initial_distribution is None:
@@ -620,6 +647,13 @@ class Simulation(picmistandard.PICMI_Simulation):
                                 "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
                                 f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
                             )
+                    if isinstance(species.initial_distribution, FromFileDistribution):
+                        # A dimension mismatch (e.g. a 3D file into a 2D simDim)
+                        # is rejected until a principled mapping is decided.
+                        raise ValueError(
+                            "FromFileDistribution is not supported on a 2D grid yet. "
+                            f"You gave it for species {species.name!r} on a 2D grid."
+                        )
 
     def _check_huygens_surface_positions(self):
         # Every laser renders into the single incidentField, so all lasers must

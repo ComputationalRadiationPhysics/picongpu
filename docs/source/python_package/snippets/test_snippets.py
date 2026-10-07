@@ -531,6 +531,15 @@ EXPECTED_FILES = {
             ("gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
         ],
     },
+    "selected_topics/from_file.py": {
+        "no_run": True,
+        "files": [
+            "from_file_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("from_file_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
+        ],
+    },
     "selected_topics/multi_species.py": {
         "no_run": True,
         "files": [

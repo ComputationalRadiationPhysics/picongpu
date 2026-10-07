@@ -9,6 +9,7 @@ from .GaussianDistribution import GaussianDistribution
 from .GaussianBunchDistribution import GaussianBunchDistribution
 from .CylindricalDistribution import CylindricalDistribution
 from .AnalyticDistribution import AnalyticDistribution
+from .FromFileDistribution import FromFileDistribution
 
 AnyDistribution = (
     UniformDistribution
@@ -17,6 +18,7 @@ AnyDistribution = (
     | GaussianBunchDistribution
     | CylindricalDistribution
     | AnalyticDistribution
+    | FromFileDistribution
 )
 
 __all__ = [
@@ -27,4 +29,5 @@ __all__ = [
     "GaussianBunchDistribution",
     "AnalyticDistribution",
     "CylindricalDistribution",
+    "FromFileDistribution",
 ]

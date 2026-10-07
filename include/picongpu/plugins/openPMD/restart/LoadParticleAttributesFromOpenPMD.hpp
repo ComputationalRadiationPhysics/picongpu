@@ -71,6 +71,11 @@ namespace picongpu
                 uint32_t const components = GetNComponents<ValueType>::value;
                 using ComponentType = typename GetComponentsType<ValueType>::type;
                 picongpu::traits::OpenPMDName<Identifier> openPMDName;
+                /* SI unit of the attribute in the simulation, per component;
+                 * used to convert values read from the file (which carry their
+                 * own `unitSI`) into the simulation's internal representation. */
+                picongpu::traits::OpenPMDUnit<Identifier> openPMDUnit;
+                std::vector<double> const unitSISim = openPMDUnit();
 
                 log<picLog::INPUT_OUTPUT>("openPMD: ( begin ) load species attribute: %1%") % openPMDName();
 
@@ -88,6 +93,10 @@ namespace picongpu
                 {
                     ::openPMD::Record record = particleSpecies[openPMDName()];
                     ::openPMD::RecordComponent rc = components > 1 ? record[name_lookup[n]] : record;
+
+                    // conversion factor from the file's unit to the simulation's unit
+                    double const unitFactor
+                        = unitSISim.size() > n && unitSISim[n] != 0.0 ? rc.unitSI() / unitSISim[n] : 1.0;
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 
@@ -123,7 +132,7 @@ namespace picongpu
                     for(size_t i = 0; i < elements; ++i)
                     {
                         ComponentType* ref = &reinterpret_cast<ComponentType*>(dataPtr)[i * components + n];
-                        *ref = loadBfr.get()[i];
+                        *ref = loadBfr.get()[i] * unitFactor;
                     }
                 }
 

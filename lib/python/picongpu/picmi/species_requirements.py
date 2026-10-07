@@ -18,6 +18,7 @@ from picongpu.pypicongpu.species.constant.constant import Constant
 from picongpu.pypicongpu.species.constant.groundstateionization import GroundStateIonization
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronConstant
 from picongpu.pypicongpu.species.operation.momentum.temperature import Temperature
+from picongpu.pypicongpu.species.operation.particlefromfile import ParticleFromFile
 from picongpu.pypicongpu.species.operation.setchargestate import SetChargeState
 from picongpu.pypicongpu.species.operation.simpledensity import SimpleDensity
 from picongpu.pypicongpu.species.operation.simplemomentum import SimpleMomentum
@@ -252,6 +253,31 @@ class SimpleDensityOperation(DelayedConstruction):
                 "profile": species[0].initial_distribution,
                 "layout": layout,
                 "grid": grid,
+            },
+        }
+        operators = {"constructor": constructor}
+
+        return super().__init__(metadata=metadata, operators=operators)
+
+
+class ParticleFromFileOperation(DelayedConstruction):
+    """Load one species' particles from an external openPMD file at ``t=0``."""
+
+    def __init__(self, /, species, file_path, iteration):
+        def constructor(self):
+            kwargs = self.metadata.kwargs
+            return ParticleFromFile(
+                species=kwargs["species"].get_as_pypicongpu(),
+                file_path=kwargs["file_path"],
+                iteration=kwargs["iteration"],
+            )
+
+        metadata = {
+            "Type": ParticleFromFile,
+            "kwargs": {
+                "species": species,
+                "file_path": file_path,
+                "iteration": iteration,
             },
         }
         operators = {"constructor": constructor}

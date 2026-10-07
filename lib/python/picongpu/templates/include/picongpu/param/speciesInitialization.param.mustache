@@ -22,6 +22,10 @@
 
 #include "picongpu/particles/InitFunctors.hpp"
 
+#if (ENABLE_OPENPMD == 1)
+#    include "picongpu/particles/loadInit/LoadFromOpenPMD.hpp"
+#endif
+
 #include <picongpu/param/particle.param>
 #include <picongpu/pypicongpu/util.hpp>
 
@@ -29,6 +33,30 @@ namespace picongpu
 {
     namespace particles
     {
+        /********************************************/
+        /* phase 0: source parameters (if any)      */
+        /********************************************/
+{{#init_operations}}{{#type_particlefromfile}}
+#if (ENABLE_OPENPMD == 1)
+        /** Parameters for loading the species {{{species.typename}}} from an
+         *  external openPMD file.
+         */
+        struct FromOpenPMDFile_{{{species.typename}}}
+        {
+            using SpeciesType = {{{species.typename}}};
+
+            /** path to the openPMD particle file */
+            static constexpr char const* filePath = "{{{file_path}}}";
+
+            /** openPMD iteration to read */
+            static constexpr uint32_t iteration = {{{iteration}}};
+
+            /** number of particles processed per kernel call */
+            static constexpr uint32_t chunkSize = 1'000'000u;
+        };
+#endif
+{{/type_particlefromfile}}{{/init_operations}}
+
         /** InitPipeline define in which order species are initialized
          *
          * the functors are called in order (from first to last functor)
@@ -62,6 +90,10 @@ namespace picongpu
                         {{{typename}}}>,
                 {{/placed_species_copied}}
 {{/type_simpledensity}}{{/init_operations}}
+
+{{#init_operations}}{{#type_particlefromfile}}
+                LoadFromOpenPMD<FromOpenPMDFile_{{{species.typename}}}>,
+{{/type_particlefromfile}}{{/init_operations}}
 
             /*********************************************/
             /* phase 2: adjust other attributes (if any) */
