@@ -59,11 +59,11 @@ All lasers share a few properties:
 
 * ``wavelength`` in metres,
 * ``duration`` in seconds:
-  for the standard Gaussian lasers (``GaussianLaser`` and the dispersive
-  pulse) this is the 1/e half-width of the electric-field envelope
+  for the standard Gaussian lasers (``GaussianLaser``, the dispersive pulse
+  and ``TWTSLaser``) this is the 1/e half-width of the electric-field envelope
   (``E ~ exp(-t^2 / duration^2)``), i.e. the intensity (``E^2``) has the
   1-sigma width ``duration / 2``;
-  ``PlaneWaveLaser`` and ``TWTSLaser`` instead take ``duration`` directly
+  ``PlaneWaveLaser`` instead takes ``duration`` directly
   as the 1-sigma width of the intensity profile,
 * ``propagation_direction`` and ``polarization_direction``:
   normalized 3D vectors.
@@ -139,6 +139,11 @@ Laser types
    Its placement is fixed to the ``YMin``/``ZMin``/``ZMax`` faces
    (it always enters through ``YMin``); ``propagation_direction``
    must still point into the box (positive ``y`` component).
+   Its focus is set by ``focal_position`` (the ``x`` coordinate is
+   fixed to the domain center), and the analytic
+   :meth:`~picongpu.picmi.lasers.TWTSLaser.E` /
+   :meth:`~picongpu.picmi.lasers.TWTSLaser.B` additionally take the
+   domain center as context (the C++ origin is the domain center).
 
 :class:`~picongpu.picmi.lasers.PlaneWaveLaser`
    A plane wave with a temporal shape:

@@ -549,9 +549,12 @@ def test_twts_laser_entry_behavior_unchanged():
     pypic = twts.get_as_pypicongpu()
     # the propagation direction is [0, cos(angle), sin(angle)] = +y for angle 0
     assert pypic.entry_face == "YMin"
-    # TWTS keeps its base pulse-duration convention (sigma = duration), and for +y
-    # propagation the generalized pulse_init reduces to the original expression.
-    assert abs(pypic.pulse_init - (-2.0 * twts.centroid_position[1] / c / twts.duration)) < 1e-9
+    # TWTS now follows the Gaussian-family duration / 2 convention (PULSE_DURATION =
+    # sigma of the intensity), and for +y propagation the generalized pulse_init
+    # reduces to the original expression.
+    expected = -2.0 * twts.centroid_position[1] / c / twts._pulse_duration_sigma_si()
+    assert abs(pypic.pulse_init - expected) < 1e-9
+    assert abs(pypic.pulse_duration_si - twts.duration / 2.0) < 1e-24
     # incident field is placed on YMin and ZMax (angle not positive), not on any other face
     assert _enabled_faces(_rendered_incident_field(twts)) == ["YMin", "ZMax"]
 
@@ -578,12 +581,13 @@ def test_twts_laser_keeps_legacy_pulse_init_at_nonzero_angle():
         a0=1.0,
     )
     pypic = twts.get_as_pypicongpu()
-    # legacy +y-only pulse_init (sigma = duration for TWTS), positive here:
-    expected = -2.0 * twts.centroid_position[1] / twts.propagation_direction[1] / c / twts.duration
+    # legacy +y-only pulse_init (PULSE_DURATION = duration / 2 for TWTS), positive here:
+    sigma = twts._pulse_duration_sigma_si()
+    expected = -2.0 * twts.centroid_position[1] / twts.propagation_direction[1] / c / sigma
     assert abs(pypic.pulse_init - expected) < 1e-9
     assert pypic.pulse_init > 0.0
     # the generalized (dot) formula is negative for this config, proving TWTS does not use it
-    generalized = -2.0 * float(np.dot(twts.centroid_position, twts.propagation_direction)) / c / twts.duration
+    generalized = -2.0 * float(np.dot(twts.centroid_position, twts.propagation_direction)) / c / sigma
     assert generalized < 0.0
     # two-plane placement is driven by the angle sign, not the entry face (angle > 0 -> ZMin)
     assert _enabled_faces(_rendered_incident_field(twts)) == ["YMin", "ZMin"]

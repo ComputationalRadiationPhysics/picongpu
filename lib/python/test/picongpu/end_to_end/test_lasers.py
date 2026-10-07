@@ -19,6 +19,7 @@ from picongpu.picmi import (
     GaussianLaser,
     PlaneWaveLaser,
     Simulation,
+    TWTSLaser,
     constants,
 )
 from picongpu.picmi import Species as Species
@@ -53,12 +54,26 @@ LASER_DURATION_SIGMA = 5.0e-15
 # The PICMI-standard `duration` is the 1/e field width tau, i.e. twice the sigma
 # (PULSE_DURATION = duration / 2); see GaussianLaser._pulse_duration_sigma_si (#5739).
 LASER_DURATION = 2 * LASER_DURATION_SIGMA
+DOMAIN_CENTER = NUMBER_OF_CELLS / 2 * CELL_SIZE
 FOCAL_POSITION = NUMBER_OF_CELLS / 2 * CELL_SIZE
 FOCAL_POSITION[1] = 4.62e-5
 CENTROID_POSITION = NUMBER_OF_CELLS / 2 * CELL_SIZE
 # pulse_init (a multiple of PULSE_DURATION) is derived from the centroid via the
 # sigma, keep the same pulse_init=15 as in the existing run:
 CENTROID_POSITION[1] = -0.5 * PULSE_INIT * LASER_DURATION_SIGMA * constants.c
+
+# TWTS (issue #117). It is not a BaseFunctorE: its core time reference is
+# `currentStep * dt - TDELAY` with TDELAY = time_offset_si (focal_y - centroid_y) /
+# (beta0 c), and it enters through its default faces (YMin/ZMax here). Its focus
+# sits at the domain center laterally, hence the analytic field needs the domain
+# center as extra context. The parameters are chosen so the pulse is well inside
+# the box (strong field) at the later checkpoints.
+TWTS_DURATION_SIGMA = 2.0e-15
+TWTS_DURATION = 2 * TWTS_DURATION_SIGMA
+TWTS_FOCAL_POSITION = DOMAIN_CENTER.copy()
+TWTS_FOCAL_POSITION[1] = 2.8e-6
+TWTS_CENTROID_POSITION = DOMAIN_CENTER.copy()
+TWTS_CENTROID_POSITION[1] = -8.0e-6
 
 LASERS = [
     GaussianLaser(
@@ -85,7 +100,7 @@ LASERS = [
     ),
     # DispersivePulse (issue #117): same focus/centroid as the Gaussian laser, with
     # the dispersion terms left at their zero default (the finite inverse-DFT path
-    # is exercised regardless). TWTS is intentionally absent here (separate issue).
+    # is exercised regardless).
     DispersivePulseLaser(
         wavelength=0.8e-6,
         waist=5.0e-6 / 1.17741,
@@ -97,6 +112,19 @@ LASERS = [
         picongpu_polarization_type=PolarizationType.LINEAR,
         a0=8.0,
         phi0=0.0,
+    ),
+    # TWTS (issue #117): uses its default injection faces (YMin + ZMax for
+    # laserIncidenceAngle < 0); the tilted pulse front is visible in the field.
+    TWTSLaser(
+        wavelength=0.8e-6,
+        waist=2.0e-6,
+        duration=TWTS_DURATION,
+        laserIncidenceAngle=-np.deg2rad(10.0),
+        polarizationAngle=0.0,
+        focal_position=TWTS_FOCAL_POSITION.tolist(),
+        centroid_position=TWTS_CENTROID_POSITION.tolist(),
+        picongpu_polarization_type=PolarizationType.LINEAR,
+        a0=8.0,
     ),
 ]
 
@@ -209,6 +237,13 @@ def _expected_E_field(coordinates, lasers, time, dt):
         if isinstance(laser, DispersivePulseLaser):
             extra["dt"] = dt
             extra["pulse_init"] = laser.get_as_pypicongpu(CELL_SIZE, NUMBER_OF_CELLS).pulse_init
+        if isinstance(laser, TWTSLaser):
+            # TWTS is not a BaseFunctorE: its time reference is already
+            # `time_offset_si` (TDELAY) and its origin is the domain center
+            # laterally, so the analytic field needs the domain-center context.
+            # Its Blackman-Nuttall window also needs the global `dt`.
+            extra["domain_center"] = DOMAIN_CENTER
+            extra["dt"] = dt
         contribution = laser.E(*coordinates, t=time, **extra)
         total = contribution if total is None else total + contribution
     return total
