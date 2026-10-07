@@ -231,7 +231,7 @@ def _gaussian_laser():
     )
 
 
-def _plane_wave_laser():
+def _plane_wave_laser(plateau_duration=0.0):
     return PlaneWaveLaser(
         wavelength=0.8e-6,
         duration=LASER_DURATION_SIGMA,
@@ -240,6 +240,7 @@ def _plane_wave_laser():
         centroid_position=CENTROID_POSITION.tolist(),
         picongpu_polarization_type=PolarizationType.LINEAR,
         picongpu_huygens_surface_positions=HUYGENS_SURFACE,
+        picongpu_plateau_duration=plateau_duration,
         a0=8.0,
         phi0=0.0,
     )
@@ -284,11 +285,11 @@ class TestLaserReferenceFrame(TestCase):
             found = laser.E(*position, t=time)
             np.testing.assert_allclose(found, expected, rtol=1e-6, atol=1e-6 * laser.E0)
 
-    def test_plane_wave_frontend_matches_core_oracle(self):
+    def _assert_plane_wave_matches_oracle(self, plateau_duration):
         # The plane-wave carrier can pass through a zero exactly at the envelope
-        # peak, so compare over a full carrier period and only require agreement
-        # where the field is actually significant.
-        laser = _plane_wave_laser()
+        # peak, so compare over a full carrier period (plus any plateau) and only
+        # require agreement where the field is actually significant.
+        laser = _plane_wave_laser(plateau_duration=plateau_duration)
         pulse_init = _translated_pulse_init(laser)
         direction = np.asarray(laser.propagation_direction, dtype=float)
         origin = _get_origin(
@@ -309,7 +310,8 @@ class TestLaserReferenceFrame(TestCase):
         cell = PROBE_CELLS[1]
         time = PROBE_TIMES[1]
         period = 2 * np.pi / oracle.omega0
-        times = time + np.linspace(-0.5 * period, 0.5 * period, 101)
+        span = max(0.5 * period, plateau_duration)
+        times = time + np.linspace(-span, span, 101)
         expected = []
         found = []
         for t in times:
@@ -321,6 +323,18 @@ class TestLaserReferenceFrame(TestCase):
         significant = np.abs(expected).max(axis=1) > 0.1 * laser.E0
         self.assertTrue(np.any(significant))
         np.testing.assert_allclose(found[significant], expected[significant], rtol=1e-6, atol=1e-6 * laser.E0)
+
+    def test_plane_wave_frontend_matches_core_oracle(self):
+        self._assert_plane_wave_matches_oracle(plateau_duration=0.0)
+
+    def test_plane_wave_plateau_frontend_matches_core_oracle(self):
+        # A non-zero plateau exercises the plateau branch of ``complex_amplitude``
+        # (the ``time > start_down`` envelope/correction path) as well as the
+        # plateau term in ``_compute_core_pulse_init`` -- the part of the frame
+        # conversion where the centroid re-centring matters most.  The plateau
+        # sits symmetrically around the pulse maximum at ``centroid_position`` at
+        # t = 0 in the frontend and must match the C++ oracle.
+        self._assert_plane_wave_matches_oracle(plateau_duration=4.0e-14)
 
     def test_pulse_init_uses_surface_origin_not_coordinate_origin(self):
         # The translated pulse_init must differ from the naive origin-at-zero
