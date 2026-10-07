@@ -59,10 +59,7 @@ class TestCompositePusherModel(TestCase):
             step: next(
                 name
                 for (slices, _official_name), name in zip(entries, (n for _, n in pusher._items))
-                if any(
-                    s[0] <= step and (s[1] == -1 or step <= s[1]) and (step - s[0]) % s[2] == 0
-                    for s in slices
-                )
+                if any(s[0] <= step and (s[1] == -1 or step <= s[1]) and (step - s[0]) % s[2] == 0 for s in slices)
             )
             for step in range(13)
         }
@@ -116,7 +113,9 @@ class TestCompositePusherRendering(TestCase):
         self.assertIn("particles::pusher::Composite<", converted.pusher_cpp)
         # right-nested: Boris outermost, Free innermost
         self.assertTrue(converted.pusher_cpp.startswith("particles::pusher::Composite<particles::pusher::Boris,"))
-        self.assertIn("particles::pusher::Composite<particles::pusher::Vay, particles::pusher::Free,", converted.pusher_cpp)
+        self.assertIn(
+            "particles::pusher::Composite<particles::pusher::Vay, particles::pusher::Free,", converted.pusher_cpp
+        )
         # two generated activation functors (N-1 for N=3 stages)
         self.assertEqual(converted.pusher_activation_declaration.count("struct "), 2)
         # generated names follow the <name>_<uuid hex> convention

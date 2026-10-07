@@ -126,7 +126,9 @@ class TestCompositePusher(TestCase):
         return self.result_path / "simOutput" / "checkpoints" / f"checkpoint_{step:06d}.bp5"
 
     def momenta(self, step, name):
-        particles = read_particles(self.checkpoint(step)).loc(axis=0)[name]
+        # Each per-step checkpoint file holds a single iteration, numbered by
+        # the step it was written at.
+        particles = read_particles(self.checkpoint(step), iteration=step).loc(axis=0)[name]
         momenta = particles[["momentum_x", "momentum_y", "momentum_z"]].to_numpy()
         assert len(momenta) > 0
         return momenta

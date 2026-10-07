@@ -76,9 +76,12 @@ def read_fields(series_name, names=("E", "B"), iteration=0):
     return {key: np.array(value) * unit for key, (value, unit) in tmp.items()}
 
 
-def read_particles(series_name):
+def read_particles(series_name, iteration=0):
+    # File-based openPMD layouts store one iteration per file (see the
+    # `_%06T` infix in the openPMD writer), so the iteration number must be
+    # supplied explicitly for per-step checkpoint files.
     series = opmd.Series(str(series_name), opmd.Access.read_only)
-    names, particles = zip(*series.iterations[0].particles.items())
+    names, particles = zip(*series.iterations[iteration].particles.items())
 
     data = pd.concat((particle.to_df() for particle in particles), keys=names)
     return data.assign(
