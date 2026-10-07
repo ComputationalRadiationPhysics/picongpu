@@ -14,6 +14,7 @@ from unittest import TestCase
 import numpy as np
 from picongpu.picmi import (
     Cartesian3DGrid,
+    DispersivePulseLaser,
     ElectromagneticSolver,
     GaussianLaser,
     PlaneWaveLaser,
@@ -77,6 +78,21 @@ LASERS = [
         duration=LASER_DURATION,
         propagation_direction=[0.0, 1.0, 0.0],
         polarization_direction=[1.0, 0.0, 0.0],
+        centroid_position=CENTROID_POSITION.tolist(),
+        picongpu_polarization_type=PolarizationType.LINEAR,
+        a0=8.0,
+        phi0=0.0,
+    ),
+    # DispersivePulse (issue #117): same focus/centroid as the Gaussian laser, with
+    # the dispersion terms left at their zero default (the finite inverse-DFT path
+    # is exercised regardless). TWTS is intentionally absent here (separate issue).
+    DispersivePulseLaser(
+        wavelength=0.8e-6,
+        waist=5.0e-6 / 1.17741,
+        duration=LASER_DURATION,
+        propagation_direction=[0.0, 1.0, 0.0],
+        polarization_direction=[1.0, 0.0, 0.0],
+        focal_position=FOCAL_POSITION.tolist(),
         centroid_position=CENTROID_POSITION.tolist(),
         picongpu_polarization_type=PolarizationType.LINEAR,
         a0=8.0,
@@ -172,7 +188,7 @@ def _huygens_interior_mask(lasers, cell_size, domain_cells):
     return np.transpose(mask, (2, 1, 0))
 
 
-def _expected_E_field(coordinates, lasers, time):
+def _expected_E_field(coordinates, lasers, time, dt):
     """
     Sum of the analytic laser fields, evaluated at ``time`` (SI).
 
@@ -181,10 +197,19 @@ def _expected_E_field(coordinates, lasers, time):
     so the analytic ``laser.E(..., t)`` and the simulation share one uniquely
     defined reference frame and no ad-hoc timing shift is needed.  The field
     exists only inside the Huygens box (masked separately).
+
+    The ``DispersivePulseLaser`` field is a finite discrete inverse Fourier
+    transform, so it additionally needs the global time step ``dt`` and the
+    translated ``pulse_init``; both are supplied here (the translated value is
+    exactly the one rendered into ``incidentField.param``).
     """
     total = None
     for laser in lasers:
-        contribution = laser.E(*coordinates, t=time)
+        extra = {}
+        if isinstance(laser, DispersivePulseLaser):
+            extra["dt"] = dt
+            extra["pulse_init"] = laser.get_as_pypicongpu(CELL_SIZE, NUMBER_OF_CELLS).pulse_init
+        contribution = laser.E(*coordinates, t=time, **extra)
         total = contribution if total is None else total + contribution
     return total
 
@@ -261,7 +286,7 @@ class TestLasers(TestCase):
         interior = _huygens_interior_mask(LASERS, CELL_SIZE, NUMBER_OF_CELLS)
         for it in self.checkpoint_steps:
             time = it * self.sim.time_step_size
-            expected = _expected_E_field(self.coordinates, LASERS, time)
+            expected = _expected_E_field(self.coordinates, LASERS, time, self.sim.time_step_size)
             fields = read_fields(self.checkpoint_pattern, iteration=it)
 
             if it == self.checkpoint_steps[0]:
