@@ -10,7 +10,7 @@ from typing import Annotated
 
 import numpy as np
 from picmistandard import PICMI_GaussianLaser
-from pydantic import Field, computed_field, model_validator
+from pydantic import Field, model_validator
 from scipy.spatial.transform import Rotation
 
 from ...pypicongpu import laser, util
@@ -23,8 +23,18 @@ from .polarization_type import PolarizationType
     laser.GaussianLaser,
     # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
     # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
-    # i.e. PULSE_DURATION = duration / 2 (#5739)
-    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
+    # i.e. PULSE_DURATION = duration / 2 (#5739).
+    #
+    # `pulse_init` is not a PICMI input: the frontend only defines the
+    # centroid-based pulse maximum at t=0. The core times its profile against
+    # the displaced Huygens-surface origin, so the reference-frame conversion
+    # (PICMI -> pypicongpu) is done here, where the grid is known.
+    conversions={
+        "duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si(),
+        "pulse_init": lambda self, cell_size=None, domain_cells=None, *args, **kwargs: self._compute_pulse_init(
+            cell_size, domain_cells
+        ),
+    },
 )
 class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     """
@@ -98,10 +108,6 @@ class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
     zeta: Annotated[float | None, util.rejects_unsupported("laser zeta")] = None
     beta: Annotated[float | None, util.rejects_unsupported("laser beta")] = None
     phi2: Annotated[float | None, util.rejects_unsupported("laser phi2")] = None
-
-    @computed_field
-    def pulse_init(self) -> float:
-        return self._compute_pulse_init()
 
     def _Omega0(self):
         from picongpu.picmi.constants import c

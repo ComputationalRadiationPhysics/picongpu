@@ -135,35 +135,6 @@ def setup_sim():
 SIM = None
 
 
-def _huygens_origin(laser, cell_size, domain_cells):
-    """
-    Position of the laser center on the (Huygens) generation surface, in SI.
-
-    Faithful port of ``incidentField::detail::BaseFunctorE::getOrigin()``:
-    the origin is the intersection of the line through the focus along the
-    (negative) propagation direction with the generation surface, choosing the
-    point a laser encounters first.  The generation surface is displaced by
-    0.75 cells inwards from the configured POSITION indices, matching the
-    placement of the incident-field sources in the simulation.
-    """
-    direction = np.asarray(laser.propagation_direction, dtype=float)
-    focus_attr = getattr(laser, "focal_position", None)
-    if focus_attr is None:
-        focus_attr = getattr(laser, "focus_pos", [0.0, 0.0, 0.0])
-    focus = np.asarray(focus_attr, dtype=float)
-    positions = np.asarray(laser.picongpu_huygens_surface_positions, dtype=int)
-    origin_p = -np.inf
-    for axis in range(3):
-        if np.abs(direction[axis]) < 1e-30:
-            continue
-        min_pos = (positions[axis][0] + 0.75) * cell_size[axis]
-        max_index = positions[axis][1] if positions[axis][1] > 0 else domain_cells[axis] + positions[axis][1]
-        max_pos = (max_index - 0.75) * cell_size[axis]
-        axis_p = min((min_pos - focus[axis]) / direction[axis], (max_pos - focus[axis]) / direction[axis])
-        origin_p = max(origin_p, axis_p)
-    return focus + origin_p * direction
-
-
 def _huygens_interior_mask(lasers, cell_size, domain_cells):
     """
     Cells that are strictly inside the Huygens box (i.e. not in the PML/absorber
@@ -201,25 +172,19 @@ def _huygens_interior_mask(lasers, cell_size, domain_cells):
     return np.transpose(mask, (2, 1, 0))
 
 
-def _expected_E_field(coordinates, lasers, time, cell_size, domain_cells):
+def _expected_E_field(coordinates, lasers, time):
     """
     Sum of the analytic laser fields, evaluated at ``time`` (SI).
 
-    Models the following layers on top of the bare analytic formulas:
-
-    * Huygens-surface timing: the frontend derives the laser's ``pulse_init``
-      from the centroid under the assumption that the generation surface sits at
-      the coordinate origin.  In reality the surface is displaced to the actual
-      ``origin`` (see ``_huygens_origin``), which delays/advances the pulse by
-      ``(origin . propagation_direction) / c``.  We add that shift so that the
-      analytic prediction uses the same time reference as the simulation.
-    * The field exists only inside the Huygens box (masked separately).
+    The laser's ``pulse_init`` is converted to the core's Huygens-surface
+    reference frame at translation time (see ``Simulation.get_as_pypicongpu``),
+    so the analytic ``laser.E(..., t)`` and the simulation share one uniquely
+    defined reference frame and no ad-hoc timing shift is needed.  The field
+    exists only inside the Huygens box (masked separately).
     """
     total = None
     for laser in lasers:
-        origin = _huygens_origin(laser, cell_size, domain_cells)
-        huygens_time_shift = np.dot(origin, laser.propagation_direction) / constants.c
-        contribution = laser.E(*coordinates, t=time + huygens_time_shift)
+        contribution = laser.E(*coordinates, t=time)
         total = contribution if total is None else total + contribution
     return total
 
@@ -287,13 +252,16 @@ class TestLasers(TestCase):
         * only the inside of the Huygens box is compared (the absorbing/PML
           layers near the boundaries are controlled by the boundary conditions,
           not by the laser model);
-        * only cells the laser has actually reached (strong field) are compared;
-        * the Huygens-surface timing shift (see ``_expected_E_field``).
+        * only cells the laser has actually reached (strong field) are compared.
+
+        No timing shift is applied: the reference-frame conversion lives in the
+        translation layer, so ``laser.E(..., t)`` is already in the simulation's
+        frame (see ``_expected_E_field``).
         """
         interior = _huygens_interior_mask(LASERS, CELL_SIZE, NUMBER_OF_CELLS)
         for it in self.checkpoint_steps:
             time = it * self.sim.time_step_size
-            expected = _expected_E_field(self.coordinates, LASERS, time, CELL_SIZE, NUMBER_OF_CELLS)
+            expected = _expected_E_field(self.coordinates, LASERS, time)
             fields = read_fields(self.checkpoint_pattern, iteration=it)
 
             if it == self.checkpoint_steps[0]:

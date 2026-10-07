@@ -86,14 +86,27 @@ class TestPlaneWaveLaserFieldComputation(TestCase):
         # exponentially suppressed far tail of the pulse
         np.testing.assert_allclose(found, expected, atol=1e-9 * np.abs(expected).max())
 
-    def test_ramp_does_not_depend_on_plateau_duration(self):
-        # Before the plateau starts (T < endUpramp) the field only sees the (common)
-        # upramp, so the plateau length must not matter there.
-        t = -2.0 / c
-        mask = self.grid[1] > t * c  # points with T = t - y/c < 0
-        found = self.make_laser(picongpu_plateau_duration=100).E(*self.grid[:, mask], t=t)
-        expected = self.make_laser().E(*self.grid[:, mask], t=t)
-        np.testing.assert_allclose(found, expected)
+    def _peak_amplitude_at_time(self, laser, time):
+        """Max |E| over one carrier period around ``time`` at the origin, i.e. the envelope."""
+        omega0 = laser._Omega0()
+        dt = np.linspace(0.0, 2 * np.pi / omega0, 2001)
+        return max(abs(laser.E(np.zeros(1), np.zeros(1), np.zeros(1), t=time + d)[0, 0]) for d in dt)
+
+    def test_plateau_is_centred_on_the_centroid(self):
+        # The pulse maximum sits at the centroid (origin here) at t=0 and the
+        # plateau (if any) spans [-plateau/2, +plateau/2] around it: the envelope
+        # equals E0 throughout that window and decays symmetrically outside it.
+        plateau = 100.0
+        laser = self.make_laser(picongpu_plateau_duration=plateau)
+        for t in (0.0, -0.25 * plateau, 0.25 * plateau, 0.4 * plateau):
+            self.assertAlmostEqual(self._peak_amplitude_at_time(laser, t) / laser.E0, 1.0, places=3)
+        for t in (-0.75 * plateau, 0.75 * plateau):
+            self.assertLess(self._peak_amplitude_at_time(laser, t) / laser.E0, 1.0)
+        self.assertAlmostEqual(
+            self._peak_amplitude_at_time(laser, 0.75 * plateau),
+            self._peak_amplitude_at_time(laser, -0.75 * plateau),
+            places=3,
+        )
 
     def test_single_components(self):
         laser = self.make_laser()

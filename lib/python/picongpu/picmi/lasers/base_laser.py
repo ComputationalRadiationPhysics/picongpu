@@ -107,21 +107,72 @@ class BaseLaser:
         suffix = "Min" if self.propagation_direction[axis] > 0 else "Max"
         return "xyz"[axis].upper() + suffix
 
-    def _compute_pulse_init(self):
-        # Time (in units of the pulse duration, 1 sigma of the intensity) for the
-        # pulse peak -- located at centroid_position at t=0 -- to travel along the
-        # full propagation direction to the entry face. This is the beam-axis
-        # distance from the centroid to the origin, i.e. the dot product of
-        # centroid_position with the normalized propagation direction, divided by
-        # the speed of light; it mirrors the C++ getTminusXoverC() time offset.
-        # For propagation along +y it reduces to the original
-        # -2 * centroid_y / (c * sigma) expression.
-        pulse_init = (
-            -2.0
-            * scalarProduct(self.centroid_position, self.propagation_direction)
-            / constants.c
-            / self._pulse_duration_sigma_si()
+    def _focus_position_si(self) -> np.ndarray:
+        """Focus position in SI, as used by the C++ ``FOCUS_POSITION_*_SI``.
+
+        The C++ profile projects the focus onto the generation surface to find the
+        surface origin. Most lasers carry a ``focal_position``; the plane wave has
+        its focus fixed at the coordinate origin (and exposes only ``focus_pos``).
+        """
+        focal_position = getattr(self, "focal_position", None)
+        if focal_position is None:
+            return np.zeros(3, dtype=float)
+        return np.asarray(focal_position, dtype=float)
+
+    def _huygens_surface_origin_si(self, cell_size, domain_cells) -> np.ndarray:
+        """Port of ``incidentField::detail::BaseFunctorE::getOrigin()`` in SI.
+
+        The origin is the intersection of the line through the focus along the
+        propagation direction with the generation (Huygens) surface, choosing the
+        point the laser encounters first. The generation surface is displaced by
+        0.75 cells inwards from the configured ``POSITION`` indices. This is the
+        time reference the C++ profile evaluates against; it is needed only by
+        the translation layer, never by the user-facing analytic formula.
+
+        When no grid is known (standalone translation of an unbound laser), the
+        surface is taken to sit at the coordinate origin, i.e. the historical
+        origin-at-zero convention. A real simulation always supplies the grid.
+        """
+        direction = np.asarray(self.propagation_direction, dtype=float)
+        if cell_size is None or domain_cells is None:
+            return np.zeros(3, dtype=float)
+        focus = self._focus_position_si()
+        cell_size = np.asarray(cell_size, dtype=float)
+        domain_cells = np.asarray(domain_cells, dtype=float)
+        positions = self.picongpu_huygens_surface_positions
+        origin_p = -np.inf
+        for axis in range(len(cell_size)):
+            if abs(direction[axis]) <= np.finfo(float).eps:
+                continue
+            min_position = (positions[axis][0] + 0.75) * cell_size[axis]
+            max_index = positions[axis][1] if positions[axis][1] > 0 else domain_cells[axis] + positions[axis][1]
+            max_position = (max_index - 0.75) * cell_size[axis]
+            axis_p = min(
+                (min_position - focus[axis]) / direction[axis],
+                (max_position - focus[axis]) / direction[axis],
+            )
+            origin_p = max(origin_p, axis_p)
+        return focus + origin_p * direction
+
+    def _compute_pulse_init(self, cell_size=None, domain_cells=None):
+        """``pulse_init`` (in units of the pulse duration) used by pypicongpu.
+
+        The frontend exposes the PICMI-standard, centroid-based definition only:
+        the pulse maximum is at ``centroid_position`` at ``t = 0``. The core,
+        however, times its profile against the actual displaced Huygens-surface
+        origin. This conversion (= the translation layer PICMI -> pypicongpu)
+        re-expresses the user's centroid in the core's reference frame:
+
+            pulse_init = 2 * dot(origin - centroid, direction) / (c * sigma)
+
+        For propagation along +y and an origin at the coordinate origin this
+        reduces to the historical ``-2 * centroid_y / (c * sigma)``.
+        """
+        distance = scalarProduct(
+            difference(self._huygens_surface_origin_si(cell_size, domain_cells), self.centroid_position),
+            self.propagation_direction,
         )
+        pulse_init = 2.0 * distance / constants.c / self._pulse_duration_sigma_si()
         if pulse_init < 3.0:
             logging.warning(
                 "set centroid_position and propagation_direction indicate that laser "

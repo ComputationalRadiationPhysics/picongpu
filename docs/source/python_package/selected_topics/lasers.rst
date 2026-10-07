@@ -39,6 +39,14 @@ of a :class:`~picongpu.picmi.lasers.GaussianLaser` is its ``E0``, the field
 envelope decays as ``exp(-t^2 / duration^2)``, and the ``GaussianLaser``
 ``duration`` is the 1/e half-width of that field envelope.
 
+The pulse is defined in the single, user-visible reference frame of the PICMI
+input and the openPMD output: the pulse maximum (for a symmetric pulse, the
+centroid) is at ``centroid_position`` at ``t = 0``.  ``E(x, y, z, t)`` is
+evaluated in that frame, so it reproduces the field written to the result
+files directly.  The Huygens-surface timing used internally by the PIConGPU
+core is an implementation detail of the translation layer and never appears in
+a user-facing formula.
+
 .. literalinclude:: ../snippets/selected_topics/laser_fields.py
    :language: python
    :start-after: # BEGIN-LASER-FIELDS

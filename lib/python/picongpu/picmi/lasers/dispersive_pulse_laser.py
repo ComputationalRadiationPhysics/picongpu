@@ -16,8 +16,16 @@ from .gaussian_laser import GaussianLaser
     laser.DispersivePulseLaser,
     # PICMI's `duration` is the standard 1/e field width (tau), while PIConGPU's
     # `pulse_duration_si` (aliased as `duration`) is the 1 sigma of the intensity,
-    # i.e. PULSE_DURATION = duration / 2 (#5739)
-    conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
+    # i.e. PULSE_DURATION = duration / 2 (#5739).
+    #
+    # As for the Gaussian laser, `pulse_init` is converted from the centroid-based
+    # PICMI frame to the core's Huygens-surface frame at translation time.
+    conversions={
+        "duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si(),
+        "pulse_init": lambda self, cell_size=None, domain_cells=None, *args, **kwargs: self._compute_pulse_init(
+            cell_size, domain_cells
+        ),
+    },
 )
 class DispersivePulseLaser(GaussianLaser):
     """

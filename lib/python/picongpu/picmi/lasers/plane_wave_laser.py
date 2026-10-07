@@ -16,8 +16,9 @@ import numpy as np
 from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser
+from .. import constants
 from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser, PositiveFloat
+from .base_laser import BaseLaser, PositiveFloat, difference, scalarProduct
 from .polarization_type import PolarizationType
 
 
@@ -26,6 +27,10 @@ from .polarization_type import PolarizationType
     conversions={
         "focal_position": lambda *_, **__: [0, 0, 0],
         "laser_nofocus_constant_si": "picongpu_plateau_duration",
+        # `pulse_init` is a core-only quantity; see _compute_core_pulse_init.
+        "pulse_init": lambda self, cell_size=None, domain_cells=None, *args, **kwargs: self._compute_core_pulse_init(
+            cell_size, domain_cells
+        ),
     },
 )
 class PlaneWaveLaser(PICMI_Laser, BaseLaser):
@@ -50,6 +55,18 @@ class PlaneWaveLaser(PICMI_Laser, BaseLaser):
         Maximum amplitude of the laser field [V/m]. Specify either a0 or E0.
     phi0: float
         Carrier envelope phase (CEP) [rad]
+    picongpu_plateau_duration: float
+        Length of the central plateau [s]. The pulse maximum is at
+        ``centroid_position`` at ``t = 0`` and the plateau spans
+        ``[-picongpu_plateau_duration / 2, +picongpu_plateau_duration / 2]``
+        around it.
+
+    Notes
+    -----
+    The pulse is defined in the single, user-visible reference frame of the
+    PICMI input and the openPMD output: the maximum is at ``centroid_position``
+    at ``t = 0``. The Huygens-surface timing used internally by the PIConGPU
+    core is an implementation detail of the translation layer.
     """
 
     wavelength: PositiveFloat
@@ -68,10 +85,6 @@ class PlaneWaveLaser(PICMI_Laser, BaseLaser):
     )
 
     @computed_field
-    def pulse_init(self) -> float:
-        return self._compute_pulse_init()
-
-    @computed_field
     def k0(self) -> float:
         return 2.0 * math.pi / self.wavelength
 
@@ -86,13 +99,34 @@ class PlaneWaveLaser(PICMI_Laser, BaseLaser):
         self._validate_common_properties()
         return self
 
-    def check(self):
+    def check(self, *args, **kwargs):
+        # Extra arguments (the grid info used to convert pulse_init) are accepted
+        # and ignored: validation does not depend on the grid.
         self._validate_common_properties()
 
     def _Omega0(self):
         from picongpu.picmi.constants import c
 
         return 2.0 * math.pi * c / self.wavelength
+
+    def _compute_core_pulse_init(self, cell_size=None, domain_cells=None):
+        """Translate the centroid-based pulse into the core's reference frame.
+
+        The plane wave's frontend model is anchored at the centroid: the sharp
+        ramps sit symmetrically around the pulse maximum at ``centroid_position``
+        at ``t = 0`` (the plateau, if any, is centred there too). In the core the
+        ramps sit at ``pulse_init * sigma`` and ``pulse_init * sigma + plateau``,
+        so this method shifts ``pulse_init`` by the beam-axis distance from the
+        centroid to the displaced Huygens-surface origin, expressed in pulse
+        durations. (The factor 2 in the Gaussian ``_compute_pulse_init`` is
+        absent here because the plane-wave ``duration`` is already the intensity
+        sigma, cf. ``_pulse_duration_sigma_si``.)
+        """
+        distance = scalarProduct(
+            difference(self.centroid_position, self._huygens_surface_origin_si(cell_size, domain_cells)),
+            self.propagation_direction,
+        )
+        return (-0.5 * self.picongpu_plateau_duration - distance / constants.c) / self._pulse_duration_sigma_si()
 
     def _standard_rotation(self):
         from scipy.spatial.transform import Rotation
@@ -102,32 +136,32 @@ class PlaneWaveLaser(PICMI_Laser, BaseLaser):
         )[0].apply
 
     def _to_standard_coordinates(self, x, y, z, t):
-        # The pulse peak (envelope maximum) is at centroid_position at t=0.
+        # The pulse peak (envelope maximum) is at centroid_position at t=0.  The
+        # ramps/plateau are anchored at that centroid: the plateau spans
+        # [-plateau/2, +plateau/2] around the pulse maximum (see complex_amplitude).
         shape = np.broadcast_shapes(np.shape(x), np.shape(y), np.shape(z))
         coords = np.asarray([x, y, z]) - np.reshape(self.centroid_position, (-1,) + (1,) * len(shape))
         r = self._standard_rotation()
         x, y, z = np.moveaxis(r(np.moveaxis(coords, 0, -1)), -1, 0)
-        # no additional time shift: with "standard conditions" the pulse peak is at
-        # the origin at t=0, which is what "centroid at t=0" means by construction.
+        # T = t - dot(r - centroid, direction)/c with the peak at the centroid at t=0.
         return x, y, z, t
 
     def complex_amplitude(self, x, y, z, t=0.0):
         from picongpu.picmi.constants import c
 
-        # Mirror of the C++ PlaneWaveFunctorIncidentE (BaseSeparableFunctorE).
-        # In standard conditions (propagation along +z) the longitudinal time
-        # argument is T = t - z/c.  The ramp/plateau follows the C++ code:
-        #   endUpramp = RAMP_INIT * PULSE_DURATION
-        #   startDownramp = endUpramp + LASER_NOFOCUS_CONSTANT
-        #   tau = PULSE_DURATION * sqrt(2)
-        # where the frontend maps RAMP_INIT -> pulse_init and
-        # LASER_NOFOCUS_CONSTANT -> picongpu_plateau_duration.
+        # PICMI-standard centroid-anchored plane wave: the pulse maximum is at
+        # centroid_position at t=0, with the plateau (if any) spanning
+        # [-plateau/2, +plateau/2] around it.  In standard conditions (propagation
+        # along +z) the longitudinal time argument is T = t - z/c, so the ramps sit
+        # at T = -plateau/2 and T = +plateau/2 and the carrier starts at the
+        # leading edge.  `duration` here is already the intensity 1-sigma width.
         _, _, z_std, t_std = self._to_standard_coordinates(x, y, z, t)
         T = t_std - z_std / c
 
         tau = self.duration * math.sqrt(2.0)
-        end_up = self.pulse_init * self.duration
-        start_down = end_up + self.picongpu_plateau_duration
+        half_plateau = 0.5 * self.picongpu_plateau_duration
+        end_up = -half_plateau
+        start_down = half_plateau
 
         envelope = np.full(np.shape(T), self.E0, dtype=np.float64)
         corr = np.zeros_like(envelope)

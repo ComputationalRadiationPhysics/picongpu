@@ -488,7 +488,8 @@ def _enabled_faces(rendered):
 
 
 def test_entry_face_plus_y_regression():
-    """propagation along +y: entry face is YMin and pulse_init matches the legacy formula (#88)."""
+    """propagation along +y: entry face is YMin; standalone (no grid) pulse_init
+    falls back to the origin-at-zero convention, which for +y is the legacy formula (#88)."""
     laser = GaussianLaser(
         wavelength=800e-9,
         waist=12e-6,

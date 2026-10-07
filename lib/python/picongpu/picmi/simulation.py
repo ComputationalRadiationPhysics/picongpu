@@ -166,6 +166,18 @@ def handled_via_openpmd(diagnostic):
     return isinstance(diagnostic, (ParticleDump, _FieldDump))
 
 
+def _translate_laser(laser, pypicongpu_grid):
+    """Translate one PICMI laser, handing it the grid for the reference-frame conversion.
+
+    All closed-form PICMI lasers need the grid (cell size + domain cell counts)
+    to convert their centroid-based definition into the core's Huygens-surface
+    convention when computing ``pulse_init``. Laser types that do not (e.g.
+    FromOpenPMDPulse, which carries its own time offset) simply ignore the
+    extra arguments.
+    """
+    return laser.get_as_pypicongpu(pypicongpu_grid.cell_size, pypicongpu_grid.cell_cnt)
+
+
 def _normalise_interaction(interaction):
     """Map a standard interaction onto the equivalent PIConGPU interaction.
 
@@ -704,6 +716,10 @@ class Simulation(picmistandard.PICMI_Simulation):
             CollisionalPhysicsSetup()
         ]
 
+        pypicongpu_grid = self.solver.grid.get_as_pypicongpu()
+        # The laser frontend only exposes the centroid-based PICMI reference
+        # frame; converting to the core's Huygens-surface convention needs the
+        # grid, which is only known here at translation time.
         return pypicongpu.simulation.Simulation(
             species=map(
                 lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape),
@@ -714,12 +730,12 @@ class Simulation(picmistandard.PICMI_Simulation):
             delta_t_si=self.time_step_size,
             solver=self.solver.get_as_pypicongpu(),
             customuserinput=self.picongpu_custom_user_input,
-            grid=self.solver.grid.get_as_pypicongpu(),
+            grid=pypicongpu_grid,
             binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
-            laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
+            laser=[_translate_laser(ll, pypicongpu_grid) for ll in self.lasers] or None,
             background_field=self._get_background_field(),
             output=self._generate_plugins(time_steps, self.particle_shape),
             particle_filters=self._collect_particle_filters(),
