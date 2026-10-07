@@ -67,9 +67,8 @@ namespace picongpu
         {
             HINLINE void operator()(uint32_t const currentStep)
             {
-                using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
-                    VectorAllSpecies,
-                    typename T_ParticleSourceParamClass::SpeciesType>;
+                using SpeciesType = pmacc::particles::meta::
+                    FindByNameOrType_t<VectorAllSpecies, typename T_ParticleSourceParamClass::SpeciesType>;
                 using FrameType = typename SpeciesType::FrameType;
 
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -107,8 +106,7 @@ namespace picongpu
                 if(usesParticlePatches(particleSpecies))
                 {
                     // fast path: PIConGPU-layout checkpoint, reuse the restart reader
-                    log<picLog::INPUT_OUTPUT>(
-                        "openPMD: loading species %1% from file via particlePatches fast path")
+                    log<picLog::INPUT_OUTPUT>("openPMD: loading species %1% from file via particlePatches fast path")
                         % FrameType::getName();
                     openPMD::LoadSpecies<SpeciesType> loader;
                     loader(
@@ -121,19 +119,23 @@ namespace picongpu
                     // general path: treat the whole record as one patch and filter by position
                     log<picLog::INPUT_OUTPUT>(
                         "openPMD: loading species %1% from file as a single patch (standard path)")
-                        % FrameType::getName();
+                        % speciesName;
                     uint64_t patchNumParticles[1] = {determineNumParticles(particleSpecies)};
                     uint64_t patchNumParticlesOffset[1] = {0};
 
+                    if(patchNumParticles[0] == 0u)
+                        throw std::runtime_error(
+                            "openPMD: no particles found in species '" + speciesName + "' of the source file.");
+
                     typename openPMD::ParticleSpeciesLoader<SpeciesType>::Params params{
-                        FrameType::getName(),
+                        speciesName,
                         particleSpecies,
                         speciesPtr,
                         patchNumParticles,
                         patchNumParticlesOffset,
                         cellOffsetToTotalDomain,
                         T_ParticleSourceParamClass::chunkSize};
-                    params.loadPartialMatches({0}, &threadParams, speciesPtr);
+                    params.loadPartialMatches({0}, &threadParams);
                 }
 
                 particleSpecies.seriesFlush();
@@ -147,9 +149,9 @@ namespace picongpu
              *
              * Requires numParticles, numParticlesOffset, offset and extent.
              */
-            static bool usesParticlePatches(::openPMD::ParticleSpecies const& particleSpecies)
+            static bool usesParticlePatches(::openPMD::ParticleSpecies& particleSpecies)
             {
-                auto const& patches = particleSpecies.particlePatches;
+                auto& patches = particleSpecies.particlePatches;
                 if(!patches.contains("numParticles") || !patches.contains("numParticlesOffset")
                    || !patches.contains("offset") || !patches.contains("extent"))
                     return false;
@@ -169,7 +171,7 @@ namespace picongpu
              * Taken from the extent of the first available ``position``
              * component, falling back to a scalar record component.
              */
-            static uint64_t determineNumParticles(::openPMD::ParticleSpecies const& particleSpecies)
+            static uint64_t determineNumParticles(::openPMD::ParticleSpecies& particleSpecies)
             {
                 try
                 {

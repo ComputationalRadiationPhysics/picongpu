@@ -92,7 +92,9 @@ namespace picongpu
 {{/type_simpledensity}}{{/init_operations}}
 
 {{#init_operations}}{{#type_particlefromfile}}
+#if (ENABLE_OPENPMD == 1)
                 LoadFromOpenPMD<FromOpenPMDFile_{{{species.typename}}}>,
+#endif
 {{/type_particlefromfile}}{{/init_operations}}
 
             /*********************************************/

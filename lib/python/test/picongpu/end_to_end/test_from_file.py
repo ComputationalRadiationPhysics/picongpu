@@ -36,36 +36,44 @@ from .compare_particles import read_particles
 logging.basicConfig(level=logging.INFO)
 
 PARTICLE_SHAPE = "other:counter"
-SPECIES_NAME = "from_file_bunch"
+# no underscore: compare_particles splits species names on the first "_"
+SPECIES_NAME = "bunch"
 NUMBER_OF_PARTICLES = 100
 
 
 def _reference_particles():
-    """Deterministic in-cell positions, cell offsets, momenta and weights."""
+    """Deterministic global positions, momenta and weights in SI units."""
     rng = np.random.default_rng(20260101)
     cell_size = np.asarray(CELL_SIZE, dtype=np.float64)
     shape = np.asarray(NUMBER_OF_CELLS, dtype=np.int64)
     # global cell indices, avoiding the outer cells
     cells = np.stack([rng.integers(1, shape[i] - 1, size=NUMBER_OF_PARTICLES) for i in range(3)], axis=1)
-    # in-cell fractional position, as PIConGPU stores `position`
+    # in-cell fractional position
     in_cell = rng.uniform(0.0, 1.0, size=(NUMBER_OF_PARTICLES, 3))
-    # cell-beginning position in SI, as PIConGPU stores `positionOffset`
-    position_offset = cells * cell_size
+    # cell-beginning position in SI
+    cell_beginning = cells * cell_size
+    # the physical position relative to the cell beginning is the fraction times
+    # the cell size; PIConGPU's openPMD `position` carries the in-cell fraction
+    # with `unitSI` = cell size
+    position = cell_beginning + in_cell * cell_size
     momentum = rng.normal(0.0, 1.0e-23, size=(NUMBER_OF_PARTICLES, 3))
     weighting = rng.uniform(1.0e5, 2.0e5, size=NUMBER_OF_PARTICLES)
     return {
         "in_cell": in_cell,
-        "position_offset": position_offset,
+        "cell_beginning": cell_beginning,
+        "position": position,
         "momentum": momentum,
         "weighting": weighting,
     }
 
 
 def _write_reference_file(path: Path):
-    """Write an openPMD particle file in the in-cell ``position``/``positionOffset`` form.
+    """Write an openPMD file in PIConGPU's in-cell ``position``/``positionOffset`` form.
 
-    No ``particlePatches`` are written, so this exercises the general
-    (standard-compliant) loader path rather than the restart fast path.
+    ``position`` is the in-cell fraction with ``unitSI`` = cell size, so its SI
+    value is the distance from the cell beginning; ``positionOffset`` is the
+    cell-beginning position in SI. No ``particlePatches`` are written, so this
+    exercises the general (standard-compliant) loader path.
     """
     reference = _reference_particles()
     series = opmd.Series(str(path), opmd.Access.create)
@@ -79,12 +87,12 @@ def _write_reference_file(path: Path):
     double = opmd.determine_datatype(np.dtype("float64"))
     for i, axis in enumerate(("x", "y", "z")):
         position[axis].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
-        position[axis].unit_SI = 1.0
+        position[axis].unit_SI = CELL_SIZE[i]
         position[axis].store_chunk(reference["in_cell"][:, i])
 
         position_offset[axis].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
         position_offset[axis].unit_SI = 1.0
-        position_offset[axis].store_chunk(reference["position_offset"][:, i])
+        position_offset[axis].store_chunk(reference["cell_beginning"][:, i])
 
         momentum[axis].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
         momentum[axis].unit_SI = 1.0
@@ -119,17 +127,14 @@ def basic_simulation():
 
 RUN_DIR = ""
 
-REFERENCE = None
-
 
 def setup_sim():
-    global REFERENCE
     sim = basic_simulation()
     input_dir = Path(sim.picongpu_get_runner().setup_dir).parent / "input"
     input_dir.mkdir(parents=True, exist_ok=True)
     input_file = input_dir / "from_file_bunch.bp5"
     if not input_file.exists():
-        REFERENCE = _write_reference_file(input_file)
+        _write_reference_file(input_file)
     species = Species(
         name=SPECIES_NAME,
         particle_type="electron",
@@ -161,6 +166,7 @@ class TestFromFile(TestCase):
             SIM = setup_sim()
         self.sim = SIM
         gather_results(self.result_path)
+        # read_particles applies each record's unitSI, so the values are SI.
         self._particles = read_particles(self._dump_path()).loc(axis=0)[SPECIES_NAME].reset_index(drop=True)
 
     @property
@@ -176,22 +182,19 @@ class TestFromFile(TestCase):
         assert len(self._particles) == NUMBER_OF_PARTICLES
 
     def test_global_positions_are_reproduced(self):
-        # PIConGPU stores `position` as the in-cell fraction and `positionOffset`
-        # as the cell-beginning position; the global position is their sum.
         reference = _reference_particles()
         global_position = (
-            np.asarray(CELL_SIZE) * self._particles[["position_x", "position_y", "position_z"]].to_numpy()
+            self._particles[["position_x", "position_y", "position_z"]].to_numpy()
             + self._particles[["positionOffset_x", "positionOffset_y", "positionOffset_z"]].to_numpy()
         )
-        expected = reference["in_cell"] * np.asarray(CELL_SIZE) + reference["position_offset"]
-        assert np.allclose(global_position, expected, rtol=1.0e-9, atol=1.0e-12)
+        assert np.allclose(global_position, reference["position"], rtol=1.0e-6, atol=1.0e-12)
 
     def test_momenta_are_reproduced(self):
         reference = _reference_particles()
         momentum = self._particles[["momentum_x", "momentum_y", "momentum_z"]].to_numpy()
-        assert np.allclose(momentum, reference["momentum"], rtol=1.0e-9, atol=1.0e-30)
+        assert np.allclose(momentum, reference["momentum"], rtol=1.0e-6, atol=1.0e-30)
 
     def test_weightings_are_reproduced(self):
         reference = _reference_particles()
         weighting = self._particles["weighting"].to_numpy()
-        assert np.allclose(weighting, reference["weighting"], rtol=1.0e-9, atol=1.0e-12)
+        assert np.allclose(weighting, reference["weighting"], rtol=1.0e-6, atol=1.0e-12)

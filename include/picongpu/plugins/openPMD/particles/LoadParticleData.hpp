@@ -282,15 +282,7 @@ namespace picongpu
                         });
                 }
 
-                /** Load a set of patches and filter out particles outside the local domain.
-                 *
-                 * @param speciesTmp species to load into (defaults to the member for
-                 *                   the restart path, which sets it once)
-                 */
-                void loadPartialMatches(
-                    std::deque<size_t> const& partialMatches,
-                    ThreadParams* threadParams,
-                    std::shared_ptr<ThisSpecies> const& speciesTmp = nullptr) const
+                void loadPartialMatches(std::deque<size_t> const& partialMatches, ThreadParams* threadParams) const
                 {
                     auto [totalNumParticles, maxChunkSize] = numParticlesAndChunkSize(partialMatches);
 
@@ -324,7 +316,7 @@ namespace picongpu
                         threadParams,
                         totalNumParticles,
                         maxChunkSize, /* forEachPatch = */
-                        [this, threadParams, speciesTmp, &filter, &patchTotalOffset, &patchExtent, &patchUpperCorner](
+                        [this, threadParams, &filter, &patchTotalOffset, &patchExtent, &patchUpperCorner](
                             uint64_t loadRound,
                             uint64_t numParticlesCurrentBatch,
                             FrameType& mappedFrame,
