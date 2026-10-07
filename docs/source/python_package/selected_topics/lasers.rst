@@ -23,14 +23,26 @@ adds a Gaussian pulse to a full setup.
 Analytic fields
 ---------------
 
-:class:`~picongpu.picmi.lasers.GaussianLaser` and
-:class:`~picongpu.picmi.lasers.PlaneWaveLaser` can evaluate the analytic
-electric field they describe, which is what PIConGPU injects for them.
+:class:`~picongpu.picmi.lasers.GaussianLaser`,
+:class:`~picongpu.picmi.lasers.PlaneWaveLaser`,
+:class:`~picongpu.picmi.lasers.DispersivePulseLaser` and
+:class:`~picongpu.picmi.lasers.TWTSLaser` can evaluate the analytic electric
+field they describe, which is what PIConGPU injects for them.
 :meth:`~picongpu.picmi.lasers.GaussianLaser.complex_amplitude` returns the
 complex field amplitude, :meth:`~picongpu.picmi.lasers.GaussianLaser.envelope`
 its absolute value, and
 :meth:`~picongpu.picmi.lasers.GaussianLaser.E` the real vector field
 (also available per component as ``Ex``/``Ey``/``Ez``).
+:class:`~picongpu.picmi.lasers.DispersivePulseLaser` inherits and overrides
+these: its :meth:`~picongpu.picmi.lasers.DispersivePulseLaser.complex_amplitude`
+and :meth:`~picongpu.picmi.lasers.DispersivePulseLaser.E` additionally require
+the simulation time step ``dt`` (the field is a finite discrete inverse Fourier
+transform) and accept the translated initialization duration ``pulse_init``.
+:class:`~picongpu.picmi.lasers.TWTSLaser` provides
+:meth:`~picongpu.picmi.lasers.TWTSLaser.E` (per component ``Ex``/``Ey``/``Ez``)
+and the corresponding :meth:`~picongpu.picmi.lasers.TWTSLaser.B`; both take the
+domain center as the ``domain_center`` context argument, matching the core's
+domain-center origin.
 The coordinates ``x``, ``y`` and ``z`` may be numpy arrays of equal shape
 (e.g. from ``numpy.meshgrid``); the vector field is returned
 *component first*, i.e. with shape ``(3,) + x.shape``.

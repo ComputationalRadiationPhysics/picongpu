@@ -35,6 +35,27 @@ from picongpu.picmi.lasers import PolarizationType
 # ---------------------------------------------------------------------------
 
 
+def _twts_gate(position, time, wavelength, pulselength, beta_0, phi):
+    """Port of the C++ 6-sigma tilted-pulse envelope gate (``TWTSTight.hpp``).
+
+    ``position`` is relative to the (domain-center based) focus and ``time`` the
+    core's absolute evaluation time (already shifted by the frontend offset).
+    Returns ``True`` inside the gate, ``False`` in the early-return zero region.
+    """
+    c = C
+    phi_positive = -1.0 if phi < 0.0 else 1.0
+    abs_phi = abs(phi)
+    tan_alpha = (1.0 - beta_0 * np.cos(abs_phi)) / (beta_0 * np.sin(abs_phi))
+    tau_g = pulselength * 2.0
+    delta_t = wavelength / c / (1.0 - beta_0 * np.cos(phi))
+    delta_y = beta_0 * c * delta_t
+    number_of_periods = np.floor(time / delta_t)
+    time_mod = time - number_of_periods * delta_t
+    y_mod = position[1] - number_of_periods * delta_y
+    z = phi_positive * position[2]
+    return np.abs(y_mod - z * tan_alpha - beta_0 * c * time_mod) <= (6.0 * tau_g * c)
+
+
 def _twts_core(
     position,
     time,
@@ -286,7 +307,7 @@ def _twts_core(
         / (c * bessel_i0 * rho_m * rho_m2)
     )
 
-    gate = np.abs(y - z * tan_alpha - beta_0 * c * t) <= (6.0 * tau_g * c)
+    gate = np.abs(y_mod - z * tan_alpha - beta_0 * c * time_mod) <= (6.0 * tau_g * c)
     if not gate:
         return np.zeros(3), np.zeros(3)
     amplitude = amplitude_si
@@ -353,6 +374,8 @@ PROBE_CELLS = np.array(
         [96.0, 0.0, 10.0],
         [96.0, 2.0, 7.0],
         [96.0, 4.0, 4.0],
+        [96.0, 3.0, 16.0],
+        [96.0, 0.0, 30.0],
     ]
 )
 
@@ -398,7 +421,9 @@ class TestTWTSLaserOracle(TestCase):
         laser = _twts_laser(laserIncidenceAngle=-np.deg2rad(10.0))
         # A negative angle mirrors the tilted pulse front in z, so probe at zMax.
         self._assert_matches_oracle(
-            laser, 200, probe_cells=np.array([[96.0, 0.0, 120.0], [96.0, 2.0, 123.0], [96.0, 3.0, 124.0]])
+            laser,
+            200,
+            probe_cells=np.array([[96.0, 0.0, 120.0], [96.0, 2.0, 123.0], [96.0, 3.0, 124.0], [96.0, 3.0, 162.0]]),
         )
 
     def test_frontend_matches_core_oracle_polarization(self):
@@ -408,14 +433,34 @@ class TestTWTSLaserOracle(TestCase):
     def test_gate_zeros_outside_envelope(self):
         laser = _twts_laser()
         oracle = TWTSOracle(laser, CELL_SIZE, NUMBER_OF_CELLS, DOMAIN_CENTER)
-        # A point far outside the (numerically unstable) envelope gate must be
-        # exactly zero, as in the C++ early return.
-        position = PROBE_CELLS[0] * CELL_SIZE
+        # A point outside the 6-sigma tilted-pulse envelope gate must be exactly
+        # zero, as in the C++ early return. Unconditional: the oracle here really
+        # is gated out (checked via _twts_gate), so the assertion can fail.
+        position = np.array([96.0, 0.0, 10.0]) * CELL_SIZE
         for time in (0.0, 1.0e-12):
+            relative = position - np.array([DOMAIN_CENTER[0], laser.focal_position[1], laser.focal_position[2]])
+            self.assertFalse(
+                _twts_gate(
+                    relative,
+                    time - laser.time_offset_si,
+                    laser.wavelength,
+                    laser._pulse_duration_sigma_si(),
+                    laser.beta0,
+                    laser.laserIncidenceAngle,
+                ),
+                "probe is not gated out; test would be vacuous",
+            )
             expected_e, expected_b = oracle.field(position, time)
+            np.testing.assert_array_equal(expected_e, 0.0)
+            np.testing.assert_array_equal(expected_b, 0.0)
             found_e = laser.E(*position, t=time, domain_center=DOMAIN_CENTER)
-            if np.all(expected_e == 0.0):
-                np.testing.assert_array_equal(found_e, 0.0)
+            found_b = laser.B(*position, t=time, domain_center=DOMAIN_CENTER)
+            np.testing.assert_array_equal(found_e, 0.0)
+            np.testing.assert_array_equal(found_b, 0.0)
+        # ... while an in-gate point is genuinely non-zero (gate is not trivially
+        # zeroing everything).
+        in_gate = PROBE_CELLS[0] * CELL_SIZE
+        self.assertGreater(np.abs(oracle.field(in_gate, 200 * TIME_STEP_SIZE)[0]).max(), 0.1 * laser.E0)
 
 
 class TestTWTSLaserFieldComputation(TestCase):
