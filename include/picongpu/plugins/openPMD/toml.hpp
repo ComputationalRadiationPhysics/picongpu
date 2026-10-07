@@ -46,6 +46,8 @@ namespace picongpu
             {
             }
 
+            virtual ~ITomlParameter() = default;
+
             virtual void parseOption(std::any tomlConfig, openPMD::PluginParameters& options) const = 0;
         };
 

@@ -279,8 +279,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             plugins::multi::Option<bool> lateInit
                 = {"lateInit",
                    "Only initialize the openPMD plugin when it is first executed instead of at simulation startup. "
-                   "This disables early validation of the plugin and backend configuration but can avoid hangups when "
-                   "the file system is not ready at startup.",
+                   "This defers opening the output Series (and thereby the validation of the backend configuration) "
+                   "to the first run and can avoid hangups when the file system is not ready at startup. "
+                   "Configuration parsing and validation still happen at simulation startup. "
+                   "Set to false to open the output Series already at simulation startup.",
                    true};
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
@@ -1391,16 +1393,17 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * configuration is reported early instead of only when the plugin
              * is first executed.
              *
-             * The regular output plugin additionally opens its output Series at
-             * this point, which also validates the backend configuration against
-             * the openPMD API. This can be disabled via --openPMD.lateInit.
+             * Unless lateInit is set, the regular output plugin additionally
+             * opens its output Series at this point, which also validates the
+             * backend configuration against the openPMD API.
              *
-             * The checkpoint backend additionally opens its write Series here so
-             * that configuration and backend errors are reported at simulation
-             * start instead of at the first checkpoint. This must only be done
-             * after a possible restart has happened, otherwise the write Series
-             * would conflict with the read Series opened while restarting, so
-             * the Checkpoint plugin decides when to call this for writing.
+             * Unless lateInit is set, the checkpoint backend additionally opens
+             * its write Series here so that configuration and backend errors are
+             * reported at simulation start instead of at the first checkpoint.
+             * This must only be done after a possible restart has happened,
+             * otherwise the write Series would conflict with the read Series
+             * opened while restarting, so the Checkpoint plugin decides when to
+             * call this for writing.
              *
              * The restart backend only validates its configuration here: its
              * read Series is opened and closed by doRestart() when the restart
@@ -1415,8 +1418,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         [&](RegularInstance const&)
                         {
                             mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, outputDirectory);
-                            // Defer all initialization (including configuration parsing and
-                            // opening the output Series) to the first run if requested.
+                            // Configuration is always parsed above; only opening the Series is
+                            // deferred to the first run if requested.
                             if(mThreadParams.lateInit)
                             {
                                 return;
@@ -1431,7 +1434,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                             {
                                 return;
                             }
-                            // Defer opening the output Series to the first run if requested.
+                            // Configuration is always parsed above; only opening the Series is
+                            // deferred to the first run if requested.
                             if(mThreadParams.lateInit)
                             {
                                 return;

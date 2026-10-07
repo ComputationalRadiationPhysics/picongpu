@@ -137,6 +137,10 @@ PIConGPU command line option                  description
                                               Adding the Iteration in a new IO step, leading to data duplication (ADIOS2 non-file-based encoding);
                                               replacing the old Iteration with the new one entirely (all file-based encodings); writing new data into the existing Iteration and leaving other
                                               data unmodified (HDF5 in non-file-based encoding).
+``--openPMD.lateInit``                        Open the output Series lazily on the first execution instead of at simulation startup. Default: ``true``. The plugin always
+                                              parses and validates its configuration at simulation startup; this option only controls whether the output Series is opened
+                                              (and the backend configuration validated against the openPMD API) at simulation startup or at the first actual dump.
+                                              Set to ``false`` for early backend validation, or to ``true`` (default) to avoid hangups when the file system is not ready yet.
 ============================================= ====================================================================================================================================================
 
 .. note::
