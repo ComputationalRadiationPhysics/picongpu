@@ -1,5 +1,5 @@
 ################################################################################
-#   [g++-X] : X = {7, 8, 9 ,10, 11}
+#   [g++-X] : X = {10, 11, 12, 13, 14, 15, 16}
 
 .base_gcc:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-gcc-pic:${CONTAINER_TAG}

@@ -126,10 +126,6 @@ def is_valid_combination(row):
         # hipcc should not be used without the hip backend
         if is_hipcc:
             return False
-        else:
-            # install/clang.sh is currently not providing apt sources later than this clang version
-            if is_clang and v_compiler > 19:
-                return False
 
         # CUDA compiler requires backed `cuda`
         if (is_nvcc or is_clang_cuda) and not is_cuda:
@@ -188,15 +184,7 @@ def is_valid_combination(row):
 
         # clang as host compiler
         if is_clang:
-            if os_name == "ubuntu" and os_version == 22.04 and v_compiler <= 13:
-                return True
-            # disabled due to compile issue
-            #  chrono:2360:48: error: call to consteval function
-            #  'std::chrono::hh_mm_ss::_S_fractional_width' is not a constant expression
-            #        static constexpr unsigned fractional_width = {_S_fractional_width()};
-            if v_compiler == 14:
-                return False
-            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 14:
+            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 15:
                 return True
             return False
 
@@ -212,19 +200,18 @@ def is_valid_combination(row):
 # compiler list
 # tuple with two components (compiler name, version)
 clang_compiers = [
-    # available in apt sources ubuntu 22.04
-    ("clang++", 11),
-    ("clang++", 12),
-    # available in apt sources ubuntu 24.04
-    ("clang++", 13),
-    ("clang++", 14),
     ("clang++", 15),
     ("clang++", 16),
     ("clang++", 17),
     ("clang++", 18),
     ("clang++", 19),
+    # clang >= 20 requires an additional apt.llvm.org source, see share/ci/install/clang.sh
+    ("clang++", 20),
+    ("clang++", 21),
+    ("clang++", 22),
+    ("clang++", 23),
 ]
-gnu_compilers = [("g++", 11), ("g++", 12), ("g++", 13), ("g++", 14)]
+gnu_compilers = [("g++", 11), ("g++", 12), ("g++", 13), ("g++", 14), ("g++", 15), ("g++", 16)]
 compilers = [clang_compiers, gnu_compilers]
 
 # generate clang cuda compiler list
