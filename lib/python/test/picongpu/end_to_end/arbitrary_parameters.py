@@ -27,7 +27,10 @@ ALL_UNITS = ["cell", "si", "pic"]
 NUMBER_OF_GUARD_CELLS = [8, 8, 4]
 EPSILON = 1.0e-5
 
-TIMEOUT_COUNT = 100
+# Wait budget = TIMEOUT_COUNT x sleep_interval (5 s) per gathered result; the
+# two 300-step laser e2e runs (~700 s each on the reduced CI node) need
+# headroom above 100 (500 s).
+TIMEOUT_COUNT = 200
 
 
 def _wait_until(function, sleep_interval=5, timeout_count=TIMEOUT_COUNT):

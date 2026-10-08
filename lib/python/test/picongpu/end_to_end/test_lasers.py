@@ -31,6 +31,13 @@ from .compare_particles import read_fields, read_grids
 
 logging.basicConfig(level=logging.INFO)
 
+# Both e2e classes run a 300-step 192x128x192 launch; the shared wait budget
+# (TIMEOUT_COUNT in arbitrary_parameters.py x sleep_interval=5 s) must
+# exceed one full 300-step run (~12 min on the reduced CI node); see the
+# TIMEOUT_COUNT setting there.  300 steps is chosen so the laser peak
+# (15*sigma_t ahead of the entry face, 11.25 um in domain length) crosses
+# the YMin face exactly at the final checkpoint, keeping the +y test's
+# strong-field comparison region non-empty at the last iteration.
 STEPS = 300
 LOWER_BOUNDARY = np.zeros(3)
 NUMBER_OF_CELLS = np.array([192, 128, 192])
@@ -359,11 +366,21 @@ class TestLasers(TestCase):
 # the single analytic contribution of that one pulse -- not a sum of two
 # independent pulses. This is the acceptance criterion agreed in the issue.
 
-MULTIFACE_PROPAGATION = np.array([0.5, 0.0, np.sqrt(3.0) / 2.0])
-MULTIFACE_FOCAL_POSITION = FOCAL_POSITION + np.array([0.0, -1.0e-5, 0.0])
-# enough distance from the focus that the centroid is outside the box on both
-# the x- and the z-entry side, along the (negative) propagation direction:
-MULTIFACE_CENTROID_POSITION = MULTIFACE_FOCAL_POSITION - 9.0e-5 * MULTIFACE_PROPAGATION
+# 45 degrees in the x-z plane: with symmetric x/z components both the XMin and
+# the ZMin face are crossed equally, so the two Huygens surfaces receive the same
+# profile at the same retarded time (the "single pulse, not two" case).
+MULTIFACE_PROPAGATION = np.array([1.0 / np.sqrt(2.0), 0.0, 1.0 / np.sqrt(2.0)])
+# The pulse propagates purely in the x-z plane (no y-component), so its beam
+# axis is fixed in y. The box is only 128 cells (5.67 um) thick in y, unlike the
+# +y setup above whose FOCAL_POSITION[1] is far out of plane. For the pulse to
+# actually pass through the box volume, the axis must lie inside the box in y, so
+# the focus is placed at the box center (DOMAIN_CENTER) on all axes.
+MULTIFACE_FOCAL_POSITION = DOMAIN_CENTER.copy()
+# The centroid sits 25 um up along -prop, just outside the box on both the x- and
+# the z-entry sides (centroid_d*direction_d < 0 for both crossed entry faces).
+# The peak then crosses both faces a few tens of steps in and the strong field is
+# well inside the box by the it=100 checkpoint.
+MULTIFACE_CENTROID_POSITION = MULTIFACE_FOCAL_POSITION - 25.0e-6 * MULTIFACE_PROPAGATION
 
 MULTIFACE_LASER = GaussianLaser(
     wavelength=0.8e-6,
@@ -441,7 +458,7 @@ class TestMultiFaceLaser(TestCase):
         for it in self.checkpoint_steps:
             time = it * self.sim.time_step_size
             # one analytic contribution for the one physical pulse:
-            expected = _expected_E_field(self.coordinates, MULTIFACE_LASERS, time, CELL_SIZE, NUMBER_OF_CELLS)
+            expected = _expected_E_field(self.coordinates, MULTIFACE_LASERS, time, self.sim.time_step_size)
             fields = read_fields(self.checkpoint_pattern, iteration=it)
             if it == self.checkpoint_steps[0]:
                 self.assertLess(
