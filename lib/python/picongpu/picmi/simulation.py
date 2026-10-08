@@ -59,6 +59,7 @@ from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFie
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
+from picongpu.pypicongpu.particle_functor.particle_functor import _SpeciesName
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.util import UnpackChain, unique
@@ -664,7 +665,9 @@ class Simulation(picmistandard.PICMI_Simulation):
         return [
             functor.model_copy(
                 update={
-                    "species_names": [{"name": name} for name in sorted({n for f, n in registered if f == functor})]
+                    "species_names": [
+                        _SpeciesName(name=name) for name in sorted({n for f, n in registered if f == functor})
+                    ]
                 }
             )
             for functor in unique(f for f, _ in registered)

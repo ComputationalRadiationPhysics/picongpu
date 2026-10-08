@@ -220,6 +220,7 @@ class ParticleFunctor(RenderedObject, BaseModel):
     def _exponents(self) -> list[float]:
         return list(self.unit_dimension.unit_dimension) if self.unit_dimension is not None else [0.0] * 7
 
+    @computed_field
     def has_species(self) -> bool:
         """Whether this functor is registered for at least one species (i.e. is a
         reusable particle filter that can be narrowed by species)."""
