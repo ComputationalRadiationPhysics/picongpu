@@ -88,20 +88,22 @@ def _write_reference_file(path: Path):
     for i, axis in enumerate(("x", "y", "z")):
         position[axis].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
         position[axis].unit_SI = CELL_SIZE[i]
-        position[axis].store_chunk(reference["in_cell"][:, i])
+        # ``[:, i]`` is a strided column view of a C-order array, which the
+        # openPMD C backend rejects; store a row-major contiguous copy.
+        position[axis].store_chunk(np.ascontiguousarray(reference["in_cell"][:, i]))
 
         position_offset[axis].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
         position_offset[axis].unit_SI = 1.0
-        position_offset[axis].store_chunk(reference["cell_beginning"][:, i])
+        position_offset[axis].store_chunk(np.ascontiguousarray(reference["cell_beginning"][:, i]))
 
         momentum[axis].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
         momentum[axis].unit_SI = 1.0
-        momentum[axis].store_chunk(reference["momentum"][:, i])
+        momentum[axis].store_chunk(np.ascontiguousarray(reference["momentum"][:, i]))
 
     scalar = opmd.Mesh_Record_Component.SCALAR
     weighting[scalar].reset_dataset(opmd.Dataset(double, (NUMBER_OF_PARTICLES,)))
     weighting[scalar].unit_SI = 1.0
-    weighting[scalar].store_chunk(reference["weighting"])
+    weighting[scalar].store_chunk(np.ascontiguousarray(reference["weighting"]))
 
     series.flush()
     series.close()
