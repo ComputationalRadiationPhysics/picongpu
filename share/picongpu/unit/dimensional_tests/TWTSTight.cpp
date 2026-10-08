@@ -202,7 +202,131 @@ struct twtsTightNumberTest
     }
 };
 
+/** Regression test for the TWTS envelope zero-cutoff guard
+ *
+ * The guard must test the same envelope argument (t - nu - xi) that is used by
+ * the field calculation. Before the fix it tested a differently oriented plane
+ * and therefore spuriously zeroed field values close to the envelope center.
+ * ``isOutsideTWTSEnvelope`` is public, so it is probed directly: this is
+ * deterministic and has no dependence on the oscillatory field amplitude.
+ */
+// This combination of compilers has a bug that is triggered by Catch2 internally suppressing warnings.
+// See https://github.com/ComputationalRadiationPhysics/picongpu/pull/5174#issuecomment-2467890326
+#if (__GNUC__ != 11 || __CUDACC_VER_MAJOR__ != 11)
+struct twtsTightEnvelopeGuardTest
+{
+    /** Walk along z at fixed y and t from the envelope center across its
+     *  boundary at ``numSigmas * tauG * cspeed``. Points up to half the
+     *  boundary distance inside must not be classified as outside, while a
+     *  point two boundary distances away must be outside.
+     */
+    static void checkEnvelope(float_64 const beta_0, float_64 const phi)
+    {
+        using float_T = templates::twtstight::float_T;
+
+        templates::twtstight::EField const
+            testEfield{0.0, 800.0e-9, 30.0e-15, 2.5e-6, phi, beta_0, 0.0, false, 0.0, 30. * (PI / 180.)};
+        auto const& vars = testEfield.basicTWTSHelperVariables;
+        float_T const sinPhi = vars[1];
+        float_T const cosPhi = vars[2];
+        float_T const tanAlpha = vars[4];
+        float_T const cspeed = vars[5];
+        float_T const tauG = vars[8];
+
+        /* Envelope argument: t - nu - xi
+         *   = (cspeed*t - y*(cosPhi + sinPhi*tanAlpha) - z*(sinPhi - cosPhi*tanAlpha)) / cspeed
+         */
+        float_T const yCoeff = cosPhi + sinPhi * tanAlpha;
+        float_T const zCoeff = sinPhi - cosPhi * tanAlpha;
+        float_T const boundary = float_T(templates::twtstight::numSigmas) * tauG * cspeed;
+        float_T const y = float_T(50.0) * boundary;
+        float_T const t = float_T(0.0);
+        /* z of the envelope center line for the chosen y and t */
+        float_T const zCenter = (cspeed * t - y * yCoeff) / zCoeff;
+
+        INFO("beta_0 = " << beta_0 << ", phi = " << phi);
+        {
+            float_T const z = zCenter;
+            CHECK_FALSE(testEfield.isOutsideTWTSEnvelope(std::array<float_T, 4u>{float_T(0.0), y, z, t}));
+        }
+        {
+            float_T const z = zCenter - float_T(0.5) * boundary / zCoeff;
+            CHECK_FALSE(testEfield.isOutsideTWTSEnvelope(std::array<float_T, 4u>{float_T(0.0), y, z, t}));
+        }
+        {
+            float_T const z = zCenter - float_T(2.0) * boundary / zCoeff;
+            CHECK(testEfield.isOutsideTWTSEnvelope(std::array<float_T, 4u>{float_T(0.0), y, z, t}));
+        }
+    }
+
+    /** End-to-end check of the negative interaction angle (phi < 0) sign path.
+     *
+     * ``defineMinimalCoordinates`` applies ``phiPositive`` (negation of x and
+     * z) for phi < 0 and evaluates ``deltaT`` with ``cos(phi) = cos(|phi|)``,
+     * while the guard works on helpers built from ``abs(phi)`` and is therefore
+     * sign invariant. This check drives ``calcTWTSField*`` through
+     * ``defineMinimalCoordinates`` with a negative phi and host coordinates
+     * derived from that mapping, asserting a non-zero field inside the envelope
+     * and an exactly zero field beyond the zero cutoff.
+     */
+    static void checkNegativePhi()
+    {
+        using float_T = templates::twtstight::float_T;
+
+        float_64 const phi = -30. * (PI / 180.);
+        templates::twtstight::EField const
+            testEfield{0.0, 800.0e-9, 30.0e-15, 2.5e-6, phi, 1.0, 0.0, false, 0.0, 30. * (PI / 180.)};
+        auto const& vars = testEfield.basicTWTSHelperVariables;
+        float_T const tanAlpha = vars[4];
+        float_64 const phiPositive = testEfield.phiPositive;
+        float_64 const unitLength = testEfield.unit_length;
+        float_64 const unitTime = testEfield.dt;
+
+        /* For beta_0 = 1 the guard argument reduces to t - y - z*tanAlpha, so
+         * the envelope center line is y = t - z*tanAlpha. The chosen reduced
+         * time is below one period, deltaT = wavelength / c / (1 - beta_0*cos(phi)),
+         * hence ``numberOfPeriods`` is zero and ``defineMinimalCoordinates``
+         * maps pos.y()/time directly while negating x and z via phiPositive.
+         * Invert that mapping to obtain the host position and time.
+         */
+        float_64 const insideZ = 9000.0;
+        float_64 const insideT = 100.0;
+        float_64 const insideY = insideT - insideZ * tanAlpha;
+        float3_64 const posInside = float3_64{0.0, insideY * unitLength, phiPositive * insideZ * unitLength};
+        float_64 const timeInside = insideT * unitTime;
+
+        INFO("phi = " << phi);
+        CHECK(testEfield.calcTWTSFieldX(posInside, timeInside) != float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldY(posInside, timeInside) != float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldZ(posInside, timeInside) != float_T(0.0));
+
+        /* |t - y - z*tanAlpha| = 20000*tanAlpha exceeds the cutoff
+         * numSigmas*tauG*cspeed, so all field components must be zero. */
+        float3_64 const posOutside = float3_64{0.0, 0.0, phiPositive * 20000.0 * unitLength};
+        CHECK(testEfield.calcTWTSFieldX(posOutside, 0.0) == float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldY(posOutside, 0.0) == float_T(0.0));
+        CHECK(testEfield.calcTWTSFieldZ(posOutside, 0.0) == float_T(0.0));
+    }
+
+    void operator()() const
+    {
+        checkEnvelope(1.0, 30. * (PI / 180.));
+        checkEnvelope(1.0, 90. * (PI / 180.));
+        checkEnvelope(0.9, 30. * (PI / 180.));
+        checkEnvelope(0.9, 90. * (PI / 180.));
+        checkNegativePhi();
+    }
+};
+#endif
+
 TEST_CASE("unit::TWTSTight", "[TWTSTight laser math test]")
 {
     twtsTightNumberTest()();
+}
+
+TEST_CASE("unit::TWTSTightEnvelopeGuard", "[TWTSTight laser envelope guard test]")
+{
+#if (__GNUC__ != 11 || __CUDACC_VER_MAJOR__ != 11)
+    twtsTightEnvelopeGuardTest{}();
+#endif
 }
