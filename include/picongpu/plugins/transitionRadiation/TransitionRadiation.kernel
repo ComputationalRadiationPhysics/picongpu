@@ -33,6 +33,7 @@
 #include "picongpu/unitless/transitionRadiation.unitless"
 
 #include <pmacc/kernel/atomic.hpp>
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 
 #include <cstdlib>

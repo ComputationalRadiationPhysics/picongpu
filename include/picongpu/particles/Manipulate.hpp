@@ -30,6 +30,7 @@
 #include <pmacc/particles/algorithm/CallForEach.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 
+#include <boost/mpl/apply.hpp>
 #include <boost/mpl/placeholders.hpp>
 
 #include <cstdint>

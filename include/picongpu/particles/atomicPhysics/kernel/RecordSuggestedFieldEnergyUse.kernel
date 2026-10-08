@@ -26,6 +26,7 @@
 #include "picongpu/particles/atomicPhysics/enums/ProcessClassGroup.hpp"
 #include "picongpu/particles/atomicPhysics/ionizationPotentialDepression/GetIPD.hpp"
 
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 

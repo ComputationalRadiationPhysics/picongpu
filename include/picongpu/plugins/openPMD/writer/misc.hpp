@@ -23,6 +23,7 @@
 #include "picongpu/defines.hpp"
 
 #include <pmacc/eventSystem/events/kernelEvents.hpp>
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/RangeMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>

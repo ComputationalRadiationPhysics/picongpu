@@ -25,6 +25,8 @@
 #include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/types.hpp"
 
+#include <boost/mpl/apply.hpp>
+
 #include <string>
 
 namespace pmacc

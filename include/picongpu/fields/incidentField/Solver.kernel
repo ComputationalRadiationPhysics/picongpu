@@ -23,6 +23,8 @@
 #include "picongpu/fields/differentiation/Derivative.hpp"
 #include "picongpu/fields/incidentField/DerivativeCoefficients.hpp"
 
+#include <pmacc/lockstep/ForEach.hpp>
+
 #include <cstdint>
 #include <type_traits>
 

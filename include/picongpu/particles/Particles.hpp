@@ -30,6 +30,7 @@
 #include <pmacc/HandleGuardRegion.hpp>
 #include <pmacc/boundary/Utility.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/lockstep/BlockCfg.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
 #include <pmacc/meta/GetKeyFromAlias.hpp>

@@ -23,6 +23,7 @@
 #include "picongpu/plugins/binning/utility.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 
 #include <alpaka/atomic/Traits.hpp>

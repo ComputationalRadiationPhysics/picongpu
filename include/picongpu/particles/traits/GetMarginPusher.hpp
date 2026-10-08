@@ -24,6 +24,8 @@
 #include "picongpu/particles/traits/GetPusher.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <boost/mpl/apply.hpp>
+
 namespace picongpu
 {
     namespace traits

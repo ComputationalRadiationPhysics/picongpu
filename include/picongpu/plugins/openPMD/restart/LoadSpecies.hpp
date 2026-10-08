@@ -28,6 +28,7 @@
 #    include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/lockstep/ForEach.hpp>
 #    include <pmacc/meta/conversion/MakeSeq.hpp>
 #    include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #    include <pmacc/particles/ParticleDescription.hpp>
