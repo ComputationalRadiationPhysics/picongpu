@@ -140,12 +140,19 @@ class TestCompositePusher(TestCase):
                 np.testing.assert_allclose(self.momenta(step, "free"), 0.0, atol=0.0)
 
     def test_switched_pusher_is_free_before_and_boris_after(self):
-        # before the switch (steps 0, 1) `Free` leaves momentum untouched ...
-        for step in (0, 1):
+        # ``checkpoint_N`` holds the state AFTER step N-1: the PMacc run loop calls
+        # ``dumpOneStep(step + 1)`` right after ``runOneStep(step)``, and there is an
+        # extra initial dump.  So the momentum created by the Boris push at step N
+        # first shows up in ``checkpoint_{N + 1}``, not ``checkpoint_N``.  The switch is
+        # at ``SWITCH_STEP`` (Free for steps < SWITCH_STEP, Boris from SWITCH_STEP), so
+        # the zero-momentum dumps are ``checkpoint_0 .. checkpoint_SWITCH_STEP`` and the
+        # non-zero dumps are ``checkpoint_{SWITCH_STEP + 1} .. checkpoint_MAX_STEPS``.
+        # before the switch `Free` leaves momentum untouched ...
+        for step in range(SWITCH_STEP + 1):
             with self.subTest(step=step):
                 np.testing.assert_allclose(self.momenta(step, "switched"), 0.0, atol=0.0)
         # ... and from the switch step onwards `Boris` accelerates along E_x.
-        for step in (SWITCH_STEP, MAX_STEPS - 1):
+        for step in range(SWITCH_STEP + 1, MAX_STEPS + 1):
             with self.subTest(step=step):
                 momenta = self.momenta(step, "switched")
                 assert np.any(np.abs(momenta[:, 0]) > 0.0), "Boris should have accelerated along x after the switch"
