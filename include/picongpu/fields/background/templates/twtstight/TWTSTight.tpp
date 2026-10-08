@@ -111,7 +111,7 @@ namespace picongpu::templates::twtstight
         }
         // We should never be here.
         else
-            return float3_X(NAN);
+            return float3_X::create(NAN);
     }
 
     template<typename T_Field>
