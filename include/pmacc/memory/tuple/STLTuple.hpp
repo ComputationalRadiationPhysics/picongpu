@@ -109,11 +109,10 @@ namespace pmacc
             /// @param t The tuple from which to extract the element.
             /// @return The extracted element by reference.
             template<size_t k, typename T, typename... Ts>
-            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...>& t)
+            HDINLINE constexpr auto& get(Tuple<T, Ts...>& t)
             {
                 if constexpr(k == 0)
                 {
-                    // Explicit cast to avoid GCC 13 and 14 misdeducing decltype(auto) for rvalue-reference members.
                     return static_cast<T&>(t.head);
                 }
                 else
@@ -124,7 +123,7 @@ namespace pmacc
 
             /// Const lvalue version of `get`
             template<size_t k, typename T, typename... Ts>
-            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...> const& t)
+            HDINLINE constexpr auto& get(Tuple<T, Ts...> const& t)
             {
                 if constexpr(k == 0)
                 {
@@ -138,7 +137,7 @@ namespace pmacc
 
             /// Rvalue version of `get`
             template<size_t k, typename T, typename... Ts>
-            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...>&& t)
+            HDINLINE constexpr auto&& get(Tuple<T, Ts...>&& t)
             {
                 if constexpr(k == 0)
                 {
@@ -152,7 +151,7 @@ namespace pmacc
 
             /// Const rvalue version of `get`
             template<size_t k, typename T, typename... Ts>
-            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...> const&& t)
+            HDINLINE constexpr auto&& get(Tuple<T, Ts...> const&& t)
             {
                 if constexpr(k == 0)
                 {
