@@ -210,10 +210,17 @@ def _huygens_interior_mask(lasers, cell_size, domain_cells):
                 for laser in lasers
             ]
         )
-        # inner points of the layer are at (index + 0.75); keep cells that are a
-        # whole cell beyond it on either side
-        inner_min = int(np.max(mins) + 1)
-        inner_max = int(np.min(maxs) - 1)
+        # The generation surface sits at (index + 0.75) cells and the Huygens
+        # box is applied on every face, so the total-field/scattered-field
+        # correction lives in the few cells adjacent to the surface (and is
+        # applied twice where two faces meet).  There the simulated field still
+        # carries the discrete injection error, not the analytic incident field,
+        # so keep cells well clear of the surface on every side.  The pulse is
+        # effectively plane in x/z, which is why the source-adjacent layers are
+        # only excluded here rather than compared.
+        margin = 4
+        inner_min = int(np.max(mins) + margin)
+        inner_max = int(np.min(maxs) - margin)
         # selector varies along mask-axis `axis` (mask layout: x, y, z)
         shape = [1, 1, 1]
         shape[axis] = -1
