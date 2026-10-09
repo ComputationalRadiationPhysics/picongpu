@@ -171,7 +171,6 @@ namespace picongpu
             auto const& simulationDescription = Environment<>::get().SimulationDescription();
             cBackend->second->init(
                 plugins::multi::IInstance::CheckpointInstance{
-                    plugins::multi::IInstance::CheckpointKind::Write,
                     checkpointFilename,
                     simulationDescription.getCheckpointDirectory()});
             checkpointBackendInitialized = true;
@@ -192,8 +191,6 @@ namespace picongpu
             }
 
             // If no dedicated restart filename was given, reuse the checkpoint filename.
-            // This must happen before the restart backend is initialized below so that
-            // the backend receives the effective restart filename.
             if(restartFilename.empty())
             {
                 restartFilename = checkpointFilename;
@@ -214,33 +211,6 @@ namespace picongpu
                     // output does not conflict with the read Series used for restarting.
                     ioBackends[checkpointBackendName] = std::static_pointer_cast<IIOBackend>(
                         cBackendHelp->second->create(cBackendHelp->second, 0, m_cellDescription));
-                }
-            }
-            // create restart backend
-            if(!ioBackendsHelp.empty() && checkpointBackendName != restartBackendName)
-            {
-                auto rBackend = ioBackendsHelp.find(restartBackendName);
-                if(rBackend == ioBackendsHelp.end())
-                    throw std::runtime_error(
-                        std::string("IO-backend ") + restartBackendName
-                        + " for restarts not found, possible backends: " + activeBackends);
-                else
-                {
-                    auto backend = std::static_pointer_cast<IIOBackend>(
-                        rBackend->second->create(rBackend->second, 0, m_cellDescription));
-                    // Initialize the backend at load time (i.e. at time step zero) so that
-                    // configuration errors are reported before the simulation starts.
-                    // Only do so if a restart is actually requested.
-                    auto const& simulationDescription = Environment<>::get().SimulationDescription();
-                    if(simulationDescription.isRestartConfigured())
-                    {
-                        backend->init(
-                            plugins::multi::IInstance::CheckpointInstance{
-                                plugins::multi::IInstance::CheckpointKind::Read,
-                                restartFilename,
-                                simulationDescription.getRestartDirectory()});
-                    }
-                    ioBackends[restartBackendName] = std::move(backend);
                 }
             }
         }
