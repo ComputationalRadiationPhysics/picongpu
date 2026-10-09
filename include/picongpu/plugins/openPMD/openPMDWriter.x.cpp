@@ -288,8 +288,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             plugins::multi::Option<int64_t> emptyOutputIterationAt
                 = {"emptyOutputIterationAt",
                    "Run the complete plugin once at the given time step without writing any mesh or particle data, "
-                   "creating only the openPMD Iteration. If the step is also covered by the output period, it is "
-                   "written as an empty iteration instead of a regular dump. Disabled by default.",
+                   "creating only the openPMD Iteration. The step will be written as an empty step, regardless if it "
+                   "is covered in the output period or not. Useful for early verification the IO has "
+                   "been correctly configured, disabled by default.",
                    -1};
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
@@ -309,6 +310,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * Emplacing such a parameter in that list will activate
              * the parameter in the PIConGPU command line and in the TOML
              * configuration of the openPMD plugin.
+             *
+             * Interface is implemented by Parameter<TargetType> below. The Type may differ between different
+             * parameters (integers, strings, boolean flags, ...).
              */
             struct IParameter
             {

@@ -140,24 +140,24 @@ namespace picongpu
 
         /** Open the checkpoint write backend once the simulation is initialized.
          *
-         * This runs after a possible restart so that the write Series does not
-         * conflict with the read Series opened while restarting. Deferring it to
-         * simulation start also reports configuration and backend errors before
-         * the first time step instead of only at the first checkpoint.
+         * This runs after a possible restart so that write-side checkpoint initialization does not conflict with
+         * read-side restarting. This gives checkpointing plugins the chance to report configuration and backend errors
+         * before the first time step instead of only at the first checkpoint.
          */
         void simulationStart() override
         {
-            // The hook is called once per soft-restart iteration, but the write
-            // Series is kept open across those, so only initialize it once.
+            // initialize only once
             if(checkpointBackendInitialized)
             {
                 return;
             }
 
+            auto const& simulationDescription = Environment<>::get().SimulationDescription();
+
             // Only open the output for checkpoint creation if it is actually
             // configured, otherwise this would leave an unused (and possibly
             // empty) output file behind.
-            if(!Environment<>::get().SimulationDescription().isCheckpointingConfigured())
+            if(!simulationDescription.isCheckpointingConfigured())
             {
                 return;
             }
@@ -168,7 +168,6 @@ namespace picongpu
                 return;
             }
 
-            auto const& simulationDescription = Environment<>::get().SimulationDescription();
             cBackend->second->init(
                 plugins::multi::IInstance::CheckpointInstance{
                     checkpointFilename,
@@ -205,13 +204,8 @@ namespace picongpu
                         std::string("IO-backend ") + checkpointBackendName
                         + " for checkpoints not found, possible backends: " + activeBackends);
                 else
-                {
-                    // The backend is only created here. Its write Series is opened in
-                    // simulationStart(), i.e. after a possible restart, so that the
-                    // output does not conflict with the read Series used for restarting.
                     ioBackends[checkpointBackendName] = std::static_pointer_cast<IIOBackend>(
                         cBackendHelp->second->create(cBackendHelp->second, 0, m_cellDescription));
-                }
             }
         }
 

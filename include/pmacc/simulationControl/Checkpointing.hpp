@@ -473,7 +473,6 @@ namespace pmacc::simulationControl
             return checkpointDirectory;
         }
 
-        /** Checkpointing is disabled at compile time. */
         [[nodiscard]] bool isCheckpointingConfigured() const
         {
             return false;

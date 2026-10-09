@@ -144,7 +144,7 @@ namespace pmacc
             /* Notify plugins that the simulation has been initialized or
              * restarted, i.e. after the restart (if any) and before the first
              * time step. Plugins may use this to act on the final initial
-             * state, e.g. the checkpoint backend opens its write Series here.
+             * state, e.g. checkpoint backends can perform early initialization for their output handles now.
              */
             Environment<>::get().PluginConnector().simulationStartPlugins();
 

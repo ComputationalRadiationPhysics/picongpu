@@ -35,13 +35,13 @@ namespace picongpu::openPMD
          * to open the output Series already at simulation startup for early
          * backend validation.
          */
-        bool lateInit{true};
+        bool lateInit{};
         /** Time step at which to create an empty output Iteration.
          *
          * If set, the plugin runs once at the given time step but does not
          * write any mesh or particle data, creating only the (otherwise
          * empty) openPMD Iteration. A value below zero disables this.
          */
-        int64_t emptyOutputIterationAt{-1};
+        int64_t emptyOutputIterationAt{};
     };
 } // namespace picongpu::openPMD
