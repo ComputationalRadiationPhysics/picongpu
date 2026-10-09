@@ -126,43 +126,6 @@ namespace pmacc
                 checkpointDirectory = value;
             }
 
-            /** Return the common directory for restarts
-             *
-             * @return std::string restart directory
-             */
-            std::string const& getRestartDirectory() const
-            {
-                return restartDirectory;
-            }
-
-            /** Set the common directory for restarts
-             *
-             * @see getRestartDirectory
-             */
-            void setRestartDirectory(std::string const& value)
-            {
-                restartDirectory = value;
-            }
-
-            /** Whether a restart from a checkpoint has been requested
-             *
-             * This allows plugins (e.g. the checkpoint IO-backends) to skip
-             * initialization when no restart is requested.
-             */
-            bool isRestartConfigured() const
-            {
-                return restartConfigured;
-            }
-
-            /** Set whether a restart from a checkpoint has been requested
-             *
-             * @see isRestartConfigured
-             */
-            void setRestartConfigured(bool const value)
-            {
-                restartConfigured = value;
-            }
-
             /** Set the current time step
              *
              * @see getCurrentStep
@@ -187,14 +150,8 @@ namespace pmacc
             /** whether checkpoint creation has been configured */
             bool checkpointingConfigured{false};
 
-            /** whether a restart from a checkpoint has been requested */
-            bool restartConfigured{false};
-
             /** common directory for checkpoints */
             std::string checkpointDirectory{"checkpoints"};
-
-            /** common directory for restarts */
-            std::string restartDirectory{"checkpoints"};
 
         private:
             friend struct detail::Environment;

@@ -1440,11 +1440,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * This must only be done after a possible restart has happened,
              * otherwise the write Series would conflict with the read Series
              * opened while restarting, so the Checkpoint plugin decides when to
-             * call this for writing.
-             *
-             * The restart backend only validates its configuration here: its
-             * read Series is opened and closed by doRestart() when the restart
-             * actually happens.
+             * call this for writing. The read Series used for restarting is
+             * opened and closed by doRestart() when the restart actually happens.
              */
             void init(InstanceKind instanceKind) override
             {
@@ -1467,10 +1464,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         {
                             mThreadParams
                                 .initFromConfig(*m_help, m_id, std::nullopt, instance.directory, instance.filename);
-                            if(instance.checkpointKind != CheckpointKind::Write)
-                            {
-                                return;
-                            }
                             // Configuration is always parsed above; only opening the Series is
                             // deferred to the first run if requested.
                             if(mThreadParams.lateInit)

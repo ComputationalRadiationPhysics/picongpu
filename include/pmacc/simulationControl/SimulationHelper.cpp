@@ -272,9 +272,7 @@ namespace pmacc
         // initialization of unused I/O capabilities.
         auto& simulationDescription = Environment<>::get().SimulationDescription();
         simulationDescription.setCheckpointingConfigured(checkpointing.isCheckpointingConfigured());
-        simulationDescription.setRestartConfigured(checkpointing.isRestartConfigured());
         simulationDescription.setCheckpointDirectory(checkpointing.getCheckpointDir());
-        simulationDescription.setRestartDirectory(checkpointing.getRestartDir());
 
         calcProgress();
         progressStepPeriodEnabled = !progressPeriod.empty();

@@ -45,15 +45,9 @@ namespace picongpu
                 struct RegularInstance
                 {
                 };
-                enum class CheckpointKind : std::uint8_t
-                {
-                    Write,
-                    Read
-                };
 
                 struct CheckpointInstance
                 {
-                    CheckpointKind checkpointKind;
                     std::string filename;
                     std::string directory;
                 };
