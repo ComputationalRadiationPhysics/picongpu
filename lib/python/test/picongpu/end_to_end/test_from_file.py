@@ -145,6 +145,12 @@ def setup_sim():
     )
     sim.add_species(species, None)
     sim.diagnostics = [Checkpoint(period=TS[:])]
+    # ``picongpu_get_runner()`` caches a translation snapshot of the simulation
+    # on first call.  The line above needs the (default) setup directory early,
+    # before the species and diagnostic exist, so refresh the snapshot once the
+    # simulation is complete; otherwise the compiled setup would contain no
+    # species and no checkpoint plugin.
+    sim.picongpu_get_runner().sim = sim.get_as_pypicongpu()
     if "rosi-hzdr" in rc_params.get("preset", "bash"):
         # On ROSI, the tmp directories are inaccessible to compute nodes.
         sim.picongpu_get_runner().setup_dir = directory_in_home() / "setup"
@@ -166,8 +172,11 @@ class TestFromFile(TestCase):
         global SIM
         if SIM is None:
             SIM = setup_sim()
+            # ``gather_results`` runs the ``link_results.sh`` helper; it must run
+            # exactly once, so tie it to the one-time simulation setup like the
+            # other end-to-end tests do.
+            gather_results(Path(SIM.picongpu_get_runner().run_dir))
         self.sim = SIM
-        gather_results(self.result_path)
         # read_particles applies each record's unitSI, so the values are SI.
         self._particles = read_particles(self._dump_path()).loc(axis=0)[SPECIES_NAME].reset_index(drop=True)
 
