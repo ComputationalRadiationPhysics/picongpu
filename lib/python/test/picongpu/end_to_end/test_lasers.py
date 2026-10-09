@@ -212,13 +212,12 @@ def _huygens_interior_mask(lasers, cell_size, domain_cells):
         )
         # The generation surface sits at (index + 0.75) cells and the Huygens
         # box is applied on every face, so the total-field/scattered-field
-        # correction lives in the few cells adjacent to the surface (and is
-        # applied twice where two faces meet).  There the simulated field still
-        # carries the discrete injection error, not the analytic incident field,
-        # so keep cells well clear of the surface on every side.  The pulse is
-        # effectively plane in x/z, which is why the source-adjacent layers are
-        # only excluded here rather than compared.
-        margin = 4
+        # correction lives in the cells adjacent to the surface (and is applied
+        # twice where two faces meet, e.g. the XMin/ZMin corner of the oblique
+        # multi-face pulse).  There the simulated field still carries the
+        # discrete injection error, not the analytic incident field, so keep a
+        # several-cell band clear of the surface on every side.
+        margin = 8
         inner_min = int(np.max(mins) + margin)
         inner_max = int(np.min(maxs) - margin)
         # selector varies along mask-axis `axis` (mask layout: x, y, z)
@@ -352,7 +351,14 @@ class TestLasers(TestCase):
         interior = _huygens_interior_mask(LASERS, CELL_SIZE, NUMBER_OF_CELLS)
         for it in self.checkpoint_steps:
             time = it * self.sim.time_step_size
-            expected = _expected_E_field(self.coordinates, LASERS, time, self.sim.time_step_size)
+            # ``read_fields``/``_huygens_interior_mask`` use the openPMD field
+            # layout (component, z, y, x); transpose the analytic field into the
+            # same layout so the mask and ``[:, region]`` indexing agree.  The
+            # x/z cell count and cell size coincide here, so the old mismatch was
+            # hidden for the x-z symmetric lasers.
+            expected = np.transpose(
+                _expected_E_field(self.coordinates, LASERS, time, self.sim.time_step_size), (0, 3, 2, 1)
+            )
             fields = read_fields(self.checkpoint_pattern, iteration=it)
 
             if it == self.checkpoint_steps[0]:
@@ -485,8 +491,11 @@ class TestMultiFaceLaser(TestCase):
         compared_any = False
         for it in self.checkpoint_steps:
             time = it * self.sim.time_step_size
-            # one analytic contribution for the one physical pulse:
-            expected = _expected_E_field(self.coordinates, MULTIFACE_LASERS, time, self.sim.time_step_size)
+            # one analytic contribution for the one physical pulse, transposed
+            # into the openPMD (component, z, y, x) field layout (see TestLasers):
+            expected = np.transpose(
+                _expected_E_field(self.coordinates, MULTIFACE_LASERS, time, self.sim.time_step_size), (0, 3, 2, 1)
+            )
             fields = read_fields(self.checkpoint_pattern, iteration=it)
             if it == self.checkpoint_steps[0]:
                 self.assertLess(
