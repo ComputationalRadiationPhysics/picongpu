@@ -532,8 +532,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     makeParam<int64_t>(
                         &emptyOutputIterationAt,
                         "empty_output_iteration_at",
-                        &PluginParameters::emptyOutputIterationAt,
-                        ApplyParameter::NotInCheckpoint));
+                        &PluginParameters::emptyOutputIterationAt));
 
             std::vector<std::unique_ptr<toml::ITomlParameter>> tomlParameters()
             {
@@ -2156,8 +2155,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 /* An empty output iteration runs the plugin including its meta
                  * data handling, but deliberately writes neither mesh nor
-                 * particle data. */
-                if(!threadParams->isCheckpoint && threadParams->isEmptyIteration(currentStep))
+                 * particle data. This also applies to checkpoint runs: the
+                 * checkpoint IO-backend does not register itself, so it only
+                 * reaches this code if a checkpoint is written at the
+                 * configured step. */
+                if(threadParams->isEmptyIteration(currentStep))
                 {
                     log<picLog::INPUT_OUTPUT>(
                         "openPMD: skipping mesh and particle data for empty output iteration %1%")

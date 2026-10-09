@@ -149,6 +149,17 @@ PIConGPU command line option                  description
 
 .. note::
 
+   This flag is also registered for checkpoint runs, where it is exposed as
+   ``--checkpoint.openPMD.emptyOutputIterationAt`` (with ``--checkpoint.backend openPMD``). The checkpoint openPMD
+   IO-backend does not register itself: unlike the regular output plugin it has no notification period of its own and is
+   only executed when the ``Checkpoint`` plugin actually writes a checkpoint. It therefore only takes effect if
+   checkpointing is configured (e.g. via ``--checkpoint.period``) and a checkpoint is written at exactly the configured
+   step. If no checkpointing is configured, or the step is not a checkpoint step, the option has no effect. Note that
+   checkpoint runs are configured on the command line only, so the TOML key ``empty_output_iteration_at`` applies to
+   regular output runs only.
+
+.. note::
+
    This plugin is a multi plugin.
    Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
    Each plugin instance requires that either ``--openPMD.period`` XOR ``--openPMD.pluginConfig`` is defined.
