@@ -78,7 +78,17 @@ def basic_simulation():
     )
     return Simulation(
         max_steps=MAX_STEPS,
-        solver=ElectromagneticSolver(method="Yee", cfl=1.0, grid=grid),
+        # The pusher switch is tested in isolation: with a self-consistent
+        # (Yee) solver the species' own current would, after the second Boris
+        # step, generate transverse fields that deflect the beam, so the
+        # transverse momentum is no longer exactly zero even though the applied
+        # field is purely along x.  The None solver never evolves E/B and does
+        # not couple the deposited current back, so the particles feel only the
+        # applied Ex and the asserted momenta stay exactly (de)celerated along x.
+        solver=ElectromagneticSolver(method="other:None", grid=grid),
+        # The None solver has no CFL limit, so the time step must be given
+        # explicitly; reuse the value a Yee run with cfl=1.0 would have chosen.
+        time_step_size=2.2867e-9,
         species=[FREE_SPECIES, SWITCHED_SPECIES],
         layouts=[LAYOUT, LAYOUT],
         applied_fields=[ConstantAppliedField(Ex=E_X)],
