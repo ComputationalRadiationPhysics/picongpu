@@ -165,6 +165,19 @@ def setup_sim():
 SIM = None
 
 
+def _sorted_rows(values):
+    """Return rows sorted as tuples.
+
+    The checkpoint reader emits particles in simulation (supercell) order, not
+    in the order they appear in the source file, so the reproduction checks
+    compare the two sets of rows rather than a specific ordering.
+    """
+    values = np.asarray(values)
+    if values.ndim == 1:
+        return np.sort(values)
+    return np.array(sorted(map(tuple, values)))
+
+
 class TestFromFile(TestCase):
     _result_path = None
 
@@ -198,14 +211,16 @@ class TestFromFile(TestCase):
             self._particles[["position_x", "position_y", "position_z"]].to_numpy()
             + self._particles[["positionOffset_x", "positionOffset_y", "positionOffset_z"]].to_numpy()
         )
-        assert np.allclose(global_position, reference["position"], rtol=1.0e-6, atol=1.0e-12)
+        assert np.allclose(
+            _sorted_rows(global_position), _sorted_rows(reference["position"]), rtol=1.0e-6, atol=1.0e-12
+        )
 
     def test_momenta_are_reproduced(self):
         reference = _reference_particles()
         momentum = self._particles[["momentum_x", "momentum_y", "momentum_z"]].to_numpy()
-        assert np.allclose(momentum, reference["momentum"], rtol=1.0e-6, atol=1.0e-30)
+        assert np.allclose(_sorted_rows(momentum), _sorted_rows(reference["momentum"]), rtol=1.0e-6, atol=1.0e-30)
 
     def test_weightings_are_reproduced(self):
         reference = _reference_particles()
         weighting = self._particles["weighting"].to_numpy()
-        assert np.allclose(weighting, reference["weighting"], rtol=1.0e-6, atol=1.0e-12)
+        assert np.allclose(_sorted_rows(weighting), _sorted_rows(reference["weighting"]), rtol=1.0e-6, atol=1.0e-12)

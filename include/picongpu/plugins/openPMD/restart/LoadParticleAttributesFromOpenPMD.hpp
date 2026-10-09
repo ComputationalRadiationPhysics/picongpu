@@ -32,6 +32,7 @@
 #    include <pmacc/traits/GetNComponents.hpp>
 #    include <pmacc/traits/Resolve.hpp>
 
+#    include <cmath>
 #    include <cstdint>
 #    include <memory>
 #    include <stdexcept>
@@ -215,7 +216,18 @@ namespace picongpu
                             for(size_t i = 0; i < elements; ++i)
                             {
                                 ComponentType* ref = &reinterpret_cast<ComponentType*>(dataPtr)[i * components + n];
-                                *ref = static_cast<ComponentType>(static_cast<double>(loadBfr.get()[i]) * unitFactor);
+                                double const convertedValue = static_cast<double>(loadBfr.get()[i]) * unitFactor;
+                                /* Integral attributes (e.g. the total-cell index behind
+                                 * positionOffset) round to the nearest integer.  A plain
+                                 * cast truncates, which is wrong when the conversion
+                                 * factor carries float rounding: the cell size stored in
+                                 * the simulation is float32, so unitSISim is a hair below
+                                 * the exact SI cell size and an exact integer cell index
+                                 * arrives as e.g. 6.9999999 and would truncate to 6. */
+                                if constexpr(std::is_integral_v<ComponentType>)
+                                    *ref = static_cast<ComponentType>(std::llround(convertedValue));
+                                else
+                                    *ref = static_cast<ComponentType>(convertedValue);
                             }
                         });
                 }
