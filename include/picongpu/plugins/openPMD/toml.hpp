@@ -68,9 +68,9 @@ namespace picongpu
         };
 
         template<typename TargetType, typename... Args>
-        auto makeTomlParameter(Args&&... args) -> std::shared_ptr<ITomlParameter>
+        auto makeTomlParameter(Args&&... args) -> std::unique_ptr<ITomlParameter>
         {
-            return std::shared_ptr<ITomlParameter>(new TomlParameter<TargetType>{std::forward<Args>(args)...});
+            return std::unique_ptr<ITomlParameter>(new TomlParameter<TargetType>{std::forward<Args>(args)...});
         }
 
         // We can't use pmacc::pluginSystem::Slice in a hostonly file due to PIConGPU include structure
@@ -105,7 +105,7 @@ namespace picongpu
 
             DataSources(
                 std::string const& tomlFile,
-                std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
+                std::vector<std::unique_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
                 std::vector<std::string> const& allowedDataSources,
                 MPI_Comm comm,
                 openPMD::PluginParameters pluginParameters);

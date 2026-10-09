@@ -334,7 +334,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {
                 }
 
-                virtual auto toTomlParameter() const -> std::optional<std::shared_ptr<toml::ITomlParameter>> = 0;
+                virtual auto toTomlParameter() const -> std::optional<std::unique_ptr<toml::ITomlParameter>> = 0;
                 virtual void registerHelp(
                     boost::program_options::options_description& desc,
                     std::string const& prefix,
@@ -373,7 +373,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 {
                 }
 
-                auto toTomlParameter() const -> std::optional<std::shared_ptr<toml::ITomlParameter>>
+                auto toTomlParameter() const -> std::optional<std::unique_ptr<toml::ITomlParameter>>
                 {
                     if(!tomlParameter.has_value() || !targetInConfigObject.has_value())
                     {
@@ -455,9 +455,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             };
 
             template<typename ParamType = std::string, typename... Args>
-            auto makeParam(Args&&... args) -> std::shared_ptr<IParameter>
+            auto makeParam(Args&&... args) -> std::unique_ptr<IParameter>
             {
-                return std::shared_ptr<IParameter>(new Parameter<ParamType>{std::forward<Args>(args)...});
+                return std::unique_ptr<IParameter>(new Parameter<ParamType>{std::forward<Args>(args)...});
+            }
+
+            template<typename VectorElementType, typename... Args>
+            auto noncopyable_objects_as_vector(Args&&... args) -> std::vector<VectorElementType>
+            {
+                std::vector<VectorElementType> res;
+                res.reserve(sizeof...(args));
+                (res.push_back(std::forward<Args>(args)), ...);
+                return res;
             }
 
             /*
@@ -467,64 +476,68 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * plugin's main commands that activate it and decide its interaction
              * with the main program.
              */
-            std::vector<std::shared_ptr<IParameter>> parameters{
-                makeParam(
-                    &source,
-                    std::nullopt,
-                    std::nullopt,
-                    ApplyParameter::NotInCheckpoint,
-                    [this]()
-                    {
-                        meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<boost::mpl::_1>>
-                            getEligibleDataSourceNames;
-                        getEligibleDataSourceNames(allowedDataSources);
+            std::vector<std::unique_ptr<IParameter>> parameters
+                = noncopyable_objects_as_vector<std::unique_ptr<IParameter>>(
+                    makeParam(
+                        &source,
+                        std::nullopt,
+                        std::nullopt,
+                        ApplyParameter::NotInCheckpoint,
+                        [this]()
+                        {
+                            meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<boost::mpl::_1>>
+                                getEligibleDataSourceNames;
+                            getEligibleDataSourceNames(allowedDataSources);
 
-                        meta::ForEach<AllFieldSources, plugins::misc::AppendName<boost::mpl::_1>>
-                            appendFieldSourceNames;
-                        appendFieldSourceNames(allowedDataSources);
+                            meta::ForEach<AllFieldSources, plugins::misc::AppendName<boost::mpl::_1>>
+                                appendFieldSourceNames;
+                            appendFieldSourceNames(allowedDataSources);
 
-                        // add all species to allow the selection of single species only
-                        meta::ForEach<VectorAllSpecies, plugins::misc::AppendSpeciesName<boost::mpl::_1>>
-                            appendSpecieseNames;
-                        appendSpecieseNames(allowedDataSources);
+                            // add all species to allow the selection of single species only
+                            meta::ForEach<VectorAllSpecies, plugins::misc::AppendSpeciesName<boost::mpl::_1>>
+                                appendSpecieseNames;
+                            appendSpecieseNames(allowedDataSources);
 
-                        // string list with all possible particle sources
-                        std::string concatenatedSourceNames
-                            = plugins::misc::concatenateToString(allowedDataSources, ", ");
-                        return std::string("[") + concatenatedSourceNames + "]";
-                    }),
-                makeParam(&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint),
-                makeParam(&fileNameExtension, "ext", &PluginParameters::fileExtension),
-                makeParam(&fileNameInfix, "infix", &PluginParameters::fileInfix),
-                makeParam(&backendConfigForbidden, std::nullopt, std::nullopt),
-                makeParam(&backendConfig, "backend_config", &PluginParameters::backendConfigString),
-                makeParam(
-                    &dataPreparationStrategy,
-                    "data_preparation_strategy",
-                    &PluginParameters::dataPreparationStrategyString),
-                makeParam(&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint),
-                makeParam(
-                    &backendConfigRestartForbidden,
-                    std::nullopt,
-                    std::nullopt,
-                    ApplyParameter::OnlyInCheckpoint),
-                makeParam(
-                    &backendConfigRestart,
-                    std::nullopt,
-                    &PluginParameters::backendConfigRestartString,
-                    ApplyParameter::OnlyInCheckpoint),
-                makeParam(&particleIOChunkSize, "particleIOChunkSize", &PluginParameters::particleIOChunkSizeString),
-                makeParam(&writeAccess, "write_mode", &PluginParameters::writeAccessString),
-                makeParam<bool>(&lateInit, "late_init", &PluginParameters::lateInit),
-                makeParam<int64_t>(
-                    &emptyOutputIterationAt,
-                    "empty_output_iteration_at",
-                    &PluginParameters::emptyOutputIterationAt,
-                    ApplyParameter::NotInCheckpoint)};
+                            // string list with all possible particle sources
+                            std::string concatenatedSourceNames
+                                = plugins::misc::concatenateToString(allowedDataSources, ", ");
+                            return std::string("[") + concatenatedSourceNames + "]";
+                        }),
+                    makeParam(&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint),
+                    makeParam(&fileNameExtension, "ext", &PluginParameters::fileExtension),
+                    makeParam(&fileNameInfix, "infix", &PluginParameters::fileInfix),
+                    makeParam(&backendConfigForbidden, std::nullopt, std::nullopt),
+                    makeParam(&backendConfig, "backend_config", &PluginParameters::backendConfigString),
+                    makeParam(
+                        &dataPreparationStrategy,
+                        "data_preparation_strategy",
+                        &PluginParameters::dataPreparationStrategyString),
+                    makeParam(&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint),
+                    makeParam(
+                        &backendConfigRestartForbidden,
+                        std::nullopt,
+                        std::nullopt,
+                        ApplyParameter::OnlyInCheckpoint),
+                    makeParam(
+                        &backendConfigRestart,
+                        std::nullopt,
+                        &PluginParameters::backendConfigRestartString,
+                        ApplyParameter::OnlyInCheckpoint),
+                    makeParam(
+                        &particleIOChunkSize,
+                        "particleIOChunkSize",
+                        &PluginParameters::particleIOChunkSizeString),
+                    makeParam(&writeAccess, "write_mode", &PluginParameters::writeAccessString),
+                    makeParam<bool>(&lateInit, "late_init", &PluginParameters::lateInit),
+                    makeParam<int64_t>(
+                        &emptyOutputIterationAt,
+                        "empty_output_iteration_at",
+                        &PluginParameters::emptyOutputIterationAt,
+                        ApplyParameter::NotInCheckpoint));
 
-            std::vector<std::shared_ptr<toml::ITomlParameter>> tomlParameters()
+            std::vector<std::unique_ptr<toml::ITomlParameter>> tomlParameters()
             {
-                std::vector<std::shared_ptr<toml::ITomlParameter>> res;
+                std::vector<std::unique_ptr<toml::ITomlParameter>> res;
                 for(auto const& param : parameters)
                 {
                     if(auto tomlParam = param->toTomlParameter(); tomlParam.has_value())

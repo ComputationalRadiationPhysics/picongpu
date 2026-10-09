@@ -153,7 +153,7 @@ namespace
     void parsePluginParameters(
         picongpu::openPMD::PluginParameters& options,
         toml::value tomlConfig,
-        std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters)
+        std::vector<std::unique_ptr<picongpu::toml::ITomlParameter>> tomlParameters)
     {
         auto config_as_any = std::make_any<toml::value const*>(&tomlConfig);
         for(auto const& tomlParameter : tomlParameters)
@@ -164,7 +164,7 @@ namespace
 
     PeriodTable_t parseTomlFile(
         picongpu::toml::DataSources& dataSources,
-        std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
+        std::vector<std::unique_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
         std::string const& content,
         std::string const& file = "unknown file")
     {
@@ -225,7 +225,7 @@ namespace
     template<typename ChronoDuration>
     PeriodTable_t waitForAndParseTomlFile(
         picongpu::toml::DataSources& dataSources,
-        std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
+        std::vector<std::unique_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
         std::string const path,
         ChronoDuration const& sleepInterval,
         ChronoDuration const& timeout,
@@ -314,7 +314,7 @@ namespace picongpu
 
         DataSources::DataSources(
             std::string const& tomlFile,
-            std::vector<std::shared_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
+            std::vector<std::unique_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
             std::vector<std::string> const& allowedDataSources,
             MPI_Comm comm,
             openPMD::PluginParameters openPMDPluginParameters_in)
