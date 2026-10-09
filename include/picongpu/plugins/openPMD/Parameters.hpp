@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <tuple>
 
@@ -23,5 +24,24 @@ namespace picongpu::openPMD
         std::string rangeString;
         std::string backendConfigRestartString;
         std::string writeAccessString;
+        /** Open the output Series lazily on the first run.
+         *
+         * The plugin always parses and validates its configuration at
+         * simulation startup (time step zero). If this flag is set, opening
+         * the output Series, and with it the validation of the backend
+         * configuration against the openPMD API, is deferred to the first
+         * actual run. This can avoid hangups in certain contexts, e.g. when
+         * the underlying file system is not ready yet. Set this flag to false
+         * to open the output Series already at simulation startup for early
+         * backend validation.
+         */
+        bool lateInit{};
+        /** Time step at which to create an empty output Iteration.
+         *
+         * If set, the plugin runs once at the given time step but does not
+         * write any mesh or particle data, creating only the (otherwise
+         * empty) openPMD Iteration. A value below zero disables this.
+         */
+        int64_t emptyOutputIterationAt{};
     };
 } // namespace picongpu::openPMD

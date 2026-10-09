@@ -88,6 +88,7 @@
 #    include <tuple>
 
 #    include <openPMD/auxiliary/StringManip.hpp>
+#    include <openPMD/auxiliary/Variant.hpp>
 #    include <openPMD/openPMD.hpp>
 
 #    if !defined(_WIN32)
@@ -101,6 +102,7 @@
 #    include <iostream>
 #    include <limits>
 #    include <list>
+#    include <optional>
 #    include <sstream>
 #    include <string>
 #    include <vector>
@@ -274,6 +276,22 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             plugins::multi::Option<std::string> writeAccess
                 = {"writeAccess", "openPMD Access mode for creating output: [create|append]", "create"};
 
+            plugins::multi::Option<bool> lateInit
+                = {"lateInit",
+                   "Only initialize the openPMD plugin when it is first executed instead of at simulation startup. "
+                   "This defers opening the output Series (and thereby the validation of the backend configuration) "
+                   "to the first run and can avoid hangups when the file system is not ready at startup. "
+                   "Configuration parsing and validation still happen at simulation startup. "
+                   "Set to false to open the output Series already at simulation startup.",
+                   true};
+
+            plugins::multi::Option<int64_t> emptyOutputIterationAt
+                = {"emptyOutputIterationAt",
+                   "Run the complete plugin once at the given time step without writing any mesh or particle data, "
+                   "creating only the openPMD Iteration. The step will be written as an empty step, regardless if it "
+                   "is covered in the output period or not. Useful for early verification the IO has "
+                   "been correctly configured, disabled by default.",
+                   -1};
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
              * the creation of checkpoints.
@@ -292,39 +310,164 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * Emplacing such a parameter in that list will activate
              * the parameter in the PIConGPU command line and in the TOML
              * configuration of the openPMD plugin.
+             *
+             * Interface is implemented by Parameter<TargetType> below. The Type may differ between different
+             * parameters (integers, strings, boolean flags, ...).
              */
-            struct Parameter
+            struct IParameter
             {
-                // Pointer to a command line option object that should be registered
-                plugins::multi::Option<std::string>* commandLineParameter;
                 // Optionally, the name for the parameter in the TOML configuration
                 std::optional<std::string> tomlParameter;
-                // Optionally, a member pointer inside the PluginParameters struct
-                // where the value of this parameter should be read to
-                // If not specifying this, the value must be manually read
-                // (used for the source parameter since the simple logic
-                //  is not sufficient for it)
-                std::optional<std::string PluginParameters::*> targetInConfigObject;
                 // See description of enum class ApplyParameter
                 ApplyParameter applyParameter;
                 // Optionally the additionalDescription parameter of
                 // commandLineParameter->registerHelp()
                 std::optional<std::function<std::string()>> additionalDescription;
 
-                Parameter(
-                    plugins::multi::Option<std::string>* commandLineParameter_in,
+                IParameter(
                     std::optional<std::string> tomlParameter_in,
-                    std::optional<std::string PluginParameters::*> targetInConfigObject_in,
                     ApplyParameter applyParameter_in = ApplyParameter::Always,
                     std::optional<std::function<std::string()>> additionalDescription_in = std::nullopt)
-                    : commandLineParameter{std::move(commandLineParameter_in)}
-                    , tomlParameter{std::move(tomlParameter_in)}
-                    , targetInConfigObject{std::move(targetInConfigObject_in)}
+                    : tomlParameter{std::move(tomlParameter_in)}
                     , applyParameter{std::move(applyParameter_in)}
                     , additionalDescription{std::move(additionalDescription_in)}
                 {
                 }
+
+                virtual auto toTomlParameter() const -> std::optional<std::unique_ptr<toml::ITomlParameter>> = 0;
+                virtual void registerHelp(
+                    boost::program_options::options_description& desc,
+                    std::string const& prefix,
+                    std::string const& additionalDescription)
+                    = 0;
+                virtual auto parameterSize() const -> size_t = 0;
+                virtual auto parameterName() const -> std::string = 0;
+                virtual void readParameter(size_t id, PluginParameters&) = 0;
+                virtual void initDefaults(PluginParameters&) = 0;
+                virtual auto parameterEmpty(size_t id) const -> bool = 0;
+
+                virtual ~IParameter() = default;
             };
+
+            template<typename TargetType>
+            struct Parameter : IParameter
+            {
+                // Pointer to a command line option object that should be registered
+                plugins::multi::Option<TargetType>* commandLineParameter;
+                // Optionally, a member pointer inside the PluginParameters struct
+                // where the value of this parameter should be read to
+                // If not specifying this, the value must be manually read
+                // (used for the source parameter since the simple logic
+                //  is not sufficient for it)
+                std::optional<TargetType PluginParameters::*> targetInConfigObject;
+
+                Parameter(
+                    plugins::multi::Option<TargetType>* commandLineParameter_in,
+                    std::optional<std::string> tomlParameter_in,
+                    std::optional<TargetType PluginParameters::*> targetInConfigObject_in,
+                    ApplyParameter applyParameter_in = ApplyParameter::Always,
+                    std::optional<std::function<std::string()>> additionalDescription_in = std::nullopt)
+                    : IParameter(std::move(tomlParameter_in), applyParameter_in, std::move(additionalDescription_in))
+                    , commandLineParameter{std::move(commandLineParameter_in)}
+                    , targetInConfigObject{std::move(targetInConfigObject_in)}
+                {
+                }
+
+                auto toTomlParameter() const -> std::optional<std::unique_ptr<toml::ITomlParameter>>
+                {
+                    if(!tomlParameter.has_value() || !targetInConfigObject.has_value())
+                    {
+                        return std::nullopt;
+                    }
+                    return {toml::makeTomlParameter<TargetType>(*tomlParameter, *targetInConfigObject)};
+                }
+
+                void registerHelp(
+                    boost::program_options::options_description& desc,
+                    std::string const& prefix,
+                    std::string const& additionalDescription)
+                {
+                    commandLineParameter->registerHelp(desc, prefix, additionalDescription);
+                }
+
+                auto parameterSize() const -> size_t override
+                {
+                    return commandLineParameter->size();
+                }
+
+                auto parameterName() const -> std::string override
+                {
+                    return commandLineParameter->getName();
+                }
+
+                void readParameter(size_t id, PluginParameters& res) override
+                {
+                    if(!targetInConfigObject.has_value())
+                    {
+                        return;
+                    }
+                    else if(commandLineParameter->optionDefined(id))
+                    {
+                        res.** targetInConfigObject = commandLineParameter->get(id);
+                    }
+                    else if(commandLineParameter->hasDefault())
+                    {
+                        res.** targetInConfigObject = commandLineParameter->getDefault();
+                    }
+                    else
+                    {
+                        throw std::runtime_error(
+                            "[openPMD plugin] Command line parameter '" + commandLineParameter->getName()
+                            + "' has no default value specified and no user-specified option was passed.");
+                    }
+                }
+
+                void initDefaults(PluginParameters& pluginParametersWithDefaults) override
+                {
+                    if(!targetInConfigObject.has_value() || !tomlParameter.has_value())
+                    {
+                        return;
+                    }
+                    if(!commandLineParameter->hasDefault())
+                    {
+                        throw std::runtime_error(
+                            "[openPMD plugin] Internal error: Could not initialize pluginConfig param "
+                            "'"
+                            + *tomlParameter
+                            + "' with a default value because it was not specified internally. This is a bug.");
+                    }
+                    pluginParametersWithDefaults.** targetInConfigObject = commandLineParameter->getDefault();
+                }
+
+                auto parameterEmpty(size_t id) const -> bool override
+                {
+                    if constexpr(std::is_same_v<TargetType, std::string>)
+                    {
+                        return !commandLineParameter->optionDefined(id) || commandLineParameter->get(id).empty();
+                    }
+                    else
+                    {
+                        return !commandLineParameter->optionDefined(id);
+                    }
+                }
+
+                ~Parameter() override = default;
+            };
+
+            template<typename ParamType = std::string, typename... Args>
+            auto makeParam(Args&&... args) -> std::unique_ptr<IParameter>
+            {
+                return std::unique_ptr<IParameter>(new Parameter<ParamType>{std::forward<Args>(args)...});
+            }
+
+            template<typename VectorElementType, typename... Args>
+            auto noncopyable_objects_as_vector(Args&&... args) -> std::vector<VectorElementType>
+            {
+                std::vector<VectorElementType> res;
+                res.reserve(sizeof...(args));
+                (res.push_back(std::forward<Args>(args)), ...);
+                return res;
+            }
 
             /*
              * The sub-commands for the openPMD plugin.
@@ -333,56 +476,72 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * plugin's main commands that activate it and decide its interaction
              * with the main program.
              */
-            std::vector<Parameter> parameters{
-                {&source,
-                 std::nullopt,
-                 std::nullopt,
-                 ApplyParameter::NotInCheckpoint,
-                 [this]()
-                 {
-                     meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<boost::mpl::_1>>
-                         getEligibleDataSourceNames;
-                     getEligibleDataSourceNames(allowedDataSources);
+            std::vector<std::unique_ptr<IParameter>> parameters
+                = noncopyable_objects_as_vector<std::unique_ptr<IParameter>>(
+                    makeParam(
+                        &source,
+                        std::nullopt,
+                        std::nullopt,
+                        ApplyParameter::NotInCheckpoint,
+                        [this]()
+                        {
+                            meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<boost::mpl::_1>>
+                                getEligibleDataSourceNames;
+                            getEligibleDataSourceNames(allowedDataSources);
 
-                     meta::ForEach<AllFieldSources, plugins::misc::AppendName<boost::mpl::_1>> appendFieldSourceNames;
-                     appendFieldSourceNames(allowedDataSources);
+                            meta::ForEach<AllFieldSources, plugins::misc::AppendName<boost::mpl::_1>>
+                                appendFieldSourceNames;
+                            appendFieldSourceNames(allowedDataSources);
 
-                     // add all species to allow the selection of single species only
-                     meta::ForEach<VectorAllSpecies, plugins::misc::AppendSpeciesName<boost::mpl::_1>>
-                         appendSpecieseNames;
-                     appendSpecieseNames(allowedDataSources);
+                            // add all species to allow the selection of single species only
+                            meta::ForEach<VectorAllSpecies, plugins::misc::AppendSpeciesName<boost::mpl::_1>>
+                                appendSpecieseNames;
+                            appendSpecieseNames(allowedDataSources);
 
-                     // string list with all possible particle sources
-                     std::string concatenatedSourceNames
-                         = plugins::misc::concatenateToString(allowedDataSources, ", ");
-                     return std::string("[") + concatenatedSourceNames + "]";
-                 }},
-                {&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint},
-                {&fileNameExtension, "ext", &PluginParameters::fileExtension},
-                {&fileNameInfix, "infix", &PluginParameters::fileInfix},
-                {&backendConfigForbidden, std::nullopt, std::nullopt},
-                {&backendConfig, "backend_config", &PluginParameters::backendConfigString},
-                {&dataPreparationStrategy,
-                 "data_preparation_strategy",
-                 &PluginParameters::dataPreparationStrategyString},
-                {&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint},
-                {&backendConfigRestartForbidden, std::nullopt, std::nullopt, ApplyParameter::OnlyInCheckpoint},
-                {&backendConfigRestart,
-                 std::nullopt,
-                 &PluginParameters::backendConfigRestartString,
-                 ApplyParameter::OnlyInCheckpoint},
-                {&particleIOChunkSize, "particleIOChunkSize", &PluginParameters::particleIOChunkSizeString},
-                {&writeAccess, "write_mode", &PluginParameters::writeAccessString}};
+                            // string list with all possible particle sources
+                            std::string concatenatedSourceNames
+                                = plugins::misc::concatenateToString(allowedDataSources, ", ");
+                            return std::string("[") + concatenatedSourceNames + "]";
+                        }),
+                    makeParam(&fileName, "file", &PluginParameters::fileName, ApplyParameter::NotInCheckpoint),
+                    makeParam(&fileNameExtension, "ext", &PluginParameters::fileExtension),
+                    makeParam(&fileNameInfix, "infix", &PluginParameters::fileInfix),
+                    makeParam(&backendConfigForbidden, std::nullopt, std::nullopt),
+                    makeParam(&backendConfig, "backend_config", &PluginParameters::backendConfigString),
+                    makeParam(
+                        &dataPreparationStrategy,
+                        "data_preparation_strategy",
+                        &PluginParameters::dataPreparationStrategyString),
+                    makeParam(&range, "range", &PluginParameters::rangeString, ApplyParameter::NotInCheckpoint),
+                    makeParam(
+                        &backendConfigRestartForbidden,
+                        std::nullopt,
+                        std::nullopt,
+                        ApplyParameter::OnlyInCheckpoint),
+                    makeParam(
+                        &backendConfigRestart,
+                        std::nullopt,
+                        &PluginParameters::backendConfigRestartString,
+                        ApplyParameter::OnlyInCheckpoint),
+                    makeParam(
+                        &particleIOChunkSize,
+                        "particleIOChunkSize",
+                        &PluginParameters::particleIOChunkSizeString),
+                    makeParam(&writeAccess, "write_mode", &PluginParameters::writeAccessString),
+                    makeParam<bool>(&lateInit, "late_init", &PluginParameters::lateInit),
+                    makeParam<int64_t>(
+                        &emptyOutputIterationAt,
+                        "empty_output_iteration_at",
+                        &PluginParameters::emptyOutputIterationAt));
 
-            std::vector<toml::TomlParameter> tomlParameters()
+            std::vector<std::unique_ptr<toml::ITomlParameter>> tomlParameters()
             {
-                std::vector<toml::TomlParameter> res;
+                std::vector<std::unique_ptr<toml::ITomlParameter>> res;
                 for(auto const& param : parameters)
                 {
-                    if(param.tomlParameter.has_value() && param.targetInConfigObject.has_value())
+                    if(auto tomlParam = param->toTomlParameter(); tomlParam.has_value())
                     {
-                        res.emplace_back(
-                            toml::TomlParameter{param.tomlParameter.value(), param.targetInConfigObject.value()});
+                        res.emplace_back(std::move(*tomlParam));
                     }
                 }
                 return res;
@@ -431,11 +590,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 for(auto const& param : parameters)
                 {
-                    if(param.applyParameter == ApplyParameter::NotInCheckpoint)
+                    if(param->applyParameter == ApplyParameter::NotInCheckpoint)
                     {
                         std::string additionalDescription
-                            = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
-                        param.commandLineParameter->registerHelp(desc, masterPrefix + prefix, additionalDescription);
+                            = param->additionalDescription.has_value() ? (*param->additionalDescription)() : "";
+                        // param.commandLineParameter->registerHelp(desc, masterPrefix + prefix,
+                        // additionalDescription);
+                        param->registerHelp(desc, masterPrefix + prefix, additionalDescription);
                     }
                 }
 
@@ -449,7 +610,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             {
                 for(auto const& param : parameters)
                 {
-                    switch(param.applyParameter)
+                    switch(param->applyParameter)
                     {
                     case ApplyParameter::NotInCheckpoint:
                         break;
@@ -465,11 +626,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     case ApplyParameter::Always:
                         {
                             std::string additionalDescription
-                                = param.additionalDescription.has_value() ? param.additionalDescription.value()() : "";
-                            param.commandLineParameter->registerHelp(
-                                desc,
-                                masterPrefix + prefix,
-                                additionalDescription);
+                                = param->additionalDescription.has_value() ? (*param->additionalDescription)() : "";
+                            param->registerHelp(desc, masterPrefix + prefix, additionalDescription);
                         }
                     }
                 }
@@ -518,11 +676,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     {
                         for(auto const& parameter : parameters)
                         {
-                            auto const& option = *parameter.commandLineParameter;
-                            if(option.size() > 0)
+                            if(parameter->parameterSize() > 0)
                             {
                                 throw std::runtime_error(
-                                    "[openPMD plugin] Parameter '" + option.getName()
+                                    "[openPMD plugin] Parameter '" + parameter->parameterName()
                                     + "' was defined, But neither 'period' nor 'pluginConfig' was.");
                             }
                         }
@@ -567,6 +724,25 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
+            /** Extend a notification period by the configured empty output step.
+             *
+             * The empty output step is added as an additional single-step time
+             * slice so that the plugin is executed at that step even if the
+             * regular period does not cover it.
+             *
+             * @param period original notification period string
+             * @param emptyStep configured empty output iteration, negative to disable
+             * @return extended notification period string
+             */
+            static std::string withEmptyOutputIteration(std::string const& period, int64_t const emptyStep)
+            {
+                if(emptyStep < 0)
+                    return period;
+                std::string const step = std::to_string(emptyStep);
+                std::string const slice = step + ":" + step + ":1";
+                return period.empty() ? slice : period + "," + slice;
+            }
+
             PluginParameters pluginParameters(size_t id)
             {
                 if(auto it = tomlDataSources.find(id); it != tomlDataSources.end())
@@ -578,27 +754,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     PluginParameters res;
                     for(auto const& param : parameters)
                     {
-                        auto const& cmd_param = param.commandLineParameter;
-                        auto const& target = param.targetInConfigObject;
-
-                        if(!target.has_value())
-                        {
-                            continue;
-                        }
-                        else if(cmd_param->optionDefined(id))
-                        {
-                            res.** target = cmd_param->get(id);
-                        }
-                        else if(cmd_param->hasDefault())
-                        {
-                            res.** target = cmd_param->getDefault();
-                        }
-                        else
-                        {
-                            throw std::runtime_error(
-                                "[openPMD plugin] Command line parameter '" + cmd_param->getName()
-                                + "'has no default value specified and no user-specified option was passed.");
-                        }
+                        param->readParameter(id, res);
                     }
                     return res;
                 }
@@ -608,7 +764,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
         inline void ThreadParams::initFromConfig(
             Help& help,
             size_t id,
-            uint32_t const currentStep,
+            std::optional<uint32_t> currentStep,
             std::string const& dir,
             std::optional<std::string> file)
         {
@@ -704,11 +860,15 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     "Wrong write access mode specified: '" + writeAccessString + "'. Pick either [create|append].");
             }
 
-            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-            /* window selection */
-            auto simulationOutputWindow = MovingWindow::getInstance().getWindow(currentStep);
-            window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
             particleIOChunkSize = std::stoull(particleIOChunkSizeString);
+
+            if(currentStep.has_value())
+            {
+                SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                /* window selection */
+                auto simulationOutputWindow = MovingWindow::getInstance().getWindow(*currentStep);
+                window = plugins::misc::intersectRangeWithWindow(subGrid, simulationOutputWindow, rangeString);
+            }
         }
 
         /** Writes simulation data to openPMD.
@@ -1198,14 +1358,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         // Verify that all other parameters are empty for this instance of the plugin
                         for(auto const& parameter : m_help->parameters)
                         {
-                            auto const& cmd = *parameter.commandLineParameter;
-                            if(cmd.optionDefined(m_id) && not cmd.get(m_id).empty())
+                            if(!parameter->parameterEmpty(m_id))
                             {
                                 throw std::runtime_error(
                                     "[openPMD plugin] If using parameter pluginConfig, no other parameter may be used "
-                                    "(do not "
-                                    "define '"
-                                    + cmd.getName() + "').");
+                                    "(do not define '"
+                                    + parameter->parameterName() + "').");
                             }
                         }
 
@@ -1214,30 +1372,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         PluginParameters pluginParametersWithDefaults;
                         for(auto const& parameter : m_help->parameters)
                         {
-                            auto const& cmd_param = parameter.commandLineParameter;
-                            auto const& target = parameter.targetInConfigObject;
-
-                            if(target.has_value())
-                            {
-                                if(!parameter.tomlParameter.has_value())
-                                {
-                                    continue;
-                                }
-                                else if(cmd_param->hasDefault())
-                                {
-                                    pluginParametersWithDefaults.** target = cmd_param->getDefault();
-                                }
-                                else
-                                {
-                                    throw std::runtime_error(
-                                        "[openPMD plugin] Internal error: Could not initialize pluginConfig param "
-                                        "'"
-                                        + *parameter.tomlParameter
-                                        + "' with a default value because it was not specified "
-                                          "internally. "
-                                          "This is a bug.");
-                                }
-                            }
+                            parameter->initDefaults(pluginParametersWithDefaults);
                         }
                         auto [emplaced, newly_inserted] = m_help->tomlDataSources.emplace(
                             std::piecewise_construct,
@@ -1255,7 +1390,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 "plugin instance twice?");
                         }
 
-                        Environment<>::get().PluginConnector().setNotificationPeriod(this, emplaced->second.periods());
+                        Environment<>::get().PluginConnector().setNotificationPeriod(
+                            this,
+                            m_help->withEmptyOutputIteration(
+                                emplaced->second.periods(),
+                                emplaced->second.openPMDPluginParameters.emptyOutputIterationAt));
 
                         if(gc.getGlobalRank() == 0)
                         {
@@ -1268,7 +1407,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     else if(not tomlSourcesSpecified && notifyPeriodSpecified)
                     {
                         std::string const& notifyPeriod = m_help->notifyPeriod.get(id);
-                        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+                        Environment<>::get().PluginConnector().setNotificationPeriod(
+                            this,
+                            m_help->withEmptyOutputIteration(notifyPeriod, m_help->emptyOutputIterationAt.get(id)));
 
                         if(gc.getGlobalRank() == 0)
                         {
@@ -1296,6 +1437,58 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     eventSystem::getTransactionEvent().waitForFinished();
                     MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&(mThreadParams.communicator)));
                 }
+            }
+
+            /** Parse and validate the openPMD configuration at plugin load time.
+             *
+             * This happens before the simulation starts (time step zero) and
+             * independently of the configured output period, so that invalid
+             * configuration is reported early instead of only when the plugin
+             * is first executed.
+             *
+             * Unless lateInit is set, the regular output plugin additionally
+             * opens its output Series at this point, which also validates the
+             * backend configuration against the openPMD API.
+             *
+             * Unless lateInit is set, the checkpoint backend additionally opens
+             * its write Series here so that configuration and backend errors are
+             * reported at simulation start instead of at the first checkpoint.
+             * This must only be done after a possible restart has happened,
+             * otherwise the write Series would conflict with the read Series
+             * opened while restarting, so the Checkpoint plugin decides when to
+             * call this for writing. The read Series used for restarting is
+             * opened and closed by doRestart() when the restart actually happens.
+             */
+            void init(InstanceKind instanceKind) override
+            {
+                eventSystem::getTransactionEvent().waitForFinished();
+
+                std::visit(
+                    ::openPMD::auxiliary::overloaded{
+                        [&](RegularInstance const&)
+                        {
+                            mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, outputDirectory);
+                            // Configuration is always parsed above; only opening the Series is
+                            // deferred to the first run if requested.
+                            if(mThreadParams.lateInit)
+                            {
+                                return;
+                            }
+                            mThreadParams.openSeries(mThreadParams.writeAccess);
+                        },
+                        [&](CheckpointInstance const& instance)
+                        {
+                            mThreadParams
+                                .initFromConfig(*m_help, m_id, std::nullopt, instance.directory, instance.filename);
+                            // Configuration is always parsed above; only opening the Series is
+                            // deferred to the first run if requested.
+                            if(mThreadParams.lateInit)
+                            {
+                                return;
+                            }
+                            mThreadParams.openSeries(mThreadParams.writeAccess);
+                        }},
+                    instanceKind);
             }
 
             void notify(uint32_t currentStep) override
@@ -1339,7 +1532,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* if file name is relative, prepend with common directory */
 
                 mThreadParams.isCheckpoint = true;
-                mThreadParams.initFromConfig(*m_help, m_id, currentStep, checkpointDirectory, checkpointFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, checkpointDirectory, checkpointFilename);
 
                 mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
                 updatePmlSlabViewsIfEnabled(currentStep);
@@ -1428,7 +1621,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // Checkpoint
                 assert(!m_help->selfRegister);
 
-                mThreadParams.initFromConfig(*m_help, m_id, restartStep, restartDirectory, constRestartFilename);
+                mThreadParams.initFromConfig(*m_help, m_id, std::nullopt, restartDirectory, constRestartFilename);
 
                 mThreadParams.cellDescription = m_cellDescription;
 
@@ -1959,6 +2152,27 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     currentStep);
 
                 bool dumpAllParticles = plugins::misc::containsObject(vectorOfDataSourceNames, "species_all");
+
+                /* An empty output iteration runs the plugin including its meta
+                 * data handling, but deliberately writes neither mesh nor
+                 * particle data. This also applies to checkpoint runs: the
+                 * checkpoint IO-backend does not register itself, so it only
+                 * reaches this code if a checkpoint is written at the
+                 * configured step. */
+                if(threadParams->isEmptyIteration(currentStep))
+                {
+                    log<picLog::INPUT_OUTPUT>(
+                        "openPMD: skipping mesh and particle data for empty output iteration %1%")
+                        % currentStep;
+
+                    eventSystem::getTransactionEvent().waitForFinished();
+                    mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>(
+                        "Closing iteration " + std::to_string(currentStep));
+                    mThreadParams.openPMDSeries->writeIterations()[currentStep].close();
+                    mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>("Done.");
+                    mThreadParams.m_dumpTimes.flush();
+                    return;
+                }
 
                 /* write fields */
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) writing fields.");

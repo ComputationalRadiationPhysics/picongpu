@@ -89,6 +89,43 @@ namespace pmacc
                 return currentStep;
             }
 
+            /** Whether checkpoint creation has been configured by the user
+             *
+             * This allows plugins (e.g. the checkpoint IO-backends) to skip
+             * initialization when checkpointing is not requested.
+             */
+            bool isCheckpointingConfigured() const
+            {
+                return checkpointingConfigured;
+            }
+
+            /** Set whether checkpoint creation has been configured
+             *
+             * @see isCheckpointingConfigured
+             */
+            void setCheckpointingConfigured(bool const value)
+            {
+                checkpointingConfigured = value;
+            }
+
+            /** Return the common directory for checkpoints
+             *
+             * @return std::string checkpoint directory
+             */
+            std::string const& getCheckpointDirectory() const
+            {
+                return checkpointDirectory;
+            }
+
+            /** Set the common directory for checkpoints
+             *
+             * @see getCheckpointDirectory
+             */
+            void setCheckpointDirectory(std::string const& value)
+            {
+                checkpointDirectory = value;
+            }
+
             /** Set the current time step
              *
              * @see getCurrentStep
@@ -109,6 +146,12 @@ namespace pmacc
 
             /** current time step of simulation */
             uint32_t currentStep{0};
+
+            /** whether checkpoint creation has been configured */
+            bool checkpointingConfigured{false};
+
+            /** common directory for checkpoints */
+            std::string checkpointDirectory{"checkpoints"};
 
         private:
             friend struct detail::Environment;
