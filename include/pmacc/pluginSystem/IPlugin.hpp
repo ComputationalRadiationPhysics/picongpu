@@ -98,7 +98,8 @@ namespace pmacc
          *
          * Plugins can use this hook to perform work that depends on the final
          * initial state of the simulation, in particular work that must not be
-         * done before a possible restart (e.g. opening an output Series).
+         * done before restarting from a checkpoint has finished
+         * (e.g. early opening IO handles).
          */
         virtual void simulationStart()
         {

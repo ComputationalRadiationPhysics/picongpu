@@ -38,6 +38,8 @@ namespace picongpu
 {
     namespace toml
     {
+        /* TOML parameters split into interface ITomlParameter and implementation TomlParameter<TargetType> because a
+         * parameter might have different types (string, int, boolean flags, ...). */
         struct ITomlParameter
         {
             std::string optionName;
