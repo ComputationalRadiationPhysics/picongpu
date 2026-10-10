@@ -35,4 +35,9 @@ print("physical time specs:", physical_time.specs_in_seconds)
 combined = periodic + physical_time
 print("combined unit system:", combined.unit_system)
 
+# shift a specification by a number of steps or by a physical time:
+# `TS.steps` and `TS.seconds` are unit accessors, the number in front is the amount.
+shifted = (TS[::1]("steps") + 10 * TS.steps) + (TS[::1.0e-5] + 2.0e-6 * TS.seconds)
+print("shifted unit system:", shifted.unit_system)
+
 print("It worked!")

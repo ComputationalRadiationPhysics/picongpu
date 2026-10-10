@@ -31,9 +31,11 @@ from picongpu import pypicongpu, templates
 from picongpu.picmi import constants
 from picongpu.picmi.applied_field import AnyAppliedField, combine_applied_fields
 from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
+from picongpu.picmi.diagnostics.optical_imaging import OpticalImaging
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
+from picongpu.picmi.distribution.FromFileDistribution import FromFileDistribution
 from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
 from picongpu.picmi.interaction import (
     SUPPORTED_INTERACTION_TYPES,
@@ -45,6 +47,7 @@ from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSe
 from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
 from picongpu.picmi.species import _STANDARD_SHAPES
 from picongpu.picmi.species_requirements import (
+    ParticleFromFileOperation,
     SimpleDensityOperation,
     SimpleMomentumOperation,
     get_as_pypicongpu,
@@ -58,6 +61,7 @@ from picongpu.pypicongpu.output.openpmd_plugin import FieldDump as PyPIConGPUFie
 from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDPlugin
 from picongpu.pypicongpu.runner import Runner
 from picongpu.pypicongpu.species.attribute.momentum import Momentum
+from picongpu.pypicongpu.particle_functor.particle_functor import _SpeciesName
 from picongpu.pypicongpu.species.attribute.weighting import Weighting
 from picongpu.pypicongpu.species.constant.synchrotron import SynchrotronParams
 from picongpu.pypicongpu.util import UnpackChain, unique
@@ -88,6 +92,22 @@ def _register_density_operation(entry, layout, grid):
     profile = members[0].initial_distribution
     if profile is None:
         return
+    if isinstance(profile, FromFileDistribution):
+        # Each from-file species has its own file and iteration; there is no
+        # coordinated density placement across a group.
+        for member in members:
+            member.register_requirements(
+                [
+                    Momentum(),
+                    Weighting(),
+                    ParticleFromFileOperation(
+                        species=member,
+                        file_path=member.initial_distribution.file_path,
+                        iteration=member.initial_distribution.iteration,
+                    ),
+                ]
+            )
+        return
     members[0].register_requirements([Weighting(), SimpleDensityOperation(species=members, layout=layout, grid=grid)])
     for member in members:
         member.register_requirements([Momentum(), SimpleMomentumOperation(species=member)])
@@ -100,7 +120,33 @@ def _validate_species_layout(entry, layout):
     constructor path. Validation is per member: a ``MultiSpecies`` group passes
     one layout for all members.
     """
-    for species in _entry_members(entry):
+    members = _entry_members(entry)
+    if len(members) > 1 and any(isinstance(m.initial_distribution, FromFileDistribution) for m in members):
+        # A MultiSpecies shares one distribution across its members; a from-file
+        # distribution cannot satisfy two differently-named species from a single
+        # file (each member would look up its own species name in the same file).
+        raise ValueError(
+            "A from-file distribution cannot be combined with a MultiSpecies. "
+            "A single external file cannot supply several differently-named species; "
+            "add each from-file species as its own species entry instead."
+        )
+    for species in members:
+        if isinstance(species.initial_distribution, FromFileDistribution):
+            # The particle positions come from the file; a layout would be
+            # silently ignored, so reject it explicitly.
+            if layout is not None:
+                raise ValueError(
+                    "A from-file distribution determines the particle positions itself and cannot be combined "
+                    f"with a layout. You gave {species.initial_distribution=} but {layout=}."
+                )
+            # The weightings come from the file, so density_scale would be
+            # silently ignored; reject it instead.
+            if species.density_scale is not None:
+                raise ValueError(
+                    "density_scale cannot be combined with a from-file distribution: the particle weightings are "
+                    f"read from the file. You gave {species.density_scale=}."
+                )
+            continue
         if species.density_scale is not None and (layout is None and species.initial_distribution is None):
             raise ValueError("layout and initial distribution must be set to use density scale")
         if layout is not None and species.initial_distribution is None:
@@ -164,6 +210,18 @@ def _normalise_template_dir(directory: None | PathLike | Iterable[PathLike]) -> 
 
 def handled_via_openpmd(diagnostic):
     return isinstance(diagnostic, (ParticleDump, _FieldDump))
+
+
+def _translate_laser(laser, pypicongpu_grid):
+    """Translate one PICMI laser, handing it the grid for the reference-frame conversion.
+
+    All closed-form PICMI lasers need the grid (cell size + domain cell counts)
+    to convert their centroid-based definition into the core's Huygens-surface
+    convention when computing ``pulse_init``. Laser types that do not (e.g.
+    FromOpenPMDPulse, which carries its own time offset) simply ignore the
+    extra arguments.
+    """
+    return laser.get_as_pypicongpu(pypicongpu_grid.cell_size, pypicongpu_grid.cell_cnt)
 
 
 def _normalise_interaction(interaction):
@@ -578,6 +636,20 @@ class Simulation(picmistandard.PICMI_Simulation):
             raise ValueError("runtime not specified (neither as step count nor max time)")
         if isinstance(self.solver.grid, Cartesian2DGrid):
             # 2D3V: there is no spatial z coordinate (momentum still has all three components).
+            # A Huygens surface cannot be placed on a Z face either (answer 5 of
+            # https://github.com/chillenzer-agents/picongpu/issues/180). Only
+            # standard lasers carry an entry-face selection (TWTS and
+            # fromOpenPMDPulse keep their dedicated placement).
+            for laser in self.lasers:
+                if (validate := getattr(laser, "validate_entry_faces", None)) is not None:
+                    validate(2)
+            optical_imaging = [d for d in self.diagnostics if isinstance(d, OpticalImaging)]
+            if optical_imaging:
+                raise ValueError(
+                    "An OpticalImaging/Shadowgraphy diagnostic requires a 3D simulation (it extracts a slice in "
+                    "the z direction), but you configured a 2D grid. "
+                    f"You gave {len(optical_imaging)} such diagnostic(s) on a 2D grid."
+                )
             for diagnostic in filter(lambda d: isinstance(d, PhaseSpace), self.diagnostics):
                 if diagnostic.spatial_coordinate == "z":
                     raise ValueError(
@@ -592,6 +664,13 @@ class Simulation(picmistandard.PICMI_Simulation):
                                 "A z-dependent AnalyticDistribution density is not supported on a 2D grid. "
                                 f"You gave a density formula depending on 'z' for species {species.name!r} on a 2D grid."
                             )
+                    if isinstance(species.initial_distribution, FromFileDistribution):
+                        # A dimension mismatch (e.g. a 3D file into a 2D simDim)
+                        # is rejected until a principled mapping is decided.
+                        raise ValueError(
+                            "FromFileDistribution is not supported on a 2D grid yet. "
+                            f"You gave it for species {species.name!r} on a 2D grid."
+                        )
 
     def _check_huygens_surface_positions(self):
         # Every laser renders into the single incidentField, so all lasers must
@@ -611,21 +690,39 @@ class Simulation(picmistandard.PICMI_Simulation):
                 )
 
     def _collect_particle_filters(self):
-        # This does not necessarily work on Binning plugin
-        # because that might have a list of species.
-        # But that's fine because the Binning plugin uses it's own mechanism
-        # and we don't need their filters to register
-        # unless they are used somewhere else as well.
-        return unique(
-            map(
-                get_as_pypicongpu,
+        # Collect every reusable filter with the compile-time name(s) of the species
+        # it is registered on (merged across its occurrences). particleFilters.param
+        # then emits a name-keyed SpeciesEligibleForSolver specialisation narrowing
+        # the filter to exactly those species instead of all of VectorAllSpecies.
+        # Functors are deduplicated by value, like before: they are not hashable
+        # because of their volatile per-call ``typename``.
+        registered = list(
+            zip(
+                map(
+                    get_as_pypicongpu,
+                    chain(
+                        UnpackChain(self).diagnostics.species.functor,
+                        UnpackChain(self).interactions.screening_species.functor,
+                        UnpackChain(self).interactions.collisions.species_pairs[:].functor,
+                    ),
+                ),
                 chain(
-                    UnpackChain(self).diagnostics.species.functor,
-                    UnpackChain(self).interactions.screening_species.functor,
-                    UnpackChain(self).interactions.collisions.species_pairs[:].functor,
+                    UnpackChain(self).diagnostics.species.species_name,
+                    UnpackChain(self).interactions.screening_species.species_name,
+                    UnpackChain(self).interactions.collisions.species_pairs[:].species_name,
                 ),
             )
         )
+        return [
+            functor.model_copy(
+                update={
+                    "species_names": [
+                        _SpeciesName(name=name) for name in sorted({n for f, n in registered if f == functor})
+                    ]
+                }
+            )
+            for functor in unique(f for f, _ in registered)
+        ]
 
     def _register_functor_requirements(self):
         """Register the species attributes each diagnostic functor accesses.
@@ -704,9 +801,17 @@ class Simulation(picmistandard.PICMI_Simulation):
             CollisionalPhysicsSetup()
         ]
 
+        pypicongpu_grid = self.solver.grid.get_as_pypicongpu()
+        # The laser frontend only exposes the centroid-based PICMI reference
+        # frame; converting to the core's Huygens-surface convention needs the
+        # grid, which is only known here at translation time.
         return pypicongpu.simulation.Simulation(
             species=map(
-                lambda s: s.get_as_pypicongpu(default_particle_shape=self.particle_shape),
+                lambda s: s.get_as_pypicongpu(
+                    default_particle_shape=self.particle_shape,
+                    time_step_size=self.time_step_size,
+                    num_steps=time_steps,
+                ),
                 sorted(chain.from_iterable(_entry_members(entry) for entry in self.species)),
             ),
             init_operations=init_operations,
@@ -714,12 +819,12 @@ class Simulation(picmistandard.PICMI_Simulation):
             delta_t_si=self.time_step_size,
             solver=self.solver.get_as_pypicongpu(),
             customuserinput=self.picongpu_custom_user_input,
-            grid=self.solver.grid.get_as_pypicongpu(),
+            grid=pypicongpu_grid,
             binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
-            laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
+            laser=[_translate_laser(ll, pypicongpu_grid) for ll in self.lasers] or None,
             background_field=self._get_background_field(),
             output=self._generate_plugins(time_steps, self.particle_shape),
             particle_filters=self._collect_particle_filters(),

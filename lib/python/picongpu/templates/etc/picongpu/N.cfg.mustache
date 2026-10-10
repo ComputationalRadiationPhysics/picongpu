@@ -73,6 +73,8 @@ TBG_steps="{{{time_steps}}}"
   TBG_periodic="--periodic {{{x}}} {{{y}}}{{#grid.has_z}} {{{z}}}{{/grid.has_z}}"
 {{/grid.boundary_condition}}
 
+  TBG_fieldAbsorber="--fieldAbsorber {{{grid.field_absorber.kind}}}"
+
 {{#moving_window}}
   TBG_movingWindow="-m"
   TBG_windowMovePoint="--windowMovePoint {{{move_point}}}"
@@ -156,6 +158,17 @@ pypicongpu_output_with_newlines="
     {{/species}}
     {{/type_radiation}}
 
+    {{#type_optical_imaging}}
+      --shadowgraphy.start {{{start}}}
+      --shadowgraphy.duration {{{duration}}}
+      --shadowgraphy.file {{{file}}}
+      --shadowgraphy.ext {{{ext}}}
+      --shadowgraphy.slicePoint {{{slice_point}}}
+      --shadowgraphy.focusPos {{{focus_pos}}}
+      {{#fourier_output}}--shadowgraphy.fourierOutput true{{/fourier_output}}
+      {{#final_output}}--shadowgraphy.finalOutput true{{/final_output}}
+    {{/type_optical_imaging}}
+
 {{#type_checkpoint}}
 {{#period}}--checkpoint.period {{#period.specs}}{{{start}}}:{{{stop}}}:{{{step}}}{{^_last}},{{/_last}}{{/period.specs}}
 {{/period}}
@@ -230,7 +243,8 @@ TBG_programParams="-d !TBG_deviceDist   \
                     !TBG_gridDist       \
                    {{/grid.grid_dist}}
                    !TBG_periodic        \
-           !TBG_currentInterpolation   \
+            !TBG_currentInterpolation  \
+                   !TBG_fieldAbsorber   \
                    {{#background_field}}
                     !TBG_fieldBackground \
                    {{/background_field}}

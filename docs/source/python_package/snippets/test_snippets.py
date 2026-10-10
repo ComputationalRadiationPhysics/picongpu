@@ -196,6 +196,7 @@ EXPECTED_FILES = {
             "slice(49, None, None)",
             "slice(1e-15, 5e-15, 2e-16)",
             "combined unit system: mixed",
+            "shifted unit system: mixed",
             "It worked!",
         ],
     },
@@ -283,6 +284,8 @@ EXPECTED_FILES = {
             ("binning_setup/include/picongpu/param/binningSetup.param", "gammaDistribution"),
             ("binning_setup/include/picongpu/param/binningSetup.param", "addParticleBinner"),
             ("binning_setup/include/picongpu/param/binningSetup.param", 'setNotifyPeriod("0:-1:10")'),
+            # accumulation_period renders the C++ setDumpPeriod argument
+            ("binning_setup/include/picongpu/param/binningSetup.param", "setDumpPeriod(2)"),
             # the filtered-species binner renders the filter as a boolean functor
             ("binning_setup/include/picongpu/param/binningSetup.param", "fastGammaDistribution"),
             ("binning_setup/include/picongpu/param/binningSetup.param", "FilteredSpecies"),
@@ -299,6 +302,43 @@ EXPECTED_FILES = {
             ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.period 2:-1:5"),
             ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.totalRadiation"),
             ("radiation_setup/etc/picongpu/N.cfg", "--electrons_radiation.dump 5"),
+        ],
+    },
+    "selected_topics/optical_imaging.py": {
+        "no_run": True,
+        "files": [
+            "optical_imaging_setup/etc/picongpu/N.cfg",
+            "optical_imaging_setup/include/picongpu/param/shadowgraphy.param",
+        ],
+        "file_contains": [
+            # both instances render their own set of --shadowgraphy.* options
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.start 0"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.duration 600"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.file shadowgram"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.finalOutput true"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.start 200"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.duration 400"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.file shadowgram_back"),
+            ("optical_imaging_setup/etc/picongpu/N.cfg", "--shadowgraphy.fourierOutput true"),
+            # the compile-time params and the rendered mask functions
+            ("optical_imaging_setup/include/picongpu/param/shadowgraphy.param", "constexpr unsigned int tRes = 2;"),
+            ("optical_imaging_setup/include/picongpu/param/shadowgraphy.param", "positionWf"),
+            ("optical_imaging_setup/include/picongpu/param/shadowgraphy.param", "pmacc::math::cos"),
+        ],
+    },
+    "selected_topics/optical_imaging_custom.py": {
+        "no_run": True,
+        "files": [
+            "optical_imaging_custom_setup/etc/picongpu/N.cfg",
+            "optical_imaging_custom_setup/include/picongpu/param/shadowgraphy.param",
+        ],
+        "file_contains": [
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.start 200"),
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.duration 400"),
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.focusPos 0.001"),
+            ("optical_imaging_custom_setup/etc/picongpu/N.cfg", "--shadowgraphy.fourierOutput true"),
+            # the constant user masks render as plain `1.0` returns
+            ("optical_imaging_custom_setup/include/picongpu/param/shadowgraphy.param", "return 1.0;"),
         ],
     },
     "selected_topics/checkpoint.py": {
@@ -338,6 +378,19 @@ EXPECTED_FILES = {
             ("grids_and_solvers_setup/etc/picongpu/N.cfg", 'TBG_gridSize="128 128 128"'),
         ],
     },
+    "selected_topics/grid_absorber.py": {
+        "no_run": True,
+        "files": [
+            "grid_absorber_setup/etc/picongpu/N.cfg",
+            "grid_absorber_setup/include/picongpu/param/fieldAbsorber.param",
+        ],
+        "file_contains": [
+            ("grid_absorber_setup/etc/picongpu/N.cfg", 'TBG_fieldAbsorber="--fieldAbsorber exponential"'),
+            ("grid_absorber_setup/include/picongpu/param/fieldAbsorber.param", "{16, 16}"),
+            ("grid_absorber_setup/include/picongpu/param/fieldAbsorber.param", "{THICKNESS, THICKNESS}"),
+            ("grid_absorber_setup/include/picongpu/param/fieldAbsorber.param", "constexpr float_X STRENGTH[3][2]"),
+        ],
+    },
     "selected_topics/lasers.py": {
         "no_run": True,
         "files": [
@@ -367,6 +420,36 @@ EXPECTED_FILES = {
             # the default influence knobs are rendered explicitly
             ("applied_fields_setup/etc/picongpu/N.cfg", "--fieldBackground.influencesPlugins true"),
             ("applied_fields_setup/etc/picongpu/N.cfg", "--fieldBackground.influencesDumps true"),
+        ],
+    },
+    "selected_topics/laser_fields.py": {
+        "stdout_contains": [
+            "on-axis, in-focus amplitude",
+            "envelope at x",
+            "It worked!",
+        ],
+    },
+    "selected_topics/laser_entry_faces.py": {
+        "files": [
+            "laser_entry_faces_setup/include/picongpu/param/incidentField.param",
+        ],
+        "stdout_contains": [
+            "laser 0 enters through XMin",
+            "laser 1 enters through YMax",
+            "laser 2 enters through ZMin",
+            "It worked!",
+        ],
+    },
+    "selected_topics/laser_multi_face.py": {
+        "no_run": True,
+        "files": [
+            "laser_multi_face_setup/include/picongpu/param/incidentField.param",
+            "laser_multi_face_subset_setup/include/picongpu/param/incidentField.param",
+        ],
+        "stdout_contains": [
+            "default: one pulse injected through ['XMin', 'ZMin']",
+            "override: one pulse injected through ['XMin']",
+            "It worked!",
         ],
     },
     "selected_topics/simulation_settings.py": {
@@ -426,6 +509,19 @@ EXPECTED_FILES = {
             ("species_shape_and_method_setup/include/picongpu/param/speciesDefinition.param", "shapes::PQS"),
         ],
     },
+    "selected_topics/composite_pusher.py": {
+        "no_run": True,
+        "files": [
+            "composite_pusher_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            # a step-dependent composite pusher with the generated activation functor
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "particles::pusher::Composite<"),
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "struct PusherActivation_"),
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "particles::pusher::Free"),
+            ("composite_pusher_setup/include/picongpu/param/speciesDefinition.param", "particles::pusher::Boris"),
+        ],
+    },
     "selected_topics/gaussian_bunch.py": {
         "no_run": True,
         "files": [
@@ -433,6 +529,15 @@ EXPECTED_FILES = {
         ],
         "file_contains": [
             ("gaussian_bunch_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
+        ],
+    },
+    "selected_topics/from_file.py": {
+        "no_run": True,
+        "files": [
+            "from_file_setup/include/picongpu/param/speciesDefinition.param",
+        ],
+        "file_contains": [
+            ("from_file_setup/include/picongpu/param/speciesDefinition.param", "species_bunch"),
         ],
     },
     "selected_topics/multi_species.py": {

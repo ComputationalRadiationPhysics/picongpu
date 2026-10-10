@@ -16,7 +16,9 @@ class PolarizationType(Enum):
     LINEAR = 1
     CIRCULAR = 2
 
-    def get_as_pypicongpu(self):
+    def get_as_pypicongpu(self, *args, **kwargs):
+        # Extra arguments (e.g. the grid handed through the laser translation)
+        # are irrelevant for the polarization and ignored.
         if self == PolarizationType.LINEAR:
             return PyPIConGPUPolarizationType.LINEAR
         if self == PolarizationType.CIRCULAR:

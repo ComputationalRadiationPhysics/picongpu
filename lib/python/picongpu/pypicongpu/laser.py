@@ -15,8 +15,36 @@ from pydantic import (
     Field,
     PlainSerializer,
     computed_field,
+    field_validator,
     model_validator,
 )
+
+ENTRY_FACES = ("XMin", "XMax", "YMin", "YMax", "ZMin", "ZMax")
+"""The six coordinate faces of the simulation box that may carry a Huygens surface."""
+
+_ENTRY_DIRECTION_EPSILON = 1.0e-12
+"""Direction components up to this magnitude are considered zero."""
+
+
+def entry_faces_from_direction(propagation_direction) -> list[str]:
+    """Coordinate faces crossed by a pulse propagating along ``propagation_direction``.
+
+    A face is *crossed* iff the corresponding component of the (normalized)
+    propagation direction is non-zero and points inward through that boundary:
+    a positive ``d``-component enters through the ``d``-Min face (low side), a
+    negative one through the ``d``-Max face (high side). Components whose
+    magnitude does not exceed :data:`_ENTRY_DIRECTION_EPSILON` are treated as
+    zero, so numerical noise does not add spurious faces. For the oblique
+    direction ``(0.5, 0, sqrt(3)/2)`` this is ``["XMin", "ZMin"]``.
+    """
+    faces = []
+    for axis, name in enumerate("XYZ"):
+        component = propagation_direction[axis]
+        value = float(getattr(component, "component", component))
+        if abs(value) <= _ENTRY_DIRECTION_EPSILON:
+            continue
+        faces.append(name + ("Min" if value > 0 else "Max"))
+    return faces
 
 
 class PolarizationType(Enum):
@@ -88,11 +116,59 @@ class _BaseLaser(BaseModel):
     """E0 in V/m"""
     pulse_init: float = Field(ge=0.0)
     """laser will be initialized pulse_init times of duration (unitless)"""
+    entry_faces: list[str] = Field(exclude=True)
+    """coordinate faces this laser is injected through
+
+    The same pulse profile is listed under each of these faces so that one
+    physical pulse enters the box across all of them (e.g. ``["XMin", "ZMin"]``
+    for an obliquely incident pulse). All entries must be from
+    :data:`ENTRY_FACES` and free of duplicates. The ``exclude`` keeps the list
+    out of ``model_dump``; the template uses the ``on_*`` membership flags.
+    """
 
     # Huygens surface position (common to all lasers)
     huygens_surface_positions: Annotated[list[list[int]], PlainSerializer(_get_huygens_surface_serialized)]
     """Position in cells of the Huygens surface relative to start/
        edge(negative numbers) of the total domain"""
+
+    @field_validator("entry_faces")
+    @classmethod
+    def _validate_entry_faces(cls, entry_faces):
+        illegal = [face for face in entry_faces if face not in ENTRY_FACES]
+        if illegal:
+            raise ValueError(
+                f"Unknown Huygens entry face(s) {illegal}. Valid faces are {list(ENTRY_FACES)}. "
+                f"You gave {entry_faces=}."
+            )
+        if len(set(entry_faces)) != len(entry_faces):
+            raise ValueError(f"Duplicate Huygens entry faces are not allowed. You gave {entry_faces=}.")
+        if not entry_faces:
+            raise ValueError("At least one Huygens entry face must be selected.")
+        return entry_faces
+
+    @computed_field
+    def on_XMin(self) -> bool:
+        return "XMin" in self.entry_faces
+
+    @computed_field
+    def on_XMax(self) -> bool:
+        return "XMax" in self.entry_faces
+
+    @computed_field
+    def on_YMin(self) -> bool:
+        return "YMin" in self.entry_faces
+
+    @computed_field
+    def on_YMax(self) -> bool:
+        return "YMax" in self.entry_faces
+
+    @computed_field
+    def on_ZMin(self) -> bool:
+        return "ZMin" in self.entry_faces
+
+    @computed_field
+    def on_ZMax(self) -> bool:
+        return "ZMax" in self.entry_faces
 
     def _get_common_serialized_fields(self) -> dict:
         """Get all common serialized fields for lasers"""

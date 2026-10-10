@@ -61,6 +61,8 @@ binning = Binning(
     ],
     species=electrons,
     period=TS[::10],
+    # accumulate (average) two notify periods before writing a file
+    accumulation_period=2,
 )
 
 

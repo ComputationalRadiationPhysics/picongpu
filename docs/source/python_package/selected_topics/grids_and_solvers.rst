@@ -66,6 +66,64 @@ Guard cells
 It must be a non-negative multiple of the super-cell size;
 if unset, PIConGPU's default is used.
 
+.. _grids_field_absorber:
+
+Absorbing field (PML / exponential)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On every ``"open"`` boundary PIConGPU places an absorbing layer that damps fields
+leaving the box; ``"periodic"`` boundaries get no absorber.
+The layer depth (in cells) and its profile are configured on the grid.
+
+Depth
+"""""
+
+Use the standard PICMI ``pml_cells`` (per axis, cells; the same depth on both
+ends of an axis):
+
+.. literalinclude:: ../snippets/selected_topics/grid_absorber.py
+   :language: python
+   :start-at: pml_cells=
+   :end-before: # PIConGPU extension: choose
+
+A value of ``0`` disables the absorber on that axis.
+The PIConGPU extension ``picongpu_pml_cells`` additionally exposes the full
+per-direction matrix ``[[negative, positive], ...]`` (the two boundaries of an
+axis may differ); it is mutually exclusive with the standard ``pml_cells``.
+
+Profile
+"""""""
+
+The profile is the runtime option ``--fieldAbsorber``; PIConGPU supports exactly
+two, both always compiled in:
+
+``"pml"``
+   The perfectly matched layer (the default).
+
+``"exponential"``
+   The exponential damping absorber.
+
+Select it with the ``picongpu_absorber_kind`` extension
+(see :class:`~picongpu.picmi.grid.Cartesian3DGrid`).
+For the exponential absorber the strength is exposed per axis and direction via
+``picongpu_exponential_strength`` (default ``1e-3`` everywhere, as in the C++
+``fieldAbsorber.param``):
+
+.. literalinclude:: ../snippets/selected_topics/grid_absorber.py
+   :language: python
+   :start-at: # PIConGPU extension: choose
+   :end-before: solver = picmi
+
+Validation
+""""""""""
+
+* An explicitly configured depth (``pml_cells`` or ``picongpu_pml_cells``) that
+  does not fit into the domain is a hard error (increase ``number_of_cells`` or
+  reduce the depth). Selecting only a profile or a strength is not a depth
+  choice and is not subject to this check.
+* A depth on a periodic axis is ignored (with a warning), and on an all-periodic
+  grid the C++ core disables the absorber entirely (with a warning).
+
 Solvers
 -------
 

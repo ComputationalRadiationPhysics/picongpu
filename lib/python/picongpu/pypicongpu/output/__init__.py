@@ -11,6 +11,7 @@ from .energy_histogram import EnergyHistogram
 from .field_energy_monitor import FieldEnergyMonitor
 from .macro_particle_count import MacroParticleCount
 from .openpmd_plugin import OpenPMDPlugin
+from .optical_imaging import OpticalImaging
 from .particle_energy import ParticleEnergy
 from .phase_space import PhaseSpace
 from .radiation import RadiationConfiguration, RadiationPlugin, RadiationObserverConfiguration
@@ -23,6 +24,7 @@ AnyPlugin = (
     | FieldEnergyMonitor
     | MacroParticleCount
     | OpenPMDPlugin
+    | OpticalImaging
     | ParticleEnergy
     | PhaseSpace
     | RadiationPlugin
@@ -31,6 +33,7 @@ AnyPlugin = (
 __all__ = [
     "OpenPMDPlugin",
     "AnyPlugin",
+    "OpticalImaging",
     "PhaseSpace",
     "EnergyHistogram",
     "FieldEnergyMonitor",

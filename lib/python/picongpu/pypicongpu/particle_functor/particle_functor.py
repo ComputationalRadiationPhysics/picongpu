@@ -8,7 +8,7 @@ License: GPLv3+
 from typing import Annotated, Literal
 from uuid import uuid4 as uuid
 
-from pydantic import BaseModel, BeforeValidator, computed_field, model_validator
+from pydantic import BaseModel, BeforeValidator, Field, computed_field, model_validator
 
 from picongpu.pypicongpu.particle_functor.translate_to_cpp_type import translate_to_cpp_type
 from picongpu.pypicongpu.particle_functor.rng_info import RNGInfo
@@ -176,6 +176,11 @@ class _PreambleStatement(BaseModel):
     statement: str
 
 
+class _SpeciesName(BaseModel):
+    name: str
+    """Compile-time name (``GetCTName_t``) of a species this functor is registered for."""
+
+
 class ParticleFunctor(RenderedObject, BaseModel):
     name: str
     functor_expression: Annotated[str, BeforeValidator(PMAccPrinter().doprint)]
@@ -188,6 +193,14 @@ class ParticleFunctor(RenderedObject, BaseModel):
     unit_factor: str | None = None
     needs_total_position: bool = False
     rng_info: RNGInfo | None = None
+    species_names: list[_SpeciesName] = Field(default_factory=list)
+    """Compile-time names of the species this functor is registered for.
+
+    Empty for functors that are not reusable particle filters (e.g. derived-field
+    and binning functors). For reusable particle filters it lists exactly the
+    species the filter is used on, so that ``particleFilters.param`` can emit a
+    name-keyed ``SpeciesEligibleForSolver`` specialisation restricting the filter
+    to only those species instead of every species in ``VectorAllSpecies``."""
 
     @computed_field
     def typename(self) -> str:
@@ -206,6 +219,30 @@ class ParticleFunctor(RenderedObject, BaseModel):
 
     def _exponents(self) -> list[float]:
         return list(self.unit_dimension.unit_dimension) if self.unit_dimension is not None else [0.0] * 7
+
+    @computed_field
+    def has_species(self) -> bool:
+        """Whether this functor is registered for at least one species (i.e. is a
+        reusable particle filter that can be narrowed by species)."""
+        return bool(self.species_names)
+
+    @computed_field
+    def species_eligibility(self) -> str | None:
+        """C++ expression true for exactly the species this functor is registered for.
+
+        An OR over one ``is_same_v<GetCTName_t<T_Species>, PMACC_CSTRING(name)>`` per
+        species, joined with ``||`` (single species yields no operator). ``None`` when not
+        a reusable filter (empty ``species_names``), so the template keeps the primary
+        ``SpeciesEligibleForSolver`` (eligible for all species). Precomputed here rather
+        than in the template because moosetash has no list-index variable to suppress a
+        leading ``||`` for the first element."""
+        if not self.species_names:
+            return None
+        return " || ".join(
+            f'std::is_same_v<pmacc::traits::GetCTName_t<T_Species>, PMACC_CSTRING("{name}")>'
+            for s in self.species_names
+            for name in (s["name"] if isinstance(s, dict) else s.name,)
+        )
 
     @model_validator(mode="after")
     def _validate(self):

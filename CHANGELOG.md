@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.9.0
+-----
+
+**Date:** TBD
+
+**User Input Changes:**
+- PICMI: add `CompositePusher` for step-dependent (composite) particle pushers, mapping `TimeStepSpec` slices to pusher names; remove the stale `Axel` pusher from the Python layer (#182)
+
 0.8.0
 -----
 

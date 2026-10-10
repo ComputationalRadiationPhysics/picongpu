@@ -14,7 +14,8 @@ and each page below describes one of them:
   :ref:`energy histogram <energy-histogram>`,
   :ref:`macro-particle count <macro-particle-count>`,
   :ref:`binning <binning>`,
-  :ref:`radiation <radiation>` and
+  :ref:`radiation <radiation>`,
+  :ref:`optical imaging <optical-imaging>` and
   :ref:`checkpoints <checkpoint>`.
 
 The :ref:`diagnostic output locations <diagnostic-output-locations>` are
@@ -31,4 +32,5 @@ summarized at the end of the time-step page.
    macro_particle_count
    binning
    radiation
+   optical_imaging
    checkpoint

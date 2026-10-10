@@ -216,9 +216,28 @@ namespace picongpu::fields::incidentField
     {{/laser}}
 
 
+    // A laser may enter the box through several coordinate faces at once: every
+    // face crossed by its propagation direction is driven by the same pulse
+    // profile, so one physical pulse enters across all of them (see entry_faces).
+    // Standard lasers are placed on exactly those faces via the on_* membership
+    // flags below. TWTS keeps its dedicated two-plane behavior (always YMin, plus
+    // ZMin/ZMax chosen by the sign of the incidence angle). fromOpenPMDPulse has
+    // no entry-face flags, so it stays on YMin as before.
     using YMin = MakeSeq_t<
     {{#laser}}
+    {{#type_fromOpenPMDPulse}}
         LaserProfile_{{{_idx}}},
+    {{/type_fromOpenPMDPulse}}
+    {{#type_twts}}
+        LaserProfile_{{{_idx}}},
+    {{/type_twts}}
+    {{^type_fromOpenPMDPulse}}
+    {{^type_twts}}
+    {{#on_YMin}}
+        LaserProfile_{{{_idx}}},
+    {{/on_YMin}}
+    {{/type_twts}}
+    {{/type_fromOpenPMDPulse}}
     {{/laser}}
     profiles::None
     >;
@@ -232,9 +251,42 @@ namespace picongpu::fields::incidentField
     };
 
     {{/laser}}
-    using XMin = profiles::None;
-    using XMax = profiles::None;
-    using YMax = profiles::None;
+    using XMin = MakeSeq_t<
+    {{#laser}}
+    {{^type_fromOpenPMDPulse}}
+    {{^type_twts}}
+    {{#on_XMin}}
+        LaserProfile_{{{_idx}}},
+    {{/on_XMin}}
+    {{/type_twts}}
+    {{/type_fromOpenPMDPulse}}
+    {{/laser}}
+    profiles::None
+    >;
+    using XMax = MakeSeq_t<
+    {{#laser}}
+    {{^type_fromOpenPMDPulse}}
+    {{^type_twts}}
+    {{#on_XMax}}
+        LaserProfile_{{{_idx}}},
+    {{/on_XMax}}
+    {{/type_twts}}
+    {{/type_fromOpenPMDPulse}}
+    {{/laser}}
+    profiles::None
+    >;
+    using YMax = MakeSeq_t<
+    {{#laser}}
+    {{^type_fromOpenPMDPulse}}
+    {{^type_twts}}
+    {{#on_YMax}}
+        LaserProfile_{{{_idx}}},
+    {{/on_YMax}}
+    {{/type_twts}}
+    {{/type_fromOpenPMDPulse}}
+    {{/laser}}
+    profiles::None
+    >;
     using ZMin = MakeSeq_t<
     {{#laser}}
     {{#type_twts}}
@@ -242,6 +294,13 @@ namespace picongpu::fields::incidentField
         LaserProfile_{{{_idx}}},
     {{/laserIncidenceAnglePositive}}
     {{/type_twts}}
+    {{^type_fromOpenPMDPulse}}
+    {{^type_twts}}
+    {{#on_ZMin}}
+        LaserProfile_{{{_idx}}},
+    {{/on_ZMin}}
+    {{/type_twts}}
+    {{/type_fromOpenPMDPulse}}
     {{/laser}}
     profiles::None
     >;
@@ -252,6 +311,13 @@ namespace picongpu::fields::incidentField
         LaserProfile_{{{_idx}}},
     {{/laserIncidenceAnglePositive}}
     {{/type_twts}}
+    {{^type_fromOpenPMDPulse}}
+    {{^type_twts}}
+    {{#on_ZMax}}
+        LaserProfile_{{{_idx}}},
+    {{/on_ZMax}}
+    {{/type_twts}}
+    {{/type_fromOpenPMDPulse}}
     {{/laser}}
     profiles::None
     >;

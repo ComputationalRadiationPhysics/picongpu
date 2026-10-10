@@ -13,7 +13,7 @@ we use that shorthand throughout the examples because it is much less verbose.
 .. literalinclude:: ../../snippets/selected_topics/time_steps.py
    :language: python
    :start-at: from picongpu.picmi.diagnostics import TS
-   :end-before: print("It worked!")
+   :end-before: # shift a specification
 
 The syntax is a deliberate mix of familiar Python slicing and a few
 PIConGPU-specific rules:
@@ -43,6 +43,35 @@ size, rounded so that the interval is never clipped.
 Because different units are meaningful in different contexts,
 specifications in different units can be combined into one ``period`` with the
 ``+`` operator (a set union), as in the ``combined`` example above.
+
+Shifting a specification
+------------------------
+
+A whole specification -- or any part of it -- can be **shifted** by a number of
+steps or by a physical time using the unit accessors ``TS.steps`` and
+``TS.seconds``. Writing ``N * TS.steps`` produces a shift by ``N`` steps, and
+``T * TS.seconds`` a shift by ``T`` seconds; adding such a shift to a
+specification moves every ``start``/``stop`` by that amount while leaving the
+``step`` untouched. Open ends move with the shift (``TS[::10] + 5*TS.steps``
+starts at step ``5``), and an open end (``stop`` omitted) stays open.
+
+Shifts are resolved together with the unit conversion, i.e. when the
+specification is translated to simulation steps. This means a shift **in
+seconds** may be written *before* the simulation's time step size is known: it is
+converted to the nearest whole step at translation time. A shift in steps is
+applied directly to the resulting integer
+indices, so it always moves by exactly that many steps regardless of the time
+step size. The most explicit form combines both:
+
+.. literalinclude:: ../../snippets/selected_topics/time_steps.py
+   :language: python
+   :start-at: # shift a specification
+   :end-before: print("It worked!")
+
+The unit accessors also fix the unit of an otherwise unit-less specification:
+``TS[::1.e-5] + 2.e-6*TS.seconds`` is a seconds-based specification (the same
+as writing ``TS[::1.e-5]("seconds")`` first), while ``TS[::10] + 5*TS.steps`` is
+steps-based.
 
 A few practical idioms:
 

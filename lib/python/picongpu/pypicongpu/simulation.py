@@ -20,6 +20,12 @@ from pydantic import (
 )
 
 from picongpu.pypicongpu.collisions import CollisionalPhysicsSetup
+from picongpu.pypicongpu.output.optical_imaging import (
+    COMPILE_TIME_FIELDS,
+    MASK_FIELDS,
+    OpticalImaging,
+    default_optical_imaging_params,
+)
 from picongpu.pypicongpu.output.radiation import RadiationPlugin
 from picongpu.pypicongpu.output.timestepspec import TimeStepSpec
 from picongpu.pypicongpu.particle_functor.particle_functor import ParticleFunctor
@@ -50,6 +56,62 @@ def _validate_min_weighting(value: float) -> float:
     if not (math.isfinite(value) and value > 0):
         raise ValueError(f"Minimum weighting must be finite and > 0, not {value=}.")
     return value
+
+
+def _optical_imaging_params(outputs) -> dict:
+    """The compile-time ``params::`` values shared by all optical-imaging instances.
+
+    The plugin's ``params`` namespace (and its three mask functions) is compiled
+    in, so every ``OpticalImaging`` of a simulation must agree on it. Without an
+    imaging diagnostic the C++ defaults with constant mask functions are
+    returned, so ``shadowgraphy.param`` is always renderable.
+
+    The mask functions are compared as their **rendered C++ strings**: two
+    callables that are semantically equal but spelled differently (e.g.
+    ``x + x`` vs ``2 * x``) render differently and are rejected. That is
+    intentional -- the plugin compiles exactly one of them -- but callers
+    should share the callable rather than re-deriving an equal expression.
+    """
+    instances = [entry for entry in outputs or [] if isinstance(entry, OpticalImaging)]
+    if not instances:
+        return default_optical_imaging_params()
+    first = instances[0]
+    values = {name: getattr(first, name) for name in COMPILE_TIME_FIELDS + MASK_FIELDS}
+    for other in instances[1:]:
+        for name in COMPILE_TIME_FIELDS + MASK_FIELDS:
+            if getattr(other, name) != values[name]:
+                raise ValueError(
+                    "All OpticalImaging instances share the compile-time shadowgraphy parameters, but they "
+                    f"disagree on {name!r}: {values[name]!r} vs {getattr(other, name)!r}. Keep the "
+                    "compile-time values (t_res, x_res, y_res, numerical_aperture, central_lambda, d_lambda, "
+                    "t_wf_buffer, pos_wf_size, numerical_aperture_wf_size, d_lambda_wf and the three mask "
+                    "functions) identical across instances; only the .cfg options may differ."
+                )
+    return values
+
+
+def _uniquify_optical_imaging_files(outputs) -> None:
+    """Give every optical-imaging instance a distinct output ``file`` prefix.
+
+    The plugin writes ``<file>_%T.<ext>`` per instance, so two instances sharing
+    a prefix (e.g. two default-named ``Shadowgraphy``) would overwrite each
+    other's output. Explicitly distinct prefixes are left untouched; a duplicate
+    gets the smallest free numeric suffix. Idempotent, so repeated validation
+    (e.g. a second ``get_as_pypicongpu`` call) does not keep appending.
+    """
+    used: set[str] = set()
+    for instance in outputs or []:
+        if not isinstance(instance, OpticalImaging):
+            continue
+        name = instance.file
+        if name not in used:
+            used.add(name)
+            continue
+        suffix = 2
+        while f"{name}_{suffix}" in used:
+            suffix += 1
+        instance.file = f"{name}_{suffix}"
+        used.add(instance.file)
 
 
 class Simulation(RenderedObject, BaseModel):
@@ -168,6 +230,17 @@ class Simulation(RenderedObject, BaseModel):
             else f"precision{self.precision_overrides.trig}Bit"
         )
 
+    @computed_field
+    def optical_imaging_params(self) -> dict:
+        """The compile-time ``params::`` values for ``shadowgraphy.param``.
+
+        The plugin's ``params`` (and its three mask functions) are compiled in,
+        so all instances must agree on them. With no imaging diagnostic the C++
+        defaults with constant mask functions are rendered so the param file is
+        always present.
+        """
+        return _optical_imaging_params(self.output)
+
     @field_validator("output", mode="after")
     @classmethod
     def _output_validation(cls, outputs):
@@ -181,9 +254,16 @@ class Simulation(RenderedObject, BaseModel):
             )
         ]
         if outputs is None:
-            return default
-        if not any(isinstance(o, RadiationPlugin) for o in outputs):
-            return outputs + default
+            outputs = default
+        elif not any(isinstance(o, RadiationPlugin) for o in outputs):
+            outputs = outputs + default
+        # validate the (compile-time) consistency of the optical-imaging
+        # instances eagerly, so a mismatch is reported at simulation
+        # construction rather than only when the params are accessed.
+        _optical_imaging_params(outputs)
+        # two instances with the default prefix would clobber each other's
+        # ``<file>_%T`` output; ensure every prefix is distinct.
+        _uniquify_optical_imaging_files(outputs)
         return outputs
 
     @field_serializer("customuserinput")

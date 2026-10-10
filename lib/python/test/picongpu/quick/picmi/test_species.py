@@ -53,7 +53,12 @@ class TestSpeciesShapeAndMethod(TestCase):
         self._assert_converts("other:quartic", "other:Acceleration", Shape.quartic, Pusher.Acceleration)
         self._assert_converts("other:counter", "other:Photon", Shape.counter, Pusher.Photon)
         self._assert_converts("other:quartic", "other:Probe", Shape.quartic, Pusher.Probe)
-        self._assert_converts("other:quartic", "other:Axel", Shape.quartic, Pusher.Axel)
+
+    def test_removed_axel_pusher_is_rejected(self):
+        # `Axel` was removed upstream (#4115); passing it must fail (not silently
+        # render an invalid `particles::pusher::Axel`).
+        with self.assertRaises(ValueError):
+            species(method="other:Axel").get_as_pypicongpu()
 
     def test_method_explicitly_set_does_not_crash(self):
         # Regression: picmistandard's _validate_method used to raise

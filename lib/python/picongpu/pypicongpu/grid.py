@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, BaseModel, Field, PlainSerializer, computed_field, model_validator
 from typing_extensions import Self
 
+from .fieldabsorber import FieldAbsorber
 from .rendering import RenderedObject
 
 
@@ -96,6 +97,54 @@ def grid_dist_validate(grid_dist):
         return grid_dist
 
 
+def check_absorber_fits(cell_cnt, gpu_cnt, grid_dist, boundary_condition, field_absorber) -> None:
+    """Raise if a requested absorber does not fit into the global domain.
+
+    Mirrors the absorber condition of the C++ ``DomainAdjuster``
+    (``include/picongpu/simulation/control/DomainAdjuster.hpp``,
+    ``greaterEqualThanAbsorber``): for every absorbing axis the local domain of
+    each device must be at least as large as the absorber thickness on the
+    boundaries that device covers. Unlike the C++ code (which silently rounds the
+    domain up at runtime unless ``autoAdjustGrid`` is disabled) this is a hard
+    error, per issue #124 answer 4: a configured absorber that cannot fit is a
+    user mistake, not something to silently fix.
+
+    Periodic axes are ignored (PIConGPU applies no absorber there). ``cell_cnt``
+    and ``gpu_cnt`` are iterated over their length, so the same helper serves the
+    2D and 3D grids (the absorber thickness is always the full ``[3][2]`` matrix,
+    only the simulated axes are considered).
+
+    Note: the C++ check additionally relaxes the per-boundary requirement to
+    ``max(negative, positive)`` on both boundary devices of the y axis while a
+    moving window is active (``m_movingWindowEnabled && dim == 1``), i.e. it is
+    then *stricter* than this helper. ``Grid`` cannot see the ``Simulation``'s
+    moving-window setting, so we always use the per-direction requirement here and
+    can only *under*-report such a setup (never reject one C++ accepts). That is
+    acceptable: C++ would grow the domain while ``autoAdjustGrid`` is on, and the
+    hard error is reserved for an explicit depth per issue #124 answer 4.
+    """
+    for axis, condition in enumerate(boundary_condition):
+        if condition == BoundaryCondition.PERIODIC:
+            continue
+        negative, positive = field_absorber.thickness[axis]
+        devices = gpu_cnt[axis]
+        chunks = grid_dist[axis] if grid_dist is not None else [cell_cnt[axis] // devices] * devices
+        if devices == 1:
+            # Both absorber layers lie on the single device.
+            checks = [("negative + positive", negative + positive, cell_cnt[axis])]
+        else:
+            # The two boundary devices carry one layer each.
+            checks = [("negative", negative, chunks[0]), ("positive", positive, chunks[-1])]
+        for label, required, local in checks:
+            if required > 0 and local < required:
+                name = "xyz"[axis]
+                raise ValueError(
+                    f"The field absorber in {name} direction does not fit into the domain: "
+                    f"the local domain has {local} cells but the {label} absorber needs {required}. "
+                    "Increase number_of_cells or reduce the absorber thickness."
+                )
+
+
 class Grid3D(BaseModel, RenderedObject):
     """
     PIConGPU 3 dimensional (cartesian) grid
@@ -132,6 +181,14 @@ class Grid3D(BaseModel, RenderedObject):
 
     guard_size: Annotated[Vec3_int | None, AfterValidator(lambda x: None if x is None else all_ge(x, 0))] = None
     """size of the guard region in x y and z direction as a 3-integer tuple in super cells"""
+
+    field_absorber: FieldAbsorber = Field(default_factory=FieldAbsorber)
+    """field absorber (depth + kind/profile) rendered into ``fieldAbsorber.param`` and ``--fieldAbsorber``.
+
+    The default mirrors the static C++ ``fieldAbsorber.param``. On periodic axes the
+    absorber depth is ignored by PIConGPU; if all axes are periodic the C++ core
+    forces the absorber kind to ``None`` regardless of ``--fieldAbsorber``.
+    """
 
     @computed_field
     def has_z(self) -> bool:
@@ -200,6 +257,15 @@ class Grid2D(BaseModel, RenderedObject):
 
     guard_size: Annotated[Vec2_int | None, AfterValidator(lambda x: None if x is None else all_ge(x, 0))] = None
     """size of the guard region in x and y direction as a 2-integer tuple in super cells"""
+
+    field_absorber: FieldAbsorber = Field(default_factory=FieldAbsorber)
+    """field absorber (depth + kind/profile) rendered into ``fieldAbsorber.param`` and ``--fieldAbsorber``.
+
+    The default mirrors the static C++ ``fieldAbsorber.param``. On periodic axes the
+    absorber depth is ignored by PIConGPU; if all axes are periodic the C++ core
+    forces the absorber kind to ``None`` regardless of ``--fieldAbsorber``. The
+    thickness matrix keeps its full ``[3][2]`` shape; the z axis is inert in 2D.
+    """
 
     @computed_field
     def has_z(self) -> bool:

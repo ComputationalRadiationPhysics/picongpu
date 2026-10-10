@@ -12,11 +12,12 @@ from .energy_histogram import EnergyHistogram
 from .field_dump import DerivedFieldDump, NativeFieldDump
 from .field_energy_monitor import FieldEnergyMonitor
 from .macro_particle_count import MacroParticleCount
+from .optical_imaging import OpticalImaging, Shadowgraphy
 from .particle_dump import ParticleDump
 from .particle_energy import ParticleEnergy
 from .phase_space import PhaseSpace
 from .radiation import Radiation
-from .timestepspec import TS, TimeStepSpec
+from .timestepspec import TS, TimeStepShift, TimeStepSpec, TimeStepUnits
 
 AnyDiagnostic = (
     Binning
@@ -26,6 +27,7 @@ AnyDiagnostic = (
     | NativeFieldDump
     | FieldEnergyMonitor
     | MacroParticleCount
+    | OpticalImaging
     | ParticleDump
     | ParticleEnergy
     | PhaseSpace
@@ -48,7 +50,11 @@ __all__ = [
     "NativeFieldDump",
     "DerivedFieldDump",
     "TimeStepSpec",
+    "TimeStepUnits",
+    "TimeStepShift",
     "TS",
     "Checkpoint",
     "Radiation",
+    "OpticalImaging",
+    "Shadowgraphy",
 ]
