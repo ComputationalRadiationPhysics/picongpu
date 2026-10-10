@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/lockstep/BlockCfg.hpp"
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/memory/buffers/GridBuffer.hpp"
 #include "pmacc/memory/dataTypes/Mask.hpp"

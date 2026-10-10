@@ -21,6 +21,8 @@
 
 #include "picongpu/defines.hpp"
 
+#include <pmacc/lockstep/ForEach.hpp>
+
 #include <cstdint>
 #include <iostream>
 

@@ -22,6 +22,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/collision/param.hpp"
 
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/verify.hpp>

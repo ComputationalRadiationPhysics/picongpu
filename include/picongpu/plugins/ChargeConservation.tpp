@@ -24,6 +24,7 @@
 #include "picongpu/fields/FieldTmpOperations.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>

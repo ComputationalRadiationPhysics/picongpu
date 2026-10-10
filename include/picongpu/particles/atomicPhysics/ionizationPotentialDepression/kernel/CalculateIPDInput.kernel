@@ -27,6 +27,7 @@
 #include "picongpu/defines.hpp"
 #include "picongpu/particles/atomicPhysics/KernelIndexation.hpp"
 
+#include <pmacc/lockstep/ForEach.hpp>
 #include <pmacc/math/isApprox.hpp>
 #include <pmacc/particles/algorithm/ForEach.hpp>
 

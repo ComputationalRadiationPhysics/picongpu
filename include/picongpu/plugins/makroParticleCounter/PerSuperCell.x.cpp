@@ -28,6 +28,7 @@
 #    include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 
 #    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/lockstep/ForEach.hpp>
 #    include <pmacc/mappings/kernel/AreaMapping.hpp>
 #    include <pmacc/mappings/simulation/Filesystem.hpp>
 #    include <pmacc/memory/buffers/GridBuffer.hpp>
