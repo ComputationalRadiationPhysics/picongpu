@@ -39,6 +39,7 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Config.hpp>
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -87,8 +88,8 @@ namespace pmacc
                 HDINLINE constexpr Tuple& operator=(Tuple const&) noexcept = default;
                 HDINLINE constexpr Tuple& operator=(Tuple&&) noexcept = default;
 
-                T head;
-                Tuple<Ts...> tail;
+                [[no_unique_address]] T head;
+                [[no_unique_address]] Tuple<Ts...> tail;
             };
 
             // Base case for empty tuple
@@ -108,11 +109,11 @@ namespace pmacc
             /// @param t The tuple from which to extract the element.
             /// @return The extracted element by reference.
             template<size_t k, typename T, typename... Ts>
-            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...>& t)
+            HDINLINE constexpr auto& get(Tuple<T, Ts...>& t)
             {
                 if constexpr(k == 0)
                 {
-                    return t.head;
+                    return static_cast<T&>(t.head);
                 }
                 else
                 {
@@ -120,17 +121,45 @@ namespace pmacc
                 }
             }
 
-            /// Const version of `get`
+            /// Const lvalue version of `get`
             template<size_t k, typename T, typename... Ts>
-            HDINLINE constexpr decltype(auto) get(Tuple<T, Ts...> const& t)
+            HDINLINE constexpr auto& get(Tuple<T, Ts...> const& t)
             {
                 if constexpr(k == 0)
                 {
-                    return t.head;
+                    return static_cast<std::add_const_t<T>&>(t.head);
                 }
                 else
                 {
                     return get<k - 1>(t.tail);
+                }
+            }
+
+            /// Rvalue version of `get`
+            template<size_t k, typename T, typename... Ts>
+            HDINLINE constexpr auto&& get(Tuple<T, Ts...>&& t)
+            {
+                if constexpr(k == 0)
+                {
+                    return static_cast<T&&>(t.head);
+                }
+                else
+                {
+                    return get<k - 1>(std::move(t.tail));
+                }
+            }
+
+            /// Const rvalue version of `get`
+            template<size_t k, typename T, typename... Ts>
+            HDINLINE constexpr auto&& get(Tuple<T, Ts...> const&& t)
+            {
+                if constexpr(k == 0)
+                {
+                    return static_cast<T const&&>(t.head);
+                }
+                else
+                {
+                    return get<k - 1>(std::move(t.tail));
                 }
             }
 
