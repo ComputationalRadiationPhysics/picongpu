@@ -57,6 +57,7 @@ namespace pmacc
 
             // constructor is required because exposing the array constructors does not work
             template<typename... T_Args>
+            requires(sizeof...(T_Args) == T_dim)
             constexpr ArrayStorage(T_Args&&... args) : BaseType{std::forward<T_Args>(args)...}
             {
             }
@@ -117,8 +118,13 @@ namespace pmacc
              *   constexpr auto vec4 = Vector<int, 3u>{ {1, 2, 3} };
              * @endcode
              */
-            template<typename... T_Args, typename = std::enable_if_t<(std::is_convertible_v<T_Args, T_Type> && ...)>>
+            template<typename... T_Args>
+            requires(sizeof...(T_Args) == T_dim) && (std::is_convertible_v<T_Args, T_Type> && ...)
             constexpr Vector(T_Args... args) : Storage(static_cast<T_Type>(args)...)
+            {
+            }
+
+            constexpr Vector(Storage const& storage) : Storage(storage)
             {
             }
 

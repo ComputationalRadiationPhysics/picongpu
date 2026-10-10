@@ -37,6 +37,7 @@
 #include <iostream>
 #include <string>
 #include <tuple>
+#include <type_traits>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -74,6 +75,23 @@ TEST_CASE("vector constructor generator", "[vector]")
 
     REQUIRE(hostDeviceBuffer.getHostBuffer().data()[0] == Vector<uint32_t, 3u>(0u, 1u, 2u).shrink<TEST_DIM>());
     REQUIRE(hostDeviceBuffer.getHostBuffer().data()[1] == Vector<uint32_t, 3u>(0u, 2u, 4u).shrink<TEST_DIM>());
+}
+
+TEST_CASE("vector constructor arity", "[vector]")
+{
+    using namespace pmacc::math;
+
+    // nested-brace initialization (single braced-init-list argument)
+    constexpr Vector<int, 3u> nested{{1, 2, 3}};
+    STATIC_REQUIRE(nested.x() == 1);
+    STATIC_REQUIRE(nested.y() == 2);
+    STATIC_REQUIRE(nested.z() == 3);
+
+    // the number of arguments must match the dimension
+    STATIC_REQUIRE(std::is_constructible_v<Vector<int, 3u>, int, int, int>);
+    STATIC_REQUIRE(!std::is_constructible_v<Vector<int, 3u>, int>);
+    STATIC_REQUIRE(!std::is_constructible_v<Vector<int, 3u>, int, int>);
+    STATIC_REQUIRE(!std::is_constructible_v<Vector<int, 3u>, int, int, int, int>);
 }
 
 /** define one dimensional vector compile time test cases for operator +,-,*,/ */
