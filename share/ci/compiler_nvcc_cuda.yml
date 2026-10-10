@@ -1,5 +1,6 @@
 ################################################################################
-#   [g++-X] : X = {7, 8, 9, 10, 11}
+#   [g++-X] : X = {11, 12, 13}
+# nvcc restricted to the gcc versions supported by the CUDA toolkit
 
 .base_nvcc:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-cuda${CUDA_CONTAINER_VERSION}-gcc-pic:${CONTAINER_TAG}

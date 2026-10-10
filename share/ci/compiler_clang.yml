@@ -1,5 +1,5 @@
 ################################################################################
-#   [clang++-X] : X = {10, 11, 12, 13, 14, 15, 16}
+#   [clang++-X] : X = {15, 16, 17, 18, 19, 20, 21, 22, 23}
 
 .base_clang:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-pic:${CONTAINER_TAG}
