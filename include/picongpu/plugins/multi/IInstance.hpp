@@ -65,7 +65,7 @@ namespace picongpu
                  * their configuration here so that configuration errors are
                  * reported early instead of only at the first notification.
                  */
-                virtual void init(InstanceKind)
+                virtual void initInstance(InstanceKind)
                 {
                 }
 

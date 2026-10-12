@@ -168,7 +168,7 @@ namespace picongpu
                 return;
             }
 
-            cBackend->second->init(
+            cBackend->second->initInstance(
                 plugins::multi::IInstance::CheckpointInstance{
                     checkpointFilename,
                     simulationDescription.getCheckpointDirectory()});
