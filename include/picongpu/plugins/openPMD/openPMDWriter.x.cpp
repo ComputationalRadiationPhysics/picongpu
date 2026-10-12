@@ -1459,7 +1459,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
              * call this for writing. The read Series used for restarting is
              * opened and closed by doRestart() when the restart actually happens.
              */
-            void init(InstanceKind instanceKind) override
+            void initInstance(InstanceKind instanceKind) override
             {
                 eventSystem::getTransactionEvent().waitForFinished();
 
