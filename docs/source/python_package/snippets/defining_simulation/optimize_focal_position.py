@@ -35,7 +35,7 @@ TRANSVERSE_FOCUS = NUM_CELLS[0] * CELL_SIZE[0] / 2.0
 
 
 def make_laser(focal_position):
-    duration = 5.0e-15
+    duration = 2 * 5.0e-15
     return picmi.GaussianLaser(
         wavelength=0.8e-6,
         waist=5.0e-6 / 1.17741,
@@ -45,7 +45,7 @@ def make_laser(focal_position):
         a0=8.0,
         phi0=0.0,
         focal_position=[TRANSVERSE_FOCUS, focal_position, TRANSVERSE_FOCUS],
-        centroid_position=[TRANSVERSE_FOCUS, -0.5 * PULSE_INIT * duration * c, TRANSVERSE_FOCUS],
+        centroid_position=[TRANSVERSE_FOCUS, -0.25 * PULSE_INIT * duration * c, TRANSVERSE_FOCUS],
     )
 
 
