@@ -144,19 +144,9 @@ PIConGPU command line option                  description
 ``--openPMD.emptyOutputIterationAt``          Run the complete plugin once at the given time step but without writing any mesh or particle data, creating only
                                               the openPMD Iteration (including its meta data). If that step is also covered by the output period, it is written as an
                                               empty iteration instead of a regular dump. This can be useful to verify I/O and metadata handling without the
-                                              cost of a full dump. Disabled by default.
+                                              cost of a full dump. Disabled by default. If the instance does not self-register (checkpoints), the step has to be additionally
+                                              included in the checkpointing period, else this parameter will be ignored. 
 ============================================= ====================================================================================================================================================
-
-.. note::
-
-   This flag is also registered for checkpoint runs, where it is exposed as
-   ``--checkpoint.openPMD.emptyOutputIterationAt`` (with ``--checkpoint.backend openPMD``). The checkpoint openPMD
-   IO-backend does not register itself: unlike the regular output plugin it has no notification period of its own and is
-   only executed when the ``Checkpoint`` plugin actually writes a checkpoint. It therefore only takes effect if
-   checkpointing is configured (e.g. via ``--checkpoint.period``) and a checkpoint is written at exactly the configured
-   step. If no checkpointing is configured, or the step is not a checkpoint step, the option has no effect. Note that
-   checkpoint runs are configured on the command line only, so the TOML key ``empty_output_iteration_at`` applies to
-   regular output runs only.
 
 .. note::
 

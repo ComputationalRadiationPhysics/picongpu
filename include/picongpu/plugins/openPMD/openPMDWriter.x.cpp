@@ -290,7 +290,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "Run the complete plugin once at the given time step without writing any mesh or particle data, "
                    "creating only the openPMD Iteration. The step will be written as an empty step, regardless if it "
                    "is covered in the output period or not. Useful for early verification the IO has "
-                   "been correctly configured, disabled by default.",
+                   "been correctly configured, disabled by default. If the instance does not self-register "
+                   "(checkpoints), the step has to be additionally included in the checkpointing period, else this "
+                   "parameter will be ignored.",
                    -1};
             /*
              * The openPMD plugin is used as a normal I/O plugin as well as for
@@ -460,6 +462,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 return std::unique_ptr<IParameter>(new Parameter<ParamType>{std::forward<Args>(args)...});
             }
 
+            // regular std::vector{el1, el2, el3. ...} initialization does not work for non-copyable types
             template<typename VectorElementType, typename... Args>
             auto noncopyable_objects_as_vector(Args&&... args) -> std::vector<VectorElementType>
             {
@@ -594,8 +597,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     {
                         std::string additionalDescription
                             = param->additionalDescription.has_value() ? (*param->additionalDescription)() : "";
-                        // param.commandLineParameter->registerHelp(desc, masterPrefix + prefix,
-                        // additionalDescription);
                         param->registerHelp(desc, masterPrefix + prefix, additionalDescription);
                     }
                 }
