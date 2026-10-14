@@ -46,6 +46,9 @@ namespace picongpu
                 {
                 };
 
+                // This currently refers only to output checkpoint instances.
+                // Input, i.e. read instances are not supported in initPlugin(),
+                // since those are run at simulation start anyway.
                 struct CheckpointInstance
                 {
                     std::string filename;
@@ -61,9 +64,14 @@ namespace picongpu
                  *
                  * This is called once while the plugins are loaded, i.e. before
                  * the simulation starts (time step zero), independent of when the
-                 * plugin is first executed. Plugins should parse and validate
+                 * plugin is first executed. Plugins can parse and validate
                  * their configuration here so that configuration errors are
                  * reported early instead of only at the first notification.
+                 *
+                 * For checkpointing plugins, this currently only supports the
+                 * output side of the plugin, since restarts run at simulation
+                 * start anyway. If a restart takes place, initInstance() is
+                 * called after the successful restart.
                  */
                 virtual void initInstance(InstanceKind)
                 {
