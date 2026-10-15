@@ -1,4 +1,4 @@
-/* Copyright 2025-2025 , Rene Widera, Edgar Marquardt
+/* Copyright 2025-2026, Rene Widera, Edgar Marquardt
  *
  * This file is part of PMacc.
  *

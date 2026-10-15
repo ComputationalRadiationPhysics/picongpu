@@ -1,4 +1,4 @@
-/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
+/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera, Edgar Marquardt
  *
  * This file is part of PIConGPU.
  *

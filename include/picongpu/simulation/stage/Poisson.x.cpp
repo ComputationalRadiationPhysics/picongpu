@@ -1,4 +1,4 @@
-/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
+/* Copyright 2025-2026 Tapish Narwal, Luca Pennati, Rene Widera, Edgar Marquardt
  *
  * This file is part of PIConGPU.
  *
@@ -260,19 +260,14 @@ namespace picongpu
                 float_64 const invdelta = 1.0 / delta;
                 float_64 const invsigma = 1.0 / sigma;
 
-                auto guardMapper = makeAreaMapper<GUARD>(m_mappingDesc.value());
+                namespace poi = fields::poissonSolver;
 
-                // set guard cells to zero, important for open boundaries,
-                // otherwise the comunication will overwrite the guard cells anyway
-                pmacc::algorithms::forEachCell(
-                    guardMapper,
-                    [] DEVICEONLY(auto) -> float_64 { return 0.0; },
-                    bBuffer->getDeviceBuffer());
                 bBuffer->communication();
+                // Use boundary conditions as defined in BoundaryConditions.hpp.
+                auto boundaryConditions = poi::BoundaryConditions{};
+                boundaryConditions(*bBuffer, m_mappingDesc.value());
 
                 auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
-
-                namespace poi = fields::poissonSolver;
 
                 // Step i = 0: initial approximation
                 pmacc::algorithms::forEachCell(
@@ -280,6 +275,8 @@ namespace picongpu
                     [invtheta] DEVICEONLY(auto, auto const bValue) -> float_64 { return bValue * invtheta; },
                     zBuffer->getDeviceBuffer(),
                     bBuffer->getDeviceBuffer());
+                zBuffer->communication();
+                boundaryConditions(*zBuffer, m_mappingDesc.value());
 
                 if(m_maxPreconditionerSteps <= 1)
                 {
@@ -293,6 +290,8 @@ namespace picongpu
                     poi::StencilFunc{},
                     yBuffer->getDeviceBuffer(),
                     bBuffer->getDeviceBuffer());
+                yBuffer->communication();
+                boundaryConditions(*yBuffer, m_mappingDesc.value());
 
                 float_64 rhoOld = invsigma;
                 float_64 rhoCurrent = 1. / (2. * sigma - rhoOld);
@@ -302,6 +301,8 @@ namespace picongpu
                     [rhoCurrent, invtheta, invdelta] DEVICEONLY(auto const yValue) -> float_64
                     { return -2.0 * rhoCurrent * yValue * invtheta * invdelta; },
                     yBuffer->getDeviceBuffer());
+                yBuffer->communication();
+                boundaryConditions(*yBuffer, m_mappingDesc.value());
 
                 pmacc::algorithms::forEachCell(
                     coreBorderMapper,
@@ -309,6 +310,8 @@ namespace picongpu
                     { return yValue + 4.0 * bValue * rhoCurrent * invdelta; },
                     yBuffer->getDeviceBuffer(),
                     bBuffer->getDeviceBuffer());
+                yBuffer->communication();
+                boundaryConditions(*yBuffer, m_mappingDesc.value());
 
                 if(m_maxPreconditionerSteps <= 2)
                 {
@@ -329,12 +332,14 @@ namespace picongpu
                         poi::StencilFunc{},
                         wBuffer->getDeviceBuffer(),
                         yBuffer->getDeviceBuffer());
+                    boundaryConditions(*wBuffer, m_mappingDesc.value());
 
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
                         [rhoCurrent, invdelta] DEVICEONLY(auto const wValue) -> float_64
                         { return -2.0 * rhoCurrent * wValue * invdelta; },
                         wBuffer->getDeviceBuffer());
+                    boundaryConditions(*wBuffer, m_mappingDesc.value());
 
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
@@ -342,6 +347,7 @@ namespace picongpu
                         { return wValue + 2.0 * rhoCurrent * bValue * invdelta; },
                         wBuffer->getDeviceBuffer(),
                         bBuffer->getDeviceBuffer());
+                    boundaryConditions(*wBuffer, m_mappingDesc.value());
 
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
@@ -349,6 +355,7 @@ namespace picongpu
                         { return wValue + 2.0 * rhoCurrent * sigma * yValue; },
                         wBuffer->getDeviceBuffer(),
                         yBuffer->getDeviceBuffer());
+                    boundaryConditions(*wBuffer, m_mappingDesc.value());
 
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
@@ -356,6 +363,7 @@ namespace picongpu
                         { return wValue - rhoCurrent * rhoOld * zValue; },
                         wBuffer->getDeviceBuffer(),
                         zBuffer->getDeviceBuffer());
+                    boundaryConditions(*wBuffer, m_mappingDesc.value());
 
                     zBuffer->getDeviceBuffer().copyFrom(yBuffer->getDeviceBuffer());
                     yBuffer->getDeviceBuffer().copyFrom(wBuffer->getDeviceBuffer());
@@ -404,11 +412,9 @@ namespace picongpu
                     = fieldRho.asyncCommunication(pmacc::eventSystem::getTransactionEvent());
                 pmacc::eventSystem::setTransactionEvent(fieldTmpEvent);
 
-                auto boundaryConditionsDirichlet = poi::BoundaryConditionsDirichlet{};
-                boundaryConditionsDirichlet(*fieldV.get(), m_mappingDesc.value());
-
-                // auto rightHandSideNormalization = poi::RightHandSideNormalization{};
-                // rightHandSideNormalization(*fieldV.get(), fieldRho, m_mappingDesc.value());
+                // Use boundary conditions as defined in BoundaryConditions.hpp.
+                auto boundaryConditions = poi::BoundaryConditions{};
+                boundaryConditions(*fieldV.get(), m_mappingDesc.value());
 
 
                 /* calculate normalization constant */
@@ -452,14 +458,15 @@ namespace picongpu
                     { return vValue * sim.pic.getEps0() / normalizationScale; },
                     fieldV->fieldVBuffer->getDeviceBuffer());
                 fieldV->fieldVBuffer->communication();
+                boundaryConditions(*fieldV.get(), m_mappingDesc.value(), sim.pic.getEps0() / normalizationScale);
 
-                // set the buffer to 0 first so the guard cell values don't cause trouble later on
-                r0Buffer->getDeviceBuffer().setValue(0.0);
                 poi::stencil(
                     coreBorderMapper,
                     poi::StencilFunc{},
                     r0Buffer->getDeviceBuffer(),
                     fieldV->fieldVBuffer->getDeviceBuffer());
+                r0Buffer->communication();
+                boundaryConditions(*r0Buffer, m_mappingDesc.value());
 
                 pmacc::algorithms::forEachCell(
                     coreBorderMapper,
@@ -467,6 +474,8 @@ namespace picongpu
                     { return rhoValue.x() - r0Value; },
                     r0Buffer->getDeviceBuffer(),
                     fieldRho.getGridBuffer().getDeviceBuffer());
+                r0Buffer->communication();
+                boundaryConditions(*r0Buffer, m_mappingDesc.value());
 
                 pkBuffer->getDeviceBuffer().copyFrom(r0Buffer->getDeviceBuffer());
                 rkBuffer->getDeviceBuffer().copyFrom(r0Buffer->getDeviceBuffer());
@@ -499,9 +508,9 @@ namespace picongpu
                     else
                         preconditioner(mpkBuffer, pkBuffer);
 
-                    mpkBuffer->communication();
-
                     // w = Ap
+                    mpkBuffer->communication();
+                    boundaryConditions(*mpkBuffer, m_mappingDesc.value());
                     poi::stencil(
                         coreBorderMapper,
                         poi::StencilFunc{},
@@ -525,7 +534,11 @@ namespace picongpu
                         totalSum1 = reduceGlobal(coreBorderSize, fieldTransform);
                     }
                     float_64 alpha = rho0 / totalSum1;
+
                     // r = r - alpha * w
+                    // rkBuffer has not changed since last communication
+                    ampkBuffer->communication();
+                    boundaryConditions(*ampkBuffer, m_mappingDesc.value());
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
                         [alpha] DEVICEONLY(auto const rkValue, auto const ampkValue) -> float_64
@@ -548,6 +561,11 @@ namespace picongpu
                     if(std::sqrt(totalSum2) < m_solverTolerance)
                     {
                         // x += alpha * M^-1 p
+                        fieldV->fieldVBuffer->communication();
+                        boundaryConditions(
+                            *fieldV.get(),
+                            m_mappingDesc.value(),
+                            sim.pic.getEps0() / normalizationScale);
                         pmacc::algorithms::forEachCell(
                             coreBorderMapper,
                             [alpha] DEVICEONLY(auto const vValue, auto const mpkValue) -> float_64
@@ -566,9 +584,9 @@ namespace picongpu
                     else
                         preconditioner(zkBuffer, rkBuffer);
 
-                    zkBuffer->communication();
-
                     // t = A * r
+                    zkBuffer->communication();
+                    boundaryConditions(*zkBuffer, m_mappingDesc.value());
                     poi::stencil(
                         coreBorderMapper,
                         poi::StencilFunc{},
@@ -606,6 +624,9 @@ namespace picongpu
                     float_64 omega = totalSum1 / totalSum2;
 
                     // v = v + alpha * mpk + omega * zk
+                    fieldV->fieldVBuffer->communication();
+                    // mpkBuffer and zkBuffer have not changed since last communication
+                    boundaryConditions(*fieldV.get(), m_mappingDesc.value(), sim.pic.getEps0() / normalizationScale);
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
                         [alpha,
@@ -616,6 +637,10 @@ namespace picongpu
                         zkBuffer->getDeviceBuffer());
 
                     // rk = rk -  omega * azk
+                    rkBuffer->communication();
+                    azkBuffer->communication();
+                    boundaryConditions(*rkBuffer, m_mappingDesc.value());
+                    boundaryConditions(*azkBuffer, m_mappingDesc.value());
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
                         [omega] DEVICEONLY(auto const rkValue, auto const azkValue) -> float_64
@@ -663,6 +688,9 @@ namespace picongpu
                     rho0 = rho1;
 
                     // pk = rk + beta * (pk - omega * ampk)
+                    rkBuffer->communication();
+                    // pkBuffer and ampkBuffer have not changed since last communication
+                    boundaryConditions(*rkBuffer, m_mappingDesc.value());
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
                         [beta,
@@ -716,6 +744,7 @@ namespace picongpu
                         { return vValue * normalizationScale / sim.pic.getEps0(); },
                         fieldV->fieldVBuffer->getDeviceBuffer());
                     fieldV->fieldVBuffer->communication();
+                    boundaryConditions(*fieldV.get(), m_mappingDesc.value());
 
                     // compute fieldE
                     auto& eField = *dc.get<FieldE>(FieldE::getName());
