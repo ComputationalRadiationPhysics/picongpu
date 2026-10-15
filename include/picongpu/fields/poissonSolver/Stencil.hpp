@@ -1,4 +1,4 @@
-/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
+/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera, Edgar Marquardt
  *
  * This file is part of PIConGPU.
  *
@@ -35,7 +35,7 @@ namespace picongpu::fields::poissonSolver
         {
             constexpr auto cellSize = sim.pic.getCellSize().shrink<simDim>();
             constexpr auto cellSizeSquared = cellSize * cellSize;
-            float_64 const fc0 = 2.0 * (1.0 / (cellSizeSquared)).sumOfComponents();
+            constexpr float_64 fc0 = 2.0 * (1.0 / (cellSizeSquared)).sumOfComponents();
             return stencilFunction(fieldIn, fc0, cellSizeSquared);
         }
 

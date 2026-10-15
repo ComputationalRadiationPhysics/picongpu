@@ -1,4 +1,4 @@
-/* Copyright 2025 Tapish Narwal, Luca Pennati, Rene Widera
+/* Copyright 2025-2026 Tapish Narwal, Luca Pennati, Rene Widera, Edgar Marquardt
  *
  * This file is part of PIConGPU.
  *
@@ -29,21 +29,24 @@
 
 namespace picongpu::fields::poissonSolver
 {
-    struct SolutionFunction
+    struct BoundaryFunction
     {
-        HDINLINE auto operator()(math::Vector<double, 3u> const& totalCellCoordinate) const
+        // gives the potential at the boundary, given the total cell coordinate for Dirichlet BCs and the outward
+        // normal derivative for Neumann BCs change this function to implement different boundary conditions. for
+        // Dirichlet BCs use units of potential, for Neumann BCs use units of potential per length. maybe make this a
+        // param file parameter in the future
+        HDINLINE auto operator()(
+            math::Vector<double, 3u> const& totalCellCoordinate,
+            DataSpace<3u> const& outwardNormal) const
         {
             return 0.0;
-            // return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
-            //        + 3.0 * math::sin(totalCellCoordinate.z())
-            //        + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
         }
 
-        HDINLINE auto operator()(math::Vector<double, 2u> const& totalCellCoordinate) const
+        HDINLINE auto operator()(
+            math::Vector<double, 2u> const& totalCellCoordinate,
+            DataSpace<2u> const& outwardNormal) const
         {
             return 0.0;
-            // return math::sin(totalCellCoordinate.x()) + math::cos(totalCellCoordinate.y())
-            //        + totalCellCoordinate.x() * totalCellCoordinate.productOfComponents() + 10.0;
         }
     };
 
@@ -54,8 +57,10 @@ namespace picongpu::fields::poissonSolver
             auto fieldVBox,
             auto const boundaryFunction,
             DataSpace<simDim> cellOffsetToTotalOrigin,
+            float_64 const& normalizationFactor,
             auto const mapper) const -> void
         {
+            auto const relExchangeDir = Mask::getRelativeDirections<simDim>(mapper.getExchangeType());
             // including guards
             DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
@@ -80,39 +85,228 @@ namespace picongpu::fields::poissonSolver
                     auto totalDistance = precisionCast<float_64>(totalCellIdx)
                                          * precisionCast<float_64>(sim.pic.getCellSize().shrink<simDim>());
 
-                    fieldVBox(superCellIdx * SuperCellSize::toRT() + cellIdx) = boundaryFunction(totalDistance);
+                    fieldVBox(superCellIdx * SuperCellSize::toRT() + cellIdx)
+                        = normalizationFactor * boundaryFunction(totalDistance, relExchangeDir);
                 });
         }
     };
 
-    struct BoundaryConditionsDirichlet
+    struct ApplyDirichletBCsHomogeneousKernel
     {
-        // return residual
-        // return number of iterations
-        void operator()(FieldV& fieldV, MappingDesc cellDescription) const
+        DINLINE auto operator()(
+            auto const& worker,
+            auto fieldVBox,
+            auto const boundaryFunction,
+            DataSpace<simDim> cellOffsetToTotalOrigin,
+            float_64 const& normalizationFactor,
+            auto const mapper) const -> void
         {
-            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-            auto globalDomain = subGrid.getGlobalDomain();
-            auto localDomain = subGrid.getLocalDomain();
+            // including guards
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
 
-            auto cellOffsetToTotalOrigin = globalDomain.offset + localDomain.offset;
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
+            auto forEachCellInSupercell = lockstep::makeForEach<cellsPerSuperCell>(worker);
 
-            for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
-            {
-                /* only call for planes: left right top bottom back front*/
-                if(FRONT % i == 0 && !(Environment<simDim>::get().GridController().getCommunicationMask().isSet(i)))
+            forEachCellInSupercell(
+                [&](int32_t const linearCellIdx)
                 {
-                    ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
+                    /* cell index within the superCell */
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
 
-                    PMACC_LOCKSTEP_KERNEL(ApplyDirichletBCsFromFunctionKernel{})
-                        .config(mapper.getGridDim(), SuperCellSize{})(
-                            fieldV.fieldVBuffer->getDeviceBuffer().getDataBox(),
-                            SolutionFunction{},
-                            cellOffsetToTotalOrigin,
-                            mapper);
-                }
-            }
+                    fieldVBox(superCellIdx * SuperCellSize::toRT() + cellIdx) = 0.0;
+                });
         }
     };
+
+    struct ApplyNeumannBCsFromFunctionKernel
+    {
+        DINLINE auto operator()(
+            auto const& worker,
+            auto fieldVBox,
+            auto const boundaryFunction,
+            DataSpace<simDim> cellOffsetToTotalOrigin,
+            float_64 const& normalizationFactor,
+            auto const mapper) const -> void
+        {
+            auto const relExchangeDir = Mask::getRelativeDirections<simDim>(mapper.getExchangeType());
+            // including guards
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
+
+            DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+
+            // no guards included
+            DataSpace<simDim> const localCells = mapper.getGridSuperCells() * SuperCellSize::toRT() - 2 * guardCells;
+            DataSpace<simDim> const superCellCellOffset = superCellIdx * SuperCellSize::toRT();
+
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+            auto forEachCellInSupercell = lockstep::makeForEach<cellsPerSuperCell>(worker);
+
+            forEachCellInSupercell(
+                [&](int32_t const linearCellIdx)
+                {
+                    /* cell index within the superCell */
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
+                    // without guards
+                    DataSpace<simDim> const totalCellIdx
+                        = cellOffsetToTotalOrigin + superCellCellOffset - guardCells + cellIdx;
+
+                    auto totalDistance = precisionCast<float_64>(totalCellIdx)
+                                         * precisionCast<float_64>(sim.pic.getCellSize().shrink<simDim>());
+
+                    DataSpace<simDim> const guardCellIdx = superCellCellOffset + cellIdx;
+                    DataSpace<simDim> sourceCellIdx = guardCellIdx;
+
+                    uint32_t dir = simDim;
+                    for(uint32_t d = 0; d < simDim; ++d)
+                    {
+                        if(relExchangeDir[d] < 0)
+                        {
+                            sourceCellIdx[d] = guardCells[d];
+                            dir = d;
+                        }
+                        else if(relExchangeDir[d] > 0)
+                        {
+                            sourceCellIdx[d] = guardCells[d] + localCells[d] - 1;
+                            dir = d;
+                        }
+                    }
+
+                    if(dir < simDim)
+                    {
+                        fieldVBox(guardCellIdx) = fieldVBox(sourceCellIdx)
+                                                  + normalizationFactor
+                                                        * boundaryFunction(totalDistance, relExchangeDir)
+                                                        * sim.pic.getCellSize().shrink<simDim>()[dir];
+                    }
+                    else
+                    {
+                        fieldVBox(guardCellIdx) = fieldVBox(guardCellIdx);
+                    }
+                });
+        }
+    };
+
+    struct ApplyNeumannBCsHomogeneousKernel
+    {
+        DINLINE auto operator()(
+            auto const& worker,
+            auto fieldVBox,
+            auto const boundaryFunction,
+            DataSpace<simDim> cellOffsetToTotalOrigin,
+            float_64 const& normalizationFactor,
+            auto const mapper) const -> void
+        {
+            auto const relExchangeDir = Mask::getRelativeDirections<simDim>(mapper.getExchangeType());
+            // including guards
+            DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(worker.blockDomIdxND()));
+
+            DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+
+            // no guards included
+            DataSpace<simDim> const localCells = mapper.getGridSuperCells() * SuperCellSize::toRT() - 2 * guardCells;
+            DataSpace<simDim> const superCellCellOffset = superCellIdx * SuperCellSize::toRT();
+
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+            auto forEachCellInSupercell = lockstep::makeForEach<cellsPerSuperCell>(worker);
+
+            forEachCellInSupercell(
+                [&](int32_t const linearCellIdx)
+                {
+                    /* cell index within the superCell */
+                    DataSpace<simDim> const cellIdx = pmacc::math::mapToND(SuperCellSize::toRT(), linearCellIdx);
+
+
+                    DataSpace<simDim> const guardCellIdx = superCellCellOffset + cellIdx;
+                    DataSpace<simDim> sourceCellIdx = guardCellIdx;
+
+                    for(uint32_t d = 0; d < simDim; ++d)
+                    {
+                        if(relExchangeDir[d] < 0)
+                        {
+                            sourceCellIdx[d] = guardCells[d];
+                        }
+                        else if(relExchangeDir[d] > 0)
+                        {
+                            sourceCellIdx[d] = guardCells[d] + localCells[d] - 1;
+                        }
+                    }
+                    fieldVBox(guardCellIdx) = fieldVBox(sourceCellIdx);
+                });
+        }
+    };
+
+    template<typename T_Kernel, typename T_Buffer>
+    void applyBoundaryConditions(
+        T_Buffer& buffer,
+        MappingDesc const& cellDescription,
+        float_64 const& normalizationFactor = 1.0)
+    {
+        SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+        auto const globalDomain = subGrid.getGlobalDomain();
+        auto const localDomain = subGrid.getLocalDomain();
+        auto const cellOffsetToTotalOrigin = globalDomain.offset + localDomain.offset;
+
+        for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+        {
+            /* only call for planes: left, right, top, bottom, back, front */
+            if(FRONT % i == 0 && !Environment<simDim>::get().GridController().getCommunicationMask().isSet(i))
+            {
+                ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
+
+                PMACC_LOCKSTEP_KERNEL(T_Kernel{})
+                    .config(mapper.getGridDim(), SuperCellSize{})(
+                        buffer.getDeviceBuffer().getDataBox(),
+                        BoundaryFunction{},
+                        cellOffsetToTotalOrigin,
+                        normalizationFactor,
+                        mapper);
+            }
+        }
+    }
+
+    struct BoundaryConditionsDirichlet
+    {
+        // Solver work buffers use homogeneous BCs; FieldV uses BoundaryFunction below.
+        template<typename T_Buffer>
+        void operator()(T_Buffer& buffer, MappingDesc const& cellDescription) const
+        {
+            applyBoundaryConditions<ApplyDirichletBCsHomogeneousKernel>(buffer, cellDescription);
+        }
+
+        void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
+            const
+        {
+            applyBoundaryConditions<ApplyDirichletBCsFromFunctionKernel>(
+                *fieldV.fieldVBuffer,
+                cellDescription,
+                normalizationFactor);
+        }
+    };
+
+    struct BoundaryConditionsNeumann
+    {
+        // Solver work buffers use homogeneous BCs; FieldV uses BoundaryFunction below.
+        template<typename T_Buffer>
+        void operator()(T_Buffer& buffer, MappingDesc const& cellDescription) const
+        {
+            applyBoundaryConditions<ApplyNeumannBCsHomogeneousKernel>(buffer, cellDescription);
+        }
+
+        void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
+            const
+        {
+            applyBoundaryConditions<ApplyNeumannBCsFromFunctionKernel>(
+                *fieldV.fieldVBuffer,
+                cellDescription,
+                normalizationFactor);
+        }
+    };
+
+    // Use Neumann boundary conditions for the Poisson solver by default.
+    // Change this to BoundaryConditionsDirichlet to use Dirichlet boundary conditions instead.
+    // maybe make this a param file parameter in the future
+    using BoundaryConditions = BoundaryConditionsNeumann;
 } // namespace picongpu::fields::poissonSolver
