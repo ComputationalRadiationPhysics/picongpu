@@ -24,6 +24,7 @@
 
 #include "pmacc/math/functions/Abs.hpp"
 #include "pmacc/math/functions/Comparison.hpp"
+#include "pmacc/math/functions/Copysign.hpp"
 #include "pmacc/math/functions/Erf.hpp"
 #include "pmacc/math/functions/Exp.hpp"
 #include "pmacc/math/functions/Log.hpp"
