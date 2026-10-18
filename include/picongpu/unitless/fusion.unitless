@@ -1,0 +1,44 @@
+/* Copyright 2019-2025 Rene Widera, Pawel Ordyna, Filip Optolowicz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/fusion.param"
+
+#include <pmacc/math/Vector.hpp>
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace fusion
+        {
+            namespace precision
+            {
+                // literals for short-hand notations for collisions
+                constexpr float_COLL operator""_COLL(long double x)
+                {
+                    return float_COLL(x);
+                }
+
+                using float3_COLL = pmacc::math::Vector<float_COLL, 3>;
+            } // namespace precision
+        } // namespace fusion
+    } // namespace particles
+} // namespace picongpu
