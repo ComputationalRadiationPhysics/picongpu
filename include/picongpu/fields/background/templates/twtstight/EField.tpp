@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Alexander Debus, Axel Huebl, Sergei Bastrakov
+/* Copyright 2014-2026 Alexander Debus, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -53,17 +53,17 @@ namespace picongpu::templates::twtstight
         auto const [x, y, z, t] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
         auto const [floatHelpers, complexHelpers] = commonHelperVariables;
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
-        auto const [Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const] = complexHelpers;
+        auto const [x2, tauG2, psi0, w02, beta02, nu, xi] = floatHelpers;
+        auto const [Xm, rhom, Xm2, rhom2, besselJ0OverI0, besselJ1OverI0] = complexHelpers;
 
         auto const zeroOrder = defineTWTSEnvelope(minimalCoordinates, commonHelperVariables);
 
         complex_T const result
             = (complex_T(0, 0.25) * math::exp(I * (omega0 * t - k * y * cosPhi)) * zeroOrder
-               * (k * rhom * besselJ0const
+               * (k * rhom * besselJ0OverI0
                       * ((rhom2 - x2 + x * Xm * cosPhi) * (sinPolAngle * sinPhi_2)
                          + cosPolAngle * (rhom2 + rhom2 * cosPhi_2 - x2 * sinPhi_2 - x * cosPhi * sinPhi_2 * Xm))
-                  + besselJ1const * sinPhi
+                  + besselJ1OverI0 * sinPhi
                         * (+sinPolAngle
                                * (-rhom2 + float_T(2.0) * x2 - I * rhom2 * Xm * (k * sinPhi)
                                   + x * cosPhi * (float_T(-2.0) * Xm - I * rhom2 * (k * sinPhi)))
@@ -71,7 +71,7 @@ namespace picongpu::templates::twtstight
                                  * (-rhom2 + float_T(2.0) * x2 + I * rhom2 * Xm * (k * sinPhi)
                                     + x * cosPhi * (float_T(+2.0) * Xm + I * rhom2 * (k * sinPhi)))))
                * psi0)
-              / (rhom * rhom2 * besselI0const);
+              / (rhom * rhom2);
 
         /* A 180deg-rotation of the field vector around the y-axis
          * leads to a sign flip in the x- and z- components, respectively.
@@ -103,18 +103,18 @@ namespace picongpu::templates::twtstight
         auto const [x, y, z, t] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
         auto const [floatHelpers, complexHelpers] = commonHelperVariables;
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
-        auto const [Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const] = complexHelpers;
+        auto const [x2, tauG2, psi0, w02, beta02, nu, xi] = floatHelpers;
+        auto const [Xm, rhom, Xm2, rhom2, besselJ0OverI0, besselJ1OverI0] = complexHelpers;
 
         auto const zeroOrder = defineTWTSEnvelope(minimalCoordinates, commonHelperVariables);
 
         complex_T const result = (math::exp(I * (omega0 * t - k * y * cosPhi)) * zeroOrder * (k * sinPhi)
-                                  * (besselJ1const
+                                  * (besselJ1OverI0
                                          * (cosPolAngle * (Xm - float_T(2.0) * x * cosPhi - Xm * cosPhi_2)
                                             + (float_T(1.0) + cosPhi_2) * sinPolAngle * Xm)
-                                     + I * rhom * besselJ0const * ((cosPolAngle - sinPolAngle) * sinPhi_2))
+                                     + I * rhom * besselJ0OverI0 * ((cosPolAngle - sinPolAngle) * sinPhi_2))
                                   * psi0)
-                                 / (float_T(4.0) * besselI0const * rhom);
+                                 / (float_T(4.0) * rhom);
 
         return result.real();
     }
@@ -142,19 +142,19 @@ namespace picongpu::templates::twtstight
         auto const [x, y, z, t] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
         auto const [floatHelpers, complexHelpers] = commonHelperVariables;
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
-        auto const [Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const] = complexHelpers;
+        auto const [x2, tauG2, psi0, w02, beta02, nu, xi] = floatHelpers;
+        auto const [Xm, rhom, Xm2, rhom2, besselJ0OverI0, besselJ1OverI0] = complexHelpers;
 
         auto const zeroOrder = defineTWTSEnvelope(minimalCoordinates, commonHelperVariables);
 
         complex_T const result
             = (complex_T(0, 0.125) * math::exp(I * (omega0 * t - k * y * cosPhi)) * zeroOrder
-               * (float_T(2.0) * k * rhom * besselJ0const
+               * (float_T(2.0) * k * rhom * besselJ0OverI0
                       * (x * (cosPolAngle + sinPolAngle) * sinPhi_2 * Xm
                          + cosPhi
                                * (cosPolAngle * sinPhi_2 * Xm2
                                   + sinPolAngle * (float_T(2.0) * rhom2 - Xm2 * sinPhi_2)))
-                  + besselJ1const * sinPhi
+                  + besselJ1OverI0 * sinPhi
                         * (cosPolAngle
                                * (float_T(-4.0) * x * Xm + float_T(2.0) * cosPhi * (rhom2 - float_T(2.0) * Xm2)
                                   + complex_T(0, 2) * rhom2 * (x - Xm * cosPhi) * (k * sinPhi))
@@ -162,7 +162,7 @@ namespace picongpu::templates::twtstight
                                  * (float_T(-4.0) * x * Xm - float_T(2.0) * cosPhi * (rhom2 - float_T(2.0) * Xm2)
                                     - complex_T(0, 2) * rhom2 * (k * x * sinPhi) + I * rhom2 * Xm * (k * sin2Phi))))
                * psi0)
-              / (besselI0const * rhom * rhom2);
+              / (rhom * rhom2);
 
         /* A 180deg-rotation of the field vector around the y-axis
          * leads to a sign flip in the x- and z- components, respectively.
