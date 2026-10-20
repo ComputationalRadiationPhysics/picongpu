@@ -42,7 +42,7 @@ namespace picongpu::fields::incidentField
                 constexpr float_X a1 = 0.4891775;
                 constexpr float_X a2 = 0.1365995;
                 constexpr float_X a3 = 0.0106411;
-                if(length < 0.0)
+                if(length <= 0.0)
                 {
                     return float_X(1.0);
                 }
