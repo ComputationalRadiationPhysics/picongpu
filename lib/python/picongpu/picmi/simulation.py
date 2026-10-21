@@ -34,7 +34,7 @@ from picongpu.picmi.diagnostics.field_dump import NativeFieldDump, _FieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.diagnostics.phase_space import PhaseSpace
 from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistribution
-from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid, AnyGrid
+from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
 from picongpu.picmi.interaction import (
     SUPPORTED_INTERACTION_TYPES,
     Interaction,

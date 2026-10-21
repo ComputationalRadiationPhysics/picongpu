@@ -236,21 +236,12 @@ namespace picongpu
                 wBuffer->getDeviceBuffer().setValue(0.0);
                 zBuffer->getDeviceBuffer().setValue(0.0);
 
+                namespace poi = fields::poissonSolver;
+                auto boundaryConditions = poi::BoundaryConditions{};
+
                 SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-                auto globalDomain = subGrid.getGlobalDomain().size;
-                auto cellSizeSquared = sim.pic.getCellSize<float_64>() * sim.pic.getCellSize<float_64>();
-
-                float_64 eigenMin = 0.0;
-                float_64 eigenMax = 0.0;
-
-                for(uint32_t d = 0; d < simDim; ++d)
-                {
-                    float_64 sinMin = pmacc::math::sin(pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1));
-                    float_64 sinMax = pmacc::math::sin(
-                        globalDomain[d] * pmacc::math::Pi<float_64>::halfValue / (globalDomain[d] + 1));
-                    eigenMin += 4.0 * sinMin * sinMin / cellSizeSquared[d];
-                    eigenMax += 4.0 * sinMax * sinMax / cellSizeSquared[d];
-                }
+                auto [eigenMin, eigenMax]
+                    = boundaryConditions.eigenBounds(subGrid.getGlobalDomain().size, sim.pic.getCellSize<float_64>());
 
                 float_64 const theta = 0.5 * (eigenMax + eigenMin);
                 float_64 const delta = 0.5 * (eigenMax - eigenMin);
@@ -260,11 +251,8 @@ namespace picongpu
                 float_64 const invdelta = 1.0 / delta;
                 float_64 const invsigma = 1.0 / sigma;
 
-                namespace poi = fields::poissonSolver;
-
                 bBuffer->communication();
                 // Use boundary conditions as defined in BoundaryConditions.hpp.
-                auto boundaryConditions = poi::BoundaryConditions{};
                 boundaryConditions(*bBuffer, m_mappingDesc.value());
 
                 auto coreBorderMapper = makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
@@ -380,6 +368,8 @@ namespace picongpu
                 bool mainRank = pmacc::Environment<simDim>::get().GridController().getGlobalRank() == 0;
                 if(mainRank)
                     log<picLog::PHYSICS>("Poisson solver:");
+                log<picLog::PHYSICS>("  - domain size: %1%")
+                    % Environment<simDim>::get().SubGrid().getGlobalDomain().size;
                 if(!m_useSolver)
                 {
                     if(mainRank)
@@ -416,6 +406,44 @@ namespace picongpu
                 auto boundaryConditions = poi::BoundaryConditions{};
                 boundaryConditions(*fieldV.get(), m_mappingDesc.value());
 
+                /* make mappers*/
+                auto coreBorderMapper = pmacc::makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
+                auto allMapper = pmacc::makeAreaMapper<CORE + BORDER + GUARD>(m_mappingDesc.value());
+
+                TransformDataBox ones([] DEVICEONLY(pmacc::DataSpace<simDim> const&) -> float_64 { return 1.0; });
+                float_64 const globalCellCount = reduceGlobal(coreBorderSize, ones);
+
+                if(boundaryConditions.needsSpecificMeans())
+                {
+                    // Some boundary conditions require the mean of rho to be a specific value.
+                    // For example, Dirichlet BCs require rho to have mean zero only in fully periodic
+                    // conditions, while Neumann BCs require rho to have a specific mean.
+                    // This section calculates the current mean of rho and adjusts it to meet the required mean.
+                    // This should leave the resulting E-field intact, even if the potetial is shifted.
+                    auto rhoBox = fieldRho.getDeviceDataBox().shift(numGuardCells);
+
+                    TransformDataBox rhoValues(
+                        [rhoBox] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
+                        { return precisionCast<float_64>(rhoBox[idx].x()); });
+
+                    float_64 const globalRhoSum = reduceGlobal(coreBorderSize, rhoValues);
+                    float_64 const meanRho = globalRhoSum / globalCellCount;
+
+                    auto const globalDomainSize = Environment<simDim>::get().SubGrid().getGlobalDomain().size;
+                    auto const cellSize = sim.pic.getCellSize<float_64>();
+                    float_64 const targetMeanRho = boundaryConditions.specificRhoMean(globalDomainSize, cellSize);
+                    float_64 const meanRhoCorr = meanRho - targetMeanRho;
+
+                    if(mainRank)
+                        log<picLog::PHYSICS>("  - offsetting mean of rho by: %1% to reach target mean: %2%")
+                            % meanRhoCorr % targetMeanRho;
+
+                    pmacc::algorithms::forEachCell(
+                        coreBorderMapper,
+                        [meanRhoCorr] DEVICEONLY(auto const rhoValue) -> float_64
+                        { return rhoValue.x() - meanRhoCorr; },
+                        fieldRho.getGridBuffer().getDeviceBuffer());
+                }
 
                 /* calculate normalization constant */
                 float_64 normRho;
@@ -439,10 +467,6 @@ namespace picongpu
                 }
 
                 float_64 const normalizationScale = normRho > 0.0 ? normRho : 1.0;
-
-                /* make mappers*/
-                auto coreBorderMapper = pmacc::makeAreaMapper<CORE + BORDER>(m_mappingDesc.value());
-                auto allMapper = pmacc::makeAreaMapper<CORE + BORDER + GUARD>(m_mappingDesc.value());
 
                 // normalize rho
                 pmacc::algorithms::forEachCell(
@@ -474,6 +498,23 @@ namespace picongpu
                     { return rhoValue.x() - r0Value; },
                     r0Buffer->getDeviceBuffer(),
                     fieldRho.getGridBuffer().getDeviceBuffer());
+
+                if(boundaryConditions.needsSpecificMeans())
+                {
+                    // Set the mean to zero to counteract numerical drift in the residual.
+                    auto r0Box = r0Buffer->getDeviceBuffer().getDataBox().shift(numGuardCells);
+
+                    TransformDataBox r0Values(
+                        [r0Box] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
+                        { return precisionCast<float_64>(r0Box[idx]); });
+
+                    float_64 const globalr0Sum = reduceGlobal(coreBorderSize, r0Values);
+                    float_64 const meanr0 = globalr0Sum / globalCellCount;
+                    pmacc::algorithms::forEachCell(
+                        coreBorderMapper,
+                        [meanr0] DEVICEONLY(auto const r0Value) -> float_64 { return r0Value.x() - meanr0; },
+                        r0Buffer->getDeviceBuffer());
+                }
                 r0Buffer->communication();
                 boundaryConditions(*r0Buffer, m_mappingDesc.value());
 
@@ -507,6 +548,24 @@ namespace picongpu
                         mpkBuffer->getDeviceBuffer().copyFrom(pkBuffer->getDeviceBuffer());
                     else
                         preconditioner(mpkBuffer, pkBuffer);
+
+                    if(boundaryConditions.needsSpecificMeans())
+                    {
+                        // Set the mean back to zero to counteract numerical drift in the preconditioner.
+                        auto mpkBox = mpkBuffer->getDeviceBuffer().getDataBox().shift(numGuardCells);
+
+                        TransformDataBox mpkValues(
+                            [mpkBox] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
+                            { return precisionCast<float_64>(mpkBox[idx]); });
+
+                        float_64 const globalMpkSum = reduceGlobal(coreBorderSize, mpkValues);
+                        float_64 const meanMpk = globalMpkSum / globalCellCount;
+
+                        pmacc::algorithms::forEachCell(
+                            coreBorderMapper,
+                            [meanMpk] DEVICEONLY(auto const mpkValue) -> float_64 { return mpkValue.x() - meanMpk; },
+                            mpkBuffer->getDeviceBuffer());
+                    }
 
                     // w = Ap
                     mpkBuffer->communication();
@@ -743,6 +802,24 @@ namespace picongpu
                         [normalizationScale] DEVICEONLY(auto const vValue) -> float_64
                         { return vValue * normalizationScale / sim.pic.getEps0(); },
                         fieldV->fieldVBuffer->getDeviceBuffer());
+
+                    if(boundaryConditions.needsSpecificMeans())
+                    {
+                        // Enforce the gauge of mean V = 0. Some boundary condition require such a gauge choice.
+                        auto VBox = fieldV->fieldVBuffer->getDeviceBuffer().getDataBox().shift(numGuardCells);
+
+                        TransformDataBox VValues(
+                            [VBox] DEVICEONLY(pmacc::DataSpace<simDim> const& idx) -> float_64
+                            { return precisionCast<float_64>(VBox[idx]); });
+
+                        float_64 const globalVSum = reduceGlobal(coreBorderSize, VValues);
+                        float_64 const meanV = globalVSum / globalCellCount;
+
+                        pmacc::algorithms::forEachCell(
+                            coreBorderMapper,
+                            [meanV] DEVICEONLY(auto const vValue) -> float_64 { return vValue - meanV; },
+                            fieldV->fieldVBuffer->getDeviceBuffer());
+                    }
                     fieldV->fieldVBuffer->communication();
                     boundaryConditions(*fieldV.get(), m_mappingDesc.value());
 
