@@ -127,32 +127,59 @@ if [ $ret_build -eq 0 ] ; then
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 512 128 --periodic 0 0 0 -s 4 \
   --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataOpen --poisson.activate
   ret_sim1=$?
+  if [ $ret_sim1 -ne 0 ] ; then
+    echo "running open simulation failed" >&2
+  fi
+
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 512 128 --periodic 1 1 1 -s 4 \
   --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataPeriodic --poisson.activate
   ret_sim2=$?
 
-  if [ $ret_sim1 -ne 0 ] ; then
-    echo "running open simulation failed" >&2
-    exit $ret_sim1
-  fi
   if [ $ret_sim2 -ne 0 ] ; then
     echo "running periodic simulation failed" >&2
-    exit $ret_sim2
   fi
-  echo "simulations finished"
+  if [ $ret_sim1 -eq 0 ] && [ $ret_sim2 -eq 0 ] ; then
+    echo "simulations finished"
+  fi
 
   cd ..
   # validate the results
   if [ -d "./lib/python/test/" ] ; then
-    python3 ./lib/python/test/validate_results.py -r $simPath
-
-    ret=$?
-    if [ $ret -eq 0 ] ; then
-      echo "test successfully validated"
-    else
-      echo "test validation failed"
+    if [ $ret_sim1 -eq 0 ] ; then
+      echo "validating open simulation test"
+      python3 ./lib/python/test/validate_results.py -r $simPath -b open
+      ret_val1=$?
+      if [ $ret_val1 -eq 0 ] ; then
+        echo "test successfully validated"
+      else
+        echo "test validation failed"
+      fi
     fi
-    exit $ret
+    if [ $ret_sim2 -eq 0 ] ; then
+      echo "validating periodic simulation test"
+      python3 ./lib/python/test/validate_results.py -r $simPath -b periodic
+      ret_val2=$?
+      if [ $ret_val2 -eq 0 ] ; then
+        echo "test successfully validated"
+      else
+        echo "test validation failed"
+      fi
+    fi
+
+    if [ $ret_sim1 -ne 0 ] ; then
+      exit $ret_sim1
+    fi
+    if [ $ret_sim2 -ne 0 ] ; then
+      exit $ret_sim2
+    fi
+    if [ $ret_val1 -ne 0 ] ; then
+      exit $ret_val1
+    fi
+    if [ $ret_val2 -ne 0 ] ; then
+      exit $ret_val2
+    fi
+    echo "all successful"
+    exit 0
 
   else
     echo "Input path $inputSetPath does not contain an lib/python/test directory" >&2

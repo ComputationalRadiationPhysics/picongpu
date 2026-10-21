@@ -267,6 +267,114 @@ namespace picongpu::fields::poissonSolver
         }
     }
 
+    namespace detail
+    {
+        inline std::tuple<float_64, float_64> computeEigenBounds(
+            auto const& globalDomainSize,
+            auto const& cellSize,
+            bool const nonPeriodicNeumann)
+        {
+            float_64 dirichletMinSum = 0.0;
+            float_64 nonDirichletMinPositive = 0.0;
+            float_64 eigenMax = 0.0;
+            bool hasDirichletAxis = false;
+            bool hasNonDirichletAxis = false;
+
+            auto const periodic
+                = pmacc::Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+
+            for(uint32_t d = 0; d < simDim; ++d)
+            {
+                // N must be the number of unique, owned scalar vertices
+                // represented by this operator in dimension d.
+                auto const nInt = globalDomainSize[d];
+                if(nInt < 1)
+                    throw std::runtime_error("Poisson eigenBounds requires at least one vertex per dimension");
+
+                float_64 const n = static_cast<float_64>(nInt);
+                float_64 const h = static_cast<float_64>(cellSize[d]);
+                float_64 const invH2 = 1.0 / (h * h);
+                float_64 minPositive = 0.0;
+                float_64 maxEigenvalue = 0.0;
+
+                if(periodic[d])
+                {
+                    if(nInt < 2)
+                        throw std::runtime_error("Periodic Poisson direction requires at least two unique vertices");
+
+                    // Periodic modes: theta_k = 2 pi k / N.
+                    minPositive
+                        = 4.0 * pmacc::math::pow(pmacc::math::sin(pmacc::math::Pi<float_64>::value / n), 2.0) * invH2;
+
+                    // floor(N/2) is integer division here.
+                    float_64 const highestMode = static_cast<float_64>(nInt / 2);
+                    maxEigenvalue
+                        = 4.0
+                          * pmacc::math::pow(pmacc::math::sin(pmacc::math::Pi<float_64>::value * highestMode / n), 2.0)
+                          * invH2;
+
+                    hasNonDirichletAxis = true;
+                }
+                else if(nonPeriodicNeumann)
+                {
+                    if(nInt < 2)
+                        throw std::runtime_error("Neumann Poisson direction requires at least two vertices");
+
+                    // Mirrored-ghost Neumann closure: theta_k = pi k / N.
+                    minPositive = 4.0
+                                  * pmacc::math::pow(pmacc::math::sin(pmacc::math::Pi<float_64>::halfValue / n), 2.0)
+                                  * invH2;
+
+                    maxEigenvalue = 4.0
+                                    * pmacc::math::pow(
+                                        pmacc::math::sin(pmacc::math::Pi<float_64>::halfValue * (n - 1.0) / n),
+                                        2.0)
+                                    * invH2;
+
+                    hasNonDirichletAxis = true;
+                }
+                else
+                {
+                    // Homogeneous Dirichlet ghost values: theta_k = pi k / (N + 1).
+                    float_64 const denominator = n + 1.0;
+                    minPositive
+                        = 4.0
+                          * pmacc::math::pow(pmacc::math::sin(pmacc::math::Pi<float_64>::halfValue / denominator), 2.0)
+                          * invH2;
+
+                    maxEigenvalue = 4.0
+                                    * pmacc::math::pow(
+                                        pmacc::math::sin(pmacc::math::Pi<float_64>::halfValue * n / denominator),
+                                        2.0)
+                                    * invH2;
+
+                    dirichletMinSum += minPositive;
+                    hasDirichletAxis = true;
+                }
+
+                eigenMax += maxEigenvalue;
+
+                // For periodic/Neumann axes, the constant mode has eigenvalue zero.
+                // Keep the smallest positive mode for the mean-zero subspace.
+                if(!periodic[d] && !nonPeriodicNeumann)
+                    continue;
+
+                if(nonDirichletMinPositive == 0.0 || minPositive < nonDirichletMinPositive)
+                    nonDirichletMinPositive = minPositive;
+            }
+
+            // Dirichlet axes remove the global constant nullspace. If all axes
+            // are periodic/Neumann, this lower bound assumes the constant mode
+            // is projected out of the solver vectors.
+            float_64 const eigenMin = hasDirichletAxis ? dirichletMinSum : nonDirichletMinPositive;
+
+            if(!(eigenMin > 0.0) || !(eigenMax >= eigenMin))
+                throw std::runtime_error("Invalid Poisson preconditioner eigenvalue bounds");
+
+            return std::make_tuple(eigenMin, eigenMax);
+        }
+    } // namespace detail
+
     struct BoundaryConditionsDirichlet
     {
         // Solver work buffers use homogeneous BCs; FieldV uses BoundaryFunction below.
@@ -280,6 +388,41 @@ namespace picongpu::fields::poissonSolver
             const
         {
             applyBoundaryConditions<ApplyDirichletBCsFromFunctionKernel>(
+                *fieldV.fieldVBuffer,
+                cellDescription,
+                normalizationFactor);
+        }
+
+        std::tuple<float_64, float_64> eigenBounds(auto const& globalDomainSize, auto const& cellSize) const
+        {
+            return detail::computeEigenBounds(globalDomainSize, cellSize, false);
+        }
+
+        bool needsSpecificMeans() const
+        {
+            auto const periodic
+                = pmacc::Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+            bool hasDirichletAxis = false;
+            for(uint32_t d = 0; d < simDim; ++d)
+            {
+                if(!periodic[d])
+                    hasDirichletAxis = true;
+            }
+            return !hasDirichletAxis; // Dirichlet BCs require rho to have mean zero only in fully periodic conditions.
+        }
+
+        float_64 specificRhoMean(auto const& globalDomainSize, auto const& cellSize) const
+        {
+            return 0.0; // Dirichlet BCs require rho to have mean zero only in fully periodic conditions.
+        }
+    };
+
+    struct BoundaryConditionsHomogenousDirichlet : BoundaryConditionsDirichlet
+    {
+        void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
+            const
+        {
+            applyBoundaryConditions<ApplyDirichletBCsHomogeneousKernel>(
                 *fieldV.fieldVBuffer,
                 cellDescription,
                 normalizationFactor);
@@ -302,6 +445,80 @@ namespace picongpu::fields::poissonSolver
                 *fieldV.fieldVBuffer,
                 cellDescription,
                 normalizationFactor);
+        }
+
+        std::tuple<float_64, float_64> eigenBounds(auto const& globalDomainSize, auto const& cellSize) const
+        {
+            return detail::computeEigenBounds(globalDomainSize, cellSize, true);
+        }
+
+        bool needsSpecificMeans() const
+        {
+            return true; // Neumann BCs require rho to have specific mean.
+        }
+
+        float_64 specificRhoMean(auto const& globalDomainSize, auto const& cellSize) const
+        {
+            auto const periodic
+                = pmacc::Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+            auto const spacing = cellSize.template shrink<simDim>();
+            auto const numVertices = globalDomainSize.productOfComponents();
+
+            BoundaryFunction const boundaryFunction{};
+            float_64 boundaryFluxSum = 0.0;
+
+            for(uint32_t d = 0; d < simDim; ++d)
+            {
+                // Periodic dimensions have no physical boundary faces.
+                if(periodic[d])
+                    continue;
+
+                auto transverseSize = globalDomainSize;
+                transverseSize[d] = 1;
+
+                auto const faceNodeCount = transverseSize.productOfComponents();
+
+                for(uint32_t side = 0; side < 2; ++side)
+                {
+                    DataSpace<simDim> normal = DataSpace<simDim>::create(0);
+                    normal[d] = side == 0 ? -1 : 1;
+
+                    uint32_t const faceIndex = side == 0 ? 0 : globalDomainSize[d] - 1;
+
+                    for(uint32_t linear = 0; linear < faceNodeCount; ++linear)
+                    {
+                        DataSpace<simDim> vertexIndex
+                            = pmacc::math::mapToND(transverseSize, static_cast<int32_t>(linear));
+                        vertexIndex[d] = faceIndex;
+
+                        auto const position = precisionCast<float_64>(vertexIndex) * spacing;
+
+                        // BoundaryFunction returns the outward-normal derivative d(phi)/dn.
+                        float_64 const outwardDerivative = boundaryFunction(position, normal);
+
+                        boundaryFluxSum += outwardDerivative / spacing[d];
+                    }
+                }
+            }
+
+            return -sim.pic.getEps0() * boundaryFluxSum / static_cast<float_64>(numVertices);
+        }
+    };
+
+    struct BoundaryConditionsHomogenousNeumann : BoundaryConditionsNeumann
+    {
+        void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
+            const
+        {
+            applyBoundaryConditions<ApplyNeumannBCsHomogeneousKernel>(
+                *fieldV.fieldVBuffer,
+                cellDescription,
+                normalizationFactor);
+        }
+
+        float_64 specificRhoMean(auto const& globalDomainSize, auto const& cellSize) const
+        {
+            return 0.0; // Homogeneous Neumann BCs require rho to have mean zero.
         }
     };
 
