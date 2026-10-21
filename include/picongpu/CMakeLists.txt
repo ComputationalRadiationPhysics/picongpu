@@ -261,6 +261,18 @@ add_definitions(-DPIC_OPENPMD_TIMETRACE_NUMBER_OF_FILES=${PIC_OPENPMD_TIMETRACE_
 
 option(PIC_ADD_RPATH "Add RPATH's to binaries." ON)
 
+option(PIC_ENABLE_IPO "Enable IPO/LTO" ON)
+
+if(PIC_ENABLE_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT _ipo_supported OUTPUT _ipo_output)
+    if(_ipo_supported)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+    else()
+        message(WARNING "IPO is not supported: ${_ipo_output}")
+    endif()
+endif()
+
 ################################################################################
 # Additional defines for PIConGPU outputs
 ################################################################################
