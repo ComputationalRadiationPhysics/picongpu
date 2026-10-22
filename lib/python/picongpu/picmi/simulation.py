@@ -41,6 +41,7 @@ from picongpu.picmi.interaction import (
     PICMI_Interaction,
     Synchrotron,
 )
+from picongpu.picmi.solver import ElectrostaticSolver
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
 from picongpu.picmi.species import _STANDARD_SHAPES
@@ -323,6 +324,9 @@ class Simulation(picmistandard.PICMI_Simulation):
 
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
+
+    picongpu_electrostatic_solver: ElectrostaticSolver | None = Field(default=None)
+    """Electrostatic solver to use for electrostatic calculations for the starting conditions"""
 
     def _validate_min_weighting(value: float | None) -> float | None:
         if value is not None and not (math.isfinite(value) and value > 0):
@@ -717,6 +721,9 @@ class Simulation(picmistandard.PICMI_Simulation):
             grid=self.solver.grid.get_as_pypicongpu(),
             binomial_current_interpolation=self.solver.source_smoother is not None,
             moving_window=moving_window,
+            poisson_solver=self.picongpu_electrostatic_solver.get_as_pypicongpu()
+            if self.picongpu_electrostatic_solver is not None
+            else None,
             walltime=walltime or Walltime(walltime=datetime.timedelta(hours=1)),
             time_steps=time_steps,
             laser=[ll.get_as_pypicongpu() for ll in self.lasers] or None,
