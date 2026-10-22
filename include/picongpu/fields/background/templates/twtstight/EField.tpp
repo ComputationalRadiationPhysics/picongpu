@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Alexander Debus, Axel Huebl, Sergei Bastrakov
+/* Copyright 2014-2026 Alexander Debus, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -50,10 +50,10 @@ namespace picongpu::templates::twtstight
 
         auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
             = basicTWTSHelperVariables;
-        auto const [x, y, z, t] = minimalCoordinates;
+        auto const [x, y, z, t, nu, xi] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
         auto const [floatHelpers, complexHelpers] = commonHelperVariables;
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
+        auto const [x2, tauG2, psi0, w02, beta02, besselI0const] = floatHelpers;
         auto const [Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const] = complexHelpers;
 
         auto const zeroOrder = defineTWTSEnvelope(minimalCoordinates, commonHelperVariables);
@@ -100,10 +100,10 @@ namespace picongpu::templates::twtstight
 
         auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
             = basicTWTSHelperVariables;
-        auto const [x, y, z, t] = minimalCoordinates;
+        auto const [x, y, z, t, nu, xi] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
         auto const [floatHelpers, complexHelpers] = commonHelperVariables;
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
+        auto const [x2, tauG2, psi0, w02, beta02, besselI0const] = floatHelpers;
         auto const [Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const] = complexHelpers;
 
         auto const zeroOrder = defineTWTSEnvelope(minimalCoordinates, commonHelperVariables);
@@ -139,10 +139,10 @@ namespace picongpu::templates::twtstight
 
         auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
             = basicTWTSHelperVariables;
-        auto const [x, y, z, t] = minimalCoordinates;
+        auto const [x, y, z, t, nu, xi] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
         auto const [floatHelpers, complexHelpers] = commonHelperVariables;
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
+        auto const [x2, tauG2, psi0, w02, beta02, besselI0const] = floatHelpers;
         auto const [Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const] = complexHelpers;
 
         auto const zeroOrder = defineTWTSEnvelope(minimalCoordinates, commonHelperVariables);

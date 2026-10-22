@@ -71,8 +71,18 @@ namespace picongpu::templates::twtstight
     using float3_T = ::pmacc::math::Vector<float_T, 3u>;
     using complex_T = alpaka::Complex<float_T>;
     using complex_64 = alpaka::Complex<float_64>;
-    /** To avoid underflows in computation, numsigmas controls where a zero cutoff is made.
-     *  The fields thus are set to zero at a position (numSigmas * tauG * cspeed) ahead
+
+    /** Reduced coordinates and the envelope coordinates derived from them.
+     *
+     * Constructed once per field-component evaluation, before the envelope guard.
+     */
+    struct Coordinates
+    {
+        float_T x, y, z, t, nu, xi;
+    };
+
+    /** To avoid underflows in computation, numSigmas controls where a zero cutoff is made.
+     *  The fields thus are set to zero (numSigmas * localWidth) ahead
      *  and behind the respective TWTS pulse envelope.
      *  Developer note: In case the float_T-type is set to float_64 instead of float_X,
      *  numSigma can be increased to numSigmas = 10 without running into numerical issues.
@@ -231,22 +241,22 @@ namespace picongpu::templates::twtstight
 
         //! Tests whether coordinates are within
         //! TWTSTight field envelope
-        HDINLINE bool isOutsideTWTSEnvelope(std::array<float_T, 4u> const& minimalCoordinates) const;
+        HDINLINE bool isOutsideTWTSEnvelope(Coordinates const& minimalCoordinates) const;
 
         //! Helper method to define reduced TWTSTight coordinates
-        HDINLINE std::array<float_T, 4u> defineMinimalCoordinates(float3_64 const& pos, float_64 const& time) const;
+        HDINLINE Coordinates defineMinimalCoordinates(float3_64 const& pos, float_64 const& time) const;
 
         //! Helper method to define common (complex-valued) variables
         //! for TWTSTight field calculation
         HDINLINE
-        std::tuple<std::array<float_T, 8u>, std::array<complex_T, 6u>> defineCommonHelperVariables(
-            std::array<float_T, 4u> const& minimalCoordinates) const;
+        std::tuple<std::array<float_T, 6u>, std::array<complex_T, 6u>> defineCommonHelperVariables(
+            Coordinates const& minimalCoordinates) const;
 
         //! Defines the non-focused laser envelope (aka zero order term)
         //! for TWTSTight field calculation
         HDINLINE complex_T defineTWTSEnvelope(
-            std::array<float_T, 4u> const& minimalCoordinates,
-            std::tuple<std::array<float_T, 8u>, std::array<complex_T, 6u>> const& commonHelperVariables) const;
+            Coordinates const& minimalCoordinates,
+            std::tuple<std::array<float_T, 6u>, std::array<complex_T, 6u>> const& commonHelperVariables) const;
 
         /** Calculate the Ex(r,t) or Bx(r,t) field
          *
