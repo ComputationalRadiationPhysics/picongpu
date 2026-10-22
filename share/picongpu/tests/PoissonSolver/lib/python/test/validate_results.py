@@ -114,7 +114,17 @@ for iz in range(E_z.shape[2] - 2):
 diff *= epsilon_0
 
 # comparing the two
-rerr = np.abs((diff[1:-1, 1:-1, 1:-1] - rho[1:-1, 1:-1, 1:-1]) / diff[1:-1, 1:-1, 1:-1])
+err = np.abs(diff[1:-1, 1:-1, 1:-1] - rho[1:-1, 1:-1, 1:-1])
+print("maximum absolute error:", np.max(err))
+
+abs_tol = 3e2
+rel_tol = 2e-4
+
+rerr = np.where(
+    rho[1:-1, 1:-1, 1:-1] > 0,
+    np.abs(np.maximum(err - abs_tol, np.zeros((*err.shape,))) / rho[1:-1, 1:-1, 1:-1]),
+    np.maximum(err - abs_tol, np.zeros((*err.shape,))),
+)
 
 print("maximum relative error:", np.max(rerr))
 print(
@@ -122,7 +132,7 @@ print(
     np.max(rerr[np.abs(diff[1:-1, 1:-1, 1:-1]) > 1e-3 * np.max(np.abs(diff))]),
 )
 
-if np.max(rerr[np.abs(diff[1:-1, 1:-1, 1:-1]) > 1e-3 * np.max(np.abs(diff))]) > 0.005:
+if np.max(rerr[np.abs(diff[1:-1, 1:-1, 1:-1]) > 1e-3 * np.max(np.abs(diff))]) > rel_tol:
     print("relative error too high!")
     sys.exit(1)
 

@@ -278,7 +278,6 @@ namespace picongpu::fields::poissonSolver
             float_64 nonDirichletMinPositive = 0.0;
             float_64 eigenMax = 0.0;
             bool hasDirichletAxis = false;
-            bool hasNonDirichletAxis = false;
 
             auto const periodic
                 = pmacc::Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
@@ -312,8 +311,6 @@ namespace picongpu::fields::poissonSolver
                         = 4.0
                           * pmacc::math::pow(pmacc::math::sin(pmacc::math::Pi<float_64>::value * highestMode / n), 2.0)
                           * invH2;
-
-                    hasNonDirichletAxis = true;
                 }
                 else if(nonPeriodicNeumann)
                 {
@@ -330,8 +327,6 @@ namespace picongpu::fields::poissonSolver
                                         pmacc::math::sin(pmacc::math::Pi<float_64>::halfValue * (n - 1.0) / n),
                                         2.0)
                                     * invH2;
-
-                    hasNonDirichletAxis = true;
                 }
                 else
                 {
@@ -476,7 +471,7 @@ namespace picongpu::fields::poissonSolver
                 auto transverseSize = globalDomainSize;
                 transverseSize[d] = 1;
 
-                auto const faceNodeCount = transverseSize.productOfComponents();
+                uint32_t const faceNodeCount = transverseSize.productOfComponents();
 
                 for(uint32_t side = 0; side < 2; ++side)
                 {
