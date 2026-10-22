@@ -368,8 +368,6 @@ namespace picongpu
                 bool mainRank = pmacc::Environment<simDim>::get().GridController().getGlobalRank() == 0;
                 if(mainRank)
                     log<picLog::PHYSICS>("Poisson solver:");
-                log<picLog::PHYSICS>("  - domain size: %1%")
-                    % Environment<simDim>::get().SubGrid().getGlobalDomain().size;
                 if(!m_useSolver)
                 {
                     if(mainRank)
@@ -512,7 +510,7 @@ namespace picongpu
                     float_64 const meanr0 = globalr0Sum / globalCellCount;
                     pmacc::algorithms::forEachCell(
                         coreBorderMapper,
-                        [meanr0] DEVICEONLY(auto const r0Value) -> float_64 { return r0Value.x() - meanr0; },
+                        [meanr0] DEVICEONLY(auto const r0Value) -> float_64 { return r0Value - meanr0; },
                         r0Buffer->getDeviceBuffer());
                 }
                 r0Buffer->communication();
@@ -563,7 +561,7 @@ namespace picongpu
 
                         pmacc::algorithms::forEachCell(
                             coreBorderMapper,
-                            [meanMpk] DEVICEONLY(auto const mpkValue) -> float_64 { return mpkValue.x() - meanMpk; },
+                            [meanMpk] DEVICEONLY(auto const mpkValue) -> float_64 { return mpkValue - meanMpk; },
                             mpkBuffer->getDeviceBuffer());
                     }
 
