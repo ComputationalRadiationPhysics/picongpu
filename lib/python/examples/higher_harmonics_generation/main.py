@@ -23,7 +23,7 @@ from picongpu.picmi.distribution import GaussianDistribution, AnalyticDistributi
 from sympy import Piecewise, Abs, exp
 from picongpu.picmi.diagnostics.field_dump import (NativeFieldDump, DerivedFieldDump)
 
-
+# BEGIN-HHG-GRID
 NUM_CELLS = np.array([1536, 4096])
 CELL_SIZE = np.array([1.6e-8, 1.6e-8]) 
 # dx=dy, because plasma waves propagate in both x and y, meaning you need equal resolution on both axes.
@@ -31,7 +31,7 @@ CELL_SIZE = np.array([1.6e-8, 1.6e-8])
 
 grid = picmi.Cartesian2DGrid(
     picongpu_n_gpus=[2, 2], 
-    # this simulation also runs a single gpu
+    # this simulation also runs on a single gpu
     # for larger simulations 4 gpus (picongpu_n_gpus=[2, 2]) is strongly advised.
     number_of_cells=NUM_CELLS,
     lower_bound=[0, 0],
@@ -40,7 +40,7 @@ grid = picmi.Cartesian2DGrid(
     upper_boundary_conditions=["open", "open"],
 )
 solver = picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid)
-# END-HHG-CONSTANTS
+# END-HHG-GRID
 
 # BEGIN-HHG-LASER
 laser_duration = 2.0 * 30.0e-15 / 2.354820045
@@ -69,11 +69,11 @@ laser = picmi.DispersivePulseLaser(
 )
 # END-HHG-LASER
 
-# BEGIN-HHG-SPECIES
+# BEGIN-HHG-DENSITY-DISTRIBUTION
 distribution = picmi.GaussianDistribution( 
     density=1.742e29, 
     #1.742e27 is the critical density at which the laser gets reflected. I use 100 times that. 
-    #In this case, the plasma wavelength is 8.0e-8 (80 nanometers, i.e. one thenth of the laser wavelength). 
+    #In this case, the plasma wavelength is 8.0e-8 (80 nanometers, i.e. one tenth of the laser wavelength). 
     center_front=3e-5,
     sigma_front=1.0e-10,
     center_rear=5e-5,
@@ -82,7 +82,7 @@ distribution = picmi.GaussianDistribution(
     power=4.0,
     vacuum_front=50 * CELL_SIZE[1],
 )
-# END-HHG-SPECIES
+# END-HHG-DENSITY-DISTRIBUTION
 
 # FIXME(2026-10-23, @Kn0pf42): The following funcion is a workaround for ISSUE-5847. 
 # The gaussian distribution currently doesnt work in 2D simulations.
@@ -114,7 +114,9 @@ def custom_particle_distribution(x, y, z):
             True,
         ),
     )
+# END-WORKAROUND
 
+# BEGIN-HHG-SPECIES
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=20)
 
 electrons = picmi.Species(
@@ -122,7 +124,7 @@ electrons = picmi.Species(
     particle_type="electron",
     initial_distribution=custom_particle_distribution,
 )
-# END-WORKAROUND
+# END-HHG-SPECIES
 
 # BEGIN-HHG-DIAGNOSTICS
 checkpoint = picmi.diagnostics.Checkpoint(period=picmi.diagnostics.TS[::1000])
@@ -146,4 +148,4 @@ OUTPUT_PATH = "HHG"
 sim.run(setup_dir=Path(f"{OUTPUT_PATH}/setup"), run_dir=Path(f"{OUTPUT_PATH}/run"))
 # END-HHG-RUN
 
-#I something doesnt work, blame the 11th grader who wrote this setup. Have fun :)
+# If something does not work, blame the 11th grader who wrote this setup. Have fun :)
