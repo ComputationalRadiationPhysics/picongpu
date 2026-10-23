@@ -83,6 +83,8 @@
 ## end calculations ##
 
 echo 'Start job with !TBG_nodes_adjusted nodes. Required are !TBG_nodes nodes.'
+# LUMI does not report the job ID in the job epilog, print it for debugging
+echo "SLURM job ID: $SLURM_JOB_ID"
 
 TBG_dstPath="!TBG_dstPath"
 cd $TBG_dstPath
