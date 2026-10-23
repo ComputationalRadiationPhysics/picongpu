@@ -82,6 +82,16 @@ namespace picongpu
             /** current dump is a checkpoint */
             bool isCheckpoint;
 
+            /** Whether the given step is the configured empty output iteration.
+             *
+             * At that step the plugin runs, but writes only the openPMD
+             * Iteration (including meta data) without any mesh or particle data.
+             */
+            bool isEmptyIteration(uint32_t const currentStep) const
+            {
+                return emptyOutputIterationAt >= 0 && static_cast<int64_t>(currentStep) == emptyOutputIterationAt;
+            }
+
             MPI_Comm communicator; /* MPI communicator for openPMD API */
 
             std::optional<std::string> backendConfigResolved;
@@ -161,15 +171,29 @@ namespace picongpu
 
             void closeSeries();
 
-            /*
+            /** Read and validate all configuration that does not depend on the
+             * current simulation step.
+             *
+             * This is called once at plugin initialization (i.e. at time step
+             * zero) as well as before every write. Doing it at initialization
+             * time ensures that configuration errors are reported before the
+             * simulation starts instead of only when the plugin is first
+             * executed, which may be many steps into the simulation.
+             *
              * If file is empty, read from command line parameters.
+             *
+             * If a step is provided, then update the output window for the given time step.
+             * The window depends on the current step because of the moving
+             * window, so it has to be recomputed before every write.
+             * A step is not provided when calling this from plugin initialization.
              */
             void initFromConfig(
                 Help&,
                 size_t id,
-                uint32_t const currentStep,
+                std::optional<uint32_t> currentStep,
                 std::string const& dir,
                 std::optional<std::string> file = {});
+
 #if (ENABLE_OPENPMD == 1)
             /**
              * Wrapper for ::openPMD::resetDataset, set dataset parameters

@@ -130,6 +130,14 @@ namespace pmacc
         }
     }
 
+    void PluginConnector::simulationStartPlugins()
+    {
+        for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
+        {
+            (*iter)->simulationStart();
+        }
+    }
+
     std::list<IPlugin*> PluginConnector::getAllPlugins() const
     {
         return this->plugins;

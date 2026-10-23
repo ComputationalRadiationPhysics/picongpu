@@ -93,6 +93,19 @@ namespace pmacc
         virtual void restart(uint32_t restartStep, std::string const restartDirectory) = 0;
 
         /**
+         * Called once after the simulation has been initialized or restarted
+         * and before the first time step is executed.
+         *
+         * Plugins can use this hook to perform work that depends on the final
+         * initial state of the simulation, in particular work that must not be
+         * done before restarting from a checkpoint has finished
+         * (e.g. early opening IO handles).
+         */
+        virtual void simulationStart()
+        {
+        }
+
+        /**
          * Register command line parameters for this plugin.
          * Parameters are parsed and set prior to plugin load.
          *
