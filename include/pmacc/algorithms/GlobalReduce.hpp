@@ -46,6 +46,9 @@ namespace pmacc
 
             /* Activate participation for reduce algorithm.
              *
+             * By default, all MPI ranks participate in the reduction. Calling this method is only required if a
+             * subset of the MPI ranks should participate.
+             *
              * @attention Must be called from any mpi process. This function uses global blocking mpi calls.
              *
              * @param isActive true if MPI rank should participate in the reduction, else false
@@ -114,8 +117,12 @@ namespace pmacc
             /** @} */
 
         private:
-            /** cache if the rank is participating into the reduction */
-            bool isParticipating = false;
+            /** cache if the rank is participating into the reduction
+             *
+             * Participation is enabled by default to be consistent with mpi::MPIReduce, which joins the reduction
+             * over all MPI ranks if participate() was never called.
+             */
+            bool isParticipating = true;
             ::pmacc::device::Reduce reduce;
             ::pmacc::mpi::MPIReduce mpi_reduce;
         };
