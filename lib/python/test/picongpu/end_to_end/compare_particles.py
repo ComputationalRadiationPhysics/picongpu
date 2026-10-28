@@ -71,7 +71,11 @@ def read_particles(series_name):
 
 
 def sort_particles(data):
-    return data.groupby(["setup", "impl"]).apply(lambda df: df.sort_values(list(df.columns), axis=0))
+    # `group_keys=False` keeps the grouping keys out of the result index. With the
+    # default `group_keys=True` the already-present (setup, impl) index levels are
+    # added a second time, so the result carries duplicate level names and the
+    # name-based `groupby` below becomes ambiguous (future pandas raises here).
+    return data.groupby(["setup", "impl"], group_keys=False).apply(lambda df: df.sort_values(list(df.columns), axis=0))
 
 
 def compare_particles_per_setup(data):
