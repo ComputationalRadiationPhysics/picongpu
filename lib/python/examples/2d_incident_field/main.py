@@ -47,7 +47,7 @@ grid = picmi.Cartesian2DGrid(
 
 solver = picmi.ElectromagneticSolver(grid=grid, method="Yee", cfl=0.999)
 
-LASER_DURATION = 26.0e-15
+LASER_DURATION = 2 * 26.0e-15
 PULSE_INIT = 15.0
 
 laser = picmi.GaussianLaser(
@@ -63,7 +63,7 @@ laser = picmi.GaussianLaser(
     ],
     centroid_position=[
         float(NUM_CELLS[0] * CELL_SIZE[0] / 2.0),
-        -0.5 * PULSE_INIT * LASER_DURATION * picmi.constants.c,
+        -0.25 * PULSE_INIT * LASER_DURATION * picmi.constants.c,
         0.0,
     ],
     picongpu_polarization_type=picmi.lasers.PolarizationType.LINEAR,
