@@ -198,6 +198,12 @@ A list of all developers that contributed to PIConGPU can be found in the file [
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
 way!
 
+### human vs. agentic contributions regarding authorship
+
+We accept contributions that are fully or partially developed by AI agents. Please submit such contributions under the identity of a legal person (GitHub name and associated email address), specifying that person as the main author and any agents as co-authors for each commit. This allows us to add the legal person as an author, e.g. via Zenodo when releasing a new version. 
+
+Please note that we cannot and will not add you to our author list if your commits do not provide such contact information.  
+
 ********************************************************************************
 
 ![image of an lwfa](docs/images/lwfa_iso.png "LWFA")
