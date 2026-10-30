@@ -61,6 +61,7 @@ TOML_SNIPPETS = sorted(SNIPPETS_DIR.glob("**/*.toml"))
 TOML_EXPECTED = {
     "configuring_environment/rc_params_minimal_bash.toml": {
         "preset": "bash",
+        "pic_libs": "$HOME/pic-libs",
     },
     "configuring_environment/rc_params_minimal_rosi.toml": {
         "preset": "rosi-hzdr",

@@ -57,9 +57,38 @@ def test_resolve_preset_script_no_preset():
         resolve_preset_script(p)
 
 
-def test_resolve_preset_script_missing_script():
-    # bash preset has no dependencies_autoinstall.sh -> unsupported
+def _completed_bash_params():
     p = RCParams(preset="bash/bash_picongpu.profile.example")
+    p["author"] = "me"
+    p["email"] = "me@example.com"
+    p["pic_libs"] = str(Path(__file__).parent / "nonexistent-piclibs")
+    p["pic_src_path"] = str(Path(__file__).parent / "nonexistent-picsrc")
+    return p
+
+
+def test_resolve_preset_script_bash_is_supported():
+    preset_dir, script = resolve_preset_script(_completed_bash_params())
+    assert preset_dir == "bash"
+    assert script.is_file()
+    assert script == PRESET_STORAGE_PATH / "bash" / "dependencies_autoinstall.sh"
+
+
+def test_parse_guard_roots_bash():
+    assert parse_guard_roots(PRESET_STORAGE_PATH / "bash" / "dependencies_autoinstall.sh") == [
+        "BOOST_ROOT",
+        "BLOSC_ROOT",
+        "LIBPNG_ROOT",
+        "PNGwriter_ROOT",
+        "HDF5_ROOT",
+        "ADIOS2_ROOT",
+        "OPENPMD_ROOT",
+        "FFTW_ROOT",
+    ]
+
+
+def test_resolve_preset_script_missing_script_for_module_preset():
+    # presets that rely on system modules still have no autoinstall script
+    p = RCParams(preset="hemera-hzdr/defq_picongpu.profile.example")
     with pytest.raises(SystemExit, match="dependencies_autoinstall.sh"):
         resolve_preset_script(p)
 
@@ -74,3 +103,24 @@ def test_check_dependencies_reports_all_missing_for_empty_piclibs():
     assert all(ok is False for _, _, ok in results)
     # resolved paths are the profile-derived versioned roots (non-empty)
     assert all(resolved for _, resolved, _ in results)
+
+
+def test_check_dependencies_bash_enumerates_profile_roots():
+    if not Path("/bin/bash").is_file():
+        pytest.skip("requires bash login shell")
+    results = check_dependencies(_completed_bash_params())
+    roots = [r for r, _, _ in results]
+    assert roots == [
+        "BOOST_ROOT",
+        "BLOSC_ROOT",
+        "LIBPNG_ROOT",
+        "PNGwriter_ROOT",
+        "HDF5_ROOT",
+        "ADIOS2_ROOT",
+        "OPENPMD_ROOT",
+        "FFTW_ROOT",
+    ]
+    # pic_libs points at a non-existent dir -> every dep is missing
+    assert all(ok is False for _, _, ok in results)
+    # the bash profile derives each *_ROOT from PIC_LIBS
+    assert all(resolved.startswith(str(Path(__file__).parent / "nonexistent-piclibs")) for _, resolved, _ in results)

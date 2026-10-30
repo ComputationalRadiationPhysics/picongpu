@@ -228,6 +228,49 @@ The ``dirty_reset_policy`` can take the values ``"raise"`` (the default),
 ``"warn"`` or ``"ignore"``, or an arbitrary handler to finetune the behaviour.
 We generally recommend to do runtime configuration via :ref:`the .picongpurc.toml file <configuring_env_toml_file>` outside of your script.
 
+Installing Dependencies on a Local Machine (``bash`` Preset)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``bash`` preset is the module-less path for laptops and workstations.
+Its ``pic_libs`` parameter is the writable prefix into which
+``pic-deps`` builds the compile-time dependencies
+(a C++ compiler, CMake >= 3.28, MPI, Boost, HDF5, ADIOS2, openPMD-api, FFTW,
+libpng, c-blosc2 and PNGwriter).
+A minimal runtime configuration therefore names the preset and the prefix:
+
+.. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash.toml
+   :language: toml
+
+Install the dependencies and verify the resulting ``*_ROOT`` directories with:
+
+.. literalinclude:: ../snippets/configuring_environment/pic_deps_install_local.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-INSTALL-LOCAL
+   :end-before: END-PIC-DEPS-INSTALL-LOCAL
+
+.. literalinclude:: ../snippets/configuring_environment/pic_deps_check_local.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-CHECK-LOCAL
+   :end-before: END-PIC-DEPS-CHECK-LOCAL
+
+The installation is idempotent and can be resumed after an interruption.
+It needs network access and does not use environment modules or ``sudo`` for
+the libraries themselves; system packages are only installed for missing
+toolchain basics when a distro package manager is available.
+
+If you already use Spack or Conda, install the same versions into the prefixes
+the profile expects instead (both variants are reported to work well):
+
+.. literalinclude:: ../snippets/configuring_environment/pic_deps_spack.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-SPACK
+   :end-before: END-PIC-DEPS-SPACK
+
+.. literalinclude:: ../snippets/configuring_environment/pic_deps_conda.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-CONDA
+   :end-before: END-PIC-DEPS-CONDA
+
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^
 
@@ -353,8 +396,9 @@ and set the submission parameters in your ``.picongpurc.toml`` file::
   author = "Your Name"
   email = "you@example.org"
 
-(Choosing the ``bash`` preset here is just a convenient base
-that requires no other parameters;
+(Choosing the ``bash`` preset here is just a convenient base;
+it requires a ``pic_libs`` prefix for its dependencies, which can be
+overridden like any other parameter;
 any other parameters it sets that do not apply to your system
 can be overridden the same way.)
 

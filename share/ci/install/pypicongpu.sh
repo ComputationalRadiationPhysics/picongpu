@@ -23,6 +23,7 @@ export PATH=$PATH:$PICSRC/bin
 # (used by the docs snippet tests, which need a pristine rc_params state)
 if [ -z "${PYPICONGPU_SKIP_QUICK_TEST:-}" ]; then
     echo 'preset = "bash"' >/.picongpurc.toml
+    echo 'pic_libs = "/tmp/pypicongpu-pic-libs"' >>/.picongpurc.toml
 fi
 
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples

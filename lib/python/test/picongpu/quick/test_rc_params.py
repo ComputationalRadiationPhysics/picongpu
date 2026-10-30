@@ -91,6 +91,7 @@ def test_dirty_resets_can_trigger_custom_handler(dirty_rc_params):
 
 def test_preset_points_profile_to_correct_pic_src_path(my_rc_params):
     my_rc_params["preset"] = "bash/bash_picongpu"
+    my_rc_params["pic_libs"] = "$HOME/pic-libs"
     assert f'export PICSRC="{str(my_rc_params["pic_src_path"])}"' in my_rc_params.profile_content
 
 
@@ -235,6 +236,7 @@ def test_rendering_profile_with_incomplete_info_can_trigger_custom_handler(my_rc
 
 def test_bash_profile_is_reproduced(my_rc_params):
     my_rc_params["preset"] = "bash/bash_picongpu"
+    my_rc_params["pic_libs"] = "$HOME/pic-libs"
     my_rc_params["pic_src_path"] = "$HOME/src/picongpu"
     with (core.path("etc") / "picongpu" / "bash" / "bash_picongpu.profile.example").open("r") as file:
         assert my_rc_params.profile_content == file.read()

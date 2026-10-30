@@ -2,22 +2,89 @@
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # Self-Build Software #########################################################
-# Optional, not required.
-# Needs to be compiled by the user.
-# Set environment variables required for compiling and linking PIConGPU here.
-#export PIC_LIBS=$HOME/lib
+# `PIC_LIBS` is the user-writable prefix into which the compile-time
+# dependencies are installed. It is set from `rc_params['pic_libs']` when the
+# profile is rendered; `pic-deps install` builds everything below into it and
+# `pic-deps check` verifies the resulting `*_ROOT` directories.
+#
+# You can also install the dependencies yourself (Spack/Conda/system packages)
+# and point the `*_ROOT` variables below at those prefixes instead.
+export PIC_LIBS="$HOME/pic-libs"
 
-# For example install openPMD-api yourself
-#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#openpmd-api
-#export OPENPMD_ROOT=$PIC_LIBS/openPMD-api
-#export CMAKE_PREFIX_PATH="$OPENPMD_ROOT:$CMAKE_PREFIX_PATH"
-#export LD_LIBRARY_PATH="$OPENPMD_ROOT/lib:$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH"
+# Versions installed by etc/picongpu/bash/dependencies_autoinstall.sh.
+# Keep these and the script's pins in sync if you override them.
+export CMAKE_VERSION=3.31.6
+export BOOST_VERSION=1.87.0
+export BLOSC_VERSION=2.22.0
+export LIBPNG_VERSION=1.6.34
+export PNGWRITER_VERSION=0.7.0
+export HDF5_VERSION=2.0.0
+export ADIOS2_VERSION=2.11.0
+export OPENPMD_VERSION=0.17.1
+export FFTW_VERSION=3.3.10
 
-# For example install pngwriter yourself:
-#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#pngwriter
-#export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
-#export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
-#export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+# CMake built from source (the distro version is used when it is >= 3.28).
+export CMAKE_ROOT="$PIC_LIBS/cmake/$CMAKE_VERSION"
+export PATH="$CMAKE_ROOT/bin:$PATH"
+
+# Distro MPI wrappers are not always on PATH without a module system.
+for _pic_mpi_bin in \
+    /usr/lib64/openmpi/bin /usr/lib/openmpi/bin \
+    /usr/lib/x86_64-linux-gnu/openmpi/bin \
+    /usr/lib64/mpich/bin /usr/lib/mpich/bin \
+    /usr/lib/x86_64-linux-gnu/mpich/bin; do
+    if [ -d "$_pic_mpi_bin" ]; then
+        export PATH="$_pic_mpi_bin:$PATH"
+    fi
+done
+unset _pic_mpi_bin
+
+export BOOST_ROOT="$PIC_LIBS/boost/$BOOST_VERSION"
+export CPATH="$BOOST_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$BOOST_ROOT/lib:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$BOOST_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export BLOSC_ROOT="$PIC_LIBS/c-blosc2/$BLOSC_VERSION"
+export CPATH="$BLOSC_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$BLOSC_ROOT/lib:${BLOSC_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$BLOSC_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export LIBPNG_ROOT="$PIC_LIBS/libpng/$LIBPNG_VERSION"
+export CPATH="$LIBPNG_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$LIBPNG_ROOT/lib:${LIBPNG_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$LIBPNG_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export PNGwriter_ROOT="$PIC_LIBS/pngwriter/$PNGWRITER_VERSION"
+export CPATH="$PNGwriter_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$PNGwriter_ROOT/lib:${PNGwriter_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$PNGwriter_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export HDF5_ROOT="$PIC_LIBS/hdf5/$HDF5_VERSION"
+export PATH="$HDF5_ROOT/bin:$PATH"
+export CPATH="$HDF5_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$HDF5_ROOT/lib:${HDF5_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$HDF5_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export ADIOS2_ROOT="$PIC_LIBS/adios2/$ADIOS2_VERSION"
+export PATH="$ADIOS2_ROOT/bin:$PATH"
+export CPATH="$ADIOS2_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$ADIOS2_ROOT/lib:${ADIOS2_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$ADIOS2_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export OPENPMD_ROOT="$PIC_LIBS/openpmd-api/$OPENPMD_VERSION"
+export PATH="$OPENPMD_ROOT/bin:$PATH"
+export CPATH="$OPENPMD_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$OPENPMD_ROOT/lib:${OPENPMD_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$OPENPMD_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+export FFTW_ROOT="$PIC_LIBS/fftw/$FFTW_VERSION"
+export CPATH="$FFTW_ROOT/include:${CPATH:-}"
+export LD_LIBRARY_PATH="$FFTW_ROOT/lib:${FFTW_ROOT}/lib64:${LD_LIBRARY_PATH:-}"
+export CMAKE_PREFIX_PATH="$FFTW_ROOT:${CMAKE_PREFIX_PATH:-}"
+
+# MPI compiler wrappers (used by the dependency build and by CMake).
+export MPI_CC="${MPI_CC:-$(command -v mpicc || true)}"
+export MPI_CXX="${MPI_CXX:-$(command -v mpicxx || true)}"
 
 # Environment #################################################################
 #
