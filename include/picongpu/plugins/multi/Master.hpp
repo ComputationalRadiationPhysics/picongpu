@@ -121,7 +121,7 @@ namespace picongpu
                         auto& instance
                             = instanceList.emplace_back(instanceHelp->create(instanceHelp, i, m_cellDescription));
                         // initialize the instance at load time (i.e. at time step zero) so that
-                        // plugins have the chance to check for configuration errors and report them  before the
+                        // plugins have the chance to check for configuration errors and report them before the
                         // simulation starts
                         instance->initInstance(IInstance::RegularInstance{});
                     }
