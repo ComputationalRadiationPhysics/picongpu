@@ -268,10 +268,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "respectively.",
                    "doubleBuffer"};
 
-            plugins::multi::Option<std::string> particleIOChunkSize
+            plugins::multi::Option<size_t> particleIOChunkSize
                 = {"particleIOChunkSize",
                    "Particle data will be written in chunks of the given size. unit: MiB",
-                   "10240"};
+                   1024llu * 10llu};
 
             plugins::multi::Option<std::string> writeAccess
                 = {"writeAccess", "openPMD Access mode for creating output: [create|append]", "create"};
@@ -526,10 +526,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         std::nullopt,
                         &PluginParameters::backendConfigRestartString,
                         ApplyParameter::OnlyInCheckpoint),
-                    makeParam(
+                    makeParam<size_t>(
                         &particleIOChunkSize,
                         "particleIOChunkSize",
-                        &PluginParameters::particleIOChunkSizeString),
+                        &PluginParameters::particleIOChunkSize),
                     makeParam(&writeAccess, "write_mode", &PluginParameters::writeAccessString),
                     makeParam<bool>(&lateInit, "late_init", &PluginParameters::lateInit),
                     makeParam<int64_t>(
@@ -860,8 +860,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 throw std::runtime_error(
                     "Wrong write access mode specified: '" + writeAccessString + "'. Pick either [create|append].");
             }
-
-            particleIOChunkSize = std::stoull(particleIOChunkSizeString);
 
             if(currentStep.has_value())
             {

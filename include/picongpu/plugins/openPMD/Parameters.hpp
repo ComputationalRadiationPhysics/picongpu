@@ -18,12 +18,19 @@ namespace picongpu::openPMD
         std::string fileName; /* Name of the openPMDSeries, excluding the extension */
         std::string fileInfix;
         std::string fileExtension; /* Extension of the file name */
-        std::string particleIOChunkSizeString;
         std::string dataPreparationStrategyString;
         std::string backendConfigString;
         std::string rangeString;
         std::string backendConfigRestartString;
         std::string writeAccessString;
+        size_t particleIOChunkSize;
+        /** Time step at which to create an empty output Iteration.
+         *
+         * If set, the plugin runs once at the given time step but does not
+         * write any mesh or particle data, creating only the (otherwise
+         * empty) openPMD Iteration. A value below zero disables this.
+         */
+        int64_t emptyOutputIterationAt{};
         /** Open the output Series lazily on the first run.
          *
          * The plugin always parses and validates its configuration at
@@ -36,12 +43,5 @@ namespace picongpu::openPMD
          * backend validation.
          */
         bool lateInit{};
-        /** Time step at which to create an empty output Iteration.
-         *
-         * If set, the plugin runs once at the given time step but does not
-         * write any mesh or particle data, creating only the (otherwise
-         * empty) openPMD Iteration. A value below zero disables this.
-         */
-        int64_t emptyOutputIterationAt{};
     };
 } // namespace picongpu::openPMD
