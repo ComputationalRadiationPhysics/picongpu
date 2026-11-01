@@ -176,15 +176,23 @@ Setting them will reset the ``rc_params`` instance
 and load default values for various configuration parameters.
 
 The name of a preset is the name of the system directory
-if that directory contains a single profile example,
+when that directory contains its canonical profile example,
 e.g. ``bash`` or ``rosi-hzdr``.
 If a system directory contains several profile examples
 (e.g. different queues or hardware configurations),
-the preset name is the system directory
-followed by the name of the profile example file,
-e.g. ``hemera-hzdr/gpu_picongpu.profile.example``.
-Setting an ambiguous bare system name will raise an error
-listing the valid preset names to choose from.
+the canonical preset name is the system directory
+followed by the profile name without the ``_picongpu.profile.example`` suffix,
+e.g. ``hemera-hzdr/gpu``.
+Full file names such as ``hemera-hzdr/gpu_picongpu.profile.example``
+are still accepted.
+A bare system name resolves to ``<directory>/<directory>_picongpu.profile.example``
+when that file exists, so setting the ambiguous bare name raises an error
+listing the valid preset names only when there is no such canonical profile.
+
+The local dependency setup is exposed as three sibling presets:
+``bash`` (the default, source-built recipe), ``bash/spack`` and ``bash/conda``.
+Bare ``bash`` always selects ``bash/bash_picongpu.profile.example``,
+even though the directory now contains the two variant profiles as well.
 
 Besides the profile (see `Manually Configuring Profile Content`_ below),
 a preset loads default values for the parameters
@@ -258,18 +266,39 @@ It needs network access and does not use environment modules or ``sudo`` for
 the libraries themselves; system packages are only installed for missing
 toolchain basics when a distro package manager is available.
 
-If you already use Spack or Conda, install the same versions into the prefixes
-the profile expects instead (both variants are reported to work well):
+If you prefer Spack or Conda, choose the matching local preset variant instead;
+``pic-deps`` then runs that variant's installer and keeps the profile's roots and
+the installed prefixes in sync. Both variants are supported local recipes,
+not official upstream installation instructions.
 
-.. literalinclude:: ../snippets/configuring_environment/pic_deps_spack.sh
-   :language: bash
-   :start-after: BEGIN-PIC-DEPS-SPACK
-   :end-before: END-PIC-DEPS-SPACK
+.. tab-set::
 
-.. literalinclude:: ../snippets/configuring_environment/pic_deps_conda.sh
-   :language: bash
-   :start-after: BEGIN-PIC-DEPS-CONDA
-   :end-before: END-PIC-DEPS-CONDA
+    .. tab-item:: Spack
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash_spack.toml
+           :language: toml
+
+        .. literalinclude:: ../snippets/configuring_environment/pic_deps_spack.sh
+           :language: bash
+           :start-after: BEGIN-PIC-DEPS-SPACK
+           :end-before: END-PIC-DEPS-SPACK
+
+    .. tab-item:: Conda
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash_conda.toml
+           :language: toml
+
+        .. literalinclude:: ../snippets/configuring_environment/pic_deps_conda.sh
+           :language: bash
+           :start-after: BEGIN-PIC-DEPS-CONDA
+           :end-before: END-PIC-DEPS-CONDA
+
+The Spack variant installs the same per-package ``$PIC_LIBS/<package>/<version>``
+layout as the default recipe. The Conda variant creates one conda-forge
+environment at ``$PIC_LIBS/conda``: the seven library roots point at
+``$CONDA_PREFIX``, while PNGwriter is built into its own per-package prefix.
+conda-forge may not carry the exact pins; they are used as constraints and the
+installer (and ``pic-deps check``) reports the resolved versions.
 
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,2 @@
+preset = "bash/spack"
+pic_libs = "$HOME/pic-libs/spack"

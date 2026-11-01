@@ -1,0 +1,2 @@
+preset = "bash/conda"
+pic_libs = "$HOME/pic-libs"
