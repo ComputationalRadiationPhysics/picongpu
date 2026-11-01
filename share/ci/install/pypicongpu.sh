@@ -22,6 +22,11 @@ export PATH=$PATH:$PICSRC/bin
 # skip writing the preset file and the quick tests when PYPICONGPU_SKIP_QUICK_TEST is set
 # (used by the docs snippet tests, which need a pristine rc_params state)
 if [ -z "${PYPICONGPU_SKIP_QUICK_TEST:-}" ]; then
+    # The bash preset renders its profile from a `pic_libs` prefix, so the
+    # quick tests need a value here. It is only a throw-away path for profile
+    # rendering: no dependency is installed into it and the compiler/library
+    # versions keep coming from the CI environment (CMAKE_VERSION, BOOST_VERSION,
+    # agc-manager in the compiling/end-to-end jobs).
     echo 'preset = "bash"' >/.picongpurc.toml
     echo 'pic_libs = "/tmp/pypicongpu-pic-libs"' >>/.picongpurc.toml
 fi

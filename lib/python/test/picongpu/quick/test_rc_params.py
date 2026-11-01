@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+import subprocess
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -234,9 +235,68 @@ def test_rendering_profile_with_incomplete_info_can_trigger_custom_handler(my_rc
     assert "author" in call_args
 
 
+_PROFILE_ENV_VARS = (
+    "PIC_LIBS",
+    "CMAKE_ROOT",
+    "BOOST_ROOT",
+    "BLOSC_ROOT",
+    "LIBPNG_ROOT",
+    "PNGwriter_ROOT",
+    "HDF5_ROOT",
+    "ADIOS2_ROOT",
+    "OPENPMD_ROOT",
+    "FFTW_ROOT",
+    "CMAKE_PREFIX_PATH",
+    "CPATH",
+    "LD_LIBRARY_PATH",
+)
+
+
+def _source_bash_profile(home, **env):
+    profile = core.path("etc") / "picongpu" / "bash" / "bash_picongpu.profile.example"
+    body = "\n".join(f'printf "%s=%s\\n" {v} "${{{v}-<UNSET>}}"' for v in _PROFILE_ENV_VARS)
+    proc = subprocess.run(
+        ["bash", "--noprofile", "--norc", "-c", f'source "$1" >/dev/null 2>&1\n{body}', "_", profile],
+        env={"HOME": str(home), "PATH": "/usr/local/bin:/usr/bin:/bin", **env},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return dict(line.split("=", 1) for line in proc.stdout.splitlines())
+
+
+def test_bash_profile_leaves_a_clean_environment_untouched(tmp_path):
+    # Backwards compatibility: a user relying on system/distro packages neither
+    # gets PIC_LIBS forced nor any *_ROOT / search-path entries injected.
+    values = _source_bash_profile(tmp_path)
+    assert values == {v: "<UNSET>" for v in _PROFILE_ENV_VARS}
+
+
+def test_bash_profile_preserves_pre_set_roots_and_search_paths(tmp_path):
+    # A user who already configured a self-build (or any prefix) keeps their
+    # values; the profile only fills in what is unset.
+    values = _source_bash_profile(
+        tmp_path,
+        PIC_LIBS="/opt/custom-piclibs",
+        CMAKE_ROOT="/opt/cmake",
+        BOOST_ROOT="/opt/boost",
+        CMAKE_PREFIX_PATH="/opt/pfx",
+        CPATH="/opt/inc",
+        LD_LIBRARY_PATH="/opt/lib",
+    )
+    assert values["PIC_LIBS"] == "/opt/custom-piclibs"
+    assert values["CMAKE_ROOT"] == "/opt/cmake"
+    assert values["BOOST_ROOT"] == "/opt/boost"
+    assert values["CMAKE_PREFIX_PATH"] == "/opt/pfx"
+    assert values["CPATH"] == "/opt/inc"
+    assert values["LD_LIBRARY_PATH"] == "/opt/lib"
+
+
 def test_bash_profile_is_reproduced(my_rc_params):
     my_rc_params["preset"] = "bash/bash_picongpu"
-    my_rc_params["pic_libs"] = "$HOME/pic-libs"
+    # The shipped example keeps PIC_LIBS unset unless a prefix is provided;
+    # rendering the same expression must reproduce it byte-for-byte.
+    my_rc_params["pic_libs"] = "${PIC_LIBS:-}"
     my_rc_params["pic_src_path"] = "$HOME/src/picongpu"
     with (core.path("etc") / "picongpu" / "bash" / "bash_picongpu.profile.example").open("r") as file:
         assert my_rc_params.profile_content == file.read()
