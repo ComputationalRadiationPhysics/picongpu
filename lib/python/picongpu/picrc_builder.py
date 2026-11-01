@@ -28,6 +28,7 @@ from picongpu._rc_params import (
     PROFILE_PARAMETERS,
     RCParams,
     get_available_presets,
+    get_preset_name,
     get_profile_parameter,
     preset_default_prefill,
     user_config_path,
@@ -236,6 +237,12 @@ def _offer_custom_params(p):
             p[key] = value
 
 
+def _available_preset_choices():
+    """Return canonical preset names, sorted with the default ``bash`` first."""
+    names = {get_preset_name(name) for name in get_available_presets()}
+    return sorted(names, key=lambda name: (name != "bash", name))
+
+
 def resolve_target_path(config: Path | None) -> tuple[Path | None, bool]:
     """Resolve the configuration path to write, and whether it is a new target.
 
@@ -367,10 +374,7 @@ def _run(argv=None):
             questionary.print(f"{target} does not exist yet; a new configuration will be created there.")
         questionary.print("First, let's choose a preset.")
 
-        available_presets = [
-            name.removesuffix(".example").removesuffix(".profile").removesuffix("_picongpu")
-            for name in get_available_presets()
-        ]
+        available_presets = _available_preset_choices()
         if not available_presets:
             print("Error: No presets found in etc/picongpu.")
             return

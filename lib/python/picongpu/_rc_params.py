@@ -383,7 +383,46 @@ def get_available_presets() -> list[str]:
     return list(map(lambda p: str(p.relative_to(PRESET_STORAGE_PATH)), PRESET_STORAGE_PATH.rglob("*.profile*")))
 
 
+def get_preset_path(preset) -> Path:
+    """Return the profile-example path a preset name resolves to."""
+    if preset is None:
+        raise ValueError("No preset given.")
+    return _preset_path(preset)
+
+
+def get_preset_name(available_preset: str) -> str:
+    """Return the canonical user-facing name for an available preset path.
+
+    ``bash/bash_picongpu.profile.example`` becomes ``bash`` and
+    ``hemera-hzdr/gpu_picongpu.profile.example`` becomes ``hemera-hzdr/gpu``.
+    Profile suffixes (``.profile.example``) and the ``_picongpu`` marker are
+    stripped; a file named like its directory keeps only the directory name.
+    """
+    path = Path(available_preset)
+    stem = path.name
+    for suffix in (".example", ".profile"):
+        stem = stem.removesuffix(suffix)
+    stem = stem.removesuffix("_picongpu")
+    parent = path.parent.as_posix()
+    if parent in ("", ".") or stem == parent:
+        return stem
+    return f"{parent}/{stem}"
+
+
 def _preset_path(preset) -> Path:
+    # Exact matches take precedence so that bare directory names keep working
+    # once a directory contains several profile variants (e.g. bash, bash/spack,
+    # bash/conda). Both the ``<dir>/<dir>_picongpu.profile.example`` form and
+    # the nested ``<parent>/<name>_picongpu.profile.example`` form are tried.
+    preset_path = Path(str(preset))
+    canonical_candidates = (
+        PRESET_STORAGE_PATH / preset_path / f"{preset_path.name}_picongpu.profile.example",
+        PRESET_STORAGE_PATH / preset_path.parent / f"{preset_path.name}_picongpu.profile.example",
+    )
+    for candidate in canonical_candidates:
+        if candidate.is_file():
+            return candidate
+
     # The `or` enables the following feature:
     # `preset = "bash" is first matched against `bash/` and uniquely determines `bash/bash_picongpu.profile.example`
     # without the first option in the `or` it would be ambiguous because `bash-devServer-hzdr/...` would match as well.

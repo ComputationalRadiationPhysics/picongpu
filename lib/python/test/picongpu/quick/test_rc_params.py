@@ -5,6 +5,7 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
+import re
 import subprocess
 from copy import deepcopy
 from pathlib import Path
@@ -13,9 +14,12 @@ from tempfile import TemporaryDirectory
 from moosetash import MissingVariable
 from picongpu import DirtyResetError, _rc_params, core, rc_params
 from picongpu._rc_params import (
+    PRESET_STORAGE_PATH,
     PROFILE_PARAMETERS,
     generate_default_rc_params,
     get_preset_declared_value,
+    get_preset_name,
+    get_preset_path,
     get_profile_parameter,
     preset_default_prefill,
     search_for_in_parents,
@@ -333,6 +337,49 @@ def test_raises_on_ambiguous_preset(my_rc_params):
 def test_allows_short_name_for_unambiguous_presets(my_rc_params):
     # passes:
     my_rc_params["preset"] = "bash"
+
+
+def test_bare_bash_resolves_canonically_with_variants_present():
+    # Adding bash/spack and bash/conda must not make preset="bash" ambiguous.
+    assert get_preset_path("bash") == PRESET_STORAGE_PATH / "bash" / "bash_picongpu.profile.example"
+    assert get_preset_path("bash/bash_picongpu.profile.example") == get_preset_path("bash")
+
+
+def test_bash_variant_presets_resolve_their_own_profiles():
+    assert get_preset_path("bash/spack") == PRESET_STORAGE_PATH / "bash" / "spack_picongpu.profile.example"
+    assert get_preset_path("bash/conda") == PRESET_STORAGE_PATH / "bash" / "conda_picongpu.profile.example"
+    assert get_preset_path("bash/spack_picongpu.profile.example") == get_preset_path("bash/spack")
+
+
+def test_preset_names_are_canonical():
+    assert get_preset_name("bash/bash_picongpu.profile.example") == "bash"
+    assert get_preset_name("bash/spack_picongpu.profile.example") == "bash/spack"
+    assert get_preset_name("bash/conda_picongpu.profile.example") == "bash/conda"
+    assert get_preset_name("hemera-hzdr/gpu_picongpu.profile.example") == "hemera-hzdr/gpu"
+    assert get_preset_name("perlmutter-nersc/gpu.profile.example") == "perlmutter-nersc/gpu"
+
+
+def _exported_version_pins(profile_name):
+    text = (PRESET_STORAGE_PATH / "bash" / profile_name).read_text()
+    return dict(re.findall(r'export ([A-Z][A-Z0-9_]*_VERSION)="\$\{[A-Z0-9_]+:-([^}]*)\}"', text))
+
+
+def test_bash_profiles_share_version_pins_and_environment():
+    profiles = [
+        "bash_picongpu.profile.example",
+        "spack_picongpu.profile.example",
+        "conda_picongpu.profile.example",
+    ]
+    pins = [_exported_version_pins(name) for name in profiles]
+    assert pins[0], "failed to parse the version pins from the base profile"
+    assert pins[0] == pins[1] == pins[2]
+
+    texts = [(PRESET_STORAGE_PATH / "bash" / name).read_text() for name in profiles]
+    for line in (
+        'export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}',
+        'export PIC_BACKEND="omp2b:native"',
+    ):
+        assert all(line in text for text in texts), line
 
 
 def test_allows_file_extension_for_presets(my_rc_params):

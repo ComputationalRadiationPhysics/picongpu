@@ -1,0 +1,124 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# Self-Build Software #########################################################
+# `PIC_LIBS` is the user-writable prefix into which the compile-time
+# dependencies are installed. It is set from `rc_params['pic_libs']` when the
+# profile is rendered; `pic-deps install` builds everything below into it and
+# `pic-deps check` verifies the resulting `*_ROOT` directories.
+#
+# This variant installs the dependency set into one Conda environment at
+# `$PIC_LIBS/conda` (see dependencies_autoinstall_conda.sh); PNGwriter is built
+# on top of it because conda-forge does not ship it. You can also install the
+# dependencies yourself and point the variables below at those prefixes.
+export PIC_LIBS="${PIC_LIBS:-}"
+
+# The example can also be sourced directly. In that case adopt the
+# conventional self-build prefix only once it exists and leave `PIC_LIBS`
+# unset otherwise, so that a clean environment using system/distro packages
+# behaves exactly as before.
+if [ -z "${PIC_LIBS:-}" ] && [ -d "$HOME/pic-libs/conda" ]; then
+    export PIC_LIBS="$HOME/pic-libs"
+fi
+[ -n "${PIC_LIBS:-}" ] || unset PIC_LIBS
+
+# Only wire a self-build prefix into the environment when one is selected
+# (`PIC_LIBS` set by rc_params, the environment, or the default above). A
+# pre-set `*_ROOT` or search path is always preserved; directories that do
+# not exist yet are not added to PATH/CPATH/LD_LIBRARY_PATH/CMAKE_PREFIX_PATH,
+# so a missing prefix cannot shadow system packages.
+if [ -n "${PIC_LIBS:-}" ]; then
+    # One Conda environment holds the seven dependency roots; PNGwriter stays
+    # per-package. `PIC_DEPS_CONDA` selects micromamba/conda in the installer.
+    export CONDA_PREFIX="${CONDA_PREFIX:-$PIC_LIBS/conda}"
+
+    # Versions requested by etc/picongpu/bash/dependencies_autoinstall_conda.sh.
+    # conda-forge resolves these as constraints; `pic-deps`/the installer report
+    # the resolved versions rather than hard-failing on a missing exact match.
+    export CMAKE_VERSION="${CMAKE_VERSION:-3.31.6}"
+    export BOOST_VERSION="${BOOST_VERSION:-1.87.0}"
+    export BLOSC_VERSION="${BLOSC_VERSION:-2.22.0}"
+    export LIBPNG_VERSION="${LIBPNG_VERSION:-1.6.34}"
+    export PNGWRITER_VERSION="${PNGWRITER_VERSION:-0.7.0}"
+    export HDF5_VERSION="${HDF5_VERSION:-2.0.0}"
+    export ADIOS2_VERSION="${ADIOS2_VERSION:-2.11.0}"
+    export OPENPMD_VERSION="${OPENPMD_VERSION:-0.17.1}"
+    export FFTW_VERSION="${FFTW_VERSION:-3.3.10}"
+
+    if [ -d "$CONDA_PREFIX/bin" ]; then
+        export PATH="$CONDA_PREFIX/bin:$PATH"
+    fi
+    if [ -d "$CONDA_PREFIX/include" ]; then
+        export CPATH="$CONDA_PREFIX/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    unset _pic_lib_dir
+    if [ -d "$CONDA_PREFIX" ]; then
+        export CMAKE_PREFIX_PATH="$CONDA_PREFIX${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+    export CMAKE_ROOT="${CMAKE_ROOT:-$CONDA_PREFIX}"
+    # Open MPI from conda-forge relocates its helpers below the environment.
+    export OPAL_PREFIX="${OPAL_PREFIX:-$CONDA_PREFIX}"
+
+    # The Conda environment is all seven library roots.
+    export BOOST_ROOT="${BOOST_ROOT:-$CONDA_PREFIX}"
+    export BLOSC_ROOT="${BLOSC_ROOT:-$CONDA_PREFIX}"
+    export LIBPNG_ROOT="${LIBPNG_ROOT:-$CONDA_PREFIX}"
+    export HDF5_ROOT="${HDF5_ROOT:-$CONDA_PREFIX}"
+    export ADIOS2_ROOT="${ADIOS2_ROOT:-$CONDA_PREFIX}"
+    export OPENPMD_ROOT="${OPENPMD_ROOT:-$CONDA_PREFIX}"
+    export FFTW_ROOT="${FFTW_ROOT:-$CONDA_PREFIX}"
+
+    # PNGwriter is not on conda-forge and is built into its own prefix.
+    export PNGwriter_ROOT="${PNGwriter_ROOT:-$PIC_LIBS/pngwriter/$PNGWRITER_VERSION}"
+    if [ -d "$PNGwriter_ROOT/include" ]; then
+        export CPATH="$PNGwriter_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$PNGwriter_ROOT/lib" "$PNGwriter_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    unset _pic_lib_dir
+    if [ -d "$PNGwriter_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$PNGwriter_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+fi
+
+# MPI compiler wrappers (used by the dependency build and by CMake).
+export MPI_CC="${MPI_CC:-$(command -v mpicc || true)}"
+export MPI_CXX="${MPI_CXX:-$(command -v mpicxx || true)}"
+
+# Environment #################################################################
+#
+# running on cpu
+export PIC_BACKEND="omp2b:native"
+# For more examples on possible backends, depending on your hardware, see
+# https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
+# or the provided profiles of other systems.
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}
+
+export PICSRC="$HOME/src/picongpu"
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="bash"
+export TBG_TPLFILE="etc/picongpu/bash/mpirun.tpl"
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
