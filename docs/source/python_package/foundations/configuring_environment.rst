@@ -266,9 +266,9 @@ It needs network access and does not use environment modules or ``sudo`` for
 the libraries themselves; system packages are only installed for missing
 toolchain basics when a distro package manager is available.
 
-If you prefer Spack or Conda, choose the matching local preset variant instead;
-``pic-deps`` then runs that variant's installer and keeps the profile's roots and
-the installed prefixes in sync. Both variants are supported local recipes,
+If you prefer Spack or Conda, select the matching local preset variant;
+the same ``pic-deps install`` command as above then runs that variant's
+installer. Both variants are supported local recipes,
 not official upstream installation instructions.
 
 .. tab-set::
@@ -278,24 +278,16 @@ not official upstream installation instructions.
         .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash_spack.toml
            :language: toml
 
-        .. literalinclude:: ../snippets/configuring_environment/pic_deps_spack.sh
-           :language: bash
-           :start-after: BEGIN-PIC-DEPS-SPACK
-           :end-before: END-PIC-DEPS-SPACK
-
     .. tab-item:: Conda
 
         .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash_conda.toml
            :language: toml
 
-        .. literalinclude:: ../snippets/configuring_environment/pic_deps_conda.sh
-           :language: bash
-           :start-after: BEGIN-PIC-DEPS-CONDA
-           :end-before: END-PIC-DEPS-CONDA
-
-The Spack variant installs the same per-package ``$PIC_LIBS/<package>/<version>``
-layout as the default recipe. The Conda variant creates one conda-forge
-environment at ``$PIC_LIBS/conda``: the seven library roots point at
+The Spack variant writes the same per-package ``$PIC_LIBS/<package>/<version>``
+layout as the default recipe, so it uses a separate ``pic_libs`` prefix
+(``$HOME/pic-libs/spack``) to keep the two recipes from accepting each other's
+installs in the presence-only ``pic-deps check``. The Conda variant creates one
+conda-forge environment at ``$PIC_LIBS/conda``: the seven library roots point at
 ``$CONDA_PREFIX``, while PNGwriter is built into its own per-package prefix.
 conda-forge may not carry the exact pins; they are used as constraints and the
 installer (and ``pic-deps check``) reports the resolved versions.

@@ -45,20 +45,13 @@ Step 3: Install the Dependencies
    :end-before: END-PIC-DEPS-INSTALL
 
 ``pic-deps`` is a best-effort driver over your preset's own
-``dependencies_autoinstall*.sh`` script,
+``dependencies_autoinstall.sh``,
 building PIConGPU's compile-time dependencies.
-The ``bash`` preset ships such a script: it builds the complete module-less
-toolchain and library set into ``pic_libs``
-(a C++ compiler, CMake >= 3.28, MPI, Boost, HDF5, ADIOS2, openPMD-api, FFTW,
-libpng, c-blosc2 and PNGwriter).
-Presets that rely on system modules do not ship such a script;
-for them this step is not needed.
-If your configuration selects the ``bash/spack`` or ``bash/conda`` preset variant,
-``pic-deps`` runs that variant's installer instead; both are supported local
-recipes for the same dependency set.
+This step is only available for the presets that ship such a script
+(the cluster presets that build their toolchain from source);
+for presets that rely on system modules it is not needed.
 See :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`
-for the ``bash`` preset's dependency setup, including the Spack and Conda variants,
-and for the presets that ship with the package.
+for the presets that ship with the package.
 
 Step 4: Download the Minimal Example
 ------------------------------------

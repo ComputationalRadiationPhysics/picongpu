@@ -1,2 +1,5 @@
+# Separate prefix from the default `bash` recipe: both write the same
+# $PIC_LIBS/<package>/<version> layout, so sharing it would make the
+# presence-only checks accept each other's installs.
 preset = "bash/spack"
 pic_libs = "$HOME/pic-libs/spack"
