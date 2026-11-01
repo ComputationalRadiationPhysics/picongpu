@@ -250,6 +250,11 @@ class Renderer:
 
 
 def _allow_only_missing_type_variables(name, _):
-    if name.startswith("type_"):
+    # type discriminators are rendered as type_<kind> placeholders, e.g.
+    # "{{ type_random }}". They may also appear as the leaf of a partially
+    # missing dotted lookup (e.g. "{{ layout.type_random }}", where "layout"
+    # exists but has no "type_random" member): released moosetash >= 1.0.1
+    # reports the full dotted name to the handler, so check the leaf too.
+    if name.startswith("type_") or name.rsplit(".", 1)[-1].startswith("type_"):
         return ""
     raise MissingVariable(name)
