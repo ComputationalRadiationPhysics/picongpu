@@ -115,6 +115,7 @@ namespace picongpu
                 if constexpr(particles::collision::debugScreeningLength)
                 {
                     algorithms::GlobalReduce globalReduce(1024);
+                    globalReduce.participate(true);
                     using SqrtBox = DataBoxUnaryTransform<
                         typename GridBuffer<float1_X, simDim>::DataBoxType,
                         collision::Sqrt1DimVector>;
