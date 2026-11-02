@@ -3,7 +3,6 @@
 # requires-python = ">=3.11,<3.14"
 # dependencies = [
 #   "numpy",
-#   "sympy",
 #   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
 # ]
 # ///
@@ -19,18 +18,16 @@ from pathlib import Path
 
 from picongpu import picmi
 from scipy.constants import c
-from picongpu.picmi.distribution import GaussianDistribution, AnalyticDistribution
-from sympy import Piecewise, Abs, exp
-from picongpu.picmi.diagnostics.field_dump import (NativeFieldDump, DerivedFieldDump)
+from picongpu.picmi.diagnostics.field_dump import NativeFieldDump
 
 # BEGIN-HHG-GRID
 NUM_CELLS = np.array([1536, 4096])
-CELL_SIZE = np.array([1.6e-8, 1.6e-8]) 
+CELL_SIZE = np.array([1.6e-8, 1.6e-8])
 # dx=dy, because plasma waves propagate in both x and y, meaning you need equal resolution on both axes.
-# dx (and dy) should be a fifth of the plasma wavelenth (using a lower resolution is not recommended). 
+# dx (and dy) should be a fifth of the plasma wavelenth (using a lower resolution is not recommended).
 
 grid = picmi.Cartesian2DGrid(
-    picongpu_n_gpus=[2, 2], 
+    picongpu_n_gpus=[2, 2],
     # this simulation also runs on a single gpu
     # for larger simulations 4 gpus (picongpu_n_gpus=[2, 2]) is strongly advised.
     number_of_cells=NUM_CELLS,
@@ -46,11 +43,11 @@ solver = picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid)
 laser_duration = 2.0 * 30.0e-15 / 2.354820045
 laser_pulse_init = 10.0
 laser = picmi.DispersivePulseLaser(
-    wavelength = 800.e-9,
-    waist = 2.0e-6, #W0
-    duration = laser_duration,
-    propagation_direction = [0.0, 1.0, 0.0],
-    polarization_direction = [1.0, 0.0, 0.0],
+    wavelength=800.0e-9,
+    waist=2.0e-6,  # W0
+    duration=laser_duration,
+    propagation_direction=[0.0, 1.0, 0.0],
+    polarization_direction=[1.0, 0.0, 0.0],
     focal_position=[
         float(NUM_CELLS[0] * CELL_SIZE[0] / 2.0),
         30.0e-6,
@@ -61,19 +58,19 @@ laser = picmi.DispersivePulseLaser(
         -0.25 * laser_duration * laser_pulse_init * c,
         float(0.0),
     ],
-    picongpu_polarization_type = picmi.lasers.PolarizationType.LINEAR,
-    a0 = 40.0,
-    phi0 = 0.0,
-    picongpu_gdd_si = 0.0e-30,
-    picongpu_spectral_support = 4.0
+    picongpu_polarization_type=picmi.lasers.PolarizationType.LINEAR,
+    a0=40.0,
+    phi0=0.0,
+    picongpu_gdd_si=0.0e-30,
+    picongpu_spectral_support=4.0,
 )
 # END-HHG-LASER
 
 # BEGIN-HHG-DENSITY-DISTRIBUTION
-distribution = picmi.GaussianDistribution( 
-    density=1.742e29, 
-    #1.742e27 is the critical density at which the laser gets reflected. I use 100 times that. 
-    #In this case, the plasma wavelength is 8.0e-8 (80 nanometers, i.e. one tenth of the laser wavelength). 
+distribution = picmi.GaussianDistribution(
+    density=1.742e29,
+    # 1.742e27 is the critical density at which the laser gets reflected. I use 100 times that.
+    # In this case, the plasma wavelength is 8.0e-8 (80 nanometers, i.e. one tenth of the laser wavelength).
     center_front=3e-5,
     sigma_front=1.0e-10,
     center_rear=5e-5,
@@ -84,45 +81,13 @@ distribution = picmi.GaussianDistribution(
 )
 # END-HHG-DENSITY-DISTRIBUTION
 
-# FIXME(2026-10-23, @Kn0pf42): The following funcion is a workaround for ISSUE-5847. 
-# The gaussian distribution currently doesnt work in 2D simulations.
-# Please remove the workaround once that issue is resolved.
-
-# BEGIN-WORKAROUND
-@AnalyticDistribution
-def custom_particle_distribution(x, y, z):
-    # PIConGPU's predefined GaussianDistribution is evaluated at the center of the cell
-    y += -0.5 * CELL_SIZE[1]
-    # The last term undoes the shift to the cell origin.
-    vacuum_y = int(distribution.vacuum_front / CELL_SIZE[1]) * CELL_SIZE[1] - 0.5 * CELL_SIZE[1]
-
-    exponent = Piecewise(
-        (
-            Abs((y - distribution.center_front) / distribution.sigma_front),
-            y < distribution.center_front,
-        ),
-        (
-            Abs((y - distribution.center_rear) / distribution.sigma_rear),
-            y >= distribution.center_rear,
-        ),
-        (0.0, True),
-    )
-    return Piecewise(
-        (0.0, y < vacuum_y),
-        (
-            distribution.density * exp(distribution.factor * exponent**distribution.power),
-            True,
-        ),
-    )
-# END-WORKAROUND
-
 # BEGIN-HHG-SPECIES
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=20)
 
 electrons = picmi.Species(
     name="electrons",
     particle_type="electron",
-    initial_distribution=custom_particle_distribution,
+    initial_distribution=distribution,
 )
 # END-HHG-SPECIES
 
@@ -138,7 +103,7 @@ sim = picmi.Simulation(
     lasers=[laser],
     species=[electrons],
     layouts=[layout],
-    #interactions=[adk],
+    # interactions=[adk],
     diagnostics=[checkpoint, electric_field_dump],
 )
 # END-HHG-SIMULATION
