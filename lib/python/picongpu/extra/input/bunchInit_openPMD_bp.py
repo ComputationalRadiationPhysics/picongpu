@@ -359,53 +359,6 @@ class addParticles2Checkpoint:
         run_pipe.run()
 
 
-class Chunk:
-    """
-    A Chunk is an n-dimensional hypercube, defined by an offset and an extent.
-    Offset and extent must be of the same dimensionality (Chunk.__len__).
-    """
-
-    def __init__(self, offset, extent):
-        """
-        Inititalization of the slicing class.
-
-        Arguments:
-        offset: array
-                offsets of each slice
-        extent: array
-                extent of each slice
-
-        """
-        assert len(offset) == len(extent)
-        self.offset = offset
-        self.extent = extent
-
-    def __len__(self):
-        return len(self.offset)
-
-    def slice1D(self):
-        """
-        Slice this chunk into a hypercube along the dimension with
-        the largest extent on this hypercube.
-
-        Return:
-        the 0'th of the sliced chunks.
-        """
-        # pick that dimension which has the highest count of items
-        dimension = 0
-        maximum = self.extent[0]
-        for k, v in enumerate(self.extent):
-            if v > maximum:
-                dimension = k
-        assert dimension < len(self)
-        # no offset
-        assert self.offset == [0 for _ in range(len(self))]
-        offset = [0 for _ in range(len(self))]
-        extent = self.extent.copy()
-
-        return Chunk(offset, extent)
-
-
 class particle_patch_load:
     """
     A deferred load/store operation for a particle patch.
