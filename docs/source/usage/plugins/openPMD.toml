@@ -10,6 +10,19 @@ data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationS
                                            # default is "doubleBuffer"
 range = "10,:,:"   # replaces --openPMD.range
                    # default is ":,:,:"
+late_init = false   # replaces --openPMD.lateInit,
+                    # default is true
+                    # If true, the output Series is opened when needed instead of directly at
+                    # simulation startup. Configuration parsing and validation still happen at startup.
+                    # Set to false to also open the output Series (and validate the backend configuration
+                    # against the openPMD API) at simulation startup.
+empty_output_iteration_at = -1 # replaces --openPMD.emptyOutputIterationAt,
+                               # default is -1 (disabled)
+                               # If set to a time step >= 0, the complete plugin is run once at that time step
+                               # without writing any mesh or particle data, creating only the openPMD Iteration.
+                               # Useful for early verification that the IO has been configured correctly.
+                               # For checkpoints, the time step must additionally be included in the
+                               # checkpointing period, else this parameter is ignored.
 
 
 # Periods and data sources are specified independently per reading application

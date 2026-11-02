@@ -24,6 +24,7 @@
 #include <pmacc/pluginSystem/INotify.hpp>
 
 #include <memory>
+#include <variant>
 
 namespace picongpu
 {
@@ -41,8 +42,40 @@ namespace picongpu
              */
             struct IInstance : public pmacc::INotify
             {
+                struct RegularInstance
+                {
+                };
+
+                // This currently refers only to output checkpoint instances.
+                // Input, i.e. read instances are not supported in initPlugin(),
+                // since those are run at simulation start anyway.
+                struct CheckpointInstance
+                {
+                    std::string filename;
+                    std::string directory;
+                };
+
+                using InstanceKind = std::variant<RegularInstance, CheckpointInstance>;
+
                 //! must be implemented by the user
                 static std::shared_ptr<IHelp> getHelp();
+
+                /** Initialize the plugin instance.
+                 *
+                 * This is called once while the plugins are loaded, i.e. before
+                 * the simulation starts (time step zero), independent of when the
+                 * plugin is first executed. Plugins can parse and validate
+                 * their configuration here so that configuration errors are
+                 * reported early instead of only at the first notification.
+                 *
+                 * For checkpointing plugins, this currently only supports the
+                 * output side of the plugin, since restarts run at simulation
+                 * start anyway. If a restart takes place, initInstance() is
+                 * called after the successful restart.
+                 */
+                virtual void initInstance(InstanceKind)
+                {
+                }
 
                 //! restart the plugin from a checkpoint
                 virtual void restart(uint32_t restartStep, std::string const& restartDirectory) = 0;

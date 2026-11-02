@@ -21,9 +21,11 @@
 
 #include "picongpu/plugins/openPMD/Parameters.hpp"
 
+#include <any>
 #include <cstdint>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <tuple>
@@ -36,11 +38,40 @@ namespace picongpu
 {
     namespace toml
     {
-        struct TomlParameter
+        /* TOML parameters split into interface ITomlParameter and implementation TomlParameter<TargetType> because a
+         * parameter might have different types (string, int, boolean flags, ...). */
+        struct ITomlParameter
         {
             std::string optionName;
-            std::string openPMD::PluginParameters::* destination;
+
+            ITomlParameter(std::string optionName_in) : optionName(std::move(optionName_in))
+            {
+            }
+
+            virtual ~ITomlParameter() = default;
+
+            virtual void parseOption(std::any tomlConfig, openPMD::PluginParameters& options) const = 0;
         };
+
+        template<typename TargetType>
+        struct TomlParameter : ITomlParameter
+        {
+            TargetType openPMD::PluginParameters::* destination;
+
+            TomlParameter(std::string optionName_in, TargetType openPMD::PluginParameters::* destination_in)
+                : ITomlParameter{std::move(optionName_in)}
+                , destination(destination_in)
+            {
+            }
+
+            void parseOption(std::any tomlConfig, openPMD::PluginParameters& options) const override;
+        };
+
+        template<typename TargetType, typename... Args>
+        auto makeTomlParameter(Args&&... args) -> std::unique_ptr<ITomlParameter>
+        {
+            return std::unique_ptr<ITomlParameter>(new TomlParameter<TargetType>{std::forward<Args>(args)...});
+        }
 
         // We can't use pmacc::pluginSystem::Slice in a hostonly file due to PIConGPU include structure
         // so reimplement it here
@@ -74,7 +105,7 @@ namespace picongpu
 
             DataSources(
                 std::string const& tomlFile,
-                std::vector<picongpu::toml::TomlParameter> tomlParameters,
+                std::vector<std::unique_ptr<picongpu::toml::ITomlParameter>> tomlParameters,
                 std::vector<std::string> const& allowedDataSources,
                 MPI_Comm comm,
                 openPMD::PluginParameters pluginParameters);

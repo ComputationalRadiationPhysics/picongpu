@@ -141,6 +141,13 @@ namespace pmacc
             uint32_t currentStep = fillSimulation();
             Environment<>::get().SimulationDescription().setCurrentStep(currentStep);
 
+            /* Notify plugins that the simulation has been initialized or
+             * restarted, i.e. after the restart (if any) and before the first
+             * time step. Plugins may use this to act on the final initial
+             * state, e.g. checkpoint backends can perform early initialization for their output handles now.
+             */
+            Environment<>::get().PluginConnector().simulationStartPlugins();
+
             /* Ensure all ranks finished the initialization.
              * This synchronization costs a little bit time but possible errors during the initialization will be
              * easier to hunt because the rank that outputs timings will only show the timing for the initialization if
@@ -259,6 +266,13 @@ namespace pmacc
     {
         Environment<>::get().SimulationDescription().setRunSteps(runSteps);
         Environment<>::get().SimulationDescription().setAuthor(author);
+
+        // Make the checkpointing configuration available to plugins (e.g. the
+        // checkpoint IO-backends) before they are loaded, so that they can skip
+        // initialization of unused I/O capabilities.
+        auto& simulationDescription = Environment<>::get().SimulationDescription();
+        simulationDescription.setCheckpointingConfigured(checkpointing.isCheckpointingConfigured());
+        simulationDescription.setCheckpointDirectory(checkpointing.getCheckpointDir());
 
         calcProgress();
         progressStepPeriodEnabled = !progressPeriod.empty();
