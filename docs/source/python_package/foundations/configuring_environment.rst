@@ -291,6 +291,16 @@ conda-forge environment at ``$PIC_LIBS/conda``: the seven library roots point at
 ``$CONDA_PREFIX``, while PNGwriter is built into its own per-package prefix.
 conda-forge may not carry the exact pins; they are used as constraints and the
 installer (and ``pic-deps check``) reports the resolved versions.
+The Conda profile initializes the manager's shell hook
+(``micromamba`` preferred, then ``conda``) and activates ``$PIC_LIBS/conda``
+whenever that environment exists, so ``PATH``, ``CONDA_PREFIX`` and the
+packages' activation hooks come from the environment itself.
+The ``*_ROOT`` variables and PNGwriter's search paths are still exported
+because ``pic-deps check`` uses them as install guards and CMake's
+``find_package`` reads them; PNGwriter is not part of the conda-forge
+environment.
+If no manager is available or the environment does not exist yet,
+the profile falls back to wiring ``$PIC_LIBS/conda`` manually.
 
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^

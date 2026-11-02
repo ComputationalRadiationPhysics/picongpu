@@ -241,6 +241,7 @@ def test_rendering_profile_with_incomplete_info_can_trigger_custom_handler(my_rc
 
 _PROFILE_ENV_VARS = (
     "PIC_LIBS",
+    "CONDA_PREFIX",
     "CMAKE_ROOT",
     "BOOST_ROOT",
     "BLOSC_ROOT",
@@ -256,17 +257,28 @@ _PROFILE_ENV_VARS = (
 )
 
 
-def _source_bash_profile(home, **env):
-    profile = core.path("etc") / "picongpu" / "bash" / "bash_picongpu.profile.example"
-    body = "\n".join(f'printf "%s=%s\\n" {v} "${{{v}-<UNSET>}}"' for v in _PROFILE_ENV_VARS)
+def _source_profile(profile, home, variables, path="/usr/local/bin:/usr/bin:/bin", **env):
+    body = "\n".join(f'printf "%s=%s\\n" {v} "${{{v}-<UNSET>}}"' for v in variables)
     proc = subprocess.run(
         ["bash", "--noprofile", "--norc", "-c", f'source "$1" >/dev/null 2>&1\n{body}', "_", profile],
-        env={"HOME": str(home), "PATH": "/usr/local/bin:/usr/bin:/bin", **env},
+        env={"HOME": str(home), "PATH": path, **env},
         capture_output=True,
         text=True,
         check=True,
     )
     return dict(line.split("=", 1) for line in proc.stdout.splitlines())
+
+
+def _source_bash_profile(home, **env):
+    profile = core.path("etc") / "picongpu" / "bash" / "bash_picongpu.profile.example"
+    return _source_profile(profile, home, _PROFILE_ENV_VARS, **env)
+
+
+_CONDA_PROFILE = core.path("etc") / "picongpu" / "bash" / "conda_picongpu.profile.example"
+
+
+def _source_conda_profile(home, variables=_PROFILE_ENV_VARS, **kwargs):
+    return _source_profile(_CONDA_PROFILE, home, variables, **kwargs)
 
 
 def test_bash_profile_leaves_a_clean_environment_untouched(tmp_path):
@@ -294,6 +306,148 @@ def test_bash_profile_preserves_pre_set_roots_and_search_paths(tmp_path):
     assert values["CMAKE_PREFIX_PATH"] == "/opt/pfx"
     assert values["CPATH"] == "/opt/inc"
     assert values["LD_LIBRARY_PATH"] == "/opt/lib"
+
+
+_MICROMAMBA_STUB = """#!/bin/bash
+if [ "$1" = "shell" ] && [ "$2" = "hook" ]; then
+    cat <<'HOOK'
+micromamba() {
+    if [ "$1" = "activate" ]; then
+        export CONDA_PREFIX="$2"
+        export PATH="$2/bin:$PATH"
+        export PIC_TEST_ACTIVATED=micromamba
+    else
+        return 1
+    fi
+}
+HOOK
+else
+    exit 1
+fi
+"""
+
+_CONDA_STUB = """#!/bin/bash
+if [ "$1" = "shell.bash" ] && [ "$2" = "hook" ]; then
+    cat <<'HOOK'
+conda() {
+    if [ "$1" = "activate" ]; then
+        export CONDA_PREFIX="$2"
+        export PATH="$2/bin:$PATH"
+        export PIC_TEST_ACTIVATED=conda
+    else
+        return 1
+    fi
+}
+HOOK
+else
+    exit 1
+fi
+"""
+
+
+def _write_executable(directory, name, content):
+    path = directory / name
+    path.write_text(content)
+    path.chmod(0o755)
+    return path
+
+
+def _make_conda_layout(home):
+    pic_libs = home / "pic-libs"
+    env = pic_libs / "conda"
+    for sub in ("bin", "include", "lib"):
+        (env / sub).mkdir(parents=True)
+    pngwriter = pic_libs / "pngwriter" / "0.7.0"
+    for sub in ("include", "lib"):
+        (pngwriter / sub).mkdir(parents=True)
+    return pic_libs, env, pngwriter
+
+
+def _conda_values(home, path, **env):
+    return _source_conda_profile(
+        home,
+        variables=_PROFILE_ENV_VARS + ("PIC_TEST_ACTIVATED", "PATH"),
+        path=path,
+        **env,
+    )
+
+
+def test_conda_profile_activates_the_selected_environment(tmp_path):
+    pic_libs, env, pngwriter = _make_conda_layout(tmp_path)
+    stub = tmp_path / "stub"
+    stub.mkdir()
+    _write_executable(stub, "micromamba", _MICROMAMBA_STUB)
+
+    values = _conda_values(
+        tmp_path,
+        f"{stub}:/usr/local/bin:/usr/bin:/bin",
+        PIC_LIBS=str(pic_libs),
+    )
+
+    assert values["PIC_TEST_ACTIVATED"] == "micromamba"
+    assert values["CONDA_PREFIX"] == str(env)
+    assert str(env / "bin") in values["PATH"].split(":")
+    for root in ("BOOST_ROOT", "BLOSC_ROOT", "LIBPNG_ROOT", "HDF5_ROOT", "ADIOS2_ROOT", "OPENPMD_ROOT", "FFTW_ROOT"):
+        assert values[root] == str(env), root
+    assert values["PNGwriter_ROOT"] == str(pngwriter)
+    assert values["CPATH"].split(":")[0] == str(pngwriter / "include")
+
+
+def test_conda_profile_falls_back_to_conda_activation(tmp_path):
+    pic_libs, env, _ = _make_conda_layout(tmp_path)
+    stub = tmp_path / "stub"
+    stub.mkdir()
+    _write_executable(stub, "conda", _CONDA_STUB)
+
+    values = _conda_values(
+        tmp_path,
+        f"{stub}:/usr/local/bin:/usr/bin:/bin",
+        PIC_LIBS=str(pic_libs),
+    )
+
+    assert values["PIC_TEST_ACTIVATED"] == "conda"
+    assert values["CONDA_PREFIX"] == str(env)
+    assert values["BOOST_ROOT"] == str(env)
+
+
+def test_conda_profile_falls_back_to_manual_wiring_without_manager(tmp_path):
+    pic_libs, env, pngwriter = _make_conda_layout(tmp_path)
+
+    values = _conda_values(tmp_path, "/usr/local/bin:/usr/bin:/bin", PIC_LIBS=str(pic_libs))
+
+    assert values["PIC_TEST_ACTIVATED"] == "<UNSET>"
+    assert values["CONDA_PREFIX"] == str(env)
+    assert str(env / "bin") in values["PATH"].split(":")
+    assert values["CPATH"].split(":")[0] == str(pngwriter / "include")
+    assert str(env / "include") in values["CPATH"].split(":")
+    assert values["LD_LIBRARY_PATH"].split(":")[0] == str(pngwriter / "lib")
+    assert str(env / "lib") in values["LD_LIBRARY_PATH"].split(":")
+    assert values["CMAKE_PREFIX_PATH"].split(":")[0] == str(pngwriter)
+    assert str(env) in values["CMAKE_PREFIX_PATH"].split(":")
+    assert values["BOOST_ROOT"] == str(env)
+
+
+def test_conda_profile_falls_back_when_environment_is_missing(tmp_path):
+    pic_libs = tmp_path / "pic-libs"
+    stub = tmp_path / "stub"
+    stub.mkdir()
+    _write_executable(stub, "micromamba", _MICROMAMBA_STUB)
+
+    values = _conda_values(
+        tmp_path,
+        f"{stub}:/usr/local/bin:/usr/bin:/bin",
+        PIC_LIBS=str(pic_libs),
+    )
+
+    assert values["PIC_TEST_ACTIVATED"] == "<UNSET>"
+    assert values["CONDA_PREFIX"] == str(pic_libs / "conda")
+    assert values["BOOST_ROOT"] == str(pic_libs / "conda")
+    assert str(pic_libs / "conda" / "bin") not in values["PATH"].split(":")
+
+
+def test_conda_profile_leaves_a_clean_environment_untouched(tmp_path):
+    values = _source_conda_profile(tmp_path)
+    assert values == {v: "<UNSET>" for v in _PROFILE_ENV_VARS}
 
 
 def test_bash_profile_is_reproduced(my_rc_params):

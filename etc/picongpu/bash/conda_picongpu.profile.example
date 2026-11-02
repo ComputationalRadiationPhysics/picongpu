@@ -30,8 +30,7 @@ fi
 if [ -n "${PIC_LIBS:-}" ]; then
     # One Conda environment holds the seven dependency roots; PNGwriter stays
     # per-package. `PIC_DEPS_CONDA` selects micromamba/conda in the installer.
-    export CONDA_PREFIX="${CONDA_PREFIX:-$PIC_LIBS/conda}"
-
+    #
     # Versions requested by etc/picongpu/bash/dependencies_autoinstall_conda.sh.
     # conda-forge resolves these as constraints; `pic-deps`/the installer report
     # the resolved versions rather than hard-failing on a missing exact match.
@@ -45,24 +44,55 @@ if [ -n "${PIC_LIBS:-}" ]; then
     export OPENPMD_VERSION="${OPENPMD_VERSION:-0.17.1}"
     export FFTW_VERSION="${FFTW_VERSION:-3.3.10}"
 
-    if [ -d "$CONDA_PREFIX/bin" ]; then
-        export PATH="$CONDA_PREFIX/bin:$PATH"
-    fi
-    if [ -d "$CONDA_PREFIX/include" ]; then
-        export CPATH="$CONDA_PREFIX/include${CPATH:+:$CPATH}"
-    fi
-    for _pic_lib_dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64"; do
-        if [ -d "$_pic_lib_dir" ]; then
-            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    _pic_conda_env="$PIC_LIBS/conda"
+    _pic_conda_activated=0
+    if [ -d "$_pic_conda_env" ]; then
+        # Prefer micromamba, fall back to conda. Initialising the shell hook
+        # makes `activate` work in a non-interactive shell; activation then
+        # sets PATH and CONDA_PREFIX and runs the packages' activation hooks
+        # instead of us re-creating the environment by hand.
+        if command -v micromamba >/dev/null 2>&1; then
+            eval "$(micromamba shell hook -s bash)" >/dev/null 2>&1 \
+                && micromamba activate "$_pic_conda_env" >/dev/null 2>&1 \
+                && _pic_conda_activated=1
         fi
-    done
-    unset _pic_lib_dir
-    if [ -d "$CONDA_PREFIX" ]; then
-        export CMAKE_PREFIX_PATH="$CONDA_PREFIX${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+        if [ "$_pic_conda_activated" -eq 0 ] && command -v conda >/dev/null 2>&1; then
+            eval "$(conda shell.bash hook)" >/dev/null 2>&1 \
+                && conda activate "$_pic_conda_env" >/dev/null 2>&1 \
+                && _pic_conda_activated=1
+        fi
     fi
-    export CMAKE_ROOT="${CMAKE_ROOT:-$CONDA_PREFIX}"
-    # Open MPI from conda-forge relocates its helpers below the environment.
-    export OPAL_PREFIX="${OPAL_PREFIX:-$CONDA_PREFIX}"
+
+    if [ "$_pic_conda_activated" -eq 1 ]; then
+        # Activation provides PATH, CONDA_PREFIX and the packages' own
+        # activation hooks. Export only what `pic-deps check` and CMake still
+        # need: the seven `*_ROOT` guards below (find_package reads them),
+        # CMAKE_ROOT and the relocated Open MPI helper prefix.
+        export CMAKE_ROOT="${CMAKE_ROOT:-$CONDA_PREFIX}"
+        export OPAL_PREFIX="${OPAL_PREFIX:-$CONDA_PREFIX}"
+    else
+        # Fallback: no manager available or the environment does not exist yet.
+        # Wire the prefix manually, exactly as before activation support.
+        export CONDA_PREFIX="${CONDA_PREFIX:-$_pic_conda_env}"
+
+        if [ -d "$CONDA_PREFIX/bin" ]; then
+            export PATH="$CONDA_PREFIX/bin:$PATH"
+        fi
+        if [ -d "$CONDA_PREFIX/include" ]; then
+            export CPATH="$CONDA_PREFIX/include${CPATH:+:$CPATH}"
+        fi
+        for _pic_lib_dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64"; do
+            if [ -d "$_pic_lib_dir" ]; then
+                export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+            fi
+        done
+        if [ -d "$CONDA_PREFIX" ]; then
+            export CMAKE_PREFIX_PATH="$CONDA_PREFIX${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+        fi
+        export CMAKE_ROOT="${CMAKE_ROOT:-$CONDA_PREFIX}"
+        # Open MPI from conda-forge relocates its helpers below the environment.
+        export OPAL_PREFIX="${OPAL_PREFIX:-$CONDA_PREFIX}"
+    fi
 
     # The Conda environment is all seven library roots.
     export BOOST_ROOT="${BOOST_ROOT:-$CONDA_PREFIX}"
@@ -73,7 +103,8 @@ if [ -n "${PIC_LIBS:-}" ]; then
     export OPENPMD_ROOT="${OPENPMD_ROOT:-$CONDA_PREFIX}"
     export FFTW_ROOT="${FFTW_ROOT:-$CONDA_PREFIX}"
 
-    # PNGwriter is not on conda-forge and is built into its own prefix.
+    # PNGwriter is not on conda-forge and is built into its own prefix. It is
+    # not part of the activated environment, so its search paths stay manual.
     export PNGwriter_ROOT="${PNGwriter_ROOT:-$PIC_LIBS/pngwriter/$PNGWRITER_VERSION}"
     if [ -d "$PNGwriter_ROOT/include" ]; then
         export CPATH="$PNGwriter_ROOT/include${CPATH:+:$CPATH}"
@@ -83,10 +114,10 @@ if [ -n "${PIC_LIBS:-}" ]; then
             export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
         fi
     done
-    unset _pic_lib_dir
     if [ -d "$PNGwriter_ROOT" ]; then
         export CMAKE_PREFIX_PATH="$PNGwriter_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
     fi
+    unset _pic_lib_dir _pic_conda_env _pic_conda_activated
 fi
 
 # MPI compiler wrappers (used by the dependency build and by CMake).
