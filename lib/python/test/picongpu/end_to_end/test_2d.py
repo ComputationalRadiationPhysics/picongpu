@@ -55,7 +55,7 @@ def basic_simulation():
     )
     sim.add_species(electrons, layout=PseudoRandomLayout(n_macroparticles_per_cell=2))
 
-    laser_duration = 26.0e-15
+    laser_duration = 2 * 26.0e-15
     pulse_init = 15.0
     laser = GaussianLaser(
         wavelength=800e-9,
@@ -66,7 +66,7 @@ def basic_simulation():
         focal_position=[NUMBER_OF_CELLS[0] * CELL_SIZE / 2.0, NUMBER_OF_CELLS[1] * CELL_SIZE / 2.0, 0.0],
         centroid_position=[
             NUMBER_OF_CELLS[0] * CELL_SIZE / 2.0,
-            -0.5 * pulse_init * laser_duration * c,
+            -0.25 * pulse_init * laser_duration * c,
             0.0,
         ],
         picongpu_polarization_type=PolarizationType.LINEAR,
