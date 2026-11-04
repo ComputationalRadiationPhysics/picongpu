@@ -1,0 +1,46 @@
+/* Copyright 2013-2024 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Test-only precision override for the analytic Poisson regression test.
+ *
+ * The production default remains 32-bit (include/picongpu/param/precision.param).
+ * This input set selects 64-bit for the simulation data so that the residual R
+ * reflects the solver and the analytic setup, not the float32 rounding floor of
+ * the charge-density right-hand side. On hal (A30, sm_80) the float32 runs had
+ * a coherent RHS scale bias of -5.2e-7 / -2.4e-6 / -7.4e-6, which puts R at
+ * 2.4e-6..7.4e-6 and above the 1e-6 limit. With 64-bit data that bias is far
+ * below the limit.
+ */
+
+#pragma once
+
+#include <picongpu/simulation_types.hpp>
+
+namespace picongpu
+{
+    namespace precisionPIConGPU = precision64Bit;
+
+    namespace precisionSqrt = precisionPIConGPU;
+    namespace precisionExp = precisionPIConGPU;
+    namespace precisionTrigonometric = precisionPIConGPU;
+} // namespace picongpu
+
+#include "picongpu/unitless/precision.unitless"
