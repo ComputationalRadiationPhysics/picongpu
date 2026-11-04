@@ -290,12 +290,44 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
 
     Only the Bi-CGSTAB Poisson solver is supported; solver options that PIConGPU
     does not implement are rejected at construction time.
-    """
+
+    Explanation for boundary condition applied by the Poisson solver.
+
+    Available choices are:
+     - homogeneous_dirichlet: zero potential on the boundary.
+       Recommended for situations with high total charge and much space around it.
+     - dirichlet: prescribed boundary potential from a
+       user-defined function.
+       Recommended for situations where the boundary potential can be
+       estimated beforehand.
+       Implement the boundary_function to define the boundary potential.
+     - homogeneous_neumann: zero normal derivative on the
+       boundary.
+       Warning: This can only be used if the total charge is close to zero,
+       otherwise it will not lead to correct results.
+       Recommended for close to charge neutral starting plasmas.
+     - neumann: prescribed normal derivative from a
+       user-defined function
+       Recommended for cases where the normal electric field at the boundary
+       can be estimated beforehand.
+       Warning: This requires that the total charge in the volume is equal or
+       close to the sum over the values the boundary_function provides.
+       Implement the boundary_function to define the outward normal derivative of
+       the potential at the boundary.
+
+    The selected condition is applied to all non-periodic faces. Periodic faces
+    are still periodic.
+    Warning: If only periodic faces are used the total charge needs to be close to
+    or equal to zero. Include at least one dirichlet boundary to calculate the field
+    for strongly charged starting conditions.
+    """  # good enough explanation?
 
     required_precision: Annotated[float, Field(..., gt=0.0)] = 1e-8
     maximum_iterations: Annotated[int, Field(..., gt=0)] = 2000
     preconditioner: Literal["chebyshev", "none"] = "chebyshev"
     preconditioner_maximum_iterations: Annotated[int, Field(..., gt=0)] = 20
+    boundary_condition: Literal["dirichlet", "homogeneous_dirichlet", "neumann", "homogeneous_neumann"] = "dirichlet"
+    boundary_function: Annotated[str, Field(..., min_length=1)] = "0.0"
 
     def get_as_pypicongpu(self) -> PoissonSolver:
         return PoissonSolver(
@@ -303,4 +335,6 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
             max_steps=self.maximum_iterations,
             preconditioner=self.preconditioner,
             preconditioner_max_steps=self.preconditioner_maximum_iterations,
+            boundary_condition=self.boundary_condition,
+            boundary_function=self.boundary_function,
         )
