@@ -41,7 +41,7 @@ namespace picongpu::fields::poissonSolver
      * If set to false, the solver stage is skipped and the electric field is
      * not recomputed in this stage.
      */
-    constexpr bool useSolver = false;
+    constexpr bool useSolver = true;
 
     /** Maximum number of BiCGSTAB iterations for the Poisson solve.
      *

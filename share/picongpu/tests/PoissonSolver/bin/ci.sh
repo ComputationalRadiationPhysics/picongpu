@@ -126,56 +126,56 @@ if [ $ret_build -eq 0 ] ; then
   echo "Simulation path: " $simPath"/"
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 512 128 --periodic 0 0 0 -s 4 \
   --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataOpen
-  ret_sim1=$?
-  if [ $ret_sim1 -ne 0 ] ; then
+  ret_simopen=$?
+  if [ $ret_simopen -ne 0 ] ; then
     echo "running open simulation failed" >&2
   fi
 
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 512 128 --periodic 1 1 1 -s 4 \
   --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataPeriodic
 
-  if [ $ret_sim2 -ne 0 ] ; then
+  if [ $ret_simperiodic -ne 0 ] ; then
     echo "running periodic simulation failed" >&2
   fi
-  if [ $ret_sim1 -eq 0 ] && [ $ret_sim2 -eq 0 ] ; then
+  if [ $ret_simopen -eq 0 ] && [ $ret_simperiodic -eq 0 ] ; then
     echo "simulations finished"
   fi
 
   cd ..
   # validate the results
   if [ -d "./lib/python/test/" ] ; then
-    if [ $ret_sim1 -eq 0 ] ; then
+    if [ $ret_simopen -eq 0 ] ; then
       echo "validating open simulation test"
       python3 ./lib/python/test/validate_results.py -r $simPath -b open
-      ret_val1=$?
-      if [ $ret_val1 -eq 0 ] ; then
+      ret_valopen=$?
+      if [ $ret_valopen -eq 0 ] ; then
         echo "test successfully validated"
       else
         echo "test validation failed"
       fi
     fi
-    if [ $ret_sim2 -eq 0 ] ; then
+    if [ $ret_simperiodic -eq 0 ] ; then
       echo "validating periodic simulation test"
       python3 ./lib/python/test/validate_results.py -r $simPath -b periodic
-      ret_val2=$?
-      if [ $ret_val2 -eq 0 ] ; then
+      ret_valperiodic=$?
+      if [ $ret_valperiodic -eq 0 ] ; then
         echo "test successfully validated"
       else
         echo "test validation failed"
       fi
     fi
 
-    if [ $ret_sim1 -ne 0 ] ; then
-      exit $ret_sim1
+    if [ $ret_simopen -ne 0 ] ; then
+      exit $ret_simopen
     fi
-    if [ $ret_sim2 -ne 0 ] ; then
-      exit $ret_sim2
+    if [ $ret_simperiodic -ne 0 ] ; then
+      exit $ret_simperiodic
     fi
-    if [ $ret_val1 -ne 0 ] ; then
-      exit $ret_val1
+    if [ $ret_valopen -ne 0 ] ; then
+      exit $ret_valopen
     fi
-    if [ $ret_val2 -ne 0 ] ; then
-      exit $ret_val2
+    if [ $ret_valperiodic -ne 0 ] ; then
+      exit $ret_valperiodic
     fi
     echo "all successful"
     exit 0
