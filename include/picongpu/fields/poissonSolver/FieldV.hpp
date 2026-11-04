@@ -28,6 +28,14 @@
 
 namespace picongpu::fields::poissonSolver
 {
+    /** Electrostatic potential produced by the Poisson solver.
+     *
+     * @warning FieldV is not checkpointed. A simulation restart therefore begins
+     *          with V = 0 (the device buffer is zero-initialised in Poisson::init
+     *          and is not restored from the checkpoint). The electric field is
+     *          checkpointed separately, but the potential itself is not, so any
+     *          analysis that reads V after a restart sees an empty potential.
+     */
     struct FieldV : pmacc::ISimulationData
     {
         using ValueType = float_64;

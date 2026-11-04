@@ -158,9 +158,6 @@ namespace picongpu
             fieldBackground->registerHelp(desc);
             particleBoundaries.registerHelp(desc);
             runtimeDensityFile.registerHelp(desc);
-
-            poissonSolver = std::make_shared<simulation::stage::Poisson>();
-            poissonSolver->registerHelp(desc);
         }
 
         void startSimulation() override
@@ -348,6 +345,7 @@ namespace picongpu
             runtimeDensityFile.init();
 
             // create memory for poisson solver
+            poissonSolver = std::make_shared<simulation::stage::Poisson>();
             poissonSolver->init(*cellDescription);
 
             // create factory for the random number generator

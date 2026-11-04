@@ -25,6 +25,7 @@
 #include "picongpu/fields/FieldTmpOperations.hpp"
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
 #include "picongpu/fields/poissonSolver/FieldV.hpp"
+#include "picongpu/param/poissonSolver.param"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/param.hpp"
 
@@ -51,8 +52,6 @@ namespace picongpu::simulation::stage
         Poisson();
 
         void init(picongpu::MappingDesc const mappingDesc);
-
-        void registerHelp(po::options_description& desc);
 
         /** Compute the current created by particles and add it to the current
          *  density
@@ -93,12 +92,12 @@ namespace picongpu::simulation::stage
         mpi::MPIReduce mpiReduce;
         std::unique_ptr<pmacc::device::Reduce> localReduce;
 
-        // defaults will be overwritten by command line arguments
-        bool m_useSolver = false;
-        uint32_t m_maxSolverSteps = 20;
-        float_64 m_solverTolerance = 1.0e-8;
+        // get the solver parameters from the param file
+        bool m_useSolver = fields::poissonSolver::useSolver;
+        uint32_t m_maxSolverSteps = fields::poissonSolver::maxSolverSteps;
+        float_64 m_solverTolerance = fields::poissonSolver::solverTolerance;
 
-        bool m_disablePreconditioner = false;
-        uint32_t m_maxPreconditionerSteps = 20;
+        bool m_disablePreconditioner = fields::poissonSolver::disablePreconditioner;
+        uint32_t m_maxPreconditionerSteps = fields::poissonSolver::maxPreconditionerSteps;
     };
 } // namespace picongpu::simulation::stage

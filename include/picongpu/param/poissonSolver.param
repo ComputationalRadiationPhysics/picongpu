@@ -1,0 +1,122 @@
+/* Copyright 2026 Edgar Marquardt
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configure the Poisson solver and its boundary conditions.
+ *
+ * The Poisson stage solves for the electrostatic potential and computes the
+ * electric field only at simulation step 0 to establish the starting
+ * conditions. The solver is a preconditioned BiCGSTAB method with a
+ * Chebyshev preconditioner.
+ *
+ * The selected boundary condition is applied on all non-periodic domain faces.
+ * Periodic directions are handled by the communicator configuration.
+ */
+
+#pragma once
+
+#include "picongpu/fields/poissonSolver/BoundaryConditions.hpp"
+
+namespace picongpu::fields::poissonSolver
+{
+    /** Enable the Poisson solver.
+     *
+     * If set to false, the solver stage is skipped and the electric field is
+     * not recomputed in this stage.
+     */
+    constexpr bool useSolver = false;
+
+    /** Maximum number of BiCGSTAB iterations for the Poisson solve.
+     *
+     * If the residual is not reduced below solverTolerance within this limit,
+     * the solver stops and reports a convergence failure.
+     */
+    constexpr uint32_t maxSolverSteps = 2000;
+
+    /** Target residual tolerance for the Poisson problem.
+     *
+     * The right-hand side is normalized before convergence checks, so this
+     * threshold applies to the normalized residual of the solve.
+     */
+    constexpr float_64 solverTolerance = 1.0e-8;
+
+    /** Disable the Chebyshev preconditioner.
+     *
+     * Leaving this disabled may increase the number of iterations needed for
+     * convergence and can make difficult cases harder to solve.
+     */
+    constexpr bool disablePreconditioner = false;
+
+    /** Number of iterations used in the Chebyshev preconditioner.
+     *
+     * Higher values can improve the preconditioner quality, but also increase
+     * the cost per solver iteration.
+     */
+    constexpr uint32_t maxPreconditionerSteps = 20;
+
+    /** Boundary condition applied by the Poisson solver.
+     *
+     * Available choices are:
+     * - BoundaryConditionsHomogenousDirichlet: zero potential on the boundary.
+     *   Recommended for situations with high total charge and much space around it.
+     * - BoundaryConditionsDirichlet<BoundaryFunction>: prescribed boundary potential from a
+     *   user-defined function.
+     *   Recommended for situations where the boundary potential can be
+     *   estimated beforehand.
+     *   Implement the BoundaryFunction to define the boundary potential.
+     * - BoundaryConditionsHomogenousNeumann: zero normal derivative on the
+     *   boundary.
+     *   Warning: This can only be used if the total charge is close to zero,
+     *   otherwise it will not lead to correct results.
+     *   Recommended for close to charge neutral starting plasmas.
+     * - BoundaryConditionsNeumann<BoundaryFunction>: prescribed normal derivative from a
+     *   user-defined function
+     *   Recommended for cases where the normal electric field at the boundary
+     *   can be estimated beforehand.
+     *   Warning: This requires that the total charge in the volume is equal or
+     *   close to the sum over the values the BoundaryFunction provides.
+     *   Implement the BoundaryFunction to define the outward normal derivative of
+     *   the potential at the boundary.
+     *
+     * The selected condition is applied to all non-periodic faces. Periodic faces
+     * are still periodic.
+     * Warning: If only periodic faces are used the total charge needs to be close to
+     * or equal to zero. Include at least one dirichlet boundary to calculate the field
+     * for strongly charged starting conditions.
+     */
+    using BoundaryConditions = BoundaryConditionsHomogenousDirichlet;
+
+    /** Example boundary-value function.
+     *
+     * For Dirichlet conditions, the return value is the prescribed boundary
+     * potential. For Neumann conditions, the return value is the outward-normal
+     * derivative of the potential, i.e. the boundary flux.
+     */
+    struct BoundaryFunction
+    {
+        HDINLINE auto operator()(
+            math::Vector<double, simDim> const& totalCellCoordinate,
+            DataSpace<simDim> const& outwardNormal) const
+        {
+            return 0.0;
+        }
+    };
+
+} // namespace picongpu::fields::poissonSolver
