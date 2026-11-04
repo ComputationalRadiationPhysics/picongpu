@@ -80,10 +80,6 @@ spacing = np.array(m["e_all_chargeDensity"].get_attribute("gridSpacing"))[::-1] 
     "e_all_chargeDensity"
 ].get_attribute("gridUnitSI")
 
-x = (np.arange(rho.shape[0]) - (rho.shape[0] - 1) / 2) * spacing[0]
-y = (np.arange(rho.shape[1]) - (rho.shape[1] - 1) / 2) * spacing[1]
-z = (np.arange(rho.shape[2]) - (rho.shape[2] - 1) / 2) * spacing[2]
-
 # collect electric field
 E_x = m["E"]["x"][:, :, :]
 E_y = m["E"]["y"][:, :, :]
@@ -117,13 +113,13 @@ diff *= epsilon_0
 err = np.abs(diff[1:-1, 1:-1, 1:-1] - rho[1:-1, 1:-1, 1:-1])
 print("maximum absolute error:", np.max(err))
 
-abs_tol = 3e2
-rel_tol = 2e-4
+abs_tol = 1e2
+rel_tol = 1e-4
 
 rerr = np.where(
     rho[1:-1, 1:-1, 1:-1] > 0,
     np.abs(np.maximum(err - abs_tol, np.zeros((*err.shape,))) / rho[1:-1, 1:-1, 1:-1]),
-    np.maximum(err - abs_tol, np.zeros((*err.shape,))),
+    np.maximum(err - abs_tol, np.zeros((*err.shape,))) / np.max(np.abs(rho[1:-1, 1:-1, 1:-1])),
 )
 
 print("maximum relative error:", np.max(rerr))
@@ -132,6 +128,12 @@ print(
     np.max(rerr[np.abs(diff[1:-1, 1:-1, 1:-1]) > 1e-3 * np.max(np.abs(diff))]),
 )
 
+np.testing.assert_allclose(
+    diff[1:-1, 1:-1, 1:-1],
+    rho[1:-1, 1:-1, 1:-1],
+    rtol=rel_tol,
+    atol=abs_tol,
+)
 if np.max(rerr[np.abs(diff[1:-1, 1:-1, 1:-1]) > 1e-3 * np.max(np.abs(diff))]) > rel_tol:
     print("relative error too high!")
     sys.exit(1)

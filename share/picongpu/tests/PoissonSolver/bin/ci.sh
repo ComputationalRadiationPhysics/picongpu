@@ -125,15 +125,14 @@ if [ $ret_build -eq 0 ] ; then
   # run the simulation
   echo "Simulation path: " $simPath"/"
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 512 128 --periodic 0 0 0 -s 4 \
-  --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataOpen --poisson.activate
+  --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataOpen
   ret_sim1=$?
   if [ $ret_sim1 -ne 0 ] ; then
     echo "running open simulation failed" >&2
   fi
 
   mpiexec -n 1 ../bin/picongpu -d 1 1 1 -g 128 512 128 --periodic 1 1 1 -s 4 \
-  --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataPeriodic --poisson.activate
-  ret_sim2=$?
+  --openPMD.period 8 --openPMD.ext bp --openPMD.file simDataPeriodic
 
   if [ $ret_sim2 -ne 0 ] ; then
     echo "running periodic simulation failed" >&2

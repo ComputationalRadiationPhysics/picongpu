@@ -32,6 +32,7 @@
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/collision.param"
 #include "picongpu/param/fieldSolver.param"
+#include "picongpu/param/poissonSolver.param"
 
 #include "picongpu/unitless/density.unitless"
 #include "picongpu/unitless/particle.unitless"

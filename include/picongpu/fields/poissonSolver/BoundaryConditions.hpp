@@ -27,29 +27,10 @@
 #include <pmacc/mappings/kernel/ExchangeMapping.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
 
+#include <string>
+
 namespace picongpu::fields::poissonSolver
 {
-    struct BoundaryFunction
-    {
-        // gives the potential at the boundary, given the total cell coordinate for Dirichlet BCs and the outward
-        // normal derivative for Neumann BCs change this function to implement different boundary conditions. for
-        // Dirichlet BCs use units of potential, for Neumann BCs use units of potential per length. maybe make this a
-        // param file parameter in the future
-        HDINLINE auto operator()(
-            math::Vector<double, 3u> const& totalCellCoordinate,
-            DataSpace<3u> const& outwardNormal) const
-        {
-            return 0.0;
-        }
-
-        HDINLINE auto operator()(
-            math::Vector<double, 2u> const& totalCellCoordinate,
-            DataSpace<2u> const& outwardNormal) const
-        {
-            return 0.0;
-        }
-    };
-
     struct ApplyDirichletBCsFromFunctionKernel
     {
         DINLINE auto operator()(
@@ -238,7 +219,7 @@ namespace picongpu::fields::poissonSolver
         }
     };
 
-    template<typename T_Kernel, typename T_Buffer>
+    template<typename T_Kernel, typename T_BoundaryFunction, typename T_Buffer>
     void applyBoundaryConditions(
         T_Buffer& buffer,
         MappingDesc const& cellDescription,
@@ -259,7 +240,7 @@ namespace picongpu::fields::poissonSolver
                 PMACC_LOCKSTEP_KERNEL(T_Kernel{})
                     .config(mapper.getGridDim(), SuperCellSize{})(
                         buffer.getDeviceBuffer().getDataBox(),
-                        BoundaryFunction{},
+                        T_BoundaryFunction{},
                         cellOffsetToTotalOrigin,
                         normalizationFactor,
                         mapper);
@@ -370,19 +351,30 @@ namespace picongpu::fields::poissonSolver
         }
     } // namespace detail
 
+    struct _ZeroFunction
+    {
+        DINLINE float_64 operator()(auto const& position, auto const& normal) const
+        {
+            return 0.0;
+        }
+    };
+
+    template<typename T_BoundaryFunction>
     struct BoundaryConditionsDirichlet
     {
+        static constexpr std::string_view name = "inhomogeneous (user-defined) Dirichlet";
+
         // Solver work buffers use homogeneous BCs; FieldV uses BoundaryFunction below.
         template<typename T_Buffer>
         void operator()(T_Buffer& buffer, MappingDesc const& cellDescription) const
         {
-            applyBoundaryConditions<ApplyDirichletBCsHomogeneousKernel>(buffer, cellDescription);
+            applyBoundaryConditions<ApplyDirichletBCsHomogeneousKernel, _ZeroFunction>(buffer, cellDescription);
         }
 
         void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
             const
         {
-            applyBoundaryConditions<ApplyDirichletBCsFromFunctionKernel>(
+            applyBoundaryConditions<ApplyDirichletBCsFromFunctionKernel, T_BoundaryFunction>(
                 *fieldV.fieldVBuffer,
                 cellDescription,
                 normalizationFactor);
@@ -412,31 +404,37 @@ namespace picongpu::fields::poissonSolver
         }
     };
 
-    struct BoundaryConditionsHomogenousDirichlet : BoundaryConditionsDirichlet
+    struct BoundaryConditionsHomogenousDirichlet : BoundaryConditionsDirichlet<_ZeroFunction>
     {
+        static constexpr std::string_view name = "homogeneous Dirichlet";
+        using BoundaryConditionsDirichlet::operator();
+
         void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
             const
         {
-            applyBoundaryConditions<ApplyDirichletBCsHomogeneousKernel>(
+            applyBoundaryConditions<ApplyDirichletBCsHomogeneousKernel, _ZeroFunction>(
                 *fieldV.fieldVBuffer,
                 cellDescription,
                 normalizationFactor);
         }
     };
 
+    template<typename T_BoundaryFunction>
     struct BoundaryConditionsNeumann
     {
+        static constexpr std::string_view name = "inhomogeneous (user-defined) Neumann";
+
         // Solver work buffers use homogeneous BCs; FieldV uses BoundaryFunction below.
         template<typename T_Buffer>
         void operator()(T_Buffer& buffer, MappingDesc const& cellDescription) const
         {
-            applyBoundaryConditions<ApplyNeumannBCsHomogeneousKernel>(buffer, cellDescription);
+            applyBoundaryConditions<ApplyNeumannBCsHomogeneousKernel, _ZeroFunction>(buffer, cellDescription);
         }
 
         void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
             const
         {
-            applyBoundaryConditions<ApplyNeumannBCsFromFunctionKernel>(
+            applyBoundaryConditions<ApplyNeumannBCsFromFunctionKernel, T_BoundaryFunction>(
                 *fieldV.fieldVBuffer,
                 cellDescription,
                 normalizationFactor);
@@ -459,7 +457,7 @@ namespace picongpu::fields::poissonSolver
             auto const spacing = cellSize.template shrink<simDim>();
             auto const numVertices = globalDomainSize.productOfComponents();
 
-            BoundaryFunction const boundaryFunction{};
+            T_BoundaryFunction const boundaryFunction{};
             float_64 boundaryFluxSum = 0.0;
 
             for(uint32_t d = 0; d < simDim; ++d)
@@ -500,12 +498,15 @@ namespace picongpu::fields::poissonSolver
         }
     };
 
-    struct BoundaryConditionsHomogenousNeumann : BoundaryConditionsNeumann
+    struct BoundaryConditionsHomogenousNeumann : BoundaryConditionsNeumann<_ZeroFunction>
     {
+        static constexpr std::string_view name = "homogeneous Neumann";
+        using BoundaryConditionsNeumann::operator();
+
         void operator()(FieldV& fieldV, MappingDesc const& cellDescription, float_64 const& normalizationFactor = 1.0)
             const
         {
-            applyBoundaryConditions<ApplyNeumannBCsHomogeneousKernel>(
+            applyBoundaryConditions<ApplyNeumannBCsHomogeneousKernel, _ZeroFunction>(
                 *fieldV.fieldVBuffer,
                 cellDescription,
                 normalizationFactor);
@@ -517,8 +518,5 @@ namespace picongpu::fields::poissonSolver
         }
     };
 
-    // Use Neumann boundary conditions for the Poisson solver by default.
-    // Change this to BoundaryConditionsDirichlet to use Dirichlet boundary conditions instead.
-    // maybe make this a param file parameter in the future
-    using BoundaryConditions = BoundaryConditionsNeumann;
+    // See the param file for which boundary conditions are used.
 } // namespace picongpu::fields::poissonSolver
