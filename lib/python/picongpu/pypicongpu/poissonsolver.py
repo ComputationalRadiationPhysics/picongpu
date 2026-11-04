@@ -29,6 +29,21 @@ class PoissonSolver(RenderedObject, BaseModel):
     preconditioner_max_steps: Annotated[int, Field(..., gt=0)]
     """maximum number of iterations for the preconditioner"""
 
+    boundary_condition: Literal["dirichlet", "homogeneous_dirichlet", "neumann", "homogeneous_neumann"]
+    """boundary condition for the non-periodic boundaries in the Poisson solver"""
+
+    boundary_function: Annotated[str, Field(..., min_length=1)] = "0.0"
+    """function for the boundary condition in the Poisson solver"""
+
     @computed_field
     def preconditioner_disabled(self) -> bool:
         return self.preconditioner == "none"
+
+    @computed_field
+    def boundary_conditions_cpp(self) -> str:
+        return {
+            "dirichlet": "BoundaryConditionsDirichlet<BoundaryFunction>",
+            "homogeneous_dirichlet": "BoundaryConditionsHomogeneousDirichlet",
+            "neumann": "BoundaryConditionsNeumann<BoundaryFunction>",
+            "homogeneous_neumann": "BoundaryConditionsHomogeneousNeumann",
+        }[self.boundary_condition]
