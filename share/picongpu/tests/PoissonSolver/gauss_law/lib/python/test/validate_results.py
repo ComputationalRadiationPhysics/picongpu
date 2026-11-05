@@ -75,6 +75,11 @@ rho_i *= m["i_all_chargeDensity"].get_attribute("unitSI")
 rho = rho_e + rho_i
 rho = np.transpose(rho)
 
+if args.boundary == "periodic":
+    rho_av = np.average(rho)
+    print("removing average rho", rho_av)
+    rho -= rho_av
+
 # get the grid parameters
 spacing = np.array(m["e_all_chargeDensity"].get_attribute("gridSpacing"))[::-1] * m[
     "e_all_chargeDensity"
