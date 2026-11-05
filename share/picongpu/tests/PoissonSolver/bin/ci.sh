@@ -214,4 +214,4 @@ run_analytic_case A "$analytic_neumann_build/bin/picongpu" 1 1 1 A
 run_analytic_case B "$analytic_dirichlet_build/bin/picongpu" 0 0 0 B
 run_analytic_case C "$analytic_dirichlet_build/bin/picongpu" 0 1 1 C
 
-echo "All existing and analytic Poisson tests passed."
+echo "All gauss-law and analytic Poisson tests passed."
