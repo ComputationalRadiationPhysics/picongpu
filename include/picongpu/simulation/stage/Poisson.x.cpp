@@ -26,6 +26,7 @@
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
 #include "picongpu/fields/poissonSolver/BoundaryConditions.hpp"
 #include "picongpu/fields/poissonSolver/Stencil.hpp"
+#include "picongpu/param/poissonSolver.param"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/param.hpp"
 #include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
