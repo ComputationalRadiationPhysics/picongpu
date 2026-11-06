@@ -39,3 +39,12 @@
   tags:
     - cuda
     - x86_64
+
+# CUDA 13 dropped offline compilation below sm_75, runtime jobs are executed on the
+# A100 (sm_80), see `nvidia_gpu_ci_runner_sm_level` in share/ci/n_wise_generator.py
+.base_clangCuda_cuda_run_a100:
+  extends: .base_clangCuda_cuda_run
+  tags:
+    - a100
+    - cuda
+    - x86_64
