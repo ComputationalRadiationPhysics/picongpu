@@ -46,7 +46,7 @@ help()
     echo "-b | --backend        - set compute backend and optionally the architecture"
     echo "                        syntax: backend[:architecture]"
     echo "                        supported backends: cuda, hip, omp2b, serial, tbb, threads"
-    echo "                        (e.g.: \"cuda:35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
+    echo "                        (e.g.: \"cuda:60\" or \"cuda:80;90\" or \"omp2b:native\" or \"omp2b\")"
     echo "                        default: \"cuda\" if not set via environment variable PIC_BACKEND"
     echo "                        note: architecture names are compiler dependent"
     echo "-c | --cmake          - overwrite options for cmake"
@@ -55,6 +55,18 @@ help()
     echo "-f | --force          - clear the cmake file cache and scan for new param files"
     echo "-G <cmakeBuildSystem> - select the build system used by CMake, e.g. Ninja, ..."
     echo "-h | --help           - show this help message"
+}
+
+# CUDA 13 dropped offline compilation for compute capabilities below sm_75
+get_default_cuda_arch()
+{
+    cuda_major=$( (nvcc --version 2>/dev/null || true) \
+        | sed -n 's/.*release \([0-9]\{1,\}\)\..*/\1/p' | head -n 1 )
+    if [ -n "$cuda_major" ] && [ "$cuda_major" -ge 13 ] ; then
+        echo 75
+    else
+        echo 60
+    fi
 }
 
 get_backend_flags()
@@ -74,7 +86,7 @@ get_backend_flags()
         if [ $num_options -eq 2 ] ; then
             result+=" -DCMAKE_CUDA_ARCHITECTURES=${backend_cfg[1]}"
         else
-            result+=" -DCMAKE_CUDA_ARCHITECTURES=60"
+            result+=" -DCMAKE_CUDA_ARCHITECTURES=$(get_default_cuda_arch)"
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON -DPMACC_ASYNC_QUEUES=OFF"

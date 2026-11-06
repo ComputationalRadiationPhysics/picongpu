@@ -283,6 +283,13 @@ boost_libs_all = [
 
 operating_system = [("ubuntu", 22.04), ("ubuntu", 24.04)]
 
+# compute capability of the GPU of the Nvidia A100 CI runner, all CUDA >= 13
+# runtime jobs are scheduled on this runner, see share/ci/compiler_*_cuda.yml
+# (.base_*_cuda_run_a100). Alpaka's CI generator pins the SM level of its runners
+# in the same way, see
+# thirdParty/alpaka/script/job_generator/src/alpaka_bashi/ci_yaml/variables.py
+nvidia_gpu_ci_runner_sm_level = "80"
+
 if args.limit_boost_versions:
     # select each second but keep the order
     boost_libs = boost_libs_all[-1::-2][::-1]
@@ -347,6 +354,10 @@ for stage in range(num_stages):
             os_name = pairs[2][0]
             os_version = get_version(pairs[2])
             image_prefix = "_run" if folder == "pmacc" or folder == "unit" else "_compile"
+            # CUDA 13 dropped offline compilation below sm_75, so all runtime jobs for
+            # those toolkits are scheduled on the A100 runner
+            if backend == "cuda" and image_prefix == "_run" and v_cuda_hip >= 13.0:
+                image_prefix = "_run_a100"
             job_name = (
                 compiler + "_" + backend + v_cuda_hip_str + "_boost" + boost_version + "_" + folder.replace("/", ".")
             )
@@ -359,7 +370,18 @@ for stage in range(num_stages):
             if backend == "hip":
                 print("    HIP_CONTAINER_VERSION: '" + v_cuda_hip_str + "'")
             print("    PIC_TEST_CASE_FOLDER: '" + folder + "'")
-            print("    PIC_BACKEND: '" + backend + "'")
+            # runtime jobs are compiled for the GPU of the runner they are scheduled
+            # on, see share/ci/compiler_*_cuda.yml, and do not rely on PTX being
+            # embedded in the binary. Alpaka's CI generator pins the SM level of its
+            # runners in the same way.
+            if image_prefix == "_run_a100":
+                print("    PIC_BACKEND: 'cuda:" + nvidia_gpu_ci_runner_sm_level + "'")
+            # CUDA 13 dropped offline compilation below sm_75: compile only jobs
+            # request the minimum compute capability the toolkit still supports.
+            elif backend == "cuda" and v_cuda_hip >= 13.0:
+                print("    PIC_BACKEND: 'cuda:75'")
+            else:
+                print("    PIC_BACKEND: '" + backend + "'")
             print("    BOOST_VERSION: '" + boost_version + "'")
             print("    CXX_VERSION: '" + compiler + "'")
             print("    CXX_PREFIX_PATH: '/usr/lib/x86_64-linux-gnu/openmpi'")

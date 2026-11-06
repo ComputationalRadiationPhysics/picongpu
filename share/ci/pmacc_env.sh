@@ -63,9 +63,7 @@ else
 fi
 
 if [[ "$PIC_BACKEND" =~ hip.* ]] || [[ "$PIC_BACKEND" =~ cuda.* ]] ; then
-    if [ -n "$CI_GPU_ARCH" ] ; then
-        export PIC_BACKEND="${PIC_BACKEND}:${CI_GPU_ARCH}"
-    fi
+    export PIC_BACKEND="$(add_ci_gpu_arch "$PIC_BACKEND")"
 fi
 
 alpaka_backend=$(get_backend_flags ${PIC_BACKEND})
