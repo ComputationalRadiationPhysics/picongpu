@@ -4,6 +4,23 @@
 # translate PIConGPU backend names into CMake Flags
 ###################################################
 
+# CUDA 13 dropped offline compilation for Maxwell, Pascal and Volta, i.e. for
+# compute capabilities below Turing (sm_75), so sm_60 is not buildable anymore
+# with those toolkits. Older toolkits keep using sm_60, which is PIConGPU's
+# minimum compute capability, and it stays the fallback when the toolkit
+# version can not be detected.
+# https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#deprecated-architectures
+get_default_cuda_arch()
+{
+    cuda_major=$( (nvcc --version 2>/dev/null || true) \
+        | sed -n 's/.*release \([0-9]\{1,\}\)\..*/\1/p' | head -n 1 )
+    if [ -n "$cuda_major" ] && [ "$cuda_major" -ge 13 ] ; then
+        echo 75
+    else
+        echo 60
+    fi
+}
+
 get_backend_flags()
 {
     backend_cfg=(${1//:/ })
@@ -17,7 +34,7 @@ get_backend_flags()
         if [ $num_options -eq 2 ] ; then
             result+=" -DCMAKE_CUDA_ARCHITECTURES=${backend_cfg[1]}"
         else
-            result+=" -DCMAKE_CUDA_ARCHITECTURES=60"
+            result+=" -DCMAKE_CUDA_ARCHITECTURES=$(get_default_cuda_arch)"
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -Dalpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
