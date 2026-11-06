@@ -1,6 +1,8 @@
 ################################################################################
-#   [g++-X] : X = {11, 12, 13, 14, 15}
-# nvcc restricted to the gcc versions supported by the CUDA toolkit
+#   [g++-X]     : X = {11, 12, 13, 14, 15}
+#   [clang++-X] : X = {15, ..., 21}
+# nvcc restricted to the host compiler versions supported by the CUDA toolkit
+# clang++ is used as nvcc host compiler, the device compiler stays nvcc
 
 .base_nvcc:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-cuda${CUDA_CONTAINER_VERSION}-gcc-pic:${CONTAINER_TAG}
@@ -17,7 +19,7 @@
     - apt update
     - apt install -y curl libjpeg-dev
     - source $CI_PROJECT_DIR/share/ci/install/cmake.sh
-    - source $CI_PROJECT_DIR/share/ci/install/gcc.sh
+    - source $CI_PROJECT_DIR/share/ci/install/host_compiler.sh
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile
     - source $CI_PROJECT_DIR/share/ci/install/openPMD.sh

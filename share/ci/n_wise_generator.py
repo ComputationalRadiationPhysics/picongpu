@@ -56,7 +56,7 @@ def get_version(tuple):
 image_dict = {
     "g++": ".base_gcc",
     "g++_nvcc": ".base_nvcc",
-    "clang++_nvcc": ".base_clangCuda",
+    "clang++_nvcc": ".base_nvcc",
     "clang++": ".base_clang",
     "clang++_clangCuda": ".base_clangCuda",
     "clang++_hipcc": ".base_hipcc",
@@ -100,21 +100,9 @@ def is_valid_combination(row):
         os_name = row[2][0] if n >= 3 else ""
         os_version = get_version(row[2]) if n >= 3 else 0
 
-        # old OS versions' base compiler does not fully support C++20
-        if os_name == "ubuntu" and os_version <= 20.04:
-            return False
-
-        # CI nvcc image is not shipped with clang++
-        # clang_cuda images can currently not be used because
-        # the base image is setting -DALPAKA_CUDA_COMPILER=clang
-        if is_nvcc and is_clang:
-            return False
-
         # hipcc is only valid in one combination
         if is_hip:
             if is_hipcc and is_clang:
-                if v_hip < 6.0:
-                    return False
                 if 6.0 <= v_hip <= 6.1 and v_compiler == 17 and os_version == 22.04:
                     return True
                 if v_hip == 6.2 and v_compiler == 18 and os_version == 22.04:
@@ -158,9 +146,6 @@ def is_valid_combination(row):
 
         # nvcc compatibility
         if is_cuda and is_nvcc:
-            # for C++20 support CUDA >= 12 is required
-            if v_cuda < 12.0:
-                return False
             # ubuntu 22.04 is only supported for HIP and is checked before in this filter function
             if os_name == "ubuntu" and os_version <= 22.04:
                 return False
@@ -171,9 +156,6 @@ def is_valid_combination(row):
                 #   error: invalid combination of type specifiers
                 #     typedef float _Float32;
                 if 12.4 == v_cuda and v_compiler == 13:
-                    return False
-                # for C++20 add least gcc 10 is required
-                if v_compiler < 10:
                     return False
                 # gcc 12 shows issues with std::variant for cuda versions <12.4
                 # but should be in principle supported
@@ -186,13 +168,30 @@ def is_valid_combination(row):
                 if 13.0 <= v_cuda <= 13.3 and v_compiler <= 15:
                     return True
 
+            # clang++ as nvcc host compiler, limited to the maximum version
+            # nvcc accepts as host compiler for the given toolkit, taken from
+            # the table 'Supported Compilers' (x86_64) of the 'Host Compiler
+            # Support Policy' in the installation guide of each release,
+            # https://docs.nvidia.com/cuda/archive/<version>/cuda-installation-guide-linux
+            # all clang versions in `clang_compiers` support C++20, see the
+            # 'Supported C++ Dialects' section of the same document
+            # update these ranges when a CUDA version is added to `backends`,
+            # toolkits which are not listed are not combined with clang++ as
+            # nvcc host compiler
             if is_clang:
-                if v_cuda == 12.0 and v_compiler == 10:
-                    return True
-                if v_cuda == 12.1 and v_compiler == 14:
-                    return True
-                if v_cuda == 12.2 and v_compiler == 15:
-                    return True
+                if os_name == "ubuntu" and os_version == 24.04:
+                    if v_cuda == 12.3 and v_compiler <= 16:
+                        return True
+                    if 12.4 <= v_cuda <= 12.5 and v_compiler <= 17:
+                        return True
+                    if v_cuda == 12.6 and v_compiler <= 18:
+                        return True
+                    if 12.8 <= v_cuda <= 12.9 and v_compiler <= 19:
+                        return True
+                    if v_cuda == 13.0 and v_compiler <= 20:
+                        return True
+                    if 13.1 <= v_cuda <= 13.3 and v_compiler <= 21:
+                        return True
 
             return False
 
@@ -346,6 +345,11 @@ for stage in range(num_stages):
             print("{:2d}: {}".format(i, pairs))
         else:
             compiler = pairs[0][0] + "-" + str(pairs[0][1])
+            # the device compiler is part of the job name, otherwise e.g.
+            # clang++-20 as nvcc host compiler and clang++-20 as CUDA device
+            # compiler generate the same job name
+            device_compiler = pairs[0][2] if len(pairs[0]) == 3 else ""
+            job_compiler = compiler + ("-" + device_compiler if device_compiler else "")
             backend = pairs[1][0]
             boost_version = pairs[3]
             folder = pairs[4]
@@ -355,7 +359,14 @@ for stage in range(num_stages):
             os_version = get_version(pairs[2])
             image_prefix = "_run" if folder == "pmacc" or folder == "unit" else "_compile"
             job_name = (
-                compiler + "_" + backend + v_cuda_hip_str + "_boost" + boost_version + "_" + folder.replace("/", ".")
+                job_compiler
+                + "_"
+                + backend
+                + v_cuda_hip_str
+                + "_boost"
+                + boost_version
+                + "_"
+                + folder.replace("/", ".")
             )
             print(job_name + ":")
             print("  stage: job_{}".format(stage))
