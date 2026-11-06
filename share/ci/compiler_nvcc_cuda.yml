@@ -2,7 +2,10 @@
 #   [g++-X]     : X = {11, 12, 13, 14, 15}
 #   [clang++-X] : X = {16, ..., 21}
 # nvcc restricted to the host compiler versions supported by the CUDA toolkit
-# clang++ is used as nvcc host compiler, the device compiler stays nvcc
+# clang++ as nvcc host compiler is temporarily disabled, see
+# share/ci/n_wise_generator.py - nvcc rejects kernel arguments with `const`
+# class-type members as not trivially copyable when clang++ is the host
+# compiler. The device compiler is always nvcc here.
 
 .base_nvcc:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-cuda${CUDA_CONTAINER_VERSION}-gcc-pic:${CONTAINER_TAG}
