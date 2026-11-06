@@ -56,7 +56,6 @@ def get_version(tuple):
 image_dict = {
     "g++": ".base_gcc",
     "g++_nvcc": ".base_nvcc",
-    "clang++_nvcc": ".base_clangCuda",
     "clang++": ".base_clang",
     "clang++_clangCuda": ".base_clangCuda",
     "clang++_hipcc": ".base_hipcc",
@@ -102,12 +101,6 @@ def is_valid_combination(row):
 
         # old OS versions' base compiler does not fully support C++20
         if os_name == "ubuntu" and os_version <= 20.04:
-            return False
-
-        # CI nvcc image is not shipped with clang++
-        # clang_cuda images can currently not be used because
-        # the base image is setting -DALPAKA_CUDA_COMPILER=clang
-        if is_nvcc and is_clang:
             return False
 
         # hipcc is only valid in one combination
@@ -172,7 +165,7 @@ def is_valid_combination(row):
                 #     typedef float _Float32;
                 if 12.4 == v_cuda and v_compiler == 13:
                     return False
-                # for C++20 add least gcc 10 is required
+                # for C++20 at least gcc 10 is required
                 if v_compiler < 10:
                     return False
                 # gcc 12 shows issues with std::variant for cuda versions <12.4
@@ -186,19 +179,11 @@ def is_valid_combination(row):
                 if 13.0 <= v_cuda <= 13.3 and v_compiler <= 15:
                     return True
 
-            if is_clang:
-                if v_cuda == 12.0 and v_compiler == 10:
-                    return True
-                if v_cuda == 12.1 and v_compiler == 14:
-                    return True
-                if v_cuda == 12.2 and v_compiler == 15:
-                    return True
-
             return False
 
         # clang as host compiler
         if is_clang:
-            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 15:
+            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 16:
                 return True
             return False
 
@@ -213,39 +198,36 @@ def is_valid_combination(row):
 
 # compiler list
 # tuple with two components (compiler name, version)
-clang_compiers = [
-    ("clang++", 15),
+clang_compilers = [
     ("clang++", 16),
     ("clang++", 17),
     ("clang++", 18),
     ("clang++", 19),
-    # clang >= 20 requires an additional apt.llvm.org source, see share/ci/install/clang.sh
     ("clang++", 20),
     ("clang++", 21),
     ("clang++", 22),
     ("clang++", 23),
 ]
 gnu_compilers = [("g++", 11), ("g++", 12), ("g++", 13), ("g++", 14), ("g++", 15), ("g++", 16)]
-compilers = [clang_compiers, gnu_compilers]
+compilers = [clang_compilers, gnu_compilers]
 
 # generate clang cuda compiler list
 # add third component with the device compiler name
 cuda_clang_compilers = []
-for i in clang_compiers:
+for i in clang_compilers:
     cuda_clang_compilers.append(i + ("clangCuda",))
 compilers.append(cuda_clang_compilers)
 
-# nvcc compiler
+# nvcc with GCC as host compiler. With Clang as host, nvcc incorrectly rejects
+# kernel arguments with const class-type members as not trivially copyable.
 cuda_nvcc_compilers = []
-for i in clang_compiers:
-    cuda_nvcc_compilers.append(i + ("nvcc",))
 for i in gnu_compilers:
     cuda_nvcc_compilers.append(i + ("nvcc",))
 compilers.append(cuda_nvcc_compilers)
 
 # hipcc compiler
 hip_clang_compilers = []
-for i in clang_compiers:
+for i in clang_compilers:
     hip_clang_compilers.append(i + ("hipcc",))
 compilers.append(hip_clang_compilers)
 
