@@ -171,6 +171,10 @@ def is_valid_combination(row):
                     return True
                 if 12.4 <= v_cuda <= 12.6 and v_compiler <= 13:
                     return True
+                if 12.8 <= v_cuda <= 12.9 and v_compiler <= 14:
+                    return True
+                if 13.0 <= v_cuda <= 13.3 and v_compiler <= 15:
+                    return True
 
             if is_clang:
                 if v_cuda == 12.0 and v_compiler == 10:
@@ -250,6 +254,12 @@ backends = [
     ("cuda", 12.4),
     ("cuda", 12.5),
     ("cuda", 12.6),
+    ("cuda", 12.8),
+    ("cuda", 12.9),
+    ("cuda", 13.0),
+    ("cuda", 13.1),
+    ("cuda", 13.2),
+    ("cuda", 13.3),
     ("omp2b",),
     ("serial",),
 ]

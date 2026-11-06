@@ -14,8 +14,9 @@
     GIT_CONFIG_KEY_0: "http.https://github.com.version"
     GIT_CONFIG_VALUE_0: "HTTP/1.1"
   script:
-    #  fix apt error: libomp-10-dev : Depends: libomp5-10 (= 1:10.0.0-4ubuntu1~18.04.2) but it is not going to be installed
-    - sed -i -e '1,2d' /etc/apt/sources.list.d/llvm.list
+    # the container images >= 4.1 no longer ship an llvm apt source, the clang
+    # package is either provided by ubuntu or installed from apt.llvm.org,
+    # see share/ci/install/clang.sh
     - apt update
     - apt install -y curl libjpeg-dev
     - source $CI_PROJECT_DIR/share/ci/install/cmake.sh
