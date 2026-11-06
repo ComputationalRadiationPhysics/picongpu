@@ -92,6 +92,15 @@ def is_valid_combination(row):
         is_cuda = True if row[1][0] == "cuda" else False
         v_cuda = get_version(row[1])
 
+        # clang++ as nvcc host compiler is temporarily disabled, see
+        # share/ci/compiler_nvcc_cuda.yml: nvcc (EDG) then reports kernel
+        # arguments with `const` class-type members as not trivially copyable.
+        # The compatibility ranges below and the installation in
+        # share/ci/install/host_compiler.sh are kept, re-enabling is a matter of
+        # removing this early return.
+        if is_nvcc and is_clang:
+            return False
+
         # hipcc
         is_hipcc = True if len(row[0]) == 3 and row[0][2] == "hipcc" else False
         is_hip = True if row[1][0] == "hip" else False
