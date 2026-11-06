@@ -35,7 +35,7 @@ dependencies = [
   "moosetash==1.0.1",
   "mpmath>=1.3",
   "numpy>=1.26.2",
-  "openpmd-api>=0.16.1",
+  "openpmd-api>=0.17.0",
   "pandas>=2.2.3",
   "particle>=0.25.1",
   "periodictable>=1.7.1",
