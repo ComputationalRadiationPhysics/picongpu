@@ -1,5 +1,5 @@
 ################################################################################
-#   [g++-X] : X = {11, 12, 13}
+#   [g++-X] : X = {11, 12, 13, 14, 15}
 # nvcc restricted to the gcc versions supported by the CUDA toolkit
 
 .base_nvcc:
