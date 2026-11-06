@@ -1,6 +1,7 @@
 ################################################################################
-#   [clang++-X] : X = {18}
-# cuda9.2Clang is not supporting clang-7
+#   [clang++-X] : X = {18, 19, 20, 21, 22, 23}
+# clang releases may be combined with the range of CUDA versions they support,
+# up to their highest partially supported one
 
 .base_cuda_clang:
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-cuda${CUDA_CONTAINER_VERSION}-pic:${CONTAINER_TAG}

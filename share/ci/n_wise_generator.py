@@ -142,7 +142,17 @@ def is_valid_combination(row):
                 return False
             if not is_cuda:
                 return False
-            if 12.0 <= v_cuda <= 12.3 and v_compiler == 18:
+            if v_cuda == 12.3 and v_compiler == 18:  # fully supported <= 12.3
+                return True
+            if 12.3 <= v_cuda <= 12.5 and v_compiler == 19:  # fully <= 12.3, partially <= 12.5
+                return True
+            if 12.3 <= v_cuda <= 12.8 and v_compiler == 20:  # fully <= 12.3, partially <= 12.8
+                return True
+            if 12.3 <= v_cuda <= 12.8 and v_compiler == 21:  # fully <= 12.3, partially <= 12.8
+                return True
+            if 12.3 <= v_cuda <= 12.9 and v_compiler == 22:  # fully <= 12.8, partially <= 12.9
+                return True
+            if 12.3 <= v_cuda <= 13.2 and v_compiler == 23:  # fully == partially <= 13.2
                 return True
             return False
 
