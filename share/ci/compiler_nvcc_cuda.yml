@@ -1,6 +1,6 @@
 ################################################################################
 #   [g++-X]     : X = {11, 12, 13, 14, 15}
-#   [clang++-X] : X = {15, ..., 21}
+#   [clang++-X] : X = {16, ..., 21}
 # nvcc restricted to the host compiler versions supported by the CUDA toolkit
 # clang++ is used as nvcc host compiler, the device compiler stays nvcc
 

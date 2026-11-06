@@ -197,7 +197,7 @@ def is_valid_combination(row):
 
         # clang as host compiler
         if is_clang:
-            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 15:
+            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 16:
                 return True
             return False
 
@@ -213,7 +213,6 @@ def is_valid_combination(row):
 # compiler list
 # tuple with two components (compiler name, version)
 clang_compiers = [
-    ("clang++", 15),
     ("clang++", 16),
     ("clang++", 17),
     ("clang++", 18),
