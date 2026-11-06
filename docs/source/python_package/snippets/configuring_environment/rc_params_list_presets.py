@@ -14,19 +14,22 @@ License: GPLv3+
 
 # BEGIN-RC-LIST-PRESETS
 from picongpu import core
+from picongpu._rc_params import get_preset_name
 
 # list the names of the presets that can be given to rc_params["preset"]:
-# a system directory with a single profile example is a preset by itself,
-# a system directory with several profile examples contributes one preset per file
-for entry in sorted((core.path("etc") / "picongpu").iterdir()):
+# a system directory with a single profile example is a preset by itself;
+# a directory with several examples contributes canonical names such as
+# "bash/spack" or "hemera-hzdr/gpu".
+root = core.path("etc") / "picongpu"
+for entry in sorted(root.iterdir()):
     if entry.is_file():
         if entry.name.endswith(".profile.example"):
-            print(entry.name)
+            print(get_preset_name(entry.name))
         continue
     profiles = sorted(entry.glob("*.profile.example"))
     if len(profiles) == 1:
         print(entry.name)
     else:
         for profile in profiles:
-            print(f"{entry.name}/{profile.name}")
+            print(get_preset_name(f"{entry.name}/{profile.name}"))
 # END-RC-LIST-PRESETS

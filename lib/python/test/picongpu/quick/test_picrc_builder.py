@@ -11,12 +11,28 @@ from tempfile import TemporaryDirectory
 import picongpu.picrc_builder as picrc_builder
 from picongpu.picrc_builder import (
     _ask,
+    _available_preset_choices,
     _editable_keys,
     _require_selection,
     default_output_path,
     resolve_target_path,
     write_output,
 )
+
+
+def test_bash_preset_choices_have_no_duplicated_directory_name():
+    choices = _available_preset_choices()
+    assert "bash" in choices
+    assert "bash/bash" not in choices
+    assert "bash/spack" in choices
+    assert "bash/conda" in choices
+    assert choices[0] == "bash"
+
+
+def test_multi_profile_preset_choices_are_canonical():
+    choices = _available_preset_choices()
+    assert "hemera-hzdr/gpu" in choices
+    assert "hemera-hzdr/gpu_picongpu.profile.example" not in choices
 
 
 def test_resolve_none_is_new_target():
