@@ -233,16 +233,22 @@ namespace picongpu::templates::twtstight
     }
 
     template<typename T_Field>
-    HDINLINE bool TWTSTight<T_Field>::isOutsideTWTSEnvelope(std::array<float_T, 4u> const& minimalCoordinates) const
+    HDINLINE bool TWTSTight<T_Field>::isOutsideTWTSEnvelope(Coordinates const& minimalCoordinates) const
     {
         auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
             = basicTWTSHelperVariables;
-        auto const [x, y, z, t] = minimalCoordinates;
+        auto const [x, y, z, t, nu, xi] = minimalCoordinates;
+        auto const q = tanAlpha * (nu * tanAlpha - xi * cosPhi / sinPhi);
+        auto const broadening = float_T(-2.0) * q / (omega0 * tauG * tauG);
 
         /* To avoid underflows in computation, fields are set to zero
          * before and after the respective TWTS pulse envelope.
+         * The criterion includes local pulse broadening.
+         * |t - nu - xi| > numSigmas * tauG * sqrt(1 + ( Im(sigma) / Re(sigma) )^2 )
+         * See also definitions in defineTWTSEnvelope(...)
          */
-        if(math::abs(y - z * tanAlpha - (beta0 * cspeed * t)) > (numSigmas * tauG * cspeed))
+        auto const localWidth = tauG * math::sqrt(float_T(1.0) + broadening * broadening);
+        if(math::abs(t - nu - xi) > numSigmas * localWidth)
         {
             return true;
         }
@@ -253,9 +259,7 @@ namespace picongpu::templates::twtstight
     }
 
     template<typename T_Field>
-    HDINLINE std::array<float_T, 4> TWTSTight<T_Field>::defineMinimalCoordinates(
-        float3_64 const& pos,
-        float_64 const& time) const
+    HDINLINE Coordinates TWTSTight<T_Field>::defineMinimalCoordinates(float3_64 const& pos, float_64 const& time) const
     {
         /* In order to calculate in single-precision and in order to account for errors in
          * the approximations far from the coordinate origin, we use the wavelength-periodicity and
@@ -275,7 +279,12 @@ namespace picongpu::templates::twtstight
         auto const z = float_T(phiPositive * pos.z() / sim.unit.length());
         auto const t = float_T(timeMod / sim.unit.time());
 
-        return std::array<float_T, 4u>{x, y, z, t};
+        auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
+            = basicTWTSHelperVariables;
+        float_T const nu = (y * cosPhi + z * sinPhi) / cspeed;
+        float_T const xi = (-z * cosPhi + y * sinPhi) * tanAlpha / cspeed;
+
+        return Coordinates{x, y, z, t, nu, xi};
     }
 
     template<typename T_Field>
@@ -298,20 +307,18 @@ namespace picongpu::templates::twtstight
     }
 
     template<typename T_Field>
-    HDINLINE std::tuple<std::array<float_T, 8u>, std::array<complex_T, 6u>> TWTSTight<
-        T_Field>::defineCommonHelperVariables(std::array<float_T, 4u> const& minimalCoordinates) const
+    HDINLINE std::tuple<std::array<float_T, 6u>, std::array<complex_T, 6u>> TWTSTight<
+        T_Field>::defineCommonHelperVariables(Coordinates const& minimalCoordinates) const
     {
         auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
             = basicTWTSHelperVariables;
-        auto const [x, y, z, t] = minimalCoordinates;
+        auto const [x, y, z, t, nu, xi] = minimalCoordinates;
 
         float_T const x2 = x * x;
         float_T const tauG2 = tauG * tauG;
         float_T const psi0 = float_T(2.0) / k;
         float_T const w02 = w0 * w0;
         float_T const beta02 = beta0 * beta0;
-        float_T const nu = (y * cosPhi + z * sinPhi) / cspeed;
-        float_T const xi = (-z * cosPhi + y * sinPhi) * tanAlpha / cspeed;
         float_T const besselI0const = math::bessel::i0(k * k * sinPhi * w02 / float_T(2.0));
 
         complex_T const Xm = -z - complex_T(0, 0.5) * (k * w02);
@@ -322,35 +329,25 @@ namespace picongpu::templates::twtstight
         complex_T const besselJ1const = math::bessel::j1(k * sinPhi * rhom);
 
         return std::make_tuple(
-            std::array<float_T, 8u>{x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const},
+            std::array<float_T, 6u>{x2, tauG2, psi0, w02, beta02, besselI0const},
             std::array<complex_T, 6u>{Xm, rhom, Xm2, rhom2, besselJ0const, besselJ1const});
     }
 
     template<typename T_Field>
     HDINLINE complex_T TWTSTight<T_Field>::defineTWTSEnvelope(
-        std::array<float_T, 4u> const& minimalCoordinates,
-        std::tuple<std::array<float_T, 8u>, std::array<complex_T, 6u>> const& commonHelperVariables) const
+        Coordinates const& minimalCoordinates,
+        std::tuple<std::array<float_T, 6u>, std::array<complex_T, 6u>> const& commonHelperVariables) const
     {
         auto const [absPhi, sinPhi, cosPhi, beta0, tanAlpha, cspeed, lambda0, omega0, tauG, w0, k]
             = basicTWTSHelperVariables;
-        auto const [x, y, z, t] = minimalCoordinates;
+        auto const [x, y, z, t, nu, xi] = minimalCoordinates;
         auto const [tanPhi, cotPhi, sinPhi_2, cosPhi_2, sinPolAngle, cosPolAngle, sin2Phi] = trigonometryShortcuts;
-        auto const [floatHelpers, complexHelpers] = defineCommonHelperVariables(minimalCoordinates);
-        auto const [x2, tauG2, psi0, w02, beta02, nu, xi, besselI0const] = floatHelpers;
+        auto const& [floatHelpers, complexHelpers] = commonHelperVariables;
+        auto const [x2, tauG2, psi0, w02, beta02, besselI0const] = floatHelpers;
+        auto const q = tanAlpha * (nu * tanAlpha - xi * cotPhi);
+        complex_T const sigma(omega0 * tauG2, -float_T(2.0) * q);
+        float_T const u = t - nu - xi;
 
-        complex_T const zeroOrder
-            = (beta0 * tauG)
-              / (math::sqrt(float_T(2.0))
-                 * math::exp(
-                     beta02 * omega0 * math::cPow(t - nu - xi, static_cast<uint32_t>(2u))
-                     / (beta02 * omega0 * tauG2 - complex_T(0, 2) * (beta02 * (nu - xi) * cotPhi * cotPhi)
-                        + complex_T(0, 2) * (beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi)
-                        - complex_T(0, 2) * (nu / sinPhi_2)))
-                 * math::sqrt(
-                     ((beta02 * omega0 * tauG2) / float_T(2.0) - I * (beta02 * (nu - xi) * cotPhi * cotPhi)
-                      + I * (beta0 * (float_T(2.0) * nu - xi) * cotPhi / sinPhi) - I * (nu / sinPhi_2))
-                     / omega0));
-
-        return zeroOrder;
+        return tauG * math::sqrt(omega0 / sigma) * math::exp(-omega0 * u * u / sigma);
     }
 } /* namespace picongpu::templates::twtstight */
