@@ -22,11 +22,21 @@ if [ -z "$DISABLE_OpenPMD" ] ; then
     if ! agc-manager -e openPMD-api@${openPMD_VERSION}; then
         export OPENPMD_ROOT=/opt/openPMD-api/$openPMD_VERSION
 
+        # openPMD must be built with the same compiler as PIConGPU. Without an
+        # explicit selection CMake falls back to the default C++ compiler of the
+        # container (GCC 10 in the alpaka CI images), while PIConGPU is built
+        # with ${CXX_VERSION}.
+        openPMD_cmake_args=""
+        if [ -n "$CXX_VERSION" ] ; then
+            openPMD_cmake_args="-DCMAKE_CXX_COMPILER=${CXX_VERSION}"
+        fi
+        echo "build openPMD ${openPMD_VERSION} with CXX_VERSION='${CXX_VERSION}'"
+
         export CMAKE_PREFIX_PATH=$GLM_ROOT:$CMAKE_PREFIX_PATH
         git clone https://github.com/openPMD/openPMD-api.git --depth 1 --branch $openPMD_VERSION
         mkdir buildOpenPMD
         cd buildOpenPMD
-        cmake ../openPMD-api -DCMAKE_CXX_STANDARD=20 -DopenPMD_BUILD_CLI_TOOLS=OFF -DCMAKE_INSTALL_PREFIX=$OPENPMD_ROOT -DopenPMD_BUILD_EXAMPLES=OFF -DopenPMD_BUILD_TESTING=OFF -DopenPMD_USE_PYTHON=OFF -DopenPMD_USE_ADIOS2=ON
+        cmake ../openPMD-api -DCMAKE_CXX_STANDARD=20 $openPMD_cmake_args -DopenPMD_BUILD_CLI_TOOLS=OFF -DCMAKE_INSTALL_PREFIX=$OPENPMD_ROOT -DopenPMD_BUILD_EXAMPLES=OFF -DopenPMD_BUILD_TESTING=OFF -DopenPMD_USE_PYTHON=OFF -DopenPMD_USE_ADIOS2=ON
         make install
         cd ..
 
