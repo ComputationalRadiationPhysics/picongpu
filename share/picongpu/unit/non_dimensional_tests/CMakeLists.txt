@@ -18,6 +18,7 @@ foreach(testCaseFilepath ${NON_DIMENSIONAL_TESTS})
             ${testExe}
             PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../thirdParty/nlohmann_json/single_include"
         )
+        target_compile_definitions(${testExe} PRIVATE JSON_HAS_RANGES=0)
     endif()
     target_link_libraries(${testExe} PUBLIC Catch2 Catch2WithMain)
     target_link_libraries(${testExe} PRIVATE pmacc::pmacc)

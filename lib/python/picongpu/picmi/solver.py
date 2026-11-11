@@ -338,12 +338,23 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
 
     See PICMI spec for full documentation.
 
-    Only the Bi-CGSTAB Poisson solver is supported; solver options that PIConGPU
+    Only the preconditioned Bi-CGSTAB Poisson solver is supported; solver options that PIConGPU
     does not implement are rejected at construction time.
+    """
 
-    Explanation for boundary condition applied by the Poisson solver.
-
-    Available choices are:
+    required_precision: Annotated[float, Field(..., gt=0.0)] = 1e-8
+    """The required precision for iterative solvers. Must be greater than 0.0."""
+    maximum_iterations: Annotated[int, Field(..., gt=0)] = 2000
+    """The maximum number of iterations for iterative solvers. Must be greater than 0."""
+    preconditioner: Literal["chebyshev", "none"] = "chebyshev"
+    """The preconditioner to use for the iterative solver. Available choices are:
+     - chebyshev: Chebyshev preconditioner. Recommended, because it generally leads to faster convergence.
+     - none: No preconditioner.
+    """
+    preconditioner_maximum_iterations: Annotated[int, Field(..., gt=0)] = 20
+    """The maximum number of iterations for the preconditioner. Must be greater than 0."""
+    boundary_condition: Literal["dirichlet", "homogeneous_dirichlet", "neumann", "homogeneous_neumann"] = "dirichlet"
+    """Available choices are:
      - homogeneous_dirichlet: zero potential on the boundary.
        Recommended for situations with high total charge and much space around it.
      - dirichlet: prescribed boundary potential from a
@@ -360,24 +371,23 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
        user-defined function
        Recommended for cases where the normal electric field at the boundary
        can be estimated beforehand.
-       Warning: This requires that the total charge in the volume is equal or
-       close to the sum over the values the boundary_function provides.
        Implement the boundary_function to define the outward normal derivative of
        the potential at the boundary.
+       Warning: This requires that the total charge in the volume is equal or
+       close to the sum over the values the boundary_function provides.
 
     The selected condition is applied to all non-periodic faces. Periodic faces
     are still periodic.
     Warning: If only periodic faces are used the total charge needs to be close to
     or equal to zero. Include at least one dirichlet boundary to calculate the field
     for strongly charged starting conditions.
-    """  # good enough explanation?
-
-    required_precision: Annotated[float, Field(..., gt=0.0, description="The required precision for the solver.")] = 1e-8
-    maximum_iterations: Annotated[int, Field(..., gt=0, description="The maximum number of iterations for the solver.")] = 2000
-    preconditioner: Literal["chebyshev", "none"] = "chebyshev"
-    preconditioner_maximum_iterations: Annotated[int, Field(..., gt=0, description="The maximum number of iterations for the preconditioner.")] = 20
-    boundary_condition: Literal["dirichlet", "homogeneous_dirichlet", "neumann", "homogeneous_neumann"] = "dirichlet"
-    boundary_function: Annotated[str, Field(..., min_length=1, description="The boundary function for function based boundary conditions in the Poisson solver.")] = "0.0"
+    """
+    boundary_function: Annotated[str, Field(..., min_length=1)] = "0.0"
+    """For the function based boundary conditions, the boundary_function needs to be a
+    valid C++ expression using ``totalCellCoordinate`` (a vector specifying the location
+    of the guard cell where the function is evaluated) and ``outwardNormal`` (a vector
+    specifying the outward normal of the boundary face).
+    """
 
     def get_as_pypicongpu(self) -> PoissonSolver:
         return PoissonSolver(
