@@ -112,11 +112,10 @@ PIConGPU's binomial current deposition is a fixed, single-pass filter,
 so ``n_pass`` may only be ``None``, ``1`` or an all-ones vector.
 Any other field-smoother option is rejected.
 
-Initial fields form particles using Poisson Solver
+Initial fields from particles using Poisson Solver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For non-neutral initial particle distributions, :class:`~picongpu.picmi.solver.ElectrostaticSolver`
 can be used to initialize the fields from the charge density of the particles.
 To use this, add an instance of it through ``picongpu_electrostatic_solver`` to the
 when constructing the simulation. 
-See its api documentation at :ref:`api-docs-electrostatic-solver` for the available parameters and
-specifically the boundary conditions.
+See its api documentation for the available parameters and specifically the boundary conditions.

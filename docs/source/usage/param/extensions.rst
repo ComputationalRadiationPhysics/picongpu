@@ -12,6 +12,7 @@ fieldBackground.param
    :no-link:
 
 poissonSolver.param
+^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfile:: poissonSolver.param
    :project: PIConGPU

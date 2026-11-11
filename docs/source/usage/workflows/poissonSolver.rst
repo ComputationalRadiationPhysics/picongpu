@@ -1,6 +1,6 @@
 .. _usage-workflows-poissonSolver:
 
-Initial fields form particles using Poisson Solver
+Initial fields from particles using Poisson Solver
 =================================================
 
 .. sectionauthor:: Edgar Marquardt
@@ -10,6 +10,7 @@ If you don't want to assume quasi-neutrality, you can use the Poisson solver to 
 Configuration
 -------------
 The Poisson solver is configured through the :ref:`poissonSolver.param <usage-params-extensions>` parameter file. The following parameters are available:
+
 ``useSolver``
    Set to ``true`` to use the Poisson solver to initialize the fields from the charge density of the particles.
 ``maxSolverSteps``
@@ -54,14 +55,17 @@ for strongly charged starting conditions.
 
 If a function-based boundary condition is used:
 The user-defined function that defines the boundary potential or normal derivative. Example:
+
 .. code_block:: cpp
-    struct BoundaryFunction
-    {
-        HDINLINE auto operator()(
-            math::Vector<double, simDim> const& totalCellCoordinate,
-            DataSpace<simDim> const& outwardNormal) const
-        {
-            return 0.0;
-        }
-    };
+
+   struct BoundaryFunction
+   {
+       HDINLINE auto operator()(
+           math::Vector<double, simDim> const& totalCellCoordinate,
+           DataSpace<simDim> const& outwardNormal) const
+       {
+           return 0.0;
+       }
+   };
+
 The function takes the coordinate of the cell at the boundary and the outward normal vector as input and returns the potential or normal derivative at that point.
