@@ -10,8 +10,7 @@ from collections.abc import Sequence
 from typing import Annotated, Any, Literal, Self, get_args
 
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
-<<<<<<< HEAD
-from pydantic import BeforeValidator, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import BeforeValidator, ConfigDict, Field, PrivateAttr, model_validator, computed_field
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import ArbitraryOrderFDTDSolver as _ArbitraryOrderFDTDSolver
@@ -19,22 +18,9 @@ from picongpu.pypicongpu.field_solver import CKCSolver as _CKCSolver
 from picongpu.pypicongpu.field_solver import LeheSolver as _LeheSolver
 from picongpu.pypicongpu.field_solver import NoneSolver as _NoneSolver
 from picongpu.pypicongpu.field_solver import YeeSolver as _YeeSolver
-=======
 from picmistandard.base import _PICMIModel
 from picmistandard.fields import PICMI_AnyGrid
-from pydantic import BeforeValidator, ConfigDict, PrivateAttr, model_validator, Field, computed_field
-
-from picongpu.pypicongpu import util
-from picongpu.pypicongpu.field_solver import (
-    AnySolver,
-    ArbitraryOrderFDTDSolver,
-    CKCSolver,
-    LeheSolver,
-    NoneSolver,
-    YeeSolver,
-)
-from picongpu.pypicongpu.poissonsolver import PoissonSolver
->>>>>>> ec3946698 (Add the poisson solver to pypicongpu and picmi)
+from picongpu.pypicongpu.poissonsolver import PoissonSolver as _PoissonSolver
 
 _other_than_one_pass = (
     "a number of binomial smoothing passes other than one (PIConGPU's C++ current "
@@ -342,17 +328,24 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
     does not implement are rejected at construction time.
     """
 
-    required_precision: Annotated[float, Field(..., gt=0.0)] = 1e-8
-    """The required precision for iterative solvers. Must be greater than 0.0."""
-    maximum_iterations: Annotated[int, Field(..., gt=0)] = 2000
-    """The maximum number of iterations for iterative solvers. Must be greater than 0."""
+    required_precision: Annotated[
+        float, Field(..., gt=0.0, description="The required precision for iterative solvers. Must be greater than 0.0.")
+    ] = 1e-8
+    maximum_iterations: Annotated[
+        int,
+        Field(..., gt=0, description="The maximum number of iterations for iterative solvers. Must be greater than 0."),
+    ] = 2000
     preconditioner: Literal["chebyshev", "none"] = "chebyshev"
     """The preconditioner to use for the iterative solver. Available choices are:
      - chebyshev: Chebyshev preconditioner. Recommended, because it generally leads to faster convergence.
      - none: No preconditioner.
     """
-    preconditioner_maximum_iterations: Annotated[int, Field(..., gt=0)] = 20
-    """The maximum number of iterations for the preconditioner. Must be greater than 0."""
+    preconditioner_maximum_iterations: Annotated[
+        int,
+        Field(
+            ..., gt=0, description="The maximum number of iterations for the preconditioner. Must be greater than 0."
+        ),
+    ] = 20
     boundary_condition: Literal["dirichlet", "homogeneous_dirichlet", "neumann", "homogeneous_neumann"] = "dirichlet"
     """Available choices are:
      - homogeneous_dirichlet: zero potential on the boundary.
@@ -382,15 +375,22 @@ class ElectrostaticSolver(PICMI_ElectrostaticSolver):
     or equal to zero. Include at least one dirichlet boundary to calculate the field
     for strongly charged starting conditions.
     """
-    boundary_function: Annotated[str, Field(..., min_length=1)] = "0.0"
+    boundary_function: Annotated[
+        str,
+        Field(
+            ...,
+            min_length=1,
+            description="The function defining the function based boundary conditions. see help(ElectrostaticSolver) for more info.",
+        ),
+    ] = "0.0"
     """For the function based boundary conditions, the boundary_function needs to be a
     valid C++ expression using ``totalCellCoordinate`` (a vector specifying the location
     of the guard cell where the function is evaluated) and ``outwardNormal`` (a vector
     specifying the outward normal of the boundary face).
     """
 
-    def get_as_pypicongpu(self) -> PoissonSolver:
-        return PoissonSolver(
+    def get_as_pypicongpu(self) -> _PoissonSolver:
+        return _PoissonSolver(
             tolerance=self.required_precision,
             max_steps=self.maximum_iterations,
             preconditioner=self.preconditioner,

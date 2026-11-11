@@ -43,7 +43,7 @@ class PoissonSolver(RenderedObject, BaseModel):
     def boundary_conditions_cpp(self) -> str:
         return {
             "dirichlet": "BoundaryConditionsDirichlet<BoundaryFunction>",
-            "homogeneous_dirichlet": "BoundaryConditionsHomogeneousDirichlet",
+            "homogeneous_dirichlet": "BoundaryConditionsHomogenousDirichlet",
             "neumann": "BoundaryConditionsNeumann<BoundaryFunction>",
-            "homogeneous_neumann": "BoundaryConditionsHomogeneousNeumann",
+            "homogeneous_neumann": "BoundaryConditionsHomogenousNeumann",
         }[self.boundary_condition]

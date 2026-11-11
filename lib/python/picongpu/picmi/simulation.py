@@ -327,7 +327,7 @@ class Simulation(picmistandard.PICMI_Simulation):
     picongpu_base_density: float | None = Field(default=None)
     """value to normalise densities with"""
 
-    picongpu_electrostatic_solver: ElectrostaticSolver | None = Field(default=None)
+    picongpu_electrostatic_solver: ElectrostaticSolver | None = Field(default=None, description="")
     """Electrostatic solver to use for electrostatic calculations for the starting conditions"""
 
     def _validate_min_weighting(value: float | None) -> float | None:
