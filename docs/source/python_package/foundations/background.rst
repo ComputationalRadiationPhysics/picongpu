@@ -1,6 +1,8 @@
 Background
 ==========
 
+.. sectionauthor:: Julian J. Lenz
+
 PIConGPU at its core is an advanced, exascale HPC code written in C++.
 For maximal performance and configurability,
 PIConGPU's core is not distributed and deployed

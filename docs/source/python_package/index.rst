@@ -1,6 +1,8 @@
 Getting Started
 ===============
 
+.. sectionauthor:: Julian J. Lenz
+
 This chapter gets you from zero to a running PIConGPU simulation
 through the PICMI Python interface.
 It contains
@@ -9,9 +11,7 @@ It contains
   commands that install the Python package, build a runtime configuration,
   install dependencies, download an example and run it,
 * the :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`
-  -- a complete, worked laser-wakefield-acceleration example, and
-* instructions to :ref:`install the Python package
-  <python_package/install:Installing the Python Package>` for daily use.
+  -- a complete, worked laser-wakefield-acceleration example.
 
 Once you have run your first simulation, continue with
 :ref:`Foundations <python_package/foundations/index:Foundations>`
@@ -24,5 +24,4 @@ for particular features.
 
    quickstart
    tutorial
-   install
    troubleshooting

@@ -3,6 +3,8 @@
 HPC Submission Internals
 ========================
 
+.. sectionauthor:: Julian J. Lenz
+
 This is a deep dive into what happens *after* your input files have been
 generated: how the simulation is compiled, packaged and handed to the
 batch system of your machine, and where everything ends up.

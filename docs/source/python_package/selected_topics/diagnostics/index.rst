@@ -1,6 +1,8 @@
 Diagnostics
 ===========
 
+.. sectionauthor:: Julian J. Lenz
+
 PIConGPU offers a range of diagnostics (plugins) that let you extract data
 from your simulation.
 They are all scheduled in time through the same

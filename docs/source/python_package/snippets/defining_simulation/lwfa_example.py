@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # /// script
-# requires-python = ">=3.11,<3.14"
 # dependencies = [
 #   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
 # ]
@@ -31,19 +30,16 @@ solver = picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid)
 # END-LWFA-CONSTANTS
 
 # BEGIN-LWFA-LASER
-LASER_DURATION = 5.0e-15
-PULSE_INIT = 15.0  # in units of the laser pulse duration
-
 laser = picmi.GaussianLaser(
     wavelength=0.8e-6,
     waist=5.0e-6 / 1.17741,
-    duration=LASER_DURATION,
+    duration=5.0e-15,
     propagation_direction=[0.0, 1.0, 0.0],
     polarization_direction=[1.0, 0.0, 0.0],
     focal_position=[NUM_CELLS[0] * CELL_SIZE[0] / 2.0, 4.62e-5, NUM_CELLS[2] * CELL_SIZE[2] / 2.0],
     centroid_position=[
         NUM_CELLS[0] * CELL_SIZE[0] / 2.0,
-        -0.5 * PULSE_INIT * LASER_DURATION * c,
+        -3.75e-14 * c,
         NUM_CELLS[2] * CELL_SIZE[2] / 2.0,
     ],
     a0=8.0,

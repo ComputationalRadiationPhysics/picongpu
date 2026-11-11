@@ -3,6 +3,8 @@
 Checkpoints
 ===========
 
+.. sectionauthor:: Julian J. Lenz
+
 The checkpoint plugin writes the *complete* state of the simulation
 (fields, particles, solver state) to disk on a schedule,
 so that a run can be resumed from the last written checkpoint

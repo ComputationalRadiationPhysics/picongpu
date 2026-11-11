@@ -3,6 +3,8 @@
 Units and Constants
 ===================
 
+.. sectionauthor:: Julian J. Lenz
+
 The PICMI frontend takes **SI units** for its inputs and converts them to
 the code's internal units before they reach the simulation backend.
 A small set of physical constants ships with the frontend as

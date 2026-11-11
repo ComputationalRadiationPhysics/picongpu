@@ -1,6 +1,8 @@
 Quick Start
 ===========
 
+.. sectionauthor:: Julian J. Lenz
+
 This section gets you from zero to a running PIConGPU simulation
 in five steps.
 For everything beyond this minimal workflow,
@@ -27,14 +29,8 @@ Step 2: Build Your Runtime Configuration
    :end-before: END-PICRC-BUILDER
 
 ``picrc-builder`` guides you interactively through writing the
-``.picongpurc.toml`` runtime configuration:
-it asks for the preset of your system and writes the file.
-Its default target is the canonical user-specific location
-``$XDG_CONFIG_HOME/picongpu/picongpurc.toml``
-(``~/.config/picongpu/picongpurc.toml`` if ``XDG_CONFIG_HOME`` is unset or empty),
-and it creates missing parent directories.
-See :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`
-for the search order of that file, the available presets and all further knobs.
+``.picongpurc.toml`` runtime configuration.
+See :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`.
 
 Step 3: Install the Dependencies
 --------------------------------
@@ -44,14 +40,9 @@ Step 3: Install the Dependencies
    :start-after: BEGIN-PIC-DEPS-INSTALL
    :end-before: END-PIC-DEPS-INSTALL
 
-``pic-deps`` is a best-effort driver over your preset's own
-``dependencies_autoinstall.sh``,
-building PIConGPU's compile-time dependencies.
-This step is only available for the presets that ship such a script
-(the cluster presets that build their toolchain from source);
-for presets that rely on system modules it is not needed.
-See :ref:`Configuring Your Environment <python_package/foundations/configuring_environment:Configuring Your Environment>`
-for the presets that ship with the package.
+``pic-deps`` is a best-effort tool to system-specific installation of dependencies and might not be available for all presets.
+Details on manual dependency installation can be found in the
+:ref:`Dependencies <install/dependencies:Dependencies>` chapter.
 
 Step 4: Download the Minimal Example
 ------------------------------------
@@ -61,8 +52,7 @@ Step 4: Download the Minimal Example
    :start-after: BEGIN-DOWNLOAD-MINIMAL-EXAMPLE
    :end-before: END-DOWNLOAD-MINIMAL-EXAMPLE
 
-This is a small PICMI input file
-that sets up the electromagnetic field on a small 3D grid with periodic boundaries.
+This is the minimal input script defining an empty void to simulate.
 See :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>`
 to add particles, lasers and diagnostics to this skeleton.
 
@@ -84,15 +74,15 @@ Step 5: Run It
    :end-before: END-RUN-MINIMAL-EXAMPLE
 
 The script carries `PEP 723 inline script metadata <https://peps.python.org/pep-0723/>`__,
-so ``uv`` installs PIConGPU from its floating ``@dev`` branch on the fly.
-It then generates the input files, compiles a tailored binary and submits the simulation
-to the system given by your runtime configuration.
+so ``uv`` installs PIConGPU.
 See :ref:`Running Your Simulation <python_package/foundations/running_simulation:Running Your Simulation>`
 for what happens under the hood and where the results end up.
 
 Next Steps
 ----------
 
+* The :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`
+  walks through a complete laser-wakefield-acceleration example.
 * The core concepts and configuration options are introduced in
   :ref:`Foundations <python_package/foundations/index:Foundations>`.
 * Particular features

@@ -23,23 +23,32 @@ PICMI Python interface.
 
 Pick the entry point that matches what you are looking for:
 
+* **Migrating from legacy** ``.param`` **file setups to PICMI?**
+  The :ref:`Foundations <python_package/foundations/index:Foundations>` chapter
+  introduces the PICMI interface, and the
+  :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` chapter
+  still documents the legacy ``.param``/TBG setup you are coming from, so you
+  can map an existing configuration onto a PICMI input script.
 * **New to PIConGPU?**
-  Work through the **Getting Started** chapter below, from installing the
-  Python package to your first simulation, and continue with the
+  Work through the :ref:`Getting Started <python_package/index:Getting Started>`
+  chapter below, from installing the Python package to your first simulation,
+  and continue with the
   :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`.
 * **Looking for a feature?**
-  The **Physics & Features** chapter describes the physical models, and the
-  **Using PIConGPU (PICMI)** chapter explains how to configure them through the
-  PICMI interface, with the full class reference in the
+  The :ref:`Physics & Features <models/pic:The Particle-in-Cell Algorithm>`
+  chapter describes the physical models, and the
+  :ref:`Using PIConGPU (PICMI) <python_package/foundations/index:Foundations>`
+  chapter explains how to configure them through the PICMI interface, with the
+  full class reference in the
   :ref:`API Documentation <python_package/api/index:API Documentation>`.
-* **Running on a cluster or installing by hand?**
-  The **Installation (HPC / from source)** chapter collects the manual C++
-  dependency installation and the cluster profiles.
+* **Developing the C++ core?**
+  The :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` and
+  :ref:`Development <dev/CONTRIBUTING:How to Participate as a Developer>`
+  chapters document the direct ``.param``/TBG interface and how to contribute.
+  The :ref:`Installation (from source) <install/path:Introduction>` chapter
+  collects the manual C++ dependency installation and the cluster profiles.
   For the Python interface, see
-  :ref:`Installing the Python Package <python_package/install:Installing the Python Package>`.
-* **Extending the C++ interface?**
-  The **C++ Interface (advanced / legacy)** and **Development** chapters
-  document the direct ``.param``/TBG interface and how to contribute.
+  :ref:`Installing the Python Package <python_package/selected_topics/install:Installing the Python Package>`.
 
 Individual chapters build on the ones before them, but you can jump straight to
 the section that answers your question.

@@ -1,6 +1,5 @@
 #!/usr/bin/env -S uv run
 # /// script
-# requires-python = ">=3.11"
 # dependencies = [
 #   "numpy",
 #   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"

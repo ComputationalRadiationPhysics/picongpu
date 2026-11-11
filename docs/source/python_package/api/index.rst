@@ -1,6 +1,8 @@
 API Documentation
 =================
 
+.. sectionauthor:: Julian J. Lenz
+
 This page lists the public API of the PIConGPU Python package --
 the :mod:`picongpu.picmi` module that you import as
 ``from picongpu import picmi``.

@@ -1,6 +1,8 @@
 Selected Topics
 ===============
 
+.. sectionauthor:: Julian J. Lenz
+
 This chapter expands on selected features of our PICMI dialect.
 It will help you to get the most out of the features of PIConGPU
 and set up your simulation precisely as you intend it.
@@ -35,3 +37,4 @@ The remaining pages are deep dives into cross-cutting features.
    serialization
    custom_input
    hpc_submission
+   install
