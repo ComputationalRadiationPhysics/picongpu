@@ -11,6 +11,13 @@ fieldBackground.param
    :path: include/picongpu/param/fieldBackground.param
    :no-link:
 
+poissonSolver.param
+
+.. doxygenfile:: poissonSolver.param
+   :project: PIConGPU
+   :path: include/picongpu/param/poissonSolver.param
+   :no-link:
+
 ionizer.param
 ^^^^^^^^^^^^^
 

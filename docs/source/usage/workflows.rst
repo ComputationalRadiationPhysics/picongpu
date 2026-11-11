@@ -15,6 +15,7 @@ This section contains typical user workflows and best practices.
    workflows/memoryPerDevice
    workflows/compositeMaterials
    workflows/quasiNeutrality
+   workflows/poissonSolver
    workflows/probeParticles
    workflows/tracerParticles
    workflows/particleFilters
