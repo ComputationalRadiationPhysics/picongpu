@@ -359,53 +359,6 @@ class addParticles2Checkpoint:
         run_pipe.run()
 
 
-class Chunk:
-    """
-    A Chunk is an n-dimensional hypercube, defined by an offset and an extent.
-    Offset and extent must be of the same dimensionality (Chunk.__len__).
-    """
-
-    def __init__(self, offset, extent):
-        """
-        Inititalization of the slicing class.
-
-        Arguments:
-        offset: array
-                offsets of each slice
-        extent: array
-                extent of each slice
-
-        """
-        assert len(offset) == len(extent)
-        self.offset = offset
-        self.extent = extent
-
-    def __len__(self):
-        return len(self.offset)
-
-    def slice1D(self):
-        """
-        Slice this chunk into a hypercube along the dimension with
-        the largest extent on this hypercube.
-
-        Return:
-        the 0'th of the sliced chunks.
-        """
-        # pick that dimension which has the highest count of items
-        dimension = 0
-        maximum = self.extent[0]
-        for k, v in enumerate(self.extent):
-            if v > maximum:
-                dimension = k
-        assert dimension < len(self)
-        # no offset
-        assert self.offset == [0 for _ in range(len(self))]
-        offset = [0 for _ in range(len(self))]
-        extent = self.extent.copy()
-
-        return Chunk(offset, extent)
-
-
 class particle_patch_load:
     """
     A deferred load/store operation for a particle patch.
@@ -480,6 +433,7 @@ class pipe:
         self.inconfig = inconfig
         self.outconfig = outconfig
         self.verbose = verbose
+        self.__copy_buffers = {}
 
     def run(self):
         """
@@ -581,11 +535,14 @@ class pipe:
                 self.__particle_patches.clear()
                 sys.stdout.flush()
 
-        elif isinstance(src, opmd.Record_Component) and (not is_container or src.scalar):
+        elif (
+            isinstance(src, opmd.Record_Component)
+            and not isinstance(src, opmd.Patch_Record_Component)
+            and (not is_container or src.scalar)
+        ):
             # copies record components
             shape = src.shape
             dtype = src.dtype
-            offset = [0 for _ in shape]
             dest.reset_dataset(opmd.Dataset(dtype, shape))
             if src.empty:
                 # empty record component automatically created by
@@ -594,15 +551,25 @@ class pipe:
             elif src.constant:
                 dest.make_constant(src.get_attribute("value"))
             else:
-                chunk = Chunk(offset, shape)
-                local_chunk = chunk.slice1D()
+                available_chunks = src.available_chunks()
 
-                # write content of src record to dest record and
-                # flush afterwards
-                loaded_buffer = src.load_chunk(local_chunk.offset, local_chunk.extent)
-                src.series_flush()
-                dest.store_chunk(loaded_buffer, local_chunk.offset, local_chunk.extent)
-                dest.series_flush()
+                for i, chunk in enumerate(available_chunks):
+                    chunk_offset = list(chunk.offset)
+                    chunk_extent = list(chunk.extent)
+
+                    key = (np.dtype(dtype).str, tuple(chunk_extent))
+
+                    if key not in self.__copy_buffers:
+                        self.__copy_buffers[key] = np.empty(tuple(chunk_extent), dtype=dtype)
+
+                    loaded_buffer = self.__copy_buffers[key]
+
+                    src.load_chunk(loaded_buffer, chunk_offset, chunk_extent)
+                    src.series_flush()
+
+                    dest.store_chunk(loaded_buffer, chunk_offset, chunk_extent)
+
+                    dest.series_flush()
 
         elif isinstance(src, opmd.Patch_Record_Component) and (not is_container or src.scalar):
             # copies patch record components
