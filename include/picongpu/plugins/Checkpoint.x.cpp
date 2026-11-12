@@ -30,6 +30,8 @@
 #endif
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
+#include <exception>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -144,16 +146,30 @@ namespace picongpu
                     std::launch::async,
                     [this, copiedBackend = cBackend, currentStep, &checkpointDirectory, &synchronization]()
                     {
-                        copiedBackend->second->doRestart(
-                            currentStep,
-                            checkpointDirectory,
-                            this->checkpointFilename,
-                            this->restartChunkSize,
-                            {&synchronization});
+                        try
+                        {
+                            copiedBackend->second->doRestart(
+                                currentStep,
+                                checkpointDirectory,
+                                this->checkpointFilename,
+                                this->restartChunkSize,
+                                {&synchronization});
+                        }
+                        catch(std::exception const& e)
+                        {
+                            // The writer thread may be waiting for a synchronization state that the reader will
+                            // never reach. Release it so that the exception can be propagated instead of hanging.
+                            constexpr signed int abortState = 100;
+                            synchronization.store(abortState, std::memory_order_release);
+                            synchronization.notify_all();
+                            std::cerr << "Checkpoint: concurrent restart failed: " << e.what() << std::endl;
+                            throw;
+                        }
                     });
                 cBackend->second
                     ->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename, {&synchronization});
-                restartFuture.wait();
+                // Propagate exceptions from the concurrent restart instead of silently waiting for the writer only.
+                restartFuture.get();
             }
         }
 
