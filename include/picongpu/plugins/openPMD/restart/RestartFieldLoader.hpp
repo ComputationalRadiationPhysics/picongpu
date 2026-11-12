@@ -99,12 +99,12 @@ namespace picongpu
                     // Agree on the number of flush operations
                     for(uint32_t d = 0; d < numComponents; d++)
                     {
-                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                        params->readOpenPMDSeries->flush(PreferredFlushTarget::Disk);
                     }
                     return;
                 }
 
-                ::openPMD::Series& series = *params->openPMDSeries;
+                ::openPMD::Series& series = *params->readOpenPMDSeries;
                 ::openPMD::Mesh& mesh = series.iterations[currentStep].open().meshes[objectName];
 
                 auto destBox = field.getHostBuffer().getDataBox();
