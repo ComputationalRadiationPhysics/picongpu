@@ -3,6 +3,37 @@
 Status: planning document for the `load_balancing` branch.
 Scope: streaming / in-situ workflows only; file-based checkpoint workflows are out of scope.
 
+## 0. Context and status (from PR #5405)
+
+PR #5405, "WIP: Prototype for 'poor man's' load balancing", describes the
+overall idea:
+
+1. Halt the simulation.
+2. *Virtually* write a checkpoint.
+3. Restart from that same checkpoint while repartitioning the domain, i.e. load
+   the data into a more balanced decomposition.
+
+The "virtual checkpoint" uses the openPMD streaming backend, so no disk I/O is
+needed: the data is streamed to the same application and read back with a
+different domain decomposition. In-situ restarting and load-balanced
+restarting are orthogonal features that both feed into this use case.
+
+Status noted in the PR:
+
+- The "restart with changed domain decomposition" part has largely been merged
+  (PR #5508); the rest remains a proof of concept.
+- The branch is intended to be maintained only if on-the-fly rebalancing is
+  pursued.
+- At prototype stage, partial patches were ignored; granularity below the
+  supercell is considered unnecessary for load balancing for now.
+- The prototype relies on full `MPI_THREAD_MULTIPLE` support and on the SST
+  engine.
+- There is no proper CLI control for the virtual checkpoint yet; the regular
+  `--checkpoint.period` is abused for testing.
+
+The sections below extend the original three-point plan with the concrete
+issues and scaling ideas from that PR.
+
 ## 1. Deduplicate the output granularity strategies
 
 ### Current state
@@ -79,6 +110,18 @@ That was useful as a test harness but must not become the production interface.
       - does not support it (must fail clearly or use a non-concurrent path).
 - [ ] Make the trigger explicit and configurable; regular checkpointing must
       never restart.
+- [ ] Replace the ad-hoc use of `--checkpoint.period` with a dedicated trigger
+      and CLI/config options for the virtual checkpoint/rebalance operation.
+- [ ] Investigate whether full `MPI_THREAD_MULTIPLE` is really required, or
+      whether SST startup and the writer/reader handshake can be controlled
+      more finely (e.g. with serialized MPI or a dedicated communicator).
+- [ ] Do not reload `idProvider` and RNG state during an on-the-fly reload:
+      a rebalance must keep the running simulation's IDs and RNG stream, unlike
+      a real restart from a checkpoint.
+- [ ] Define handling for PML fields (ignored in the prototype) and inventory
+      other plugins that carry checkpoint/restart state (not considered yet).
+- [ ] Document the working SST configurations (see also section 5), including
+      `DataTransport`, fabric/UCX environment variables, and startup ordering.
 - [ ] Keep failure semantics explicit: reader failure releases the writer and
       is propagated (already partially implemented), writer failure must not
       leave the reader hanging.
@@ -179,6 +222,17 @@ and is only a prerequisite for real rebalancing.
 
 ### Tasks
 
+- [ ] Decide where the new decomposition is computed and how it is applied.
+      The PR explicitly lists this as open: there is no canonical answer for the
+      new decomposition, and changing the simulation's decomposition from
+      within the IO plugin needs a proper interface (IO plugin vs.
+      simulation/PMacc control).
+- [ ] Define a decomposition handoff format (per-rank block offsets/extents or
+      cut positions) shared between the load balancer, the IO/reload layer, and
+      the simulation control.
+- [ ] Confirm the minimum useful granularity. The PR assumes supercell-level
+      patches are sufficient for load balancing; below-supercell splitting is
+      explicitly out of scope for now.
 - [ ] Define the load metric:
       - per-patch/supercell particle count as a first proxy;
       - add cost weights for particle push/current deposition and field/guard
@@ -202,3 +256,95 @@ and is only a prerequisite for real rebalancing.
       - restart correctness and absence of deadlocks.
 - [ ] Document limitations: only rectangular contiguous decompositions are
       supported initially.
+
+## 4. Scaling and follow-ups from PR #5405
+
+### Particle patch communication and metadata
+
+- [ ] Address the N->N communication pattern of particle patches: every writer
+      writes patches and every reader reads all of them. This is acceptable for
+      file-based checkpoints (files aggregate), but in streaming it is not.
+      Options listed in the PR:
+      - write particle patches to a parallel filesystem instead of streaming
+        them (out of scope here, but keep as a fallback idea);
+      - aggregate/deaggregate patches;
+      - use ADIOS2 Local Values: metadata aggregation with one value per
+        process, which fits a two-level patch hierarchy.
+- [ ] Design a two-level patch hierarchy to control the number of patches:
+      - lower level: one patch per supercell (fine-grained for rebalancing);
+      - higher level: one patch per process, pointing into the lower-level
+        patches rather than into particle data;
+      - only the small higher level needs N->N communication and can be stored
+        as an ADIOS2 Local Value.
+- [ ] Merge small I/O operations while keeping the logical patch structure:
+      the prototype performs one I/O operation per supercell, which will not
+      scale to production networks. Read and write should batch ranges while
+      preserving particle patches as the logical granularity.
+- [ ] Revisit the size-bounded granularity as the likely default once the
+      two-level hierarchy exists: it already reduces the number of I/O
+      operations while patch metadata can still be refined separately.
+
+### Memory consumption
+
+- [ ] Account for SST host-side streaming buffers: they hold roughly a CPU
+      clone of the GPU simulation volume plus particles. Define a memory budget
+      and validate it for production-sized runs.
+- [ ] Investigate whether the ADIOS2 BP5 serializer used by SST can use node
+      SSDs as a streaming buffer instead of RAM (this is an ADIOS2-side
+      project; memmap/RDMA interaction is unclear).
+- [ ] Until then, document workarounds:
+      - leave headroom in GPU memory instead of filling it completely;
+      - use a disk checkpoint if full GPU memory utilization is required
+        (file-based workflow, out of scope here).
+
+### Other state and fields
+
+- [ ] Define how PML fields, which have non-rectangular geometry, participate
+      in rebalancing; the prototype ignores them.
+- [ ] Inventory other plugins that keep checkpoint/restart state and decide
+      which must be reloaded during an on-the-fly rebalance.
+- [ ] Clarify whether fields are reloaded or redistributed on re-decomposition,
+      and whether field data is included in the virtual checkpoint or kept in
+      place.
+
+## 5. Working SST configurations (from PR #5405)
+
+The PR notes that SST requires system-specific transport configuration. The
+option names below use the current `backendConfig` spelling; the PR predates
+that rename and used `--checkpoint.openPMD.json`.
+
+Fabric transport:
+
+```bash
+FABRIC_PROVIDER=shm FABRIC_IFACE=shm \
+PIC_USE_THREADED_MPI=MPI_THREAD_MULTIPLE \
+picongpu -s 100 -g 32 32 32 -d 1 1 1 \
+  --checkpoint.period 50:50 \
+  --checkpoint.openPMD.ext sst \
+  --checkpoint.openPMD.backendConfig \
+    '{"adios2":{"engine":{"parameters":{"DataTransport":"fabric"}}}}'
+```
+
+UCX transport:
+
+```bash
+UCX_TLS=shm UCX_POSIX_USE_PROC_LINK=n \
+PIC_USE_THREADED_MPI=MPI_THREAD_MULTIPLE \
+picongpu -s 100 -g 32 32 32 -d 1 1 1 \
+  --checkpoint.period 50:50 \
+  --checkpoint.openPMD.ext sst \
+  --checkpoint.openPMD.backendConfig \
+    '{"adios2":{"engine":{"parameters":{"DataTransport":"ucx"}}}}'
+```
+
+In this repository, `DataTransport=MPI` was also verified to work for the
+on-the-fly path, and is the least environment-dependent option on a single
+node:
+
+```json
+{"adios2":{"engine":{"parameters":{"DataTransport":"MPI","OpenTimeoutSecs":"10"}}}}
+```
+
+- [ ] Formalize the transport/startup requirements in documentation.
+- [ ] Investigate finer control of SST startup so that fully threaded MPI is
+      not a hard requirement.
