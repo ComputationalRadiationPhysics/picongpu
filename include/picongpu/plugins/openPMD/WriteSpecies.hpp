@@ -482,7 +482,7 @@ namespace picongpu
                         typename NewParticleDescription::ValueTypeSeq,
                         openPMD::InitParticleAttribute<boost::mpl::_1>>
                         initParticleAttributes;
-                    initParticleAttributes(params, particleSpecies, basename, globalNumParticles);
+                    initParticleAttributes(params, particleSpecies, globalNumParticles);
                 }
 
 
@@ -516,7 +516,6 @@ namespace picongpu
                     params,
                     hostFrame,
                     particleSpecies,
-                    basename,
                     myNumParticles,
                     globalNumParticles,
                     myParticleOffset,
@@ -845,9 +844,7 @@ namespace picongpu
                     }
                 }
 
-                ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticles");
                 numParticles.resetDataset(ds);
-                ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticlesOffset");
                 numParticlesOffset.resetDataset(ds);
 
                 /* It is safe to use the mpi rank to write the data even if the rank can differ between simulation
@@ -863,9 +860,7 @@ namespace picongpu
                 {
                     ::openPMD::PatchRecordComponent offset_x = offset[name_lookup[d]];
                     ::openPMD::PatchRecordComponent extent_x = extent[name_lookup[d]];
-                    ds.options = params->jsonMatcher->get(basename + "/particlePatches/offset/" + name_lookup[d]);
                     offset_x.resetDataset(ds);
-                    ds.options = params->jsonMatcher->get(basename + "/particlePatches/extent/" + name_lookup[d]);
                     extent_x.resetDataset(ds);
 
                     offset_x.storeChunk(bufferOffset[d], {mpiRank * numPatches}, {numPatches});
@@ -874,11 +869,7 @@ namespace picongpu
                 }
 
                 /* openPMD ED-PIC: additional attributes */
-                setParticleAttributes(
-                    particleSpecies,
-                    globalNumParticles,
-                    *params->jsonMatcher,
-                    series.particlesPath() + speciesGroup);
+                setParticleAttributes(particleSpecies, globalNumParticles);
                 params->m_dumpTimes.now<std::chrono::milliseconds>("\tFlush species " + T_SpeciesFilter::getName());
                 particleSpecies.seriesFlush(PreferredFlushTarget::Buffer);
                 params->m_dumpTimes.now<std::chrono::milliseconds>("\tFinished flush species");
@@ -973,7 +964,7 @@ namespace picongpu
                         typename NewParticleDescription::ValueTypeSeq,
                         openPMD::InitParticleAttribute<boost::mpl::_1>>
                         initParticleAttributes;
-                    initParticleAttributes(params, particleSpecies, basename, globalNumParticles);
+                    initParticleAttributes(params, particleSpecies, globalNumParticles);
                 }
 
                 /** Offset within our global chunk where we are allowed to write particles too.
@@ -1033,7 +1024,6 @@ namespace picongpu
                         params,
                         hostFrame,
                         particleSpecies,
-                        basename,
                         chunk.numberOfParticles,
                         globalNumParticles,
                         myParticleOffset + particleOffset,

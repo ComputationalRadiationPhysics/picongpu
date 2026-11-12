@@ -99,7 +99,7 @@ namespace picongpu
                     // Agree on the number of flush operations
                     for(uint32_t d = 0; d < numComponents; d++)
                     {
-                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                        params->readOpenPMDSeries->flush(PreferredFlushTarget::Disk);
                     }
                     return;
                 }

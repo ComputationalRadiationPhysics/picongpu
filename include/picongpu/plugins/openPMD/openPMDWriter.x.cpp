@@ -2038,7 +2038,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 bool const hasAnyData = anyData != 0;
 
                 // Ensure the Iteration is consistently accessed before any potential early returns
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep].open();
+                ::openPMD::Iteration iteration = params->writeOpenPMDSeries->writeIterations()[currentStep].open();
 
                 // PML is written as a sparse dataset. In the extreme case, sparse means that not a single coordinate
                 // in the dataset is defined. Do not create a mesh if no rank contributes data: ADIOS2 treats datasets
@@ -2051,7 +2051,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     // Agree on the number of flush operations
                     for(uint32_t d = 0; d < nComponents; d++)
                     {
-                        params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                        params->writeOpenPMDSeries->flush(PreferredFlushTarget::Disk);
                     }
                     return;
                 }
@@ -2266,7 +2266,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     eventSystem::getTransactionEvent().waitForFinished();
                     mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>(
                         "Closing iteration " + std::to_string(currentStep));
-                    mThreadParams.openPMDSeries->writeIterations()[currentStep].close();
+                    mThreadParams.writeOpenPMDSeries->writeIterations()[currentStep].close();
                     mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>("Done.");
                     mThreadParams.m_dumpTimes.flush();
                     return;
