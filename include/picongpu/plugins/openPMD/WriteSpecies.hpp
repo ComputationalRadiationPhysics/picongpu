@@ -291,9 +291,7 @@ namespace picongpu
             using NewParticleDescription =
                 typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type;
 
-            static void setParticleAttributes(
-                ::openPMD::ParticleSpecies& record,
-                uint64_t const globalNumParticles)
+            static void setParticleAttributes(::openPMD::ParticleSpecies& record, uint64_t const globalNumParticles)
             {
                 float_64 const particleShape(picongpu::traits::GetShape<ThisSpecies>::type::assignmentFunctionOrder);
                 record.setAttribute("particleShape", particleShape);
