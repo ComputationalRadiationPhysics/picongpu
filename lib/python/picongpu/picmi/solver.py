@@ -1,16 +1,18 @@
 """
 This file is part of PIConGPU.
-Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch
+Copyright 2021-2026 PIConGPU contributors
+Authors: Hannes Troepgen, Brian Edward Marre, Richard Pausch, Edgar Marquardt
 License: GPLv3+
 """
 
 import math
 from collections.abc import Sequence
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self, get_args
 
 from picmistandard import PICMI_BinomialSmoother, PICMI_ElectromagneticSolver
-from pydantic import BeforeValidator, ConfigDict, PrivateAttr, model_validator
+from picmistandard.base import _PICMIModel
+from picmistandard.fields import PICMI_AnyGrid
+from pydantic import BeforeValidator, ConfigDict, PrivateAttr, model_validator, Field, computed_field
 
 from picongpu.pypicongpu import util
 from picongpu.pypicongpu.field_solver import (
@@ -21,6 +23,7 @@ from picongpu.pypicongpu.field_solver import (
     NoneSolver,
     YeeSolver,
 )
+from picongpu.pypicongpu.poissonsolver import PoissonSolver
 
 _other_than_one_pass = (
     "a number of binomial smoothing passes other than one (PIConGPU's C++ current "
@@ -252,3 +255,96 @@ class ElectromagneticSolver(PICMI_ElectromagneticSolver):
                 return ArbitraryOrderFDTDSolver(neighbors=self._stencil_neighbors)
             case "other:None":
                 return NoneSolver()
+
+
+class PICMI_ElectrostaticSolver(_PICMIModel):
+    """
+    Electrostatic field solver
+    """
+
+    @computed_field
+    def methods_list(self) -> list[str]:
+        # Retained for backwards compatibility reasons.
+        # The type annotation of `method` is the ground-truth.
+        return list(get_args(type(self).__annotations__["method"]))
+
+    grid: PICMI_AnyGrid = Field(description="Grid object for the diagnostic")
+
+    method: Literal["FFT", "Multigrid"] | None = Field(
+        default=None,
+        description="The advance method use to solve the poisson equation. The default method is code dependent.",
+    )
+
+    required_precision: float | None = Field(default=None, description="The required precision for iterative solvers.")
+
+    maximum_iterations: int | None = Field(
+        default=None, description="The maximum number of iterations for iterative solvers."
+    )
+
+
+class ElectrostaticSolver(PICMI_ElectrostaticSolver):
+    """
+    PICMI Electrostatic Solver
+
+    See PICMI spec for full documentation.
+
+    Only the preconditioned Bi-CGSTAB Poisson solver is supported; solver options that PIConGPU
+    does not implement are rejected at construction time.
+    """
+
+    required_precision: Annotated[float, Field(..., gt=0.0)] = 1e-8
+    """The required precision for iterative solvers. Must be greater than 0.0."""
+    maximum_iterations: Annotated[int, Field(..., gt=0)] = 2000
+    """The maximum number of iterations for iterative solvers. Must be greater than 0."""
+    preconditioner: Literal["chebyshev", "none"] = "chebyshev"
+    """The preconditioner to use for the iterative solver. Available choices are:
+     - chebyshev: Chebyshev preconditioner. Recommended, because it generally leads to faster convergence.
+     - none: No preconditioner.
+    """
+    preconditioner_maximum_iterations: Annotated[int, Field(..., gt=0)] = 20
+    """The maximum number of iterations for the preconditioner. Must be greater than 0."""
+    boundary_condition: Literal["dirichlet", "homogeneous_dirichlet", "neumann", "homogeneous_neumann"] = "dirichlet"
+    """Available choices are:
+     - homogeneous_dirichlet: zero potential on the boundary.
+       Recommended for situations with high total charge and much space around it.
+     - dirichlet: prescribed boundary potential from a
+       user-defined function.
+       Recommended for situations where the boundary potential can be
+       estimated beforehand.
+       Implement the boundary_function to define the boundary potential.
+     - homogeneous_neumann: zero normal derivative on the
+       boundary.
+       Warning: This can only be used if the total charge is close to zero,
+       otherwise it will not lead to correct results.
+       Recommended for close to charge neutral starting plasmas.
+     - neumann: prescribed normal derivative from a
+       user-defined function
+       Recommended for cases where the normal electric field at the boundary
+       can be estimated beforehand.
+       Implement the boundary_function to define the outward normal derivative of
+       the potential at the boundary.
+       Warning: This requires that the total charge in the volume is equal or
+       close to the sum over the values the boundary_function provides.
+
+    The selected condition is applied to all non-periodic faces. Periodic faces
+    are still periodic.
+    Warning: If only periodic faces are used the total charge needs to be close to
+    or equal to zero. Include at least one dirichlet boundary to calculate the field
+    for strongly charged starting conditions.
+    """
+    boundary_function: Annotated[str, Field(..., min_length=1)] = "0.0"
+    """For the function based boundary conditions, the boundary_function needs to be a
+    valid C++ expression using ``totalCellCoordinate`` (a vector specifying the location
+    of the guard cell where the function is evaluated) and ``outwardNormal`` (a vector
+    specifying the outward normal of the boundary face).
+    """
+
+    def get_as_pypicongpu(self) -> PoissonSolver:
+        return PoissonSolver(
+            tolerance=self.required_precision,
+            max_steps=self.maximum_iterations,
+            preconditioner=self.preconditioner,
+            preconditioner_max_steps=self.preconditioner_maximum_iterations,
+            boundary_condition=self.boundary_condition,
+            boundary_function=self.boundary_function,
+        )

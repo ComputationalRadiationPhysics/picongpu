@@ -1,0 +1,171 @@
+/* Copyright 2026-2026 PIConGPU contributors
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Analytic charge-density injection for the Poisson solver regression test.
+ *
+ * One macro particle is placed exactly on every grid node (see particle.param
+ * and speciesInitialization.param) with the shape used by the species. The
+ * density profile returns the analytic charge density divided by the species
+ * charge and BASE_DENSITY_SI. Deposition is therefore exact up to floating
+ * point rounding and does not add sampling noise.
+ *
+ * The profile selects the analytic case from the periodic boundary flags:
+ *   - all axes periodic      -> Case A, periodic sine mode
+ *   - all axes non-periodic -> Case B, Dirichlet grounded polynomial
+ *   - only x non-periodic   -> Case C, uniform-density slab
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+
+#include <pmacc/Environment.hpp>
+#include <pmacc/math/Vector.hpp>
+
+#include <stdexcept>
+
+namespace picongpu
+{
+    namespace densityProfiles
+    {
+        //! Potential amplitude of Cases A and B and centre potential of Case C [V].
+        constexpr float_64 POISSON_TEST_PHI0_SI = 1.0;
+
+        /** Analytic density profile used by both charge species.
+         *
+         * @tparam T_Positive true for the positively charged species, false for
+         *                    the negatively charged one.
+         *
+         * For a signed density (Case A) the positive and negative parts are
+         * carried by the two species. For the sign-definite Cases B and C the
+         * negative species receives zero density.
+         */
+        template<bool T_Positive>
+        struct AnalyticPoissonDensity
+        {
+            template<typename T_SpeciesType>
+            struct apply
+            {
+                using type = AnalyticPoissonDensity;
+            };
+
+            HINLINE AnalyticPoissonDensity(uint32_t)
+            {
+                // EnvironmentController() and SubGrid() are non-const, so the
+                // singleton reference must be non-const as well.
+                auto& environment = pmacc::Environment<simDim>::get();
+                auto const periodic = environment.EnvironmentController().getCommunicator().getPeriodic();
+                auto const globalSize = environment.SubGrid().getGlobalDomain().size;
+
+                m_periodicX = periodic[0];
+                m_periodicY = periodic[1];
+                m_periodicZ = periodic[2];
+                m_nx = static_cast<float_64>(globalSize[0]);
+                m_ny = static_cast<float_64>(globalSize[1]);
+                m_nz = static_cast<float_64>(globalSize[2]);
+
+                bool const allPeriodic = m_periodicX && m_periodicY && m_periodicZ;
+                bool const noPeriodic = !m_periodicX && !m_periodicY && !m_periodicZ;
+                bool const slab = !m_periodicX && m_periodicY && m_periodicZ;
+
+                if(allPeriodic)
+                    m_case = 0;
+                else if(noPeriodic)
+                    m_case = 1;
+                else if(slab)
+                    m_case = 2;
+                else
+                    throw std::runtime_error(
+                        "PoissonSolver test: unsupported periodic boundary pattern. "
+                        "Use 1 1 1 (Case A), 0 0 0 (Case B) or 0 1 1 (Case C).");
+            }
+
+            HDINLINE float_X operator()(DataSpace<simDim> const& totalCellOffset) const
+            {
+                float3_64 const h = sim.si.getCellSize();
+
+                // Dirichlet nodes sit one cell inside the ghost boundary.
+                float_64 const shiftX = m_periodicX ? 0.0 : 1.0;
+                float_64 const shiftY = m_periodicY ? 0.0 : 1.0;
+                float_64 const shiftZ = m_periodicZ ? 0.0 : 1.0;
+
+                float_64 const x = (static_cast<float_64>(totalCellOffset[0]) + shiftX) * h[0];
+                float_64 const y = (static_cast<float_64>(totalCellOffset[1]) + shiftY) * h[1];
+                float_64 const z = (static_cast<float_64>(totalCellOffset[2]) + shiftZ) * h[2];
+
+                float_64 const lx = (m_nx + shiftX) * h[0];
+                float_64 const ly = (m_ny + shiftY) * h[1];
+                float_64 const lz = (m_nz + shiftZ) * h[2];
+
+                float_64 rho = 0.0;
+                if(m_case == 0)
+                {
+                    // Case A: the sine is an exact eigenvector of the discrete
+                    // periodic 7-point operator. Using the discrete eigenvalue
+                    // keeps the regression focused on the solve instead of the
+                    // O(h^2) difference to the continuum eigenvalue, which is
+                    // 3.2e-3 for N = 32 and would dominate E_L2.
+                    float_64 const kx = 2.0 * PI / lx;
+                    float_64 const ky = 2.0 * PI / ly;
+                    float_64 const kz = 2.0 * PI / lz;
+                    float_64 const lambdaDiscrete
+                        = 4.0 * pmacc::math::sin(PI / m_nx) * pmacc::math::sin(PI / m_nx) / (h[0] * h[0])
+                          + 4.0 * pmacc::math::sin(PI / m_ny) * pmacc::math::sin(PI / m_ny) / (h[1] * h[1])
+                          + 4.0 * pmacc::math::sin(PI / m_nz) * pmacc::math::sin(PI / m_nz) / (h[2] * h[2]);
+                    rho = SI::EPS0_SI * lambdaDiscrete * POISSON_TEST_PHI0_SI * pmacc::math::sin(kx * x)
+                          * pmacc::math::sin(ky * y) * pmacc::math::sin(kz * z);
+                }
+                else if(m_case == 1)
+                {
+                    // Case B: 64*phi0*p(x)p(y)p(z)/(Lx^2 Ly^2 Lz^2).
+                    float_64 const px = x * (lx - x);
+                    float_64 const py = y * (ly - y);
+                    float_64 const pz = z * (lz - z);
+                    rho = 128.0 * SI::EPS0_SI * POISSON_TEST_PHI0_SI * (py * pz + px * pz + px * py)
+                          / (lx * lx * ly * ly * lz * lz);
+                }
+                else
+                {
+                    // Case C: uniform rho0 chosen for a 1 V centre potential.
+                    rho = 8.0 * SI::EPS0_SI * POISSON_TEST_PHI0_SI / (lx * lx);
+                }
+
+                float_64 const positivePart = rho > 0.0 ? rho : 0.0;
+                float_64 const negativePart = rho < 0.0 ? -rho : 0.0;
+                float_64 const magnitude
+                    = (T_Positive ? positivePart : negativePart) / (-SI::ELECTRON_CHARGE_SI * sim.si.getBaseDensity());
+                return static_cast<float_X>(magnitude);
+            }
+
+        private:
+            bool m_periodicX = false;
+            bool m_periodicY = false;
+            bool m_periodicZ = false;
+            float_64 m_nx = 0.0;
+            float_64 m_ny = 0.0;
+            float_64 m_nz = 0.0;
+            int m_case = 1;
+        };
+
+        using AnalyticPositive = AnalyticPoissonDensity<true>;
+        using AnalyticNegative = AnalyticPoissonDensity<false>;
+    } // namespace densityProfiles
+} // namespace picongpu

@@ -1,0 +1,59 @@
+/* Copyright 2026-2026 PIConGPU contributors
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Test-only openPMD output. The Poisson regression test needs the electrostatic
+ * potential, so FieldV is added to the native field output. Production output
+ * is not affected.
+ */
+
+#pragma once
+
+#include "picongpu/fields/Fields.def"
+#include "picongpu/fields/poissonSolver/FieldV.hpp"
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/particleToGrid/CombinedDerive.def"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
+namespace picongpu
+{
+    namespace deriveField = particles::particleToGrid;
+
+    using ChargeDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::ChargeDensity>;
+
+    using EnergyDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::EnergyDensity>;
+
+    using FieldTmpSolvers = MakeSeq_t<ChargeDensity_Seq, EnergyDensity_Seq>;
+
+    /** Possible native fields: FieldE, FieldB, FieldJ, FieldV.
+     *
+     * FieldV is the Poisson solver potential; the analytic test compares it
+     * to the closed-form solution.
+     */
+    using NativeFileOutputFields = MakeSeq_t<FieldE, FieldB, fields::poissonSolver::FieldV>;
+
+    using FileOutputFields = MakeSeq_t<NativeFileOutputFields, FieldTmpSolvers>;
+
+    using FileOutputParticles = VectorAllSpecies;
+} // namespace picongpu
