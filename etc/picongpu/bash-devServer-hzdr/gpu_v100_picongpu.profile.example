@@ -28,7 +28,7 @@ spack load cmake@3.26.6 ^openssl certs=mozilla %gcc@12.2.0
 #   and no name confilcts in spack, see install.sh for more precise definition
 #   if name conflicts occur
 
-spack load openpmd-api@0.15.2 %gcc@12.2.0 \
+spack load openpmd-api@0.17.1 %gcc@12.2.0 \
     ^adios2@2.9.2 \
     ^hdf5@1.14.3 \
     ^openmpi@4.1.5 +atomics +cuda cuda_arch=70 \

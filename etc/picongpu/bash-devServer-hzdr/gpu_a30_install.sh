@@ -3,7 +3,7 @@ spack install --reuse cmake@3.30
 spack load cmake@3.30 ^openssl certs=mozilla
 
 echo "openpmd-api:"
-spack install --reuse openpmd-api@0.15.2 +python \
+spack install --reuse openpmd-api@0.17.1 +python \
     ^adios2@2.9.2 ++blosc2 +cuda cuda_arch=80 \
     ^cmake@3.30 \
     ^hdf5@1.14.3 \
