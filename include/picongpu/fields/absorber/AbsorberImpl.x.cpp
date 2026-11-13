@@ -40,18 +40,27 @@ namespace picongpu
             {
             }
 
-            AbsorberImpl& AbsorberImpl::getImpl(MappingDesc const cellDescription)
+            namespace
             {
                 // Delay initialization till the first call since the factory has its parameters set during runtime
-                static std::unique_ptr<AbsorberImpl> pInstance = nullptr;
-                if(!pInstance)
+                std::unique_ptr<AbsorberImpl> absorberImplInstance = nullptr;
+            } // namespace
+
+            AbsorberImpl& AbsorberImpl::getImpl(MappingDesc const cellDescription)
+            {
+                if(!absorberImplInstance)
                 {
                     auto& factory = AbsorberFactory::get();
-                    pInstance = factory.makeImpl(cellDescription);
+                    absorberImplInstance = factory.makeImpl(cellDescription);
                 }
-                else if(pInstance->cellDescription != cellDescription)
+                else if(absorberImplInstance->cellDescription != cellDescription)
                     throw std::runtime_error("AbsorberImpl::getImpl() called with a different mapping description");
-                return *pInstance;
+                return *absorberImplInstance;
+            }
+
+            void AbsorberImpl::reset()
+            {
+                absorberImplInstance.reset();
             }
 
             exponential::ExponentialImpl& AbsorberImpl::asExponentialImpl()
