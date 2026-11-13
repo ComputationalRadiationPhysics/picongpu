@@ -28,6 +28,7 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/absorber/AbsorberImpl.hpp"
 #include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
@@ -298,6 +299,9 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
 
             SimHelper::pluginUnload();
+
+            // Free the absorber, including its PML fields, while the event system is still usable.
+            fields::absorber::AbsorberImpl::reset();
 
             /** unshare all registered ISimulationData sets
              *
