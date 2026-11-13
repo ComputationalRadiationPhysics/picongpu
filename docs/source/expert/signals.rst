@@ -41,7 +41,7 @@ Batch Systems
 Slurm
 ^^^^^
 
-Documenation: https://slurm.schedmd.com/scancel.html
+Documentation: https://slurm.schedmd.com/scancel.html
 
 ``scancel --signal=USR1  --batch <jobid>``
 
