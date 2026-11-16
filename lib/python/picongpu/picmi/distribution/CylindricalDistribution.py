@@ -19,18 +19,27 @@ _MISSING_Z = object()
 
 
 class CylindricalDistribution(Distribution):
-    """
+    r"""
     Describes a cylindrical density distribution of particles with gaussian up-ramp
     with a constant density region in between. It can have an arbitrary orientation
     and position in space.
 
     Will create the following profile:
-      n = density if r < reduced_radius
-      n is 0 or follows the exponential ramp if r > reduced_radius
-      n is 0 if r > reduced_radius + prePlasmaCutoff
-      the reduced_radius is equal = @f[\\sqrt{R^2 -L^2} -L @f]
-      with R - cylinder_radius and L - prePlasmaLength (scale length of the ramp)
-      the reduced radius ensures mass conservation
+
+    * :math:`n = \rho` if :math:`r < r_\mathrm{reduced}`,
+    * :math:`n = 0` or follows the exponential ramp if
+      :math:`r > r_\mathrm{reduced}`,
+    * :math:`n = 0` if
+      :math:`r > r_\mathrm{reduced} + \mathrm{prePlasmaCutoff}`.
+
+    The reduced radius is
+
+    .. math::
+
+        r_\mathrm{reduced} = \sqrt{R^2 - L^2} - L
+
+    with :math:`R` the cylinder radius and :math:`L` the pre-plasma length
+    (scale length of the ramp). The reduced radius ensures mass conservation.
     """
 
     density: float

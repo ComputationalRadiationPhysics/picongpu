@@ -25,16 +25,22 @@ _MISSING_Z = object()
     ignore=["check"],
 )
 class GaussianDistribution(Distribution):
-    """
+    r"""
     Describes a density distribution of particles with gaussian up- and down-ramps with a constant density region in
     between
 
     Will create the following profile:
-    - for y < center_front:                density * exp(factor * abs(y - center_front/sigma_front)**power)
-    - for center_front <= y <=center_rear: density
-    - for y > center_rear:                 density * exp(factor * abs(y - center_rear/sigma_rear)**power)
 
-    with y being the position in the simulation box
+    * for :math:`y < c_\mathrm{front}`:
+      :math:`n(y) = \rho \exp\left(f \left|\frac{y - c_\mathrm{front}}{\sigma_\mathrm{front}}\right|^p\right)`
+    * for :math:`c_\mathrm{front} \le y \le c_\mathrm{rear}`:
+      :math:`n(y) = \rho`
+    * for :math:`y > c_\mathrm{rear}`:
+      :math:`n(y) = \rho \exp\left(f \left|\frac{y - c_\mathrm{rear}}{\sigma_\mathrm{rear}}\right|^p\right)`
+
+    where :math:`n` is the density, :math:`\rho` is ``density``,
+    :math:`f` is ``factor``, :math:`p` is ``power``, and :math:`y` is the
+    position in the simulation box
 
     The profile is one-dimensional along ``y``. It can be evaluated on both 3D
     and 2D grids, with a dimension-dependent call contract (see :meth:`__call__`).

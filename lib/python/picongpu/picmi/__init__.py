@@ -1,5 +1,6 @@
 """
 PICMI for PIConGPU
+------------------
 
 The top level exposes exactly the objects a user passes to
 :class:`~picongpu.picmi.simulation.Simulation` or
