@@ -41,6 +41,12 @@ repos:
       - id: remove-crlf
   - repo: local
     hooks:
+      - id: check_field_descriptions
+        name: check_field_descriptions
+        entry: share/ci/check_field_descriptions.py
+        language: script
+        files: ^lib/python/picongpu/picmi/.*\.py$
+        pass_filenames: false
       - id: check_cpp_code_style
         name: check_cpp_code_style
         entry: share/ci/check_cpp_code_style.sh
@@ -78,7 +84,7 @@ repos:
         # - .zenodo.json: Contains author names that might include special characters for correct spelling.
         # - unit_dimension.py: Contains theta as the symbol for temperature.
         exclude_types: [rst]
-        exclude: CHANGELOG.md|.zenodo.json|lib/python/picongpu/picmi/particle_functor/unit_dimension.py
+        exclude: CHANGELOG.md|.zenodo.json|lib/python/picongpu/picmi/unit_dimension.py
   - repo: https://github.com/BlankSpruce/gersemi
     rev: 0.22.1
     hooks:

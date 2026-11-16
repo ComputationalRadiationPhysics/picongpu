@@ -22,18 +22,18 @@ from pathlib import Path
 from sympy import sqrt
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import BinSpec, Binning, BinningAxis, TS
-from picongpu.picmi.particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
+from picongpu.picmi import diagnostics
+from picongpu.picmi import particle_functor
 
 
-@ParticleFunctor
+@particle_functor.ParticleFunctor
 def gamma(particle):
     mass = particle.get("mass")
     px, py, pz = particle.get("momentum")
     return sqrt(mass**2 + px**2 + py**2 + pz**2) / mass
 
 
-@ParticleFunctor
+@particle_functor.ParticleFunctor
 def count(particle):
     return 1.0
 
@@ -50,43 +50,43 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-binning = Binning(
+binning = diagnostics.Binning(
     name="gammaDistribution",
     deposition_functor=count,
     axes=[
-        BinningAxis(
+        diagnostics.BinningAxis(
             functor=gamma,
-            bin_spec=BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100),
+            bin_spec=diagnostics.BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100),
         ),
     ],
     species=electrons,
-    period=TS[::10],
+    period=diagnostics.TS[::10],
 )
 
 
 # BEGIN-BINNING-FILTER
-@ParticleFilter
+@particle_functor.ParticleFilter
 def fast(particle):
     # 1.6e-15 J = 10 keV
     return particle.get("kinetic energy") > 1.6e-15
 
 
-fast_electrons = FilteredSpecies(species=electrons, functor=fast)
+fast_electrons = particle_functor.FilteredSpecies(species=electrons, functor=fast)
 # END-BINNING-FILTER
 
 # the same binning, restricted to the filtered species
 # (the filtered species name is <species>_<filter> = "electrons_fast")
-fast_binning = Binning(
+fast_binning = diagnostics.Binning(
     name="fastGammaDistribution",
     deposition_functor=count,
     axes=[
-        BinningAxis(
+        diagnostics.BinningAxis(
             functor=gamma,
-            bin_spec=BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100),
+            bin_spec=diagnostics.BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100),
         ),
     ],
     species=fast_electrons,
-    period=TS[::10],
+    period=diagnostics.TS[::10],
 )
 
 sim = picmi.Simulation(

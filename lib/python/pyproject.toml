@@ -78,6 +78,74 @@ packages = [ "picongpu" ]
 [tool.hatch.build.hooks.custom]
 path = "hatch_build.py"
 
+[tool.ruff]
+# Curated pydocstyle subset for the API reference (issue #194).
+# D101/D102/D103 demand class/method/function docstrings; the field-level
+# prose is guarded separately by share/ci/check_field_descriptions.py.
+lint.extend-select = [ "D101", "D102", "D103" ]
+# Scope the docstring rules to the picmi package (the rendered API reference).
+# TEMPORARY SCAFFOLD: ruff has no baseline, so a `per-file-ignores` entry
+# suppresses D101/D102/D103 for the *whole* file, not just the pre-existing
+# violations -- new undocumented code added to one of these files is NOT caught
+# by ruff. The follow-up prose PR removes these entries file-by-file as the
+# docstrings are written; until then the authoritative new-code ratchet for the
+# invariants it covers is share/ci/check_field_descriptions.py, whose
+# per-class/per-field checks fail on any *new* violation (including in
+# grandfathered files).
+# Remove entries as their docstrings are added in the (b) prose PR.
+lint.per-file-ignores."!picongpu/picmi/**" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/_copy_attributes.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/_predefined_particle_type_properties.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/_species_requirements.py" = [ "D101", "D102", "D103" ]
+
+lint.per-file-ignores."picongpu/picmi/applied_field.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/backend_config.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/binning.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/checkpoint.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/energy_histogram.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/field_dump.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/particle_dump.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/phase_space.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/radiation.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/diagnostics/timestepspec.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/AnalyticDistribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/CylindricalDistribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/Distribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/FoilDistribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/GaussianBunchDistribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/GaussianDistribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/distribution/UniformDistribution.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/grid.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/collision.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/electroniccollisionalequilibrium/thomasfermi.py" = [
+  "D101",
+  "D102",
+  "D103",
+]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/fieldionization/ADK.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/fieldionization/BSI.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/fieldionization/ionizationcurrent/energyconservation.py" = [
+  "D101",
+  "D102",
+  "D103",
+]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/fieldionization/keldysh.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/groundstateionizationmodel.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/ionization/ionizationmodel.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/interaction/synchrotron.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/lasers/base_laser.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/lasers/gaussian_laser.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/lasers/plane_wave_laser.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/lasers/polarization_type.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/lasers/twts_laser.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/layout.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/particle_functor/particle_filter.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/particle_functor/particle_functor.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/particle_functor/rng_arg.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/simulation.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/solver.py" = [ "D101", "D102", "D103" ]
+lint.per-file-ignores."picongpu/picmi/species.py" = [ "D101", "D102", "D103" ]
+
 [tool.pytest.ini_options]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",

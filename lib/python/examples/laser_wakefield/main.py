@@ -22,9 +22,9 @@ from typing import Literal
 import numpy as np
 import sympy
 from picongpu import picmi
-from picongpu.picmi.diagnostics import binning
-from picongpu.picmi.diagnostics.radiation import RadiationObserverConfiguration
-from picongpu.picmi.particle_functor.unit_dimension import I, L, M, T
+from picongpu.picmi.diagnostics import RadiationObserverConfiguration
+from picongpu.picmi.particle_functor import ParticleFunctor
+from picongpu.picmi.unit_dimension import I, L, M, T
 from scipy.constants import c, elementary_charge
 
 """
@@ -165,29 +165,27 @@ def computeCharge(particle):
     return particle.get("charge")
 
 
-energyFunctor = binning.BinningFunctor(
+energyFunctor = ParticleFunctor(
     name="energy", functor=computeEnergy, return_type=float, unit_dimension=L**2 * M * T**-2
 )
-thetaFunctor = binning.BinningFunctor(
+thetaFunctor = ParticleFunctor(
     name="theta",
     functor=computeAngle,
     return_type=float,
 )
 
 maxEnergy_MeV = 100.0
-energyRange = binning.BinSpec(
+energyRange = picmi.diagnostics.BinSpec(
     kind="linear", start=0.0, stop=maxEnergy_MeV * 1e6 * elementary_charge, nsteps=800
 )  # convert MeV to Joule
-thetaRange = binning.BinSpec(kind="linear", start=-0.250, stop=+0.250, nsteps=256)  # in rad
+thetaRange = picmi.diagnostics.BinSpec(kind="linear", start=-0.250, stop=+0.250, nsteps=256)  # in rad
 
-energyAxis = binning.BinningAxis(functor=energyFunctor, bin_spec=energyRange, name="energy")
-thetaAxis = binning.BinningAxis(functor=thetaFunctor, bin_spec=thetaRange, name="theta")
+energyAxis = picmi.diagnostics.BinningAxis(functor=energyFunctor, bin_spec=energyRange, name="energy")
+thetaAxis = picmi.diagnostics.BinningAxis(functor=thetaFunctor, bin_spec=thetaRange, name="theta")
 
-eSpec_deposition_functor = binning.BinningFunctor(
-    name="eSpec", functor=computeCharge, return_type=float, unit_dimension=I * T
-)
+eSpec_deposition_functor = ParticleFunctor(name="eSpec", functor=computeCharge, return_type=float, unit_dimension=I * T)
 
-eSPec_binning = binning.Binning(
+eSPec_binning = picmi.diagnostics.Binning(
     name="eSpec",
     deposition_functor=eSpec_deposition_functor,
     axes=[energyAxis, thetaAxis],

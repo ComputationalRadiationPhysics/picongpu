@@ -30,7 +30,6 @@ but you can also import them directly:
 
 .. toctree::
    :maxdepth: 1
-   :hidden:
 
    simulation
    grid

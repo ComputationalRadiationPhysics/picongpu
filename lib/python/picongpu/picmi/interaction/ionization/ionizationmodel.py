@@ -7,8 +7,8 @@ License: GPLv3+
 
 from pydantic import BaseModel, model_validator
 
-from picongpu.picmi.species import DependsOn, Species
-from picongpu.picmi.species_requirements import (
+from picongpu.picmi.species import _DependsOn, Species
+from picongpu.picmi._species_requirements import (
     GroundStateIonizationConstruction,
     SetChargeStateOperation,
 )
@@ -53,7 +53,7 @@ class IonizationModel(BaseModel):
         super().__init__(*args, **kwargs)
         self.ion_species.register_requirements(
             [
-                DependsOn(species=self.ionization_electron_species),
+                _DependsOn(species=self.ionization_electron_species),
                 GroundStateIonizationConstruction(ionization_model=self),
                 SetChargeStateOperation(species=self.ion_species),
                 BoundElectrons(),

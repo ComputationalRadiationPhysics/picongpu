@@ -33,7 +33,7 @@ def difference(a: list[float], b: list[float]) -> list[float]:
     return (np.asarray(a) - b).tolist()
 
 
-class BaseLaser:
+class _BaseLaser:
     """
     Base class for all PICMI laser implementations to reduce code duplication
     """

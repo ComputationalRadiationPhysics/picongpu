@@ -20,7 +20,6 @@ so that the run can be resumed from the latest checkpoint.
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import Checkpoint, TS
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -34,8 +33,8 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-checkpoint = Checkpoint(
-    period=TS[::20],
+checkpoint = picmi.diagnostics.Checkpoint(
+    period=picmi.diagnostics.TS[::20],
     directory="checkpoints",
     file="checkpoint",
 )
@@ -52,6 +51,6 @@ sim = picmi.Simulation(
 # (or starts from scratch if none exists) keeps a period and adds
 # the restart option:
 #
-#     Checkpoint(period=TS[::20], tryRestart=True)
+#     picmi.diagnostics.Checkpoint(period=picmi.diagnostics.TS[::20], tryRestart=True)
 
 sim.run(setup_dir=Path("checkpoint_setup"), run_dir=Path("checkpoint_run"))

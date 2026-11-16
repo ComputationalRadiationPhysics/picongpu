@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from picongpu.pypicongpu import precision_config as pypicongpu_precision
 
-from .copy_attributes import converts_to
+from ._copy_attributes import converts_to
 
 
 @converts_to(pypicongpu_precision.PrecisionConfig)

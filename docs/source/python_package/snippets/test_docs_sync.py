@@ -190,7 +190,7 @@ def test_documented_constants_match_module():
 
 def test_documented_unit_dimension_order_matches_module():
     """The documented unit-dimension letter order matches the module's index map."""
-    from picongpu.picmi.particle_functor.unit_dimension import _UNIT_INDEX_MAP
+    from picongpu.picmi.unit_dimension import _UNIT_INDEX_MAP
 
     text = UNITS.read_text()
     theta = "\u0398"  # capital theta, the temperature dimension
@@ -202,7 +202,7 @@ def test_documented_unit_dimension_order_matches_module():
 
 def test_documented_unit_dimension_singletons_exist():
     """The ``L``, ``M``, ``T`` and ``I`` singletons named in the docs exist."""
-    from picongpu.picmi.particle_functor import unit_dimension
+    from picongpu.picmi import unit_dimension
 
     text = UNITS.read_text()
     assert "singletons ``L``, ``M``, ``T`` and ``I``" in text

@@ -19,15 +19,9 @@ from pathlib import Path
 from sympy import sqrt
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import BinSpec, Binning, BinningAxis, DerivedFieldDump, EnergyHistogram
-from picongpu.picmi.particle_functor import (
-    FilteredSpecies,
-    MacroParticle,
-    ParticleFilter,
-    ParticleFunctor,
-    PhysicalParticle,
-)
-from picongpu.picmi.particle_functor.unit_dimension import M, UnitDimension
+from picongpu.picmi import diagnostics
+from picongpu.picmi import particle_functor
+from picongpu.picmi import unit_dimension
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -46,8 +40,8 @@ electrons = picmi.Species(
 
 
 # BEGIN-PARTICLE-FUNCTOR
-@ParticleFunctor
-def gamma(particle: MacroParticle) -> float:
+@particle_functor.ParticleFunctor
+def gamma(particle: particle_functor.MacroParticle) -> float:
     mass = particle.get("mass")
     px, py, pz = particle.get("momentum")
     return sqrt(mass**2 + px**2 + py**2 + pz**2) / mass
@@ -59,8 +53,8 @@ def gamma(particle: MacroParticle) -> float:
 # BEGIN-PHYSICAL-PARTICLE
 # The argument's type annotation declares which particle flavour the functor
 # refers to: MacroParticle (the default) or PhysicalParticle.
-@ParticleFunctor(unit_dimension=M)
-def macroparticle_mass(particle: MacroParticle) -> float:
+@particle_functor.ParticleFunctor(unit_dimension=unit_dimension.M)
+def macroparticle_mass(particle: particle_functor.MacroParticle) -> float:
     return particle.get("mass")
 
 
@@ -68,8 +62,8 @@ def macroparticle_mass(particle: MacroParticle) -> float:
 # quantity is interpreted as a single-particle (per-particle) value: the
 # weighting factor is symbolically divided out of the scaling-sensitive
 # symbols (mass, charge, kinetic energy) at code generation.
-@ParticleFunctor(unit_dimension=M)
-def physical_mass(particle: PhysicalParticle) -> float:
+@particle_functor.ParticleFunctor(unit_dimension=unit_dimension.M)
+def physical_mass(particle: particle_functor.PhysicalParticle) -> float:
     return particle.get("mass")
 
 
@@ -80,43 +74,47 @@ def physical_mass(particle: PhysicalParticle) -> float:
 # unit_factor pins the numeric scale returned by getUnit() when the automatic
 # derivation cannot handle the unit (here a count whose unit carries N_ppm).
 # It takes a number, a sympy expression, or a callable returning one.
-@ParticleFunctor(unit_dimension=UnitDimension(N=1), unit_factor=1.0e6)
-def explicit_scale(particle: MacroParticle) -> float:
+@particle_functor.ParticleFunctor(unit_dimension=unit_dimension.UnitDimension(N=1), unit_factor=1.0e6)
+def explicit_scale(particle: particle_functor.MacroParticle) -> float:
     return 1.0
 
 
 # END-UNIT-FACTOR
 
 
-@ParticleFunctor
-def count(particle: MacroParticle):
+@particle_functor.ParticleFunctor
+def count(particle: particle_functor.MacroParticle):
     return 1.0
 
 
 # a functor used as an axis of a binning diagnostic:
-gamma_distribution = Binning(
+gamma_distribution = diagnostics.Binning(
     name="gammaDistribution",
     deposition_functor=count,
-    axes=[BinningAxis(functor=gamma, bin_spec=BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100))],
+    axes=[
+        diagnostics.BinningAxis(
+            functor=gamma, bin_spec=diagnostics.BinSpec(kind="linear", start=1.0, stop=100.0, nsteps=100)
+        )
+    ],
     species=electrons,
-    period=picmi.diagnostics.TS[::10],
+    period=diagnostics.TS[::10],
 )
 
 
 # BEGIN-PARTICLE-FILTER
-@ParticleFilter
-def fast(particle: MacroParticle) -> bool:
+@particle_functor.ParticleFilter
+def fast(particle: particle_functor.MacroParticle) -> bool:
     return particle.get("gamma") > 10.0
 
 
 # a filter wrapped into a species usable wherever a species is accepted;
 # its name in the output is "electrons_fast":
-fast_electrons = FilteredSpecies(species=electrons, functor=fast)
+fast_electrons = particle_functor.FilteredSpecies(species=electrons, functor=fast)
 # END-PARTICLE-FILTER
 
-histogram = EnergyHistogram(
+histogram = diagnostics.EnergyHistogram(
     species=fast_electrons,
-    period=picmi.diagnostics.TS[-1],
+    period=diagnostics.TS[-1],
     bin_count=100,
     min_energy=0.0,
     max_energy=1000.0 * picmi.constants.keV,
@@ -125,13 +123,15 @@ histogram = EnergyHistogram(
 # Derived fields expose the single-particle semantics in the output: the
 # physical-particle mass is dumped per particle, while the macro-particle mass
 # stays a weighting-scaled grid quantity.
-physical_mass_dump = DerivedFieldDump(species=electrons, functor=physical_mass, period=picmi.diagnostics.TS[::10])
-macroparticle_mass_dump = DerivedFieldDump(
-    species=electrons, functor=macroparticle_mass, period=picmi.diagnostics.TS[::10]
+physical_mass_dump = diagnostics.DerivedFieldDump(species=electrons, functor=physical_mass, period=diagnostics.TS[::10])
+macroparticle_mass_dump = diagnostics.DerivedFieldDump(
+    species=electrons, functor=macroparticle_mass, period=diagnostics.TS[::10]
 )
 # unit_factor pins the numeric getUnit() scale (here 1e6) instead of the
 # auto-derived sim.unit.* monomial.
-explicit_scale_dump = DerivedFieldDump(species=electrons, functor=explicit_scale, period=picmi.diagnostics.TS[::10])
+explicit_scale_dump = diagnostics.DerivedFieldDump(
+    species=electrons, functor=explicit_scale, period=diagnostics.TS[::10]
+)
 
 simulation = picmi.Simulation(
     max_steps=100,

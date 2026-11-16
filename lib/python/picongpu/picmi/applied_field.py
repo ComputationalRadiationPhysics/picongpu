@@ -13,7 +13,7 @@ from picmistandard import PICMI_AnalyticAppliedField, PICMI_ConstantAppliedField
 from picmistandard.base import Expression
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from picongpu.picmi._FieldFunctor import (
+from picongpu.picmi._field_functor import (
     _FieldFunctor,
     callable_extra_parameters,
     expression_parameter_names,
@@ -205,7 +205,7 @@ class AnalyticAppliedField(_InfluenceOptions, PICMI_AnalyticAppliedField):
     :class:`~picongpu.picmi.distribution.AnalyticDistribution.AnalyticDistribution`
     (see :doc:`/python_package/selected_topics/functors`): each of the six
     components is one shared
-    :class:`~picongpu.picmi._FieldFunctor._FieldFunctor` and is exposed in all
+    :class:`~picongpu.picmi._field_functor._FieldFunctor` and is exposed in all
     three interchangeable spellings:
 
     * ``<component>_expression`` -- a sympy-parseable string of ``x``, ``y``,

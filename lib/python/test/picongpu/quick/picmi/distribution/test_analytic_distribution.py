@@ -14,7 +14,7 @@ from sympy import Piecewise, exp, sin, symbols, sympify
 
 from picongpu.picmi import AnalyticDistribution
 from picongpu.picmi.species import Species
-from picongpu.picmi.species_requirements import SimpleMomentumOperation, run_construction
+from picongpu.picmi._species_requirements import SimpleMomentumOperation, run_construction
 from picongpu.pypicongpu.util import UnsupportedFeatureError
 import pytest
 

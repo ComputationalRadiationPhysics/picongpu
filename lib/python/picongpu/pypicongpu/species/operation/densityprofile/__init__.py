@@ -5,22 +5,11 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .uniform import Uniform
-from .foil import Foil
-from .gaussian import Gaussian
-from .cylinder import Cylinder
-from .free_formula import FreeFormula
-
-from . import plasmaramp
+from . import plasmaramp as plasmaramp
+from .cylinder import Cylinder as Cylinder
+from .foil import Foil as Foil
+from .free_formula import FreeFormula as FreeFormula
+from .gaussian import Gaussian as Gaussian
+from .uniform import Uniform as Uniform
 
 AnyDensityProfile = Uniform | Foil | Gaussian | FreeFormula | Cylinder
-
-__all__ = [
-    "AnyDensityProfile",
-    "Uniform",
-    "Foil",
-    "plasmaramp",
-    "Gaussian",
-    "FreeFormula",
-    "Cylinder",
-]

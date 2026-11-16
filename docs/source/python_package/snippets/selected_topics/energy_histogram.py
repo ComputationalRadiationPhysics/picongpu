@@ -19,8 +19,6 @@ species: 50 bins between 0 and 500 keV (given as the SI energy
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import EnergyHistogram, TS
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -34,12 +32,12 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-histogram = EnergyHistogram(
+histogram = picmi.diagnostics.EnergyHistogram(
     species=electrons,
-    period=TS[::10],
+    period=picmi.diagnostics.TS[::10],
     bin_count=50,
     min_energy=0.0,
-    max_energy=500.0 * constants.keV,
+    max_energy=500.0 * picmi.constants.keV,
 )
 
 sim = picmi.Simulation(

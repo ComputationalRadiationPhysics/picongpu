@@ -1,45 +1,34 @@
 """
 internal representation of params to generate PIConGPU input files
+
+The package root is intentionally thin: it exposes the two entry points
+:class:`~picongpu.pypicongpu.runner.Runner` and
+:class:`~picongpu.pypicongpu.simulation.Simulation` together with the
+explicitly imported submodules. Classes otherwise stay in their submodule
+(``pypicongpu.field_solver.YeeSolver``, ``pypicongpu.output.Checkpoint``,
+...).
 """
 
-from . import backgroundfield, customuserinput, grid, laser, output, rendering, species, util
-from .field_solver.ArbitraryOrderFDTD import ArbitraryOrderFDTDSolver
-from .field_solver.CKC import CKCSolver
-from .field_solver.Lehe import LeheSolver
-from .field_solver.NoneSolver import NoneSolver
-from .field_solver.Yee import YeeSolver
-from .output.checkpoint import Checkpoint
-from .output.energy_histogram import EnergyHistogram
-from .output.field_energy_monitor import FieldEnergyMonitor
-from .output.macro_particle_count import MacroParticleCount
-from .output.phase_space import PhaseSpace
-from .runner import Runner
-from .simulation import Simulation
+import sys as _sys
 
-__all__ = [
-    "Simulation",
-    "Runner",
-    "laser",
-    "output",
-    "rendering",
-    "YeeSolver",
-    "LeheSolver",
-    "CKCSolver",
-    "ArbitraryOrderFDTDSolver",
-    "NoneSolver",
-    "species",
-    "util",
-    "grid",
-    "customuserinput",
-    "backgroundfield",
-    "PhaseSpace",
-    "EnergyHistogram",
-    "MacroParticleCount",
-    "Checkpoint",
-    "FieldEnergyMonitor",
-]
+from . import backgroundfield as backgroundfield
+from . import collision as collision
+from . import customuserinput as customuserinput
+from . import field_solver as field_solver
+from . import grid as grid
+from . import laser as laser
+from . import memory as memory
+from . import movingwindow as movingwindow
+from . import output as output
+from . import particle_functor as particle_functor
+from . import precision_config as precision_config
+from . import rendering as rendering
+from . import runner as runner
+from . import simulation as simulation
+from . import species as species
+from . import util as util
+from . import walltime as walltime
+from .runner import Runner as Runner
+from .simulation import Simulation as Simulation
 
-# note: put down here b/c linter complains if imports are not at top
-import sys
-
-assert sys.version_info.major > 3 or sys.version_info.minor >= 9, "Python 3.9 is required for PIConGPU"
+assert _sys.version_info.major > 3 or _sys.version_info.minor >= 9, "Python 3.9 is required for PIConGPU"

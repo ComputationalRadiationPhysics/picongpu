@@ -25,17 +25,11 @@ which results in a second openPMD configuration.
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import (
-    DerivedFieldDump,
-    NativeFieldDump,
-    OpenPMDConfig,
-    ParticleDump,
-    TS,
-)
-from picongpu.picmi.particle_functor import ParticleFunctor
+from picongpu.picmi import diagnostics
+from picongpu.picmi import particle_functor
 
 
-@ParticleFunctor(name="kineticEnergy")
+@particle_functor.ParticleFunctor(name="kineticEnergy")
 def kinetic_energy(particle):
     return particle.get("kinetic energy")
 
@@ -52,17 +46,17 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-particle_dump = ParticleDump(species=electrons, period=TS[::5])
-electric_field_dump = NativeFieldDump(fieldname="E", period=TS[::5])
-kinetic_energy_dump = DerivedFieldDump(
+particle_dump = diagnostics.ParticleDump(species=electrons, period=diagnostics.TS[::5])
+electric_field_dump = diagnostics.NativeFieldDump(fieldname="E", period=diagnostics.TS[::5])
+kinetic_energy_dump = diagnostics.DerivedFieldDump(
     species=electrons,
     functor=kinetic_energy,
-    period=TS[::5],
+    period=diagnostics.TS[::5],
 )
-magnetic_field_dump = NativeFieldDump(
+magnetic_field_dump = diagnostics.NativeFieldDump(
     fieldname="B",
-    period=TS[::5],
-    options=OpenPMDConfig(file="magneticField"),
+    period=diagnostics.TS[::5],
+    options=diagnostics.OpenPMDConfig(file="magneticField"),
 )
 
 sim = picmi.Simulation(

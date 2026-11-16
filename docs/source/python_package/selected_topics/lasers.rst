@@ -7,6 +7,8 @@ Lasers are added to a simulation via the ``lasers`` parameter:
 
 .. code-block:: python
 
+   from picongpu import picmi
+
    sim = picmi.Simulation(max_steps=..., solver=solver, lasers=[laser])
 
 A Gaussian pulse specified by its normalized vector potential ``a0``:

@@ -39,12 +39,14 @@ this method returns None.
 
 
 class GaussianBunchDistribution(PICMI_GaussianBunchDistribution):
-    """
+    r"""
     A finite Gaussian particle bunch as defined by the PICMI standard.
 
     The bunch is a 3D tri-Gaussian ellipsoid with peak number density
 
-        n0 = n_physical_particles / ((2*pi)**1.5 * sx * sy * sz)
+    .. math::
+
+        n_0 = \frac{n_\mathrm{physical\_particles}}{(2\pi)^{1.5} s_x s_y s_z}
 
     centered at ``centroid_position`` with per-axis RMS sizes
     ``rms_bunch_size`` and an initial Gaussian velocity spread

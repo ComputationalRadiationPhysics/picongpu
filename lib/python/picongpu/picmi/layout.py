@@ -18,17 +18,39 @@ from ..pypicongpu.species.operation.layout import Quiet, Random
 
 
 class PseudoRandomLayout(picmistandard.PICMI_PseudoRandomLayout):
-    n_macroparticles_per_cell: int = Field(gt=0)
+    n_macroparticles_per_cell: int = Field(
+        gt=0,
+        description="Number of macroparticles to load per cell. Either this argument or n_macroparticles "
+        "should be supplied (not both).",
+    )
     # PIConGPU can't handle the following separately:
-    n_macroparticles: None = None
-    seed: None = None
-    grid: None = None
+    n_macroparticles: None = Field(
+        None,
+        description="Not supported by PIConGPU: the particle count is set per cell via "
+        "n_macroparticles_per_cell, so n_macroparticles must be None.",
+    )
+    seed: None = Field(
+        None,
+        description="Not supported by PIConGPU: the pseudo-random number generator seed cannot be chosen, "
+        "so seed must be None.",
+    )
+    grid: None = Field(
+        None,
+        description="Not supported by PIConGPU: the underlying grid is always used, so grid must be None.",
+    )
 
     def get_as_pypicongpu(self):
         return Random(ppc=self.n_macroparticles_per_cell)
 
 
 class GriddedLayout(picmistandard.PICMI_GriddedLayout):
+    n_macroparticles_per_cell: list[int] = Field(
+        min_length=1,
+        max_length=3,
+        description="Number of particles per cell along each axis (one entry per grid dimension, or a single "
+        "number in 1D). Must be given explicitly, and every entry must be a positive integer.",
+    )
+
     def __init__(self, *args, **kwargs):
         if "n_macroparticle_per_cell" in kwargs:
             raise TypeError(

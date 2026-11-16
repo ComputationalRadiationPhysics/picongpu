@@ -13,7 +13,7 @@ from pydantic import BaseModel, computed_field, field_validator, model_validator
 from sympy import Expr, Symbol, symbols, sympify
 
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
-from picongpu.picmi.particle_functor.unit_dimension import UnitDimension
+from picongpu.picmi.unit_dimension import UnitDimension
 from picongpu.pypicongpu.particle_functor import (
     ParticleFunctor as PyPIConGPUParticleFunctor,
     UnitDimension as PyPIConGPUUnitDimension,

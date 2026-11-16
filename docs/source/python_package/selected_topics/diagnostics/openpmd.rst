@@ -29,9 +29,17 @@ all parameterized by the same :class:`~picongpu.picmi.diagnostics.OpenPMDConfig`
    The field name is derived from the species, the optional filter
    and the functor name.
 
+The imports used on this page:
+
+.. code-block:: python
+
+   from picongpu import picmi
+   from picongpu.picmi import diagnostics
+   from picongpu.picmi import particle_functor
+
 .. literalinclude:: ../../snippets/selected_topics/openpmd.py
    :language: python
-   :start-at: @ParticleFunctor(name="kineticEnergy")
+   :start-at: @particle_functor.ParticleFunctor(name="kineticEnergy")
    :end-before: for config in sorted
 
 Output files

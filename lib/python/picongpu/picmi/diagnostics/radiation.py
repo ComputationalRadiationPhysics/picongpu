@@ -17,13 +17,24 @@ from picongpu.pypicongpu.output.radiation import (
     LinearFrequencies as LinearFrequencies,
     LogFrequencies as LogFrequencies,
     RadiationConfiguration as RadiationConfiguration,
-    RadiationObserverConfiguration as RadiationObserverConfiguration,
+    RadiationObserverConfiguration as _PyPIConGPURadiationObserverConfiguration,
     RadiationPlugin,
     RadiationPluginConfig,
     WindowFunctionConfiguration as WindowFunctionConfiguration,
 )
 from picongpu.pypicongpu.species.attribute.momentum_prev_1 import MomentumPrev1
 from picongpu.pypicongpu.species.attribute.radiation_mask import RadiationMask
+
+
+class RadiationObserverConfiguration(_PyPIConGPURadiationObserverConfiguration):
+    """
+    Virtual-detector geometry for the radiation plugin (frontend home).
+
+    ``N_observer`` and ``index_to_direction`` behave exactly as in the backend
+    model (including the normalisation of the direction expression); this
+    frontend class only gives the input a stable home at
+    :mod:`picongpu.picmi.diagnostics` instead of re-exporting the backend object.
+    """
 
 
 class Radiation(RadiationPluginConfig, PICMI_Diagnostic):

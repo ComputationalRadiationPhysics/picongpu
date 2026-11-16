@@ -11,7 +11,7 @@ which makes it the workhorse diagnostic for quick checks
 
 .. literalinclude:: ../../snippets/selected_topics/energy_histogram.py
    :language: python
-   :start-at: histogram = EnergyHistogram
+   :start-at: histogram = picmi.diagnostics.EnergyHistogram
    :end-before: sim = picmi.Simulation(
 
 Parameters:

@@ -20,8 +20,6 @@ SI momentum 1.0 * m_e * c (the frontend converts it to m_e*c internally).
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi import constants
-from picongpu.picmi.diagnostics import PhaseSpace, TS
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -35,13 +33,13 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-phase_space = PhaseSpace(
+phase_space = picmi.diagnostics.PhaseSpace(
     species=electrons,
-    period=TS[::10],
+    period=picmi.diagnostics.TS[::10],
     spatial_coordinate="y",
     momentum_coordinate="py",
-    min_momentum=-1.0 * constants.m_e * constants.c,
-    max_momentum=1.0 * constants.m_e * constants.c,
+    min_momentum=-1.0 * picmi.constants.m_e * picmi.constants.c,
+    max_momentum=1.0 * picmi.constants.m_e * picmi.constants.c,
 )
 
 sim = picmi.Simulation(

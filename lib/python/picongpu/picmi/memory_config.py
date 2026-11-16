@@ -11,7 +11,7 @@ from pydantic import BaseModel, BeforeValidator, Field
 
 from picongpu.pypicongpu import memory as pypicongpu_memory
 
-from .copy_attributes import converts_to
+from ._copy_attributes import converts_to
 
 
 def _non_negative(values):

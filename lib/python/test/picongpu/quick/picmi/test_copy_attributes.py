@@ -8,7 +8,7 @@ License: GPLv3+
 from unittest import TestCase
 import inspect
 import pytest
-from picongpu.picmi.copy_attributes import copy_attributes, converts_to, default_converts_to
+from picongpu.picmi._copy_attributes import copy_attributes, converts_to, default_converts_to
 
 CLASS_NAME = "TmpClass"
 ARBITRARY_VALUE = 42

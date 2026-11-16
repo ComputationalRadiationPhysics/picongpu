@@ -14,14 +14,14 @@ License: GPLv3+
 
 from pathlib import Path
 
-from picongpu.picmi import Cartesian3DGrid, ElectromagneticSolver, Simulation
+from picongpu import picmi
 
-sim = Simulation(
+sim = picmi.Simulation(
     max_steps=100,
-    solver=ElectromagneticSolver(
+    solver=picmi.ElectromagneticSolver(
         method="Yee",
         cfl=0.95,
-        grid=Cartesian3DGrid(
+        grid=picmi.Cartesian3DGrid(
             number_of_cells=[192, 2048, 192],
             lower_bound=[0, 0, 0],
             upper_bound=[0.1772e-6, 0.4430e-7, 0.1772e-6],

@@ -9,7 +9,7 @@ from picmistandard import PICMI_Laser
 from pydantic import Field
 
 from ...pypicongpu import laser
-from ..copy_attributes import default_converts_to
+from .._copy_attributes import default_converts_to
 
 
 @default_converts_to(laser.FromOpenPMDPulseLaser)

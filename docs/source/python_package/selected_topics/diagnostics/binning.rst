@@ -10,9 +10,17 @@ and depositing a user-defined quantity per particle into that cell.
 Phase-space-like cuts, energy distributions, 2D emittance diagrams,
 current-density maps and similar quantities are all special cases of this.
 
+The imports used on this page:
+
+.. code-block:: python
+
+   from picongpu import picmi
+   from picongpu.picmi import diagnostics
+   from picongpu.picmi import particle_functor
+
 .. literalinclude:: ../../snippets/selected_topics/binning.py
    :language: python
-   :start-at: binning = Binning
+   :start-at: binning = diagnostics.Binning
    :end-before: # BEGIN-BINNING-FILTER
 
 Parameters:

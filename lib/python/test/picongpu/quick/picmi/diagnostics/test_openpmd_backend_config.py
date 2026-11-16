@@ -10,7 +10,8 @@ import openpmd_api as io
 import pytest
 import tomli_w
 
-from picongpu.picmi.diagnostics.binning import Binning, BinningAxis, BinningFunctor, BinSpec
+from picongpu.picmi.diagnostics.binning import Binning, BinningAxis, BinSpec
+from picongpu.picmi.particle_functor import ParticleFunctor
 from picongpu.picmi.diagnostics.timestepspec import TimeStepSpec
 from picongpu.picmi.species import Species
 from picongpu.pypicongpu.output.openpmd_backend import (
@@ -149,10 +150,12 @@ def _binning(backend_config):
     electron = Species(particle_type="electron")
     return Binning(
         name="electron_density",
-        deposition_functor=BinningFunctor(name="weighting", functor=lambda p: p.get("weighting"), return_type="double"),
+        deposition_functor=ParticleFunctor(
+            name="weighting", functor=lambda p: p.get("weighting"), return_type="double"
+        ),
         axes=[
             BinningAxis(
-                functor=BinningFunctor(name="position0", functor=lambda p: 0.0, return_type="double"),
+                functor=ParticleFunctor(name="position0", functor=lambda p: 0.0, return_type="double"),
                 bin_spec=BinSpec(kind="linear", start=0, stop=1, nsteps=2),
             )
         ],

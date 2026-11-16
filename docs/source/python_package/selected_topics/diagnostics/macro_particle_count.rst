@@ -13,7 +13,7 @@ and how the population evolves over time.
 
 .. literalinclude:: ../../snippets/selected_topics/macro_particle_count.py
    :language: python
-   :start-at: counter = MacroParticleCount
+   :start-at: counter = picmi.diagnostics.MacroParticleCount
    :end-before: sim = picmi.Simulation(
 
 Parameters:

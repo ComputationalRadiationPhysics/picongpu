@@ -15,6 +15,7 @@ exactly the code that is executed in CI**.
    - `running_simulation/`: bash commands and workflow invocations
    - `quickstart/`: the commands of the quick start guide
    - `selected_topics/`: the feature deep dives
+   - `troubleshooting/`: input-file-generation validation
  - Python snippets are executed by the pytest suite in `test_snippets.py`
    (one test per snippet): each script runs in a subprocess with a fresh
    working directory and an isolated environment (`HOME`, `PIC_RC`) and must
@@ -52,12 +53,14 @@ exactly the code that is executed in CI**.
 > (e.g. the `UnitDimension` examples in `units.rst` and the `Simulation(...)`
 > one-liners in `simulation_settings.rst`, `interactions.rst`, `lasers.rst` and
 > `species_distributions_layouts.rst`). Those blocks are **not** executed
-> or syntax-checked. They are kept short and are covered by the executed
-> pages around them; do not rely on them as the source of truth.
+> or syntax-checked. They are normalized to the import rule below, kept
+> short, and covered by the executed pages around them; do not rely on them
+> as the source of truth.
 
 - **Executed by the pytest suite (one test per file):** all Python snippets
-  in `configuring_environment/` and `defining_simulation/` (the ones that
-  call `simulation.run()` are run with the run step emulated, see above).
+  in `configuring_environment/`, `defining_simulation/` and
+  `selected_topics/` (the ones that call `simulation.run()` are run with the
+  run step emulated, see above).
 - **Applied via `PIC_RC` by the pytest suite (one test per file):** all
   TOML snippets in `configuring_environment/` (parsed with `tomllib`, then
   loaded by a subprocess importing the package; the resulting `rc_params`
@@ -95,8 +98,9 @@ exactly the code that is executed in CI**.
   `selected_topics/binning.py`, `selected_topics/openpmd.py`,
   `selected_topics/energy_histogram.py`, `selected_topics/phase_space.py`,
   `selected_topics/radiation.py`, `selected_topics/checkpoint.py`,
-  `selected_topics/macro_particle_count.py` and
-  `selected_topics/time_steps.py`.
+  `selected_topics/macro_particle_count.py`,
+  `selected_topics/time_steps.py` and
+  `troubleshooting/validate_before_submit.py`.
   A few files are short enough that the whole file is intended, so the
   directive carries no focus option at all (e.g. the TOML configuration
   examples).
@@ -104,6 +108,52 @@ exactly the code that is executed in CI**.
   snippet files (`configuring_environment/*.toml`),
   rendered via `literalinclude` like any other snippet
   and tested by the suite (see "Which snippets are executed where").
+
+### Imports in rendered Python
+
+All Python shown in this chapter -- both `literalinclude` regions and inline
+`.. code-block:: python` blocks -- follows one import rule so that copied
+snippets do not fail with `NameError`:
+
+- **Scope:** every rendered Python block in `docs/source/python_package`.
+- **Exempt:** blocks whose declared purpose is to show imports
+  (`defining_simulation/import_surface.py`, the `time_steps.rst` import block,
+  the `units.rst` import examples, and the opening import region of
+  `minimal_example.py` / `lwfa_example.py`), and non-Python blocks.
+- **R1 (top level):** names that belong to the normalized `picmi` top level
+  are always written `picmi.<Name>` in rendered code. Every executed snippet
+  carries `from picongpu import picmi` at module level (above the rendered
+  markers when the region is not meant to show the import).
+- **R2 (few deeper names):** when a chapter uses fewer than three distinct
+  deeper names, write each one explicitly, e.g. `picmi.diagnostics.TS`,
+  `picmi.constants.keV`, `picmi.unit_dimension.M`.
+- **R3 (many deeper names):** when a chapter uses at least three distinct
+  deeper names from one submodule, or at least four distinct deeper names
+  overall, put one display-only import block at the top of the chapter's
+  first rendered block:
+
+  ```python
+  from picongpu import picmi
+  from picongpu.picmi import diagnostics       # and particle_functor / unit_dimension as needed
+  ```
+
+  and use `diagnostics.<Name>`, `particle_functor.<Name>` throughout the
+  page. Do not mix `diagnostics.X` with `picmi.diagnostics.X` or bare names
+  on one page.
+- **Chapter vs. standalone:** the chapter import block is display only. The
+  same imports must also exist at module level in every executed snippet that
+  uses those names, because snippets run standalone through `run_snippet.py`.
+- **R4 (deep-heavy single snippet in an R2 chapter):** show its import block
+  at the top of its rendered region (even if that is not the file's first
+  lines). For multi-region files, repeat the block per region or use the R2
+  `picmi.<submodule>.<name>` form throughout.
+- **Threshold detail:** `TS` is counted as its target `TimeStepSpec`, and the
+  individual `picmi.constants.*` values are helpers rather than separate deep
+  classes for the R2/R3 threshold (they are still always qualified).
+- **Out of scope:** non-`picmi` names (`Path`, `sqrt`, the `particle`
+  argument, ...).
+- **Canonical import:** `from picongpu import picmi`; do not mix it with
+  `import picongpu.picmi as picmi` on one page.
 
 ## Adding or changing a snippet
 

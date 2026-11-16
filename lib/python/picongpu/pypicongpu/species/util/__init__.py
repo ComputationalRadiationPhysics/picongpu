@@ -1,5 +1,1 @@
-from .element import Element
-
-__all__ = [
-    "Element",
-]
+from .element import Element as Element

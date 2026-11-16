@@ -1,4 +1,2 @@
-from .ionizationcurrent import IonizationCurrent
-from .energyconservation import EnergyConservation
-
-__all__ = ["IonizationCurrent", "EnergyConservation"]
+from .ionizationcurrent import IonizationCurrent as IonizationCurrent
+from .energyconservation import EnergyConservation as EnergyConservation

@@ -5,10 +5,10 @@ Authors: Julian Lenz, Masoud Afshari
 License: GPLv3+
 """
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from ...pypicongpu import laser
-from ..copy_attributes import default_converts_to
+from .._copy_attributes import default_converts_to
 from .gaussian_laser import GaussianLaser
 
 
@@ -24,26 +24,13 @@ class DispersivePulseLaser(GaussianLaser):
     PICMI Dispersive Pulse Laser.
 
     Extends `GaussianLaser` with additional dispersion-specific parameters.
-
-    Additional dispersive parameters (PIConGPU-specific):
-
-    - picongpu_spectral_support : float, default=6.0
-        Width of spectral support (dimensionless).
-    - picongpu_sd_si : float, default=0.0
-        Spatial dispersion coefficient [m*s].
-    - picongpu_ad_si : float, default=0.0
-        Angular dispersion coefficient [rad*s].
-    - picongpu_gdd_si : float, default=0.0
-        Group delay dispersion (GDD) [s^2].
-    - picongpu_tod_si : float, default=0.0
-        Third-order dispersion (TOD) [s^3].
     """
 
-    picongpu_spectral_support: float = 6.0
-    picongpu_sd_si: float = 0.0
-    picongpu_ad_si: float = 0.0
-    picongpu_gdd_si: float = 0.0
-    picongpu_tod_si: float = 0.0
+    picongpu_spectral_support: float = Field(default=6.0, description="Width of spectral support (dimensionless).")
+    picongpu_sd_si: float = Field(default=0.0, description="Spatial dispersion coefficient [m*s].")
+    picongpu_ad_si: float = Field(default=0.0, description="Angular dispersion coefficient [rad*s].")
+    picongpu_gdd_si: float = Field(default=0.0, description="Group delay dispersion (GDD) [s^2].")
+    picongpu_tod_si: float = Field(default=0.0, description="Third-order dispersion (TOD) [s^3].")
 
     @model_validator(mode="wrap")
     @classmethod

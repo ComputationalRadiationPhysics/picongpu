@@ -9,7 +9,7 @@ from unittest import TestCase
 
 import pytest
 import sympy
-from picongpu.picmi._FieldFunctor import _FieldFunctor, expression_string
+from picongpu.picmi._field_functor import _FieldFunctor, expression_string
 
 
 class TestFieldFunctor(TestCase):

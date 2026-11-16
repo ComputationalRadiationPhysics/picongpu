@@ -35,7 +35,7 @@ The field classes
    named parameters inside the expressions. As in
    :class:`~picongpu.picmi.distribution.AnalyticDistribution.AnalyticDistribution`,
    each of the six components is backed by the shared
-   :class:`~picongpu.picmi._FieldFunctor._FieldFunctor` and is exposed in all
+   :class:`~picongpu.picmi._field_functor._FieldFunctor` and is exposed in all
    three interchangeable spellings: a sympy-parseable ``<component>_expression``
    string, a ``<component>_function`` callable, and the resolved
    ``<component>_sympy`` expression (see :doc:`functors`). Any one of them may be
@@ -56,7 +56,7 @@ The field classes
    :end-before: END-APPLIED-FIELD-ANALYTIC
 
 All three spellings of a component are backed by the same
-:class:`~picongpu.picmi._FieldFunctor._FieldFunctor`: supplying any one computes
+:class:`~picongpu.picmi._field_functor._FieldFunctor`: supplying any one computes
 the others, so they are available and consistent after construction, and
 supplying several for one component is accepted as long as they agree. The
 ``<component>_expression``, ``<component>_function`` and ``<component>_sympy``

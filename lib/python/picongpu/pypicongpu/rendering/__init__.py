@@ -5,8 +5,6 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .pmaccprinter import PMAccPrinter
-from .renderedobject import RenderedObject
-from .renderer import Renderer
-
-__all__ = ["PMAccPrinter", "Renderer", "RenderedObject"]
+from .pmaccprinter import PMAccPrinter as PMAccPrinter
+from .renderedobject import RenderedObject as RenderedObject
+from .renderer import Renderer as Renderer

@@ -8,7 +8,7 @@ License: GPLv3+
 from enum import Enum
 
 from picongpu.pypicongpu.output.openpmd_backend import OpenPMDBackendConfig
-from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDConfig, RangeSpecEntry
+from picongpu.pypicongpu.output.openpmd_plugin import OpenPMDConfig, RangeSpecEntry as _PyPIConGPURangeSpecEntry
 from picongpu.pypicongpu.output.openpmd_plugin import RangeSpec as PyPIConGPURangeSpec
 
 __all__ = ["BackendConfig", "OpenPMDConfig", "OpenPMDBackendConfig", "RangeSpec", "RangeSpecEntry", "RangeSpecUnit"]
@@ -20,6 +20,15 @@ BackendConfig = OpenPMDConfig
 
 class RangeSpecUnit(Enum):
     CELLS = "Cells"
+
+
+class RangeSpecEntry(_PyPIConGPURangeSpecEntry):
+    """
+    One axis of a diagnostic's cell range (frontend home).
+
+    ``data`` is ``None`` (the full axis), a single cell index or a ``(start,
+    stop)`` pair. Serialization is inherited from the backend model.
+    """
 
 
 def _apply_units(iterable, unit):

@@ -20,9 +20,6 @@ from picongpu import rc_params
 from picongpu.picmi import (
     Cartesian3DGrid,
     ElectromagneticSolver,
-    FilteredSpecies,
-    ParticleFilter,
-    ParticleFunctor,
     Simulation,
     Species,
 )
@@ -39,6 +36,7 @@ from picongpu.picmi.diagnostics import (
 )
 from picongpu.picmi.diagnostics.backend_config import RangeSpec
 from picongpu.picmi.layout import OnePositionLayout
+from picongpu.picmi.particle_functor import FilteredSpecies, ParticleFilter, ParticleFunctor
 from picongpu.picmi.particle_functor import Particle
 from picongpu.picmi.particle_functor.rng_arg import RNGArg
 from sympy import And, Eq, Piecewise

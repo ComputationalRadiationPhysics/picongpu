@@ -10,7 +10,7 @@ the standard tool to inspect the structure of your particle population
 
 .. literalinclude:: ../../snippets/selected_topics/phase_space.py
    :language: python
-   :start-at: phase_space = PhaseSpace
+   :start-at: phase_space = picmi.diagnostics.PhaseSpace
    :end-before: sim = picmi.Simulation(
 
 Parameters:

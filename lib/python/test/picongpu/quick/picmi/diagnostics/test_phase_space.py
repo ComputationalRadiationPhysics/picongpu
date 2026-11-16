@@ -9,7 +9,7 @@ from unittest import TestCase
 from picongpu import picmi
 from picongpu.picmi import constants
 from picongpu.picmi.diagnostics import PhaseSpace, TS
-from picongpu.picmi.particle_functor import ParticleFilter
+from picongpu.picmi.particle_functor import FilteredSpecies, ParticleFilter
 
 
 class TestPhaseSpace(TestCase):
@@ -58,7 +58,7 @@ class TestPhaseSpace(TestCase):
         mass_si = species.picongpu_get_mass_si()
         momentum_unit_si = mass_si * constants.c
 
-        filtered = picmi.FilteredSpecies(
+        filtered = FilteredSpecies(
             species=species,
             functor=ParticleFilter(name="positive", functor=lambda p: p.get("momentum")[2] > 0.0),
         )

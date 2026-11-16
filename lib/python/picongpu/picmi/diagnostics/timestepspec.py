@@ -78,12 +78,14 @@ class TimeStepSpec(metaclass=_TimeStepSpecMeta):
         ts = TimeStepSpec[:12:2, 7]("steps") + TimeStepSpec[1.e-15:5.e-15:2.e-16]("seconds")
 
     In this example, `ts` specifies:
+
     - every other time step for the first 12 time steps inclusively (`0, 2, 4, 6, 8, 10, 12`)
     - AND the 7th time step
     - AND one output every 2.e-16 seconds in the (inclusive) range 1.e-15 to 5.e-15 seconds
       (which indices this maps to depends on the time step size and the number of time steps)
 
     In general, the class implements the following semantics for the operator []:
+
     - the [] operator understands slices and numbers separated by commas
     - specifications separated by commas are interpreted as unions
     - slices are interpreted as inclusive on both ends, so `start:stop:step` includes the values

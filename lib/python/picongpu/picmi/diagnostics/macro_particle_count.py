@@ -6,9 +6,9 @@ License: GPLv3+
 """
 
 from picmistandard import PICMI_Diagnostic
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 
-from picongpu.picmi.copy_attributes import default_converts_to
+from picongpu.picmi._copy_attributes import default_converts_to
 
 from ...pypicongpu.output.macro_particle_count import (
     MacroParticleCount as PyPIConGPUMacroParticleCount,
@@ -24,21 +24,11 @@ class MacroParticleCount(PICMI_Diagnostic):
 
     This plugin counts the total number of macro particles in the simulation,
     useful for tracking particle statistics and population dynamics.
-
-    Parameters
-    ----------
-    species: string
-        Name of the particle species to count (e.g., "electron", "proton").
-
-    period: int
-        Number of simulation steps between consecutive counts.
-        Unit: steps (simulation time steps).
-
-    name: string, optional
-        Optional name for the macro particle count plugin.
     """
 
-    species: Species
-    period: TimeStepSpec
+    species: Species = Field(description="Name of the particle species to count (e.g., 'electron', 'proton').")
+    period: TimeStepSpec = Field(
+        description="Number of simulation steps between consecutive counts. Unit: steps (simulation time steps)."
+    )
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

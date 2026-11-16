@@ -19,7 +19,6 @@ A useful tool for debugging the particle content of your simulation.
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import MacroParticleCount, TS
 
 grid = picmi.Cartesian3DGrid(
     number_of_cells=[32, 32, 32],
@@ -33,7 +32,7 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-counter = MacroParticleCount(species=electrons, period=TS[::10])
+counter = picmi.diagnostics.MacroParticleCount(species=electrons, period=picmi.diagnostics.TS[::10])
 
 sim = picmi.Simulation(
     max_steps=100,

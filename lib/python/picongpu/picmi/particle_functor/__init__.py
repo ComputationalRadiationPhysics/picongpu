@@ -12,4 +12,5 @@ from .particle_functor import MacroParticle as MacroParticle
 from .particle_functor import Particle as Particle
 from .particle_functor import ParticleFunctor as ParticleFunctor
 from .particle_functor import PhysicalParticle as PhysicalParticle
-from .unit_dimension import UnitDimension as UnitDimension
+from .rng_arg import RNGArg as RNGArg
+from ..unit_dimension import UnitDimension as UnitDimension

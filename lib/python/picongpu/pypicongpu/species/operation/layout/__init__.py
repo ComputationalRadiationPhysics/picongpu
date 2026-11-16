@@ -5,9 +5,8 @@ Authors: Julian Lenz
 License: GPLv3+
 """
 
-from .one_position import OnePosition
-from .quiet import Quiet
-from .random import Random
+from .one_position import OnePosition as OnePosition
+from .quiet import Quiet as Quiet
+from .random import Random as Random
 
 AnyLayout = Random | Quiet | OnePosition
-__all__ = ["AnyLayout", "Random", "Quiet", "OnePosition"]

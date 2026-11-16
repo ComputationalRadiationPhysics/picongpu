@@ -16,7 +16,7 @@ This is the standard tool for
 
 .. literalinclude:: ../../snippets/selected_topics/checkpoint.py
    :language: python
-   :start-at: checkpoint = Checkpoint
+   :start-at: checkpoint = picmi.diagnostics.Checkpoint
    :end-before: sim = picmi.Simulation(
 
 At least one of the two scheduling parameters is required:

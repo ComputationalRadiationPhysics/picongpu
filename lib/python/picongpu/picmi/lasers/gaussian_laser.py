@@ -12,8 +12,8 @@ from picmistandard import PICMI_GaussianLaser
 from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser, util
-from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser
+from .._copy_attributes import default_converts_to
+from .base_laser import _BaseLaser
 from .polarization_type import PolarizationType
 
 
@@ -24,78 +24,57 @@ from .polarization_type import PolarizationType
     # i.e. PULSE_DURATION = duration / 2 (#5739)
     conversions={"duration": lambda self, *args, **kwargs: self._pulse_duration_sigma_si()},
 )
-class GaussianLaser(PICMI_GaussianLaser, BaseLaser):
+class GaussianLaser(PICMI_GaussianLaser, _BaseLaser):
     """
     PICMI object for Gaussian Laser.
 
-    Standard Gaussian laser pulse parameters are:
-
-    - wavelength : float
-        Central wavelength of the laser [m].
-
-    - waist : float
-        Spot size (1/e^2 radius) of the laser at focus [m].
-
-    - duration : float
-        Duration of the Gaussian laser pulse [s], defined as ``tau`` in the
-        electric-field envelope ``E ~ exp(-t^2 / tau^2)`` (i.e. the 1/e half
-        width of the field amplitude), consistent with the PICMI standard.
-
-    - propagation_direction : list[float]
-        Normalized vector of propagation direction.
-
-    - polarization_direction : list[float]
-        Normalized vector of polarization direction.
-
-    - focal_position : list[float]
-        3D coordinates of the laser focus [m].
-
-    - centroid_position : list[float]
-        3D coordinates of the laser centroid [m].
-
-    - a0 : float, optional
-        Normalized vector potential (dimensionless).
-
-    - E0 : float, optional
-        Peak electric field amplitude [V/m].
-
-    - picongpu_polarization_type: Polarization type in PIConGPU (LINEAR or CIRCULAR)
-
-    - picongpu_laguerre_modes: Optional magnitudes of Laguerre modes (only relevant for structured beams)
-
-    - picongpu_laguerre_phases: Optional phases of Laguerre modes (only relevant for structured beams)
-
-    - picongpu_huygens_surface_positions : list[list[int]], default=[[16, -16],[16, -16],[16, -16]]
-        Positions of the Huygens surface inside the PML. Each entry is a
-        pair [min, max] indices along x, y, z.
-
-    - phi0 : float, optional
-    Initial phase offset [rad].
-
-    Notes:
-    - Exactly one of ``a0`` or ``E0`` must be provided, the other is
-      calculated automatically.
+    Extends the PICMI standard Gaussian laser with PIConGPU-specific
+    parameters (all prefixed with ``picongpu_``). Exactly one of ``a0`` or
+    ``E0`` must be provided, the other is calculated automatically.
     """
 
-    picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
-    picongpu_laguerre_modes: list[float] = Field(default_factory=lambda: [1.0])
-    picongpu_laguerre_phases: list[float] = Field(default_factory=lambda: [0.0])
+    picongpu_polarization_type: PolarizationType = Field(
+        PolarizationType.LINEAR,
+        description="Polarization type in PIConGPU (LINEAR or CIRCULAR)",
+    )
+    picongpu_laguerre_modes: list[float] = Field(
+        default_factory=lambda: [1.0],
+        description="Optional magnitudes of Laguerre modes (only relevant for structured beams)",
+    )
+    picongpu_laguerre_phases: list[float] = Field(
+        default_factory=lambda: [0.0],
+        description="Optional phases of Laguerre modes (only relevant for structured beams)",
+    )
     # make sure to always place Huygens-surface inside PML-boundaries,
     # default is valid for standard PMLs
     # @todo create check for insufficient dimension
     # @todo create check in simulation for conflict between PMLs and
     # Huygens-surfaces
     picongpu_huygens_surface_positions: list[list[int]] = Field(
-        default_factory=lambda: [[16, -16], [16, -16], [16, -16]]
+        default_factory=lambda: [[16, -16], [16, -16], [16, -16]],
+        description="Positions of the Huygens surface inside the PML. Each entry is a pair [min, max] "
+        "indices along x, y, z.",
     )
-    phi0: float = 0.0
+    phi0: float = Field(0.0, description="Carrier envelope phase (CEP) [rad]")
 
     # PICMI-standard laser options that PIConGPU does not implement are
     # rejected at construction time.
-    name: Annotated[str | None, util.rejects_unsupported("laser name")] = None
-    zeta: Annotated[float | None, util.rejects_unsupported("laser zeta")] = None
-    beta: Annotated[float | None, util.rejects_unsupported("laser beta")] = None
-    phi2: Annotated[float | None, util.rejects_unsupported("laser phi2")] = None
+    name: Annotated[str | None, util.rejects_unsupported("laser name")] = Field(
+        None,
+        description="Not supported by PIConGPU: the optional laser name is rejected at construction.",
+    )
+    zeta: Annotated[float | None, util.rejects_unsupported("laser zeta")] = Field(
+        None,
+        description="Not supported by PIConGPU: spatial chirp (zeta) is rejected at construction.",
+    )
+    beta: Annotated[float | None, util.rejects_unsupported("laser beta")] = Field(
+        None,
+        description="Not supported by PIConGPU: angular dispersion (beta) is rejected at construction.",
+    )
+    phi2: Annotated[float | None, util.rejects_unsupported("laser phi2")] = Field(
+        None,
+        description="Not supported by PIConGPU: temporal chirp (phi2) is rejected at construction.",
+    )
 
     @computed_field
     def pulse_init(self) -> float:

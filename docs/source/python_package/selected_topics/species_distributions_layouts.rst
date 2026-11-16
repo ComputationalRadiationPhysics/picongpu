@@ -11,6 +11,8 @@ They are passed to the simulation together:
 
 .. code-block:: python
 
+   from picongpu import picmi
+
    sim = picmi.Simulation(
        ...,
        species=[ion, electron],

@@ -23,15 +23,10 @@ under the ``backend_config`` key.
 from pathlib import Path
 
 from picongpu import picmi
-from picongpu.picmi.diagnostics import (
-    NativeFieldDump,
-    OpenPMDBackendConfig,
-    OpenPMDConfig,
-    TS,
-)
+from picongpu.picmi import diagnostics
 
 # BEGIN-OPENPMD-BACKEND-CONFIG
-backend_config = OpenPMDBackendConfig(
+backend_config = diagnostics.OpenPMDBackendConfig(
     backend="adios2",
     iteration_encoding="group_based",
     rank_table="hostname",
@@ -60,10 +55,10 @@ distribution = picmi.UniformDistribution(density=1e23)
 layout = picmi.PseudoRandomLayout(n_macroparticles_per_cell=1)
 electrons = picmi.Species(name="electrons", particle_type="electron", initial_distribution=distribution)
 
-electric_field_dump = NativeFieldDump(
+electric_field_dump = diagnostics.NativeFieldDump(
     fieldname="E",
-    period=TS[::5],
-    options=OpenPMDConfig(file="simData", backend_config=backend_config),
+    period=diagnostics.TS[::5],
+    options=diagnostics.OpenPMDConfig(file="simData", backend_config=backend_config),
 )
 
 sim = picmi.Simulation(

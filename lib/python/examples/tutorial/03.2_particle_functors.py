@@ -32,10 +32,13 @@ from picongpu.picmi.diagnostics.field_dump import DerivedFieldDump
 from picongpu.picmi.diagnostics.particle_dump import ParticleDump
 from picongpu.picmi.distribution import GaussianDistribution
 from picongpu.picmi.lasers import GaussianLaser, PolarizationType
-from picongpu.picmi.particle_functor.particle_filter import FilteredSpecies, ParticleFilter
-from picongpu.picmi.particle_functor.particle_functor import ParticleFunctor
-from picongpu.picmi.particle_functor.rng_arg import RNGArg
-from picongpu.picmi.particle_functor.unit_dimension import L, M, T
+from picongpu.picmi.particle_functor import (
+    FilteredSpecies,
+    ParticleFilter,
+    ParticleFunctor,
+    RNGArg,
+)
+from picongpu.picmi.unit_dimension import L, M, T
 
 NUM_CELLS = np.array([192, 2048, 192])
 CELL_SIZE = np.array([0.1772e-6, 0.4430e-7, 0.1772e-6])

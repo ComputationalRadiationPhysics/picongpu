@@ -19,7 +19,7 @@ density / momentum / spread fields of
   identifier is spelled (including escaping C++ keywords).
 
 The PICMI-level expression/function/sympy triple that uses these primitives
-lives in :mod:`picongpu.picmi._FieldFunctor`; the pypicongpu models consume the
+lives in :mod:`picongpu.picmi._field_functor`; the pypicongpu models consume the
 rendered strings and the ``{"name": ..., "value": ...}`` parameter lists.
 """
 

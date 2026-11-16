@@ -12,7 +12,7 @@ import pytest
 from picongpu import picmi
 from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
 from picongpu.picmi.species import Species
-from picongpu.picmi.species_requirements import SimpleMomentumOperation, run_construction
+from picongpu.picmi._species_requirements import SimpleMomentumOperation, run_construction
 from picongpu.pypicongpu import species
 from picongpu.pypicongpu.util import UnsupportedFeatureError
 from pydantic import ValidationError

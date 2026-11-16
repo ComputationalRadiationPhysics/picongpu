@@ -141,4 +141,6 @@ time limit:
 
    from datetime import timedelta
 
+   from picongpu import picmi
+
    sim = picmi.Simulation(..., picongpu_walltime=timedelta(hours=1))

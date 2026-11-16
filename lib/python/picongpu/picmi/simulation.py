@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import picmistandard
+from picmistandard import PICMI_Interaction
 from pydantic import (
     AfterValidator,
     BeforeValidator,
@@ -37,14 +38,13 @@ from picongpu.picmi.distribution.AnalyticDistribution import AnalyticDistributio
 from picongpu.picmi.grid import Cartesian2DGrid, Cartesian3DGrid
 from picongpu.picmi.interaction import (
     SUPPORTED_INTERACTION_TYPES,
-    Interaction,
-    PICMI_Interaction,
+    AnyInteraction,
     Synchrotron,
 )
 from picongpu.picmi.interaction.collision import Collision, CollisionalPhysicsSetup
 from picongpu.picmi.interaction.ionization.fieldionization import FieldIonization
 from picongpu.picmi.species import _STANDARD_SHAPES
-from picongpu.picmi.species_requirements import (
+from picongpu.picmi._species_requirements import (
     SimpleDensityOperation,
     SimpleMomentumOperation,
     get_as_pypicongpu,
@@ -275,8 +275,10 @@ class Simulation(picmistandard.PICMI_Simulation):
     update using picongpu_add_custom_user_input() or by direct setting
     """
 
-    interactions: Annotated[list[Interaction | PICMI_Interaction], BeforeValidator(_prepare_interactions)] = Field(
-        default_factory=list
+    interactions: Annotated[list[AnyInteraction | PICMI_Interaction], BeforeValidator(_prepare_interactions)] = Field(
+        default_factory=list,
+        description="Interactions added with add_interaction. Accepts every interaction type PIConGPU supports: "
+        "field ionization, collisions, synchrotron radiation and the concrete ionization models.",
     )
     """
     All particle interactions of the simulation.

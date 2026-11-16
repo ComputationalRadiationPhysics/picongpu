@@ -13,8 +13,8 @@ from picmistandard import PICMI_Laser, resolve_once
 from pydantic import Field, computed_field, model_validator
 
 from ...pypicongpu import laser
-from ..copy_attributes import default_converts_to
-from .base_laser import BaseLaser, PositiveFloat
+from .._copy_attributes import default_converts_to
+from .base_laser import _BaseLaser, PositiveFloat
 from .polarization_type import PolarizationType
 
 
@@ -25,38 +25,27 @@ from .polarization_type import PolarizationType
         "laser_nofocus_constant_si": lambda self: 0.0,
     },
 )
-class PlaneWaveLaser(PICMI_Laser, BaseLaser):
+class PlaneWaveLaser(PICMI_Laser, _BaseLaser):
     """
     Specifies a plane wave with a temporal shape
-
-    Parameters
-    ----------
-    wavelength: float
-        Laser wavelength [m], must be > 0
-    duration: float
-        Duration of the Gaussian pulse [s], must be > 0
-    propagation_direction: unit vector of length 3 of floats
-        Direction of propagation [1]
-    polarization_direction: unit vector of length 3 of floats
-        Direction of polarization [1]
-    centroid_position: vector of length 3 of floats
-        Position of the laser centroid at time 0 [m]
-    a0: float
-        Normalized vector potential at focus. Specify either a0 or E0.
-    E0: float
-        Maximum amplitude of the laser field [V/m]. Specify either a0 or E0.
-    phi0: float
-        Carrier envelope phase (CEP) [rad]
     """
 
-    wavelength: PositiveFloat
-    duration: PositiveFloat
-    propagation_direction: Sequence[float]
-    polarization_direction: Sequence[float]
-    centroid_position: Sequence[float]
-    a0: float | None = None
-    E0: float | None = None
-    phi0: float = 0.0
+    wavelength: PositiveFloat = Field(description="Laser wavelength [m], must be > 0")
+    duration: PositiveFloat = Field(description="Duration of the Gaussian pulse [s], must be > 0")
+    propagation_direction: Sequence[float] = Field(
+        description="Unit vector of length 3 of floats. Direction of propagation [1]"
+    )
+    polarization_direction: Sequence[float] = Field(
+        description="Unit vector of length 3 of floats. Direction of polarization [1]"
+    )
+    centroid_position: Sequence[float] = Field(
+        description="Vector of length 3 of floats. Position of the laser centroid at time 0 [m]"
+    )
+    a0: float | None = Field(default=None, description="Normalized vector potential at focus. Specify either a0 or E0.")
+    E0: float | None = Field(
+        default=None, description="Maximum amplitude of the laser field [V/m]. Specify either a0 or E0."
+    )
+    phi0: float = Field(default=0.0, description="Carrier envelope phase (CEP) [rad]")
 
     picongpu_polarization_type: PolarizationType = PolarizationType.LINEAR
     picongpu_plateau_duration: float = 0.0

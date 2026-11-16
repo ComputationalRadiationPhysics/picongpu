@@ -15,7 +15,7 @@ from picmistandard.base import Expression
 from pydantic import ConfigDict, Field, PrivateAttr, computed_field, model_validator
 from sympy import Expr, Symbol, lambdify, symbols, sympify
 
-from picongpu.picmi._FieldFunctor import (
+from picongpu.picmi._field_functor import (
     _FieldFunctor,
     callable_extra_parameters,
     expression_from_callable,
@@ -61,7 +61,7 @@ class AnalyticDistribution(PICMI_AnalyticDistribution):
     A plasma whose density, momentum and momentum spread are analytic expressions.
 
     The class is a thin PICMI-standard wrapper around the shared
-    :class:`~picongpu.picmi._FieldFunctor._FieldFunctor`: each of the three
+    :class:`~picongpu.picmi._field_functor._FieldFunctor`: each of the three
     field families (the density, the per-axis momentum and the per-axis momentum
     spread) is delegated to one or more ``_FieldFunctor`` instances, which carry
     the whole expression/function resolution, parameter collection, validation
@@ -86,12 +86,17 @@ class AnalyticDistribution(PICMI_AnalyticDistribution):
     ``Drift`` and ``Temperature`` operations. Position-dependent
     (function of ``x``/``y``/``z``) momentum and spread expressions are not
     implemented yet. Like the PICMI standard, an axis without a momentum
-    expression falls back to ``directed_velocity``.
+    expression falls back to ``directed_velocity``. ``directed_velocity`` is a
+    collective velocity of the particle distribution, interpreted as a plain
+    velocity, and is mutually exclusive with ``momentum_expressions``: supplying
+    both a non-zero ``directed_velocity`` and a non-``None``
+    ``momentum_expressions`` entry makes construction raise.
 
     Writing sympy comes with a few pitfalls but also advantages as listed below.
     Make sure that you familiarise yourself with writing sympy.
 
     Advantages:
+
     - The sympy language is closer to mathematical language than to coding
       which might make it more natural to use for some physicists.
     - You can extract the exact distribution
@@ -108,6 +113,7 @@ class AnalyticDistribution(PICMI_AnalyticDistribution):
       Try rewriting your function, in case you experience performance problems.
 
     Pitfalls:
+
     - We don't handle vectors yet.
       But that's probably not too important for density expressions.
       Just be explicit handling multiple vector components for now.
@@ -139,48 +145,24 @@ class AnalyticDistribution(PICMI_AnalyticDistribution):
       Alternatively, you can define only the (expression, condition) tuples
       and assemble them in a sympy.Piecewise in one go.
       That's the way chosen in the end-to-end tests.
-
-    Parameters:
-        density_function (Callable):
-            A Python function that takes x, y, z coordinates (in SI units)
-            and returns the density (in SI units) at that point.
-            It should use sympy functionality.
-            Further parameters (beyond x, y and z) are substituted from matching
-            keyword arguments given to the constructor or the decorator, exactly
-            like the constants collected from a `density_expression`.
-            Provide exactly one of `density_function` or `density_expression`.
-        density_expression (str):
-            A sympy-parseable string expression of the density in terms of
-            `x`, `y` and `z` (e.g. `"x*y*z"`). It is string-normalised (mirroring
-            the PICMI standard) and then parsed with `sympy.sympify`, so
-            non-string inputs are coerced to their string form (e.g. a bare number
-            yields a constant density) rather than rejected. It is equivalent to
-            the matching `density_function`.
-            Provide exactly one of `density_function` or `density_expression`.
-        momentum_functions (list of Callable, optional):
-            The per-axis sympy callables equivalent to `momentum_expressions`
-            (gamma * velocity in SI units, per axis). Each entry takes x, y, z and
-            returns the axis expression, or is None for an axis that is not
-            supplied. Extra (beyond x, y and z) parameters are substituted from
-            matching keyword arguments, exactly like `density_function`.
-        momentum_spread_functions (list of Callable, optional):
-            The per-axis sympy callables equivalent to
-            `momentum_spread_expressions` (Gaussian thermal spread sigma in SI
-            units, per axis), with the same per-axis/convention as
-            `momentum_functions`.
-        directed_velocity (3-tuple of float):
-            A collective velocity for the particle distribution, interpreted as a plain velocity.
-            Mutually exclusive with ``momentum_expressions``: if either a non-zero
-            ``directed_velocity`` and a non-``None`` ``momentum_expressions`` entry are both
-            supplied, construction raises.
     """
 
     # The standard makes density_expression required; PIConGPU additionally allows a
     # sympy based density_function. Both fields are always available after construction:
     # a before validator computes whichever one was not given from the other, and still
     # enforces the standard's "exactly one input" rule for the user-facing construction.
-    density_expression: Expression
-    density_function: Callable[[Symbol, Symbol, Symbol], Expr]
+    density_expression: Expression = Field(
+        description="Analytic expression describing physical number density [m^-3]. Expression should be in terms of "
+        "the position, written as 'x', 'y', and 'z'. Parameters can be used in the expression with the values given "
+        "as keyword arguments."
+    )
+    density_function: Callable[[Symbol, Symbol, Symbol], Expr] = Field(
+        description="A Python function that takes x, y, z coordinates (in SI units) and returns the density (in SI "
+        "units) at that point. It should use sympy functionality. Further parameters (beyond x, y and z) are "
+        "substituted from matching keyword arguments given to the constructor or the decorator, exactly like the "
+        "constants collected from a `density_expression`. Provide exactly one of `density_function` or "
+        "`density_expression`."
+    )
 
     # PIConGPU extensions mirroring the density callable for the momentum/spread
     # surface. Each list is aligned per axis with its ``*_expressions`` sibling:
@@ -191,10 +173,16 @@ class AnalyticDistribution(PICMI_AnalyticDistribution):
     # construction. The parsed sympy expressions are exposed via
     # ``momentum_sympy`` / ``momentum_spread_sympy``.
     momentum_functions: list[Callable[[Symbol, Symbol, Symbol], Expr] | None] = Field(
-        default_factory=lambda: [None, None, None]
+        default_factory=lambda: [None, None, None],
+        description="The per-axis sympy callables equivalent to `momentum_expressions` (gamma * velocity in SI "
+        "units, per axis). Each entry takes x, y, z and returns the axis expression, or is None for an axis that is "
+        "not supplied. Extra (beyond x, y and z) parameters are substituted from matching keyword arguments, exactly "
+        "like `density_function`.",
     )
     momentum_spread_functions: list[Callable[[Symbol, Symbol, Symbol], Expr] | None] = Field(
-        default_factory=lambda: [None, None, None]
+        default_factory=lambda: [None, None, None],
+        description="The per-axis sympy callables equivalent to `momentum_spread_expressions` (Gaussian thermal "
+        "spread sigma in SI units, per axis), with the same per-axis/convention as `momentum_functions`.",
     )
 
     _warned_about_lambdify_failure: bool = PrivateAttr(False)

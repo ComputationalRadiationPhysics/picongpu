@@ -53,6 +53,7 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 
    python_package/quickstart
    python_package/tutorial
+   python_package/troubleshooting
    python_package/foundations/index
    python_package/selected_topics/index
    python_package/api/index

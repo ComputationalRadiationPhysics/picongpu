@@ -11,9 +11,9 @@ import sympy
 from picongpu.picmi.diagnostics.binning import (
     Binning,
     BinningAxis,
-    BinningFunctor,
     BinSpec,
 )
+from picongpu.picmi.particle_functor import ParticleFunctor
 from picongpu.picmi.diagnostics.timestepspec import TS
 from scipy.constants import speed_of_light
 
@@ -124,7 +124,7 @@ def position_binning_for(species, timestep):
     kwargs = dict(
         axes=[
             BinningAxis(
-                functor=BinningFunctor(name="dummy", functor=lambda x: 0, return_type=float),
+                functor=ParticleFunctor(name="dummy", functor=lambda x: 0, return_type=float),
                 bin_spec=BinSpec(kind="linear", start=-0.5, stop=0.5, nsteps=1),
             )
         ],
@@ -136,7 +136,7 @@ def position_binning_for(species, timestep):
     return [
         Binning(
             name=f"origin_{species.name}",
-            deposition_functor=BinningFunctor(
+            deposition_functor=ParticleFunctor(
                 name="origin_check",
                 functor=partial(origin_no_guards_check),
                 return_type="double",
@@ -145,7 +145,7 @@ def position_binning_for(species, timestep):
         ),
         Binning(
             name=f"unit_{species.name}",
-            deposition_functor=BinningFunctor(
+            deposition_functor=ParticleFunctor(
                 name="unit_check",
                 functor=partial(unit_no_guards_check, timestep=timestep),
                 return_type="double",
@@ -154,7 +154,7 @@ def position_binning_for(species, timestep):
         ),
         Binning(
             name=f"origin_guards_{species.name}",
-            deposition_functor=BinningFunctor(
+            deposition_functor=ParticleFunctor(
                 name="origin_with_guards_check",
                 functor=partial(origin_with_guards_check, timestep=timestep),
                 return_type="double",
@@ -166,7 +166,7 @@ def position_binning_for(species, timestep):
 
 POSITION_AXES = [
     BinningAxis(
-        functor=BinningFunctor(
+        functor=ParticleFunctor(
             # We prefer `partial` over lambda functions in this situation
             # because of lambda's late binding.
             name=f"position{i}",
@@ -184,7 +184,7 @@ def density_binning_for(species):
     return [
         Binning(
             name=f"particleDensity_{species.name}",
-            deposition_functor=BinningFunctor(
+            deposition_functor=ParticleFunctor(
                 name=f"particle_density_{species.name}",
                 functor=particle_density,
                 return_type=float,
