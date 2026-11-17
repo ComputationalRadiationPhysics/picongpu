@@ -1,4 +1,4 @@
-/* Copyright 2022 Andrea Bocci
+/* Copyright 2026 Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -11,8 +11,10 @@
 
 namespace alpaka
 {
-    template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-    using TaskKernelGpuHipRt = TaskKernelGpuUniformCudaHipRt<ApiHipRt, TAcc, TDim, TIdx, TKernelFnObj, TArgs...>;
+    template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+    using TaskKernelGpuCudaHipRt
+        = TaskKernelGpuUniformCudaHipRt<ApiHipRt, TAcc, TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>;
+
 } // namespace alpaka
 
 #endif // ALPAKA_ACC_GPU_HIP_ENABLED

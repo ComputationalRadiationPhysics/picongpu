@@ -23,14 +23,33 @@
       "orcid": "0000-0002-8218-3116"
     },
     {
+      "name": "Fila, Mateusz Jakub",
+      "affiliation": "CERN",
+      "orcid": "0000-0003-3917-2371"
+    },
+    {
       "name": "Michailidi, Maria",
       "affiliation": "CERN",
       "orcid": "0009-0009-7518-3896"
     },
     {
+      "name": "Narwal, Tapish",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0002-5726-2330"
+    },
+    {
+      "name": "Pausch, Richard",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0001-7990-9564"
+    },
+    {
       "name": "Perego, Aurora",
       "affiliation": "CERN",
       "orcid": "0009-0002-5210-6213"
+    },
+    {
+      "name": "Varvarin, Michael",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf"
     }
   ],
   "contributors": [
@@ -70,11 +89,6 @@
     },
     {
       "name": "Ferragina, Luca",
-      "affiliation": "CERN",
-      "type": "Other"
-    },
-    {
-      "name": "Fila, Mateusz Jakub",
       "affiliation": "CERN",
       "type": "Other"
     },
@@ -140,12 +154,6 @@
       "type": "Other"
     },
     {
-      "name": "Narwal, Tapish",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
-      "orcid": "0000-0002-5726-2330",
-      "type": "Other"
-    },
-    {
       "name": "Nash, Phil",
       "affiliation": "JetBrains",
       "type": "Other"
@@ -187,11 +195,6 @@
     {
       "name": "Tascon, Andres Rios",
       "affiliation": "Princeton University",
-      "type": "Other"
-    },
-    {
-      "name": "Varvarin, Michael",
-      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
       "type": "Other"
     },
     {

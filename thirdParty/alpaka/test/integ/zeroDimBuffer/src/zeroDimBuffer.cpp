@@ -19,10 +19,10 @@
 
 // fill an trivial type with std::memset
 template<typename T>
-constexpr auto memset_value(int c) -> T
+constexpr auto memset_value(std::uint8_t c) -> T
 {
     T t;
-    std::memset(&t, c, sizeof(T));
+    std::memset(&t, static_cast<int>(c), sizeof(T));
     return t;
 }
 
@@ -73,7 +73,7 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
                                            << " element(s)");
 
     // host-side buffer memset
-    int const value1 = 42;
+    std::uint8_t const value1 = 42;
     int const expected1 = memset_value<int>(value1);
     INFO("host-side buffer memset");
     alpaka::memset(hostQueue, h_buffer1, value1);
@@ -81,7 +81,7 @@ TEMPLATE_LIST_TEST_CASE("zeroDimBuffer", "[zeroDimBuffer]", TestAccs)
     CHECK(expected1 == *h_buffer1);
 
     // host-side async buffer memset
-    int const value2 = 99;
+    std::uint8_t const value2 = 99;
     int const expected2 = memset_value<int>(value2);
     INFO("host-side async buffer memset");
     alpaka::memset(hostQueue, h_buffer2, value2);

@@ -144,6 +144,14 @@ endif()
 ################################################################################
 # Add subdirectories
 
+# The Intel GPU runtime uses a SIGSEGV handler to migrate shared (managed) memory back to the host.
+# Catch2 installs its own POSIX signal handlers at the beginning of each test case, which intercept these SIGSEGVs
+# and turn them into fatal errors. Disable the Catch2 POSIX signal handlers when building for Intel GPUs.
+if(alpaka_USE_INTERNAL_CATCH2 AND alpaka_ACC_SYCL_ENABLE AND alpaka_SYCL_ONEAPI_GPU)
+    message(STATUS "Catch2: disabling POSIX signal handling, as it is not compatible with the Intel GPU runtime")
+    set(CATCH_CONFIG_NO_POSIX_SIGNALS ON)
+endif()
+
 add_subdirectory(thirdParty)
 
 if(alpaka_BUILD_EXAMPLES)

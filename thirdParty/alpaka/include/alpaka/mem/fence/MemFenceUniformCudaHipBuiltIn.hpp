@@ -195,7 +195,11 @@ namespace alpaka
 #        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 alpaka::detail::cuda_mem_fence_block(order);
 #        else
-                __builtin_amdgcn_fence(MemOrderHip::get(order), "workgroup");
+                /* It is required to have this temporary variable else HIP 7.14 will fail to compile with code
+                 * emitting issues.
+                 */
+                constexpr auto memOrder = MemOrderHip::get(order);
+                __builtin_amdgcn_fence(memOrder, "workgroup");
 #        endif
             }
         };
@@ -210,7 +214,11 @@ namespace alpaka
 #        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                 alpaka::detail::cuda_mem_fence_device(order);
 #        else
-                __builtin_amdgcn_fence(MemOrderHip::get(order), "agent");
+                /* It is required to have this temporary variable else HIP 7.14 will fail to compile with code
+                 * emitting issues.
+                 */
+                constexpr auto memOrder = MemOrderHip::get(order);
+                __builtin_amdgcn_fence(memOrder, "agent");
 #        endif
             }
         };

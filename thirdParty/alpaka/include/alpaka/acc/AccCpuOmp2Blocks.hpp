@@ -1,4 +1,5 @@
-/* Copyright 2025 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2026 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci,
+ * Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -13,6 +14,7 @@
 #include "alpaka/block/shared/st/BlockSharedMemStMember.hpp"
 #include "alpaka/block/sync/BlockSyncNoOp.hpp"
 #include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/grid/GridSyncBarrierCpuOmp.hpp"
 #include "alpaka/idx/bt/IdxBtZero.hpp"
 #include "alpaka/idx/gb/IdxGbRef.hpp"
 #include "alpaka/intrinsic/IntrinsicCpu.hpp"
@@ -50,7 +52,7 @@
 
 namespace alpaka
 {
-    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
+    template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
     class TaskKernelCpuOmp2Blocks;
 
     //! The CPU OpenMP 2.0 block accelerator.
@@ -71,6 +73,7 @@ namespace alpaka
         , public BlockSharedMemDynMember<>
         , public BlockSharedMemStMember<>
         , public BlockSyncNoOp
+        , public GridSyncOmp
         , public IntrinsicCpu
         , public MemFenceOmp2Blocks
 #    ifdef ALPAKA_DISABLE_VENDOR_RNG
@@ -87,7 +90,7 @@ namespace alpaka
 
     public:
         // Partial specialization with the correct TDim and TIdx is not allowed.
-        template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
+        template<typename TDim2, typename TIdx2, typename TKernelFnObj, bool TCooperative, typename... TArgs>
         friend class ::alpaka::TaskKernelCpuOmp2Blocks;
 
         AccCpuOmp2Blocks(AccCpuOmp2Blocks const&) = delete;
@@ -155,7 +158,9 @@ namespace alpaka
                         // m_sharedMemSizeBytes
                         static_cast<size_t>(AccCpuOmp2Blocks<TDim, TIdx>::staticAllocBytes()),
                         // m_globalMemSizeBytes
-                        getMemBytes(dev)};
+                        getMemBytes(dev),
+                        // m_cooperativeLaunch
+                        true};
             }
         };
 
@@ -214,7 +219,34 @@ namespace alpaka
                         + getAccName<AccCpuOmp2Blocks<TDim, TIdx>>() + ". Threads per block should be 1!");
                 }
 
-                return TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>(
+                return TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, false, TArgs...>(
+                    workDiv,
+                    kernelFnObj,
+                    std::forward<TArgs>(args)...);
+            }
+        };
+
+        //! The CPU OpenMP 2.0 block accelerator execution cooperative task type trait specialization.
+        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
+        struct CreateTaskCooperativeKernel<AccCpuOmp2Blocks<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto createTaskCooperativeKernel(
+                TWorkDiv const& workDiv,
+                TKernelFnObj const& kernelFnObj,
+                TArgs&&... args)
+            {
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
+                auto const maxBlocks = omp_get_max_threads();
+                if(gridBlockExtent.prod() > static_cast<TIdx>(maxBlocks))
+                {
+                    throw std::runtime_error(
+                        "The number of requested blocks is larger than maximuma of the device for OpenMP 2.0 blocks "
+                        "accelerator. Requested: "
+                        + std::to_string(gridBlockExtent.prod()) + ", maximum allowed: " + std::to_string(maxBlocks)
+                        + ". Use getMaxActiveBlocks().");
+                }
+
+                return TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, true, TArgs...>(
                     workDiv,
                     kernelFnObj,
                     std::forward<TArgs>(args)...);

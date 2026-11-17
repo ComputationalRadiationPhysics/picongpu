@@ -32,6 +32,10 @@
 #                pragma clang diagnostic pop
 #            endif
 #        endif
+#        ifdef ALPAKA_USE_MDSPAN
+// needs to be included that cuda::std::numeric_limits is defined and in the correct namespace
+#            include "alpaka/core/mdspan.hpp"
+#        endif
 #    endif
 
 #    ifdef ALPAKA_ACC_GPU_HIP_ENABLED

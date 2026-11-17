@@ -55,7 +55,16 @@ TEMPLATE_LIST_TEST_CASE("getSize", "[warp]", alpaka::test::TestAccs)
         end(warpSizes),
         [](std::size_t ws)
         {
-            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(8));
+            using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
+            // Launch one warp per block, along the innermost (fastest) dimension: the SYCL CPU device forms
+            // sub-groups only along it, while GPUs form warps from the linearised thread index.
+            constexpr auto innermost = Dim::value > 0 ? Dim::value - 1 : 0;
+            auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
+            blockThreadExtent[innermost] = static_cast<Idx>(ws);
+            ExecutionFixture fixture(typename ExecutionFixture::WorkDiv{
+                alpaka::Vec<Dim, Idx>::all(2),
+                blockThreadExtent,
+                alpaka::Vec<Dim, Idx>::ones()});
             if(ws == 4)
             {
                 return fixture(GetSizeTestKernel<4>{}, static_cast<std::int32_t>(ws));

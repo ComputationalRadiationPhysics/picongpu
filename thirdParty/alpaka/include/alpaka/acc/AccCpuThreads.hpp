@@ -1,4 +1,4 @@
-/* Copyright 2025 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2026 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -11,6 +11,7 @@
 #include "alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp"
 #include "alpaka/block/sync/BlockSyncBarrierThread.hpp"
 #include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/grid/GridSyncBarrierCpuThread.hpp"
 #include "alpaka/idx/bt/IdxBtRefThreadIdMap.hpp"
 #include "alpaka/idx/gb/IdxGbRef.hpp"
 #include "alpaka/intrinsic/IntrinsicCpu.hpp"
@@ -66,6 +67,7 @@ namespace alpaka
         , public BlockSharedMemDynMember<>
         , public BlockSharedMemStMemberMasterSync<>
         , public BlockSyncBarrierThread<TIdx>
+        , public GridSyncBarrierThread<TIdx>
         , public IntrinsicCpu
         , public MemFenceCpu
 #    ifdef ALPAKA_DISABLE_VENDOR_RNG
@@ -103,6 +105,7 @@ namespace alpaka
                   [this]() { syncBlockThreads(*this); },
                   [this]() noexcept { return (m_idMasterThread == std::this_thread::get_id()); })
             , BlockSyncBarrierThread<TIdx>(getWorkDiv<Block, Threads>(workDiv).prod())
+            , GridSyncBarrierThread<TIdx>(getWorkDiv<Block, Threads>(workDiv).prod())
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -173,7 +176,9 @@ namespace alpaka
                         // m_sharedMemSizeBytes
                         memBytes,
                         // m_globalMemSizeBytes
-                        memBytes};
+                        memBytes,
+                        // m_cooperativeLaunch
+                        true};
             }
         };
 
@@ -224,6 +229,30 @@ namespace alpaka
                 TKernelFnObj const& kernelFnObj,
                 TArgs&&... args)
             {
+                return TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>(
+                    workDiv,
+                    kernelFnObj,
+                    std::forward<TArgs>(args)...);
+            }
+        };
+
+        //! The CPU threads thread accelerator execution cooperative task type trait specialization.
+        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
+        struct CreateTaskCooperativeKernel<AccCpuThreads<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto createTaskCooperativeKernel(
+                TWorkDiv const& workDiv,
+                TKernelFnObj const& kernelFnObj,
+                TArgs&&... args)
+            {
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
+                if(gridBlockExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error(
+                        "The std::thread accelerator supports only a single block operation with cooperative kernel!\n"
+                        "Consider useing a different CPU accelerator.");
+                }
+
                 return TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>(
                     workDiv,
                     kernelFnObj,

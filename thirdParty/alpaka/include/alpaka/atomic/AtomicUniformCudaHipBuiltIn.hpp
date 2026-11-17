@@ -77,7 +77,10 @@ namespace alpaka::trait
 // Emulating atomics with atomicCAS is mentioned in the programming guide too.
 // http://docs.nvidia.com/cuda/cuda-c-programming-guide/#atomic-functions
 #        if ALPAKA_LANG_HIP
-#            if __has_builtin(__hip_atomic_load)
+#            if __has_builtin(__scoped_atomic_load_n)
+                EmulatedType old{
+                    __scoped_atomic_load_n(addressAsIntegralType, __ATOMIC_RELAXED, __MEMORY_SCOPE_DEVICE)};
+#            elif __has_builtin(__hip_atomic_load)
                 EmulatedType old{__hip_atomic_load(addressAsIntegralType, __ATOMIC_RELAXED, __HIP_MEMORY_SCOPE_AGENT)};
 #            else
                 EmulatedType old{__atomic_load_n(addressAsIntegralType, __ATOMIC_RELAXED)};

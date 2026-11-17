@@ -1,4 +1,4 @@
-/* Copyright 2025 Aurora Perego
+/* Copyright 2026 Aurora Perego, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -11,9 +11,15 @@
 
 namespace alpaka
 {
-    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-    using TaskKernelGpuSyclAmd
-        = TaskKernelGenericSycl<TagGpuSyclAmd, AccGpuSyclAmd<TDim, TIdx>, TDim, TIdx, TKernelFnObj, TArgs...>;
+    template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+    using TaskKernelGpuSyclAmd = TaskKernelGenericSycl<
+        TagGpuSyclAmd,
+        AccGpuSyclAmd<TDim, TIdx>,
+        TDim,
+        TIdx,
+        TKernelFnObj,
+        TCooperative,
+        TArgs...>;
 
 } // namespace alpaka
 

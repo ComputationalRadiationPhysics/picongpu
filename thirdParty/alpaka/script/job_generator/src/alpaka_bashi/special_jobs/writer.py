@@ -3,11 +3,13 @@
 import re
 from typing import Dict, Any
 from typeguard import typechecked
+from alpaka_bashi.ci_yaml.writer import get_dummy_job_yaml
 from .clang_analysis import get_clang_debug_analysis_job, get_clang_asan_job
 from .cuda import (
     get_nvcc_relocatable_device_code_job,
     get_nvcc_extended_lambda_off_job,
     get_cuda_only_job,
+    get_clang_cuda_debug_job,
 )
 
 
@@ -73,6 +75,15 @@ def get_special_jobs(
         image_check=image_check,
     )
 
+    special_jobs |= get_clang_cuda_debug_job(
+        clang_cuda_version="20",
+        cuda_version="12.8",
+        cmake_version="3.30.3",
+        container_version=container_version,
+        stage_name=stage_name,
+        image_check=image_check,
+    )
+
     if job_filter:
         compiled_regex = re.compile(job_filter)
         special_jobs = {
@@ -80,5 +91,8 @@ def get_special_jobs(
             for job_name, job_body in special_jobs.items()
             if compiled_regex.match(job_name) or job_name == "stages"
         }
+
+    if len(special_jobs) == 0 or (len(special_jobs) == 1 and "stages" in special_jobs):
+        special_jobs = get_dummy_job_yaml(stage_name)
 
     return special_jobs

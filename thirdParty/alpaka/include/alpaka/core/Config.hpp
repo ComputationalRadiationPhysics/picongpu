@@ -106,6 +106,7 @@
  */
 #if !defined(ALPAKA_ARCH_AMD)
 #    if defined(__HIP__) && defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__ == 1
+#        include "alpaka/core/HipConfig.hpp"
 #        define ALPAKA_ARCH_AMD ALPAKA_AMDGPU_ARCH
 #    else
 #        define ALPAKA_ARCH_AMD ALPAKA_VERSION_NUMBER_NOT_AVAILABLE

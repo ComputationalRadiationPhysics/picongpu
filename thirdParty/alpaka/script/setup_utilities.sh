@@ -16,7 +16,7 @@ fi
 
 # disable command traces for the following scripts to avoid useless noise in the job output
 source ./script/setup_utilities/color_echo.sh
-source ./script/setup_utilities/travis_retry.sh
+source ./script/setup_utilities/retry_cmd.sh
 source ./script/setup_utilities/sudo.sh
 source ./script/setup_utilities/agc-manager.sh
 source ./script/setup_utilities/set.sh

@@ -1,4 +1,4 @@
-/* Copyright 2024 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Andrea Bocci, Aurora Perego
+/* Copyright 2026 Jan Stephan, Antonio Di Pilato, Luca Ferragina, Andrea Bocci, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -126,31 +126,35 @@ namespace alpaka
                 return m_last_event;
             }
 
+            // Perfect forwarding of the task is a backend-specific workaround for oneAPI SYCL internally converting
+            // host tasks to std::function&&. The portable way is to pass the task by const reference, as done by
+            // the other backends.
             template<bool TBlocking, typename TTask>
-            auto enqueue(TTask const& task) -> void
+            auto enqueue(TTask&& task) -> void
             {
                 {
+                    using TaskType = std::decay_t<TTask>;
                     std::lock_guard<std::shared_mutex> lock{m_mutex};
 
                     clean_dependencies();
 
                     // Execute task
-                    if constexpr(is_sycl_task<TTask> && !is_sycl_kernel<TTask>) // Copy / Fill
+                    if constexpr(is_sycl_task<TaskType> && !is_sycl_kernel<TaskType>) // Copy / Fill
                     {
                         m_last_event = task(m_queue, m_dependencies); // Will call queue.{copy, fill} internally
                     }
                     else
                     {
                         m_last_event = m_queue.submit(
-                            [this, &task](sycl::handler& cgh)
+                            [this, captured_task = std::forward<TTask>(task)](sycl::handler& cgh) mutable
                             {
                                 if(!m_dependencies.empty())
                                     cgh.depends_on(m_dependencies);
 
-                                if constexpr(is_sycl_kernel<TTask>) // Kernel
-                                    task(cgh); // Will call cgh.parallel_for internally
+                                if constexpr(is_sycl_kernel<TaskType>) // Kernel
+                                    captured_task(cgh, m_queue); // Will call cgh.parallel_for internally
                                 else // Host
-                                    cgh.host_task(task);
+                                    cgh.host_task(std::move(captured_task));
                             });
                     }
 
@@ -241,11 +245,11 @@ namespace alpaka
         template<concepts::Tag TTag, bool TBlocking, typename TTask>
         struct Enqueue<alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>, TTask>
         {
-            static auto enqueue(alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>& queue, TTask const& task)
-                -> void
+            template<typename UTask>
+            static auto enqueue(alpaka::detail::QueueGenericSyclBase<TTag, TBlocking>& queue, UTask&& task) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                queue.m_spQueueImpl->template enqueue<TBlocking>(task);
+                queue.m_spQueueImpl->template enqueue<TBlocking>(std::forward<UTask>(task));
             }
         };
 

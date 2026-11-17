@@ -8,6 +8,7 @@ from typeguard import typechecked
 import bashi
 from bashi.globals import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from alpaka_bashi.globals import (
+    CMAKE_RELEASE_WITH_DEBUG_INFO_VER,
     MDSPAN,
     BUILD_TYPE,
     CMAKE_RELEASE_VER,
@@ -50,6 +51,8 @@ def get_job_suffix(combination: bashi.Combination) -> str:
         version_str += "_release"
     if combination[BUILD_TYPE].version == CMAKE_DEBUG_VER:
         version_str += "_debug"
+    if combination[BUILD_TYPE].version == CMAKE_RELEASE_WITH_DEBUG_INFO_VER:
+        version_str += "_RelWithDeb"
 
     return version_str
 

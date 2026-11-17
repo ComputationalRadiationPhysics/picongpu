@@ -12,6 +12,7 @@
 #include <catch2/interfaces/catch_interfaces_config.hpp>
 #include <catch2/internal/catch_unique_ptr.hpp>
 #include <catch2/internal/catch_optional.hpp>
+#include <catch2/internal/catch_path_filter.hpp>
 #include <catch2/internal/catch_stringref.hpp>
 #include <catch2/internal/catch_random_seed_generation.hpp>
 #include <catch2/internal/catch_reporter_spec_parser.hpp>
@@ -34,6 +35,7 @@ namespace Catch {
         std::string name;
         std::string outputFilename;
         ColourMode colourMode;
+        Verbosity verbosity;
         std::map<std::string, std::string> customOptions;
         friend bool operator==( ProcessedReporterSpec const& lhs,
                                 ProcessedReporterSpec const& rhs );
@@ -61,6 +63,7 @@ namespace Catch {
 
         int abortAfter = -1;
         uint32_t rngSeed = generateRandomSeed(GenerateFrom::Default);
+        bool rngSeedWasFixed = false;
 
         unsigned int shardCount = 1;
         unsigned int shardIndex = 0;
@@ -76,7 +79,7 @@ namespace Catch {
         WarnAbout::What warnings = WarnAbout::Nothing;
         ShowDurations showDurations = ShowDurations::DefaultForReporter;
         double minDuration = -1;
-        TestRunOrder runOrder = TestRunOrder::Declared;
+        TestRunOrder runOrder = TestRunOrder::Randomized;
         ColourMode defaultColourMode = ColourMode::PlatformDefault;
         WaitForKeypress::When waitForKeypress = WaitForKeypress::Never;
 
@@ -86,7 +89,10 @@ namespace Catch {
         std::vector<ReporterSpec> reporterSpecifications;
 
         std::vector<std::string> testsOrTags;
-        std::vector<std::string> sectionsToRun;
+        std::vector<PathFilter> pathFilters;
+        bool useNewPathFilteringBehaviour = false;
+
+        std::string prematureExitGuardFilePath;
     };
 
 
@@ -107,12 +113,15 @@ namespace Catch {
         getProcessedReporterSpecs() const;
 
         std::vector<std::string> const& getTestsOrTags() const override;
-        std::vector<std::string> const& getSectionsToRun() const override;
+        std::vector<PathFilter> const& getPathFilters() const override;
+        bool useNewFilterBehaviour() const override;
 
         TestSpec const& testSpec() const override;
         bool hasTestFilters() const override;
 
         bool showHelp() const;
+
+        std::string const& getExitGuardFilePath() const;
 
         // IConfig interface
         bool allowThrows() const override;
@@ -120,11 +129,13 @@ namespace Catch {
         bool includeSuccessfulResults() const override;
         bool warnAboutMissingAssertions() const override;
         bool warnAboutUnmatchedTestSpecs() const override;
+        bool warnAboutInfiniteGenerators() const override;
         bool zeroTestsCountAsSuccess() const override;
         ShowDurations showDurations() const override;
         double minDuration() const override;
         TestRunOrder runOrder() const override;
         uint32_t rngSeed() const override;
+        bool rngSeedWasFixed() const;
         unsigned int shardCount() const override;
         unsigned int shardIndex() const override;
         ColourMode defaultColourMode() const override;

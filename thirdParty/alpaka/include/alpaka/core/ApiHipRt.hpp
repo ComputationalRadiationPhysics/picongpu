@@ -1,4 +1,4 @@
-/* Copyright 2025 Andrea Bocci, Maria Michailidi
+/* Copyright 2026 Andrea Bocci, Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -83,6 +83,7 @@ namespace alpaka
         static constexpr DeviceAttr_t deviceAttributeMaxThreadsPerBlock = ::hipDeviceAttributeMaxThreadsPerBlock;
         static constexpr DeviceAttr_t deviceAttributeMultiprocessorCount = ::hipDeviceAttributeMultiprocessorCount;
         static constexpr DeviceAttr_t deviceAttributeWarpSize = ::hipDeviceAttributeWarpSize;
+        static constexpr DeviceAttr_t deviceAttributeCooperativeLaunch = ::hipDeviceAttributeCooperativeLaunch;
 
 #    if HIP_VERSION >= 40'500'000
         static constexpr Limit_t limitPrintfFifoSize = ::hipLimitPrintfFifoSize;
@@ -291,6 +292,18 @@ namespace alpaka
             return ::hipHostUnregister(ptr);
         }
 
+        template<class T>
+        static inline Error_t launchCooperativeKernel(
+            T* func,
+            dim3 gridDim,
+            dim3 blockDim,
+            void** args,
+            size_t sharedMem,
+            Stream_t stream)
+        {
+            return ::hipLaunchCooperativeKernel(func, gridDim, blockDim, args, static_cast<uint>(sharedMem), stream);
+        }
+
         static inline Error_t launchHostFunc(Stream_t stream, HostFn_t fn, void* userData)
         {
             // hipLaunchHostFunc is implemented only in ROCm 5.4.0 and later.
@@ -451,6 +464,16 @@ namespace alpaka
         static inline Extent_t makeExtent(size_t w, size_t h, size_t d)
         {
             return ::make_hipExtent(w, h, d);
+        }
+
+        template<class T>
+        static inline Error_t occupancyMaxActiveBlocksPerMultiprocessor(
+            int* numBlocks,
+            T func,
+            int blockSize,
+            size_t dynamicSMemSize)
+        {
+            return ::hipOccupancyMaxActiveBlocksPerMultiprocessor(numBlocks, func, blockSize, dynamicSMemSize);
         }
     };
 

@@ -1,4 +1,4 @@
-/* Copyright 2023 Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2026 Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -155,6 +155,7 @@ namespace alpaka
             syncBlockThreads(acc);
 
             // Execute the kernel itself.
+            detail::checkKernelReturnType(kernelFnObj, std::as_const(acc), args...);
             kernelFnObj(std::as_const(acc), args...);
 
             // We have to sync all threads here because if a thread would finish before all threads have been started,
@@ -231,6 +232,21 @@ namespace alpaka
                 kernelFunctionAttributes.maxDynamicSharedSizeBytes
                     = static_cast<int>(alpaka::BlockSharedDynMemberAllocKiB * 1024);
                 return kernelFunctionAttributes;
+            }
+        };
+
+        //! The CPU threads get max active blocks for cooperative kernel specialization.
+        template<typename TDev, typename TKernelFnObj, typename TDim, typename TIdx, typename... TArgs>
+        struct MaxActiveBlocks<AccCpuThreads<TDim, TIdx>, TDev, TKernelFnObj, TDim, TIdx, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto getMaxActiveBlocks(
+                TKernelFnObj const& /*kernelFnObj*/,
+                TDev const& /*device*/,
+                alpaka::Vec<TDim, TIdx> const& /*blockThreadExtent*/,
+                alpaka::Vec<TDim, TIdx> const& /*threadElemExtent*/,
+                TArgs const&... /*args*/) -> int
+            {
+                return 1;
             }
         };
 

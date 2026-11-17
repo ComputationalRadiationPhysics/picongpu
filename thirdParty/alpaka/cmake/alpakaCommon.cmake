@@ -295,6 +295,12 @@ endif()
 # Find TBB.
 if(alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE)
     find_package(TBB 2021.4.0.0 REQUIRED)
+    if(alpaka_ACC_SYCL_ENABLE)
+        # The oneAPI OpenCL CPU runtime, loaded by the SYCL runtime, links the release TBB library (libtbb.so.12).
+        # Linking the debug TBB library (libtbb_debug.so.12) in Debug builds would load both libraries in the same
+        # process, which may crash at exit (e.g. with oneTBB 2022.3). Use the release TBB library also in Debug builds.
+        set_target_properties(TBB::tbb PROPERTIES MAP_IMPORTED_CONFIG_DEBUG "RELEASE;DEBUG")
+    endif()
     target_link_libraries(alpaka INTERFACE TBB::tbb)
 endif()
 
@@ -402,9 +408,22 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             endif()
 
             # workaround: ISA code parsing when compiling as debug with clang as CUDA compiler
-            # https://github.com/llvm/llvm-project/issues/58491
-            if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            # https://github.com/llvm/llvm-project/issues/58491, fixed in clang 20.1.0
+            # workaround: ptxas from CUDA 12.2 and older crashes on the device debug information for sm_90
+            if(CMAKE_BUILD_TYPE STREQUAL "Debug"
+               AND (CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 20.1.0 OR CUDAToolkit_VERSION VERSION_LESS 12.3))
                 alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-g -Xarch_device -g0>")
+            endif()
+
+            # CUDA 13 moved the CCCL headers (libcu++, CUB, Thrust) to include/cccl: nvcc adds it to the include
+            # path automatically, clang does not
+            if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 13.0)
+                foreach(_CUDA_INCLUDE_DIR IN LISTS CUDAToolkit_INCLUDE_DIRS)
+                    if(IS_DIRECTORY "${_CUDA_INCLUDE_DIR}/cccl")
+                        target_include_directories(alpaka SYSTEM INTERFACE "${_CUDA_INCLUDE_DIR}/cccl")
+                    endif()
+                endforeach()
+                unset(_CUDA_INCLUDE_DIR)
             endif()
 
             if(alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE)
@@ -452,9 +471,18 @@ if(alpaka_ACC_GPU_CUDA_ENABLE)
             # This is mandatory because with C++20 many standard library functions we rely on are constexpr (std::min, std::multiplies, ...)
             alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--expt-relaxed-constexpr>")
 
+            # workaround: ptxas from CUDA 12.0 recurses without bound on the line information for sm_90, until it
+            # crashes or runs out of memory
+            set(_alpaka_CUDA_LINEINFO "-lineinfo")
+            if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 12.1 AND CMAKE_CUDA_ARCHITECTURES MATCHES "(^|;)(90|all)")
+                message(WARNING "nvcc 12.0 with sm_90 detected. Disabling the line information in RelWithDebInfo builds.")
+                set(_alpaka_CUDA_LINEINFO "")
+            endif()
+
             # CMake automatically sets '-g' in debug mode
             alpaka_set_compiler_options(DEVICE target alpaka "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-G>" # -G overrides -lineinfo
-                                                             "$<$<AND:$<CONFIG:RelWithDebInfo>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-g -lineinfo>")
+                                                             "$<$<AND:$<CONFIG:RelWithDebInfo>,$<COMPILE_LANGUAGE:CUDA>>:SHELL:-g ${_alpaka_CUDA_LINEINFO}>")
+            unset(_alpaka_CUDA_LINEINFO)
 
             if(alpaka_FAST_MATH STREQUAL ON)
                 alpaka_set_compiler_options(DEVICE target alpaka "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:--use_fast_math>")
@@ -548,7 +576,7 @@ if(alpaka_ACC_GPU_HIP_ENABLE)
         find_package(hip REQUIRED)
 
         set(_alpaka_HIP_MIN_VER 6.0)
-        set(_alpaka_HIP_MAX_VER 7.2)
+        set(_alpaka_HIP_MAX_VER 10.0)
 
         checkCompilerCXXSupport(HIP ${alpaka_MIN_CXX_STANDARD})
 
@@ -714,6 +742,15 @@ if(alpaka_ACC_SYCL_ENABLE)
             string(REPLACE ";" "," alpaka_SYCL_ONEAPI_GPU_DEVICES "${alpaka_SYCL_ONEAPI_GPU_DEVICES}")
 
             target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU_NVIDIA")
+
+            # oneAPI 2025.0 cannot compile the CUDA device code with debug symbols: ptxas fails on the debug information
+            if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 2025.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2025.1)
+                if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+                    message(FATAL_ERROR "The SYCL backend for NVIDIA GPUs does not support Debug builds with oneAPI ${CMAKE_CXX_COMPILER_VERSION}, because ptxas fails on the device debug information. Use a different build type or a different version of oneAPI.")
+                endif()
+                # with multi-config generators the build type is known only at build time
+                target_compile_definitions(alpaka INTERFACE "$<$<CONFIG:Debug>:ALPAKA_SYCL_ONEAPI_GPU_NVIDIA_DEBUG_UNSUPPORTED>")
+            endif()
         endif()
 
         if(alpaka_SYCL_ONEAPI_GPU_AMD)
@@ -904,10 +941,10 @@ if (alpaka_USE_MDSPAN STREQUAL "SYSTEM")
 elseif (alpaka_USE_MDSPAN STREQUAL "FETCH")
     include(FetchContent)
     FetchContent_Declare(
-        # kokkos/mdspan as of 2025.12.11
+        # kokkos/mdspan as of 2026.08.19
         mdspan
         GIT_REPOSITORY https://github.com/kokkos/mdspan.git
-        GIT_TAG bcfcc9ea8fc5390b99261a4d8450c3f2fc18a7f2
+        GIT_TAG ef0adc1ca08b6eda520a7fd3fcfd8125662518e7
     )
     # we don't use FetchContent_MakeAvailable(mdspan) since it would also install mdspan
     # see also: https://stackoverflow.com/questions/65527126/how-to-disable-installation-a-fetchcontent-dependency

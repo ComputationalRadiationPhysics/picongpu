@@ -18,9 +18,17 @@ namespace alpaka
     {
     };
 
+    namespace concepts
+    {
+        template<typename TPlatform>
+        concept Platform
+            = requires { requires interface::ImplementsInterface<ConceptPlatform, std::decay_t<TPlatform>>::value; };
+    } // namespace concepts
+
     //! True if TPlatform is a platform, i.e. if it implements the ConceptPlatform concept.
     template<typename TPlatform>
-    inline constexpr bool isPlatform = interface::ImplementsInterface<ConceptPlatform, TPlatform>::value;
+    [[deprecated("use the alpaka::concepts::Platform instead.")]] inline constexpr bool isPlatform
+        = concepts::Platform<TPlatform>;
 
     //! The platform traits.
     namespace trait

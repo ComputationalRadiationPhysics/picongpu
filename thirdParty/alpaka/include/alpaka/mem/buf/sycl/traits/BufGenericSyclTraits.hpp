@@ -194,10 +194,57 @@ namespace alpaka::trait
         }
     };
 
+    //! The SYCL caching memory allocation trait specialization.
+    template<typename TElem, typename TDim, typename TIdx, concepts::Tag TTag, typename TAllocator>
+    struct BufAllocWithAllocator<TElem, TDim, TIdx, DevGenericSycl<TTag>, TAllocator>
+    {
+        template<typename TExtent>
+        ALPAKA_FN_HOST static auto allocBuf(
+            DevGenericSycl<TTag> const& dev,
+            TExtent const& extent,
+            TAllocator allocator) -> BufGenericSycl<TElem, TDim, TIdx, TTag>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            std::size_t const bytes = static_cast<std::size_t>(getExtentProduct(extent)) * sizeof(TElem);
+            void* const memPtr = allocator.allocate(bytes, alignof(TElem));
+            auto deleter = [alloc = std::move(allocator)](TElem* ptr) mutable { alloc.deallocate(ptr); };
+            return BufGenericSycl<TElem, TDim, TIdx, TTag>(
+                dev,
+                static_cast<TElem*>(memPtr),
+                std::move(deleter),
+                extent);
+        }
+    };
+
     //! The BufGenericSycl stream-ordered memory allocation capability trait specialization.
     template<typename TDim, concepts::Tag TTag>
     struct HasAsyncBufSupport<TDim, DevGenericSycl<TTag>> : std::true_type
     {
+    };
+
+    //! The SYCL caching stream-ordered memory allocation trait specialization.
+    template<typename TElem, typename TDim, typename TIdx, concepts::Tag TTag, typename TAllocator>
+    struct AsyncBufAllocWithAllocator<TElem, TDim, TIdx, DevGenericSycl<TTag>, TAllocator>
+    {
+        template<bool TBlocking, typename TExtent>
+        ALPAKA_FN_HOST static auto allocAsyncBuf(
+            alpaka::detail::QueueGenericSyclBase<TTag, TBlocking> queue,
+            TExtent const& extent,
+            TAllocator allocator) -> BufGenericSycl<TElem, TDim, TIdx, TTag>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            auto const dev = getDev(queue);
+            std::size_t const bytes = static_cast<std::size_t>(getExtentProduct(extent)) * sizeof(TElem);
+            void* const memPtr = allocator.allocate(bytes, alignof(TElem));
+            auto deleter = [alloc = std::move(allocator)](TElem* ptr) mutable { alloc.deallocate(ptr); };
+            return BufGenericSycl<TElem, TDim, TIdx, TTag>(
+                dev,
+                static_cast<TElem*>(memPtr),
+                std::move(deleter),
+                extent);
+        }
     };
 
     //! The BufGenericSycl stream-ordered memory allocation trait specialization.

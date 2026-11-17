@@ -204,7 +204,67 @@ def get_cuda_only_job(
 
     return {
         f"linux_special_nvcc{nvcc_version}_gcc{gcc_version}"
-        "_release_extended_lambda_off_compile_only": job_body
+        "_release_extended_cudaonly_on_compile_only": job_body
+    }
+
+
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+@typechecked
+def get_clang_cuda_debug_job(
+    clang_cuda_version: str,
+    cuda_version: str,
+    cmake_version: str,
+    container_version: str,
+    stage_name: str,
+    image_check: bool,
+) -> Dict[str, Any]:
+    """Add a Clang-CUDA debug job, which builds and runs the tests with debug symbols in the device
+    code. Clang-CUDA 20.1.0 and newer fix https://github.com/llvm/llvm-project/issues/58491, so
+    alpaka does not disable the device debug symbols anymore.
+
+    Args:
+        clang_cuda_version (str): Clang-CUDA version
+        cuda_version (str): CUDA SDK version
+        cmake_version (str): CMake version
+        container_version (str): Container version
+        stage_name (str): Stage name. If empty do not set an stage property.
+        image_check (bool): Check if image exist. If not, use fallback image.
+
+    Returns:
+        Dict[str, Any]: GitLab CI yaml.
+    """
+    job_body = construct_job_yaml(
+        combination=bashi.parse_combination(
+            [
+                (HOST_COMPILER, CLANG_CUDA, clang_cuda_version),
+                (DEVICE_COMPILER, CLANG_CUDA, clang_cuda_version),
+                (CMAKE, cmake_version),
+                (UBUNTU, "24.04"),
+                (CXX_STANDARD, "20"),
+                (BUILD_TYPE, CMAKE_DEBUG),
+                (MDSPAN, OFF),
+                (JOB_EXECUTION_TYPE, JOB_EXECUTION_RUNTIME),
+                (CI_PIPELINE_NAME, CI_PIPELINE_SPECIAL_VER),
+                (ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE, ON),
+                (ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE, ON),
+                (ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE, OFF),
+                (ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE, OFF),
+                (ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE, OFF),
+                (ALPAKA_ACC_GPU_CUDA_ENABLE, cuda_version),
+                (ALPAKA_ACC_GPU_HIP_ENABLE, OFF),
+                (ALPAKA_ACC_ONEAPI_CPU_ENABLE, OFF),
+                (ALPAKA_ACC_ONEAPI_GPU_ENABLE, OFF),
+                (ALPAKA_ACC_ONEAPI_FPGA_ENABLE, OFF),
+            ]
+        ),
+        stage=stage_name,
+        container_version=container_version,
+        image_check=image_check,
+    )
+    return {
+        f"linux_special_clang-cuda{clang_cuda_version}_cuda{cuda_version}"
+        "_debug_device_symbols_runtime": job_body
     }
 
 

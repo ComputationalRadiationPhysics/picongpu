@@ -1,4 +1,4 @@
-/* Copyright 2025 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2026 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,6 +12,7 @@
 #include "alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp"
 #include "alpaka/block/sync/BlockSyncBarrierOmp.hpp"
 #include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/grid/GridSyncBarrierCpuOmp.hpp"
 #include "alpaka/idx/bt/IdxBtOmp.hpp"
 #include "alpaka/idx/gb/IdxGbRef.hpp"
 #include "alpaka/intrinsic/IntrinsicCpu.hpp"
@@ -71,6 +72,7 @@ namespace alpaka
         , public BlockSharedMemDynMember<>
         , public BlockSharedMemStMemberMasterSync<>
         , public BlockSyncBarrierOmp
+        , public GridSyncOmp
         , public IntrinsicCpu
         , public MemFenceOmp2Threads
 #    ifdef ALPAKA_DISABLE_VENDOR_RNG
@@ -165,7 +167,9 @@ namespace alpaka
                         // m_sharedMemSizeBytes
                         memBytes,
                         // m_globalMemSizeBytes
-                        memBytes};
+                        memBytes,
+                        // m_cooperativeLaunch
+                        true};
             }
         };
 
@@ -217,6 +221,30 @@ namespace alpaka
                 TKernelFnObj const& kernelFnObj,
                 TArgs&&... args)
             {
+                return TaskKernelCpuOmp2Threads<TDim, TIdx, TKernelFnObj, TArgs...>(
+                    workDiv,
+                    kernelFnObj,
+                    std::forward<TArgs>(args)...);
+            }
+        };
+
+        //! The CPU OpenMP 2.0 thread accelerator execution cooperative task type trait specialization.
+        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
+        struct CreateTaskCooperativeKernel<AccCpuOmp2Threads<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto createTaskCooperativeKernel(
+                TWorkDiv const& workDiv,
+                TKernelFnObj const& kernelFnObj,
+                TArgs&&... args)
+            {
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
+                if(gridBlockExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error("OpenMP 2.0 thread accelerator supports only a single block operation "
+                                             "with cooperative kernel!\n"
+                                             "Consider useing a different CPU accelerator.");
+                }
+
                 return TaskKernelCpuOmp2Threads<TDim, TIdx, TKernelFnObj, TArgs...>(
                     workDiv,
                     kernelFnObj,

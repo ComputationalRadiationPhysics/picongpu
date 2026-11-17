@@ -15,9 +15,16 @@ namespace alpaka
 {
     struct ConceptQueue;
 
+    namespace concepts
+    {
+        template<typename TQueue>
+        concept Queue
+            = requires { requires interface::ImplementsInterface<ConceptQueue, std::decay_t<TQueue>>::value; };
+    } // namespace concepts
+
     //! True if TQueue is a queue, i.e. if it implements the ConceptQueue concept.
     template<typename TQueue>
-    inline constexpr bool isQueue = interface::ImplementsInterface<ConceptQueue, std::decay_t<TQueue>>::value;
+    [[deprecated("use the alpaka::concepts::Queue instead.")]] inline constexpr bool isQueue = concepts::Queue<TQueue>;
 
     //! The queue traits.
     namespace trait

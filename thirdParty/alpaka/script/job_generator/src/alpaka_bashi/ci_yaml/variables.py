@@ -12,12 +12,17 @@ import alpaka_bashi.globals
 from alpaka_bashi.globals import (
     ALPAKA_ACC_SYCL_ENABLE,
     BUILD_TYPE,
+    CMAKE_RELEASE_WITH_DEBUG_INFO_VER,
     JOB_EXECUTION_TYPE,
     JOB_EXECUTION_RUNTIME_VER,
     CI_PIPELINE_COMPILE_ONLY_VER,
     MDSPAN,
 )
-from alpaka_bashi.versions import get_used_backends
+from alpaka_bashi.versions import (
+    get_used_backends,
+    get_hipcc_clang_versions,
+    get_icpx_clang_versions,
+)
 
 
 @typechecked
@@ -36,11 +41,14 @@ def set_generic_variables(job_body: Dict[str, Any], combination: bashi.Combinati
         "alpaka_ENABLE_WERROR": "ON",
         "ALPAKA_CI_ANALYSIS": "OFF",
         "ALPAKA_CI_SANITIZERS": "",
-        "ALPAKA_CI_BUILD_JOBS": "$CI_CPUS",
         "OMP_NUM_THREADS": "$CI_CPUS",
         "alpaka_ACC_GPU_CUDA_ONLY_MODE": "OFF",
         "alpaka_ACC_GPU_HIP_ONLY_MODE": "OFF",
         "ALPAKA_CI_STDLIB": "libstdc++",
+        # workaround github clone issues: https://github.com/orgs/community/discussions/206581
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "http.https://github.com.version",
+        "GIT_CONFIG_VALUE_0": "HTTP/1.1",
     }
 
     variables["ALPAKA_CI_UBUNTU_VER"] = bashi.ubuntu_version_to_string(combination[UBUNTU].version)
@@ -54,6 +62,12 @@ def set_generic_variables(job_body: Dict[str, Any], combination: bashi.Combinati
     variables["ALPAKA_CI_CMAKE_VER"] = str(combination[CMAKE].version)
     variables["alpaka_CXX_STANDARD"] = str(combination[CXX_STANDARD].version)
     variables["ALPAKA_TEST_MDSPAN"] = bashi.on_off_ver_to_str(combination[MDSPAN].version)
+
+    # Set 2 GB of required RAM per compile process, or 4 GB for RelWithDebInfo
+    if combination[BUILD_TYPE].version == CMAKE_RELEASE_WITH_DEBUG_INFO_VER:
+        variables["ALPAKA_CI_REQUIRED_RAM_PER_BUILD_THREAD_BYTES"] = 4 * pow(1024, 3)
+    else:
+        variables["ALPAKA_CI_REQUIRED_RAM_PER_BUILD_THREAD_BYTES"] = 2 * pow(1024, 3)
 
 
 @typechecked
@@ -103,7 +117,7 @@ def set_hipcc_variables(job_body: Dict[str, Any], combination: bashi.Combination
     """Set variables which are specific if the hipcc is the device compiler."""
 
     def get_clang_version(hipcc_version):
-        for hipcc_clang in bashi.version.dependencies.hipcc.HIPCC_CLANG_VERSION:
+        for hipcc_clang in get_hipcc_clang_versions():
             if hipcc_clang.compiler == hipcc_version:
                 return hipcc_clang.clang
         raise RuntimeError(f"No Clang version for hipcc {hipcc_version}")
@@ -196,7 +210,7 @@ def set_icpx_variables(job_body: Dict[str, Any], combination: bashi.Combination)
     """Set variables which are specific if the icpx is the device compiler."""
 
     def get_clang_version(icpx_version):
-        for icpx_clang in bashi.version.dependencies.icpx.ICPX_CLANG_VERSION:
+        for icpx_clang in get_icpx_clang_versions():
             if icpx_clang.compiler == icpx_version:
                 return icpx_clang.clang
         raise RuntimeError(f"No Clang version for icpx {icpx_version}")

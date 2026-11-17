@@ -125,10 +125,13 @@ namespace alpaka
                         std::vector<std::size_t> warp_sizes
                             = device.template get_info<sycl::info::device::sub_group_sizes>();
                         // The CPU runtime supports a sub-group size of 64, but the SYCL implementation currently
-                        // does not
-                        auto find64 = std::find(warp_sizes.begin(), warp_sizes.end(), 64);
-                        if(find64 != warp_sizes.end())
-                            warp_sizes.erase(find64);
+                        // does not. Other devices, like AMD GPUs, may support only a sub-group size of 64.
+                        if(device.is_cpu())
+                        {
+                            auto find64 = std::find(warp_sizes.begin(), warp_sizes.end(), 64);
+                            if(find64 != warp_sizes.end())
+                                warp_sizes.erase(find64);
+                        }
                         // Sort the warp sizes in decreasing order
                         std::sort(warp_sizes.begin(), warp_sizes.end(), std::greater<>{});
                         m_deviceProperties->warpSizes = std::move(warp_sizes);

@@ -78,15 +78,15 @@ jobs:
   clang-format:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
-    - uses: DoozyX/clang-format-lint-action@v0.16.2
+    - uses: actions/checkout@v7
+    - uses: DoozyX/clang-format-lint-action@v0.20
       with:
         clangFormatVersion: 16
         exclude: './thirdParty'
         inplace: True
     - run: |
         git diff --exit-code > format.patch
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: failure()
       with:
         name: format.patch
@@ -190,7 +190,7 @@ jobs:
     - name: check filter
       if: (contains(github.event.head_commit.message, 'ci_filter') && !contains(github.event.head_commit.message, matrix.name ))
       run: exit 1
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     # Print the environment variables in an additional step so that the environment variables can be displayed if the job is still running.
     # Call ./script/set_default_env_vars.sh in each step, as the environment variables are not shared between the steps by default.
     - name: print environment variables

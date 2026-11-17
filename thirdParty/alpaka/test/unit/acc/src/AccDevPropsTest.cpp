@@ -1,4 +1,4 @@
-/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2026 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -29,7 +29,7 @@ TEMPLATE_LIST_TEST_CASE("getAccDevProps", "[acc]", alpaka::test::TestAccs)
 
 TEST_CASE("AccDevProps.aggregate_init", "[acc]")
 {
-    auto const props = alpaka::AccDevProps<alpaka::DimInt<1>, int>{1, {2}, 3, {4}, 5, {6}, 7, 8, 9};
+    auto const props = alpaka::AccDevProps<alpaka::DimInt<1>, int>{1, {2}, 3, {4}, 5, {6}, 7, 8, 9, true};
 
     CHECK(props.m_multiProcessorCount == 1);
     CHECK(props.m_gridBlockExtentMax == alpaka::Vec{2});
@@ -40,6 +40,7 @@ TEST_CASE("AccDevProps.aggregate_init", "[acc]")
     CHECK(props.m_threadElemCountMax == 7);
     CHECK(props.m_sharedMemSizeBytes == 8);
     CHECK(props.m_globalMemSizeBytes == 9);
+    CHECK(props.m_cooperativeLaunch == true);
 }
 
 #ifdef __cpp_designated_initializers
@@ -54,7 +55,8 @@ TEST_CASE("AccDevProps.designated_initializers", "[acc]")
         .m_threadElemExtentMax = {60},
         .m_threadElemCountMax = 70,
         .m_sharedMemSizeBytes = 80,
-        .m_globalMemSizeBytes = 90};
+        .m_globalMemSizeBytes = 90,
+        .m_cooperativeLaunch = false};
 
     CHECK(props.m_multiProcessorCount == 10);
     CHECK(props.m_gridBlockExtentMax == alpaka::Vec{20});
@@ -65,5 +67,6 @@ TEST_CASE("AccDevProps.designated_initializers", "[acc]")
     CHECK(props.m_threadElemCountMax == 70);
     CHECK(props.m_sharedMemSizeBytes == 80);
     CHECK(props.m_globalMemSizeBytes == 90);
+    CHECK(props.m_cooperativeLaunch == false);
 }
 #endif

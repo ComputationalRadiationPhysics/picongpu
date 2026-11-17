@@ -3,6 +3,107 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.0] - 2026-10-08
+
+### Added
+
+- Add memory orderings, and allow specifying them in `alpaka::mem_fence()` #2581
+- Support masks in the warp functions, and implement the warp functions for SYCL and `activemask` for HIP #2585
+- Implement type deduction of the index type in buffer allocation #2596
+- Add support for cooperative groups and grid synchronization #2604
+- Implement view creation from a Queue #2616
+- Implement the `alpaka::warp::Mask` wrapper type for warp masks #2617
+- Add concepts for `Device`, `Queue` and `Platform`, and move the `View` concept to the public interface #2658
+- Implement interface for external allocators #2665
+- Support `memcpy` between buffers and views with different index types #2669
+- Support new compilers and SDKs
+  - CUDA 12.8, 12.9 #2574, 13.0 #2594, 13.1, 13.2 and 13.3 #2627, 13.4 #2692
+  - ROCm 7.1 and 7.2 #2611, 7.14 #2654, 10.0 #2693
+  - oneAPI 2026.0 #2637, 2025.2, 2025.3 and 2026.1 #2694
+  - clang 21 and 22 #2691, and 23 #2662
+  - CMake 3.31.8 #2691
+- Add the RDNA 5, RDNA 4m and CDNA 4 AMD GPU targets, and update the SYCL GPU targets #2661
+
+### Changed
+
+- Replace the compile-time checks of the index types with runtime checks of the extents in memory operations #2595
+- Use the CMake package configuration provided by Boost #2597
+- Update the reference `mdspan` library to 2025.12.11 #2605, and as of August 2026 #2653
+- CMake: mark ROCm 6.0 - 7.0 as supported #2609
+- Remove CUDA/HIP attributes from deduction guides #2632
+- Provide clearer errors for incorrect kernel arguments #2643
+- Update Catch2 to v3.16 #2656
+- Deprecate the pre-existing traits for `Device`, `Queue` and `Platform` in favour of the new concepts #2658
+- Restrict the SYCL warp operations to the supported back-ends, and fail at compile time where they are not supported #2682
+- Re-enable the device debug symbols with Clang-CUDA 20.1 and CUDA 12.3 or newer #2692
+- Code cleanup
+  - remove dead code checking for at least gcc 8.1 #2592
+  - simplify the use of the `alpaka::concepts` namespace #2659
+  - remove unneeded pragma for old clang versions #2666
+- `CI`
+  - port the CI job-generator to bashi #2560 #2628
+  - enable compiling CUDA code with clang, and remove unused CI rules #2607
+  - bump GitHub Actions and add dependabot #2631 #2651 #2652 #2678
+  - extend pre-commit to match the CI tests #2649
+  - pin pre-commit hooks with SHA #2667
+  - add a mirror to download CMake #2668
+  - reduce the coverage of different CMake versions #2683
+  - set the number of build threads depending on the available memory #2688
+  - use the bug fix releases of bashi #2691
+  - update CUDA and ROCm to the latest patch versions #2692 #2693
+  - Increase the memory per job for RelWithDebInfo builds #2697
+- Documentation
+  - update the supported compiler matrix in the README #2606
+  - update references and add DOIs #2645
+
+### Fixed
+
+- Fix noexcept warnings for gcc 15.2.1 #2593
+- Fix the buffer and view arrow operator #2599
+- Add missing `#include` in `WorkDivHelper.hpp` #2613
+- Fix the 2D convolution example #2620
+- Fix ambiguous namespace lookup in SYCL code #2623
+- Fix passing a `std::function` to `enqueue` with SYCL #2630
+- Prevent "__COUNTER__ is a C2y extension" warnings with clang >= 22 #2635
+- Suppress a false-positive warning from icpx 2025.3 #2640
+- Handle `-Wnrvo` starting from LLVM/clang 21.1.0 #2642
+- Work around a compiler bug in hipcc 7.14 #2664
+- Fail the compilation of SYCL warp operations on Intel GPUs when inlining is disabled, as they would give wrong results #2675
+- Limit threads per block to the device and kernel maximum in the examples #2676
+- Fix the warp layout on the SYCL CPU device #2682
+- Add the CCCL include directory for Clang-CUDA with CUDA 13 #2685
+- Silence a false positive `-Wmissing-noreturn` warning with clang 21.1 #2691
+- Do not generate the line information with nvcc 12.0 for sm_90, to work around a ptxas crash #2696
+- Use the release TBB library in Debug builds with SYCL, to avoid crashes with the Intel OpenCL CPU runtime #2694
+- Tests
+  - add tests for scalar buffer accessors #2603
+  - use weaker orderings in the fence tests, and ensure all `mem_fence` variants compile #2618
+  - fix the shared memory test #2622
+  - fix a stray kernel call in the fence test #2670
+  - use device memory for the `Once.cpp` tests #2672
+  - disable Catch2 POSIX handlers for Intel GPUs #2674
+  - avoid narrowing conversions in the `zeroDimBuffer` test #2679
+  - fix the BabelStream test to use a power-of-two block size #2680
+  - compile each SYCL kernel to a separate image, to work around a crash of the Intel OpenCL CPU device compiler #2681
+  - shrink `matrixMulMdSpan` test size to avoid timeouts at `-O0` #2695
+- `CI`
+  - small bug fixes for the job-generator #2629
+  - fix the special job #2648
+  - work around GitHub clone issues #2650
+  - fix empty special pipeline #2657
+  - fix pre-commit error #2677
+  - add the missing job name suffix for RelWithDebInfo builds #2690
+  - require CMake 3.31.8 or 4.0.3 for Clang-CUDA with CUDA 13 #2691
+  - do not test the oneAPI FPGA back-end with icpx 2025.1 and newer, which do not include the FPGA compiler #2694
+
+
+## [2.1.1] - 2025-12-19
+
+### Fixed
+
+- Fix the buffer and view arrow operator #2600
+
+
 ## [2.1.0] - 2025-12-12
 
 ### Added
@@ -34,7 +135,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Do not crash if a SYCL platform is invalid or empty #2564
 - Do not include the null terminaton character in the demangled string_view #2571
 - Fix `SYCL_SUBGROUP_SIZE` macro for Sycl #2576
-- Fix `atomicDec()` for CPU #2581
+- Fix `atomicDec()` for CPU #2582
 
 
 ## [2.0.0] - 2025-06-25
