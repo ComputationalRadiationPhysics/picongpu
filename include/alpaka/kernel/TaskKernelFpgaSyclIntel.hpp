@@ -1,4 +1,4 @@
-/* Copyright 2024 Jan Stephan, Aurora Perego
+/* Copyright 2026 Jan Stephan, Aurora Perego
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,9 +12,15 @@
 
 namespace alpaka
 {
-    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-    using TaskKernelFpgaSyclIntel
-        = TaskKernelGenericSycl<TagFpgaSyclIntel, AccFpgaSyclIntel<TDim, TIdx>, TDim, TIdx, TKernelFnObj, TArgs...>;
+    template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+    using TaskKernelFpgaSyclIntel = TaskKernelGenericSycl<
+        TagFpgaSyclIntel,
+        AccFpgaSyclIntel<TDim, TIdx>,
+        TDim,
+        TIdx,
+        TKernelFnObj,
+        TCooperative,
+        TArgs...>;
 
 } // namespace alpaka
 

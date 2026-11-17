@@ -150,6 +150,12 @@ alpaka_USE_INTERNAL_CATCH2
 
      Use internally shipped Catch2.
 
+  .. note::
+
+     When building for Intel GPUs (``alpaka_SYCL_ONEAPI_GPU=ON``), alpaka configures the internal Catch2 with ``CATCH_CONFIG_NO_POSIX_SIGNALS``:
+     Catch2's signal handlers are not compatible with the ``SIGSEGV`` handler used by the Intel GPU runtime to migrate managed (shared) memory.
+     An external Catch2 should be built with the same option. See ``README_SYCL.md`` for more details.
+
 alpaka_FAST_MATH
   .. code-block::
 

@@ -229,9 +229,10 @@ TEMPLATE_LIST_TEST_CASE("FenceTest", "[fence]", TestAccs)
     auto deviceKernelReader = DeviceFenceTestKernelReader{};
     auto workDiv = WorkDiv{one, one, one};
     alpaka::exec<Acc>(queue, workDiv, deviceKernelWriter, vars_dev.data());
-    alpaka::exec<Acc>(queue, workDiv, FenceCompileTestKernel{}, vars_dev.data());
-
     REQUIRE(fixtureSingleElement(deviceKernelReader, vars_dev.data()));
+    alpaka::wait(queue);
 
+    // Only tests compiling and calling, no behaviour test done
+    alpaka::exec<Acc>(queue, workDiv, FenceCompileTestKernel{}, vars_dev.data());
     alpaka::wait(queue);
 }

@@ -1,24 +1,13 @@
 name: ci-job-generator
 on: [push, pull_request]
 jobs:
-  formatter:
-    name: runner black code formatter
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: psf/black@stable
-        with:
-          options: "--check --verbose"
-          src: "./script/job_generator"
-          version: "~= 24.0"
-
   mypy-linter:
     name: run mypy linter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           architecture: x64
@@ -36,9 +25,9 @@ jobs:
     name: run pylint linter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           architecture: x64
@@ -56,9 +45,9 @@ jobs:
     name: run unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           architecture: x64

@@ -14,6 +14,19 @@ include(${_COMMON_COMPILE_OPTIONS_FILE})
 message(STATUS "alpaka_DEV_COMPILE_OPTIONS: ${alpaka_DEV_COMPILE_OPTIONS}")
 target_compile_options(${_COMMON_TARGET_NAME} INTERFACE ${alpaka_DEV_COMPILE_OPTIONS})
 
+if(alpaka_ACC_SYCL_ENABLE AND CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    # Compile each SYCL kernel into its own device image. This works around a crash of the Intel OpenCL CPU device
+    # compiler in the "sycl-kernel-wg-loop-bound" pass, when some kernels are compiled together in the same device
+    # image (e.g. test/unit/exec/src/Once.cpp), see https://github.com/intel/llvm/issues/23364 .
+    # The crash happens only when the device code is optimised, so Debug builds (-O0) keep the default device code
+    # split, and are tested without this option.
+    target_link_options(${_COMMON_TARGET_NAME} INTERFACE "$<$<NOT:$<CONFIG:Debug>>:-fsycl-device-code-split=per_kernel>")
+
+    # Compile the device images in parallel at link time (passed as --jobs to llvm-foreach): by default they are
+    # compiled one at a time, and linking the largest tests can take more than half an hour.
+    target_link_options(${_COMMON_TARGET_NAME} INTERFACE "-fsycl-max-parallel-link-jobs=8")
+endif()
+
 if(MSVC)
     # This function or variable may be unsafe. Consider using <safe_version> instead.
     target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:/wd4996>"

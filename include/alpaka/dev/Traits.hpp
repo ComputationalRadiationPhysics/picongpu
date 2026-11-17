@@ -59,9 +59,16 @@ namespace alpaka
 
     struct ConceptDev;
 
+    namespace concepts
+    {
+        template<typename TDev>
+        concept Device = requires { requires interface::ImplementsInterface<ConceptDev, std::decay_t<TDev>>::value; };
+    } // namespace concepts
+
     //! True if TDev is a device, i.e. if it implements the ConceptDev concept.
     template<typename TDev>
-    inline constexpr bool isDevice = interface::ImplementsInterface<ConceptDev, std::decay_t<TDev>>::value;
+    [[deprecated("use the alpaka::concepts::Device instead.")]] inline constexpr bool isDevice
+        = concepts::Device<TDev>;
 
     //! \return The device this object is bound to.
     template<typename T>

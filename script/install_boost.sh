@@ -87,14 +87,14 @@ then
     BOOST_TAR_FILE_NAME="${BOOST_BASE_NAME}.tar.gz"
     BOOST_DOWNLOAD_LINK="https://archives.boost.io/release/${BOOST_BASE_VERSION}/source/${BOOST_TAR_FILE_NAME}"
     rm -rf ${BOOST_ROOT}
-    travis_retry wget -q ${BOOST_DOWNLOAD_LINK}
+    retry_cmd wget -q ${BOOST_DOWNLOAD_LINK}
     tar -xf "$BOOST_TAR_FILE_NAME"
     rm "$BOOST_TAR_FILE_NAME"
 
     BOOST_UNCOMPRESSED_FOLDER_NAME=${BOOST_BASE_NAME}
     mv "$BOOST_UNCOMPRESSED_FOLDER_NAME" "${BOOST_ROOT}"
 else
-    travis_retry rm -rf ${BOOST_ROOT} && git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git "${BOOST_ROOT}"
+    retry_cmd rm -rf ${BOOST_ROOT} && git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git "${BOOST_ROOT}"
 fi
 
 # Set the toolset based on the compiler

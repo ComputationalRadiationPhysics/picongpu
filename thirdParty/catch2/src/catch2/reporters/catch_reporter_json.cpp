@@ -16,6 +16,8 @@
 
 namespace Catch {
     namespace {
+        static size_t kJsonOutputVersion = 2;
+
         void writeSourceInfo( JsonObjectWriter& writer,
                               SourceLineInfo const& sourceInfo ) {
             auto source_location_writer =
@@ -51,12 +53,14 @@ namespace Catch {
         //      not, but for machine-parseable reporters I think the answer
         //      should be yes.
         m_preferences.shouldReportAllAssertions = true;
+        // We only handle assertions when they end
+        m_preferences.shouldReportAllAssertionStarts = false;
 
         m_objectWriters.emplace( m_stream );
         m_writers.emplace( Writer::Object );
         auto& writer = m_objectWriters.top();
 
-        writer.write( "version"_sr ).write( 1 );
+        writer.write( "version"_sr ).write( kJsonOutputVersion );
 
         {
             auto metadata_writer = writer.write( "metadata"_sr ).writeObject();
@@ -280,7 +284,6 @@ namespace Catch {
         endObject();
     }
 
-    void JsonReporter::assertionStarting( AssertionInfo const& /*assertionInfo*/ ) {}
     void JsonReporter::assertionEnded( AssertionStats const& assertionStats ) {
         // TODO: There is lot of different things to handle here, but
         //       we can fill it in later, after we show that the basic
@@ -343,14 +346,18 @@ namespace Catch {
             auto const& info = test.getTestCaseInfo();
 
             desc_writer.write( "name"_sr ).write( info.name );
-            desc_writer.write( "class-name"_sr ).write( info.className );
-            {
+            if (!info.className.empty()) {
+                desc_writer.write( "class-name"_sr ).write( info.className );
+            }
+            if ( m_verbosity >= Verbosity::Normal ) {
                 auto tag_writer = desc_writer.write( "tags"_sr ).writeArray();
                 for ( auto const& tag : info.tags ) {
                     tag_writer.write( tag.original );
                 }
             }
-            writeSourceInfo( desc_writer, info.lineInfo );
+            if ( m_verbosity >= Verbosity::High) {
+                writeSourceInfo( desc_writer, info.lineInfo );
+            }
         }
     }
     void JsonReporter::listTags( std::vector<TagInfo> const& tags ) {

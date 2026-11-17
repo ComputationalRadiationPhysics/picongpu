@@ -19,10 +19,10 @@ then
 else
     echo_yellow "<INSTALL: GCC ${ALPAKA_CI_GCC_VER}>"
 
-    travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa # Contains gcc 10.4 (Ubuntu 20.04)
-    travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # Contains gcc 11 (Ubuntu 20.04)
-    travis_retry sudo apt-get -y --quiet update
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install g++-"${ALPAKA_CI_GCC_VER}"
+    retry_cmd sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa # Contains gcc 10.4 (Ubuntu 20.04)
+    retry_cmd sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # Contains gcc 11 (Ubuntu 20.04)
+    retry_cmd sudo apt-get -y --quiet update
+    retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install g++-"${ALPAKA_CI_GCC_VER}"
 fi
 
 which g++-${ALPAKA_CI_GCC_VER}
@@ -37,7 +37,7 @@ fi
 
 if [[ "${ALPAKA_CI_SANITIZERS}" == *"TSan"* ]]
 then
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libtsan0
+    retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libtsan0
 fi
 
 which "${CMAKE_CXX_COMPILER}"

@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Benjamin Worpitz, Jan Stephan
+# Copyright 2026 Benjamin Worpitz, Jan Stephan
 # SPDX-License-Identifier: ISC
 #
 
@@ -25,6 +25,7 @@ add_subdirectory("heatEquation/")
 add_subdirectory("heatEquation2D/")
 add_subdirectory("helloWorld/")
 add_subdirectory("helloWorldLambda/")
+add_subdirectory("helloWorldGridSync/")
 add_subdirectory("kernelSpecialization/")
 add_subdirectory("ls/")
 add_subdirectory("matrixMulWithMdspan/")

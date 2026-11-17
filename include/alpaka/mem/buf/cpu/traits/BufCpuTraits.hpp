@@ -165,10 +165,49 @@ namespace alpaka::trait
         }
     };
 
+    //! The CPU caching memory allocation trait specialization.
+    template<typename TElem, typename TDim, typename TIdx, typename TAllocator>
+    struct BufAllocWithAllocator<TElem, TDim, TIdx, DevCpu, TAllocator>
+    {
+        template<typename TExtent>
+        ALPAKA_FN_HOST static auto allocBuf(DevCpu const& dev, TExtent const& extent, TAllocator allocator)
+            -> BufCpu<TElem, TDim, TIdx>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            std::size_t const bytes = static_cast<std::size_t>(getExtentProduct(extent)) * sizeof(TElem);
+            void* const memPtr = allocator.allocate(bytes, alignof(TElem));
+            auto deleter = [alloc = std::move(allocator)](TElem* ptr) mutable { alloc.deallocate(ptr); };
+            return BufCpu<TElem, TDim, TIdx>(dev, static_cast<TElem*>(memPtr), std::move(deleter), extent);
+        }
+    };
+
     //! The BufCpu stream-ordered memory allocation capability trait specialization.
     template<typename TDim>
     struct HasAsyncBufSupport<TDim, DevCpu> : public std::true_type
     {
+    };
+
+    //! The CPU caching stream-ordered memory allocation trait specialization.
+    template<typename TElem, typename TDim, typename TIdx, typename TAllocator>
+    struct AsyncBufAllocWithAllocator<TElem, TDim, TIdx, DevCpu, TAllocator>
+    {
+        template<typename TQueue, typename TExtent>
+        ALPAKA_FN_HOST static auto allocAsyncBuf(TQueue queue, TExtent const& extent, TAllocator allocator)
+            -> BufCpu<TElem, TDim, TIdx>
+        {
+            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+            static_assert(
+                std::is_same_v<Dev<TQueue>, DevCpu>,
+                "The BufCpu buffer can only be used with a queue on a DevCpu device!");
+            auto const dev = getDev(queue);
+            std::size_t const bytes = static_cast<std::size_t>(getExtentProduct(extent)) * sizeof(TElem);
+            void* const memPtr = allocator.allocate(bytes, alignof(TElem));
+            auto deleter = [l_queue = std::move(queue), alloc = std::move(allocator)](TElem* ptr) mutable
+            { alpaka::enqueue(l_queue, [ptr, alloc]() mutable { alloc.deallocate(ptr); }); };
+            return BufCpu<TElem, TDim, TIdx>(dev, static_cast<TElem*>(memPtr), std::move(deleter), extent);
+        }
     };
 
     //! The BufCpu stream-ordered memory allocation trait specialization.

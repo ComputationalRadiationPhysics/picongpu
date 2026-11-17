@@ -522,8 +522,10 @@ namespace alpaka
     };
 
     template<typename TFirstIndex, typename... TRestIndices>
-    ALPAKA_FN_HOST_ACC Vec(TFirstIndex&&, TRestIndices&&...)
-        -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
+#if ALPAKA_COMP_CLANG < ALPAKA_VERSION_NUMBER(22, 1, 0)
+    ALPAKA_FN_HOST_ACC
+#endif
+    Vec(TFirstIndex&&, TRestIndices&&...) -> Vec<DimInt<1 + sizeof...(TRestIndices)>, std::decay_t<TFirstIndex>>;
 
     template<typename T>
     inline constexpr bool isVec = false;

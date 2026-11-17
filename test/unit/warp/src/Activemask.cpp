@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+#include "SyclWarpSupport.hpp"
+
 #include <alpaka/acc/Tag.hpp>
 #include <alpaka/meta/TypeListOps.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
@@ -66,80 +68,76 @@ TEMPLATE_LIST_TEST_CASE("activemask", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
 
-#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20'250'300
-    if constexpr(alpaka::accMatchesTags<
-                     Acc,
-                     alpaka::TagCpuSycl,
-                     alpaka::TagGpuSyclIntel,
-                     alpaka::TagGpuSyclNvidia,
-                     alpaka::TagGpuSyclAmd,
-                     alpaka::TagFpgaSyclIntel,
-                     alpaka::TagGenericSycl>)
+    if constexpr(constexpr char const* reason = alpaka::test::warpUnsupportedReason<Acc>(); reason != nullptr)
     {
-        WARN("Test disabled for SYCL with oneAPI 2025.2 and older");
-        return;
+        WARN("Test disabled: " << reason);
     }
-#else
-    using Dim = alpaka::Dim<Acc>;
-    using Idx = alpaka::Idx<Acc>;
+    else
+    {
+        using Dim = alpaka::Dim<Acc>;
+        using Idx = alpaka::Idx<Acc>;
 
-    auto const platform = alpaka::Platform<Acc>{};
-    auto const dev = alpaka::getDevByIdx(platform, 0);
-    auto const warpExtents = alpaka::getWarpSizes(dev);
-    for(auto const warpExtent : warpExtents)
-    {
-        auto const scalar = Dim::value == 0 || warpExtent == 1;
-        if(scalar)
+        auto const platform = alpaka::Platform<Acc>{};
+        auto const dev = alpaka::getDevByIdx(platform, 0);
+        auto const warpExtents = alpaka::getWarpSizes(dev);
+        for(auto const warpExtent : warpExtents)
         {
-            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
-            CHECK(fixture(ActivemaskSingleThreadWarpTestKernel{}));
-        }
-        else
-        {
-            using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
-            auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
-            // Enforce one warp per thread block
-            auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
-            blockThreadExtent[0] = static_cast<Idx>(warpExtent);
-            auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-            auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
-            auto fixture = ExecutionFixture{workDiv};
-            if(warpExtent == 4)
+            auto const scalar = Dim::value == 0 || warpExtent == 1;
+            if(scalar)
             {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
-                {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<4>{}, inactiveThreadIdx));
-                }
+                alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
+                CHECK(fixture(ActivemaskSingleThreadWarpTestKernel{}));
             }
-            else if(warpExtent == 8)
+            else
             {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
+                auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
+                // Enforce one warp per thread block
+                auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
+                // Put the whole warp along the innermost (fastest) dimension: the SYCL CPU device forms sub-groups
+                // only along it, while GPUs form warps from the linearised thread index.
+                constexpr auto innermost = Dim::value > 0 ? Dim::value - 1 : 0;
+                blockThreadExtent[innermost] = static_cast<Idx>(warpExtent);
+                auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
+                auto workDiv =
+                    typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
+                auto fixture = ExecutionFixture{workDiv};
+                if(warpExtent == 4)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<8>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<4>{}, inactiveThreadIdx));
+                    }
                 }
-            }
-            else if(warpExtent == 16)
-            {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                else if(warpExtent == 8)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<16>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<8>{}, inactiveThreadIdx));
+                    }
                 }
-            }
-            else if(warpExtent == 32)
-            {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                else if(warpExtent == 16)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<32>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<16>{}, inactiveThreadIdx));
+                    }
                 }
-            }
-            else if(warpExtent == 64)
-            {
-                for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                else if(warpExtent == 32)
                 {
-                    CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<64>{}, inactiveThreadIdx));
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<32>{}, inactiveThreadIdx));
+                    }
+                }
+                else if(warpExtent == 64)
+                {
+                    for(auto inactiveThreadIdx = 0u; inactiveThreadIdx < warpExtent; inactiveThreadIdx++)
+                    {
+                        CHECK(fixture(ActivemaskMultipleThreadWarpTestKernel<64>{}, inactiveThreadIdx));
+                    }
                 }
             }
         }
     }
-#endif
 }

@@ -97,9 +97,8 @@ namespace alpaka
     };
 
     //! Deduction guide for the constructor which can be called without explicit template type parameters
-    ALPAKA_NO_HOST_ACC_WARNING
     template<typename TDim, typename TIdx>
-    ALPAKA_FN_HOST_ACC WorkDivMembers(
+    WorkDivMembers(
         alpaka::Vec<TDim, TIdx> const& gridBlockExtent,
         alpaka::Vec<TDim, TIdx> const& blockThreadExtent,
         alpaka::Vec<TDim, TIdx> const& elemExtent) -> WorkDivMembers<TDim, TIdx>;

@@ -147,7 +147,7 @@ IncludeCategories:
   - Regex: '<([A-Za-z0-9/_\-])+>'
     Priority: 5
   # Includes that made it this far are third-party headers and will be placed
-  # below alpaka's includes 
+  # below alpaka's includes
   - Regex: '<([A-Za-z0-9./_\-])+>'
     Priority: 4
 # Macros: []

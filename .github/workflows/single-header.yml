@@ -11,7 +11,7 @@ jobs:
   single-header:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: clone single-header
       run: |
         git clone -b single-header --single-branch https://x-access-token:${{secrets.github_token}}@github.com/${{github.repository}}.git single-header

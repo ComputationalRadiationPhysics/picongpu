@@ -9,6 +9,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <bit>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -195,6 +196,9 @@ struct DotKernel
         tbSum[local_i] = threadSum;
 
         auto const blockSize = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)[0];
+        // Tree reduction in shared memory: at each step the active threads add the element at distance "offset".
+        // The block size must be a power of two, otherwise some elements are skipped and the result is wrong.
+        ALPAKA_ASSERT_ACC(std::has_single_bit(blockSize));
         for(Idx offset = blockSize / 2; offset > 0; offset /= 2)
         {
             alpaka::syncBlockThreads(acc);
@@ -350,8 +354,9 @@ void testKernels()
             // Threads per block is 1024 for benchmark, if the system does not allow use the max value
             auto threadsPerBlock = std::min(maxThreadsPerBlock, blockThreadExtentMain);
 
-            // Reduce operation at dot-kernel needs even block size
-            threadsPerBlock = (threadsPerBlock + 1) / 2 * 2;
+            // The reduction in the dot kernel requires a power-of-two block size: round down to the largest power of
+            // two that does not exceed the limit (e.g. with 30 threads per block use 16 threads).
+            threadsPerBlock = static_cast<int>(std::bit_floor(static_cast<unsigned int>(threadsPerBlock)));
 
             // Dot kernel is only used for benchmarking of GPU backends; and Work division is fixed for benchmark:
             // 256,1024,1. https://github.com/UoB-HPC/BabelStream/blob/main/src/cuda/CUDAStream.cu Hence blocksize

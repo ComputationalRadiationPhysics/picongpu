@@ -1,4 +1,4 @@
-/* Copyright 2025 Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan, Simone Balducci
+/* Copyright 2026 Andrea Bocci, Bernhard Manfred Gruber, Jan Stephan, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -21,11 +21,10 @@ namespace alpaka
     class DevCpu;
 } // namespace alpaka
 
-namespace alpaka::internal
+namespace alpaka::concepts
 {
-
     template<typename TView>
-    concept ViewType = requires {
+    concept View = requires {
         typename Idx<TView>;
         typename Dim<TView>;
         {
@@ -38,8 +37,12 @@ namespace alpaka::internal
             getExtents(std::declval<TView>())
         };
     };
+} // namespace alpaka::concepts
 
-    template<ViewType TView>
+namespace alpaka::internal
+{
+
+    template<concepts::View TView>
     struct BaseViewAccessor
     {
     private:
@@ -134,10 +137,10 @@ namespace alpaka::internal
 #endif
     };
 
-    template<ViewType TView>
+    template<concepts::View TView>
     using DeviceViewAccessor = BaseViewAccessor<TView>;
 
-    template<ViewType TView>
+    template<concepts::View TView>
     struct HostViewAccessor : BaseViewAccessor<TView>
     {
     private:
@@ -246,14 +249,14 @@ namespace alpaka::internal
     template<typename TDev>
     struct ViewAccessor
     {
-        template<ViewType TView>
+        template<concepts::View TView>
         using AccessorType = DeviceViewAccessor<TView>;
     };
 
     template<>
     struct ViewAccessor<alpaka::DevCpu>
     {
-        template<ViewType TView>
+        template<concepts::View TView>
         using AccessorType = HostViewAccessor<TView>;
     };
 
@@ -261,12 +264,12 @@ namespace alpaka::internal
     template<>
     struct ViewAccessor<alpaka::DevGenericSycl<alpaka::TagCpuSycl>>
     {
-        template<ViewType TView>
+        template<concepts::View TView>
         using AccessorType = HostViewAccessor<TView>;
     };
 #endif
 
-    template<typename TDev, ViewType TView>
+    template<typename TDev, concepts::View TView>
     using ViewAccessorType = typename ViewAccessor<TDev>::template AccessorType<TView>;
 
 } // namespace alpaka::internal

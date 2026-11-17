@@ -1,4 +1,4 @@
-/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Bert Wesarg, René Widera, Jan Stephan, Bernhard Manfred Gruber
+/* Copyright 2026 Axel Huebl, Benjamin Worpitz, Bert Wesarg, René Widera, Jan Stephan, Bernhard Manfred Gruber
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -132,6 +132,13 @@ namespace alpaka
                             }
                         }
 
+                        std::apply(
+                            [&](auto&&... argsWithAcc) {
+                                detail::checkKernelReturnType(
+                                    m_kernelFnObj,
+                                    std::forward<decltype(argsWithAcc)>(argsWithAcc)...);
+                            },
+                            std::tuple_cat(std::tie(acc), m_args));
                         std::apply(m_kernelFnObj, std::tuple_cat(std::tie(acc), m_args));
 
                         // Wait for all threads to finish before deleting the shared memory.
@@ -217,6 +224,21 @@ namespace alpaka
                 kernelFunctionAttributes.maxDynamicSharedSizeBytes
                     = static_cast<int>(alpaka::BlockSharedDynMemberAllocKiB * 1024);
                 return kernelFunctionAttributes;
+            }
+        };
+
+        //! The CPU OMP2 threads get max active blocks for cooperative kernel specialization.
+        template<typename TDev, typename TKernelFnObj, typename TDim, typename TIdx, typename... TArgs>
+        struct MaxActiveBlocks<AccCpuOmp2Threads<TDim, TIdx>, TDev, TKernelFnObj, TDim, TIdx, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto getMaxActiveBlocks(
+                TKernelFnObj const& /*kernelFnObj*/,
+                TDev const& /*device*/,
+                alpaka::Vec<TDim, TIdx> const& /*blockThreadExtent*/,
+                alpaka::Vec<TDim, TIdx> const& /*threadElemExtent*/,
+                TArgs const&... /*args*/) -> int
+            {
+                return 1;
             }
         };
 

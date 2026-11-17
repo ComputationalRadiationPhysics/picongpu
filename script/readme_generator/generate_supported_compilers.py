@@ -63,9 +63,7 @@ def config_validator(conf: Dict[str, Dict[str, str]]) -> bool:
                 print_red(f"[ERROR]: {compiler_name} misses entry {expected_entry}")
                 return False
             if "state" not in compiler_conf[expected_entry]:
-                print_red(
-                    f"[ERROR]: {compiler_name}/{expected_entry} misses state entry"
-                )
+                print_red(f"[ERROR]: {compiler_name}/{expected_entry} misses state entry")
                 return False
             if compiler_conf[expected_entry]["state"] not in get_known_state_names():
                 print_red(
@@ -135,9 +133,7 @@ def render_table(conf) -> str:
 if __name__ == "__main__":
     script_path = os.path.dirname(os.path.realpath(__file__))
     default_config_path = os.path.join(script_path, "supported_compilers.json")
-    default_readme_path = os.path.abspath(
-        os.path.join(script_path, "../..", "README.md")
-    )
+    default_readme_path = os.path.abspath(os.path.join(script_path, "../..", "README.md"))
 
     parser = argparse.ArgumentParser(
         description="Creates a Markdown table for the supported compilers from "

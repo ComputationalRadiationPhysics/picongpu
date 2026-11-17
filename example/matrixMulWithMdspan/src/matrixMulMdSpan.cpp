@@ -96,9 +96,9 @@ auto example(TAccTag const&) -> int
     using Dim = alpaka::DimInt<2>;
 
     // Define matrix dimensions, A is MxK and B is KxN
-    Idx const M = 1024;
-    Idx const N = 512;
-    Idx const K = 1024;
+    Idx const M = 250;
+    Idx const N = 130;
+    Idx const K = 250;
 
     // Define device and queue
     using Acc = alpaka::TagToAcc<TAccTag, Dim, Idx>;

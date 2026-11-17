@@ -54,6 +54,28 @@ void testResult(TQueue& queue, TBufAcc& bufAcc)
 //! Helper type to set alpaka kernel launch configuration
 using WorkDiv = alpaka::WorkDivMembers<alpaka::DimInt<1u>, uint64_t>;
 
+//! Get the maximum number of threads per block that can be used to run a kernel on a device.
+//!
+//! This is limited by the device properties, and may be further limited by the kernel itself, e.g. by its stack size
+//! on CUDA.
+//!
+//! \tparam TAcc The accelerator environment to be executed on.
+//! \tparam TDev The device type.
+//! \tparam TKernel The kernel type.
+//! \param dev The device the kernel will be executed on.
+//! \param kernel The kernel to be executed.
+//! \param args The kernel invocation arguments.
+template<typename TAcc, typename TDev, typename TKernel, typename... TArgs>
+auto getMaxThreadsPerBlock(TDev const& dev, TKernel const& kernel, TArgs&&... args) -> uint64_t
+{
+    auto const deviceProperties = alpaka::getAccDevProps<TAcc>(dev);
+    auto const kernelFunctionAttributes
+        = alpaka::getFunctionAttributes<TAcc>(dev, kernel, std::forward<TArgs>(args)...);
+    return std::min<uint64_t>(
+        deviceProperties.m_blockThreadExtentMax[0],
+        static_cast<uint64_t>(kernelFunctionAttributes.maxThreadsPerBlock));
+}
+
 //! A naive CUDA style kernel processing a single element per thread.
 struct NaiveCudaStyleKernel
 {
@@ -100,8 +122,7 @@ template<typename TAcc, typename TDev, typename TQueue, typename TBufAcc>
 void naiveCudaStyle(TDev& dev, TQueue& queue, TBufAcc& bufAcc)
 {
     auto const n = alpaka::getExtentProduct(bufAcc);
-    auto const deviceProperties = alpaka::getAccDevProps<TAcc>(dev);
-    auto const maxThreadsPerBlock = deviceProperties.m_blockThreadExtentMax[0];
+    auto const maxThreadsPerBlock = getMaxThreadsPerBlock<TAcc>(dev, NaiveCudaStyleKernel{}, std::data(bufAcc), n);
 
     // With this approach, one normally has a fixed number of threads per block
     // and number of blocks scales with the problem size.
@@ -165,7 +186,7 @@ void gridStridedLoop(TDev& dev, TQueue& queue, TBufAcc& bufAcc)
 {
     auto const n = alpaka::getExtentProduct(bufAcc);
     auto const deviceProperties = alpaka::getAccDevProps<TAcc>(dev);
-    auto const maxThreadsPerBlock = deviceProperties.m_blockThreadExtentMax[0];
+    auto const maxThreadsPerBlock = getMaxThreadsPerBlock<TAcc>(dev, GridStridedLoopKernel{}, std::data(bufAcc), n);
 
     // With this approach, one normally has a fixed number of threads per block
     // and fixed number of blocks tied to hardware parameters.
@@ -244,7 +265,8 @@ void chunkedGridStridedLoop(TDev& dev, TQueue& queue, TBufAcc& bufAcc)
 {
     auto const n = alpaka::getExtentProduct(bufAcc);
     auto const deviceProperties = alpaka::getAccDevProps<TAcc>(dev);
-    auto const maxThreadsPerBlock = deviceProperties.m_blockThreadExtentMax[0];
+    auto const maxThreadsPerBlock
+        = getMaxThreadsPerBlock<TAcc>(dev, ChunkedGridStridedLoopKernel{}, std::data(bufAcc), n);
 
     // With this approach, one normally has a fixed number of threads per block
     // and fixed number of blocks tied to hardware parameters.
@@ -315,7 +337,7 @@ void naiveOpenMPStyle(TDev& dev, TQueue& queue, TBufAcc& bufAcc)
 {
     auto const n = alpaka::getExtentProduct(bufAcc);
     auto const deviceProperties = alpaka::getAccDevProps<TAcc>(dev);
-    auto const maxThreadsPerBlock = deviceProperties.m_blockThreadExtentMax[0];
+    auto const maxThreadsPerBlock = getMaxThreadsPerBlock<TAcc>(dev, NaiveOpenMPStyleKernel{}, std::data(bufAcc), n);
     auto const numCores = std::max<uint64_t>(deviceProperties.m_multiProcessorCount, 1ul);
 
     // With this approach, one normally has a fixed number of threads per block
@@ -397,7 +419,7 @@ void openMPSimdStyle(TDev& dev, TQueue& queue, TBufAcc& bufAcc)
 {
     auto const n = alpaka::getExtentProduct(bufAcc);
     auto const deviceProperties = alpaka::getAccDevProps<TAcc>(dev);
-    auto const maxThreadsPerBlock = deviceProperties.m_blockThreadExtentMax[0];
+    auto const maxThreadsPerBlock = getMaxThreadsPerBlock<TAcc>(dev, OpenMPSimdStyleKernel{}, std::data(bufAcc), n);
     auto const numCores = std::max<uint64_t>(deviceProperties.m_multiProcessorCount, 1ul);
 
     // With this approach, one normally has a fixed number of threads per block

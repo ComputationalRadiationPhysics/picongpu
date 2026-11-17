@@ -37,7 +37,10 @@ then
                     ALPAKA_CMAKE_PKG_FILE_NAME_BASE=cmake-${ALPAKA_CI_CMAKE_VER}-Linux-x86_64
                 fi
                 ALPAKA_CMAKE_PKG_FILE_NAME=${ALPAKA_CMAKE_PKG_FILE_NAME_BASE}.tar.gz
-                travis_retry wget --no-verbose https://cmake.org/files/v"${ALPAKA_CI_CMAKE_VER_MAJOR}"."${ALPAKA_CI_CMAKE_VER_MINOR}"/"${ALPAKA_CMAKE_PKG_FILE_NAME}"
+                if ! RETRY_CONTINUE=ON retry_cmd wget --no-verbose https://cmake.org/files/v"${ALPAKA_CI_CMAKE_VER_MAJOR}"."${ALPAKA_CI_CMAKE_VER_MINOR}"/"${ALPAKA_CMAKE_PKG_FILE_NAME}"; then
+                    echo_yellow "[WARNING]: use github.com mirror to download CMake"
+                    retry_cmd wget --no-verbose "https://github.com/Kitware/CMake/releases/download/v${ALPAKA_CI_CMAKE_VER}/${ALPAKA_CMAKE_PKG_FILE_NAME}"
+                fi
                 mkdir -p "${ALPAKA_CI_CMAKE_DIR}"
                 tar -xzf "${ALPAKA_CMAKE_PKG_FILE_NAME}" -C "${ALPAKA_CI_CMAKE_DIR}"
                 sudo cp -fR "${ALPAKA_CI_CMAKE_DIR}"/"${ALPAKA_CMAKE_PKG_FILE_NAME_BASE}"/* "${ALPAKA_CI_CMAKE_DIR}"

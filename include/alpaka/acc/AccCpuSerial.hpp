@@ -1,4 +1,4 @@
-/* Copyright 2025 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
+/* Copyright 2026 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -12,6 +12,7 @@
 #include "alpaka/block/shared/st/BlockSharedMemStMember.hpp"
 #include "alpaka/block/sync/BlockSyncNoOp.hpp"
 #include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/grid/GridSyncNoOp.hpp"
 #include "alpaka/idx/bt/IdxBtZero.hpp"
 #include "alpaka/idx/gb/IdxGbRef.hpp"
 #include "alpaka/intrinsic/IntrinsicCpu.hpp"
@@ -64,6 +65,7 @@ namespace alpaka
         , public BlockSharedMemDynMember<>
         , public BlockSharedMemStMember<>
         , public BlockSyncNoOp
+        , public GridSyncNoOp
         , public IntrinsicCpu
         , public MemFenceCpuSerial
 #    ifdef ALPAKA_DISABLE_VENDOR_RNG
@@ -148,7 +150,9 @@ namespace alpaka
                         // m_sharedMemSizeBytes
                         static_cast<size_t>(AccCpuSerial<TDim, TIdx>::staticAllocBytes()),
                         // m_globalMemSizeBytes
-                        getMemBytes(dev)};
+                        getMemBytes(dev),
+                        // m_cooperativeLaunch
+                        false};
             }
         };
 
@@ -204,6 +208,30 @@ namespace alpaka
                     throw std::runtime_error(
                         "The given work division is not valid for a single thread Acc: "
                         + getAccName<AccCpuSerial<TDim, TIdx>>() + ". Threads per block should be 1!");
+                }
+
+                return TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>(
+                    workDiv,
+                    kernelFnObj,
+                    std::forward<TArgs>(args)...);
+            }
+        };
+
+        //! The CPU serial accelerator execution cooperative task type trait specialization.
+        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
+        struct CreateTaskCooperativeKernel<AccCpuSerial<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto createTaskCooperativeKernel(
+                TWorkDiv const& workDiv,
+                TKernelFnObj const& kernelFnObj,
+                TArgs&&... args)
+            {
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
+                if(gridBlockExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error(
+                        "Serial accelerator supports only a single block operation with cooperative kernel!\n"
+                        "Consider useing a different CPU accelerator.");
                 }
 
                 return TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>(

@@ -325,6 +325,25 @@ def remove_clang_cuda_not_used_backend_combinations(
             )
 
 
+def remove_oneapi_fpga_newer_icpx(
+    parameter_value_pairs: List[bashi.ParameterValuePair],
+    removed_parameter_value_pairs: List[bashi.ParameterValuePair],
+):
+    """Remove the combination of ICPX 2025.1 and newer and the oneAPI FPGA backend: the FPGA
+    compiler is only distributed up to oneAPI 2025.0."""
+    for compiler_type in (HOST_COMPILER, DEVICE_COMPILER):
+        bashi.remove_parameter_value_pairs_ranges(
+            parameter_value_pairs=parameter_value_pairs,
+            removed_parameter_value_pairs=removed_parameter_value_pairs,
+            parameter1=compiler_type,
+            value_name1=ICPX,
+            value_min_version1="2025.1",
+            parameter2=ALPAKA_ACC_ONEAPI_FPGA_ENABLE,
+            value_min_version2=ON,
+            value_max_version2=ON,
+        )
+
+
 def verify(
     combination_list: bashi.CombinationList,
     param_value_matrix: bashi.ParameterValueMatrix,
@@ -369,6 +388,7 @@ def verify(
     remove_clang_cuda_not_used_backend_combinations(
         expected_param_val_tuple, unexpected_param_val_tuple, run_infos
     )
+    remove_oneapi_fpga_newer_icpx(expected_param_val_tuple, unexpected_param_val_tuple)
 
     expected_param_val_okay = bashi.check_parameter_value_pair_in_combination_list(
         combination_list, expected_param_val_tuple

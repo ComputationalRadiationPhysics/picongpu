@@ -201,12 +201,14 @@ namespace alpaka
 
         //! The CPU blocking device queue enqueue trait specialization.
         //! This default implementation for all tasks directly invokes the function call operator of the task.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct Enqueue<QueueCpuOmp2Collective, TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+        struct Enqueue<
+            QueueCpuOmp2Collective,
+            TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>>
         {
             ALPAKA_FN_HOST static auto enqueue(
                 QueueCpuOmp2Collective& queue,
-                TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void
+                TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...> const& task) -> void
             {
                 if(::omp_in_parallel() != 0)
                 {

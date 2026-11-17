@@ -10,6 +10,12 @@
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_ONEAPI_GPU_NVIDIA)
 
+// Set by CMake for Debug builds with oneAPI 2025.0, see cmake/alpakaCommon.cmake
+#    ifdef ALPAKA_SYCL_ONEAPI_GPU_NVIDIA_DEBUG_UNSUPPORTED
+#        error                                                                                                        \
+            "The SYCL backend for NVIDIA GPUs does not support Debug builds with oneAPI 2025.0, because ptxas fails on the device debug information. Use a different build type or a different version of oneAPI."
+#    endif
+
 namespace alpaka
 {
     //! The Nvidia GPU SYCL accelerator.

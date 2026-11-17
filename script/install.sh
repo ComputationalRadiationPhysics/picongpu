@@ -17,18 +17,18 @@ echo_green "<SCRIPT: install>"
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
-    travis_retry apt-get -y --quiet update
+    retry_cmd apt-get -y --quiet update
 
     # tzdata is installed by software-properties-common but it requires some special handling
     if [[ "$(cat /etc/os-release)" == *"20.04"* ]]
     then
-        travis_retry sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install tzdata
+        retry_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install tzdata
     fi
 
     # software-properties-common: 'add-apt-repository' and certificates for wget https download
     # binutils: ld
     # xz-utils: xzcat
-    travis_retry sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install software-properties-common wget git make binutils xz-utils gnupg2
+    retry_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install software-properties-common wget git make binutils xz-utils gnupg2
 fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "Windows" ]

@@ -56,21 +56,29 @@ TEMPLATE_LIST_TEST_CASE("oncePerGrid", "[exec]", alpaka::test::TestAccs)
     Device device = alpaka::getDevByIdx(platform, 0);
     Queue queue{device};
 
+    // Use device memory for the atomic operations: some devices (e.g. Intel GPUs) do not support atomic operations
+    // on pinned host memory.
     using Scalar = alpaka::Vec<alpaka::DimInt<0u>, Idx>;
-    auto value = alpaka::allocMappedBuf<int32_t, Idx>(host, platform, Scalar{});
+    auto value = alpaka::allocBuf<int32_t, Idx>(host, Scalar{});
     *value = 0;
+    auto value_d = alpaka::allocBuf<int32_t, Idx>(device, Scalar{});
+    alpaka::memcpy(queue, value_d, value);
 
-    auto status = alpaka::allocMappedBuf<bool, Idx>(host, platform, Scalar{});
+    auto status = alpaka::allocBuf<bool, Idx>(host, Scalar{});
     *status = true;
+    auto status_d = alpaka::allocBuf<bool, Idx>(device, Scalar{});
+    alpaka::memcpy(queue, status_d, status);
 
     auto const extent = alpaka::Vec<Dim, Idx>::all(32);
     auto const elems = alpaka::Vec<Dim, Idx>::all(4);
 
     KernelOncePerGrid kernel;
     alpaka::KernelCfg<Acc> const config = {extent, elems, false};
-    auto const workDiv = alpaka::getValidWorkDiv(config, device, kernel, std::data(status), std::data(value));
+    auto const workDiv = alpaka::getValidWorkDiv(config, device, kernel, std::data(status_d), std::data(value_d));
 
-    alpaka::exec<Acc>(queue, workDiv, kernel, std::data(status), std::data(value));
+    alpaka::exec<Acc>(queue, workDiv, kernel, std::data(status_d), std::data(value_d));
+    alpaka::memcpy(queue, status, status_d);
+    alpaka::memcpy(queue, value, value_d);
     alpaka::wait(queue);
 
     fixBooleanValue(*status);
@@ -120,22 +128,30 @@ TEMPLATE_LIST_TEST_CASE("oncePerBlock", "[exec]", alpaka::test::TestAccs)
     Device device = alpaka::getDevByIdx(platform, 0);
     Queue queue{device};
 
+    // Use device memory for the atomic operations: some devices (e.g. Intel GPUs) do not support atomic operations
+    // on pinned host memory.
     using Scalar = alpaka::Vec<alpaka::DimInt<0u>, Idx>;
-    auto value = alpaka::allocMappedBuf<int32_t, Idx>(host, platform, Scalar{});
-    alpaka::memset(queue, value, 0x00);
+    auto value = alpaka::allocBuf<int32_t, Idx>(host, Scalar{});
+    *value = 0;
+    auto value_d = alpaka::allocBuf<int32_t, Idx>(device, Scalar{});
+    alpaka::memcpy(queue, value_d, value);
 
-    auto status = alpaka::allocMappedBuf<bool, Idx>(host, platform, Scalar{});
-    alpaka::memset(queue, status, 0xff);
+    auto status = alpaka::allocBuf<bool, Idx>(host, Scalar{});
+    *status = true;
+    auto status_d = alpaka::allocBuf<bool, Idx>(device, Scalar{});
+    alpaka::memcpy(queue, status_d, status);
 
     auto const extent = alpaka::Vec<Dim, Idx>::all(32);
     auto const elems = alpaka::Vec<Dim, Idx>::all(4);
 
     KernelOncePerBlock kernel;
     alpaka::KernelCfg<Acc> const config = {extent, elems, false};
-    auto const workDiv = alpaka::getValidWorkDiv(config, device, kernel, std::data(status), std::data(value));
+    auto const workDiv = alpaka::getValidWorkDiv(config, device, kernel, std::data(status_d), std::data(value_d));
     const int32_t blocks = static_cast<int32_t>(alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(workDiv).prod());
 
-    alpaka::exec<Acc>(queue, workDiv, kernel, std::data(status), std::data(value));
+    alpaka::exec<Acc>(queue, workDiv, kernel, std::data(status_d), std::data(value_d));
+    alpaka::memcpy(queue, status, status_d);
+    alpaka::memcpy(queue, value, value_d);
     alpaka::wait(queue);
 
     fixBooleanValue(*status);
