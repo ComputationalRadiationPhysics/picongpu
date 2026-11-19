@@ -41,16 +41,27 @@ class BoundFreeCollisionalTransitions:
     ):
         """get cross section for ionization by interaction with a free electron
 
-        @param energyElectron float energy of interacting free electron, [eV]
-        @param ionizationEnergy float sum of ionization energies between initial and final charge state, [eV]
-        @param excitationEnergyDifference float excitation energy upper state - excitation energy lower state
+        Parameters
+        ----------
+        energyElectron
+            float energy of interacting free electron, [eV]
+        ionizationEnergy
+            float sum of ionization energies between initial and final charge state, [eV]
+        excitationEnergyDifference
+            float excitation energy upper state - excitation energy lower state,
             all relative to each respective's charge state ground state
-        @param screenedCharge screenedCharge of the ionizing shell
-        @param lowerStateLevelVector occupation number level vector for lower state of transition
+        screenedCharge
+            screenedCharge of the ionizing shell
+        lowerStateLevelVector
+            occupation number level vector for lower state of transition,
             i.e. how many electron occupy states in each principal quantum number shell
-        @param upperStateLevelVector same as lowerStateLevelVector but upper state of transition
+        upperStateLevelVector
+            same as lowerStateLevelVector but upper state of transition
 
-        @return unit: 1e6b
+        Returns
+        -------
+        crossSection
+            unit: 1e6b
         """
 
         energyDifference = ionizationEnergy + excitationEnergyDifference
@@ -106,19 +117,31 @@ class BoundFreeCollisionalTransitions:
     ):
         """rate of ionization due to interaction with free electron
 
-        @param energyElectron float central energy of electron bin, [eV]
-        @param energyElectronBinWidth float width of energy bin, [eV]
-        @param densityElectrons float number density of physical electrons in bin, 1/(m^3 * eV)
-
-        @param ionizationEnergy sum of ionization energies between initial and final charge state, [eV]
-        @param excitationEnergyDifference float excitation energy upper state - excitation energy lower state
+        Parameters
+        ----------
+        energyElectron
+            float central energy of electron bin, [eV]
+        energyElectronBinWidth
+            float width of energy bin, [eV]
+        densityElectrons
+            float number density of physical electrons in bin, 1/(m^3 * eV)
+        ionizationEnergy
+            sum of ionization energies between initial and final charge state, [eV]
+        excitationEnergyDifference
+            float excitation energy upper state - excitation energy lower state,
             all relative to each respective's charge state ground state
-        @param screenedCharge screenedCharge of the ionizing shell
-        @param lowerStateLevelVector occupation number level vector for lower state of transition
+        screenedCharge
+            screenedCharge of the ionizing shell
+        lowerStateLevelVector
+            occupation number level vector for lower state of transition,
             i.e. how many electron occupy states in each principal quantum number shell
-        @param upperStateLevelVector same as lowerStateLevelVector but upper state of transition
+        upperStateLevelVector
+            same as lowerStateLevelVector but upper state of transition
 
-        @return unit: 1/s
+        Returns
+        -------
+        rate
+            unit: 1/s
         """
         sigma = BoundFreeCollisionalTransitions.collisionalIonizationCrossSection(
             energyElectron,
