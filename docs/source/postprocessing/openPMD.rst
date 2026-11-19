@@ -14,7 +14,7 @@ openPMD
 
 If you hear about *openPMD** for the first time you can find a quick `online tutorial <http://www.openpmd.org>`_ on it here.
 
-As a user of PIConGPU, you will be mainly interested in our :ref:`python tools <pp-python>` and readers, that can read openPMD, e.g. into:
+As a user of PIConGPU, you will be mainly interested in our :ref:`python tools <usage-python-utils>` and readers, that can read openPMD, e.g. into:
 
 * read & write data: `openPMD-api <https://github.com/openPMD/openPMD-api>`_ (`manual <https://openpmd-api.readthedocs.io/>`_)
 * visualization and analysis, including an exploratory Jupyter notebook GUI: `openPMD-viewer <https://github.com/openPMD/openPMD-viewer>`_ (`tutorial <https://github.com/openPMD/openPMD-viewer/tree/master/tutorials>`_)

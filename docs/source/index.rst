@@ -104,7 +104,6 @@ the section that answers your question.
    :maxdepth: 2
    :hidden:
 
-   postprocessing/python
    postprocessing/openPMD
    postprocessing/paraview
    usage/python_utils
