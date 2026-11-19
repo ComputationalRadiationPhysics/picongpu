@@ -53,26 +53,58 @@ See the individual plugin pages for the exact invocation.
 
 The base class, together with the interface a new visualizer has to implement, is described in :ref:`development-pytools`.
 
+EnergyHistogramMPL
+~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: picongpu.extra.plugins.plot_mpl.energy_histogram_visualizer.Visualizer
+   :noindex:
    :members:
+
+EnergyWaterfallMPL
+~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: picongpu.extra.plugins.plot_mpl.energy_waterfall_visualizer.Visualizer
+   :noindex:
    :members:
+
+EmitanceEvolutionMPL
+~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: picongpu.extra.plugins.plot_mpl.emittance_evolution_visualizer.Visualizer
+   :noindex:
    :members:
+
+PhaseSpaceMPL
+~~~~~~~~~~~~~
 
 .. autoclass:: picongpu.extra.plugins.plot_mpl.phase_space_visualizer.Visualizer
+   :noindex:
    :members:
+
+PNGMPL
+~~~~~~
 
 .. autoclass:: picongpu.extra.plugins.plot_mpl.png_visualizer.Visualizer
+   :noindex:
    :members:
+
+SliceEmitanceMPL
+~~~~~~~~~~~~~~~~
 
 .. autoclass:: picongpu.extra.plugins.plot_mpl.slice_emittance_visualizer.Visualizer
+   :noindex:
    :members:
+
+SliceEmitanceWaterfallMPL
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: picongpu.extra.plugins.plot_mpl.slice_emittance_waterfall_visualizer.Visualizer
+   :noindex:
    :members:
 
+TransitionRadiationMPL
+~~~~~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: picongpu.extra.plugins.plot_mpl.transition_radiation_visualizer.Visualizer
+   :noindex:
    :members:

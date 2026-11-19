@@ -30,12 +30,6 @@ Overview
    * - Utility
      - Access
      - Purpose
-   * - ``pic-deps``
-     - ``pic-deps install`` / ``pic-deps check``
-     - Install or verify the compile-time dependencies of a preset (see :ref:`usage-python-utils-console-scripts`).
-   * - ``picrc-builder``
-     - ``picrc-builder [config]``
-     - Interactively create or complete a ``.picongpurc.toml`` (see :ref:`usage-python-utils-console-scripts`).
    * - ``MemoryCalculator``
      - ``from picongpu.extra.utils import MemoryCalculator``
      - Estimate the memory requirement of a simulation per device (see :ref:`usage-python-utils-memory-calculator`).
@@ -58,7 +52,6 @@ Overview
 .. toctree::
    :maxdepth: 2
 
-   python_utils/console_scripts
    python_utils/memory_calculator
    python_utils/find_time
    python_utils/field_ionization
