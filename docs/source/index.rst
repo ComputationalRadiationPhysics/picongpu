@@ -114,7 +114,23 @@ the section that answers your question.
    :maxdepth: 1
    :hidden:
 
-   usage/index
+   usage/introduction
+   install/path
+   install/instructions
+   install/dependencies
+   install/profile
+   usage/basics
+   usage/param
+   usage/plugins
+   usage/tbg
+   usage/workflows
+   usage/tests
+   usage/examples
+   tutorials/hemeraIn5min
+   expert/deviceOversubscription
+   expert/signals
+   usage/crosscompile
+   usage/parameter_scans
 
 .. toctree::
    :caption: Development
