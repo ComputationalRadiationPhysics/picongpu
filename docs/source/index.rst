@@ -23,12 +23,6 @@ PICMI Python interface.
 
 Pick the entry point that matches what you are looking for:
 
-* **Migrating from legacy** ``.param`` **file setups to PICMI?**
-  The :ref:`Foundations <python_package/foundations/index:Foundations>` chapter
-  introduces the PICMI interface, and the
-  :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` chapter
-  still documents the legacy ``.param``/TBG setup you are coming from, so you
-  can map an existing configuration onto a PICMI input script.
 * **New to PIConGPU?**
   Work through the :ref:`Getting Started <python_package/index:Getting Started>`
   chapter below, from installing the Python package to your first simulation,
@@ -41,6 +35,12 @@ Pick the entry point that matches what you are looking for:
   chapter explains how to configure them through the PICMI interface, with the
   full class reference in the
   :ref:`API Documentation <python_package/api/index:API Documentation>`.
+* **Migrating from legacy** ``.param`` **file setups to PICMI?**
+  The :ref:`Foundations <python_package/foundations/index:Foundations>` chapter
+  introduces the PICMI interface, and the
+  :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` chapter
+  still documents the legacy ``.param``/TBG setup you are coming from, so you
+  can map an existing configuration onto a PICMI input script.
 * **Developing the C++ core?**
   The :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` and
   :ref:`Development <dev/CONTRIBUTING:How to Participate as a Developer>`
