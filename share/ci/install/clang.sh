@@ -39,3 +39,7 @@ else
     CLANG_BASE_PATH="$(agc-manager -b clang@${clang_version})"
     export PATH=$CLANG_BASE_PATH/bin:$PATH
 fi
+
+# export the selected compiler so that all following build steps default to it
+export CXX=${CXX_VERSION}
+export CC=clang-${clang_version}

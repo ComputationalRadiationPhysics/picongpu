@@ -26,7 +26,7 @@ if [ -z "$DISABLE_OpenPMD" ] ; then
         git clone https://github.com/openPMD/openPMD-api.git --depth 1 --branch $openPMD_VERSION
         mkdir buildOpenPMD
         cd buildOpenPMD
-        cmake ../openPMD-api -DCMAKE_CXX_STANDARD=20 -DopenPMD_BUILD_CLI_TOOLS=OFF -DCMAKE_INSTALL_PREFIX=$OPENPMD_ROOT -DopenPMD_BUILD_EXAMPLES=OFF -DopenPMD_BUILD_TESTING=OFF -DopenPMD_USE_PYTHON=OFF -DopenPMD_USE_ADIOS2=ON
+        cmake ../openPMD-api -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DopenPMD_BUILD_CLI_TOOLS=OFF -DCMAKE_INSTALL_PREFIX=$OPENPMD_ROOT -DopenPMD_BUILD_EXAMPLES=OFF -DopenPMD_BUILD_TESTING=OFF -DopenPMD_USE_PYTHON=OFF -DopenPMD_USE_ADIOS2=ON
         make install
         cd ..
 
