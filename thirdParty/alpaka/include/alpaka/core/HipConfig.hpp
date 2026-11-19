@@ -12,31 +12,62 @@
 #    include <hip/hip_version.h>
 
 // version numbers are only defined on the device side
-#    if !defined(ALPAKA_AMDGPU_ARCH) && defined(__HIP__) && __HIP_DEVICE_COMPILE__ == 1
+#    if !defined(ALPAKA_AMDGPU_ARCH) && defined(__HIP__) && defined(__HIP_DEVICE_COMPILE__)                           \
+        && __HIP_DEVICE_COMPILE__ == 1
 
 /* Map AMDGPU arch macro -> ALPAKA_VRRPP_TO_VERSION(wrapped code)
  *  Rules:
  *   - gfx9xy (numeric): 9xy -> 90x0y  (e.g., 908->90008, 906->90006, 942->90402)
  *   - gfx10xy / gfx11xy: stxy -> st0x0y (e.g., 1036->100306, 1103->110003)
- *   - Suffix: a == 10 (90a->90010), b == 11, c == 11
+ *   - Suffix: a == 10 (90a->90010), b == 11, c == 12
  *
  * An overview of AMD GPU architectures can be found here:
  * https://llvm.org/docs/AMDGPUUsage.html#processors
  */
 
-#        if defined(__gfx1200__)
-/* RDNA 4 dGPU (RX 9060 XT) */
-#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120000)
-#        elif defined(__gfx1201__)
-/* RDNA 4 dGPU (RX 9070 / 9070 XT) */
-#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120001)
-#        elif defined(__gfx1250__)
-/* RDNA 4 APU (APU) */
-#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120500)
-#        elif defined(__gfx1251__)
-/* RDNA 4 APU variant */
-#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120501)
+#        if defined(__gfx1310__)
+/* RDNA 5 dGPU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(130100)
+#        elif defined(__gfx13_generic__)
+/* RDNA 5 generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(130000)
 
+#        elif defined(__gfx1251__)
+/* RDNA 4 APU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120501)
+#        elif defined(__gfx1250__)
+/* RDNA 4 APU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120500)
+#        elif defined(__gfx12_5_generic__)
+/* RDNA 4.5 generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120500)
+
+#        elif defined(__gfx1201__)
+/* RDNA 4 dGPU (RX 9070 / 9070 XT / 9070 GRE) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120001)
+#        elif defined(__gfx1200__)
+/* RDNA 4 dGPU (RX 9060 / 9060 XT) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120000)
+#        elif defined(__gfx12_generic__)
+/* RDNA 4 generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(120000)
+
+#        elif defined(__gfx1172__)
+/* RDNA 4m APU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110702)
+#        elif defined(__gfx1171__)
+/* RDNA 4m APU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110701)
+#        elif defined(__gfx1170__)
+/* RDNA 4m APU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110700)
+#        elif defined(__gfx11_7_generic__)
+/* RDNA 4m generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110700)
+
+#        elif defined(__gfx1154__)
+/* RDNA 3.5 iGPU (TBA) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110504)
 #        elif defined(__gfx1153__)
 /* RDNA 3.5 iGPU (Medusa Point / Strix Halo successor) */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110503)
@@ -62,6 +93,9 @@
 #        elif defined(__gfx1100__)
 /* RDNA 3 Desktop (RX 7900 XT, XTX, Pro W7900) */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110000)
+#        elif defined(__gfx11_generic__)
+/* RDNA 3.x generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(110000)
 
 #        elif defined(__gfx1036__)
 /* RDNA 2 APU (Radeon Graphics 128-SP iGPU) */
@@ -84,6 +118,9 @@
 #        elif defined(__gfx1030__)
 /* RDNA 2 Desktop (RX 6800 / 6900 XT, Pro W6800) */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(100300)
+#        elif defined(__gfx10_3_generic__)
+/* RDNA 2.x generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(100300)
 
 #        elif defined(__gfx1013__)
 /* RDNA 1 Mobile (RX 5300M / 5500M) */
@@ -97,7 +134,13 @@
 #        elif defined(__gfx1010__)
 /* RDNA 1 Desktop (RX 5700 / 5700 XT, Pro 5600 XT/M) */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(100100)
+#        elif defined(__gfx10_1_generic__)
+/* RDNA 1.x generic target */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(100100)
 
+#        elif defined(__gfx950__)
+/* CDNA 4 (Instinct MI350 series: MI350P/MI350X/MI355X) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90500)
 #        elif defined(__gfx942__)
 /* CDNA 3 (Instinct MI300 series: MI300/MI300A/MI300X) */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90402)
@@ -106,6 +149,9 @@
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90401)
 #        elif defined(__gfx940__)
 /* CDNA 2 (Instinct MI200) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90400)
+#        elif defined(__gfx9_4_generic__)
+/* CDNA 3.x generic target */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90400)
 
 #        elif defined(__gfx90c__)
@@ -123,6 +169,12 @@
 #        elif defined(__gfx906__)
 /* Vega 20 (Radeon VII, Instinct MI50/60) */
 #            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90006)
+#        elif defined(__gfx900__)
+/* Vega 10 (Radeon Pro Vega, Instinct MI25) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90000)
+#        elif defined(__gfx9_generic__)
+/* GCN 5 generic target (Vega 10, Vega 20, ...) */
+#            define ALPAKA_AMDGPU_ARCH ALPAKA_VRRPP_TO_VERSION(90000)
 
 #        else
 #            error                                                                                                    \

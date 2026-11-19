@@ -146,6 +146,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Inte
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-padded")
     # Triggers for all instances of alpaka_DEBUG_MINIMAL_LOG_SCOPE and similar macros followed by semicolon
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-extra-semi-stmt")
+    # Disable warnings about Lifetime Safety Analysis suggestions
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 23.0)
+        list(APPEND alpaka_DEV_COMPILE_OPTIONS "-Wno-lifetime-safety-intra-tu-suggestions")
+    endif()
 
     # Silence warnings caused by nvcc-generated code and -Weverything
     list(APPEND alpaka_DEV_COMPILE_OPTIONS "$<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:SHELL:-Xcompiler -Wno-missing-noreturn>")

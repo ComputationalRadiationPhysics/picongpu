@@ -1,4 +1,4 @@
-/* Copyright 2024 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci
+/* Copyright 2026 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan, Andrea Bocci, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -30,9 +30,9 @@ TEMPLATE_LIST_TEST_CASE("getPreferredWarpSize", "[dev]", alpaka::test::TestAccs)
     REQUIRE(preferredWarpSize > 0);
 }
 
-TEMPLATE_LIST_TEST_CASE("isDevice", "[dev]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("concepts::Device", "[dev]", alpaka::test::TestAccs)
 {
     auto const platform = alpaka::Platform<TestType>{};
     auto const dev = alpaka::getDevByIdx(platform, 0);
-    REQUIRE(alpaka::isDevice<decltype(dev)>);
+    REQUIRE(alpaka::concepts::Device<decltype(dev)>);
 }

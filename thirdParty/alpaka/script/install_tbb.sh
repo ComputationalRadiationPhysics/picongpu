@@ -21,15 +21,15 @@ else
     # Install TBB
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
     then
-        travis_retry sudo apt-get -qqq update
-        travis_retry sudo apt-get install -y wget ca-certificates gnupg
+        retry_cmd sudo apt-get -qqq update
+        retry_cmd sudo apt-get install -y wget ca-certificates gnupg
 
-        travis_retry sudo wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        retry_cmd sudo wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
         sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
         rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 
-        travis_retry sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
-        travis_retry sudo apt-get install -y intel-oneapi-tbb-devel-${ALPAKA_CI_TBB_VERSION}
+        retry_cmd sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+        retry_cmd sudo apt-get install -y intel-oneapi-tbb-devel-${ALPAKA_CI_TBB_VERSION}
     elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
     then
         brew install tbb

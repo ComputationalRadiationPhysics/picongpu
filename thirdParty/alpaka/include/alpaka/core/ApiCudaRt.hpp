@@ -1,4 +1,4 @@
-/* Copyright 2025 Andrea Bocci, Maria Michailidi
+/* Copyright 2026 Andrea Bocci, Maria Michailidi
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -80,6 +80,7 @@ namespace alpaka
         static constexpr DeviceAttr_t deviceAttributeMaxThreadsPerBlock = ::cudaDevAttrMaxThreadsPerBlock;
         static constexpr DeviceAttr_t deviceAttributeMultiprocessorCount = ::cudaDevAttrMultiProcessorCount;
         static constexpr DeviceAttr_t deviceAttributeWarpSize = ::cudaDevAttrWarpSize;
+        static constexpr DeviceAttr_t deviceAttributeCooperativeLaunch = ::cudaDevAttrCooperativeLaunch;
 
         static constexpr Limit_t limitPrintfFifoSize = ::cudaLimitPrintfFifoSize;
         static constexpr Limit_t limitMallocHeapSize = ::cudaLimitMallocHeapSize;
@@ -266,6 +267,36 @@ namespace alpaka
             return ::cudaHostUnregister(ptr);
         }
 
+        template<class T>
+        static inline Error_t launchCooperativeKernel(
+            T* func,
+            dim3 gridDim,
+            dim3 blockDim,
+            void** args,
+            size_t sharedMem,
+            Stream_t stream)
+        {
+#    if CUDART_VERSION >= 12060
+            return ::cudaLaunchCooperativeKernel(func, gridDim, blockDim, args, sharedMem, stream);
+#    else
+            // Use C API for CUDA before 12.6
+#        if ALPAKA_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconditionally-supported"
+#        endif
+            return ::cudaLaunchCooperativeKernel(
+                reinterpret_cast<void*>(func),
+                gridDim,
+                blockDim,
+                args,
+                sharedMem,
+                stream);
+#        if ALPAKA_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
+#    endif
+        }
+
         static inline Error_t launchHostFunc(Stream_t stream, HostFn_t fn, void* userData)
         {
 #    if CUDART_VERSION >= 10000
@@ -412,6 +443,16 @@ namespace alpaka
         static inline Extent_t makeExtent(size_t w, size_t h, size_t d)
         {
             return ::make_cudaExtent(w, h, d);
+        }
+
+        template<class T>
+        static inline Error_t occupancyMaxActiveBlocksPerMultiprocessor(
+            int* numBlocks,
+            T func,
+            int blockSize,
+            size_t dynamicSMemSize)
+        {
+            return ::cudaOccupancyMaxActiveBlocksPerMultiprocessor(numBlocks, func, blockSize, dynamicSMemSize);
         }
     };
 

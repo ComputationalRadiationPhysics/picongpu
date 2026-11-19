@@ -1,4 +1,4 @@
-/* Copyright 2023 Axel Hübl, Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
+/* Copyright 2026 Axel Hübl, Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan, Simone Balducci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -42,11 +42,28 @@ TEMPLATE_LIST_TEST_CASE("queueCallbackIsWorking", "[queue]", TestQueues)
     using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
     Fixture f;
 
-    std::promise<bool> promise;
+    // Lambda callable
+    {
+        std::promise<bool> promise;
+        alpaka::enqueue(f.m_queue, [&]() { promise.set_value(true); });
+        CHECK(promise.get_future().get());
+    }
 
-    alpaka::enqueue(f.m_queue, [&]() { promise.set_value(true); });
+    // std::function rvalue
+    {
+        std::promise<bool> promise;
+        std::function<void()> callback = [&]() { promise.set_value(true); };
+        alpaka::enqueue(f.m_queue, std::move(callback));
+        CHECK(promise.get_future().get());
+    }
 
-    CHECK(promise.get_future().get());
+    // std::function lvalue
+    {
+        std::promise<bool> promise;
+        std::function<void()> callback = [&]() { promise.set_value(true); };
+        alpaka::enqueue(f.m_queue, callback);
+        CHECK(promise.get_future().get());
+    }
 }
 
 TEMPLATE_LIST_TEST_CASE("queueTaskValueCategories", "[queue]", TestQueues)
@@ -272,13 +289,13 @@ TEMPLATE_LIST_TEST_CASE("enqueueBenchmark", "[queue]", alpaka::test::TestQueues)
     };
 }
 
-TEMPLATE_LIST_TEST_CASE("isQueue", "[queue]", alpaka::test::TestQueues)
+TEMPLATE_LIST_TEST_CASE("concepts::Queue", "[queue]", alpaka::test::TestQueues)
 {
     using DevQueue = TestType;
     using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
     Fixture f;
 
-    REQUIRE(alpaka::isQueue<decltype(f.m_queue)>);
+    REQUIRE(alpaka::concepts::Queue<decltype(f.m_queue)>);
 }
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)

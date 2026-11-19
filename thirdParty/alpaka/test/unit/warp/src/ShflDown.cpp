@@ -7,6 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "SyclWarpSupport.hpp"
+
 #include <alpaka/math/FloatEqualExact.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
@@ -122,68 +124,64 @@ TEMPLATE_LIST_TEST_CASE("shfl_down", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
 
-#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20'250'300
-    if constexpr(alpaka::accMatchesTags<
-                     Acc,
-                     alpaka::TagCpuSycl,
-                     alpaka::TagGpuSyclIntel,
-                     alpaka::TagGpuSyclNvidia,
-                     alpaka::TagGpuSyclAmd,
-                     alpaka::TagFpgaSyclIntel,
-                     alpaka::TagGenericSycl>)
+    if constexpr(constexpr char const* reason = alpaka::test::warpUnsupportedReason<Acc>(); reason != nullptr)
     {
-        WARN("Test disabled for SYCL with oneAPI 2025.2 and older");
-        return;
+        WARN("Test disabled: " << reason);
     }
-#else
-    using Dev = alpaka::Dev<Acc>;
-    using Dim = alpaka::Dim<Acc>;
-    using Idx = alpaka::Idx<Acc>;
+    else
+    {
+        using Dev = alpaka::Dev<Acc>;
+        using Dim = alpaka::Dim<Acc>;
+        using Idx = alpaka::Idx<Acc>;
 
-    auto const platform = alpaka::Platform<Acc>{};
-    Dev const dev(alpaka::getDevByIdx(platform, 0u));
-    auto const warpExtents = alpaka::getWarpSizes(dev);
-    for(auto const warpExtent : warpExtents)
-    {
-        auto const scalar = Dim::value == 0 || warpExtent == 1;
-        if(scalar)
+        auto const platform = alpaka::Platform<Acc>{};
+        Dev const dev(alpaka::getDevByIdx(platform, 0u));
+        auto const warpExtents = alpaka::getWarpSizes(dev);
+        for(auto const warpExtent : warpExtents)
         {
-            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
-            REQUIRE(fixture(ShflDownSingleThreadWarpTestKernel{}));
-        }
-        else
-        {
-            using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
-            auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
-            // Enforce one warp per thread block
-            auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
-            blockThreadExtent[0] = static_cast<Idx>(warpExtent);
-            auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-            auto workDiv = typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
-            auto fixture = ExecutionFixture{workDiv};
-            if(warpExtent == 4)
+            auto const scalar = Dim::value == 0 || warpExtent == 1;
+            if(scalar)
             {
-                REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<4>{}));
+                alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(4));
+                REQUIRE(fixture(ShflDownSingleThreadWarpTestKernel{}));
             }
-            else if(warpExtent == 8)
+            else
             {
-                REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<8>{}));
-            }
-            else if(warpExtent == 16)
-            {
-                REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<16>{}));
-            }
-            else if(warpExtent == 32)
-            {
-                REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<32>{}));
-            }
-            else if(warpExtent == 64)
-            {
-                REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<64>{}));
+                using ExecutionFixture = alpaka::test::KernelExecutionFixture<Acc>;
+                auto const gridBlockExtent = alpaka::Vec<Dim, Idx>::all(2);
+                // Enforce one warp per thread block
+                auto blockThreadExtent = alpaka::Vec<Dim, Idx>::ones();
+                // Put the whole warp along the innermost (fastest) dimension: the SYCL CPU device forms sub-groups
+                // only along it, while GPUs form warps from the linearised thread index.
+                constexpr auto innermost = Dim::value > 0 ? Dim::value - 1 : 0;
+                blockThreadExtent[innermost] = static_cast<Idx>(warpExtent);
+                auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
+                auto workDiv =
+                    typename ExecutionFixture::WorkDiv{gridBlockExtent, blockThreadExtent, threadElementExtent};
+                auto fixture = ExecutionFixture{workDiv};
+                if(warpExtent == 4)
+                {
+                    REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<4>{}));
+                }
+                else if(warpExtent == 8)
+                {
+                    REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<8>{}));
+                }
+                else if(warpExtent == 16)
+                {
+                    REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<16>{}));
+                }
+                else if(warpExtent == 32)
+                {
+                    REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<32>{}));
+                }
+                else if(warpExtent == 64)
+                {
+                    REQUIRE(fixture(ShflDownMultipleThreadWarpTestKernel<64>{}));
+                }
             }
         }
     }
-#endif
 }
 
 #if ALPAKA_COMP_GNUC

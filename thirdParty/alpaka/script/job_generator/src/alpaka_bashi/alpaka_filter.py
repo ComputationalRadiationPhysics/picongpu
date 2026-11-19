@@ -237,6 +237,87 @@ def check_existing_clang_cuda_for_cuda_sdk_version_a6(
     return True
 
 
+def check_clang_cuda_cuda_13_cmake_a7(row: bashi.BashiRow, alpaka_filter: "AlpakaFilter") -> bool:
+    """
+    CMake cannot identify Clang as CUDA compiler with CUDA 13 and newer before CMake 3.31.8 and
+    4.0.3: the compiler identification compiles a test program for the sm_52, sm_30 and sm_20
+    architectures, which are no longer supported by CUDA 13. Newer versions of CMake try sm_75
+    first, see https://gitlab.kitware.com/cmake/cmake/-/commit/b62f3257 .
+
+    Args:
+        row (bashi.BashiRow): parameter-value-tuple to verify.
+        alpaka_filter (AlpakaFilter): alpaka filter
+
+    Returns:
+        bool: True if passed.
+    """
+    if (
+        CMAKE in row
+        and ALPAKA_ACC_GPU_CUDA_ENABLE in row
+        and row[ALPAKA_ACC_GPU_CUDA_ENABLE].version != OFF_VER
+        and row[ALPAKA_ACC_GPU_CUDA_ENABLE].version >= packaging.version.parse("13.0")
+        and any(
+            compiler_type in row and row[compiler_type].name == CLANG_CUDA
+            for compiler_type in (HOST_COMPILER, DEVICE_COMPILER)
+        )
+    ):
+        cmake_version = row[CMAKE].version
+        if cmake_version < packaging.version.parse("3.31.8") or (
+            packaging.version.parse("4.0") <= cmake_version < packaging.version.parse("4.0.3")
+        ):
+            alpaka_filter.reason(
+                f"CMake {cmake_version} cannot identify Clang-CUDA with CUDA "
+                f"{row[ALPAKA_ACC_GPU_CUDA_ENABLE].version}, CMake 3.31.8 or 4.0.3 and newer is "
+                "required."
+            )
+            return False
+    return True
+
+
+def check_oneapi_fpga_a8(row: bashi.BashiRow, alpaka_filter: "AlpakaFilter") -> bool:
+    """
+    The oneAPI FPGA backend can only be used with ICPX 2025.0 and older: starting from oneAPI 2025.1
+    the FPGA compiler (intel-oneapi-compiler-fpga) is no longer distributed.
+    ICPX always requires one of the oneAPI backends, so with ICPX 2025.1 and newer either the oneAPI
+    CPU or the oneAPI GPU backend must be enabled.
+
+    Args:
+        row (bashi.BashiRow): parameter-value-tuple to verify.
+        alpaka_filter (AlpakaFilter): alpaka filter
+
+    Returns:
+        bool: True if passed.
+    """
+    for compiler_type in (HOST_COMPILER, DEVICE_COMPILER):
+        if (
+            compiler_type in row
+            and row[compiler_type].name == ICPX
+            and row[compiler_type].version >= packaging.version.parse("2025.1")
+        ):
+            if (
+                ALPAKA_ACC_ONEAPI_FPGA_ENABLE in row
+                and row[ALPAKA_ACC_ONEAPI_FPGA_ENABLE].version == ON_VER
+            ):
+                alpaka_filter.reason(
+                    "The oneAPI FPGA backend is not available with ICPX "
+                    f"{row[compiler_type].version}, the FPGA compiler is only distributed up to "
+                    "oneAPI 2025.0."
+                )
+                return False
+            if (
+                ALPAKA_ACC_ONEAPI_CPU_ENABLE in row
+                and ALPAKA_ACC_ONEAPI_GPU_ENABLE in row
+                and row[ALPAKA_ACC_ONEAPI_CPU_ENABLE].version == OFF_VER
+                and row[ALPAKA_ACC_ONEAPI_GPU_ENABLE].version == OFF_VER
+            ):
+                alpaka_filter.reason(
+                    f"ICPX {row[compiler_type].version} requires the oneAPI CPU or GPU backend, "
+                    "because the oneAPI FPGA backend is not available."
+                )
+                return False
+    return True
+
+
 class AlpakaFilter(bashi.FilterBase):
     """Alpaka specific filter rules."""
 
@@ -270,4 +351,6 @@ class AlpakaFilter(bashi.FilterBase):
             and check_debug_build_hip_a3(row, self)
             and check_ubuntu_22_04_specifics_a4(row, self)
             and check_clang_16_and_older_a5(row, self)
+            and check_clang_cuda_cuda_13_cmake_a7(row, self)
+            and check_oneapi_fpga_a8(row, self)
         )

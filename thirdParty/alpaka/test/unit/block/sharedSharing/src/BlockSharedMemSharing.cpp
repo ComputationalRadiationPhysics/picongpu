@@ -7,6 +7,7 @@
 #include <alpaka/block/shared/dyn/Traits.hpp>
 #include <alpaka/block/shared/st/Traits.hpp>
 #include <alpaka/block/sync/Traits.hpp>
+#include <alpaka/kernel/Traits.hpp>
 #include <alpaka/test/Array.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
@@ -58,14 +59,19 @@ void BlockSharedMemSharingTest(TKernel kernel)
 
     auto const accDevProps = alpaka::getAccDevProps<TAcc>(devAcc);
     const Idx gridBlockCount = 2u;
-    const Idx blockThreadCount = accDevProps.m_blockThreadCountMax;
+
+    auto bufAcc = alpaka::allocBuf<std::uint32_t, Idx>(devAcc, gridBlockCount);
+
+    // The maximum number of threads per block may also be limited by the kernel itself, e.g. by its stack size on
+    // CUDA.
+    auto const kernelFunctionAttributes = alpaka::getFunctionAttributes<TAcc>(devAcc, kernel, std::data(bufAcc));
+    const Idx blockThreadCount
+        = std::min(accDevProps.m_blockThreadCountMax, static_cast<Idx>(kernelFunctionAttributes.maxThreadsPerBlock));
 
     auto const workDiv
         = alpaka::WorkDivMembers<Dim, Idx>(Vec(gridBlockCount), Vec(blockThreadCount), Vec(static_cast<Idx>(1u)));
 
     auto queue = alpaka::Queue<TAcc, alpaka::Blocking>(devAcc);
-
-    auto bufAcc = alpaka::allocBuf<std::uint32_t, Idx>(devAcc, gridBlockCount);
 
     alpaka::exec<TAcc>(queue, workDiv, kernel, std::data(bufAcc));
 

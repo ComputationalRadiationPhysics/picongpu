@@ -22,7 +22,7 @@ then
     sudo service --status-all
 
     # Show memory stats
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install smem
+    retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install smem
     sudo smem
     sudo free -m -t
 fi

@@ -29,49 +29,51 @@ else
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
     # focal = 20.04; jammy = 22.04
+    # Ubuntu 24.04 (noble) provides Clang up to version 20, newer versions are installed from apt.llvm.org
     if { [ "${ALPAKA_CI_UBUNTU_NAME}" == "focal" ] && [ "${ALPAKA_CI_CLANG_VER}" -ge 13 ]; } || \
-    { [ "${ALPAKA_CI_UBUNTU_NAME}" == "jammy" ] && [ "${ALPAKA_CI_CLANG_VER}" -ge 15 ]; }
+    { [ "${ALPAKA_CI_UBUNTU_NAME}" == "jammy" ] && [ "${ALPAKA_CI_CLANG_VER}" -ge 15 ]; } || \
+    { [ "${ALPAKA_CI_UBUNTU_NAME}" == "noble" ] && [ "${ALPAKA_CI_CLANG_VER}" -ge 21 ]; }
     then
         sudo add-apt-repository -y "deb http://apt.llvm.org/${ALPAKA_CI_UBUNTU_NAME}/ llvm-toolchain-${ALPAKA_CI_UBUNTU_NAME}-$ALPAKA_CI_CLANG_VER main"
     fi
 
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-${ALPAKA_CI_CLANG_VER}
+    retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-${ALPAKA_CI_CLANG_VER}
 
     if [ -n "${ALPAKA_CI_SANITIZERS}" ]
     then
         # llvm-symbolizer is required for meaningful output. This is part of the llvm base package which we don't install by default.
-        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install llvm-${ALPAKA_CI_CLANG_VER}
+        retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install llvm-${ALPAKA_CI_CLANG_VER}
 
         # The sanitizer libraries are part of libclang-rt-${ALPAKA_CI_CLANG_VER}-dev
-        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libclang-rt-${ALPAKA_CI_CLANG_VER}-dev
+        retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libclang-rt-${ALPAKA_CI_CLANG_VER}-dev
     fi
 
     if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
     then
-        travis_retry sudo apt-get -y --quiet update
-        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++-${ALPAKA_CI_CLANG_VER}-dev
-        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++abi-${ALPAKA_CI_CLANG_VER}-dev
+        retry_cmd sudo apt-get -y --quiet update
+        retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++-${ALPAKA_CI_CLANG_VER}-dev
+        retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++abi-${ALPAKA_CI_CLANG_VER}-dev
     fi
 
     # Workaround if clang uses the stdlibc++. The stdlibc++-9 does not support C++20, therefore we install the stdlibc++-11. Clang automatically uses the latest stdlibc++ version.
     if [[ "$(cat /etc/os-release)" =~ "20.04" ]] && [ "${alpaka_CXX_STANDARD}" == "20" ];
     then
-        travis_retry sudo apt install -y --no-install-recommends software-properties-common
+        retry_cmd sudo apt install -y --no-install-recommends software-properties-common
         sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
-        travis_retry sudo apt update
-        travis_retry sudo apt install -y --no-install-recommends g++-11
+        retry_cmd sudo apt update
+        retry_cmd sudo apt install -y --no-install-recommends g++-11
     fi
 
     if [ "${alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" = "ON" ] || [ "${alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" = "ON" ]
     then
         LIBOMP_PACKAGE=libomp-${ALPAKA_CI_CLANG_VER}-dev
-        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install "${LIBOMP_PACKAGE}"
+        retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install "${LIBOMP_PACKAGE}"
     fi
 
     # Modern clang uses clang-linker-wrapper to create linked device images for offloading and the necessary runtime calls to register them
     if { [ "${ALPAKA_CI_CLANG_VER}" -ge 20 ]; }
     then
-        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-tools-${ALPAKA_CI_CLANG_VER}
+        retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-tools-${ALPAKA_CI_CLANG_VER}
     fi
 
     which clang++-${ALPAKA_CI_CLANG_VER}

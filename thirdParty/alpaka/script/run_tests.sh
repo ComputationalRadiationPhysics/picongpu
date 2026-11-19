@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2017-2019 Benjamin Worpitz
+# Copyright 2017-2026 Benjamin Worpitz
 # SPDX-License-Identifier: MPL-2.0
 #
 
@@ -35,12 +35,23 @@ then
         # export NVCOMPILER_ACC_NOTIFY=3 # exceeds mximum log length
     fi
 
+    # use a string rather than an array: with "set -u", bash 3.2 (the default on macOS) treats an empty array as unset
+    CTEST_ARGS=""
+    # skip the cooperative kernel (grid synchronisation) tests with HIP/ROCm:
+    #   - on gfx1100 the tests should pass with ROCm 7.0 and later;
+    #   - on gfx1030 the tests may randomly hang.
+    if [ "${alpaka_ACC_GPU_HIP_ENABLE}" == "ON" ]
+    then
+        echo_yellow "<SKIP: grid synchronisation tests with HIP/ROCm ${ALPAKA_CI_HIP_VERSION:-}>"
+        CTEST_ARGS="${CTEST_ARGS} -E ^(gridSyncTest|helloWorldGridSync)$"
+    fi
+
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
     then
-        ctest --output-on-failure
+        ctest --output-on-failure ${CTEST_ARGS}
     elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
     then
-        ctest --output-on-failure -C ${CMAKE_BUILD_TYPE}
+        ctest --output-on-failure -C ${CMAKE_BUILD_TYPE} ${CTEST_ARGS}
     fi
 
     cd ..

@@ -1,4 +1,4 @@
-/* Copyright 2025 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber,
+/* Copyright 2026 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan, Bernhard Manfred Gruber,
  *                Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
@@ -13,6 +13,7 @@
 #include "alpaka/block/shared/st/BlockSharedMemStMember.hpp"
 #include "alpaka/block/sync/BlockSyncNoOp.hpp"
 #include "alpaka/core/DemangleTypeNames.hpp"
+#include "alpaka/grid/GridSyncCpuTbbBlocks.hpp"
 #include "alpaka/idx/bt/IdxBtZero.hpp"
 #include "alpaka/idx/gb/IdxGbRef.hpp"
 #include "alpaka/intrinsic/IntrinsicCpu.hpp"
@@ -32,6 +33,7 @@
 
 // Implementation details.
 #include "alpaka/acc/Tag.hpp"
+#include "alpaka/core/BarrierTbb.h"
 #include "alpaka/core/ClipCast.hpp"
 #include "alpaka/core/Interface.hpp"
 #include "alpaka/dev/DevCpu.hpp"
@@ -65,6 +67,7 @@ namespace alpaka
         , public BlockSharedMemDynMember<>
         , public BlockSharedMemStMember<>
         , public BlockSyncNoOp
+        , public GridSyncBarrierTbb<TIdx>
         , public IntrinsicCpu
         , public MemFenceCpu
 #    ifdef ALPAKA_DISABLE_VENDOR_RNG
@@ -91,11 +94,15 @@ namespace alpaka
 
     private:
         template<typename TWorkDiv>
-        ALPAKA_FN_HOST AccCpuTbbBlocks(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
+        ALPAKA_FN_HOST AccCpuTbbBlocks(
+            TWorkDiv const& workDiv,
+            std::size_t const& blockSharedMemDynSizeBytes,
+            core::tbb::BarrierThread<TIdx>& barrier)
             : WorkDivMembers<TDim, TIdx>(workDiv)
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
             , BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity())
+            , GridSyncBarrierTbb<TIdx>(barrier)
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
@@ -149,7 +156,9 @@ namespace alpaka
                         // m_sharedMemSizeBytes
                         static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes()),
                         // m_globalMemSizeBytes
-                        getMemBytes(dev)};
+                        getMemBytes(dev),
+                        // m_cooperativeLaunch
+                        true};
             }
         };
 
@@ -206,6 +215,39 @@ namespace alpaka
                     throw std::runtime_error(
                         "The given work division is not valid for a single thread Acc: "
                         + getAccName<AccCpuTbbBlocks<TDim, TIdx>>() + ". Threads per block should be 1!");
+                }
+
+                return TaskKernelCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>(
+                    workDiv,
+                    kernelFnObj,
+                    std::forward<TArgs>(args)...);
+            }
+        };
+
+        //! The CPU TBB block accelerator execution cooperative task type trait specialization.
+        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
+        struct CreateTaskCooperativeKernel<AccCpuTbbBlocks<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto createTaskCooperativeKernel(
+                TWorkDiv const& workDiv,
+                TKernelFnObj const& kernelFnObj,
+                TArgs&&... args)
+            {
+                if(workDiv.m_blockThreadExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error(
+                        "The given work division is not valid for a single thread Acc: "
+                        + getAccName<AccCpuTbbBlocks<TDim, TIdx>>() + ". Threads per block should be 1!");
+                }
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(workDiv);
+                auto const maxBlocks = tbb::this_task_arena::max_concurrency();
+                if(gridBlockExtent.prod() > static_cast<TIdx>(maxBlocks))
+                {
+                    throw std::runtime_error(
+                        "The number of requested blocks is larger than maximuma of the device for TBB "
+                        "accelerator. Requested: "
+                        + std::to_string(gridBlockExtent.prod()) + ", maximum allowed: " + std::to_string(maxBlocks)
+                        + ". Use getMaxActiveBlocks().");
                 }
 
                 return TaskKernelCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>(

@@ -102,7 +102,7 @@ namespace alpaka
      * and stores the result in the semi-open output range [`out_begin`,`out_end`), using the accelerator
      * back-end identified by `Tag`.
      */
-    template<alpaka::concepts::Tag TTag, typename TQueue, typename T, typename TFn>
+    template<concepts::Tag TTag, typename TQueue, typename T, typename TFn>
     void transform(TQueue& queue, T* out_begin, T* out_end, TFn&& fn, T* in)
     {
         using Idx = typename std::iterator_traits<T*>::difference_type;
@@ -130,7 +130,7 @@ namespace alpaka
      * and stores the result in the corresponding elements of the output buffer `out`,
      * using the accelerator back-end identified by `Tag`.
      */
-    template<alpaka::concepts::Tag TTag, typename TQueue, typename TBuf, typename TFn, typename TConstBuf>
+    template<concepts::Tag TTag, typename TQueue, typename TBuf, typename TFn, typename TConstBuf>
     void transform(TQueue& queue, TBuf& out, TFn&& fn, TConstBuf const& in)
     {
         // Check that the input and output buffers have compatible types.

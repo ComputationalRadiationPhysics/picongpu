@@ -5,13 +5,12 @@
 //        https://www.boost.org/LICENSE_1_0.txt)
 
 // SPDX-License-Identifier: BSL-1.0
-#ifndef CATCH_CASE_SENSITIVE_HPP_INCLUDED
-#define CATCH_CASE_SENSITIVE_HPP_INCLUDED
 
-namespace Catch {
+/**\file 
+ * "empty" include of catch_test_macros.hpp
+ * 
+ * This file does only one thing: include `catch2/catch_test_macros.hpp`,
+ * so that we can measure the compilation cost of the header.
+ */
 
-    enum class CaseSensitive { Yes, No };
-
-} // namespace Catch
-
-#endif // CATCH_CASE_SENSITIVE_HPP_INCLUDED
+#include <catch2/catch_test_macros.hpp>

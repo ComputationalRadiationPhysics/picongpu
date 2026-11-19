@@ -44,6 +44,9 @@ else
         elif [[ "$(cat /etc/os-release)" == *"24.04"* ]]
         then
             ALPAKA_CUDA_DISTRO=ubuntu2404
+        elif [[ "$(cat /etc/os-release)" == *"26.04"* ]]
+        then
+            ALPAKA_CUDA_DISTRO=ubuntu2604
         fi
 
         # Set the correct CUDA downloads
@@ -75,7 +78,7 @@ else
         then
             ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-11-6-local
             ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_11.6.2-510.47.03-1_amd64.deb
-            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/11.6.1/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/11.6.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
             ALPAKA_CUDA_OLD_KEYS=true
         elif [ "${ALPAKA_CI_CUDA_VERSION}" == "11.7" ]
         then
@@ -134,30 +137,56 @@ else
         elif [ "${ALPAKA_CI_CUDA_VERSION}" == "12.8" ]
         then
             ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-12-8-local
-            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_12.8.1-570.124.06-1_amd64.deb
-            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/12.8.1/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_12.8.2-570.211.01-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/12.8.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
             ALPAKA_CUDA_OLD_KEYS=false
         elif [ "${ALPAKA_CI_CUDA_VERSION}" == "12.9" ]
         then
             ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-12-9-local
-            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_12.9.1-575.57.08-1_amd64.deb
-            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/12.9.1/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_12.9.2-575.57.08-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/12.9.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
             ALPAKA_CUDA_OLD_KEYS=false
         elif [ "${ALPAKA_CI_CUDA_VERSION}" == "13.0" ]
         then
             ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-13-0-local
-            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_13.0.2-580.95.05-1_amd64.deb
-            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/13.0.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_13.0.3-580.126.20-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/13.0.3/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_OLD_KEYS=false
+        elif [ "${ALPAKA_CI_CUDA_VERSION}" == "13.1" ]
+        then
+            ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-13-1-local
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_13.1.2-590.48.01-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/13.1.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_OLD_KEYS=false
+        elif [ "${ALPAKA_CI_CUDA_VERSION}" == "13.2" ]
+        then
+            ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-13-2-local
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_13.2.2-595.71.05-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/13.2.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_OLD_KEYS=false
+        elif [ "${ALPAKA_CI_CUDA_VERSION}" == "13.3" ]
+        then
+            ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-13-3-local
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_13.3.1-610.43.02-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/13.3.1/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+            ALPAKA_CUDA_OLD_KEYS=false
+        elif [ "${ALPAKA_CI_CUDA_VERSION}" == "13.4" ]
+        then
+            # Starting from CUDA 13.4 the local installers no longer bundle the NVIDIA driver,
+            # so the package name does not contain the driver version any more.
+            ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-"${ALPAKA_CUDA_DISTRO}"-13-4-local
+            ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_13.4.2-1_amd64.deb
+            ALPAKA_CUDA_PKG_FILE_PATH=https://developer.download.nvidia.com/compute/cuda/13.4.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
             ALPAKA_CUDA_OLD_KEYS=false
         else
-            echo CUDA versions other than 11.2-13.0 are not currently supported on linux!
+            echo CUDA versions other than 11.2-13.4 are not currently supported on linux!
         fi
 
         # First install the local repository.
         if [ -z "$(ls -A ${ALPAKA_CI_CUDA_DIR})" ]
         then
             mkdir -p "${ALPAKA_CI_CUDA_DIR}"
-            travis_retry wget --no-verbose -O "${ALPAKA_CI_CUDA_DIR}"/"${ALPAKA_CUDA_PKG_FILE_NAME}" "${ALPAKA_CUDA_PKG_FILE_PATH}"
+            retry_cmd wget --no-verbose -O "${ALPAKA_CI_CUDA_DIR}"/"${ALPAKA_CUDA_PKG_FILE_NAME}" "${ALPAKA_CUDA_PKG_FILE_PATH}"
         fi
         sudo dpkg --install "${ALPAKA_CI_CUDA_DIR}"/"${ALPAKA_CUDA_PKG_FILE_NAME}"
 
@@ -165,15 +194,15 @@ else
         if [ "${ALPAKA_CUDA_OLD_KEYS}" = true ]
         then
             # For all versions < 11.7
-            travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install dirmngr gpg-agent gnupg2
-            travis_retry sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F60F4B3D7FA2AF80
-            travis_retry sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
+            retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install dirmngr gpg-agent gnupg2
+            retry_cmd sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F60F4B3D7FA2AF80
+            retry_cmd sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
         else
             # Since 11.7 the keys are shipped as part of the local repository.
             sudo cp /var/${ALPAKA_CUDA_PKG_DEB_NAME}/cuda-*-keyring.gpg /usr/share/keyrings
         fi
 
-        travis_retry sudo apt-get -y --quiet update
+        retry_cmd sudo apt-get -y --quiet update
 
         # Install CUDA
         # Currently we do not install CUDA fully: sudo apt-get --quiet -y install cuda
@@ -192,7 +221,7 @@ else
 
         if [ "${ALPAKA_CI_CUDA_COMPILER}" == "clang++" ]
         then
-            travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install g++-multilib
+            retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install g++-multilib
         fi
 
         # clean up

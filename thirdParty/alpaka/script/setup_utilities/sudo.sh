@@ -10,7 +10,7 @@ if ! command -v sudo &>/dev/null; then
             export PRINT_INSTALL_SUDO=true
         fi
 
-        DEBIAN_FRONTEND=noninteractive travis_retry apt update
-        DEBIAN_FRONTEND=noninteractive travis_retry apt install -y sudo
+        DEBIAN_FRONTEND=noninteractive retry_cmd apt update
+        DEBIAN_FRONTEND=noninteractive retry_cmd apt install -y sudo
     fi
 fi

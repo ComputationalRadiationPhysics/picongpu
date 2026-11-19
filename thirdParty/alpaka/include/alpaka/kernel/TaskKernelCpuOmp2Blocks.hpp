@@ -1,4 +1,4 @@
-/* Copyright 2022 Benjamin Worpitz, Bert Wesarg, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber
+/* Copyright 2026 Benjamin Worpitz, Bert Wesarg, René Widera, Sergei Bastrakov, Bernhard Manfred Gruber, Andrea Bocci
  * SPDX-License-Identifier: MPL-2.0
  */
 
@@ -24,6 +24,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -788,7 +789,9 @@ namespace alpaka
     } // namespace detail
 
     //! The CPU OpenMP 2.0 block accelerator execution task.
-    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
+    //!
+    //! \tparam TCooperative Whether the task executes a cooperative kernel, that can synchronise the whole grid.
+    template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
     class TaskKernelCpuOmp2Blocks final : public WorkDivMembers<TDim, TIdx>
     {
     public:
@@ -832,31 +835,38 @@ namespace alpaka
             // The number of blocks in the grid.
             TIdx const numBlocksInGrid(gridBlockExtent.prod());
 
-            // Get the OpenMP schedule information for the given kernel and parameter types
-            auto const schedule = std::apply(
-                [&](std::decay_t<TArgs> const&... args) {
-                    return getOmpSchedule<AccCpuOmp2Blocks<TDim, TIdx>>(
-                        m_kernelFnObj,
-                        blockThreadExtent,
-                        threadElemExtent,
-                        args...);
-                },
-                m_args);
-
-            if(::omp_in_parallel() != 0)
+            if constexpr(TCooperative)
             {
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__ << " already within a parallel region." << std::endl;
-#    endif
-                parallelFn(blockSharedMemDynSizeBytes, numBlocksInGrid, gridBlockExtent, schedule);
+                cooperativeFn(blockSharedMemDynSizeBytes, numBlocksInGrid, gridBlockExtent);
             }
             else
             {
+                // Get the OpenMP schedule information for the given kernel and parameter types
+                auto const schedule = std::apply(
+                    [&](std::decay_t<TArgs> const&... args) {
+                        return getOmpSchedule<AccCpuOmp2Blocks<TDim, TIdx>>(
+                            m_kernelFnObj,
+                            blockThreadExtent,
+                            threadElemExtent,
+                            args...);
+                    },
+                    m_args);
+
+                if(::omp_in_parallel() != 0)
+                {
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__ << " opening new parallel region." << std::endl;
+                    std::cout << __func__ << " already within a parallel region." << std::endl;
+#    endif
+                    parallelFn(blockSharedMemDynSizeBytes, numBlocksInGrid, gridBlockExtent, schedule);
+                }
+                else
+                {
+#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                    std::cout << __func__ << " opening new parallel region." << std::endl;
 #    endif
 #    pragma omp parallel
-                parallelFn(blockSharedMemDynSizeBytes, numBlocksInGrid, gridBlockExtent, schedule);
+                    parallelFn(blockSharedMemDynSizeBytes, numBlocksInGrid, gridBlockExtent, schedule);
+                }
             }
         }
 
@@ -892,21 +902,91 @@ namespace alpaka
             // Index type is auto since we have a difference for OpenMP 2.0 and later ones
             auto loopBody = [&](auto currentIndex)
             {
-#    if _OPENMP < 200805
-                auto const i_tidx = static_cast<TIdx>(currentIndex); // for issue #840
-                auto const index = Vec<DimInt<1u>, TIdx>(i_tidx); // for issue #840
-#    else
-                auto const index = Vec<DimInt<1u>, TIdx>(currentIndex); // for issue #840
-#    endif
-                acc.m_gridBlockIdx = mapIdx<TDim::value>(index, gridBlockExtent);
-
-                std::apply(m_kernelFnObj, std::tuple_cat(std::tie(acc), m_args));
-
-                // After a block has been processed, the shared memory has to be deleted.
-                freeSharedVars(acc);
+                runBlock(acc, static_cast<TIdx>(currentIndex), gridBlockExtent); // for issue #840
             };
 
             detail::parallelFor(m_kernelFnObj, loopBody, numBlocksInGrid, schedule);
+        }
+
+        //! Executes a cooperative kernel, where each OpenMP thread executes exactly one block.
+        //!
+        //! The grid synchronisation of cooperative kernels is an OpenMP barrier. OpenMP does not allow a barrier
+        //! inside a work-sharing construct like "omp for", and some implementations (e.g. MSVC) deadlock if it is.
+        //! So, cooperative kernels do not use "omp for": the block index is the OpenMP thread number, and the team
+        //! must have as many threads as there are blocks.
+        ALPAKA_FN_HOST auto cooperativeFn(
+            std::size_t const& blockSharedMemDynSizeBytes,
+            TIdx const& numBlocksInGrid,
+            Vec<TDim, TIdx> const& gridBlockExtent) const -> void
+        {
+            if(numBlocksInGrid == static_cast<TIdx>(0u))
+            {
+                return;
+            }
+
+            if(::omp_in_parallel() != 0)
+            {
+                // Every thread of the current team executes this task: use the current team as the grid.
+                int const numThreads = ::omp_get_num_threads();
+                if(static_cast<TIdx>(numThreads) != numBlocksInGrid)
+                {
+                    throw std::runtime_error(
+                        "A cooperative kernel with " + std::to_string(numBlocksInGrid)
+                        + " blocks cannot run in an OpenMP parallel region with " + std::to_string(numThreads)
+                        + " threads: the number of blocks and threads must be the same.");
+                }
+                cooperativeBlockFn(blockSharedMemDynSizeBytes, gridBlockExtent);
+            }
+            else
+            {
+                // The OpenMP runtime may create fewer threads than requested. In that case no thread executes a
+                // block, as the grid synchronisation would deadlock; the error is reported after the parallel region.
+                int teamSize = 0;
+#    pragma omp parallel num_threads(static_cast<int>(numBlocksInGrid))
+                {
+                    if(static_cast<TIdx>(::omp_get_num_threads()) == numBlocksInGrid)
+                    {
+                        cooperativeBlockFn(blockSharedMemDynSizeBytes, gridBlockExtent);
+                    }
+#    pragma omp master
+                    teamSize = ::omp_get_num_threads();
+                }
+                if(static_cast<TIdx>(teamSize) != numBlocksInGrid)
+                {
+                    throw std::runtime_error(
+                        "The OpenMP runtime started " + std::to_string(teamSize) + " threads instead of "
+                        + std::to_string(numBlocksInGrid) + " for a cooperative kernel.");
+                }
+            }
+        }
+
+        //! Executes the block with the index of the current OpenMP thread.
+        ALPAKA_FN_HOST auto cooperativeBlockFn(
+            std::size_t const& blockSharedMemDynSizeBytes,
+            Vec<TDim, TIdx> const& gridBlockExtent) const -> void
+        {
+            AccCpuOmp2Blocks<TDim, TIdx> acc(
+                *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
+                blockSharedMemDynSizeBytes);
+            runBlock(acc, static_cast<TIdx>(::omp_get_thread_num()), gridBlockExtent);
+        }
+
+        //! Executes the block with the given linear index.
+        ALPAKA_FN_HOST auto runBlock(
+            AccCpuOmp2Blocks<TDim, TIdx>& acc,
+            TIdx const& blockIdx,
+            Vec<TDim, TIdx> const& gridBlockExtent) const -> void
+        {
+            acc.m_gridBlockIdx = mapIdx<TDim::value>(Vec<DimInt<1u>, TIdx>(blockIdx), gridBlockExtent);
+
+            std::apply(
+                [&](auto&&... argsWithAcc)
+                { detail::checkKernelReturnType(m_kernelFnObj, std::forward<decltype(argsWithAcc)>(argsWithAcc)...); },
+                std::tuple_cat(std::tie(acc), m_args));
+            std::apply(m_kernelFnObj, std::tuple_cat(std::tie(acc), m_args));
+
+            // After a block has been processed, the shared memory has to be deleted.
+            freeSharedVars(acc);
         }
 
         TKernelFnObj m_kernelFnObj;
@@ -916,36 +996,36 @@ namespace alpaka
     namespace trait
     {
         //! The CPU OpenMP 2.0 grid block execution task accelerator type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct AccType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+        struct AccType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>>
         {
             using type = AccCpuOmp2Blocks<TDim, TIdx>;
         };
 
         //! The CPU OpenMP 2.0 grid block execution task device type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct DevType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+        struct DevType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>>
         {
             using type = DevCpu;
         };
 
         //! The CPU OpenMP 2.0 grid block execution task dimension getter trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct DimType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+        struct DimType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>>
         {
             using type = TDim;
         };
 
         //! The CPU OpenMP 2.0 grid block execution task platform type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct PlatformType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+        struct PlatformType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>>
         {
             using type = PlatformCpu;
         };
 
         //! The CPU OpenMP 2.0 block execution task idx type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct IdxType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
+        template<typename TDim, typename TIdx, typename TKernelFnObj, bool TCooperative, typename... TArgs>
+        struct IdxType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TCooperative, TArgs...>>
         {
             using type = TIdx;
         };
@@ -978,6 +1058,22 @@ namespace alpaka
                 kernelFunctionAttributes.maxDynamicSharedSizeBytes
                     = static_cast<int>(alpaka::BlockSharedDynMemberAllocKiB * 1024);
                 return kernelFunctionAttributes;
+            }
+        };
+
+        //! The CPU CPU OMP2 blocks get max active blocks for cooperative kernel specialization.
+        template<typename TDev, typename TKernelFnObj, typename TDim, typename TIdx, typename... TArgs>
+        struct MaxActiveBlocks<AccCpuOmp2Blocks<TDim, TIdx>, TDev, TKernelFnObj, TDim, TIdx, TArgs...>
+        {
+            ALPAKA_FN_HOST static auto getMaxActiveBlocks(
+                TKernelFnObj const& /*kernelFnObj*/,
+                TDev const& device,
+                alpaka::Vec<TDim, TIdx> const& /*blockThreadExtent*/,
+                alpaka::Vec<TDim, TIdx> const& /*threadElemExtent*/,
+                TArgs const&... /*args*/) -> int
+            {
+                return static_cast<int>(
+                    trait::GetAccDevProps<AccCpuOmp2Blocks<TDim, TIdx>>::getAccDevProps(device).m_multiProcessorCount);
             }
         };
 

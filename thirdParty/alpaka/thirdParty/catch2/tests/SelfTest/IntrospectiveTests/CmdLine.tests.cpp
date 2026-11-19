@@ -58,12 +58,13 @@ TEST_CASE( "Process can be configured on command line", "[config][command-line]"
 
         CHECK( cfg.getReporterSpecs().size() == 1 );
         CHECK( cfg.getReporterSpecs()[0] ==
-               Catch::ReporterSpec{ expectedReporter, {}, {}, {} } );
+               Catch::ReporterSpec{ expectedReporter, {}, {}, {}, {} } );
         CHECK( cfg.getProcessedReporterSpecs().size() == 1 );
         CHECK( cfg.getProcessedReporterSpecs()[0] ==
                Catch::ProcessedReporterSpec{ expectedReporter,
                                              std::string{},
                                              Catch::ColourMode::PlatformDefault,
+                                             Catch::Verbosity::Normal,
                                              {} } );
     }
 
@@ -108,7 +109,7 @@ TEST_CASE( "Process can be configured on command line", "[config][command-line]"
             CHECK(result);
 
             REQUIRE( config.reporterSpecifications ==
-                     vec_Specs{ { "console", {}, {}, {} } } );
+                     vec_Specs{ { "console", {}, {}, {}, {} } } );
         }
         SECTION("-r/xml") {
             auto result = cli.parse({"test", "-r", "xml"});
@@ -116,7 +117,7 @@ TEST_CASE( "Process can be configured on command line", "[config][command-line]"
             CHECK(result);
 
             REQUIRE( config.reporterSpecifications ==
-                     vec_Specs{ { "xml", {}, {}, {} } } );
+                     vec_Specs{ { "xml", {}, {}, {}, {} } } );
         }
         SECTION("--reporter/junit") {
             auto result = cli.parse({"test", "--reporter", "junit"});
@@ -124,7 +125,7 @@ TEST_CASE( "Process can be configured on command line", "[config][command-line]"
             CHECK(result);
 
             REQUIRE( config.reporterSpecifications ==
-                     vec_Specs{ { "junit", {}, {}, {} } } );
+                     vec_Specs{ { "junit", {}, {}, {}, {} } } );
         }
         SECTION("must match one of the available ones") {
             auto result = cli.parse({"test", "--reporter", "unsupported"});
@@ -137,27 +138,27 @@ TEST_CASE( "Process can be configured on command line", "[config][command-line]"
             CAPTURE(result.errorMessage());
             CHECK(result);
             REQUIRE( config.reporterSpecifications ==
-                     vec_Specs{ { "console", "out.txt"s, {}, {} } } );
+                     vec_Specs{ { "console", "out.txt"s, {}, {}, {} } } );
         }
         SECTION("With Windows-like absolute path as output file") {
             auto result = cli.parse({ "test", "-r", "console::out=C:\\Temp\\out.txt" });
             CAPTURE(result.errorMessage());
             CHECK(result);
             REQUIRE( config.reporterSpecifications ==
-                     vec_Specs{ { "console", "C:\\Temp\\out.txt"s, {}, {} } } );
+                     vec_Specs{ { "console", "C:\\Temp\\out.txt"s, {}, {}, {} } } );
         }
         SECTION("Multiple reporters") {
             SECTION("All with output files") {
                 CHECK(cli.parse({ "test", "-r", "xml::out=output.xml", "-r", "junit::out=output-junit.xml" }));
                 REQUIRE( config.reporterSpecifications ==
-                         vec_Specs{ { "xml", "output.xml"s, {}, {} },
-                               { "junit", "output-junit.xml"s, {}, {} } } );
+                    vec_Specs{ { "xml", "output.xml"s, {}, {}, {} },
+                               { "junit", "output-junit.xml"s, {}, {}, {} } } );
             }
             SECTION("Mixed output files and default output") {
                 CHECK(cli.parse({ "test", "-r", "xml::out=output.xml", "-r", "console" }));
                 REQUIRE( config.reporterSpecifications ==
-                         vec_Specs{ { "xml", "output.xml"s, {}, {} },
-                                    { "console", {}, {}, {} } } );
+                         vec_Specs{ { "xml", "output.xml"s, {}, {}, {} },
+                                    { "console", {}, {}, {}, {} } } );
             }
             SECTION("cannot have multiple reporters with default output") {
                 auto result = cli.parse({ "test", "-r", "console", "-r", "xml::out=output.xml", "-r", "junit" });
@@ -301,6 +302,23 @@ TEST_CASE( "Process can be configured on command line", "[config][command-line]"
 
             REQUIRE(config.benchmarkSamples == 200);
         }
+        SECTION("samples must be greater than zero"){
+            auto result = cli.parse({"test", "--benchmark-samples=0"});
+
+            CHECK_FALSE(result);
+            REQUIRE_THAT(
+                result.errorMessage(),
+                ContainsSubstring("Benchmark samples must be greater than 0"));
+        }
+
+        SECTION("samples must be parseable") {
+            auto result = cli.parse({"test", "--benchmark-samples=abc"});
+
+            CHECK_FALSE(result);
+            REQUIRE_THAT(
+                result.errorMessage(),
+                ContainsSubstring("Could not parse 'abc' as benchmark samples"));
+        }
 
         SECTION("resamples") {
             CHECK(cli.parse({ "test", "--benchmark-resamples=20000" }));
@@ -396,9 +414,10 @@ TEST_CASE( "Parsing warnings", "[cli][warnings]" ) {
     SECTION( "Combining multiple warnings" ) {
         REQUIRE( cli.parse( { "test",
                               "--warn", "NoAssertions",
-                              "--warn", "UnmatchedTestSpec" } ) );
+                              "--warn", "UnmatchedTestSpec",
+                              "--warn", "InfiniteGenerators" } ) );
 
-        REQUIRE( config.warnings == ( WarnAbout::NoAssertions | WarnAbout::UnmatchedTestSpec ) );
+        REQUIRE( config.warnings == ( WarnAbout::NoAssertions | WarnAbout::UnmatchedTestSpec | WarnAbout::InfiniteGenerator ) );
     }
 }
 
@@ -454,14 +473,110 @@ TEST_CASE( "Parse rng seed in different formats", "[approvals][cli][rng-seed]" )
         CAPTURE( seed_string );
 
         auto result = cli.parse( { "tests", "--rng-seed", seed_string } );
-
         REQUIRE( result );
-        REQUIRE( config.rngSeed == seed_value );
+
+        Catch::Config cfg{config};
+        REQUIRE( cfg.rngSeed() == seed_value );
+        REQUIRE( cfg.rngSeedWasFixed() );
+    }
+    SECTION( "time seed is not considered fixed" ) {
+        auto result = cli.parse( { "tests", "--rng-seed", "time" } );
+        REQUIRE( result );
+
+        Catch::Config cfg{config};
+        REQUIRE_FALSE( cfg.rngSeedWasFixed() );
+    }
+    SECTION( "random-device seed is not considered fixed" ) {
+        auto result = cli.parse( { "tests", "--rng-seed", "random-device" } );
+        REQUIRE( result );
+
+        Catch::Config cfg{config};
+        REQUIRE_FALSE( cfg.rngSeedWasFixed() );
     }
     SECTION( "Error cases" ) {
         auto seed_string =
             GENERATE( "0xSEED", "999999999999", "08888", "BEEF", "123 456" );
         CAPTURE( seed_string );
         REQUIRE_FALSE( cli.parse( { "tests", "--rng-seed", seed_string } ) );
+
+        Catch::Config cfg{config};
+        REQUIRE_FALSE( cfg.rngSeedWasFixed() );
+    }
+}
+
+TEST_CASE( "Parsing path filter specs",
+           "[cli][section-spec]" ) {
+    using Catch::PathFilter;
+
+    Catch::ConfigData config;
+    auto cli = Catch::makeCommandLineParser( config );
+    SECTION( "Only section specs leads to old filter behaviour" ) {
+        auto result = cli.parse( { "tests", "-c", "1", "--section", "a section" } );
+        REQUIRE( result );
+        REQUIRE_FALSE( config.useNewPathFilteringBehaviour );
+    }
+    SECTION( "Generator specs enable new filter behaviour" ) {
+        auto result =
+            cli.parse( { "tests", "-g", "1", "--generator-index", "2" } );
+        REQUIRE( result );
+        REQUIRE( config.useNewPathFilteringBehaviour );
+    }
+    SECTION("Generator specs do not accept stringish arguments") {
+        auto result = cli.parse( { "tests", "--generator-index", "foo-baz" } );
+        REQUIRE_FALSE( result );
+    }
+    SECTION( "Generator specs accept star as argument" ) {
+        auto result = cli.parse( { "tests", "--generator-index", "*" } );
+        REQUIRE( result );
+
+        REQUIRE( config.pathFilters[0] ==
+                 PathFilter( PathFilter::For::Generator, "*" ) );
+    }
+    SECTION( "Generator specs do not accept negative numbers" ) {
+        auto result = cli.parse( { "tests", "--generator-index", "-2" } );
+        REQUIRE_FALSE( result );
+    }
+    SECTION( "Generic path spec enables new filter behaviour" ) {
+        auto result =
+            cli.parse( { "tests", "-p", "g:1", "--path-filter", "c:foobar" } );
+        REQUIRE( result );
+        REQUIRE( config.useNewPathFilteringBehaviour );
+
+        REQUIRE( config.pathFilters[0] ==
+                 PathFilter( PathFilter::For::Generator, "1" ) );
+        REQUIRE( config.pathFilters[1] ==
+                 PathFilter( PathFilter::For::Section, "foobar" ) );
+    }
+    SECTION( "Generic path spec for generator is validated" ) {
+        auto result = cli.parse( { "tests", "-p", "g:foo-bar" } );
+        REQUIRE_FALSE( result );
+    }
+    SECTION( "Generic path spec without colon is rejected" ) {
+        auto result1 = cli.parse( { "tests", "-p", "g123" } );
+        REQUIRE_FALSE( result1 );
+        auto result2 = cli.parse( { "tests", "-p", "carp" } );
+        REQUIRE_FALSE( result2 );
+    }
+    SECTION( "Using both section and generator filters creates filter stack" ) {
+        auto result = cli.parse( { "tests",
+                                   "--section", "foo-bar",
+                                   "--generator-index", "3",
+                                   "-g", "123",
+                                   "-c", "baz"
+        });
+        REQUIRE( result );
+        REQUIRE( config.pathFilters[0] == PathFilter( PathFilter::For::Section, "foo-bar" ) );
+        REQUIRE( config.pathFilters[1] == PathFilter( PathFilter::For::Generator, "3" ) );
+        REQUIRE( config.pathFilters[2] == PathFilter( PathFilter::For::Generator, "123" ) );
+        REQUIRE( config.pathFilters[3] == PathFilter( PathFilter::For::Section, "baz" ) );
+    }
+    SECTION( "Section/generator filters are whitespace trimmed" ) {
+        auto result = cli.parse( { "tests",
+                                   "--section", "  untrimmed  ",
+                                   "--generator-index", "  42  "
+        });
+        REQUIRE( result );
+        REQUIRE( config.pathFilters[0] == PathFilter(PathFilter::For::Section, "untrimmed" ) );
+        REQUIRE( config.pathFilters[1] == PathFilter(PathFilter::For::Generator, "42" ) );
     }
 }

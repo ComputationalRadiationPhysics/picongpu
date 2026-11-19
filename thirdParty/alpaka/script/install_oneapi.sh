@@ -18,14 +18,14 @@ else
     # Ref.: https://github.com/rscohn2/oneapi-ci
     # intel-basekit intel-hpckit are too large in size
 
-    travis_retry sudo apt-get -qqq update
-    travis_retry sudo apt-get install -y wget ca-certificates gnupg
-    travis_retry sudo wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+    retry_cmd sudo apt-get -qqq update
+    retry_cmd sudo apt-get install -y wget ca-certificates gnupg
+    retry_cmd sudo wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
 
     sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
     echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
 
-    travis_retry sudo apt-get update
+    retry_cmd sudo apt-get update
 
     #  See a list of oneAPI packages available for install
     echo "################################"
@@ -36,9 +36,13 @@ else
     components=(
         intel-oneapi-common-vars                                      # Contains /opt/intel/oneapi/setvars.sh - has no version number
         intel-oneapi-compiler-dpcpp-cpp-"${ALPAKA_CI_ONEAPI_VERSION}" # Contains icpx compiler and SYCL runtime
-        intel-oneapi-compiler-fpga-"${ALPAKA_CI_ONEAPI_VERSION}"      # Containes the FPGA support package
     )
-    travis_retry sudo apt-get install -y "${components[@]}"
+    # The FPGA support package is distributed only up to oneAPI 2025.0
+    if [ "$(printf '%s\n' "${ALPAKA_CI_ONEAPI_VERSION}" 2025.0 | sort -V | head -n1)" == "${ALPAKA_CI_ONEAPI_VERSION}" ]
+    then
+        components+=(intel-oneapi-compiler-fpga-"${ALPAKA_CI_ONEAPI_VERSION}") # Contains the FPGA support package
+    fi
+    retry_cmd sudo apt-get install -y "${components[@]}"
 
     set +eu
     source /opt/intel/oneapi/setvars.sh
@@ -47,10 +51,10 @@ else
     # Workaround if icpx uses the stdlibc++. The stdlibc++-9 does not support C++20, therefore we install the stdlibc++-11. Clang automatically uses the latest stdlibc++ version.
     if [[ "$(cat /etc/os-release)" =~ "20.04" ]] && [ "${alpaka_CXX_STANDARD}" == "20" ];
     then
-        travis_retry sudo apt install -y --no-install-recommends software-properties-common
+        retry_cmd sudo apt install -y --no-install-recommends software-properties-common
         sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
-        travis_retry sudo apt update
-        travis_retry sudo apt install -y --no-install-recommends g++-11
+        retry_cmd sudo apt update
+        retry_cmd sudo apt install -y --no-install-recommends g++-11
     fi
 
     # path depends on the SDK version

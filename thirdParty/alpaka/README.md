@@ -49,16 +49,16 @@ The [source code documentation](https://alpaka-group.github.io/alpaka/) is gener
 Accelerator Back-ends
 ---------------------
 
-| Accelerator Back-end   | Lib/API                                                 | Devices                    | Execution strategy grid-blocks     | Execution strategy block-threads     |
-|------------------------|---------------------------------------------------------|----------------------------|------------------------------------|--------------------------------------|
-| Serial                 | n/a                                                     | Host CPU (single core)     | sequential                         | sequential (only 1 thread per block) |
-| OpenMP 2.0+ blocks     | OpenMP 2.0+                                             | Host CPU (multi core)      | parallel (preemptive multitasking) | sequential (only 1 thread per block) |
-| OpenMP 2.0+ threads    | OpenMP 2.0+                                             | Host CPU (multi core)      | sequential                         | parallel (preemptive multitasking)   |
-| std::thread            | std::thread                                             | Host CPU (multi core)      | sequential                         | parallel (preemptive multitasking)   |
-| TBB                    | TBB 2.2+                                                | Host CPU (multi core)      | parallel (preemptive multitasking) | sequential (only 1 thread per block) |
-| CUDA                   | CUDA 12.0+                                              | NVIDIA GPUs                | parallel (undefined)               | parallel (lock-step within warps)    |
-| HIP(clang)             | [HIP 6.0+](https://github.com/ROCm-Developer-Tools/HIP) | AMD GPUs                   | parallel (undefined)               | parallel (lock-step within warps)    |
-| SYCL(oneAPI)           | oneAPI 2024.2+                                          | CPUs, Intel GPUs and FPGAs | parallel (undefined)               | parallel (lock-step within warps)    |
+| Accelerator Back-end   | Lib/API                                                 | Devices                         | Execution strategy grid-blocks     | Execution strategy block-threads     |
+|------------------------|---------------------------------------------------------|---------------------------------|------------------------------------|--------------------------------------|
+| Serial                 | n/a                                                     | Host CPU (single core)          | sequential                         | sequential (only 1 thread per block) |
+| OpenMP 2.0+ blocks     | OpenMP 2.0+                                             | Host CPU (multi core)           | parallel (preemptive multitasking) | sequential (only 1 thread per block) |
+| OpenMP 2.0+ threads    | OpenMP 2.0+                                             | Host CPU (multi core)           | sequential                         | parallel (preemptive multitasking)   |
+| std::thread            | std::thread                                             | Host CPU (multi core)           | sequential                         | parallel (preemptive multitasking)   |
+| TBB                    | TBB 2.2+                                                | Host CPU (multi core)           | parallel (preemptive multitasking) | sequential (only 1 thread per block) |
+| CUDA                   | CUDA 12.0+                                              | NVIDIA GPUs                     | parallel (undefined)               | parallel (lock-step within warps)    |
+| HIP(clang)             | [HIP 6.0+](https://github.com/ROCm-Developer-Tools/HIP) | AMD GPUs                        | parallel (undefined)               | parallel (lock-step within warps)    |
+| SYCL(oneAPI)           | oneAPI 2024.2+                                          | CPUs, Intel GPUs and FPGAs [^3] | parallel (undefined)               | parallel (lock-step within warps)    |
 
 
 Supported Compilers
@@ -66,23 +66,25 @@ Supported Compilers
 
 This library uses C++20 (or newer when available).
 
-| Accelerator Back-end | gcc 11.1 (Linux)               | gcc 12.3 (Linux)                      | gcc 13.1 (Linux)                      | clang 14 (Linux)                      | clang 15 (Linux)               | clang 16 (Linux)                      | clang 17 (Linux)                      | clang 18 (Linux)                      | clang 19 (Linux)                      | clang 20 (Linux)                  | clang 22 (Linux)             | icpx 2025.0 (Linux)     | Xcode 15.4 / 16.1 (macOS) | Visual Studio 2022 (Windows) |
-|----------------------|--------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|--------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|-----------------------------------|------------------------------|-------------------------|---------------------------|------------------------------|
-| Serial               | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                | :x:                          | :white_check_mark:      | :white_check_mark:        | :white_check_mark:           |
-| OpenMP 2.0+ blocks   | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                | :x:                          | :white_check_mark: [^1] | :white_check_mark:        | :white_check_mark:           |
-| OpenMP 2.0+ threads  | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                | :x:                          | :white_check_mark: [^1] | :white_check_mark:        | :white_check_mark:           |
-| std::thread          | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                | :x:                          | :white_check_mark:      | :white_check_mark:        | :white_check_mark:           |
-| TBB                  | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                | :x:                          | :white_check_mark:      | :white_check_mark:        | :white_check_mark:           |
-| CUDA (nvcc)          | :white_check_mark: (CUDA 12.0) | :white_check_mark: (CUDA 12.0 - 12.5) | :white_check_mark: (CUDA 12.4 - 13.0) | :white_check_mark: (CUDA 12.2 - 12.3) | :white_check_mark: (CUDA 12.9) | :white_check_mark: (CUDA 12.6 - 12.9) | :white_check_mark: (CUDA 12.5 - 12.9) | :white_check_mark: (CUDA 12.6 - 12.9) | :white_check_mark: (CUDA 12.8 - 12.9) | :white_check_mark: (CUDA 13.0)    | :x:                          | :x:                     | -                         | :x:                          |
-| CUDA (clang)         | -                              | -                                     | -                                     | :x:                                   | :white_check_mark: (12.9)      | :x:                                   | :x:                                   | :x:                                   | :x:                                   | :x:                               | :x:                          | :x:                     | -                         | -                            |
-| HIP (clang)          | -                              | -                                     | -                                     | :x:                                   | :x:                            | :x:                                   | :white_check_mark: (HIP 6.0 - 6.1)    | :white_check_mark: (HIP 6.2 - 6.3)    | :white_check_mark: (HIP 6.4)          | :white_check_mark: (HIP 7.0, 7.1) | :white_check_mark: (HIP 7.2) | :x:                     | -                         | -                            |
-| SYCL                 | :x:                            | :x:                                   | :x:                                   | :x:                                   | :x:                            | :x:                                   | :x:                                   | :x:                                   | :x:                                   | :x:                               | :x:                          | :white_check_mark: [^2] | -                         | :x:                          |
+| Accelerator Back-end | gcc 11.1 (Linux)               | gcc 12.3 (Linux)                      | gcc 13.1 (Linux)                      | clang 14 (Linux)                      | clang 15 (Linux)               | clang 16 (Linux)                      | clang 17 (Linux)                           | clang 18 (Linux)                           | clang 19 (Linux)                           | clang 20 (Linux)                           | clang 21 (Linux)                           | clang 22 (Linux)                           | clang 23 (Linux)                           | icpx 2025.0 (Linux)     | icpx 2025.2 (Linux)     | icpx 2025.3 (Linux)     | icpx 2026.0 (Linux)     | icpx 2026.1 (Linux)     | Xcode 15.4 / 16.1 (macOS) | Visual Studio 2022 (Windows) |
+|----------------------|--------------------------------|---------------------------------------|---------------------------------------|---------------------------------------|--------------------------------|---------------------------------------|--------------------------------------------|--------------------------------------------|--------------------------------------------|--------------------------------------------|--------------------------------------------|--------------------------------------------|--------------------------------------------|-------------------------|-------------------------|-------------------------|-------------------------|-------------------------|---------------------------|------------------------------|
+| Serial               | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:        | :white_check_mark:           |
+| OpenMP 2.0+ blocks   | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark:        | :white_check_mark:           |
+| OpenMP 2.0+ threads  | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark: [^4] | :white_check_mark:        | :white_check_mark:           |
+| std::thread          | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:        | :white_check_mark:           |
+| TBB                  | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:                    | :white_check_mark:             | :white_check_mark:                    | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:                         | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:      | :white_check_mark:        | :white_check_mark:           |
+| CUDA (nvcc)          | :white_check_mark: (CUDA 12.0) | :white_check_mark: (CUDA 12.0 - 12.5) | :white_check_mark: (CUDA 12.4 - 13.4) | :white_check_mark: (CUDA 12.2 - 12.3) | :white_check_mark: (CUDA 12.9) | :white_check_mark: (CUDA 12.6 - 12.9) | :white_check_mark: (CUDA 12.5 - 12.9)      | :white_check_mark: (CUDA 12.6 - 12.9)      | :white_check_mark: (CUDA 12.8 - 12.9)      | :white_check_mark: (CUDA 13.0 - 13.4)      | :white_check_mark: (CUDA 13.1 - 13.4)      | :white_check_mark: (CUDA 13.4)             | :x:                                        | :x:                     | :x:                     | :x:                     | :x:                     | :x:                     | -                         | :x:                          |
+| CUDA (clang)         | -                              | -                                     | -                                     | :x:                                   | :x:                            | :x:                                   | :white_check_mark: (CUDA 12.0 - 12.1) [^1] | :white_check_mark: (CUDA 12.0 - 12.3) [^1] | :white_check_mark: (CUDA 12.0 - 12.5) [^1] | :white_check_mark: (CUDA 12.0 - 12.8) [^1] | :white_check_mark: (CUDA 12.0 - 12.8) [^1] | :white_check_mark: (CUDA 12.0 - 12.9) [^1] | :white_check_mark: (CUDA 12.0 - 13.2) [^1] | :x:                     | :x:                     | :x:                     | :x:                     | :x:                     | -                         | -                            |
+| HIP (clang)          | -                              | -                                     | -                                     | :x:                                   | :x:                            | :x:                                   | :white_check_mark: (HIP 6.0 - 6.1)         | :white_check_mark: (HIP 6.2 - 6.3)         | :white_check_mark: (HIP 6.4)               | :white_check_mark: (HIP 7.0, 7.1)          | :x:                                        | :white_check_mark: (HIP 7.2)               | :white_check_mark: (HIP 7.14, 10.0)        | :x:                     | :x:                     | :x:                     | :x:                     | :x:                     | -                         | -                            |
+| SYCL                 | :x:                            | :x:                                   | :x:                                   | :x:                                   | :x:                            | :x:                                   | :x:                                        | :x:                                        | :x:                                        | :x:                                        | :x:                                        | :x:                                        | :x:                                        | :white_check_mark: [^2] | :white_check_mark: [^2] | :white_check_mark: [^2] | :white_check_mark: [^2] | :white_check_mark: [^2] | -                         | :x:                          |
 
 
 Other compilers or combinations marked with :x: in the table above may work but are not tested in CI and are therefore not explicitly supported.
 
-[^1]: Due to an [LLVM bug](https://github.com/llvm/llvm-project/issues/58491) in debug mode only release builds are supported.
+[^1]: Clang-CUDA does not generate debug symbols for device code in debug builds with clang older than 20.1.0, due to an [LLVM bug](https://github.com/llvm/llvm-project/issues/58491), or with CUDA older than 12.3, because `ptxas` crashes on the device debug information for `sm_90`.
 [^2]: Currently, the unit tests are compiled but not executed.
+[^3]: FPGAs are supported up to oneAPI 2025.0, later releases do not include the FPGA compiler.
+[^4]: The OpenMP back-ends are not tested with icpx in the CI, because of an [Intel LLVM bug](https://github.com/intel/llvm/issues/10711).
 
 Dependencies
 ------------
@@ -92,6 +94,7 @@ However some of the accelerator back-end implementations require different boost
 
 When an accelerator back-end using *CUDA* is enabled, version *12.0* (with nvcc as CUDA compiler) or version *12.0* (with clang as CUDA compiler) of the *CUDA SDK* is the minimum requirement.
 *NOTE*: When using clang as a native *CUDA* compiler, the *CUDA accelerator back-end* can not be enabled together with any *OpenMP accelerator back-end* because this combination is currently unsupported.
+*NOTE*: When using clang as a native *CUDA* compiler with version *13.0* or newer of the *CUDA SDK*, CMake 3.31.8 or 4.0.3 and newer is required, because older versions of CMake cannot identify clang as a *CUDA* compiler.
 *NOTE*: Separable compilation is disabled by default and can be enabled via the CMake flag `CMAKE_CUDA_SEPARABLE_COMPILATION`.
 
 When an accelerator back-end using *OpenMP* is enabled, the compiler and the platform have to support the corresponding minimum *OpenMP* version.
@@ -156,7 +159,7 @@ consider citing us accordingly in your derived work and publications:
 % colocated with the
 %   "2017 ISC High Performance Conference"
 %   in Frankfurt, Germany
-@inproceedings{MathesP3MA2017,
+@inproceedings{MatthesP3MA2017,
   author    = {{Matthes}, A. and {Widera}, R. and {Zenker}, E. and {Worpitz}, B. and
                {Huebl}, A. and {Bussmann}, M.},
   title     = {Tuning and optimization for a variety of many-core architectures without changing a single line of implementation code
@@ -164,10 +167,14 @@ consider citing us accordingly in your derived work and publications:
   archivePrefix = "arXiv",
   eprint    = {1706.10086},
   keywords  = {Computer Science - Distributed, Parallel, and Cluster Computing},
-  day       = {30},
-  month     = {Jun},
+  day       = {20},
+  month     = {October},
   year      = {2017},
+  pages     = {496-514},
+  publisher = {Springer International Publishing},
+  isbn      = {978-3-319-67630-2},
   url       = {https://arxiv.org/abs/1706.10086},
+  doi       = {10.1007/978-3-319-67630-2_36},
 }
 
 % Peer-Reviewed Publication %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,8 +197,10 @@ consider citing us accordingly in your derived work and publications:
   day       = {23},
   month     = {May},
   year      = {2016},
+  pages     = {631-640},
   publisher = {IEEE Computer Society},
   url       = {http://arxiv.org/abs/1602.08477},
+  doi       = {10.1109/IPDPSW.2016.50},
 }
 
 

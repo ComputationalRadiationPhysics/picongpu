@@ -15,7 +15,7 @@ requires-python = ">=3.10"
 description = "Job generator application for the alpaka CI."
 version = "1.0"
 dependencies = [
-    "bashi-ci == 1.1",
+    "bashi-ci ~= 1.1",
     "pyaml",
     "types-PyYAML",
     "typeguard",

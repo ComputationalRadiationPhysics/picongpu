@@ -13,8 +13,11 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
+#include <cstdint>
 #include <numeric>
 #include <type_traits>
+#include <vector>
 
 namespace buftest
 {
@@ -358,6 +361,63 @@ TEMPLATE_LIST_TEST_CASE("memBufMove", "[memBuf]", alpaka::test::TestAccs)
         CHECK(read(buf1) == 2);
         CHECK(read(buf2) == 1);
     } // both buffers destruct fine here
+}
+
+//! Copy between views that use different index types, like a std::vector, whose index type is always
+//! std::size_t, and a buffer allocated with the index type of the accelerator.
+TEMPLATE_LIST_TEST_CASE("memBufMixedIdxCopyTest", "[memBuf]", alpaka::test::TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::Dim<Acc>;
+
+    // a std::vector is a one-dimensional view
+    if constexpr(Dim::value == 1)
+    {
+        using Idx = alpaka::Idx<Acc>;
+        using Elem = std::uint32_t;
+
+        // an index type which is guaranteed to differ from the one used by the accelerator
+        using OtherIdx = std::conditional_t<sizeof(Idx) == sizeof(std::uint32_t), std::uint64_t, std::uint32_t>;
+        STATIC_REQUIRE(not std::is_same_v<Idx, OtherIdx>);
+        STATIC_REQUIRE(std::is_same_v<alpaka::Idx<std::vector<Elem>>, std::size_t>);
+
+        auto const platformHost = alpaka::PlatformCpu{};
+        auto const devHost = alpaka::getDevByIdx(platformHost, 0);
+        auto const platformAcc = alpaka::Platform<Acc>{};
+        auto const dev = alpaka::getDevByIdx(platformAcc, 0);
+        auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
+
+        constexpr std::size_t size = 16u;
+        std::vector<Elem> src(size);
+        std::iota(std::begin(src), std::end(src), Elem{1});
+        std::vector<Elem> dst(size);
+
+        auto buf = alpaka::allocBuf<Elem, Idx>(dev, alpaka::Vec<Dim, Idx>{static_cast<Idx>(size)});
+
+        // copy without an explicit extent, which is taken from the source view
+        std::fill(std::begin(dst), std::end(dst), Elem{0});
+        alpaka::memcpy(queue, buf, src);
+        alpaka::memcpy(queue, dst, buf);
+        alpaka::wait(queue);
+        CHECK(dst == src);
+
+        // copy with an explicit extent, expressed in either index type
+        std::fill(std::begin(dst), std::end(dst), Elem{0});
+        alpaka::memcpy(queue, buf, src, static_cast<Idx>(size));
+        alpaka::memcpy(queue, dst, buf, size);
+        alpaka::wait(queue);
+        CHECK(dst == src);
+
+        // copy to and from views using a third index type
+        std::fill(std::begin(dst), std::end(dst), Elem{0});
+        auto const srcView = alpaka::createView(devHost, src.data(), static_cast<OtherIdx>(size));
+        auto dstView = alpaka::createView(devHost, dst.data(), static_cast<OtherIdx>(size));
+        STATIC_REQUIRE(std::is_same_v<alpaka::Idx<decltype(dstView)>, OtherIdx>);
+        alpaka::memcpy(queue, buf, srcView);
+        alpaka::memcpy(queue, dstView, buf);
+        alpaka::wait(queue);
+        CHECK(dst == src);
+    }
 }
 
 namespace

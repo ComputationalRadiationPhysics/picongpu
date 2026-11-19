@@ -14,12 +14,12 @@ if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     #-------------------------------------------------------------------------------
     # Install sloc
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install sloccount
+    retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install sloccount
     sloccount --version
 
     #-------------------------------------------------------------------------------
     # Install shellcheck
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install shellcheck
+    retry_cmd sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install shellcheck
     shellcheck --version
 
 elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
