@@ -38,15 +38,16 @@ Pick the entry point that matches what you are looking for:
 * **Migrating from legacy** ``.param`` **file setups to PICMI?**
   The :ref:`Foundations <python_package/foundations/index:Foundations>` chapter
   introduces the PICMI interface, and the
-  :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` chapter
-  still documents the legacy ``.param``/TBG setup you are coming from, so you
-  can map an existing configuration onto a PICMI input script.
+  :ref:`Legacy C++ interface (advanced) <usage-index>` chapter still documents
+  the legacy ``.param``/TBG setup you are coming from, so you can map an
+  existing configuration onto a PICMI input script.
 * **Developing the C++ core?**
-  The :ref:`C++ Interface (advanced / legacy) <usage/param:.param Files>` and
+  The :ref:`Legacy C++ interface (advanced) <usage-index>` and
   :ref:`Development <dev/CONTRIBUTING:How to Participate as a Developer>`
   chapters document the direct ``.param``/TBG interface and how to contribute.
-  The :ref:`Installation (from source) <install/path:Introduction>` chapter
-  collects the manual C++ dependency installation and the cluster profiles.
+  The legacy chapter also contains the
+  :ref:`installation instructions <install/path:Introduction>` for the manual
+  C++ dependency installation and the cluster profiles.
   For the Python interface, see
   :ref:`Installing the Python Package <python_package/selected_topics/install:Installing the Python Package>`.
 
@@ -109,39 +110,11 @@ the section that answers your question.
    usage/python_utils
 
 .. toctree::
-   :caption: C++ Interface (advanced / legacy)
+   :caption: Legacy C++ interface (advanced)
    :maxdepth: 1
    :hidden:
 
-   usage/basics
-   usage/param
-   usage/plugins
-   usage/tbg
-   usage/workflows
-   usage/tests
-   usage/examples
-   tutorials/hemeraIn5min
-
-.. toctree::
-   :caption: Installation (HPC / from source)
-   :maxdepth: 1
-   :hidden:
-
-   install/path
-   install/instructions
-   install/dependencies
-   install/profile
-   install/changelog.md
-
-.. toctree::
-   :caption: Expert
-   :maxdepth: 1
-   :hidden:
-
-   expert/deviceOversubscription
-   expert/signals
-   usage/crosscompile
-   usage/parameter_scans
+   usage/index
 
 .. toctree::
    :caption: Development
@@ -170,3 +143,4 @@ the section that answers your question.
    testing/structure
    testing/testbuilding
    testing/examples
+   install/changelog.md

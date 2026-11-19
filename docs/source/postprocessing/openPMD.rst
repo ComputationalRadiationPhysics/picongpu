@@ -9,7 +9,7 @@ openPMD
 .. tip::
 
 	This section collects links to external resources for the openPMD data standard.
-	For a description of PIConGPU's openPMD plugin, refer to :ref:`the plugin documentation <usage-plugins-openPMD>`, or to the :ref:`5 minute tutorial <hemeraIn5min>`.
+	For a description of PIConGPU's openPMD plugin, refer to :ref:`the plugin documentation <usage-plugins-openPMD>`, or to the :ref:`legacy interface tutorial <hemeraIn5min>`.
 
 
 If you hear about *openPMD** for the first time you can find a quick `online tutorial <http://www.openpmd.org>`_ on it here.
