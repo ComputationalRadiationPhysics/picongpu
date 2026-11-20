@@ -25,3 +25,6 @@ As a user of PIConGPU, you will be mainly interested in our :ref:`python tools <
 * full list of `projects using openPMD <https://github.com/openPMD/openPMD-projects>`_
 
 If you intend to write your own post-processing routines, make sure to check out our `example files <https://github.com/openPMD/openPMD-example-datasets>`_, the `formal, open standard <https://github.com/openPMD/openPMD-standard>`_ on openPMD and a `list of projects <https://github.com/openPMD/openPMD-projects>`_ that already support openPMD.
+
+.. seealso::
+   Interested in writing your own plugin post‑processing tools? See :ref:`development-pytools`.
