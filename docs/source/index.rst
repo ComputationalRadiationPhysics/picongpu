@@ -117,22 +117,11 @@ the section that answers your question.
    :hidden:
 
    usage/introduction
-   install/path
-   install/instructions
-   install/dependencies
-   install/profile
-   usage/basics
-   usage/param
-   usage/plugins
-   usage/tbg
-   usage/workflows
-   usage/tests
-   usage/examples
-   tutorials/hemeraIn5min
-   expert/deviceOversubscription
-   expert/signals
-   usage/crosscompile
-   usage/parameter_scans
+   install/index
+   usage/first_run
+   usage/input
+   usage/recipes
+   usage/expert
 
 .. toctree::
    :caption: Development
