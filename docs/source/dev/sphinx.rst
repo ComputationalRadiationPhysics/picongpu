@@ -125,9 +125,10 @@ Then build and open the generated pages:
 Doxygen Index
 ^^^^^^^^^^^^^
 
-The page :doc:`doxyindex` is a stub: the ``doxygenindex`` directive is disabled
-because it needs up to 2 GB of RAM, so it is not run on Read the Docs.
-The page is kept for now as a placeholder for a future in-document API index.
+The ``doxygenindex`` directive is disabled because it needs up to 2 GB of RAM,
+so it is not run on Read the Docs. Consequently, the manual does not build an
+in-document index of the Doxygen documentation; use the standalone HTML build
+described above to browse the API instead.
 
 Useful Links
 ------------

@@ -57,4 +57,3 @@ of this manual.
 
    sphinx
    PlantUML
-   doxyindex
