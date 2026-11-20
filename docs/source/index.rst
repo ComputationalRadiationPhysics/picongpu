@@ -43,7 +43,7 @@ Pick the entry point that matches what you are looking for:
   existing configuration onto a PICMI input script.
 * **Developing the C++ core?**
   The :ref:`Legacy C++ interface (advanced) <usage-index>` and
-  :ref:`Development <dev/CONTRIBUTING:How to Participate as a Developer>`
+  :ref:`Development <development-index>`
   chapters document the direct ``.param``/TBG interface and how to contribute.
   The legacy chapter also contains the
   :ref:`installation instructions <install/path:Introduction>` for the manual
@@ -74,6 +74,8 @@ the section that answers your question.
    :hidden:
 
    python_package/index
+   usage/reference
+   install/changelog.md
 
 .. toctree::
    :caption: Using PIConGPU (PICMI)
@@ -137,26 +139,4 @@ the section that answers your question.
    :maxdepth: 1
    :hidden:
 
-   usage/reference
-   dev/CONTRIBUTING.md
-   dev/docs/COMMIT.md
-   dev/ci
-   dev/repostructure
-   dev/styleguide
-   dev/sphinx
-   dev/doxygen
-   dev/clangtools
-   dev/extending
-   dev/picongpu
-   dev/pmacc
-   dev/py_postprocessing
-   dev/debugging
-   dev/doxyindex
-   dev/PlantUML
-   prgpatterns/lockstep
-   testing/general
-   testing/usage
-   testing/structure
-   testing/testbuilding
-   testing/examples
-   install/changelog.md
+   dev/index
