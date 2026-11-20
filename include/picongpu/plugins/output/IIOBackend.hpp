@@ -21,6 +21,7 @@
 
 #include "picongpu/plugins/multi/IInstance.hpp"
 
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -38,7 +39,8 @@ namespace picongpu
         virtual void dumpCheckpoint(
             uint32_t currentStep,
             std::string const& checkpointDirectory,
-            std::string const& checkpointFilename)
+            std::string const& checkpointFilename,
+            std::optional<std::atomic<signed int>*> synchronization)
             = 0;
 
         //! restart from a checkpoint
@@ -46,7 +48,8 @@ namespace picongpu
             uint32_t restartStep,
             std::string const& restartDirectory,
             std::string const& restartFilename,
-            uint32_t restartChunkSize)
+            uint32_t restartChunkSize,
+            std::optional<std::atomic<signed int>*> synchronization)
             = 0;
     };
 

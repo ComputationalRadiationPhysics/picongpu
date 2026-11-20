@@ -30,6 +30,8 @@
 #endif
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
+#include <exception>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -123,9 +125,51 @@ namespace picongpu
         void checkpoint(uint32_t currentStep, std::string const checkpointDirectory) override
         {
             auto cBackend = ioBackends.find(checkpointBackendName);
-            if(cBackend != ioBackends.end())
+            if(cBackend == ioBackends.end())
             {
-                cBackend->second->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename);
+                return;
+            }
+
+            int mpiInitialized;
+            MPI_CHECK(MPI_Query_thread(&mpiInitialized));
+
+            if(mpiInitialized < MPI_THREAD_MULTIPLE)
+            {
+                cBackend->second->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename, std::nullopt);
+            }
+            else
+            {
+                std::atomic<signed int> synchronization = 0;
+
+                // need to copy the plugin temporarily to avoid race conditions
+                auto restartFuture = std::async(
+                    std::launch::async,
+                    [this, copiedBackend = cBackend, currentStep, &checkpointDirectory, &synchronization]()
+                    {
+                        try
+                        {
+                            copiedBackend->second->doRestart(
+                                currentStep,
+                                checkpointDirectory,
+                                this->checkpointFilename,
+                                this->restartChunkSize,
+                                {&synchronization});
+                        }
+                        catch(std::exception const& e)
+                        {
+                            // The writer thread may be waiting for a synchronization state that the reader will
+                            // never reach. Release it so that the exception can be propagated instead of hanging.
+                            constexpr signed int abortState = 100;
+                            synchronization.store(abortState, std::memory_order_release);
+                            synchronization.notify_all();
+                            std::cerr << "Checkpoint: concurrent restart failed: " << e.what() << std::endl;
+                            throw;
+                        }
+                    });
+                cBackend->second
+                    ->dumpCheckpoint(currentStep, checkpointDirectory, checkpointFilename, {&synchronization});
+                // Propagate exceptions from the concurrent restart instead of silently waiting for the writer only.
+                restartFuture.get();
             }
         }
 
@@ -134,7 +178,8 @@ namespace picongpu
             auto rBackend = ioBackends.find(restartBackendName);
             if(rBackend != ioBackends.end())
             {
-                rBackend->second->doRestart(restartStep, restartDirectory, restartFilename, restartChunkSize);
+                rBackend->second
+                    ->doRestart(restartStep, restartDirectory, restartFilename, restartChunkSize, std::nullopt);
             }
         }
 
