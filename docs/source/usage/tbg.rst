@@ -27,7 +27,7 @@ The ``.tpl`` and the ``.cfg`` files that were used to start the simulation can b
 In summary, PIConGPU runtime options in ``.cfg`` files are portable to any machine.
 When accessing a machine for the first time, one needs to write template ``.tpl`` files, abstractly describing how to run PIConGPU on the specific queue(s) of the batch system.
 We ship such template files already for a set of supercomputers, interactive execution and many common batch systems.
-See ``$PICSRC/etc/picongpu/`` and :ref:`our list of systems with .profile files <install-profile>` for details.
+See ``$PICSRC/etc/picongpu/`` and :ref:`our notes on profile files <install-profile>` for details.
 
 
 Usage

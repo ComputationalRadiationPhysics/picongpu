@@ -70,9 +70,8 @@ class Visualizer(BaseVisualizer):
 
         Parameters
         ----------
-        kwargs: dict
-            additional keyword args. Necessary are the following:
-            species : string
+        kwargs: dict of further keyword arguments, valid are:
+            species: string
                 short name of the particle species, e.g. 'e' for electrons
                 (defined in ``speciesDefinition.param``)
             species_filter: string
@@ -81,13 +80,12 @@ class Visualizer(BaseVisualizer):
             axis: string
                 the coordinate system axis labels (e.g. 'yx' or 'yz')
             slice_point: float
-                relative offset in the third axis not given in the axis\
-                argument.\
-                Should be between 0 and 1
+                relative offset in the third axis not given in the axis
+                argument. Should be between 0 and 1
             iteration: int or list of ints
                 The iteration at which to read the data.
-                if set to 'None', then return images for all available\
-                    iterations
+                if set to 'None', then return images for all available
+                iterations
             time: float
                 simulation time.
                 Only one of 'iteration' or 'time' should be passed!

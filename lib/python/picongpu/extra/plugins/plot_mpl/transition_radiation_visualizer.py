@@ -79,16 +79,14 @@ class Visualizer(BaseVisualizer):
                 Only one of 'iteration' or 'time' should be passed!
             type: string
                 name of figure type. valid figure types are:
-                    'spectrum' - (default) plots transition radiation spectrum
-                        at angles theta and phi over the frequency omega
-                    'sliceovertheta' - shows angular distribution of
-                    transition radiation
-                        at a fixed angle phi and frequency omega
-                    'sliceoverphi' - shows angular distribution of
-                    transition radiation
-                        at a fixed angle theta and frequency omega
-                    'heatmap' - shows angular distribution as heatmap over
-                    both observation angles
+                'spectrum' - (default) plots transition radiation spectrum
+                at angles theta and phi over the frequency omega;
+                'sliceovertheta' - shows angular distribution of
+                transition radiation at a fixed angle phi and frequency
+                omega; 'sliceoverphi' - shows angular distribution of
+                transition radiation at a fixed angle theta and frequency
+                omega; 'heatmap' - shows angular distribution as heatmap
+                over both observation angles
             phi: int
                 index of polar angle for a fixed value
             theta: int

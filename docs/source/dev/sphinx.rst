@@ -14,8 +14,8 @@ For intrusive changes, like structural changes to chapters, please open an issue
 
 .. _reStructuredText: http://www.sphinx-doc.org/en/stable/rest.html
 
-Build Locally
--------------
+Build with Sphinx
+-----------------
 
 This document is build based on free open-source software, namely `Sphinx`_, `Doxygen`_ (C++ APIs as XML) and `Breathe`_ (to include doxygen XML in Sphinx).
 A web-version is hosted on `ReadTheDocs`_.
@@ -85,6 +85,50 @@ Please check your documentation build is successful and renders as you expected 
     # open it, e.g. with okular
     build/latex/PIConGPU.pdf
 
+Doxygen API Documentation
+-------------------------
+
+PIConGPU uses `Doxygen`_ for API documentation.
+Please provide the corresponding annotations in new and updated code as needed.
+
+Standalone HTML Build
+^^^^^^^^^^^^^^^^^^^^^
+
+The Sphinx build above consumes Doxygen's XML output.
+To inspect the raw API documentation as HTML, install Doxygen and, for graph
+generation, Graphviz:
+
+.. code-block:: bash
+
+    # install requirements (Debian/Ubuntu)
+    sudo apt-get install doxygen graphviz
+
+Our ``docs/Doxyfile`` generates XML only, so enable HTML output first:
+
+.. code-block:: bash
+
+    # enable HTML output in our Doxyfile
+    sed -i 's/GENERATE_HTML.*=.*NO/GENERATE_HTML     = YES/' docs/Doxyfile
+
+Then build and open the generated pages:
+
+.. code-block:: bash
+
+    cd docs/
+
+    # build the doxygen HTML documentation
+    doxygen
+
+    # open the generated HTML pages, e.g. with firefox
+    firefox html/index.html
+
+Doxygen Index
+^^^^^^^^^^^^^
+
+The ``doxygenindex`` directive is disabled because it needs up to 2 GB of RAM,
+so it is not run on Read the Docs. Consequently, the manual does not build an
+in-document index of the Doxygen documentation; use the standalone HTML build
+described above to browse the API instead.
 
 Useful Links
 ------------

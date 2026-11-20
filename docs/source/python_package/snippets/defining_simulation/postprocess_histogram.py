@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # /// script
-# requires-python = ">=3.11,<3.14"
 # dependencies = [
 #   "matplotlib",
 #   "numpy",

@@ -9,14 +9,31 @@ Coding Guide Lines
 
    Our coding guide lines are documented in `this repository <https://github.com/ComputationalRadiationPhysics/contributing>`_.
 
+   Installing the pre-commit hooks that run these formatters, and our
+   commit-message rules, are described in
+   :doc:`PIConGPU Commit Rulez <docs/COMMIT>`.
+
 Source Style
 ------------
 
 For contributions, *an ideal patch blends in the existing coding style around it* without being noticed as an addition when applied.
 Nevertheless, please make sure *new files* follow the styles linked above as strict as possible from the beginning.
 
-clang-format-20 (version 20.1.0) should be used to format the code.
-There are different ways to format the code.
+C++ sources are formatted with clang-format 20.1.8 (LLVM 20.1); Python sources
+follow `black <https://pypi.org/project/black/>`_ with a line length of 120.
+Both are automated in the pre-commit hooks.
+
+If you are not able or willing to use ``pre-commit``, you can instead do the
+following manually to get close to the same result.
+
+For Python code, install *black* and run:
+
+.. code-block:: bash
+
+   black -l 120
+
+The following describes formatting of C++ code.
+Install *clang-format 20.1.8* from LLVM 20.1.
 
 Format All Files
 ^^^^^^^^^^^^^^^^
@@ -34,10 +51,8 @@ To format all files in your working copy, you can run this command in bash from 
 Format Only Changes, Using Git
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only.
-
-    *ClangFormat* is an external tool for code formating that can be called by *Git* on changed files only and
-    is part of clang tools.
+Instead of using the bash command above you can use *Git* together with
+*clang-format* to format your patched code only.
 
 Before applying this command, you must extend your local git configuration **once** with all file endings used in *PIConGPU*:
 
@@ -45,18 +60,19 @@ Before applying this command, you must extend your local git configuration **onc
 
    git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
 
-After installing, or on a cluster loading the module(see introduction), clangFormat can be called by git on all **staged files** using the command:
+Then stage your changes and run clang-format on the staged files:
 
 .. code-block:: bash
 
-   git clangFormat
+   git clang-format
 
 .. warning::
 
-    The binary for *ClangFormat* is called `clang-format` on some operating systems.
-    If *clangFormat* is not recognized, try *clang-format* instead, in addition please check that `clang-format --version` returns version `20.X.X` in this case.
+    On systems that install clang-format under a versioned name, use the
+    corresponding git command, e.g. ``git clang-format-20``. Check that
+    ``clang-format --version`` reports version 20.1.8.
 
-The Typical workflow using git clangFormat is the following,
+The typical workflow is:
 
 1. make your patch
 
@@ -66,26 +82,27 @@ The Typical workflow using git clangFormat is the following,
 
     git add <files you changed>/ -A
 
-3. format them according to guidelines
+3. format them according to the guidelines
 
 .. code-block:: bash
 
-    git clangFormat
+    git clang-format
 
-4. stage the now changed(formated) files again
+4. stage the now changed (formatted) files again
 
 .. code-block:: bash
 
     git add <files you changed>
 
-5. commit changed files
+5. commit the changed files
 
 .. code-block:: bash
 
     git commit -m <commit message>
 
 Please be aware that un-staged changes will not be formatted.
-Formatting all changes of the previous commit can be achieved by executing the command `git clang-format-20 HEAD~1`.
+Formatting all changes of the previous commit can be achieved by executing the
+command ``git clang-format-20 HEAD~1``.
 
 License Header
 --------------

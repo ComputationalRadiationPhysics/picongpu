@@ -3,6 +3,8 @@
 Applied (Background) Fields
 ===========================
 
+.. sectionauthor:: Julian J. Lenz
+
 PIConGPU implements the PICMI-standard *applied fields* as **background
 fields**: a field that is added to the grid ``E`` and ``B`` fields around the
 particle push, so the particles feel it, while the field solver itself does not

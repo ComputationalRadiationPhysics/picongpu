@@ -1,14 +1,18 @@
 Background
 ==========
 
+.. sectionauthor:: Julian J. Lenz
+
 PIConGPU at its core is an advanced, exascale HPC code written in C++.
 For maximal performance and configurability,
 PIConGPU's core is not distributed and deployed
 as an executable binary application but as a source code from which
 a highly-optimized tailored executable gets compiled for each simulation setup you want to run.
+Users typically do not interact with that C++ core directly
+but with our Python frontend.
 
-Core Capabilities
------------------
+The Python Frontend
+-------------------
 
 The PIConGPU Python frontend is a thin Python wrapper with 3 core capabilities:
 

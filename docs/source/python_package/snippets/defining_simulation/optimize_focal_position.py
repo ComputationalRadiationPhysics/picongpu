@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # /// script
-# requires-python = ">=3.11,<3.14"
 # dependencies = [
 #   "numpy",
 #   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
@@ -29,8 +28,6 @@ from scipy.optimize import minimize
 NUM_CELLS = [192, 2048, 192]
 CELL_SIZE = [0.1772e-6, 0.4430e-7, 0.1772e-6]
 
-PULSE_INIT = 15.0  # in units of the laser pulse duration
-
 TRANSVERSE_FOCUS = NUM_CELLS[0] * CELL_SIZE[0] / 2.0
 
 
@@ -45,7 +42,7 @@ def make_laser(focal_position):
         a0=8.0,
         phi0=0.0,
         focal_position=[TRANSVERSE_FOCUS, focal_position, TRANSVERSE_FOCUS],
-        centroid_position=[TRANSVERSE_FOCUS, -0.5 * PULSE_INIT * duration * c, TRANSVERSE_FOCUS],
+        centroid_position=[TRANSVERSE_FOCUS, -3.75e-14 * c, TRANSVERSE_FOCUS],
     )
 
 
@@ -78,7 +75,7 @@ def gather_results(run_dir, timeout_count=100, sleep_interval=5):
 
     This follows the approach of the end-to-end tests: the submitted job has to
     finish, and the workflow has to link its results. Both are system specific
-    (see "Immediate post-processing"); this implementation is defensive and only
+    (see "Running Your Simulation"); this implementation is defensive and only
     waits when the submission information is present, so it is a no-op for a
     simulation that has already run (e.g. locally with the ``bash`` preset).
     """
@@ -136,7 +133,7 @@ def electron_count_of(focal_position):
     simulation = make_simulation(focal_position)
     simulation.run(setup_dir=run_dir / "setup", run_dir=run_dir)
     # best-effort wait for the submitted job and its linked results
-    # (system specific, see "Immediate post-processing"):
+    # (system specific, see "Running Your Simulation"):
     gather_results(run_dir)
     return count_electrons_in_energy_range(run_dir)
 
