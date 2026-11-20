@@ -28,7 +28,7 @@ import tempfile
 from pathlib import Path
 
 from picongpu import rc_params as _rc_params_default
-from picongpu._rc_params import PRESET_STORAGE_PATH
+from picongpu._rc_params import PRESET_STORAGE_PATH, get_preset_path
 from picongpu.pypicongpu.runner import generate_bare_profile
 
 __all__ = [
@@ -57,11 +57,28 @@ _DESC = (
 _GUARD_RE = re.compile(r'! -d\s+"?\$?([A-Za-z0-9_]+_ROOT)"?\s*\]')
 
 
+def _backend_suffix(profile: Path) -> str:
+    """Return the dependency-backend suffix encoded in a profile file name.
+
+    ``spack_picongpu.profile.example`` -> ``spack``,
+    ``conda_picongpu.profile.example`` -> ``conda``, and the default
+    ``bash_picongpu.profile.example`` -> ``""``.
+    """
+    stem = profile.name
+    for suffix in (".example", ".profile"):
+        stem = stem.removesuffix(suffix)
+    stem = stem.removesuffix("_picongpu")
+    return "" if stem == "bash" else stem
+
+
 def resolve_preset_script(rcp):
     """Fail-fast validation: return (preset_dir, script_path) or raise SystemExit.
 
-    Errors when (a) no preset is set in ``rc_params``, or (b) the resolved
-    preset has no ``dependencies_autoinstall.sh``.
+    Errors when (a) no preset is set in ``rc_params``, (b) the preset name does
+    not resolve, or (c) the resolved preset has no dependency installer script.
+    A variant profile (``spack_picongpu``/``conda_picongpu``) chooses
+    ``dependencies_autoinstall_<suffix>.sh``; otherwise the shared
+    ``dependencies_autoinstall.sh`` is used.
     """
     preset = rcp.preset
     if not preset:
@@ -69,14 +86,24 @@ def resolve_preset_script(rcp):
             "error: no preset is set in rc_params.\n"
             "       Run 'picrc-builder' (or set `preset` in your .picongpurc.toml) first."
         )
-    preset_dir = rcp.preset_dir
-    if not preset_dir:
-        raise SystemExit(f"error: could not resolve the preset directory from preset '{preset}'.")
-    script = PRESET_STORAGE_PATH / preset_dir / "dependencies_autoinstall.sh"
+    try:
+        profile = get_preset_path(preset)
+    except ValueError as error:
+        raise SystemExit(f"error: could not resolve preset '{preset}': {error}") from error
+    preset_dir = profile.parent.relative_to(PRESET_STORAGE_PATH).as_posix()
+    suffix = _backend_suffix(profile)
+    preferred = profile.parent / f"dependencies_autoinstall_{suffix}.sh" if suffix else None
+    fallback = profile.parent / "dependencies_autoinstall.sh"
+    script = preferred if preferred is not None and preferred.is_file() else fallback
     if not script.is_file():
+        available = sorted(p.name for p in profile.parent.glob("dependencies_autoinstall*.sh"))
+        available_text = ", ".join(available) if available else "(none)"
+        tried = [preferred.name] if preferred is not None else []
+        tried.append(fallback.name)
         raise SystemExit(
-            f"error: preset '{preset_dir}' has no dependencies_autoinstall.sh "
-            f"(expected {script}).\n"
+            f"error: preset '{preset_dir}' has no dependency installer script "
+            f"(tried {', '.join(tried)}).\n"
+            f"       Available scripts: {available_text}.\n"
             "       This preset is not supported by pic-deps."
         )
     return preset_dir, script

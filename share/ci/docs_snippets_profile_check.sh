@@ -23,7 +23,7 @@ set -euo pipefail
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 cd "$work_dir"
-printf 'preset = "bash"\n' > .picongpurc.toml
+printf 'preset = "bash"\npic_libs = "%s/pic-libs"\n' "$work_dir" > .picongpurc.toml
 PIC_RC=$PWD/.picongpurc.toml python3 - <<'PY'
 from pathlib import Path
 

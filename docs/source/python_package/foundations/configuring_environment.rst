@@ -176,15 +176,23 @@ Setting them will reset the ``rc_params`` instance
 and load default values for various configuration parameters.
 
 The name of a preset is the name of the system directory
-if that directory contains a single profile example,
+when that directory contains its canonical profile example,
 e.g. ``bash`` or ``rosi-hzdr``.
 If a system directory contains several profile examples
 (e.g. different queues or hardware configurations),
-the preset name is the system directory
-followed by the name of the profile example file,
-e.g. ``hemera-hzdr/gpu_picongpu.profile.example``.
-Setting an ambiguous bare system name will raise an error
-listing the valid preset names to choose from.
+the canonical preset name is the system directory
+followed by the profile name without the ``_picongpu.profile.example`` suffix,
+e.g. ``hemera-hzdr/gpu``.
+Full file names such as ``hemera-hzdr/gpu_picongpu.profile.example``
+are still accepted.
+A bare system name resolves to ``<directory>/<directory>_picongpu.profile.example``
+when that file exists, so setting the ambiguous bare name raises an error
+listing the valid preset names only when there is no such canonical profile.
+
+The local dependency setup is exposed as three sibling presets:
+``bash`` (the default, source-built recipe), ``bash/spack`` and ``bash/conda``.
+Bare ``bash`` always selects ``bash/bash_picongpu.profile.example``,
+even though the directory now contains the two variant profiles as well.
 
 Besides the profile (see `Manually Configuring Profile Content`_ below),
 a preset loads default values for the parameters
@@ -227,6 +235,72 @@ You can temporarily or permanently disable this:
 The ``dirty_reset_policy`` can take the values ``"raise"`` (the default),
 ``"warn"`` or ``"ignore"``, or an arbitrary handler to finetune the behaviour.
 We generally recommend to do runtime configuration via :ref:`the .picongpurc.toml file <configuring_env_toml_file>` outside of your script.
+
+Installing Dependencies on a Local Machine (``bash`` Preset)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``bash`` preset is the module-less path for laptops and workstations.
+Its ``pic_libs`` parameter is the writable prefix into which
+``pic-deps`` builds the compile-time dependencies
+(a C++ compiler, CMake >= 3.28, MPI, Boost, HDF5, ADIOS2, openPMD-api, FFTW,
+libpng, c-blosc2 and PNGwriter).
+A minimal runtime configuration therefore names the preset and the prefix:
+
+.. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash.toml
+   :language: toml
+
+Install the dependencies and verify the resulting ``*_ROOT`` directories with:
+
+.. literalinclude:: ../snippets/configuring_environment/pic_deps_install_local.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-INSTALL-LOCAL
+   :end-before: END-PIC-DEPS-INSTALL-LOCAL
+
+.. literalinclude:: ../snippets/configuring_environment/pic_deps_check_local.sh
+   :language: bash
+   :start-after: BEGIN-PIC-DEPS-CHECK-LOCAL
+   :end-before: END-PIC-DEPS-CHECK-LOCAL
+
+The installation is idempotent and can be resumed after an interruption.
+It needs network access and does not use environment modules or ``sudo`` for
+the libraries themselves; system packages are only installed for missing
+toolchain basics when a distro package manager is available.
+
+If you prefer Spack or Conda, select the matching local preset variant;
+the same ``pic-deps install`` command as above then runs that variant's
+installer. Both variants are supported local recipes,
+not official upstream installation instructions.
+
+.. tab-set::
+
+    .. tab-item:: Spack
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash_spack.toml
+           :language: toml
+
+    .. tab-item:: Conda
+
+        .. literalinclude:: ../snippets/configuring_environment/rc_params_minimal_bash_conda.toml
+           :language: toml
+
+The Spack variant writes the same per-package ``$PIC_LIBS/<package>/<version>``
+layout as the default recipe, so it uses a separate ``pic_libs`` prefix
+(``$HOME/pic-libs/spack``) to keep the two recipes from accepting each other's
+installs in the presence-only ``pic-deps check``. The Conda variant creates one
+conda-forge environment at ``$PIC_LIBS/conda``: the seven library roots point at
+``$CONDA_PREFIX``, while PNGwriter is built into its own per-package prefix.
+conda-forge may not carry the exact pins; they are used as constraints and the
+installer (and ``pic-deps check``) reports the resolved versions.
+The Conda profile initializes the manager's shell hook
+(``micromamba`` preferred, then ``conda``) and activates ``$PIC_LIBS/conda``
+whenever that environment exists, so ``PATH``, ``CONDA_PREFIX`` and the
+packages' activation hooks come from the environment itself.
+The ``*_ROOT`` variables and PNGwriter's search paths are still exported
+because ``pic-deps check`` uses them as install guards and CMake's
+``find_package`` reads them; PNGwriter is not part of the conda-forge
+environment.
+If no manager is available or the environment does not exist yet,
+the profile falls back to wiring ``$PIC_LIBS/conda`` manually.
 
 Finetuning Presets
 ^^^^^^^^^^^^^^^^^^
@@ -353,8 +427,9 @@ and set the submission parameters in your ``.picongpurc.toml`` file::
   author = "Your Name"
   email = "you@example.org"
 
-(Choosing the ``bash`` preset here is just a convenient base
-that requires no other parameters;
+(Choosing the ``bash`` preset here is just a convenient base;
+it requires a ``pic_libs`` prefix for its dependencies, which can be
+overridden like any other parameter;
 any other parameters it sets that do not apply to your system
 can be overridden the same way.)
 
