@@ -33,7 +33,8 @@ Compiler
 - C++20 supporting compiler, e.g. GCC 10+ or Clang 11+
 - if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
 - *note:* be sure to build all libraries/dependencies with the *same* compiler version
-- *note:* CUDA 12.4 does not work with gcc 13, CUDA < 12.[0-3] does not work work withh gcc 12 or newer.   
+- *note:* gcc 12 shows ``std::variant`` issues with CUDA before 12.4, CUDA 12.4 does not work with gcc 13
+- *note:* gcc 14 requires CUDA 12.8 or newer, gcc 15 requires CUDA 13.0 or newer
 - *Debian/Ubuntu:*
 
   - ``sudo apt-get install gcc-10 g++-10 build-essential``
@@ -135,7 +136,7 @@ Optional Libraries
 
 CUDA
 """"
-- `12.0.0+ <https://developer.nvidia.com/cuda-downloads>`_
+- `12.3+ <https://developer.nvidia.com/cuda-downloads>`_
 - g++-10 or newer is required
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
@@ -143,6 +144,8 @@ CUDA
 - *Spack:* ``spack install cuda``
 - at least one **CUDA** capable **GPU**
 - *compute capability*: ``sm_60`` or higher
+- *note:* CUDA 13 dropped support for Maxwell, Pascal and Volta, so CUDA 13 builds require
+  ``sm_75`` (Turing) or higher
 - `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
 - `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <https://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
