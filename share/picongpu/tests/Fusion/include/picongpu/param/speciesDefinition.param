@@ -1,0 +1,134 @@
+/* Copyright 2013-2024 Rene Widera, Benjamin Worpitz, Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/meta/String.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+
+namespace picongpu
+{
+    /*########################### define particle attributes #####################*/
+
+    /** describe attributes of a particle*/
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting, particleId>;
+
+    /*########################### end particle attributes ########################*/
+
+    /*########################### define species #################################*/
+    // doc-include-start: amu-definition
+    // Atomic mass unit in electron masses (amu/me)
+    // This constant allows defining particle masses relative to the electron mass
+    constexpr float_X amu = 1._X / 5.486e-4_X;
+    // doc-include-end: amu-definition
+
+    /*--------------------------- electrons --------------------------------------*/
+
+    /* ratio relative to base charge and base mass */
+    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier(float_X, ChargeRatioElectrons, -1.0);
+
+    using ParticleFlagsElectrons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>>;
+
+    /* define species electrons */
+    using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
+
+    /*--------------------------- Neutrons --------------------------------------*/
+
+    /* ratio relative to base charge and base mass */
+    value_identifier(float_X, MassRatioNeutrons, 1.0087 * amu);
+    value_identifier(float_X, ChargeRatioNeutrons, 0.0);
+
+    using ParticleFlagsNeutrons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioNeutrons>,
+        chargeRatio<ChargeRatioNeutrons>>;
+
+    /* define species neutrons */
+    using PIC_Neutrons = Particles<PMACC_CSTRING("n"), ParticleFlagsNeutrons, DefaultParticleAttributes>;
+
+    // doc-include-start: deuteron-definition
+    /*--------------------------- Deuterons --------------------------------------*/
+
+    /* ratio relative to base charge and base mass */
+    value_identifier(float_X, MassRatioDeuterons, 2.0135 * amu);
+    value_identifier(float_X, ChargeRatioDeuterons, 1.0);
+
+    using ParticleFlagsDeuterons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioDeuterons>, // Required for fusion
+        chargeRatio<ChargeRatioDeuterons> // Required for fusion
+        >;
+
+    /* define species deuterons */
+    using PIC_Deuterons = Particles<PMACC_CSTRING("d"), ParticleFlagsDeuterons, DefaultParticleAttributes>;
+    // doc-include-end: deuteron-definition
+
+    /*--------------------------- Tritons --------------------------------------*/
+
+    /* ratio relative to base charge and base mass */
+    value_identifier(float_X, MassRatioTritons, 3.01604928 * amu);
+    value_identifier(float_X, ChargeRatioTritons, 1.0);
+
+    using ParticleFlagsTritons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioTritons>,
+        chargeRatio<ChargeRatioTritons>>;
+
+    /* define species tritons */
+    using PIC_Tritons = Particles<PMACC_CSTRING("t"), ParticleFlagsTritons, DefaultParticleAttributes>;
+
+    /*--------------------------- He4 --------------------------------------*/
+
+    /* ratio relative to base charge and base mass */
+    value_identifier(float_X, MassRatioHe4, 4.002602 * amu);
+    value_identifier(float_X, ChargeRatioHe4, 2.0);
+
+    using ParticleFlagsHe4 = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioHe4>,
+        chargeRatio<ChargeRatioHe4>>;
+
+    /* define species He4 */
+    using PIC_He4 = Particles<PMACC_CSTRING("He4"), ParticleFlagsHe4, DefaultParticleAttributes>;
+
+    /*########################### end species ####################################*/
+
+    using VectorAllSpecies = MakeSeq_t<PIC_Electrons, PIC_Neutrons, PIC_Deuterons, PIC_Tritons, PIC_He4>;
+
+} // namespace picongpu

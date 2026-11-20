@@ -18,5 +18,6 @@ This section contains typical user workflows and best practices.
    workflows/probeParticles
    workflows/tracerParticles
    workflows/particleFilters
+   workflows/fusionReactions.rst
    workflows/synchrotronExtensionDocumentation
    workflows/ionization
