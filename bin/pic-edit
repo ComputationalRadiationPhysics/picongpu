@@ -73,6 +73,8 @@ help()
     echo 'Opens .param files in an input set with the default "EDITOR".'
     echo "If a .param file is not yet part of the input set but exists in the"
     echo "defaults, it will be transparently added to the input set."
+    echo "If such an added file is left unchanged, it will be removed from the"
+    echo "input set again after the editor is closed."
     echo ""
     echo "You must run this command inside an input directory."
     echo ""
@@ -130,6 +132,18 @@ if [ -d "include/picongpu/simulation_defines" ]; then
     exit 5
 fi
 
+# get editor
+use_editor="$(find_editor)"
+if [ $? -ne 0 ]
+then
+    echo 'ERROR: Could not find a working text editor!' >&2
+    echo '       You might want to set the "EDITOR" environment variable.' >&2
+    exit 3
+fi
+
+# .param files which are added from the defaults to the input set
+added_file_paths=()
+
 for input in "${cmd_line_args[@]}"
 do
     # check if the file exists locally (even if it does not exist in defaults)
@@ -142,11 +156,14 @@ do
         defaults_path="$picongpu_prefix/$file_prefix/$file_name"
         if [ -f "$defaults_path" ]
         then
-            if [ -f ".build/CMakeCache.txt" ] ; then
-                cmake --build .build --target clean
-            fi
             cp $defaults_path $file_path
+            added_file_paths+=("$file_path")
         else
+            # do not leave files behind which were already added from the defaults
+            for added_file_path in "${added_file_paths[@]}"
+            do
+                rm "$added_file_path"
+            done
             echo "ERROR: input '$input' does not exist!" >&2
             echo "Available inputs:" >&2
             inputs=($(find_inputs))
@@ -156,20 +173,28 @@ do
     fi
 done
 
-# get editor
-use_editor="$(find_editor)"
-if [ $? -ne 0 ]
-then
-    echo 'ERROR: Could not find a working text editor!' >&2
-    echo '       You might want to set the "EDITOR" environment variable.' >&2
-    exit 3
-fi
-
 # open the files for editing
 $use_editor $file_paths
 editor_exit=$?
 
-# remove new files that are unchanged
-# TODO: grep -Fxvf file1 file2
+# remove added files that are unchanged, keep the others
+is_input_set_extended=0
+for added_file_path in "${added_file_paths[@]}"
+do
+    defaults_path="$picongpu_prefix/$added_file_path"
+    if cmp -s "$defaults_path" "$added_file_path"
+    then
+        rm "$added_file_path"
+        echo "Note: $added_file_path was not modified and is removed from the input set again."
+    elif [ -f "$added_file_path" ]
+    then
+        is_input_set_extended=1
+    fi
+done
+
+# a new .param file in the input set shadows the defaults, rebuild everything
+if [ $is_input_set_extended -eq 1 ] && [ -f ".build/CMakeCache.txt" ] ; then
+    cmake --build .build --target clean
+fi
 
 exit $editor_exit
