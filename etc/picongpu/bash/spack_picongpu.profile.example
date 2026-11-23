@@ -1,0 +1,206 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# Self-Build Software #########################################################
+# `PIC_LIBS` is the user-writable prefix into which the compile-time
+# dependencies are installed. It is set from `rc_params['pic_libs']` when the
+# profile is rendered; `pic-deps install` builds everything below into it and
+# `pic-deps check` verifies the resulting `*_ROOT` directories.
+#
+# This variant installs the same dependency set with Spack (see
+# dependencies_autoinstall_spack.sh). The `*_ROOT` layout is identical to the
+# default `bash` profile. You can also install the dependencies yourself and
+# point the `*_ROOT` variables below at those prefixes instead.
+export PIC_LIBS="${PIC_LIBS:-}"
+
+# The example can also be sourced directly. In that case adopt the
+# conventional self-build prefix only once it exists and leave `PIC_LIBS`
+# unset otherwise, so that a clean environment using system/distro packages
+# behaves exactly as before.
+if [ -z "${PIC_LIBS:-}" ] && [ -d "$HOME/pic-libs/spack" ]; then
+    export PIC_LIBS="$HOME/pic-libs/spack"
+fi
+[ -n "${PIC_LIBS:-}" ] || unset PIC_LIBS
+
+# Only wire a self-build prefix into the environment when one is selected
+# (`PIC_LIBS` set by rc_params, the environment, or the default above). A
+# pre-set `*_ROOT` or search path is always preserved; directories that do
+# not exist yet are not added to PATH/CPATH/LD_LIBRARY_PATH/CMAKE_PREFIX_PATH,
+# so a missing prefix cannot shadow system packages.
+if [ -n "${PIC_LIBS:-}" ]; then
+    # Distro MPI wrappers are not always on PATH without a module system.
+    for _pic_mpi_bin in \
+        /usr/lib64/openmpi/bin /usr/lib/openmpi/bin \
+        /usr/lib/x86_64-linux-gnu/openmpi/bin \
+        /usr/lib64/mpich/bin /usr/lib/mpich/bin \
+        /usr/lib/x86_64-linux-gnu/mpich/bin; do
+        if [ -d "$_pic_mpi_bin" ]; then
+            export PATH="$_pic_mpi_bin:$PATH"
+        fi
+    done
+    unset _pic_mpi_bin
+
+    # Versions installed by etc/picongpu/bash/dependencies_autoinstall_spack.sh
+    # via `spack install --prefix`. Keep these in sync if you override them.
+    export CMAKE_VERSION="${CMAKE_VERSION:-3.31.6}"
+    export BOOST_VERSION="${BOOST_VERSION:-1.87.0}"
+    export BLOSC_VERSION="${BLOSC_VERSION:-2.22.0}"
+    export LIBPNG_VERSION="${LIBPNG_VERSION:-1.6.34}"
+    export PNGWRITER_VERSION="${PNGWRITER_VERSION:-0.7.0}"
+    export HDF5_VERSION="${HDF5_VERSION:-2.0.0}"
+    export ADIOS2_VERSION="${ADIOS2_VERSION:-2.11.0}"
+    export OPENPMD_VERSION="${OPENPMD_VERSION:-0.17.1}"
+    export FFTW_VERSION="${FFTW_VERSION:-3.3.10}"
+
+    # CMake built from source (the distro version is used when it is >= 3.28).
+    export CMAKE_ROOT="${CMAKE_ROOT:-$PIC_LIBS/cmake/$CMAKE_VERSION}"
+    if [ -d "$CMAKE_ROOT/bin" ]; then
+        export PATH="$CMAKE_ROOT/bin:$PATH"
+    fi
+
+    export BOOST_ROOT="${BOOST_ROOT:-$PIC_LIBS/boost/$BOOST_VERSION}"
+    if [ -d "$BOOST_ROOT/include" ]; then
+        export CPATH="$BOOST_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    if [ -d "$BOOST_ROOT/lib" ]; then
+        export LD_LIBRARY_PATH="$BOOST_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    fi
+    if [ -d "$BOOST_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$BOOST_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export BLOSC_ROOT="${BLOSC_ROOT:-$PIC_LIBS/c-blosc2/$BLOSC_VERSION}"
+    if [ -d "$BLOSC_ROOT/include" ]; then
+        export CPATH="$BLOSC_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$BLOSC_ROOT/lib" "$BLOSC_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$BLOSC_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$BLOSC_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export LIBPNG_ROOT="${LIBPNG_ROOT:-$PIC_LIBS/libpng/$LIBPNG_VERSION}"
+    if [ -d "$LIBPNG_ROOT/include" ]; then
+        export CPATH="$LIBPNG_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$LIBPNG_ROOT/lib" "$LIBPNG_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$LIBPNG_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$LIBPNG_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export PNGwriter_ROOT="${PNGwriter_ROOT:-$PIC_LIBS/pngwriter/$PNGWRITER_VERSION}"
+    if [ -d "$PNGwriter_ROOT/include" ]; then
+        export CPATH="$PNGwriter_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$PNGwriter_ROOT/lib" "$PNGwriter_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$PNGwriter_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$PNGwriter_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export HDF5_ROOT="${HDF5_ROOT:-$PIC_LIBS/hdf5/$HDF5_VERSION}"
+    if [ -d "$HDF5_ROOT/bin" ]; then
+        export PATH="$HDF5_ROOT/bin:$PATH"
+    fi
+    if [ -d "$HDF5_ROOT/include" ]; then
+        export CPATH="$HDF5_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$HDF5_ROOT/lib" "$HDF5_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$HDF5_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$HDF5_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export ADIOS2_ROOT="${ADIOS2_ROOT:-$PIC_LIBS/adios2/$ADIOS2_VERSION}"
+    if [ -d "$ADIOS2_ROOT/bin" ]; then
+        export PATH="$ADIOS2_ROOT/bin:$PATH"
+    fi
+    if [ -d "$ADIOS2_ROOT/include" ]; then
+        export CPATH="$ADIOS2_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$ADIOS2_ROOT/lib" "$ADIOS2_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$ADIOS2_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$ADIOS2_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export OPENPMD_ROOT="${OPENPMD_ROOT:-$PIC_LIBS/openpmd-api/$OPENPMD_VERSION}"
+    if [ -d "$OPENPMD_ROOT/bin" ]; then
+        export PATH="$OPENPMD_ROOT/bin:$PATH"
+    fi
+    if [ -d "$OPENPMD_ROOT/include" ]; then
+        export CPATH="$OPENPMD_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$OPENPMD_ROOT/lib" "$OPENPMD_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$OPENPMD_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$OPENPMD_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+
+    export FFTW_ROOT="${FFTW_ROOT:-$PIC_LIBS/fftw/$FFTW_VERSION}"
+    if [ -d "$FFTW_ROOT/include" ]; then
+        export CPATH="$FFTW_ROOT/include${CPATH:+:$CPATH}"
+    fi
+    for _pic_lib_dir in "$FFTW_ROOT/lib" "$FFTW_ROOT/lib64"; do
+        if [ -d "$_pic_lib_dir" ]; then
+            export LD_LIBRARY_PATH="$_pic_lib_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        fi
+    done
+    if [ -d "$FFTW_ROOT" ]; then
+        export CMAKE_PREFIX_PATH="$FFTW_ROOT${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+    fi
+    unset _pic_lib_dir
+fi
+
+# MPI compiler wrappers (used by the dependency build and by CMake).
+export MPI_CC="${MPI_CC:-$(command -v mpicc || true)}"
+export MPI_CXX="${MPI_CXX:-$(command -v mpicxx || true)}"
+
+# Environment #################################################################
+#
+# running on cpu
+export PIC_BACKEND="omp2b:native"
+# For more examples on possible backends, depending on your hardware, see
+# https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
+# or the provided profiles of other systems.
+
+# Path to the required templates of the system,
+# relative to the PIConGPU source code of the tool bin/pic-create.
+export PIC_SYSTEM_TEMPLATE_PATH=${PIC_SYSTEM_TEMPLATE_PATH:-"etc/picongpu/bash"}
+
+export PICSRC="$HOME/src/picongpu"
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+
+export PATH=$PICSRC/bin:$PATH
+export PATH=$PICSRC/src/tools/bin:$PATH
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="bash"
+export TBG_TPLFILE="etc/picongpu/bash/mpirun.tpl"
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

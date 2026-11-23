@@ -1,1 +1,2 @@
 preset = "bash"
+pic_libs = "$HOME/pic-libs"

@@ -61,6 +61,15 @@ TOML_SNIPPETS = sorted(SNIPPETS_DIR.glob("**/*.toml"))
 TOML_EXPECTED = {
     "configuring_environment/rc_params_minimal_bash.toml": {
         "preset": "bash",
+        "pic_libs": "$HOME/pic-libs",
+    },
+    "configuring_environment/rc_params_minimal_bash_spack.toml": {
+        "preset": "bash/spack",
+        "pic_libs": "$HOME/pic-libs/spack",
+    },
+    "configuring_environment/rc_params_minimal_bash_conda.toml": {
+        "preset": "bash/conda",
+        "pic_libs": "$HOME/pic-libs",
     },
     "configuring_environment/rc_params_minimal_rosi.toml": {
         "preset": "rosi-hzdr",
@@ -104,10 +113,12 @@ EXPECTED_FILES = {
         # multi-profile systems contribute one preset per profile example file
         "stdout_contains": [
             "bash",
+            "bash/spack",
+            "bash/conda",
             "rosi-hzdr",
             "jupiter-jsc",
-            "hemera-hzdr/gpu_picongpu.profile.example",
-            "zih-tud/A100_picongpu.profile.example",
+            "hemera-hzdr/gpu",
+            "zih-tud/A100",
         ],
     },
     "configuring_environment/rc_params_finetune_preset.py": {
