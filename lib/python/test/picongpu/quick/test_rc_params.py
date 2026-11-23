@@ -290,22 +290,30 @@ def test_bash_profile_leaves_a_clean_environment_untouched(tmp_path):
 
 def test_bash_profile_preserves_pre_set_roots_and_search_paths(tmp_path):
     # A user who already configured a self-build (or any prefix) keeps their
-    # values; the profile only fills in what is unset.
+    # values; the profile only fills in what is unset.  Use non-existent paths
+    # under tmp_path so the profile's "only add existing dirs" guards stay off
+    # regardless of the host (CI images do contain /opt/<dependency> trees).
+    pic_libs = tmp_path / "custom-piclibs"
+    cmake_root = tmp_path / "cmake"
+    boost_root = tmp_path / "boost"
+    prefix = tmp_path / "pfx"
+    include = tmp_path / "inc"
+    library = tmp_path / "lib"
     values = _source_bash_profile(
         tmp_path,
-        PIC_LIBS="/opt/custom-piclibs",
-        CMAKE_ROOT="/opt/cmake",
-        BOOST_ROOT="/opt/boost",
-        CMAKE_PREFIX_PATH="/opt/pfx",
-        CPATH="/opt/inc",
-        LD_LIBRARY_PATH="/opt/lib",
+        PIC_LIBS=str(pic_libs),
+        CMAKE_ROOT=str(cmake_root),
+        BOOST_ROOT=str(boost_root),
+        CMAKE_PREFIX_PATH=str(prefix),
+        CPATH=str(include),
+        LD_LIBRARY_PATH=str(library),
     )
-    assert values["PIC_LIBS"] == "/opt/custom-piclibs"
-    assert values["CMAKE_ROOT"] == "/opt/cmake"
-    assert values["BOOST_ROOT"] == "/opt/boost"
-    assert values["CMAKE_PREFIX_PATH"] == "/opt/pfx"
-    assert values["CPATH"] == "/opt/inc"
-    assert values["LD_LIBRARY_PATH"] == "/opt/lib"
+    assert values["PIC_LIBS"] == str(pic_libs)
+    assert values["CMAKE_ROOT"] == str(cmake_root)
+    assert values["BOOST_ROOT"] == str(boost_root)
+    assert values["CMAKE_PREFIX_PATH"] == str(prefix)
+    assert values["CPATH"] == str(include)
+    assert values["LD_LIBRARY_PATH"] == str(library)
 
 
 _MICROMAMBA_STUB = """#!/bin/bash

@@ -2,12 +2,35 @@
 Tests for pic-deps (lib/python/picongpu/pic_deps.py).
 """
 
+import os
 from pathlib import Path
 
 import pytest
 
 from picongpu._rc_params import PRESET_STORAGE_PATH, RCParams
 from picongpu.pic_deps import parse_guard_roots, resolve_preset_script, check_dependencies
+
+_AMBIENT_DEPENDENCY_VARS = (
+    "PIC_LIBS",
+    "CMAKE_PREFIX_PATH",
+    "CPATH",
+    "LD_LIBRARY_PATH",
+    "CONDA_PREFIX",
+    "OPAL_PREFIX",
+)
+
+
+@pytest.fixture
+def clean_dependency_environment(monkeypatch):
+    """Hide the ambient toolchain environment from the profile-sourcing tests.
+
+    CI exports pinned ``*_VERSION`` variables (e.g. ``BOOST_VERSION=1.75.0``)
+    and agc-manager ``*_ROOT`` variables whose ``/opt/...`` trees exist, which
+    would otherwise override the defaults asserted here.
+    """
+    for name in list(os.environ):
+        if name.endswith(("_VERSION", "_ROOT")) or name in _AMBIENT_DEPENDENCY_VARS:
+            monkeypatch.delenv(name, raising=False)
 
 
 def _perlmutter_script() -> Path:
@@ -93,7 +116,7 @@ def test_resolve_preset_script_missing_script_for_module_preset():
         resolve_preset_script(p)
 
 
-def test_check_dependencies_reports_all_missing_for_empty_piclibs():
+def test_check_dependencies_reports_all_missing_for_empty_piclibs(clean_dependency_environment):
     if not Path("/bin/bash").is_file():
         pytest.skip("requires bash login shell")
     results = check_dependencies(_completed_params())
@@ -105,7 +128,7 @@ def test_check_dependencies_reports_all_missing_for_empty_piclibs():
     assert all(resolved for _, resolved, _ in results)
 
 
-def test_check_dependencies_bash_enumerates_profile_roots():
+def test_check_dependencies_bash_enumerates_profile_roots(clean_dependency_environment):
     if not Path("/bin/bash").is_file():
         pytest.skip("requires bash login shell")
     results = check_dependencies(_completed_bash_params())
@@ -168,7 +191,7 @@ def test_resolve_preset_script_error_lists_available_scripts():
         resolve_preset_script(p)
 
 
-def test_check_dependencies_conda_enumerates_shared_prefix_roots():
+def test_check_dependencies_conda_enumerates_shared_prefix_roots(clean_dependency_environment):
     if not Path("/bin/bash").is_file():
         pytest.skip("requires bash login shell")
     pic_libs = Path(__file__).parent / "nonexistent-piclibs"
@@ -191,7 +214,7 @@ def test_check_dependencies_conda_enumerates_shared_prefix_roots():
     assert resolved["PNGwriter_ROOT"] == str(pic_libs / "pngwriter" / "0.7.0")
 
 
-def test_check_dependencies_spack_enumerates_versioned_roots():
+def test_check_dependencies_spack_enumerates_versioned_roots(clean_dependency_environment):
     if not Path("/bin/bash").is_file():
         pytest.skip("requires bash login shell")
     pic_libs = Path(__file__).parent / "nonexistent-piclibs"
