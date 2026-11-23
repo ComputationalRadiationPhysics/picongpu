@@ -29,22 +29,23 @@ export PIC_NODE_OVERSUBSCRIPTION_PT=2
 # such as mpi, libfabric and others.
 # The following modules just add to these.
 
-module load cce/20.0.0
+module load cce/21.0.4
 module load craype-accel-amd-gfx940
-module load rocm/6.4.2
+module load rocm/7.0.2
 
 export MPICH_GPU_SUPPORT_ENABLED=1
-module load cray-mpich/9.0.1
+module load cray-mpich/9.1.0
 
-module load boost/1.88.0
-module load zlib/1.3.1
-module load cmake/3.30.5
+module load boost/1.90.0
+module load zlib/1.3.2
+module load cmake/3.31.11
 module load git
-module load adios2/2.10.2-mpi
-# Please use a self compiled openpmd-api with adios2 if you need blosc2 support
-module load openpmd-api/0.16.1-mpi
+module load adios2/2.11.0-mpi
+# openPMD-api with ADIOS2 and HDF5 support. For a newer version use a self
+# compiled openPMD-api, see 'Self-Build Software' below.
+module load openpmd-api/0.17.0-mpi
 module load cray-fftw
-module load libpng/1.6.39
+module load libpng/1.6.55
 
 ## set environment variables required for compiling and linking
 ##   see (https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#compiling-with-hipcc)
@@ -76,6 +77,18 @@ export FREETYPE2_ROOT=$PIC_LIBS/libfreetype2
 export LD_LIBRARY_PATH=$FREETYPE2_ROOT/lib:$LD_LIBRARY_PATH
 export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
 export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
+
+# optionally use a self compiled openPMD-api instead of the module above
+# (build it with ADIOS2 and HDF5 support):
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html
+# Replace `module load openpmd-api/0.17.0-mpi` above by `module load hdf5/1.14.6-mpi`,
+# add the options `-DCMAKE_C_COMPILER=$(which cc) -DCMAKE_CXX_COMPILER=$(which CC)`
+# to the `cmake` invocation and install to `$OPENPMD_ROOT`.
+#OPENPMD_VERSION=0.17.1
+#export OPENPMD_ROOT=$PIC_LIBS/OPENPMD/$OPENPMD_VERSION
+#export PATH=$OPENPMD_ROOT/bin:$PATH
+#export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
+#export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
 
 # Environment #################################################################
 #
