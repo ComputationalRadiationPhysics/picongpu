@@ -3,6 +3,8 @@
 (De-)Serialization and Reproducibility
 ======================================
 
+.. sectionauthor:: Julian J. Lenz
+
 Every element of the interface and middle layer is a
 `Pydantic <https://docs.pydantic.dev/>`__ model.
 This provides automatic validation and (de-)serialization,

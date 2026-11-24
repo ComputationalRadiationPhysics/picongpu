@@ -3,6 +3,8 @@
 Functors, Particle Functors and Filters
 =======================================
 
+.. sectionauthor:: Julian J. Lenz
+
 Beyond the built-in distributions, PIConGPU can build quantities from
 particle properties symbolically.
 The same machinery is used for **analytic density profiles**,

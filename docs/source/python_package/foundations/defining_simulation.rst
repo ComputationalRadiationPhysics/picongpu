@@ -1,6 +1,8 @@
 Defining Your Simulation
 ========================
 
+.. sectionauthor:: Julian J. Lenz
+
 Our frontend implements the `PICMI standard <https://picmi.readthedocs.io/en/latest/standard/standard.html>`__.
 This is a declarative Python interface for particle-in-cell simulation codes
 standardized in the community.

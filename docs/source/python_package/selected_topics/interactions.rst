@@ -1,6 +1,8 @@
 Interactions
 ============
 
+.. sectionauthor:: Julian J. Lenz
+
 Interactions describe the physics that acts on your particles
 *in addition to* the electromagnetic fields
 the solver provides:
