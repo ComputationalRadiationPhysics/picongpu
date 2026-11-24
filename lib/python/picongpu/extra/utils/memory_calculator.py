@@ -64,7 +64,7 @@ class MemoryCalculator(pydantic.BaseModel):
         """
         get size of basic value depending on picongpu precision
 
-        @return unit: bytes
+        :return: unit: bytes
         """
 
         if precision == 32:
@@ -160,15 +160,17 @@ class MemoryCalculator(pydantic.BaseModel):
         """
         Memory required for cell fields on a specific device(GPU/CPU/...)
 
-        @attention In PIConGPU different devices may handle different number of cells. This naturally also changes the
+        .. attention::
+
+            In PIConGPU different devices may handle different number of cells. This naturally also changes the
             memory required on each device. This function returns the memory required by cell fields on one single
             device handling the specified cell extent, not the global memory requirement!
-        @attention this method requires the actual extent of cells on device, not just the number of cells!
 
-        @param cell_extent device cell extent
-        @param number_of_temporary_field_slots number of temporary field slots, see ``memory.param``
+            This method requires the actual extent of cells on device, not just the number of cells!
 
-        @return unit: bytes
+        :param cell_extent: device cell extent
+        :param number_of_temporary_field_slots: number of temporary field slots, see ``memory.param``
+        :return: unit: bytes
         """
         self._check_cell_extent(cell_extent)
 
@@ -204,17 +206,18 @@ class MemoryCalculator(pydantic.BaseModel):
         """
         Memory required for super cell fields on a specific device(GPU/CPU/...)
 
-        @attention In PIConGPU different devices may handle different number of super cells. This naturally also changes
+        .. attention::
+
+            In PIConGPU different devices may handle different number of super cells. This naturally also changes
             the memory required on each device. This function returns the memory required by cell fields on one single
             device handling the specified cell extent, not the global memory requirement!
 
-        @param super_cell_extent device super_cell extent
-        @param number_atomic_states_by_atomic_physics_ion_species number of atomic states of each atomic physics ion
+        :param super_cell_extent: device super_cell extent
+        :param number_atomic_states_by_atomic_physics_ion_species: number of atomic states of each atomic physics ion
             species
-        @param number_electron_histogram_bins number of bins in the AtomicPhysics(FLYonPIC) electron histograms
-        @param IPDactive is IPD active, see ``IPDModel.param``
-
-        @return unit: bytes
+        :param number_electron_histogram_bins: number of bins in the AtomicPhysics(FLYonPIC) electron histograms
+        :param IPDactive: is IPD active, see ``IPDModel.param``
+        :return: unit: bytes
         """
         self._check_cell_extent(super_cell_extent * self.super_cell_size)
 
@@ -288,17 +291,19 @@ class MemoryCalculator(pydantic.BaseModel):
         """
         Memory required for a species' particles per device.
 
-        @detail species flag/constants do not occupy global device memory, since they are compiled in.
-        @attention use particles_per_cell=1 if passing the number of particles directly!
+        Species flag/constants do not occupy global device memory, since they are compiled in.
 
-        @param particle_filled_cells either number of particle filled cells, extent of particle filled cells,
+        .. attention::
+
+            Use particles_per_cell=1 if passing the number of particles directly!
+
+        :param particle_filled_cells: either number of particle filled cells, extent of particle filled cells,
             or number of macro-particles of species on device
-        @param particles_per_cell number of particles of the species per cell
-        @param species_attribute_list list of species attribute names of species, see ``species.param``,
+        :param particles_per_cell: number of particles of the species per cell
+        :param species_attribute_list: list of species attribute names of species, see ``species.param``,
             for example ["momentum", "position", "weighting"]
-        @param additional_attributes list of size of additional attributes, in bytes, for example {"custom":4}
-
-        @return unit: bytes
+        :param additional_attributes: list of size of additional attributes, in bytes, for example {"custom":4}
+        :return: unit: bytes
         """
 
         # in byte
@@ -347,13 +352,14 @@ class MemoryCalculator(pydantic.BaseModel):
         If you find that your required RNG state is large (> 300 MB) please adjust the ``reservedGpuMemorySize``
         in ``memory.param`` to fit the RNG state and some.
 
-        @param cell_extent cell extent per device
-        @param generator_method random number generator method - influences the state size per cell
+        :param cell_extent: cell extent per device
+        :param generator_method: random number generator method - influences the state size per cell
             possible options: "XorMin", "MRG32k3aMin", "AlpakaRand"
+
             - (GPU default: "XorMin")
             - (CPU default: "AlpakaRand")
 
-        @return unit: bytes
+        :return: unit: bytes
         """
         self._check_cell_extent(cell_extent)
 
@@ -386,11 +392,11 @@ class MemoryCalculator(pydantic.BaseModel):
         The whole calorimeter is represented twice on each device, once for particles in the simulation and once
         for the particles that leave the box.
 
-        @param number_energy_bins number of bins on the energy axis
-        @param number_yaw_bins number of bins for the yaw angle
-        @param number_pitch_bins number of bins for the pitch angle
+        :param number_energy_bins: number of bins on the energy axis
+        :param number_yaw_bins: number of bins for the yaw angle
+        :param number_pitch_bins: number of bins for the pitch angle
 
-        @return unit: bytes
+        :return: unit: bytes
         """
         # bytes
         req_mem_per_bin = self.get_value_size(self.precision)

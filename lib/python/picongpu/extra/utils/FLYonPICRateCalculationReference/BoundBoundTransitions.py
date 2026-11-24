@@ -221,13 +221,22 @@ class BoundBoundTransitions:
     ):
         """rate of spontaneous deexcitation under photon emission
 
-        @param absorptionOscillatorStrength unitless
-        @param frequencyPhoton [1/s]
-        @param lowerStateLevelVector occupation number level vector for lower state of transition
+        Parameters
+        ----------
+        absorptionOscillatorStrength
+            unitless
+        frequencyPhoton
+            [1/s]
+        lowerStateLevelVector
+            occupation number level vector for lower state of transition,
             i.e. how many electron occupy states in each principal quantum number shell
-        @param upperStateLevelVector same as lowerStateLevelVector but upper state of transition
+        upperStateLevelVector
+            same as lowerStateLevelVector but upper state of transition
 
-        @return unit 1/s
+        Returns
+        -------
+        rate
+            unit 1/s
         """
         # (As)^2 * N/A^2 * / (kg * m/s ) = A^2 * s^2 kg*m/s^2 * 1/A^2 /(kg *m/s )
         # = A^2/A^2 * s^2/s^2 * (kg*m)/(kg*m) * 1/(1/s) = s
