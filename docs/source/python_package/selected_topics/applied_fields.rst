@@ -8,9 +8,10 @@ Applied (Background) Fields
 PIConGPU implements the PICMI-standard *applied fields* as **background
 fields**: a field that is added to the grid ``E`` and ``B`` fields around the
 particle push, so the particles feel it, while the field solver itself does not
-evolve it. Only the **whole simulation domain** is supported; ``lower_bound``
-and ``upper_bound`` must be left at their default (all ``None``), and region
-restriction raises an ``UnsupportedFeatureError``.
+evolve it. Setting the applied fields is only supported for the **whole of the
+simulation domain**; ``lower_bound`` and ``upper_bound`` must be left at their
+default (all ``None``), and region restriction raises an
+``UnsupportedFeatureError``.
 
 Applied fields are attached declaratively via the ``applied_fields`` argument
 of :class:`~picongpu.picmi.simulation.Simulation` (or with
@@ -57,11 +58,7 @@ The field classes
    :start-at: BEGIN-APPLIED-FIELD-ANALYTIC
    :end-before: END-APPLIED-FIELD-ANALYTIC
 
-All three spellings of a component are backed by the same
-:class:`~picongpu.picmi._field_functor._FieldFunctor`: supplying any one computes
-the others, so they are available and consistent after construction, and
-supplying several for one component is accepted as long as they agree. The
-``<component>_expression``, ``<component>_function`` and ``<component>_sympy``
+The ``<component>_expression``, ``<component>_function`` and ``<component>_sympy``
 fields are all declared on the PIConGPU class itself:
 
 .. literalinclude:: ../snippets/selected_topics/applied_fields.py
