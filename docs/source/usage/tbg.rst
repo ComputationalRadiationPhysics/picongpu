@@ -27,7 +27,7 @@ The ``.tpl`` and the ``.cfg`` files that were used to start the simulation can b
 In summary, PIConGPU runtime options in ``.cfg`` files are portable to any machine.
 When accessing a machine for the first time, one needs to write template ``.tpl`` files, abstractly describing how to run PIConGPU on the specific queue(s) of the batch system.
 We ship such template files already for a set of supercomputers, interactive execution and many common batch systems.
-See ``$PICSRC/etc/picongpu/`` and :ref:`our list of systems with .profile files <install-profile>` for details.
+See ``$PICSRC/etc/picongpu/`` and :ref:`our notes on profile files <install-profile>` for details.
 
 
 Usage
@@ -78,20 +78,3 @@ In this case it will run on the CPU.
 
 In order to run PIConGPU on your machine, use ``bash`` as the submit command, i.e.
 ``tbg -s bash -t etc/picongpu/bash/mpirun.tpl -c etc/picongpu/1.cfg $SCRATCH/picRuns/001``
-
-Slurm
-"""""
-
-Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden, Hemera at HZDR, Cori at NERSC, among others.
-
-.. include:: ../install/profiles/taurus-tud/Slurm_Tutorial.rst
-   :start-line: 3
-
-LSF
-"""
-
-LSF (for *Load Sharing Facility*) is an IBM batch system (``bsub``/BSUB).
-It is used, e.g. on Summit at ORNL.
-
-.. include:: ../install/profiles/summit-ornl/LSF_Tutorial.rst
-   :start-line: 3

@@ -1,7 +1,7 @@
 .. _hemeraIn5min:
 
-PIConGPU in 5 Minutes on RoSi
-=============================
+Legacy interface tutorial
+=========================
 
 A guide to run, but not understand PIConGPU.
 It is aimed at users of the high performance computing (HPC) cluster `"RoSi" at the HZDR <https://www.hzdr.de/db/Cms?pOid=12231&pNid=852>`_,
@@ -41,7 +41,7 @@ We will use the following files and directories:
 - :file:`~/gpu-v100_picongpu.profile`: load the dependencies for your local environment
 - :file:`~/picongpu-projects`: scenarios to simulate
 - :file:`/bigdata/hplsim/scratch/<username>`: result data of the simulation runs (*scratch* storage).
- External users may have to use  :file:`/bigdata/hplsim/external/<username>` instead.
+  External users may have to use  :file:`/bigdata/hplsim/external/<username>` instead.
 
 Please replace them whenever appropriate.
 Replace ``<username>`` with your username, you can find it by running the :command:`whoami` command on the cluster.

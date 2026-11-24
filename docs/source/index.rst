@@ -14,12 +14,46 @@ PIConGPU is a fully relativistic, manycore, 3D3V and 2D3V particle-in-cell (PIC)
 The PIC algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on the Vlasov-Maxwell system of equations.
 
-How to Read This Document
--------------------------
+How to Read This Documentation
+------------------------------
 
-Generally, to get started **follow the manual pages in order**.
-Individual chapters are based on the information in the chapters before.
-In case you are already fluent in compiling C++ projects and HPC, running PIC simulations or scientific data analysis, feel free to jump the respective sections.
+**Start here:** the :ref:`Quick Start <python_package/quickstart:Quick Start>`
+takes you from zero to a running PIConGPU simulation in five steps using the
+PICMI Python interface.
+
+Pick the entry point that matches what you are looking for:
+
+* **New to PIConGPU?**
+  Work through the :ref:`Getting Started <python_package/index:Getting Started>`
+  chapter below, from installing the Python package to your first simulation,
+  and continue with the
+  :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`.
+* **Looking for a feature?**
+  The :ref:`Physics & Features <models/pic:The Particle-in-Cell Algorithm>`
+  chapter describes the physical models, and the
+  :ref:`Using PIConGPU (PICMI) <python_package/foundations/index:Foundations>`
+  chapter explains how to configure them through the PICMI interface, with the
+  full class reference in the
+  :ref:`API Documentation <python_package/api/index:API Documentation>`.
+* **Migrating from legacy** ``.param`` **file setups to PICMI?**
+  The :ref:`migration guide <legacy_migration>` maps the legacy files you
+  know to the PICMI classes that can produce their content. The
+  :ref:`Foundations <python_package/foundations/index:Foundations>` chapter
+  introduces the PICMI interface, and the
+  :ref:`Legacy C++ interface (advanced) <usage-index>` chapter still documents
+  the legacy ``.param``/TBG setup you are coming from.
+* **Developing the C++ core?**
+  The :ref:`Legacy C++ interface (advanced) <usage-index>` and
+  :ref:`Development <development-index>`
+  chapters document the direct ``.param``/TBG interface and how to contribute.
+  The legacy chapter also contains the
+  :ref:`installation instructions <install-overview>` for the manual
+  C++ dependency installation and the cluster profiles.
+  For the Python interface, see
+  :ref:`Installing the Python Package <python_package/selected_topics/install:Installing the Python Package>`.
+
+Individual chapters build on the ones before them, but you can jump straight to
+the section that answers your question.
 
 .. only:: html
 
@@ -36,54 +70,25 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 .. _official homepage: http://picongpu.hzdr.de
 
 .. toctree::
-   :caption: INSTALLATION
+   :caption: Getting Started
    :maxdepth: 1
    :hidden:
 
-   install/path
-   install/instructions
-   install/dependencies
-   install/profile
+   python_package/index
+   usage/reference
    install/changelog.md
 
 .. toctree::
-   :caption: PIConGPU PYTHON PACKAGE
+   :caption: Using PIConGPU (PICMI)
    :maxdepth: 1
    :hidden:
 
-   python_package/quickstart
-   python_package/tutorial
-   python_package/troubleshooting
    python_package/foundations/index
    python_package/selected_topics/index
    python_package/api/index
 
 .. toctree::
-   :caption: TUTORIALS
-   :maxdepth: 1
-   :hidden:
-
-   tutorials/hemeraIn5min
-
-.. toctree::
-   :caption: USAGE
-   :maxdepth: 1
-   :hidden:
-
-   usage/reference
-   usage/basics
-   usage/param
-   usage/plugins
-   usage/tbg
-   usage/python_utils
-   usage/examples
-   usage/tests
-   usage/workflows
-   usage/crosscompile
-   usage/parameter_scans
-
-.. toctree::
-   :caption: MODELS
+   :caption: Physics & Features
    :maxdepth: 1
    :hidden:
 
@@ -103,55 +108,31 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    :maxdepth: 2
    :hidden:
 
-   postprocessing/python
    postprocessing/openPMD
    postprocessing/paraview
+   usage/python_utils
 
 .. toctree::
-   :caption: EXPERTs
+   :caption: Legacy C++ interface (advanced)
    :maxdepth: 1
    :hidden:
 
-   expert/deviceOversubscription
-   expert/signals
+   usage/introduction
+   install/index
+   usage/first_run
+   usage/input
+   usage/recipes
+   usage/expert
 
 .. toctree::
-   :caption: DEVELOPMENT
+   :caption: Development
    :maxdepth: 1
    :hidden:
 
-   dev/CONTRIBUTING.md
-   dev/docs/COMMIT.md
-   dev/ci
-   dev/repostructure
-   dev/styleguide
-   dev/sphinx
-   dev/doxygen
-   dev/clangtools
-   dev/extending
-   dev/picongpu
-   dev/pmacc
-   dev/py_postprocessing
-   dev/debugging
-   dev/doxyindex
-   dev/PlantUML
-
-.. toctree::
-   :caption: PROGRAMMING PATTERNS
-   :maxdepth: 1
-   :hidden:
-
-   prgpatterns/lockstep
-
-   
-.. toctree::
-   :caption: TESTING
-   :maxdepth: 1
-   :hidden:
-      
-   testing/general
-   testing/usage
-   testing/structure
-   testing/testbuilding
-   testing/examples
-   
+   dev/introduction
+   dev/contributing
+   dev/style_tooling
+   dev/cpp_core
+   dev/python_tooling
+   testing/index
+   dev/documentation
