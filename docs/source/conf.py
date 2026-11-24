@@ -24,6 +24,9 @@ import sphinx_rtd_theme
 python_libs = os.path.abspath("../../lib/python")
 sys.path.insert(0, python_libs)
 
+# local Sphinx extensions (build-time generated tables)
+sys.path.insert(0, os.path.abspath("./_ext"))
+
 # for autodoc example
 sys.path.insert(0, os.path.abspath("./pypicongpu"))
 
@@ -53,6 +56,7 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     "myst_parser",
     "sphinx.ext.autosectionlabel",
+    "legacy_migration_tables",
 ]
 
 # enable latex physics package in math expressions
@@ -180,7 +184,9 @@ language = "en"
 # This patterns also effect to html_static_path and html_extra_path
 # myst_parser also collects .md files as documents; snippets/README.md is
 # documentation about the snippets, not a Sphinx document of its own
-exclude_patterns = ["python_package/snippets/*"]
+exclude_patterns = [
+    "python_package/snippets/*",
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "default"
