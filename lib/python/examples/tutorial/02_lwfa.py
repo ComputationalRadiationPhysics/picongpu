@@ -1,6 +1,5 @@
 #!/usr/bin/env -S uv run
 # /// script
-# requires-python = ">=3.11"
 # dependencies = [
 #   "numpy",
 #   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
@@ -42,13 +41,10 @@ grid = Cartesian3DGrid(
 )
 solver = ElectromagneticSolver(method="Yee", grid=grid, cfl=0.95)
 
-LASER_DURATION = 2 * 5.0e-15
-PULSE_INIT = 15.0
-
 laser = GaussianLaser(
     wavelength=0.8e-6,
     waist=5.0e-6 / 1.17741,
-    duration=LASER_DURATION,
+    duration=1.0e-14,
     propagation_direction=[0.0, 1.0, 0.0],
     polarization_direction=[1.0, 0.0, 0.0],
     focal_position=[
@@ -58,7 +54,7 @@ laser = GaussianLaser(
     ],
     centroid_position=[
         float(NUM_CELLS[0] * CELL_SIZE[0] / 2.0),
-        -0.25 * PULSE_INIT * LASER_DURATION * c,
+        -3.75e-14 * c,
         float(NUM_CELLS[2] * CELL_SIZE[2] / 2.0),
     ],
     picongpu_polarization_type=PolarizationType.LINEAR,
