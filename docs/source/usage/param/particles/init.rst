@@ -97,10 +97,10 @@ Temperature
 .. doxygentypedef:: picongpu::particles::manipulators::unary::FreeTemperature
    :project: PIConGPU
 
-Assign
-~~~~~~
+Derive (binary manipulator)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. doxygentypedef:: picongpu::particles::manipulators::binary::Assign
+.. doxygentypedef:: picongpu::particles::manipulators::binary::Derive
    :project: PIConGPU
 
 DensityWeighting
@@ -135,20 +135,20 @@ RelativeGlobalDomainPosition
 .. doxygenstruct:: picongpu::particles::filter::RelativeGlobalDomainPosition
    :project: PIConGPU
 
-Free
-~~~~
+Free (filter)
+~~~~~~~~~~~~~
 
 .. doxygenstruct:: picongpu::particles::filter::generic::Free
    :project: PIConGPU
 
-FreeRng
-~~~~~~~
+FreeRng (filter)
+~~~~~~~~~~~~~~~~
 
 .. doxygenstruct:: picongpu::particles::filter::generic::FreeRng
    :project: PIConGPU
 
-FreeTotalCellOffset
-~~~~~~~~~~~~~~~~~~~
+FreeTotalCellOffset (filter)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. doxygenstruct:: picongpu::particles::filter::generic::FreeTotalCellOffset
    :project: PIConGPU

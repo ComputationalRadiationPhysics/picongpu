@@ -36,6 +36,11 @@ Plugin name                                                                     
 .. [#f5] Only runs on the *CUDA* backend (GPU).
 .. [#f6] Multi-Plugin: Can be configured to run multiple times with varying parameters.
 
+.. seealso::
+
+   The :ref:`PICMI diagnostics <python_package/selected_topics/diagnostics/index:Diagnostics>` page documents the
+   modern Python interface to these diagnostics.
+
 .. toctree::
    :glob:
    :maxdepth: 1
@@ -130,4 +135,4 @@ If you would like to help in developing those classes for a plugin of your choic
         F.-O. Carstens,
         *Synthetic few-cycle shadowgraphy diagnostics in particle-in-cell codes for characterizing laser-plasma accelerators*
         Master Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2022)
-        `DOI:10.5281/zenodo.7755263<https://doi.org/10.5281/zenodo.7755263>`_
+        `DOI:10.5281/zenodo.7755263 <https://doi.org/10.5281/zenodo.7755263>`_

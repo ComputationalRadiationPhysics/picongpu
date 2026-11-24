@@ -168,7 +168,7 @@ To include charge-state-only simulations in your simulations you must:
         Ensure the simulation is initialized as charge neutral whenever the respective species should move, to avoid creating unintended ghost background charge densities.
 
     .. note::
-    For an example of a picongpu setup with ionization see the `FoilLTC example <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/examples/FoilLCT>`_.
+        For an example of a picongpu setup with ionization see the `FoilLTC example <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/examples/FoilLCT>`_.
 
 .. [1]
     Clementi, E.; Raimondi, D. L. (1963)

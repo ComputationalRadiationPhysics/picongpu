@@ -10,7 +10,9 @@ We enable inter-collisions for ions and electrons as well as collisions between 
 :ref:`More details  <model-binaryCollisions::section::tests::thermalization>`
 
 Example script for submitting all tests in parallel
+
 .. code-block:: bash
+
     #!/bin/bash
 
     # compile and submit all setups (in parallel)
@@ -29,7 +31,9 @@ Example script for submitting all tests in parallel
     wait
 
 Commands for plotting results in parallel:
+
 .. code-block:: console
+
     cd <output path>
     for i in {0..2}; do python TEST_CASE_N0/input/lib/python/picongpu/thermalization_verifier/generate_plots.py --coulomb_log 5 --n_cells 2304 --file main_${i}.png --file_debug debug_${i}.png --smilei_dir <smilei_output_path>/N0${i} TEST_CASE_N${i} & done;
     for i in {3..8}; do python TEST_CASE_N0/input/lib/python/picongpu/thermalization_verifier/generate_plots.py --n_cells 2304 --file main_${i}.png --file_debug debug_${i}.png --smilei_dir <smilei_output_path>/N0${i} TEST_CASE_N${i} & done;

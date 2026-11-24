@@ -76,8 +76,10 @@ The basic PIC cycle, representing a single simulation time step :math:`(n \to n 
 
    .. math::
        \mathbf{u}^{n+3/2} = \mathbf{u}^{n+1/2} + \Delta t \frac{q}{m} (\mathbf{E}^{n} + \bar{\mathbf{v}}^{n} \times \mathbf{B}^{n})
+
    .. math::
        \mathbf{x}^{n+1} = \mathbf{x}^n + \Delta t ~\mathbf{u}^{n+1/2}
+
    with :math:`\bar{\mathbf{v}}^{n}` as an approximated velocity at :math:`t = n`.
    There exist various particle pushers, differing in accuracy and performance and offering different approximation schemes for :math:`\bar{\mathbf{v}}^{n}`. Please refer to [Ripperda2018]_ for further information.
    The particle pusher can be chosen and configured in :ref:`pusher.param <usage-params-core>`.
@@ -85,6 +87,7 @@ The basic PIC cycle, representing a single simulation time step :math:`(n \to n 
 
    .. math::
        \rho^{n+1} = \rho^n + \Delta t \cdot \nabla \mathbf{J}^{n + 1/2}
+
    The charge densities :math:`\rho^{n}, \rho^{n+1}` are obtained from the macroparticle position before and after movement with help of the assignment function :math:`W`. 
    In PIConGPU, the user can choose between Esirkepov's current deposition method [Esirkepov2001]_ and the performance-increased EZ method [Steiniger2023]_. 
    See :ref:`here <usage-params-core-currentdeposition>` for further details.

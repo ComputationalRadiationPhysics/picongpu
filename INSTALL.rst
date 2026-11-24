@@ -130,6 +130,7 @@ PIConGPU Source Code
   - ``export PATH=$PATH:$PICSRC/src/tools/bin``
 - *python*:
   - install as in :ref:`usage-python-utils`
+
 Optional Libraries
 ^^^^^^^^^^^^^^^^^^
 
@@ -143,7 +144,7 @@ CUDA
 - *Spack:* ``spack install cuda``
 - at least one **CUDA** capable **GPU**
 - *compute capability*: ``sm_60`` or higher
-- `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
+- `full list <https://developer.nvidia.com/cuda-gpus>`__ of CUDA GPUs and their *compute capability*
 - `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <https://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
 
@@ -159,7 +160,7 @@ ROCm/HIP
   - for ROCM 6.0+ additionally ``apt install hiprand-dev${ROCM_VER}``
 - at least one **HIP** capable **GPU**
 - *LLVM target*: ``gfx906`` or higher
-- `full list <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html#supported-gpus>`_ of AMD GPUs and their *LLVM target*
+- `full list <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html#supported-gpus>`__ of AMD GPUs and their *LLVM target*
 - *environment:*
 
   - ``export CMAKE_PREFIX_PATH=<ROCM_INSTALL>:$CMAKE_PREFIX_PATH``
@@ -215,9 +216,9 @@ openPMD API
 - For usage in PIConGPU, the openPMD API must have been built either with support for ADIOS2 or HDF5 (or both).
   When building the openPMD API from source (described below), these dependencies must be built and installed first.
 
-  - For ADIOS2, CMake build instructions can be found in the `official documentation <https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html>`_.
+  - For ADIOS2, CMake build instructions can be found in the `official documentation <https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html>`__.
     Besides compression, the default configuration should generally be sufficient, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location. Compression with ``c-blosc`` is described below.
-  - For HDF5, CMake build  instructions can be found in the `official documentation <https://support.hdfgroup.org/HDF5/release/cmakebuild.html>`_.
+  - For HDF5, CMake build  instructions can be found in the `official documentation <https://support.hdfgroup.org/HDF5/release/cmakebuild.html>`__.
     The parameters ``-DHDF5_BUILD_CPP_LIB=OFF -DHDF5_ENABLE_PARALLEL=ON`` are required, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location.
 - *from source:*
 

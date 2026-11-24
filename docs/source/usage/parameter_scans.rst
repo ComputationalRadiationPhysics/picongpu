@@ -3,6 +3,8 @@
 Automated Parameter Scans using Snakemake
 --------------------------------------------------------------
 
+.. sectionauthor:: Julian J. Lenz, Jessica Tiebel
+
 `Snakemake <https://snakemake.readthedocs.io/en/stable/index.html>`_ is a python based workflow engine that can be used to automate compiling, running and post-processing of PIConGPU simulations, or any other workflow that can be represented as a directed acyclic graph (DAG). 
 
 Each workflow consists of a ``Snakefile`` in which the workflow is defined using rules. Each rule represents a certain task. Dependencies between rules are defined by input and output files. Each rule can consist out of a shell command, python command or external python scripts (apparently also Rust, R, Julia and JupyterNB are supported). 
@@ -18,6 +20,7 @@ In ``picongpu/share/picongpu/examples/LaserWakefield/lib/python/snakemake/`` in 
     * ``config.yaml``
     * ``requirements.txt``
     * ``params.csv``
+
 With these files a parameter scan with the LaserWakefield example of PIConGPU on hemera can be performed. To do so:
 
 #. Copy the ``Snakefile`` and ``config.yaml``.
@@ -181,7 +184,7 @@ Of course you can have as many rules as you want after the simulation, just make
 
 .. note::
 
-    Note the ``expand()`` function in the ``all`` rule. This can be used to declare that all instances of the parameter space are meant. Further information can be found `here <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#the-expand-function>`_.
+    Note the ``expand()`` function in the ``all`` rule. This can be used to declare that all instances of the parameter space are meant. Further information can be found `here <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#the-expand-function>`__.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Recommendations on how to structure scripts for Snakemake
@@ -229,7 +232,7 @@ The only "free" code in your script should handle the parameter extraction from 
     
 The above code snippet defines a `main()` function where you can put your post-processing code.
 The free code of the script is guarded by an `if __name__ == "__main__"` clause
-(see `here <https://docs.python.org/3/library/__main__.html>`_ for an explanation).
+(see `here <https://docs.python.org/3/library/__main__.html>`__ for an explanation).
 It consists of two parts extracting the parameters and calling the `main(...)` function.
 
 The snippet uses a `try: ... except: ...` clause to guard against the case

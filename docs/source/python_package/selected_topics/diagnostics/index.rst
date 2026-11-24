@@ -1,6 +1,8 @@
 Diagnostics
 ===========
 
+.. sectionauthor:: Julian J. Lenz
+
 PIConGPU offers a range of diagnostics (plugins) that let you extract data
 from your simulation.
 They are all scheduled in time through the same
@@ -19,6 +21,11 @@ and each page below describes one of them:
 
 The :ref:`diagnostic output locations <diagnostic-output-locations>` are
 summarized at the end of the time-step page.
+
+.. seealso::
+
+   The :ref:`legacy plugin reference <usage-plugins>` documents the equivalent
+   diagnostics configured through the C++ ``.param`` interface.
 
 .. toctree::
    :maxdepth: 2

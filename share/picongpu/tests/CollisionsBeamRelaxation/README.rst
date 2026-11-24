@@ -8,7 +8,9 @@ In this test only the inter-collisions (between ions and electrons) are enabled.
 :ref:`More details  <model-binaryCollisions::section::tests::beamRelaxation>`
 
 Example script for submitting all tests in parallel
+
 .. code-block:: bash
+
     #!/bin/bash
 
     # compile and submit all setups (in parallel)
@@ -27,7 +29,9 @@ Example script for submitting all tests in parallel
     wait
 
 Commands for plotting results in parallel:
+
 .. code-block:: console
+
     cd <output path>
     for i in {0..5}; do python BR_CASE_N${i}/input/lib/python/picongpu/beam_relaxation_verifier/generate_plots.py --n_cells 96 --smilei_dir <path_to_smilei_results>/CASE_N${i} --file BR_main_${i} --file_debug BR_debug_${i} BR_CASE_N${i}/ & done;
     wait
