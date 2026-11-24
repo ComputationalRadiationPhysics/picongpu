@@ -1,6 +1,8 @@
 Troubleshooting
 ===============
 
+.. sectionauthor:: Julian J. Lenz
+
 The common failure modes of the Python interface, grouped by the
 *phase* in which they appear, with the message you will see and the
 usual fix.
@@ -104,6 +106,19 @@ Compile / CMake errors during the build step or ``pic-build`` command not found
 
 During the run
 --------------
+
+Running PICMI reports workflow success but the job fails immediately and there is no sign of any artifacts, results or logs
+   This is the likely failure mode when the compute node(s) do not have access to
+   the filesystem where the run directory is stored.
+   In the worst case, they might have a different filesystem mounted under the
+   same name (e.g. a node-local or in-memory ``/tmp`` filesystem).
+   The actual failure is that the submission script or some executable therein
+   is not found.
+   In the worst case, logs and failure messages are written to such a
+   compute-node-local filesystem and are hard to recover.
+   Check the paths in your ``Simulation.run()`` call.
+   In particular, if no paths are given, it defaults to the temporary
+   filesystem, which is particularly likely to exhibit the above behaviour.
 
 The job finished but I cannot find ``simOutput/``
    The output is in the job's working directory,

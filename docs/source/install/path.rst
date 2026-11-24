@@ -1,3 +1,5 @@
+.. _install-overview:
+
 .. _install-path:
 
 Introduction
@@ -7,6 +9,13 @@ Introduction
 
 Installing PIConGPU means :ref:`installing C++ libraries <install-dependencies>` that PIConGPU depends on and :ref:`setting environment variables <install-profile>` to find those dependencies.
 The first part is usually the job of a system administrator while the second part needs to be configured on the user side.
+
+.. note::
+
+   This chapter describes the legacy C++ installation.
+   If you already have a ``.param``/``.cfg`` setup and want to move it to the
+   PICMI Python interface, see
+   :ref:`Migrating from Legacy .param/.cfg Setups <legacy_migration>`.
 
 Depending on your experience, role, computing environment and expectations for optimal hardware utilization, you have several ways to install and select PIConGPU's dependencies.
 Choose your favorite *install and environment management method* below, young padawan, and follow the corresponding sections of the next chapters.

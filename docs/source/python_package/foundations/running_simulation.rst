@@ -1,6 +1,8 @@
 Running Your Simulation
 =======================
 
+.. sectionauthor:: Julian J. Lenz
+
 A PICMI input file is a simple Python script.
 As such, any way of executing a Python script works for running your simulation.
 In this section, we have compiled the most convenient and useful ways first
@@ -18,6 +20,12 @@ that nothing prevents us from calling ``simulation.run()`` or ``simulation.write
 multiple times in the same script (see :ref:`Defining Your Simulation <python_package/foundations/defining_simulation:Defining Your Simulation>` for inspirations on how to use this).
 For simplicity, the following guide assumes that a single simulation setup/run is handled
 but the concepts apply equally to multi-simulation scripts.
+
+.. seealso::
+
+   If you want to install the Python package once and reuse it across many
+   scripts, see :ref:`Installing the Python Package
+   <python_package/selected_topics/install:Installing the Python Package>`.
 
 Full Execution
 --------------
