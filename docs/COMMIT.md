@@ -109,41 +109,16 @@ git rebase --continue
 Unfortunately, I haven't found a convenient way to automate this within an (interactive) rebase.
 It would surely be doable within a script but having a little more control is probably also nice.
 
-Manually Formatting Code
-------------------------
+Code Formatting
+---------------
 
-For C++ code, we provide `.clang-format` file in the root directory. Python code must adhere to [PEP
-8](https://peps.python.org/pep-0008/) guidelines. Following both of these is automated in `pre-commit`. If you are not
-able or willing to use `pre-commit`, you can instead do the following manually to get close to the same result:
+C++ code is formatted with clang-format 20.1.8 (LLVM 20.1) according to the
+`.clang-format` file in the repository root; Python code follows [PEP
+8](https://peps.python.org/pep-0008/) and is formatted with [`black`](https://pypi.org/project/black/)
+(line length 120). Both are automated by the pre-commit hooks above.
 
-For Python code, install [`black`](https://pypi.org/project/black/) and run
-
-```bash
-black -l 120
-```
-
-The following describes formatting of C++ code.
-
-- Install *ClangFormat 20* from LLVM 20.1.0
-- To format all files in your working copy, you can run this command in bash from the root folder of PIConGPU:
-
-  ```bash
-  find include/ share/picongpu/ share/pmacc -iname "*.def" \
-  -o -iname "*.h" -o -iname "*.cpp" -o -iname "*.cu" \
-  -o -iname "*.hpp" -o -iname "*.tpp" -o -iname "*.kernel" \
-  -o -iname "*.loader" -o -iname "*.param" -o -iname "*.unitless" \
-  | xargs clang-format-20 -i
-  ```
-
-Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only.
-Before applying this command, you must extend your local git configuration **once** with all file endings used in *PIConGPU*:
-
-```
-git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
-```
-
-For only formatting lines you added using `git add`, call `git clang-format-20` before you create a commit.
-Please be aware that un-staged changes will not be formatted.
+For manual formatting without pre-commit and for the `git clang-format`
+workflow, see {ref}`Coding Guide Lines <development-styleguide>`.
 
 Commit Messages
 ---------------

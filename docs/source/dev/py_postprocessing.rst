@@ -93,9 +93,9 @@ When implementing a new widget you have to perform the following steps:
 
 .. code:: python
 
-   # taken from lib/python/picongpu/plugins/jupyter_widgets/energy_histogram_widget.py
+   # taken from lib/python/picongpu/extra/plugins/jupyter_widgets/energy_histogram_widget.py
    from .base_widget import BaseWidget
-   from picongpu.plugins.plot_mpl import EnergyHistogramMPL
+   from picongpu.extra.plugins.plot_mpl import EnergyHistogramMPL
 
    class EnergyHistogramWidget(BaseWidget):
        def __init__(self, run_dir_options, fig=None, **kwargs):
@@ -113,7 +113,7 @@ When implementing a new widget you have to perform the following steps:
 
 .. code:: python
 
-   # taken from lib/python/picongpu/plugins/jupyter_widgets/energy_histogram_widget.py
+   # taken from lib/python/picongpu/extra/plugins/jupyter_widgets/energy_histogram_widget.py
     def _create_widgets_for_vis_args(self):
         # widgets for the input parameters
         self.species = widgets.Dropdown(description="Species",
