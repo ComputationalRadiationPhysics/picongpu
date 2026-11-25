@@ -449,9 +449,14 @@ class _PartialGrid(Grid):
     ):
         # Metadata
         ndims = 2 if dim == "rt" else 3
-        assert dim in ["rt", "xyt"]
-        assert len(lo) == ndims
-        assert len(hi) == ndims
+        if dim not in ["rt", "xyt"]:
+            raise ValueError("dim must be either 'rt' or 'xyt'")
+        if len(lo) != ndims:
+            raise ValueError("lo must have the same number of elements as the dimensionality of the grid")
+        if len(hi) != ndims:
+            raise ValueError("hi must have the same number of elements as the dimensionality of the grid")
+        if len(npoints) != ndims:
+            raise ValueError("npoints must have the same number of elements as the dimensionality of the grid")
 
         lo = list(lo)
         hi = list(hi)
@@ -597,33 +602,6 @@ def _rt_to_xyt(laser, Nx, Ny, points_between_r=1):
     laser_new.grid.set_temporal_field(field_new)
     if tqdm_available:
         pbar.close()
-    return laser_new
-
-
-def _cut_first_frac(laser, cut_frac):
-    """cuts the first points in t direction"""
-    if cut_frac >= 1:
-        raise ValueError("Can't cut the entire field")
-    field = laser.grid.get_temporal_field()
-
-    # prep
-    N = int((field.shape[-1] - 1) * cut_frac) + 1
-    if np.max(np.abs(field[:, :, :N])) > 0.01 * np.max(np.abs(field)):
-        logger.warn(
-            "Only cut unneccessary stuff, max(E_cut)/max(E) = "
-            + str(np.max(np.abs(field[:, :, :N])) / np.max(np.abs(field)))
-        )
-
-    # cut the field
-    field_new = field[:, :, N:]
-    lo = laser.grid.lo
-    lo[-1] += (laser.grid.hi[-1] - laser.grid.lo[-1]) * cut_frac
-
-    # make a partial laser for the return, containing the new field
-    laser_new = _PartialLaser(
-        laser.dim, lo, laser.grid.hi, field_new.shape, Profile(laser.profile.lambda0, laser.profile.pol)
-    )
-    laser_new.grid.set_temporal_field(field_new)
     return laser_new
 
 
@@ -910,7 +888,6 @@ def laser_to_openPMD(
     file_format="bp",
     iteration=0,
     points_between_r=1,
-    cut_first_frac=0,
     forced_dt=None,
     offset_frac=0,
     data_step=1,
@@ -955,9 +932,6 @@ def laser_to_openPMD(
         This argument describes, how many points in x and y directions should be placed
         (interpolated) between two given values in the r direction.
 
-    cut_first_frac : float between 0 and 1 (optional)
-        Fraction of the points in the t-direction to be cut
-
     forced_dt : float (optional)
         Forces dt to be this value, if possible.
         If forced_dt and Nt is given the resulting section is taken from the end of the field.
@@ -974,32 +948,24 @@ def laser_to_openPMD(
     append : bool (optional)
         Needs to be set to True, if the file should be added to not overwritten.
     """
-    # 1. Check if cutting is neccessary
-    changed = False
-    if cut_first_frac > 0:
-        logger.info("preparing the laser...")
-        laser_new = _cut_first_frac(laser, cut_first_frac)
-        changed = True
-
+    # 1. Validate some input parameters
+    if np.all(laser.profile.pol != 0) or not np.all(np.isreal(laser.profile.pol)):
+        raise ValueError("laser_to_openPMD only supports linear polarization in x or y direction")
+    if os.path.exists(write_dir / file_prefix + "." + file_format) and not append:
+        print("Warning: file already exists and will be overwritten. Set append=True to avoid this.")
     # 2. If the laser is in rt it needs to be transformed to xyt, because we want to save a 3D electric field. Assuming cylindrical symmetry in this case.
+    changed = False
     if laser.dim == "rt":
         if Nx is None or Ny is None:
             raise ValueError("If given a laser in dim='rt' both Nx and Ny must be given")
-        if changed:
-            laser_new = _rt_to_xyt(
-                laser_new,
-                int(Nx * data_step),
-                int(Ny * data_step),
-                points_between_r=points_between_r,
-            )
-        else:
-            logger.info("preparing the laser...")
-            laser_new = _rt_to_xyt(
-                laser,
-                int(Nx * data_step),
-                int(Ny * data_step),
-                points_between_r=points_between_r,
-            )
+
+        logger.info("preparing the laser...")
+        laser_new = _rt_to_xyt(
+            laser,
+            int(Nx * data_step),
+            int(Ny * data_step),
+            points_between_r=points_between_r,
+        )
         changed = True
     if not changed:
         laser_new = laser

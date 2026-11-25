@@ -1,7 +1,7 @@
 """
 This file is part of PIConGPU.
 Copyright 2021-2024 PIConGPU contributors
-Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Julian Lenz
+Authors: Hannes Troepgen, Brian Edward Marre, Alexander Debus, Julian Lenz, Edgar Marquardt
 License: GPLv3+
 """
 
@@ -23,6 +23,7 @@ from pydantic import (
 
 from lasy.laser import Laser as LasyLaser
 from ..extra.input.prepareLasyLaser import laser_to_openPMD
+import numpy as np
 
 
 class PolarizationType(Enum):
@@ -231,7 +232,8 @@ class FromLasyLaser(BaseModel):
     ]
     """direction of polarization (normalized vector)"""
     file_path: Path
-    """File path to the OpenPMD file meant to contain the pulse data"""
+    """File path to the OpenPMD file meant to contain the pulse data. If the file already exists, it will not be overwritten!
+    Use the append option to add to an existing file or remove it yourself."""
     iteration: int = 0
     """Iteration in the OpenPMD file to use"""
     time_offset_si: float
@@ -256,7 +258,7 @@ class FromLasyLaser(BaseModel):
     data_step: int = 1
     """Only saves every (data_step)th data point to the file transversally."""
     append: bool = False
-    """append to an existing file intead of potentially overwriting it."""
+    """append to an existing file."""
 
     def _create_openPMD_file(self) -> None:
         filename = self.file_path.name.rsplit(sep=".", maxsplit=1)[0]
@@ -279,8 +281,11 @@ class FromLasyLaser(BaseModel):
 
     @model_serializer(mode="plain")
     def _get_serialized(self) -> dict[str, Any] | None:
-        self._create_openPMD_file()
+        if not self.file_path.exists():
+            self._create_openPMD_file()
 
+        if np.all(self.lasyLaser.profile.pol != 0) or not np.all(np.isreal(self.lasyLaser.profile.pol)):
+            raise ValueError("FromLasyLaser only supports linear polarization in x or y direction")
         if self.lasyLaser.profile.pol[0] > self.lasyLaser.profile.pol[1]:
             pol = "x"
         else:
