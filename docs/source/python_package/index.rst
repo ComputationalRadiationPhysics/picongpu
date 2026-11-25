@@ -29,3 +29,4 @@ for particular features.
    tutorial
    troubleshooting
    legacy_migration
+   conquering_new_cluster/index
