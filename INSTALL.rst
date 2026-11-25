@@ -1,21 +1,32 @@
 .. _install-dependencies:
 
-.. seealso::
-
-   You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <https://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
-
-.. note::
-
-   If you are a scientific user at a super computing facility we might have already prepared a software setup for you.
-   See the :ref:`following chapter <install-profile>` if you can skip this step fully or in part by loading existing modules on those systems.
-
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera, Julian J. Lenz
 
 Overview
 --------
+
+PIConGPU builds on a number of external dependencies.
+Modern HPC systems will typically provide (parts of) these,
+most often in the form of [modules](...).
+Using these is preferred over user-installed versions under most circumstances
+because the system administrations have probably built optimized version for their hardware.
+
+Missing dependencies need to be installed by the user,
+a process that is automated for some of the curated system,
+see [here](...).
+The [`"bash"`](link to the autoinstall script),
+[`"bash/spack"`](link to the autoinstall script)
+and [`"bash/conda"`](link to the autoinstall script)
+presets contain full scripts that install all missing dependencies.
+They are intended for local installation
+but they are likely to run
+(or at least provide a good starting point)
+on other systems as well.
+
+Below you can find a depiction and a list of PIConGPU's dependencies.
 
 .. figure:: libraryDependencies.png
    :alt: overview of PIConGPU library dependencies
