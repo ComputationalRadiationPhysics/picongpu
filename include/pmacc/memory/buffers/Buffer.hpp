@@ -28,8 +28,6 @@
 #include "pmacc/memory/boxes/PitchedBox.hpp"
 #include "pmacc/types.hpp"
 
-#include <limits>
-
 namespace pmacc
 {
     /** Minimal function description of a buffer,

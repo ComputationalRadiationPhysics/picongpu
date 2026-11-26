@@ -43,19 +43,6 @@ namespace pmacc
     }
 
     template<typename T_Type, unsigned T_dim>
-    HostDeviceBuffer<T_Type, T_dim>::HostDeviceBuffer(
-        HBuffer& otherHostBuffer,
-        DataSpace<T_dim> const& offsetHost,
-        DBuffer& otherDeviceBuffer,
-        DataSpace<T_dim> const& offsetDevice,
-        GridLayout<T_dim> const size,
-        bool sizeOnDevice)
-    {
-        hostBuffer = std::make_unique<HostBufferType>(otherHostBuffer, size, offsetHost);
-        deviceBuffer = std::make_unique<DeviceBufferType>(otherDeviceBuffer, size, offsetDevice, sizeOnDevice);
-    }
-
-    template<typename T_Type, unsigned T_dim>
     HostBuffer<T_Type, T_dim>& HostDeviceBuffer<T_Type, T_dim>::getHostBuffer() const
     {
         return *hostBuffer;
