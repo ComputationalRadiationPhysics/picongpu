@@ -144,21 +144,6 @@ namespace pmacc
             init();
         }
 
-        GridBuffer(
-            HostBuffer<TYPE, DIM>& otherHostBuffer,
-            DataSpace<DIM> const& offsetHost,
-            DeviceBuffer<TYPE, DIM>& otherDeviceBuffer,
-            DataSpace<DIM> const& offsetDevice,
-            GridLayout<DIM> const& gridLayout,
-            bool sizeOnDevice = false)
-            : Parent(otherHostBuffer, offsetHost, otherDeviceBuffer, offsetDevice, gridLayout.sizeND(), sizeOnDevice)
-            , hasOneExchange(false)
-            , gridLayout(gridLayout)
-            , maxExchange(0)
-        {
-            init();
-        }
-
         /**
          * Add Exchange in GridBuffer memory space.
          *

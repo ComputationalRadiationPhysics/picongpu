@@ -66,19 +66,6 @@ namespace pmacc
         HostDeviceBuffer(DBuffer& otherDeviceBuffer, DataSpace<T_dim> const& size, bool sizeOnDevice = false);
 
         /**
-         * Constructor that reuses the given buffers instead of creating own ones.
-         * The data from [offset, offset+size) is used
-         * Passing a size bigger than the buffer (minus the offset) is undefined.
-         */
-        HostDeviceBuffer(
-            HBuffer& otherHostBuffer,
-            DataSpace<T_dim> const& offsetHost,
-            DBuffer& otherDeviceBuffer,
-            DataSpace<T_dim> const& offsetDevice,
-            GridLayout<T_dim> const size,
-            bool sizeOnDevice = false);
-
-        /**
          * Returns the internal data buffer on host side
          *
          * @return internal HBuffer

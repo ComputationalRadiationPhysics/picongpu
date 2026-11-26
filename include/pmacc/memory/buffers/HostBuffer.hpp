@@ -101,27 +101,6 @@ namespace pmacc
             reset(false);
         }
 
-        /** create a shallow view into an existing buffer
-         *
-         * @param source buffer to create the view on
-         * @param size extent for each dimension (in elements)
-         * @param offset offset within the source (in elements)
-         *
-         * @attention offset + size must be less or equal to the size of the source buffer
-         */
-        HostBuffer(HostBuffer& source, MemSpace<T_dim> size, MemSpace<T_dim> offset = MemSpace<T_dim>())
-            : Buffer<T_Type, T_dim>(size)
-            , hostBuffer(source->hostBuffer)
-        {
-            auto subView = createSubView(*source.view, size.toAlpakaMemVec(), offset.toAlpakaMemVec());
-            view.emplace(ViewType(
-                alpaka::getPtrNative(subView),
-                alpaka::getDev(subView),
-                alpaka::getExtents(subView),
-                alpaka::getPitchesInBytes(subView)));
-            reset(true);
-        }
-
         ~HostBuffer() override
         {
             eventSystem::startOperation(ITask::TASK_HOST);
