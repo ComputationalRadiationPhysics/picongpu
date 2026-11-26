@@ -172,6 +172,18 @@ PROFILE_PARAMETERS = [
         example="$HOME/pic-libs",
     ),
     ProfileParameter(
+        rc_key="pic_deps_script",
+        export_name=None,
+        is_required=False,
+        description=(
+            "Path to a user-supplied dependency installer script for `pic-deps`, used instead of the selected "
+            "preset's own dependencies_autoinstall*.sh. It is run against the rendered profile, so it must "
+            "source `PIC_PROFILE` and guard each install with the matching `*_ROOT` directory checks like the "
+            "shipped scripts. A relative path is resolved against the current working directory."
+        ),
+        example="$HOME/my_dependencies_autoinstall.sh",
+    ),
+    ProfileParameter(
         rc_key="account",
         export_name="account",
         is_required=False,

@@ -1,0 +1,4 @@
+# BEGIN-PIC-DEPS-CUSTOM-SCRIPT
+# Use a local dependency installer instead of the selected preset's script.
+pic_deps_script="/path/to/my_dependencies_autoinstall.sh"
+# END-PIC-DEPS-CUSTOM-SCRIPT

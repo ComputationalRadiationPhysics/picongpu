@@ -101,8 +101,12 @@ TOML_EXPECTED = {
     },
     "conquering_new_cluster/picongpurc.toml": {
         "profile_template_path": "/path/to/custom.profile",
-        "submit_system": "sbatch",
+        "tbg_submit": "sbatch",
+        "tbg_tpl_file": "etc/picongpu/mysystem/gpu.tpl",
         "pic_libs": "/path/to/where/dependencies/shall/be/installed",
+    },
+    "conquering_new_cluster/pic_deps_custom_script.toml": {
+        "pic_deps_script": "/path/to/my_dependencies_autoinstall.sh",
     },
 }
 

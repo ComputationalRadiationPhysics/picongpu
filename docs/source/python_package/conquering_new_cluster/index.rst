@@ -16,7 +16,10 @@ will get you to a running simulation without any manual installation.
 This section collects the steps for getting PIConGPU running
 on a new HPC system that has no preset
 and/or is not covered by our dependency installation tool.
-It covers installing the dependencies, preparing the environment and integrating this into our PICMI frontend.
+It covers installing the dependencies, preparing the environment,
+adapting the batch system and integrating this into our PICMI frontend.
+The dependency installation is best-effort;
+on a new system, a manual installation is often necessary.
 
 .. toctree::
    :maxdepth: 1

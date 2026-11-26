@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 
 from picongpu._rc_params import PRESET_STORAGE_PATH, RCParams
-from picongpu.pic_deps import parse_guard_roots, resolve_preset_script, check_dependencies
+from picongpu.pic_deps import (
+    CUSTOM_SCRIPT_KEY,
+    check_dependencies,
+    install_dependencies,
+    parse_guard_roots,
+    resolve_preset_script,
+)
 
 _AMBIENT_DEPENDENCY_VARS = (
     "PIC_LIBS",
@@ -223,3 +229,91 @@ def test_check_dependencies_spack_enumerates_versioned_roots(clean_dependency_en
     assert resolved["BOOST_ROOT"] == str(pic_libs / "boost" / "1.87.0")
     assert resolved["HDF5_ROOT"] == str(pic_libs / "hdf5" / "2.0.0")
     assert resolved["PNGwriter_ROOT"] == str(pic_libs / "pngwriter" / "0.7.0")
+
+
+# --- user-supplied dependency installer scripts (pic_deps_script / --script) ---
+
+_CUSTOM_SCRIPT = """#!/usr/bin/env bash
+# harmless custom installer used by the tests
+source "$PIC_PROFILE"
+if [ ! -d "$MYTEST_ROOT" ]; then
+    mkdir -p "$MYTEST_ROOT"
+fi
+"""
+
+
+def _write_custom_script(tmp_path, name="my_dependencies_autoinstall.sh"):
+    script = tmp_path / name
+    script.parent.mkdir(parents=True, exist_ok=True)
+    script.write_text(_CUSTOM_SCRIPT)
+    return script
+
+
+def test_resolve_preset_script_custom_rc_parameter(tmp_path):
+    script = _write_custom_script(tmp_path)
+    p = _completed_params()
+    p[CUSTOM_SCRIPT_KEY] = str(script)
+    preset_dir, resolved = resolve_preset_script(p)
+    assert preset_dir == "perlmutter-nersc"
+    assert resolved == script.absolute()
+
+
+def test_resolve_preset_script_custom_without_preset(tmp_path):
+    script = _write_custom_script(tmp_path)
+    p = RCParams()
+    p[CUSTOM_SCRIPT_KEY] = str(script)
+    preset_dir, resolved = resolve_preset_script(p)
+    assert preset_dir == "custom"
+    assert resolved == script.absolute()
+
+
+def test_resolve_preset_script_custom_cli_overrides_rc_parameter(tmp_path):
+    rc_script = _write_custom_script(tmp_path / "rc", name="rc.sh")
+    cli_script = _write_custom_script(tmp_path / "cli", name="cli.sh")
+    p = _completed_params()
+    p[CUSTOM_SCRIPT_KEY] = str(rc_script)
+    _, resolved = resolve_preset_script(p, script=str(cli_script))
+    assert resolved == cli_script.absolute()
+
+
+def test_resolve_preset_script_custom_missing_script(tmp_path):
+    p = _completed_params()
+    p[CUSTOM_SCRIPT_KEY] = str(tmp_path / "does-not-exist.sh")
+    with pytest.raises(SystemExit, match="does not exist|not a file"):
+        resolve_preset_script(p)
+
+
+def test_check_and_install_with_configured_script(tmp_path, clean_dependency_environment):
+    if not Path("/bin/bash").is_file():
+        pytest.skip("requires bash login shell")
+    root = tmp_path / "root"
+    script = _write_custom_script(tmp_path)
+    p = RCParams()
+    p[CUSTOM_SCRIPT_KEY] = str(script)
+    p["profile_content"] = f'export MYTEST_ROOT="{root}"\n'
+
+    # before install: the guard directory does not exist yet
+    assert check_dependencies(p) == [("MYTEST_ROOT", str(root), False)]
+
+    # the configured script is run (it creates the guard directory) and the
+    # final check succeeds
+    assert install_dependencies(p) == 0
+    assert root.is_dir()
+    assert check_dependencies(p) == [("MYTEST_ROOT", str(root), True)]
+
+
+def test_main_with_custom_script_without_rc_key(tmp_path, monkeypatch, clean_dependency_environment):
+    if not Path("/bin/bash").is_file():
+        pytest.skip("requires bash login shell")
+    import picongpu.pic_deps as pic_deps
+
+    script = _write_custom_script(tmp_path)
+    root = tmp_path / "root"
+    p = RCParams()
+    p["profile_content"] = f'export MYTEST_ROOT="{root}"\n'
+    monkeypatch.setattr(pic_deps, "_rc_params_default", p)
+
+    assert pic_deps.main(["check", "--script", str(script)]) == 1
+    assert pic_deps.main(["install", "--script", str(script)]) == 0
+    assert root.is_dir()
+    assert pic_deps.main(["check", "--script", str(script)]) == 0
