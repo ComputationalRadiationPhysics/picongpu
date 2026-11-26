@@ -6,13 +6,13 @@ The General Process
 .. sectionauthor:: Julian Lenz
 
 PIConGPU provides tools on various levels to streamline the process of compiling and running it.
-Regardless of whether you're using our modern :ref:`PICMI Interface <???>` or the :ref:`Low-level C++ interface <???>`
+Regardless of whether you're using our modern :ref:`PICMI Interface <python_package/foundations/index:Foundations>` or the :ref:`Low-level C++ interface <usage-index>`
 a new system needs the following pieces of information:
 
 #. Environment information in the form of a
    :ref:`picongpu.profile <install-profile>`
 #. Submission information in the form of a
-   :ref:`.tpl file <???>` (roughly a template for a batch script)
+   :ref:`batch template <conquering_new_cluster-templates>` (roughly a template for a batch script)
 #. An installation of :ref:`dependencies <install-dependencies>`
    that are not provided by the system itself
 
@@ -84,7 +84,7 @@ provide a good starting point/inventory of installation routines.
 Sometimes, individual compiler flags, etc. might need changing.
 System-specific examples can be found in other parts of ``etc/picongpu``.
 You can even try to run one of them directly on your new system
-(potentially via :ref:`pic-deps <_conquering_new_cluster-configuring-frontend>`).
+(potentially via :ref:`pic-deps <conquering_new_cluster-configuring-frontend>`).
 
 CAUTION: Make sure that which ever process you end up with
 builds the missing dependencies against the system-provided ones,
@@ -112,9 +112,9 @@ Configuring the PICMI frontend
 The steps above roughly correspond to step 1-3 of the
 :ref:`Quick Start <python_package/quickstart:Quick Start>`.
 Accordingly, you can pick up from
-:ref:`Step 4 <python_package/quickstart:Step 4: Install the Dependencies>`
+:ref:`Step 4 <python_package/quickstart:Step 4: Download the Minimal Example>`
 once you've worked through the steps above.
-You can also try to skip :ref:`manual installation of dependencies <_conquering_new_cluster-manual-installation>`
+You can also try to skip :ref:`manual installation of dependencies <conquering_new_cluster-manual-installation>`
 and use :ref:`Step 3 <python_package/quickstart:Step 3: Install the Dependencies>`.
 
 
