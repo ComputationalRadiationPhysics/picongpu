@@ -7,7 +7,7 @@ name: picongpu-docs-env
 channels:
   - conda-forge
 dependencies:
-  - python==3.13.*
+  - python>=3.7
   - doxygen
   - pip
   - pip:
