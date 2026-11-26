@@ -17,7 +17,7 @@ The submission is performed by the `tbg <https://github.com/ComputationalRadiati
 driven by the ``TBG_*`` variables in the generated ``etc/picongpu/N.cfg``
 and by a batch-script *template* for your system.
 For the platform-independent parts of this tool
-see :ref:`the legacy TBG documentation <usage-tbg>`.
+see :ref:`the low-level TBG documentation <usage-tbg>`.
 
 .. _tbg-flags:
 

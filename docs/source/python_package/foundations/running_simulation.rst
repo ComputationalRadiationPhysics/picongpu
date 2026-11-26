@@ -354,15 +354,15 @@ that they would have in the equivalent ``simulation.run()`` invocation.
 
 .. _running_simulation_legacy_workflow:
 
-Input for the Legacy Workflow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Input for the Low-level Workflow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In your PICMI input script you can use ``simulation.write_input_file()``
 instead of ``simulation.run()``
 to write a simulation setup the specified location
 without executing it.
 
-If you are familiar with the legacy ``pic-create``/``pic-build``/``tbg`` interface of core PIConGPU (:ref:`TBG documentation <usage-tbg>`),
+If you are familiar with the low-level ``pic-create``/``pic-build``/``tbg`` interface of core PIConGPU (:ref:`TBG documentation <usage-tbg>`),
 you can use the generated setup in the same manner that you would have used a ``pic-create`` setup.
 Furthermore, you can find a tailored :ref:`profile <install-profile>` in ``workflow/scripts/picongpu.profile``.
 In effect, you can run:
@@ -378,7 +378,7 @@ You will still benefit in parts from the additional features like better metadat
 .. seealso::
 
    The :ref:`HPC Submission Internals <hpc-submission>` page
-   documents the generated submission machinery that this legacy block drives.
+   documents the generated submission machinery that this low-level block drives.
 
 Manual and Partial Workflow Execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,7 +1,7 @@
 .. _hemeraIn5min:
 
-Legacy interface tutorial
-=========================
+Low-level interface tutorial
+============================
 
 A guide to run, but not understand PIConGPU.
 It is aimed at users of the high performance computing (HPC) cluster `"RoSi" at the HZDR <https://www.hzdr.de/db/Cms?pOid=12231&pNid=852>`_,

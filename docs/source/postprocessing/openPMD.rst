@@ -15,7 +15,7 @@ openPMD
    for the PICMI diagnostics that write openPMD, see the
    :ref:`PICMI openPMD output <openpmd>` page.
    A guided walk-through is part of the
-   :ref:`legacy interface tutorial <hemeraIn5min>`.
+   :ref:`low-level interface tutorial <hemeraIn5min>`.
 
 If you are new to openPMD, the `project website <https://www.openpmd.org>`_
 provides an introduction.

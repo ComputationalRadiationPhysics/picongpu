@@ -96,9 +96,9 @@ Next Steps
   simulation.
 * :ref:`Running Your Simulation
   <python_package/foundations/running_simulation:Running Your Simulation>` --
-  the full set of invocation methods, advanced and legacy workflows, and where
+  the full set of invocation methods, advanced and low-level workflows, and where
   the results end up.
 * :ref:`Installing the C++ interface <install-overview>` -- the
   manual C++ dependency installation, cluster profiles and environment setup
   needed to actually build and submit PIConGPU (part of the
-  :ref:`legacy C++ interface <usage-index>` chapter).
+  :ref:`low-level C++ interface <usage-index>` chapter).

@@ -1,15 +1,15 @@
 .. _legacy_migration:
 
-Migrating from Legacy ``.param``/``.cfg`` Setups
-================================================
+Migrating from Low-level ``.param``/``.cfg`` Setups
+===================================================
 
 .. sectionauthor:: Julian J. Lenz
 
-This page is for users who already run PIConGPU through the legacy C++ interface:
+This page is for users who already run PIConGPU through the low-level C++ interface:
 a setup created with ``pic-create``, edited in
 ``include/picongpu/param/*.param`` and ``etc/picongpu/*.cfg``, built with
 ``pic-build`` and submitted with ``tbg``.
-It maps the legacy files in those setups to the PICMI Python classes that can
+It maps the low-level files in those setups to the PICMI Python classes that can
 produce their content in this repository.
 
 .. seealso::
@@ -22,7 +22,7 @@ The layers you are moving between
 ----------------------------------
 
 A PICMI input file is not rendered directly into C++.
-It passes through several layers before it becomes the files the legacy
+It passes through several layers before it becomes the files the low-level
 workflow edited by hand:
 
 * the **PICMI frontend** (``picongpu.picmi``), which you write,
@@ -36,19 +36,19 @@ workflow edited by hand:
 The :ref:`background chapter <python_package/foundations/background:Background>`
 describes this architecture in detail.
 For migration, the practical consequence is:
-whenever a legacy file is written by the Python package, some PICMI
+whenever a low-level file is written by the Python package, some PICMI
 class feeds a PyPIConGPU object that a mustache template renders into that
 file.
 
-Which legacy file maps to which PICMI classes?
------------------------------------------------
+Which low-level file maps to which PICMI classes?
+-------------------------------------------------
 
 The table below is generated from the mustache templates and the PyPIConGPU
 models, not maintained by hand.
-For every legacy file it lists the PICMI input classes that can *currently*
+For every low-level file it lists the PICMI input classes that can *currently*
 produce content in it.
 Read it as:
-"If I changed file *A* in my legacy setup, which PICMI classes could I use to
+"If I changed file *A* in my low-level setup, which PICMI classes could I use to
 express that change in a PICMI input file?"
 
 For class usage and parameters, see the
@@ -62,7 +62,7 @@ inputs and are listed separately:
 
 .. legacy-migration-table:: cfg
 
-Some legacy parameter files have no dedicated template. Their settings are
+Some low-level parameter files have no dedicated template. Their settings are
 either folded into one of the files above (for example species constants and
 attributes are written by the generated ``speciesDefinition.param``) or they
 have no PICMI counterpart yet.

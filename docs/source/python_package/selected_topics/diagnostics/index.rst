@@ -24,7 +24,7 @@ summarized at the end of the time-step page.
 
 .. seealso::
 
-   The :ref:`legacy plugin reference <usage-plugins>` documents the equivalent
+   The :ref:`low-level plugin reference <usage-plugins>` documents the equivalent
    diagnostics configured through the C++ ``.param`` interface.
 
 .. toctree::

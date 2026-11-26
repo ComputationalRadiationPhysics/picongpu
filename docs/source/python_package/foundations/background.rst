@@ -107,6 +107,6 @@ Configuration templates and presets
 
 .. seealso::
 
-   If you are coming from the legacy ``.param``/``.cfg`` interface,
-   :ref:`Migrating from Legacy .param/.cfg Setups <legacy_migration>`
-   maps the legacy files you know to the PICMI classes described above.
+   If you are coming from the low-level ``.param``/``.cfg`` interface,
+   :ref:`Migrating from Low-level .param/.cfg Setups <legacy_migration>`
+   maps the low-level files you know to the PICMI classes described above.

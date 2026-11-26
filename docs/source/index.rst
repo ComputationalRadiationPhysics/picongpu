@@ -43,10 +43,10 @@ Pick the entry point that matches what you are looking for:
   :ref:`Legacy C++ interface (advanced) <usage-index>` chapter still documents
   the legacy ``.param``/TBG setup you are coming from.
 * **Developing the C++ core?**
-  The :ref:`Legacy C++ interface (advanced) <usage-index>` and
+  The :ref:`Low-level C++ interface (advanced) <usage-index>` and
   :ref:`Development <development-index>`
   chapters document the direct ``.param``/TBG interface and how to contribute.
-  The legacy chapter also contains the
+  The low-level chapter also contains the
   :ref:`installation instructions <install-overview>` for the manual
   C++ dependency installation and the cluster profiles.
   For the Python interface, see
@@ -107,7 +107,7 @@ the section that answers your question.
    usage/python_utils
 
 .. toctree::
-   :caption: Legacy C++ interface (advanced)
+   :caption: Low-level C++ interface (advanced)
    :maxdepth: 1
    :hidden:
 

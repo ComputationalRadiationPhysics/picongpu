@@ -509,8 +509,8 @@ def _files_table() -> list[str]:
     file_rows, _, _ = _build_tables()
     rows = [(row.label, ", ".join(f"``{name}``" for name in row.picmi_classes) or "*(none)*") for row in file_rows]
     return _list_table(
-        "Legacy files that the Python package renders",
-        ("Legacy file", "PICMI input classes that can produce its content"),
+        "Low-level files that the Python package renders",
+        ("Low-level file", "PICMI input classes that can produce its content"),
         rows,
         widths="38 62",
     )
@@ -526,8 +526,8 @@ def _missing_table() -> list[str]:
     _, _, unsupported = _build_tables()
     rows = [(f"``{path}``", "no dedicated template") for path in unsupported]
     return _list_table(
-        "Legacy parameter files without a dedicated template",
-        ("Legacy file", "Status"),
+        "Low-level parameter files without a dedicated template",
+        ("Low-level file", "Status"),
         rows,
         widths="38 62",
     )
