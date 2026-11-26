@@ -125,8 +125,7 @@ The job finished but I cannot find ``simOutput/``
    not directly in your run directory.
    Use ``link_results.sh`` (see
    :ref:`HPC Submission Internals <hpc-submission>`)
-   to connect it to a location you choose --
-   and do it while the (temporary) job directory still exists.
+   to connect it to a location you choose.
 
 Where to look next
 ------------------
