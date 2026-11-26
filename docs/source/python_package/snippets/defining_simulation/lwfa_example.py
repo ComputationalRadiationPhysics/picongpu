@@ -31,7 +31,7 @@ solver = picmi.ElectromagneticSolver(method="Yee", cfl=0.95, grid=grid)
 # END-LWFA-CONSTANTS
 
 # BEGIN-LWFA-LASER
-LASER_DURATION = 5.0e-15
+LASER_DURATION = 2 * 5.0e-15
 PULSE_INIT = 15.0  # in units of the laser pulse duration
 
 laser = picmi.GaussianLaser(
@@ -43,7 +43,7 @@ laser = picmi.GaussianLaser(
     focal_position=[NUM_CELLS[0] * CELL_SIZE[0] / 2.0, 4.62e-5, NUM_CELLS[2] * CELL_SIZE[2] / 2.0],
     centroid_position=[
         NUM_CELLS[0] * CELL_SIZE[0] / 2.0,
-        -0.5 * PULSE_INIT * LASER_DURATION * c,
+        -0.25 * PULSE_INIT * LASER_DURATION * c,
         NUM_CELLS[2] * CELL_SIZE[2] / 2.0,
     ],
     a0=8.0,
