@@ -26,10 +26,8 @@ Lasers
 ------
 
 There are various lasers defined in `the PICMI standard <https://picmi.readthedocs.io/en/latest/standard/laser_profiles.html>`__ and its :ref:`PIConGPU extension <python_package/selected_topics/lasers:Lasers>`.
-We define a Gaussian laser propagating in positive ``y`` direction,
-the direction used by the moving window in this LWFA example.
-PICMI also supports tilted propagation directions as long as their ``y``
-component is positive:
+We define a Gaussian laser propagating in positive ``y`` direction.
+This is the direction that PIConGPU's simulation window moves along (if activated).
 
 .. literalinclude:: snippets/defining_simulation/lwfa_example.py
    :language: python
