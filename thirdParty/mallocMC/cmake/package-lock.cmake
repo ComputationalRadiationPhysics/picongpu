@@ -4,8 +4,8 @@
 # alpaka
 CPMDeclarePackage(alpaka
   NAME alpaka
-  # This is a development version slightly after 1.2.0 because we needed a patch
-  GIT_TAG 961062dfbc48679c1105aaad533224c073f0f429
+  # This is a release 2.2.0
+  GIT_TAG 4dc5ea558defeab95427e114a2dd9da83cc4d215
   GITHUB_REPOSITORY alpaka-group/alpaka
   OPTIONS
     "alpaka_CXX_STANDARD 20;alpaka_INSTALL ON"
