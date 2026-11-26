@@ -10,16 +10,16 @@ Overview
 
 PIConGPU builds on a number of external dependencies.
 Modern HPC systems will typically provide (parts of) these,
-most often in the form of [modules](...).
+most often in the form of `modules <https://lmod.readthedocs.io/>`__.
 Using these is preferred over user-installed versions under most circumstances
 because the system administrations have probably built optimized version for their hardware.
 
 Missing dependencies need to be installed by the user,
 a process that is automated for some of the curated system,
-see [here](...).
-The [`"bash"`](link to the autoinstall script),
-[`"bash/spack"`](link to the autoinstall script)
-and [`"bash/conda"`](link to the autoinstall script)
+see :ref:`Step 3 of the Quick Start <python_package/quickstart:Step 3: Install the Dependencies>`.
+The `bash <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/etc/picongpu/bash/dependencies_autoinstall.sh>`__,
+`bash/spack <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/etc/picongpu/bash/dependencies_autoinstall_spack.sh>`__
+and `bash/conda <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/etc/picongpu/bash/dependencies_autoinstall_conda.sh>`__
 presets contain full scripts that install all missing dependencies.
 They are intended for local installation
 but they are likely to run

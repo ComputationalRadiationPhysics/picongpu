@@ -1,0 +1,3 @@
+profile_template_path="/path/to/custom.profile"
+submit_system="sbatch"
+pic_libs="/path/to/where/dependencies/shall/be/installed"

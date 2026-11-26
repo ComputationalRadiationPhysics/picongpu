@@ -118,7 +118,6 @@ the section that answers your question.
    :hidden:
 
    usage/introduction
-   install/index
    usage/first_run
    usage/input
    usage/recipes

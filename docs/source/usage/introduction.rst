@@ -22,7 +22,6 @@ This chapter
 
 The chapter is organized into the following sections:
 
-* :ref:`Installation & Environment <install/index:Installation & Environment>`
 * :ref:`Core Concepts & First Run <usage/first_run:Core Concepts & First Run>`
 * :ref:`Generating Input <usage/input:Generating Input>`
 * :ref:`Recipes & Ready-Made Sets <usage/recipes:Recipes & Ready-Made Sets>`

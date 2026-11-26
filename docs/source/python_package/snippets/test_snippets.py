@@ -99,6 +99,11 @@ TOML_EXPECTED = {
         "profile_template_content": "echo {{{my_rc_params_value}}}",
         "profile_template_path": "/path/to/my/profile-template",
     },
+    "conquering_new_cluster/picongpurc.toml": {
+        "profile_template_path": "/path/to/custom.profile",
+        "submit_system": "sbatch",
+        "pic_libs": "/path/to/where/dependencies/shall/be/installed",
+    },
 }
 
 EXPECTED_FILES = {
