@@ -5,17 +5,16 @@ Introduction
 
 .. sectionauthor:: Julian J. Lenz
 
-The legacy C++ interface is the original interface of PIConGPU.
+The low-level C++ interface is the original interface of PIConGPU.
 It consists of writing C++ header files, so-called ``.param`` files, and
 runtime configuration files, so-called ``.cfg`` files, directly.
-From the perspective of
-:ref:`the modern Python interface <python_package/foundations/index:Foundations>`,
-it is an intermediate representation of the input
+New users are strongly advised to use the
+:ref:`the modern Python interface <python_package/foundations/index:Foundations>`.
+From its perspective,
+the C++ interface is an intermediate representation of the input
 and should be considered an implementation detail.
-Normal users should find no reason to interact with this interface!
 This chapter is aimed at developers, experts and long-time users
-having yet to transition to the new interface
-and is intended mostly as historical documentation.
+having yet to transition to the new interface.
 
 This chapter
 ------------

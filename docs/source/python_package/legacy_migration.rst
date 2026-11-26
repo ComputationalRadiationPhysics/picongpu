@@ -14,7 +14,7 @@ produce their content in this repository.
 
 .. seealso::
 
-   The :ref:`Legacy C++ interface (advanced) <usage-index>` chapter
+   The :ref:`Low-level C++ interface (advanced) <usage-index>` chapter
    still documents the ``.param``/TBG setup you are coming from,
    including the :ref:`TBG documentation <usage-tbg>`.
 
@@ -43,16 +43,15 @@ file.
 Which low-level file maps to which PICMI classes?
 -------------------------------------------------
 
-The table below is generated from the mustache templates and the PyPIConGPU
-models, not maintained by hand.
-For every low-level file it lists the PICMI input classes that can *currently*
+For every ``.param`` file it lists the PICMI input classes that can *currently*
 produce content in it.
 Read it as:
 "If I changed file *A* in my low-level setup, which PICMI classes could I use to
 express that change in a PICMI input file?"
 
 For class usage and parameters, see the
-`PICMI standard documentation <https://picmi.readthedocs.io/en/latest/standard/standard.html>`__
+`PICMI standard documentation <https://picmi.readthedocs.io/en/latest/standard/standard.html>`__,
+our :ref:`API documentation <python_package/api/index:API Documentation>`
 and :ref:`Selected Topics <python_package/selected_topics/index:Selected Topics>`.
 
 .. legacy-migration-table:: files

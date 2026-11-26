@@ -35,13 +35,13 @@ Pick the entry point that matches what you are looking for:
   chapter explains how to configure them through the PICMI interface, with the
   full class reference in the
   :ref:`API Documentation <python_package/api/index:API Documentation>`.
-* **Migrating from legacy** ``.param`` **file setups to PICMI?**
-  The :ref:`migration guide <legacy_migration>` maps the legacy files you
+* **Migrating from low-level** ``.param`` **file setups to PICMI?**
+  The :ref:`migration guide <legacy_migration>` maps the low-level files you
   know to the PICMI classes that can produce their content. The
   :ref:`Foundations <python_package/foundations/index:Foundations>` chapter
   introduces the PICMI interface, and the
-  :ref:`Legacy C++ interface (advanced) <usage-index>` chapter still documents
-  the legacy ``.param``/TBG setup you are coming from.
+  :ref:`Low-level C++ interface (advanced) <usage-index>` chapter still documents
+  the low-level ``.param``/TBG setup you are coming from.
 * **Developing the C++ core?**
   The :ref:`Low-level C++ interface (advanced) <usage-index>` and
   :ref:`Development <development-index>`
