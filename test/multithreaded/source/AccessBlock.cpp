@@ -532,7 +532,10 @@ struct CreateAllChunkSizes
             pointers.size(),
             [&](auto idx)
             {
-                pointers[idx] = accessBlock->create(acc, 1U);
+                do
+                {
+                    pointers[idx] = accessBlock->create(acc, 1U);
+                } while(pointers[idx] == nullptr);
 
                 for(auto chunkSize : chunkSizes)
                 {
