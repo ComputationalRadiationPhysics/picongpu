@@ -242,6 +242,9 @@ TBG_programParams="-d !TBG_deviceDist   \
                      !TBG_stopWindow      \
                     {{/stop_iteration}}
                    {{/moving_window}}
+                   {{#poisson_solver}}
+                     !TBG_poissonsolver  \
+                   {{/poisson_solver}}
                    --versionOnce"
 
 # TOTAL number of devices

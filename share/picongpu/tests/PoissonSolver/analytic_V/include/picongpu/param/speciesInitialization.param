@@ -1,0 +1,57 @@
+/* Copyright 2015-2024 Rene Widera, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Initialize particles inside particle species. This is the final step in
+ * setting up particles (defined in `speciesDefinition.param`) via density
+ * profiles (defined in `density.param`). One can then further derive particles
+ * from one species to another and manipulate attributes with "manipulators"
+ * and "filters" (defined in `particle.param` and `particleFilters.param`).
+ */
+
+#pragma once
+
+#include "picongpu/particles/InitFunctors.hpp"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        /** InitPipeline define in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
+         *
+         * Sign bookkeeping for the analytic density:
+         * SI::BASE_CHARGE_SI is ELECTRON_CHARGE_SI, i.e. negative. The species
+         * charge is chargeRatio * BASE_CHARGE_SI, so PIC_Electrons
+         * (ChargeRatioElectrons = +1) carries charge -e and PIC_Ions
+         * (ChargeRatioIons = -1) carries +e. The density profile returns a
+         * non-negative number density (the analytic charge density divided by
+         * q_species * BASE_DENSITY_SI), therefore the negative part of rho must
+         * go to the electrons and the positive part to the ions. Swapping the
+         * profiles would inject -rho and is caught by the validator's density
+         * sign check.
+         */
+        using InitPipeline = pmacc::mp_list<
+            CreateDensity<densityProfiles::AnalyticNegative, startPosition::AnalyticNode, PIC_Electrons>,
+            CreateDensity<densityProfiles::AnalyticPositive, startPosition::AnalyticNode, PIC_Ions>>;
+
+    } // namespace particles
+} // namespace picongpu
