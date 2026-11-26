@@ -176,6 +176,7 @@ Visualization
  - Kelvin-Helmholtz instabilty: [Huebl2014]_
  - in-situ visualization with ISAAC: [Matthes2016]_, [Matthes2016b]_
  - in-situ particle rendering: [Meyer2018]_
+ - in-situ vector field rendering: [Meyer2023]_
 
 Input/Output
 """"""""""""
@@ -439,6 +440,12 @@ List of PIConGPU references in chronological order
        *TeV/m catapult acceleration of electrons in graphene layers*,
        Scientific Reports volume 13, Article number: 1330 (2023),
        https://doi.org/10.1038/s41598-023-28617-w
+
+.. [Meyer2023]
+       Meyer, F., et al.,
+       *Hardware-Agnostic Interactive Exascale In Situ Visualization of Particle-In-Cell Simulations*,
+       Proc. Platform for Advanced Scientific Computing Conference, PASC '23, (2023)
+       https://doi.org/10.1145/3592979.3593408
 
 .. [Seeman2023]
        Seeman, O. Wan, Y., Tata S. et al.,

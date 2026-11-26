@@ -163,3 +163,21 @@ References
         *In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC*,
         Supercomputing Frontiers and Innovations 3.4, pp. 30-48, (2016),
         `arXiv:1611.09048 <https://arxiv.org/abs/1611.09048>`_, `DOI:10.14529/jsfi160403 <https://doi.org/10.14529/jsfi160403>`_
+
+.. [Matthes2016b]
+        Matthes, A.,
+        *In-Situ Visualisierung und Streaming von Plasmasimulationsdaten*,
+        Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Informatiker" (2016),
+        https://doi.org/10.5281/zenodo.55329
+
+.. [Meyer2018]
+        Meyer, F.,
+        *Entwicklung eines Partikelvisualisierers für In-Situ-Simulationen*,
+        Bachelor Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2018),
+        https://doi.org/10.5281/zenodo.1423296
+
+.. [Meyer2023]
+        Meyer, F., et al.,
+        *Hardware-Agnostic Interactive Exascale In Situ Visualization of Particle-In-Cell Simulations*,
+        Proc. Platform for Advanced Scientific Computing Conference, PASC '23, (2023)
+        https://doi.org/10.1145/3592979.3593408
