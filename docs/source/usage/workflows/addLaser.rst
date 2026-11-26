@@ -59,10 +59,12 @@ Please refer to :ref:`the detailed description <model-TFSF>` for setting up ``Fr
 For a laser profile with non zero field amplitudes on the transversal borders of the profile e.g. defined by the profile ``Free`` without a transversal envelope the trait ``MakePeriodicTransversalHuygensSurfaceContiguous`` must be specialized and returning true to handle field periodic boundaries correctly.
 
 Another special case is the ``FromOpenPMDPulse`` profile, which reads a laser pulse profile, defined in space-time domain (= (2+1)-dimensional), from an openPMD file into the simulation. 
-For example, it can be used to read a pulse profile obtained from an INSIGHT measurement into the simulation, after pre-proccessing the measurement with the ``preparingInsightData.py``-script, which has been developed for this purpose and is located in /picongpu/lib/python/picongpu/extra/input/.
 At the moment, the ``FromOpenPMDPulse`` profile is less flexible in choosing the propagation and polarisation direction, since those are only allowed along the cell edges, but not diagonally.
 Furthermore, one has to increase the reserved GPU memory size in ``memory.param`` by about the size of the openPMD file, because the corresponding field chunk will be stored on every used device at timestep 0 of the simulation. Otherwise, the simulation will run into memory issues.
 For a description how to set up this profile, please refer to ``FromOpenPMDPulse.def``.
+For example, it can be used to read a pulse profile obtained from an INSIGHT measurement into the simulation, after pre-proccessing the measurement with the ``preparingInsightData.py``-script, which has been developed for this purpose and is located in /picongpu/lib/python/picongpu/extra/input/.
+Another way to use this is to generate a Laser pulse with the Lasy library in python and use the ``prepareLasyLaser.py``-module, which can be found in /picongpu/lib/python/picongpu/extra/input/ as well. 
+Calling its function ``laser_to_openPMD`` with a Lasy ``Laser``-object will generate an openPMD-compatible file which the ``FromOpenPMDPulse`` profile can read.
 
 Incident field is compatible to all field solvers, however using field solvers other than Yee requires a larger offset of the generating surface from absorber depending on the stencil width along the boundary axis.
 As a rule of thumb, this extra requirement is (order of FDTD solver / 2 - 1) cells.

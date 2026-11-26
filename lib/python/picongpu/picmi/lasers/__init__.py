@@ -7,9 +7,10 @@ License: GPLv3+
 
 from .dispersive_pulse_laser import DispersivePulseLaser as DispersivePulseLaser
 from .from_openpmd_pulse_laser import FromOpenPMDPulseLaser as FromOpenPMDPulseLaser
+from .from_lasy_laser import FromLasyLaser as FromLasyLaser
 from .gaussian_laser import GaussianLaser as GaussianLaser
 from .plane_wave_laser import PlaneWaveLaser as PlaneWaveLaser
 from .polarization_type import PolarizationType as PolarizationType
 from .twts_laser import TWTSLaser as TWTSLaser
 
-AnyLaser = DispersivePulseLaser | FromOpenPMDPulseLaser | GaussianLaser | PlaneWaveLaser | TWTSLaser
+AnyLaser = DispersivePulseLaser | FromOpenPMDPulseLaser | FromLasyLaser | GaussianLaser | PlaneWaveLaser | TWTSLaser
