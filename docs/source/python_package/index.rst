@@ -11,7 +11,7 @@ It contains
   commands that install the Python package, build a runtime configuration,
   install dependencies, download an example and run it,
 * the :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`
-  -- a complete, worked laser-wakefield-acceleration example,
+  -- a complete, working laser-wakefield-acceleration example,
 * the :ref:`low-level migration guide <legacy_migration>` -- maps the files of a
   low-level ``.param``/``.cfg`` setup to the PICMI classes that can produce
   their content.
