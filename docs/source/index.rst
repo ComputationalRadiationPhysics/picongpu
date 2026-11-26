@@ -55,12 +55,6 @@ Pick the entry point that matches what you are looking for:
 Individual chapters build on the ones before them, but you can jump straight to
 the section that answers your question.
 
-.. only:: html
-
-   The online version of this document is **versioned** and shows by default the manual of the last *stable* version of PIConGPU.
-   If you are looking for the latest *development* version, `click here <https://picongpu.readthedocs.io/en/latest/>`_.
-
-
 .. note::
 
    We are migrating our `wiki`_ to this manual, but some pages might still be missing.

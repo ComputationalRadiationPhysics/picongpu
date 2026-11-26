@@ -12,10 +12,6 @@ a setup created with ``pic-create``, edited in
 It maps the legacy files in those setups to the PICMI Python classes that can
 produce their content in this repository.
 
-The page is a *user-facing mapping*, not a rewrite of the shipped example
-setups. Converting the examples themselves is tracked separately;
-the two efforts complement each other.
-
 .. seealso::
 
    The :ref:`Legacy C++ interface (advanced) <usage-index>` chapter
@@ -40,7 +36,7 @@ workflow edited by hand:
 The :ref:`background chapter <python_package/foundations/background:Background>`
 describes this architecture in detail.
 For migration, the practical consequence is:
-whenever a legacy file is still written by the Python package, some PICMI
+whenever a legacy file is written by the Python package, some PICMI
 class feeds a PyPIConGPU object that a mustache template renders into that
 file.
 
