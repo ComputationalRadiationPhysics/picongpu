@@ -3,7 +3,7 @@
 Time to Iteration Conversion
 ----------------------------
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The :class:`~picongpu.extra.utils.find_time.FindTime` class reads the time step from a finished PIConGPU run and converts between iterations (time steps) and simulation time in seconds.
 It is the helper behind the plugin data readers, which use it to translate their ``time`` arguments, and can be used directly for the same purpose.

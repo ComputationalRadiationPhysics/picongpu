@@ -3,7 +3,7 @@
 Introduction
 ============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The low-level C++ interface is the original interface of PIConGPU.
 It consists of writing C++ header files, so-called ``.param`` files, and

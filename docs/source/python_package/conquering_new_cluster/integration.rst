@@ -3,7 +3,7 @@
 Integration into the PICMI frontend
 ===================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 As described in detail in
 :ref:`Foundations <python_package/foundations/index:Foundations>`,

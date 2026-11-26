@@ -3,7 +3,7 @@
 Lasers
 ======
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Lasers are added to a simulation via the ``lasers`` parameter:
 

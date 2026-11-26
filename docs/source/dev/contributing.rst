@@ -1,7 +1,7 @@
 Contributing
 ============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This section covers how to contribute to PIConGPU: the contribution workflow,
 commit conventions, the repository layout, and continuous integration.

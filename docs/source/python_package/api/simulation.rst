@@ -1,7 +1,7 @@
 Simulation
 ==========
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.simulation
    :members:

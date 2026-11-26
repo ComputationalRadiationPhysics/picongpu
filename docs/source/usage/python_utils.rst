@@ -3,7 +3,7 @@
 Python Utilities
 ================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The ``picongpu`` Python package bundles our :ref:`PICMI <python_package/quickstart:Quick Start>` interface, the plugin output processing tools described in :ref:`Python Postprocessing <development-pytools>`, and the standalone utilities listed on this page.
 For PICMI users, we recommended to follow :ref:`inline-script approach <python_package/foundations/running_simulation:Recommended: From Script Inline Metadata>`.

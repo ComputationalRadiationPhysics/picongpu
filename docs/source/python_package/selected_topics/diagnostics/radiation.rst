@@ -3,7 +3,7 @@
 Radiation
 =========
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The radiation plugin computes the electromagnetic radiation field
 emitted by the particles of a species

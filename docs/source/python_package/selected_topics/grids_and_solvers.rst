@@ -1,7 +1,7 @@
 Grids and Solvers
 =================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Every simulation needs a spatial domain and a field solver.
 In PICMI the grid lives *inside* the solver

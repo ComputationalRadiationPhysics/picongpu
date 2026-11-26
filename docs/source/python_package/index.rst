@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This chapter gets you from zero to a running PIConGPU simulation
 through the PICMI Python interface.

@@ -1,7 +1,7 @@
 Layout
 ======
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.layout
    :members:

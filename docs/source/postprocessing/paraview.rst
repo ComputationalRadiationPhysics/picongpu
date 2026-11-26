@@ -3,7 +3,7 @@
 ParaView
 ========
 
-.. sectionauthor:: Axel Huebl, Julian J. Lenz
+.. sectionauthor:: Axel Huebl, Julian Lenz
 .. moduleauthor:: Axel Huebl
 
 `ParaView <https://www.paraview.org>`_ is an open-source, multi-platform data analysis and visualization application.

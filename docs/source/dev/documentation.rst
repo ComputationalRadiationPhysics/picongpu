@@ -1,7 +1,7 @@
 Documentation
 =============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This section explains how to build this documentation with Sphinx and how to
 edit its PlantUML figure sources.

@@ -3,7 +3,7 @@
 Applied (Background) Fields
 ===========================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 PIConGPU implements the PICMI-standard *applied fields* as **background
 fields**: a field that is added to the grid ``E`` and ``B`` fields around the

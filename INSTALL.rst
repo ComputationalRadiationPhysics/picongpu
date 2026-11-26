@@ -3,7 +3,7 @@
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera, Julian J. Lenz
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera, Julian Lenz
 
 Overview
 --------

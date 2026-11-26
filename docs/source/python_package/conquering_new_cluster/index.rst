@@ -5,7 +5,7 @@
 Conquering a New Cluster
 ========================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 For any HPC system our development team has access to,
 we curate a library of presets and an installation tool for dependencies of PIConGPU.

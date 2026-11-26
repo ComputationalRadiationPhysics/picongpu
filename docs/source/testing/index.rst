@@ -1,7 +1,7 @@
 Testing
 =======
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. TODO (human): replace this placeholder with a one-paragraph orientation
    to the test suite.

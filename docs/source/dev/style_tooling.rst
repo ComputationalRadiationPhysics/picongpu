@@ -1,7 +1,7 @@
 Style & Tooling
 ===============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This section documents the coding style guidelines and the developer tools used
 for debugging PIConGPU.

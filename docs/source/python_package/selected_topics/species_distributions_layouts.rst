@@ -3,7 +3,7 @@
 Species, Distributions and Layouts
 ==================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Adding particles to a simulation takes three components:
 a **species** (what the particles are),

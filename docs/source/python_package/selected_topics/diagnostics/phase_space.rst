@@ -3,7 +3,7 @@
 Phase Space
 ===========
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The phase-space diagnostic records a 2D histogram of a spatial coordinate
 against a momentum coordinate for one species --

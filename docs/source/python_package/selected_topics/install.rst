@@ -1,7 +1,7 @@
 Installing the Python Package
 =============================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 PIConGPU can be conveniently installed as a Python package which bundles the
 C++ core components, a Python interface and some convenience tooling.

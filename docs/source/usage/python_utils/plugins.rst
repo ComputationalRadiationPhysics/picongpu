@@ -3,7 +3,7 @@
 Plugin Output Visualizers (matplotlib)
 --------------------------------------
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 For each plugin that produces plottable output, the package ships a matplotlib visualizer under ``picongpu.extra.plugins.plot_mpl``.
 All of them derive from :class:`~picongpu.extra.plugins.plot_mpl.base_visualizer.Visualizer` and follow the same usage pattern: construct one with one or more run directories and a matplotlib axes object, then call ``visualize`` with plugin-specific keyword arguments such as ``iteration``, ``time``, ``species`` and ``species_filter``.

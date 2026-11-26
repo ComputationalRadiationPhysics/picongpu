@@ -1,7 +1,7 @@
 Running Your Simulation
 =======================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 A PICMI input file is a simple Python script.
 As such, any way of executing a Python script works for running your simulation.

@@ -1,7 +1,7 @@
 Tutorial: Setting up a simple LWFA
 ==================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 We will now add some interesting physics to the minimal example
 from the :ref:`Quick Start <python_package/quickstart:Quick Start>`.

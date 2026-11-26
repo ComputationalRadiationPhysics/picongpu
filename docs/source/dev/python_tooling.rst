@@ -1,7 +1,7 @@
 Python Tooling
 ==============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This section describes the structure of the Python postprocessing tooling.
 

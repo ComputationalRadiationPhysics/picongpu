@@ -1,7 +1,7 @@
 Troubleshooting
 ===============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The common failure modes of the Python interface, grouped by the
 *phase* in which they appear, with the message you will see and the

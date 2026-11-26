@@ -1,7 +1,7 @@
 Quick Start
 ===========
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This section gets you from zero to a running PIConGPU simulation
 in five steps.

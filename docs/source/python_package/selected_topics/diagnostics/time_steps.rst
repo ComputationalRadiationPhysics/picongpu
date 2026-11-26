@@ -3,7 +3,7 @@
 TimeStepSpec: When Do My Diagnostics Run?
 =========================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Almost every diagnostic described in this chapter accepts a ``period`` argument
 that controls *on which time steps* the diagnostic writes its output.

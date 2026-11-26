@@ -3,7 +3,7 @@
 openPMD Output
 ==============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 `openPMD <https://www.openpmd.org/>`__ is the general-purpose,
 hierarchical data standard for particle and field data in computational physics.

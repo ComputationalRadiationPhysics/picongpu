@@ -1,7 +1,7 @@
 Species
 =======
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.species
    :members:

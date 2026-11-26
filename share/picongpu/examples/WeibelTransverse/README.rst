@@ -1,7 +1,7 @@
 WeibelTransverse: Transverse Weibel Instability
 ===============================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Two homogeneous, counter-streaming beams of equal mass and opposite charge are
 initialized in a periodic box. The species called ``PIC_Ions`` drifts along -z

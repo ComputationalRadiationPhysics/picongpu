@@ -3,7 +3,7 @@
 Custom User Input and Templates
 ===============================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Sometimes a setup needs a value that is not part of the PICMI interface --
 for instance a project-specific parameter used by a customised template.

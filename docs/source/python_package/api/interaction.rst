@@ -1,7 +1,7 @@
 Interaction
 ===========
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.interaction
    :members:

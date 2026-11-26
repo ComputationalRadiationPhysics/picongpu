@@ -1,7 +1,7 @@
 Foundations
 ===========
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This chapter introduces the foundations of how to run PIConGPU from its Python frontend.
 It explains the core concepts, introduces names and semantics and

@@ -1,7 +1,7 @@
 IncidentField: Laser Injection with the Incident-Field Solver
 =============================================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This field-only example demonstrates laser injection through PIConGPU's
 incident-field (total-field/scattered-field) source. Two Gaussian pulses are

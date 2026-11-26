@@ -3,7 +3,7 @@
 Automated Parameter Scans using Snakemake
 --------------------------------------------------------------
 
-.. sectionauthor:: Julian J. Lenz, Jessica Tiebel
+.. sectionauthor:: Julian Lenz, Jessica Tiebel
 
 `Snakemake <https://snakemake.readthedocs.io/en/stable/index.html>`_ is a python based workflow engine that can be used to automate compiling, running and post-processing of PIConGPU simulations, or any other workflow that can be represented as a directed acyclic graph (DAG). 
 

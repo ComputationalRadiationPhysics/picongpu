@@ -1,7 +1,7 @@
 MultiSpecies
 ============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.multi_species
    :members:

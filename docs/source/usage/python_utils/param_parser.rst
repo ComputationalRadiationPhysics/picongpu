@@ -3,7 +3,7 @@
 Parameter File Parser
 ---------------------
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The ``param_parser`` module reads the JSON parameter files produced by the PIConGPU parameter-scan tooling and turns them into command-line arguments.
 Such a file maps parameter names to a ``type`` (``compile`` or ``run``) and a list of ``values``.

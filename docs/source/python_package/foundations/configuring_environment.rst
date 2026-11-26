@@ -1,7 +1,7 @@
 Configuring Your Environment
 ============================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 PIConGPU is run in a heterogeneous HPC landscape on a daily basis.
 This is enabled by -- among other things --

@@ -1,7 +1,7 @@
 Particle Functor
 ================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.particle_functor
    :members:

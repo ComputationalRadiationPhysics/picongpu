@@ -1,7 +1,7 @@
 Selected Topics
 ===============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This chapter expands on selected features of our PICMI dialect.
 It will help you to get the most out of the features of PIConGPU

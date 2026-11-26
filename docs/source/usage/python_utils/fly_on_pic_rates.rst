@@ -3,7 +3,7 @@
 FLYonPIC Rate Reference Implementation
 --------------------------------------
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 ``picongpu.extra.utils.FLYonPICRateCalculationReference`` is the reference implementation of the rate and cross-section formulas of the FLYonPIC atomic-physics model, see :ref:`model-atomicPhysics`.
 It is not used during a simulation.

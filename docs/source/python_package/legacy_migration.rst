@@ -3,7 +3,7 @@
 Migrating from Low-level ``.param``/``.cfg`` Setups
 ===================================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This page is for users who already run PIConGPU through the low-level C++ interface:
 a setup created with ``pic-create``, edited in

@@ -3,7 +3,7 @@
 Introduction
 ============
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 This chapter is for people who contribute to PIConGPU itself: it covers the
 contribution workflow and continuous integration, coding style and developer

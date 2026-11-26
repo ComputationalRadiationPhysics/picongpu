@@ -1,7 +1,7 @@
 Synchrotron_plugin: Testing the Synchrotron Radiation Extension
 ===============================================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The test simulates a homogeneous electron bunch with 40 macro-particles per
 cell. The electrons are initialized with a relativistic drift (initially

@@ -3,7 +3,7 @@
 Energy Histogram
 ================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The energy-histogram diagnostic records the kinetic-energy spectrum
 of one species as a simple 1D histogram.

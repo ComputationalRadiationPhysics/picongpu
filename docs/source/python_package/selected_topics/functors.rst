@@ -3,7 +3,7 @@
 Functors, Particle Functors and Filters
 =======================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 Beyond the built-in distributions, PIConGPU can build quantities from
 particle properties symbolically.

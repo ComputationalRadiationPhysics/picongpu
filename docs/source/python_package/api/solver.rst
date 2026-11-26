@@ -1,7 +1,7 @@
 Solver
 ======
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 .. automodule:: picongpu.picmi.solver
    :members:

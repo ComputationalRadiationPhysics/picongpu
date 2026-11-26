@@ -1,7 +1,7 @@
 SingleParticle: Testing Particle Pushers in Background Fields
 =============================================================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 A single electron is initialized in cell ``(32, 5, 16)`` of a 64x64x32 grid.
 The background fields are uniform: :math:`E_z = -10` MV/m and

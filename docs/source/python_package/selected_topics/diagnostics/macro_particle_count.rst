@@ -3,7 +3,7 @@
 Macro-Particle Count
 ====================
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The macro-particle-count diagnostic counts the total number of
 macro-particles of a species and writes the count to a plain file.

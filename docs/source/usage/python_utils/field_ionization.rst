@@ -3,7 +3,7 @@
 Field Ionization Reference Formulas
 -----------------------------------
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The :class:`~picongpu.extra.utils.field_ionization.FieldIonization` class collects the analytic formulas behind PIConGPU's field-ionization models (barrier suppression, ADK and Keldysh) together with the atomic-unit conversions used by them.
 All methods take and return values in atomic units unless stated otherwise; the ``atomic_unit`` dictionary holds the corresponding SI values.

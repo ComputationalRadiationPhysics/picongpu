@@ -3,7 +3,7 @@
 Binning
 =======
 
-.. sectionauthor:: Julian J. Lenz
+.. sectionauthor:: Julian Lenz
 
 The binning plugin is the most general particle diagnostic in PIConGPU:
 it computes an *N-dimensional histogram of arbitrary particle properties*,
