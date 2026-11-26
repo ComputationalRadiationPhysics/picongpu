@@ -7,7 +7,7 @@ stages:
   - test
 
 variables:
-  CONTAINER_TAG: "4.0"
+  CONTAINER_TAG: "4.1"
   PIC_CI_MAINLINE: "TRUE"
 
 .base_generate-reduced-matrix:

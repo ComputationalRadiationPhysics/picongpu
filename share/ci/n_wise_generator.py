@@ -56,7 +56,6 @@ def get_version(tuple):
 image_dict = {
     "g++": ".base_gcc",
     "g++_nvcc": ".base_nvcc",
-    "clang++_nvcc": ".base_clangCuda",
     "clang++": ".base_clang",
     "clang++_clangCuda": ".base_clangCuda",
     "clang++_hipcc": ".base_hipcc",
@@ -104,12 +103,6 @@ def is_valid_combination(row):
         if os_name == "ubuntu" and os_version <= 20.04:
             return False
 
-        # CI nvcc image is not shipped with clang++
-        # clang_cuda images can currently not be used because
-        # the base image is setting -DALPAKA_CUDA_COMPILER=clang
-        if is_nvcc and is_clang:
-            return False
-
         # hipcc is only valid in one combination
         if is_hip:
             if is_hipcc and is_clang:
@@ -142,7 +135,17 @@ def is_valid_combination(row):
                 return False
             if not is_cuda:
                 return False
-            if 12.0 <= v_cuda <= 12.3 and v_compiler == 18:
+            if v_cuda == 12.3 and v_compiler == 18:  # fully supported <= 12.3
+                return True
+            if 12.3 <= v_cuda <= 12.5 and v_compiler == 19:  # fully <= 12.3, partially <= 12.5
+                return True
+            if 12.3 <= v_cuda <= 12.8 and v_compiler == 20:  # fully <= 12.3, partially <= 12.8
+                return True
+            if 12.3 <= v_cuda <= 12.8 and v_compiler == 21:  # fully <= 12.3, partially <= 12.8
+                return True
+            if 12.3 <= v_cuda <= 12.9 and v_compiler == 22:  # fully <= 12.8, partially <= 12.9
+                return True
+            if 12.3 <= v_cuda <= 13.2 and v_compiler == 23:  # fully == partially <= 13.2
                 return True
             return False
 
@@ -162,7 +165,7 @@ def is_valid_combination(row):
                 #     typedef float _Float32;
                 if 12.4 == v_cuda and v_compiler == 13:
                     return False
-                # for C++20 add least gcc 10 is required
+                # for C++20 at least gcc 10 is required
                 if v_compiler < 10:
                     return False
                 # gcc 12 shows issues with std::variant for cuda versions <12.4
@@ -171,20 +174,16 @@ def is_valid_combination(row):
                     return True
                 if 12.4 <= v_cuda <= 12.6 and v_compiler <= 13:
                     return True
-
-            if is_clang:
-                if v_cuda == 12.0 and v_compiler == 10:
+                if 12.8 <= v_cuda <= 12.9 and v_compiler <= 14:
                     return True
-                if v_cuda == 12.1 and v_compiler == 14:
-                    return True
-                if v_cuda == 12.2 and v_compiler == 15:
+                if 13.0 <= v_cuda <= 13.3 and v_compiler <= 15:
                     return True
 
             return False
 
         # clang as host compiler
         if is_clang:
-            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 15:
+            if os_name == "ubuntu" and os_version == 24.04 and v_compiler >= 16:
                 return True
             return False
 
@@ -199,39 +198,36 @@ def is_valid_combination(row):
 
 # compiler list
 # tuple with two components (compiler name, version)
-clang_compiers = [
-    ("clang++", 15),
+clang_compilers = [
     ("clang++", 16),
     ("clang++", 17),
     ("clang++", 18),
     ("clang++", 19),
-    # clang >= 20 requires an additional apt.llvm.org source, see share/ci/install/clang.sh
     ("clang++", 20),
     ("clang++", 21),
     ("clang++", 22),
     ("clang++", 23),
 ]
 gnu_compilers = [("g++", 11), ("g++", 12), ("g++", 13), ("g++", 14), ("g++", 15), ("g++", 16)]
-compilers = [clang_compiers, gnu_compilers]
+compilers = [clang_compilers, gnu_compilers]
 
 # generate clang cuda compiler list
 # add third component with the device compiler name
 cuda_clang_compilers = []
-for i in clang_compiers:
+for i in clang_compilers:
     cuda_clang_compilers.append(i + ("clangCuda",))
 compilers.append(cuda_clang_compilers)
 
-# nvcc compiler
+# nvcc with GCC as host compiler. With Clang as host, nvcc incorrectly rejects
+# kernel arguments with const class-type members as not trivially copyable.
 cuda_nvcc_compilers = []
-for i in clang_compiers:
-    cuda_nvcc_compilers.append(i + ("nvcc",))
 for i in gnu_compilers:
     cuda_nvcc_compilers.append(i + ("nvcc",))
 compilers.append(cuda_nvcc_compilers)
 
 # hipcc compiler
 hip_clang_compilers = []
-for i in clang_compiers:
+for i in clang_compilers:
     hip_clang_compilers.append(i + ("hipcc",))
 compilers.append(hip_clang_compilers)
 
@@ -243,13 +239,16 @@ backends = [
     ("hip", 6.1),
     ("hip", 6.2),
     ("hip", 6.3),
-    ("cuda", 12.0),
-    ("cuda", 12.1),
-    ("cuda", 12.2),
     ("cuda", 12.3),
     ("cuda", 12.4),
     ("cuda", 12.5),
     ("cuda", 12.6),
+    ("cuda", 12.8),
+    ("cuda", 12.9),
+    ("cuda", 13.0),
+    ("cuda", 13.1),
+    ("cuda", 13.2),
+    ("cuda", 13.3),
     ("omp2b",),
     ("serial",),
 ]
@@ -272,6 +271,13 @@ boost_libs_all = [
 ]
 
 operating_system = [("ubuntu", 22.04), ("ubuntu", 24.04)]
+
+# compute capability of the GPU of the Nvidia A100 CI runner, all CUDA >= 13
+# runtime jobs are scheduled on this runner, see share/ci/compiler_*_cuda.yml
+# (.base_*_cuda_run_a100). Alpaka's CI generator pins the SM level of its runners
+# in the same way, see
+# thirdParty/alpaka/script/job_generator/src/alpaka_bashi/ci_yaml/variables.py
+nvidia_gpu_ci_runner_sm_level = "80"
 
 if args.limit_boost_versions:
     # select each second but keep the order
@@ -337,6 +343,10 @@ for stage in range(num_stages):
             os_name = pairs[2][0]
             os_version = get_version(pairs[2])
             image_prefix = "_run" if folder == "pmacc" or folder == "unit" else "_compile"
+            # CUDA 13 dropped offline compilation below sm_75, so all runtime jobs for
+            # those toolkits are scheduled on the A100 runner
+            if backend == "cuda" and image_prefix == "_run" and v_cuda_hip >= 13.0:
+                image_prefix = "_run_a100"
             job_name = (
                 compiler + "_" + backend + v_cuda_hip_str + "_boost" + boost_version + "_" + folder.replace("/", ".")
             )
@@ -349,7 +359,18 @@ for stage in range(num_stages):
             if backend == "hip":
                 print("    HIP_CONTAINER_VERSION: '" + v_cuda_hip_str + "'")
             print("    PIC_TEST_CASE_FOLDER: '" + folder + "'")
-            print("    PIC_BACKEND: '" + backend + "'")
+            # runtime jobs are compiled for the GPU of the runner they are scheduled
+            # on, see share/ci/compiler_*_cuda.yml, and do not rely on PTX being
+            # embedded in the binary. Alpaka's CI generator pins the SM level of its
+            # runners in the same way.
+            if image_prefix == "_run_a100":
+                print("    PIC_BACKEND: 'cuda:" + nvidia_gpu_ci_runner_sm_level + "'")
+            # CUDA 13 dropped offline compilation below sm_75: compile only jobs
+            # request the minimum compute capability the toolkit still supports.
+            elif backend == "cuda" and v_cuda_hip >= 13.0:
+                print("    PIC_BACKEND: 'cuda:75'")
+            else:
+                print("    PIC_BACKEND: '" + backend + "'")
             print("    BOOST_VERSION: '" + boost_version + "'")
             print("    CXX_VERSION: '" + compiler + "'")
             print("    CXX_PREFIX_PATH: '/usr/lib/x86_64-linux-gnu/openmpi'")
