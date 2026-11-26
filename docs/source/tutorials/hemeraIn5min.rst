@@ -210,27 +210,7 @@ openPMD
 ^^^^^^^
 
 The PNG output is great for having a quick look at the example results, but it is a rather inefficient way of generating and storing your simulation results.
-In general, we write simulation data into ADIOS2 (``.bp5`` and ``.bp4`` extensions, and (deprecated) ``.bp``) or HDF5 (``.h5``) files with parallel I/O that follow the structure defined by the community openPMD standard.
+The example you just run also provides some basic openPMD output that can now be found under :file:`simOutput/openPMD/` (the example configuration selects the legacy ``bp`` extension).
+openPMD is the standard format for the fields and particles written by PIConGPU.
 The output can be configured using the :ref:`openPMD plugin <usage-plugins-openPMD>`.
-The example you just run also provides some basic openPMD output that can be now found under :file:`simOutput/openPMD/`.
-You should make yourself familiar with how to read and visualize such data.
-Here are some useful resources:
-
-- `openPMD standard <https://github.com/openPMD/openPMD-standard/blob/latest/STANDARD.md>`_ and the `PIC extension to the standard <https://github.com/openPMD/openPMD-standard/blob/latest/EXT_ED-PIC.md>`_
-- `openPMD API docs <https://openpmd-api.readthedocs.io/en/latest/>`_ API for reading and writing openPMD output.
-  Powerful tool, its proper use requires some familiarity with the standard itself.
-- `openPMD-viewer <https://github.com/openPMD/openPMD-viewer>`_ Data visualization Python library built on top of the API.
-- `openPMD-scipp <https://github.com/pordyna/openpmd_scipp>`_ Easy visualization of mesh data (fields) using the `plopp <https://scipp.github.io/plopp/>`_ and `scipp <https://github.com/scipp>`_ Python libraries.
-- `openPMD pandas support <https://openpmd-api.readthedocs.io/en/latest/analysis/pandas.html>`_ Straightforward solution for working with particle data.
-- `openpmd-ls <https://openpmd-api.readthedocs.io/en/latest/utilities/cli.html#openpmd-ls>`_ Command for getting an overview over the content of an openPMD output via command line.
-- `bpls <https://adios2.readthedocs.io/en/latest/ecosystem/utilities.html#bpls-inspecting-data>`_ Powerful tool for inspecting individual ADIOS2 files via command line.
-- `h5ls <https://support.hdfgroup.org/documentation/hdf5/latest/_h5_t_o_o_l__l_s__u_g.html>`_ and `h5dump <https://support.hdfgroup.org/documentation/hdf5/latest/_h5_t_o_o_l__d_p__u_g.html>`_: CLI tools for quick inspection of HDF5 output.
-- `myHDF5 <https://myhdf5.hdfgroup.org/>`_ Easy to use Web GUI for inspection of HDF5 files based on `H5Web <https://github.com/silx-kit/h5web>`_. Also available as a `plugin for VS Code <https://github.com/silx-kit/vscode-h5web>`_.
-
-We recommend trying out the openPMD-viewer and the openPMD-scipp tools first, followed by a quick read through the standard itself and the python part of the `first read API example <https://openpmd-api.readthedocs.io/en/latest/usage/firstread.html>`_.
-
-When directly using the openPMD API make sure you make yourself familiar with when you need to call ``series.flush()``.
-See `Flush Chunk <https://openpmd-api.readthedocs.io/en/latest/usage/firstread.html#flush-chunk>`_ and `Deferred Data API Contract <https://openpmd-api.readthedocs.io/en/latest/usage/workflow.html#deferred-data-api-contract>`_ for more details.
-Forgetting it or modifying the data before flush was performed is a common user mistake that can lead to very confusing results.
-
-In addition to the standard openPMD output PIConGPU offers some reduced diagnostics via :ref:`other plugins <usage-plugins>` including the very powerful :ref:`flexible binning plugin <usage-plugins-binningPlugin>`.
+See the :ref:`openPMD post-processing page <pp-openPMD>` for the available backends and for tools to read and visualize the data.

@@ -14,7 +14,8 @@ External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
 The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
-If the openPMD API is found in version 0.13.0 or greater, PIConGPU will support streaming IO via openPMD.
+PIConGPU requires the openPMD API in version 0.17.0 or greater (see :ref:`the dependencies <install-dependencies>`).
+This version supports streaming I/O via openPMD (ADIOS2/SST).
 
 .param file
 ^^^^^^^^^^^
@@ -37,12 +38,12 @@ Also see :ref:`common patterns of defining particle filters <usage-workflows-par
 ^^^^^^^^^
 
 Note that all the following command line parameters can *alternatively* be specified in a ``.toml`` configuration file.
-See the next section for further information: `Configuring the openPMD plugin with a TOML configuration file>`
+See the TOML configuration section below for further information.
 
 You can use ``--openPMD.period`` to specify the output period.
 The base filename is specified via ``--openPMD.file``, the extension via ``--openPMD.ext``.
 The openPMD-api determines the backend from the specified file extension.
-Possible extensions include ``bp5`` (default), ``bp4``, ``bp`` (discouraged) for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
+Possible extensions include ``bp5`` (the default with current ADIOS2 builds), ``bp4`` and the legacy ``bp`` for the ADIOS2 backend, ``h5`` for HDF5 and ``sst`` for streaming via ADIOS2/SST.
 
 Option ``--openPMD.source`` controls which data is put out.
 Its value is a comma-separated list of combinations of a data set name and a filter name.
@@ -50,7 +51,7 @@ A user can see all possible combinations for the current setup in the command-li
 Note that addding species and particle filters to ``.param`` files will automatically extend the number of combinations available.
 By default all particles and fields are output.
 
-For example, ``--openPMD.period 128 --openPMD.file simData --openPMD.source 'species_all'`` will write only the particle species data to files of the form ``simData_000000.bp``, ``simData_000128.bp`` in the default simulation output directory every 128 steps.
+For example, ``--openPMD.period 128 --openPMD.file simData --openPMD.source 'species_all'`` will write only the particle species data to files of the form ``simData_000000.bp5``, ``simData_000128.bp5`` in the default simulation output directory every 128 steps (the default extension applies unless ``--openPMD.ext`` is given).
 Note that this plugin will only be available if the openPMD API is found during compile configuration.
 
 openPMD backend-specific settings may be controlled via two mechanisms:
@@ -115,7 +116,7 @@ PIConGPU command line option                  description
                                               A range is defined as ``[BEGIN:END)`` where out of range indices will be clipped.
                                               A single value e.g. ``10,:,:`` for a dimension will only dump a slice.
                                               Default is ``:,:,:``, which dumps all cells.
-``--openPMD.file``                            Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
+``--openPMD.file``                            Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput/openPMD``.
 ``--openPMD.ext``                             openPMD filename extension (this controls the backend picked by the openPMD API).
 ``--openPMD.infix``                           openPMD filename infix (use to pick file-, variable-, or group-based layout in openPMD).
                                               Set to NULL to keep empty (e.g. to pick variable-/group-based iteration layout).
