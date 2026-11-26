@@ -59,6 +59,7 @@ extensions = [
     "myst_parser",
     "sphinx.ext.autosectionlabel",
     "legacy_migration_tables",
+    "repo_relative_links",
 ]
 
 # enable latex physics package in math expressions
