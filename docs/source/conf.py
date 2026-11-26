@@ -16,7 +16,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import glob
 import os
+import re
 import subprocess
 import sys
 import sphinx_rtd_theme
@@ -139,6 +141,41 @@ breathe_domain_by_extension = {
 html_theme = "sphinx_rtd_theme"
 
 doxygen_xml_index = os.path.abspath("../xml/index.xml")
+doxygen_xml_dir = os.path.abspath("../xml")
+
+
+def _strip_doxygen_include_graphs(xml_dir):
+    """Drop include-dependency graphs that this manual never renders.
+
+    Breathe parses every compound referenced by ``index.xml`` on the first
+    ``doxygen*`` directive. The ``incdepgraph``/``invincdepgraph`` elements
+    dominate that corpus but only produce output via ``:allow-dot-graphs:``,
+    which no page uses. Removing them is content-neutral and cuts a full build
+    from minutes to about a minute.
+    """
+    if not os.path.isdir(xml_dir):
+        return
+    source_dir = os.path.dirname(os.path.abspath(__file__))
+    if any(
+        "allow-dot-graphs" in open(path, encoding="utf-8").read()
+        for path in glob.glob(os.path.join(source_dir, "**", "*.rst"), recursive=True)
+    ):
+        print(
+            "not stripping Doxygen include graphs: :allow-dot-graphs: is in use",
+            file=sys.stderr,
+        )
+        return
+    pattern = re.compile(r"<(incdepgraph|invincdepgraph)>.*?</\1>", re.S)
+    for path in glob.glob(os.path.join(xml_dir, "*.xml")):
+        if os.path.basename(path) == "index.xml":
+            continue
+        with open(path, encoding="utf-8") as file:
+            content = file.read()
+        stripped = pattern.sub("", content)
+        if stripped != content:
+            with open(path, "w", encoding="utf-8") as file:
+                file.write(stripped)
+
 
 if on_rtd or not os.path.isfile(doxygen_xml_index):
     subprocess.run(
@@ -146,6 +183,8 @@ if on_rtd or not os.path.isfile(doxygen_xml_index):
         cwd=os.path.abspath(".."),
         check=True,
     )
+
+_strip_doxygen_include_graphs(doxygen_xml_dir)
 
 if not on_rtd:
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
