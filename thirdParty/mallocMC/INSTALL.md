@@ -4,7 +4,7 @@ Install
  - C++20 compiler (clang, gcc, hipcc, icc, nvcc)
   - *Debian/Ubuntu:* `sudo apt-get install gcc build-essential`
   - *Arch Linux:* `sudo pacman -S base-devel`
- - `alpaka` 1.2.0
+ - `alpaka` 2.2.0
   - included as git submodule
  - `CMake` >= 3.15
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`

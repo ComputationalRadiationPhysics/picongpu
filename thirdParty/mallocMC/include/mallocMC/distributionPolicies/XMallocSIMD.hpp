@@ -81,6 +81,22 @@ namespace mallocMC
         {
         private:
             using uint32 = std::uint32_t;
+
+            /** Number of warp slots in the per-block shared arrays.
+             *
+             * Falls back to a single slot if alpaka does not know the warp size at compile time, which is the case
+             * during the host compilation of CUDA/HIP code and for SYCL. Coalescing is disabled in those cases, so the
+             * arrays are never accessed beyond that slot.
+             */
+            template<typename AlpakaAcc>
+            static consteval uint32 warpSlots()
+            {
+                if constexpr(getWarpSize<AlpakaAcc>() == 0)
+                    return 1U;
+                else
+                    return maxThreadsPerBlock / getWarpSize<AlpakaAcc>();
+            }
+
             bool can_use_coalescing;
             uint32 warpid;
             uint32 myoffset;
@@ -126,16 +142,20 @@ namespace mallocMC
                 threadcount = 0;
 
                 // init with initial counter
-                auto& warp_sizecounter = alpaka::
-                    declareSharedVar<std::uint32_t[maxThreadsPerBlock / getWarpSize<AlpakaAcc>()], __COUNTER__>(acc);
-                warp_sizecounter[warpid] = 16;
+                auto& warp_sizecounter
+                    = alpaka::declareSharedVar<std::uint32_t[warpSlots<AlpakaAcc>()], __COUNTER__>(acc);
+                // Without a compile-time warp size every thread maps to slot zero, so all work-items would store to
+                // the same slot without a barrier. Coalescing is compiled out in that case and the slot is never read,
+                // hence the store is skipped.
+                if constexpr(getWarpSize<AlpakaAcc>() != 0)
+                    warp_sizecounter[warpid] = 16;
 
                 // second half: make sure that all coalesced allocations can fit
                 // within one page necessary for offset calculation
                 bool const coalescible = bytes > 0 && bytes < (pagesize / 32);
 
 #if (MALLOCMC_DEVICE_COMPILE)
-                threadcount = alpaka::popcount(alpaka::warp::ballot(acc, coalescible));
+                threadcount = alpaka::popcount(acc, alpaka::warp::ballot(acc, coalescible));
 #else
                 threadcount = 1; // TODO
 #endif
@@ -155,9 +175,7 @@ namespace mallocMC
             template<typename AlpakaAcc>
             ALPAKA_FN_ACC auto distribute(AlpakaAcc const& acc, void* allocatedMem) -> void*
             {
-                auto& warp_res
-                    = alpaka::declareSharedVar<char * [maxThreadsPerBlock / getWarpSize<AlpakaAcc>()], __COUNTER__>(
-                        acc);
+                auto& warp_res = alpaka::declareSharedVar<char * [warpSlots<AlpakaAcc>()], __COUNTER__>(acc);
 
                 char* myalloc = (char*) allocatedMem;
                 if(req_size && can_use_coalescing)
@@ -167,7 +185,7 @@ namespace mallocMC
                         *(uint32*) myalloc = threadcount;
                 }
 
-                threadfenceBlock(acc);
+                alpaka::mem_fence(acc, alpaka::memory_scope::Block{});
 
                 void* myres = myalloc;
                 if(can_use_coalescing)

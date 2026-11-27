@@ -1,10 +1,10 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
-3.0.0-dev
+3.0.0
 -----
 
-Date: not yet released
+Date: 2026-11-26
 
 This is a major release including breaking changes on the interface and
 build system level as well as many new features and bug fixes.
@@ -17,20 +17,27 @@ Features
 - Modern CMake support and complete re-organisation of the file tree
 - Modern package management with CMake Package Manager (CPM)
 - New interface: Allocator takes a tag instead of an Acc
+- Multithreaded initialisation
 - C++20 is required now.
 
 Bug fixes
 
 - Memfence before releasing a chunk in ScatterAlloc (and FlatterScatter)
+- Scatter: fix resetting of freed pages
+- `XMallocSIMD`: fix compilation without a compile-time warp size and repair the coalescing path
 - Fix compilation error with multiple accelerators
+- Fix compilation of array assertions
+- Use the AMD wavefront size macro for ROCm 7.2 and later
+- Allow initialisation with zero memory
+- Fix intermittent failures in the multithreaded tests
 
 Maintenance:
 
-- Update alpaka to 1.2.0 + patches (latest develop branch)
+- Update alpaka to 2.2.0
 - Update tooling (clang-format, clang-tidy, ...)
 - Add pre-commit
 - Add rudimentary CI (additional coverage through PIConGPU)
-- Add decent test coverage for FlatterScatter and ScatterAlloc
+- Add decent test coverage for FlatterScatter, ScatterAlloc, and XMallocSIMD
 
 2.6.0
 -----

@@ -118,7 +118,7 @@ alpaka 2.2.X
 """"""""""""""""
 - `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
 
-mallocMC 2.6.0
+mallocMC 3.0.0
 """""""""""""""""""""
 - only required for CUDA and HIP backends
 - `mallocMC <https://github.com/ComputationalRadiationPhysics/mallocMC>`_ is included in the PIConGPU source code

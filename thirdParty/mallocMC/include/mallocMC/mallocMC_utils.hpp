@@ -177,15 +177,25 @@ namespace mallocMC
      * The id is constant over the lifetime of the thread.
      * The id is not equal to warpid().
      *
-     * @return warp id within the block
+     * @return warp id within the block, or 0 if the accelerator has no compile-time warp size, i.e. during the host
+     *         compilation of CUDA/HIP code and for SYCL.
      */
     template<typename AlpakaAcc>
     ALPAKA_FN_ACC inline auto warpid_withinblock(AlpakaAcc const& acc) -> std::uint32_t
     {
-        auto const localId = alpaka::mapIdx<1>(
-            alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc),
-            alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc))[0];
-        return localId / getWarpSize<AlpakaAcc>();
+        if constexpr(getWarpSize<AlpakaAcc>() == 0)
+        {
+            // Alpaka can provide the warp size at runtime, so it is not a compile-time constant here. XMallocSIMD
+            // does not coalesce in these configurations, so zero is a safe placeholder rather than a meaningful id.
+            return 0U;
+        }
+        else
+        {
+            auto const localId = alpaka::mapIdx<1>(
+                alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc),
+                alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc))[0];
+            return localId / getWarpSize<AlpakaAcc>();
+        }
     }
 
     template<typename T, typename U, typename = std::enable_if_t<std::is_integral_v<T> && std::is_integral_v<U>>>
