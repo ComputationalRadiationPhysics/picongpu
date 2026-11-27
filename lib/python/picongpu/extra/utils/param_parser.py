@@ -16,13 +16,13 @@ import sys
 def read_range_file(file, values_only=True):
     """
     Read a json file for a PIC scan or simulation. Such files are generated
-    by the python jupyter UI and have the following structure:
-    PARAMETER_NAME: {
-        "type": run (or compile)
-        "values": [v1, v2]
-    }
+    by the python jupyter UI and have the following structure::
 
-    assumed to
+        PARAMETER_NAME: {
+            "type": run (or compile)
+            "values": [v1, v2]
+        }
+
     Parameters
     ----------
     file: str

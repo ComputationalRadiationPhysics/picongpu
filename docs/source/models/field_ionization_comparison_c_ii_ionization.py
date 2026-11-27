@@ -81,7 +81,7 @@ if __name__ == "__main__":
         E_H**2.0 / (4 * 1),
         ymin,
         ymax,
-        colors="{}".format(p_H[0].get_color()),
+        colors=p_H[0].get_color(),
         label=r"$F_\mathrm{BSI}$ H",
         linestyles="--",
     )
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         E_C[1] ** 2.0 / (4 * 2),
         ymin,
         ymax,
-        colors="{}".format(p_Csimple[0].get_color()),
+        colors=p_Csimple[0].get_color(),
         label=r"$F_\mathrm{BSI}$ C",
         linestyles="--",
     )
@@ -98,7 +98,7 @@ if __name__ == "__main__":
         E_C[1] ** 2.0 / (4 * 3.136),
         ymin,
         ymax,
-        colors="{}".format(p_Ceff[0].get_color()),
+        colors=p_Ceff[0].get_color(),
         label=r"$F_\mathrm{BSI}$ C (eff)",
         linestyles="--",
     )

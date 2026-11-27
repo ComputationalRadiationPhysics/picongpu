@@ -3,6 +3,8 @@
 openPMD Output
 ==============
 
+.. sectionauthor:: Julian Lenz
+
 `openPMD <https://www.openpmd.org/>`__ is the general-purpose,
 hierarchical data standard for particle and field data in computational physics.
 It is the most flexible of the output formats PIConGPU offers:

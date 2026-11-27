@@ -1,21 +1,32 @@
 .. _install-dependencies:
 
-.. seealso::
-
-   You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <https://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
-
-.. note::
-
-   If you are a scientific user at a super computing facility we might have already prepared a software setup for you.
-   See the :ref:`following chapter <install-profile>` if you can skip this step fully or in part by loading existing modules on those systems.
-
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov, Rene Widera, Julian Lenz
 
 Overview
 --------
+
+PIConGPU builds on a number of external dependencies.
+Modern HPC systems will typically provide (parts of) these,
+most often in the form of `modules <https://lmod.readthedocs.io/>`__.
+Using these is preferred over user-installed versions under most circumstances
+because the system administrations have probably built optimized version for their hardware.
+
+Missing dependencies need to be installed by the user,
+a process that is automated for some of the curated system,
+see :ref:`Step 3 of the Quick Start <python_package/quickstart:Step 3: Install the Dependencies>`.
+The `bash <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/etc/picongpu/bash/dependencies_autoinstall.sh>`__,
+`bash/spack <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/etc/picongpu/bash/dependencies_autoinstall_spack.sh>`__
+and `bash/conda <https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/etc/picongpu/bash/dependencies_autoinstall_conda.sh>`__
+presets contain full scripts that install all missing dependencies.
+They are intended for local installation
+but they are likely to run
+(or at least provide a good starting point)
+on other systems as well.
+
+Below you can find a depiction and a list of PIConGPU's dependencies.
 
 .. figure:: libraryDependencies.png
    :alt: overview of PIConGPU library dependencies
@@ -130,6 +141,7 @@ PIConGPU Source Code
   - ``export PATH=$PATH:$PICSRC/src/tools/bin``
 - *python*:
   - install as in :ref:`usage-python-utils`
+
 Optional Libraries
 ^^^^^^^^^^^^^^^^^^
 
@@ -143,7 +155,7 @@ CUDA
 - *Spack:* ``spack install cuda``
 - at least one **CUDA** capable **GPU**
 - *compute capability*: ``sm_60`` or higher
-- `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
+- `full list <https://developer.nvidia.com/cuda-gpus>`__ of CUDA GPUs and their *compute capability*
 - `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <https://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
 
@@ -159,7 +171,7 @@ ROCm/HIP
   - for ROCM 6.0+ additionally ``apt install hiprand-dev${ROCM_VER}``
 - at least one **HIP** capable **GPU**
 - *LLVM target*: ``gfx906`` or higher
-- `full list <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html#supported-gpus>`_ of AMD GPUs and their *LLVM target*
+- `full list <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/system-requirements.html#supported-gpus>`__ of AMD GPUs and their *LLVM target*
 - *environment:*
 
   - ``export CMAKE_PREFIX_PATH=<ROCM_INSTALL>:$CMAKE_PREFIX_PATH``
@@ -215,9 +227,9 @@ openPMD API
 - For usage in PIConGPU, the openPMD API must have been built either with support for ADIOS2 or HDF5 (or both).
   When building the openPMD API from source (described below), these dependencies must be built and installed first.
 
-  - For ADIOS2, CMake build instructions can be found in the `official documentation <https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html>`_.
+  - For ADIOS2, CMake build instructions can be found in the `official documentation <https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html>`__.
     Besides compression, the default configuration should generally be sufficient, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location. Compression with ``c-blosc`` is described below.
-  - For HDF5, CMake build  instructions can be found in the `official documentation <https://support.hdfgroup.org/HDF5/release/cmakebuild.html>`_.
+  - For HDF5, CMake build  instructions can be found in the `official documentation <https://support.hdfgroup.org/HDF5/release/cmakebuild.html>`__.
     The parameters ``-DHDF5_BUILD_CPP_LIB=OFF -DHDF5_ENABLE_PARALLEL=ON`` are required, the ``CMAKE_INSTALL_PREFIX`` should be set to a fitting location.
 - *from source:*
 

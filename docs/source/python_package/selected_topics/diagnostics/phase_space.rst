@@ -3,6 +3,8 @@
 Phase Space
 ===========
 
+.. sectionauthor:: Julian Lenz
+
 The phase-space diagnostic records a 2D histogram of a spatial coordinate
 against a momentum coordinate for one species --
 the standard tool to inspect the structure of your particle population

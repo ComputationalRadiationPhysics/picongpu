@@ -12,7 +12,7 @@ dimension.param
    :no-link:
 
 simulation.param
-^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 .. doxygenfile:: simulation.param
    :project: PIConGPU

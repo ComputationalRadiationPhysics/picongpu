@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # /// script
-# requires-python = ">=3.11,<3.14"
 # dependencies = [
 #   "picongpu @ git+https://github.com/ComputationalRadiationPhysics/picongpu@dev#subdirectory=lib/python"
 # ]
@@ -22,9 +21,6 @@ NUM_CELLS = [192, 2048, 192]
 CELL_SIZE = [0.1772e-6, 0.4430e-7, 0.1772e-6]
 
 # BEGIN-MS-WRAP
-# where to initialize the laser pulse, in units of the pulse duration
-PULSE_INIT = 15.0
-
 TRANSVERSE_FOCUS = NUM_CELLS[0] * CELL_SIZE[0] / 2.0
 
 
@@ -39,7 +35,7 @@ def make_laser(focal_position):
         a0=8.0,
         phi0=0.0,
         focal_position=[TRANSVERSE_FOCUS, focal_position, TRANSVERSE_FOCUS],
-        centroid_position=[TRANSVERSE_FOCUS, -0.25 * PULSE_INIT * duration * c, TRANSVERSE_FOCUS],
+        centroid_position=[TRANSVERSE_FOCUS, -3.75e-14 * c, TRANSVERSE_FOCUS],
     )
 
 

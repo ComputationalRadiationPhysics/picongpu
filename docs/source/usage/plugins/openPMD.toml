@@ -3,9 +3,9 @@
 file = "simData"   # replaces --openPMD.file,
                    # given value is the default
 infix = ""         # replaces --openPMD.infix,
-                   # default is "%06T"
+                   # default is "_%06T"
 ext = "bp5"        # replaces --openPMD.ext,
-                   # the default is "bp5" if ADIOS2 is available, else ".h5"
+                   # the default is "bp5" with a recent ADIOS2 ("bp4" otherwise), or "h5" without ADIOS2
 data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationStrategy,
                                            # default is "doubleBuffer"
 range = "10,:,:"   # replaces --openPMD.range

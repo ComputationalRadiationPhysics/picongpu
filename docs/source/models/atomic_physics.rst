@@ -1,7 +1,7 @@
 .. _model-atomicPhysics:
 
 Atomic Physics/FLYonPIC
-======================
+=======================
 
 .. moduleauthor:: Brian Marre
 

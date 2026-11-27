@@ -1,0 +1,4 @@
+profile_template_path="/path/to/custom.profile"
+tbg_submit="sbatch"
+tbg_tpl_file="etc/picongpu/mysystem/gpu.tpl"
+pic_libs="/path/to/where/dependencies/shall/be/installed"

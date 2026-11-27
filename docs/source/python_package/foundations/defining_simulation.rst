@@ -1,6 +1,8 @@
 Defining Your Simulation
 ========================
 
+.. sectionauthor:: Julian Lenz
+
 Our frontend implements the `PICMI standard <https://picmi.readthedocs.io/en/latest/standard/standard.html>`__.
 This is a declarative Python interface for particle-in-cell simulation codes
 standardized in the community.
@@ -128,6 +130,13 @@ Each of them has its own deep-dive page in
 
 The separate :ref:`tutorial <python_package/tutorial:Tutorial: Setting up a simple LWFA>`
 then puts them together in a complete example.
+That complete input script is reproduced here for reference;
+it is checked in and exercised by the documentation test suite:
+
+.. dropdown:: The full LWFA example
+
+   .. literalinclude:: ../snippets/defining_simulation/lwfa_example.py
+      :language: python
 
 
 (De-)serializing a Simulation

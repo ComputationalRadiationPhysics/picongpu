@@ -16,10 +16,10 @@ If a test is simulated manually, only the associated bashscript has to be execut
     If you are interested in the data, the corresponding line in the bashscript must be commented out.
 
 On the other hand, the test suite should also be able to be used to evaluate existing simulations.
-No ci.bash needs to be executed for this.
+No ``bin/ci.sh`` needs to be executed for this.
 Instead, it is advisable to run the main.py of the respective test directly.
 
 .. code-block:: bash
    :emphasize-lines: 1
 
-   .lib/python/test/testsuite/Template/main.py --help
+   ./lib/python/test/setups/MI/main.py --help

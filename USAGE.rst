@@ -157,7 +157,7 @@ A run simulation can also be reused to create derived input sets via ``pic-creat
 pic-build
 """""""""
 
-This tool is actually a short-hand for an :ref:`out-of-source build with CMake <install-source>`.
+This tool is actually a short-hand for an out-of-source build with CMake.
 
 In detail, it does:
 
@@ -195,7 +195,7 @@ pic-configure
 """""""""""""
 
 This tool is just a convenient wrapper for a call to `CMake <https://cmake.org>`_.
-It is executed from an :ref:`empty build directory <install-source>`.
+It is executed from an empty build directory.
 
 You will likely not use this tool directly.
 Instead, :ref:`pic-build <usage-basics-build>` from above calls ``pic-configure`` for you, forwarding its arguments.

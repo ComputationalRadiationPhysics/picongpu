@@ -3,6 +3,8 @@
 HPC Submission Internals
 ========================
 
+.. sectionauthor:: Julian Lenz
+
 This is a deep dive into what happens *after* your input files have been
 generated: how the simulation is compiled, packaged and handed to the
 batch system of your machine, and where everything ends up.
@@ -15,7 +17,7 @@ The submission is performed by the `tbg <https://github.com/ComputationalRadiati
 driven by the ``TBG_*`` variables in the generated ``etc/picongpu/N.cfg``
 and by a batch-script *template* for your system.
 For the platform-independent parts of this tool
-see :ref:`the legacy TBG documentation <usage-tbg>`.
+see :ref:`the low-level TBG documentation <usage-tbg>`.
 
 .. _tbg-flags:
 

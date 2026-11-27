@@ -3,6 +3,8 @@
 Custom User Input and Templates
 ===============================
 
+.. sectionauthor:: Julian Lenz
+
 Sometimes a setup needs a value that is not part of the PICMI interface --
 for instance a project-specific parameter used by a customised template.
 PIConGPU lets you register such values and your own templates

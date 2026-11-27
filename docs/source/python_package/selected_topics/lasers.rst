@@ -3,6 +3,8 @@
 Lasers
 ======
 
+.. sectionauthor:: Julian Lenz
+
 Lasers are added to a simulation via the ``lasers`` parameter:
 
 .. code-block:: python

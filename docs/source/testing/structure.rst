@@ -13,23 +13,30 @@ The second part contains the object to be compared, in the case of PIConGPU it i
 Ultimately, these only have to be compared.
 In order to then clearly present the result obtained to the user, an output is also an advantage.
 
-| ./lib/python/test/testsuite
-| ├── Math
-| | ├── deviation.py
-| | ├── physics.py
-| | ├── math.py
-| | └── _searchData.py
-| ├── Output
-| | ├── Log.py 
-| | └── Viewer.py
-| ├── Reader
-| | ├── dataReader.py   
-| | ├── jsonReader.py
-| | └── paramReader.py
-| ├── Template
-| | ├── Data.py 
-| | └── main.py
-| └── _checkData.py
+| ./lib/python/test
+| ├── testsuite
+| | ├── Math
+| | | ├── deviation.py
+| | | ├── physics.py
+| | | ├── math.py
+| | | └── _searchData.py
+| | ├── Output
+| | | ├── Log.py
+| | | └── Viewer.py
+| | ├── Reader
+| | | ├── dataReader.py
+| | | ├── jsonReader.py
+| | | └── paramReader.py
+| | ├── Template
+| | | └── config.py
+| | └── _checkData.py
+| ├── setups
+| | ├── ESKHI
+| | └── MI
+| └── picongpu
+|   ├── compiling
+|   ├── end_to_end
+|   └── quick
 |
 
 In the above overview, all ``__init__.py`` and ``_manager.py`` files have been left out for the sake of clarity.

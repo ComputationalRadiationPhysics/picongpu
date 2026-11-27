@@ -3,6 +3,8 @@
 Simulation-Wide Settings
 ========================
 
+.. sectionauthor:: Julian Lenz
+
 Some options are configured on the ``Simulation`` itself
 rather than on a grid, solver or species.
 

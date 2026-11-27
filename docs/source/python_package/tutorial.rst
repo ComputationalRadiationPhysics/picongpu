@@ -1,6 +1,8 @@
 Tutorial: Setting up a simple LWFA
 ==================================
 
+.. sectionauthor:: Julian Lenz
+
 We will now add some interesting physics to the minimal example
 from the :ref:`Quick Start <python_package/quickstart:Quick Start>`.
 This tutorial is supposed to give you a good introduction to the features
@@ -24,8 +26,8 @@ Lasers
 ------
 
 There are various lasers defined in `the PICMI standard <https://picmi.readthedocs.io/en/latest/standard/laser_profiles.html>`__ and its :ref:`PIConGPU extension <python_package/selected_topics/lasers:Lasers>`.
-We define a Gaussian laser as moving into positive ``y`` direction
-(this is the convention PIConGPU is optimized for):
+We define a Gaussian laser propagating in positive ``y`` direction.
+This is the direction that PIConGPU's simulation window moves along (if activated).
 
 .. literalinclude:: snippets/defining_simulation/lwfa_example.py
    :language: python

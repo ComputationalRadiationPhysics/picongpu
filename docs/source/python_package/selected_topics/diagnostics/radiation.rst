@@ -3,6 +3,8 @@
 Radiation
 =========
 
+.. sectionauthor:: Julian Lenz
+
 The radiation plugin computes the electromagnetic radiation field
 emitted by the particles of a species
 (synchrotron radiation, transition radiation, laser-plasma sources, ...).
