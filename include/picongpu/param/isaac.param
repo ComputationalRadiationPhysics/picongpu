@@ -1,4 +1,4 @@
-/* Copyright 2016-2024 Alexander Matthes, Pawel Ordyna
+/* Copyright 2016-2026 Alexander Matthes, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -19,21 +19,22 @@
 
 /** @file
  *
- * Definition which native fields and density fields of (filtered) particles will be
+ * Definition, which fields, vector fields and particle species will be
  * visualizable with ISAAC. ISAAC is an in-situ visualization library with which
- * the PIC simulation can be observed while it is running avoiding the time
+ * the PIC simulation can be observed while it is running, avoiding the time
  * consuming writing and reading of simulation data for the classical post
  * processing of data.
  *
- * ISAAC can directly visualize natives fields like the E or B field, but
- * density fields of particles need to be calculated from PIConGPU on the fly
+ * ISAAC can directly visualize native fields like the E or B field as volumes
+ * or as vector fields. Temporary density fields of (filtered) particles are
+ * also possible, but need to be calculated from PIConGPU on the fly,
  * which slightly increases the runtime and the memory consumption. Every
  * particle density field will reduce the amount of memory left for PIConGPUs
  * particles and fields.
  *
  * To get best performance, ISAAC defines an exponential amount of different
  * visualization kernels for every combination of (at runtime) activated
- * fields. So furthermore a lot of fields will increase the compilation time.
+ * fields. So, furthermore, a lot of fields will increase the compilation time.
  *
  */
 
@@ -49,8 +50,9 @@ namespace picongpu
     {
         namespace deriveField = particles::particleToGrid;
 
-        /** Intermediate list of native particle species of PIConGPU which shall be
-         *  visualized. */
+        /** List of native particle species of PIConGPU which shall be
+         *  visualized via particle rendering. By default, also used as list for
+         *  density field rendering. */
         using Particle_Seq = VectorAllSpecies;
 
         /** Intermediate list of native fields of PIConGPU which shall be
@@ -70,12 +72,12 @@ namespace picongpu
          */
         using Density_Seq = deriveField::CreateEligible_t<Particle_Seq, deriveField::derivedAttributes::Density>;
 
-        /** Compile time sequence of all fields which shall be visualized. Basically
+        /** Compile time sequence of all fields which shall be visualized as volumes. Basically
          *  joining Native_Seq and Density_Seq. */
         using Fields_Seq = MakeSeq_t<Native_Seq, Density_Seq>;
 
-        /** Compile time sequence of all fields which shall be visualized. Basically
-         *  joining Native_Seq and Density_Seq. */
+        /** Compile time sequence of all fields which shall be visualized as vector fields. Just
+         *  the Native_Seq. */
         using VectorFields_Seq = Native_Seq;
     } // namespace isaacP
 } // namespace picongpu

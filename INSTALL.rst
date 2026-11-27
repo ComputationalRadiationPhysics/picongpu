@@ -272,11 +272,11 @@ c-blosc for openPMD API with ADIOS2
 
 ISAAC
 """""
-- 1.6.0+
-- requires *boost* (header only), *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself)
-- enables live in situ visualization, see more here `Plugin description <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC>`_
+- 1.7.0+
+- requires *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself) and *glm*
+- enables live in situ visualization, see more in the :ref:`plugin description <usage-plugins-ISAAC>`.
 - *Spack:* ``spack install isaac``
-- *from source:* build the *in situ library* and its dependencies as described in `ISAAC's INSTALL.md <https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md>`_
+- *from source:* build the *in situ library* and its dependencies as described in `ISAAC's INSTALL.md <https://github.com/ComputationalRadiationPhysics/isaac/blob/dev/INSTALL.md>`_
 - *environment:* set environment variable ``CMAKE_PREFIX_PATH`` for each dependency and the ISAAC in situ library
 
 FFTW3
