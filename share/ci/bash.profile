@@ -22,8 +22,7 @@ if [ -z "$DISABLE_ISAAC" ] ; then
   export CMAKE_PREFIX_PATH=$ICET_ROOT/lib:$CMAKE_PREFIX_PATH
   export LD_LIBRARY_PATH=$ICET_ROOT/lib:$LD_LIBRARY_PATH
 
-  export ISAAC_ROOT=/opt/isaac/1.6.0-dev-custom
-  # install cusom version of isaac
+  export ISAAC_ROOT=/opt/isaac/1.7.0-dev
   source $CI_PROJECT_DIR/share/ci/install/isaac.sh
 
   export CMAKE_PREFIX_PATH=$ISAAC_ROOT:$CMAKE_PREFIX_PATH
